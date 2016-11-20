@@ -235,7 +235,7 @@ namespace EpgTimer
         }
         protected virtual void ReloadInfo()
         {
-            if (ReloadInfoFlg == true && this.IsVisible == true && this.WindowState != WindowState.Minimized)
+            if (ReloadInfoFlg == true && this.IsVisible == true && (this.WindowState != WindowState.Minimized || this.IsActive == true))
             {
                 ReloadInfoFlg = !ReloadInfoData();
             }
