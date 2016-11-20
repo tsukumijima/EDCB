@@ -10,13 +10,12 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <DockPanel HorizontalAlignment="Left">
-            <Button Content="クリア" Margin="6" Name="button_clear" MinWidth="55" />
-            <Button Content="更新" Margin="12,6,6,6" Name="button_reload" MinWidth="55" />
-            <Button Content="ファイルに保存する" Margin="12,6,6,6" Name="button_save" MinWidth="55" Click="button_save_Click" />
-            <Label Content="表示行数" Margin="12,6,0,6" IsEnabled="{Binding Path=IsEnabled, ElementName=textBox_logMax, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBox Margin="0,6,6,6" Name="textBox_logMax" MinWidth="55" TextChanged="textBox_logMax_TextChanged" />
-        </DockPanel>
+        <StackPanel Orientation="Horizontal" Margin="6,6,6,0">
+            <Button Content="ファイルに保存する" Margin="0,0,24,0" Name="button_save" Click="button_save_Click" />
+            <Label Content="表示行数"/>
+            <TextBox Name="textBox_logMax" Margin="0,0,6,0" MinWidth="55" TextChanged="textBox_logMax_TextChanged" />
+            <Button Content="変更" Name="button_reload" />
+        </StackPanel>
         <ListView Grid.Row="1" Name="listView_log" Margin="6">
             <ListView.Resources>
                 <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
@@ -43,9 +42,6 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" >
-            <CheckBox Content="自動更新" Margin="6" Name="checkBox_autoReload" Checked="checkBox_autoReload_Checked" Unchecked="checkBox_autoReload_Checked" ToolTip="ほっておくと更新負荷が上がっていくので注意" />
-            <CheckBox Content="メインウィンドウの前面に表示" Margin="6" Name="checkBox_windowPinned" />
-        </WrapPanel>
+        <CheckBox Grid.Row="2" HorizontalAlignment="Right" Content="メインウィンドウの前面に表示" Margin="6" Name="checkBox_windowPinned" />
     </Grid>
 </user:NotifyLogWindowBase>

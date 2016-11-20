@@ -1462,8 +1462,14 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        public void AddNotifySave(NotifySrvInfo notifyInfo)
+        const int NotifyLogMaxLocal = 8192 * 2;
+        public static void AddNotifyLog(NotifySrvInfo notifyInfo)
         {
+            if (Instance.NotifyLogList.Count >= NotifyLogMaxLocal)
+            {
+                Instance.NotifyLogList.RemoveRange(0, NotifyLogMaxLocal / 2);
+            }
+            Instance.NotifyLogList.Add(notifyInfo);
             if (Settings.Instance.AutoSaveNotifyLog == 1)
             {
                 String filePath = SettingPath.ModulePath + "\\Log";

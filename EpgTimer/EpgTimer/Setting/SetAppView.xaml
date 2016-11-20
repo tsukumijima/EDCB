@@ -203,7 +203,7 @@
                             <CheckBox Content="バルーンチップでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                         <StackPanel Margin="0,6,0,0" >
-                            <CheckBox Content="情報通知ログをファイルに保存する(EpgTimerSrv側)" Name="checkBox_srvSaveNotifyLog" />
+                            <CheckBox Content="情報通知ログをファイルに保存する(EpgTimerSrv側)" Name="checkBox_srvSaveNotifyLog" ToolTipService.ShowOnDisabled="True" ToolTip="また、チェック時は情報通知ダイアログでEpgTimerSrv側のログを表示します。"/>
                             <CheckBox Margin="0,6,0,0" Content="情報通知ログをファイルに保存する(EpgTimer側)" Name="checkBox_AutoSaveNotifyLog" />
                         </StackPanel>
                         <CheckBox Margin="0,6,0,0" Content="デバッグ出力をファイルに保存する" Name="checkBox_srvSaveDebugLog" />

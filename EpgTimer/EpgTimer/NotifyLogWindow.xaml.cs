@@ -22,21 +22,17 @@ namespace EpgTimer
                 base.SetParam(false, checkBox_windowPinned);
 
                 this.KeyDown += ViewUtil.KeyDown_Escape_Close();
-
-                textBox_logMax.Text = Settings.Instance.NotifyLogMax.ToString();
-
-                this.Loaded += (sender, e) => UpdateInfo();
+                this.KeyDown += ViewUtil.KeyDown_Enter(this.button_reload);
+                this.textBox_logMax.Text = Settings.Instance.NotifyLogMax.ToString();
                 this.button_reload.Click += (sender, e) => ReloadInfoData();
-                this.button_clear.Click += (sender, e) =>
-                {
-                    CommonManager.Instance.NotifyLogList.Clear();
-                    ReloadInfoData();
-                };
 
                 //リストビュー関連の設定
                 lstCtrl = new ListViewController<NotifySrvInfoItem>(this);
                 lstCtrl.SetInitialSortKey(CommonUtil.NameOf(() => (new NotifySrvInfoItem()).Time), ListSortDirection.Descending);
                 lstCtrl.SetViewSetting(listView_log, gridView_log, false, true);
+
+                //データ読込
+                ReloadInfoData();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -45,18 +41,18 @@ namespace EpgTimer
             return lstCtrl.ReloadInfoData(dataList =>
             {
                 string notifyLog = "";
-                if (CommonManager.Instance.CtrlCmd.SendGetNotifyLog(Math.Max(Settings.Instance.NotifyLogMax, 1), ref notifyLog) == ErrCode.CMD_SUCCESS)
+                if (IniFileHandler.GetPrivateProfileInt("SET", "SaveNotifyLog", 0, SettingPath.TimerSrvIniPath) != 0
+                    && CommonManager.Instance.CtrlCmd.SendGetNotifyLog(Math.Max(Settings.Instance.NotifyLogMax, 1), ref notifyLog) == ErrCode.CMD_SUCCESS)
                 {
                     //サーバに保存されたログを使う
                     dataList.AddRange(notifyLog.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                                                                            .Select(txt => new NotifySrvInfoItem(txt)));
-                    textBox_logMax.IsEnabled = true;
+                                                .Select(text => new NotifySrvInfoItem(text)));
                 }
                 else
                 {
                     //クライアントで蓄積したログを使う
-                    dataList.AddRange(CommonManager.Instance.NotifyLogList.Select(info => new NotifySrvInfoItem(info)));
-                    textBox_logMax.IsEnabled = false;
+                    dataList.AddRange(CommonManager.Instance.NotifyLogList.Skip(CommonManager.Instance.NotifyLogList.Count - Settings.Instance.NotifyLogMax)
+                                                .Select(info => new NotifySrvInfoItem(info)));
                 }
                 return true;
             });
@@ -77,11 +73,6 @@ namespace EpgTimer
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-        }
-        private void checkBox_autoReload_Checked(object sender, RoutedEventArgs e)
-        {
-            Settings.Instance.NotifyWindowAutoReload = checkBox_autoReload.IsChecked == true;
-            if (Settings.Instance.NotifyWindowAutoReload == true) UpdateInfo();
         }
         private void textBox_logMax_TextChanged(object sender, TextChangedEventArgs e)
         {

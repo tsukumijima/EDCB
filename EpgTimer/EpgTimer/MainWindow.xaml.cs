@@ -617,6 +617,7 @@ namespace EpgTimer
             epgView.UpdateInfo();
             SearchWindow.UpdatesInfo();
             InfoSearchWindow.UpdatesInfo();
+            NotifyLogWindow.UpdatesInfo();
             return true;
         }
 
@@ -914,6 +915,7 @@ namespace EpgTimer
                 epgView.UpdateSetting();
                 SearchWindow.UpdatesInfo(false);
                 InfoSearchWindow.UpdatesInfo();
+                NotifyLogWindow.UpdatesInfo();
 
                 ResetMainView();
 
@@ -1332,12 +1334,8 @@ namespace EpgTimer
                         idleShowBalloon = true;
                     }
                 }
-                CommonManager.Instance.AddNotifySave(status);
-                CommonManager.Instance.NotifyLogList.Add(status);
-                if (Settings.Instance.NotifyWindowAutoReload == true)
-                {
-                    NotifyLogWindow.UpdatesInfo();
-                }
+                CommonManager.AddNotifyLog(status);
+                NotifyLogWindow.UpdatesInfo();
             });
 
             System.Diagnostics.Trace.WriteLine((UpdateNotifyItem)status.notifyID);
@@ -1448,6 +1446,7 @@ namespace EpgTimer
                         {
                             IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
+                            NotifyLogWindow.UpdatesInfo();
                             StatusManager.StatusNotifyAppend("設定ファイル転送 < ");
                         }
                     }

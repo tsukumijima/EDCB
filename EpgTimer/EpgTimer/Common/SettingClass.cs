@@ -451,7 +451,6 @@ namespace EpgTimer
         public Dock MainViewButtonsDock { get; set; }
         public CtxmCode StartTab { get; set; }
         public bool TrimSortTitle { get; set; }
-        public bool NotifyWindowAutoReload { get; set; }
 
         public Settings()
         {
@@ -633,7 +632,6 @@ namespace EpgTimer
             MainViewButtonsDock = Dock.Right;
             StartTab = CtxmCode.ReserveView;
             TrimSortTitle = false;
-            NotifyWindowAutoReload = false;
         }
 
         [NonSerialized()]
