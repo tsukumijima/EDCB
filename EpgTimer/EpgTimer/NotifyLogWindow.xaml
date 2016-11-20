@@ -14,6 +14,8 @@
             <Button Content="クリア" Margin="6" Name="button_clear" MinWidth="55" />
             <Button Content="更新" Margin="12,6,6,6" Name="button_reload" MinWidth="55" />
             <Button Content="ファイルに保存する" Margin="12,6,6,6" Name="button_save" MinWidth="55" Click="button_save_Click" />
+            <Label Content="表示行数" Margin="12,6,0,6" IsEnabled="{Binding Path=IsEnabled, ElementName=textBox_logMax, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox Margin="0,6,6,6" Name="textBox_logMax" MinWidth="55" TextChanged="textBox_logMax_TextChanged" />
         </DockPanel>
         <ListView Grid.Row="1" Name="listView_log" Margin="6">
             <ListView.Resources>

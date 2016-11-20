@@ -416,6 +416,7 @@ namespace EpgTimer
         public bool InfoSearchManualAutoAddInfo { get; set; }
         public bool InfoSearchItemTooltip { get; set; }
         public short AutoSaveNotifyLog { get; set; }
+        public int NotifyLogMax { get; set; }
         public bool ShowTray { get; set; }
         public bool MinHide { get; set; }
         public bool MouseScrollAuto { get; set; }
@@ -597,6 +598,7 @@ namespace EpgTimer
             InfoSearchManualAutoAddInfo = true;
             InfoSearchItemTooltip = true;
             AutoSaveNotifyLog = 0;
+            NotifyLogMax = 100;
             ShowTray = true;
             MinHide = true;
             MouseScrollAuto = false;

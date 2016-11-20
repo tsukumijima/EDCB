@@ -23,6 +23,8 @@ namespace EpgTimer
 
                 this.KeyDown += ViewUtil.KeyDown_Escape_Close();
 
+                textBox_logMax.Text = Settings.Instance.NotifyLogMax.ToString();
+
                 this.Loaded += (sender, e) => UpdateInfo();
                 this.button_reload.Click += (sender, e) => ReloadInfoData();
                 this.button_clear.Click += (sender, e) =>
@@ -42,7 +44,20 @@ namespace EpgTimer
         {
             return lstCtrl.ReloadInfoData(dataList =>
             {
-                dataList.AddRange(CommonManager.Instance.NotifyLogList.Select(info => new NotifySrvInfoItem(info)));
+                string notifyLog = "";
+                if (CommonManager.Instance.CtrlCmd.SendGetNotifyLog(Math.Max(Settings.Instance.NotifyLogMax, 1), ref notifyLog) == ErrCode.CMD_SUCCESS)
+                {
+                    //サーバに保存されたログを使う
+                    dataList.AddRange(notifyLog.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                            .Select(txt => new NotifySrvInfoItem(txt)));
+                    textBox_logMax.IsEnabled = true;
+                }
+                else
+                {
+                    //クライアントで蓄積したログを使う
+                    dataList.AddRange(CommonManager.Instance.NotifyLogList.Select(info => new NotifySrvInfoItem(info)));
+                    textBox_logMax.IsEnabled = false;
+                }
                 return true;
             });
         }
@@ -57,7 +72,7 @@ namespace EpgTimer
                 {
                     using (var file = new StreamWriter(dlg.FileName))
                     {
-                        lstCtrl.dataList.ForEach(info => file.Write(info.FileLogText));
+                        lstCtrl.dataList.ForEach(info => file.WriteLine(info));
                     }
                 }
             }
@@ -67,6 +82,12 @@ namespace EpgTimer
         {
             Settings.Instance.NotifyWindowAutoReload = checkBox_autoReload.IsChecked == true;
             if (Settings.Instance.NotifyWindowAutoReload == true) UpdateInfo();
+        }
+        private void textBox_logMax_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            int logMax;
+            int.TryParse(textBox_logMax.Text, out logMax);
+            Settings.Instance.NotifyLogMax = logMax;
         }
     }
     public class NotifyLogWindowBase : AttendantDataWindow<NotifyLogWindow> { }
