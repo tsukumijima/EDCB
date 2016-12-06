@@ -204,7 +204,7 @@ namespace EpgTimer.EpgView
         {
             try
             {
-                int idx = timeList.BinarySearch(GetViewTime(DateTime.Now));
+                int idx = timeList.BinarySearch(GetViewTime(DateTime.UtcNow.AddHours(9)));
                 double pos = ((idx < 0 ? ~idx : idx) - 1) * 60 * Settings.Instance.MinHeight - 120;
                 programView.scrollViewer.ScrollToVerticalOffset(Math.Max(0, Math.Ceiling(pos)));
             }
@@ -219,7 +219,7 @@ namespace EpgTimer.EpgView
 
                 if (timeList.Count == 0) return;
 
-                DateTime nowTime = GetViewTime(DateTime.Now);
+                DateTime nowTime = GetViewTime(DateTime.UtcNow.AddHours(9));
                 int idx = timeList.BinarySearch(nowTime.Date.AddHours(nowTime.Hour));
                 double posY = (idx < 0 ? ~idx * 60 : (idx * 60 + nowTime.Minute)) * Settings.Instance.MinHeight;
 

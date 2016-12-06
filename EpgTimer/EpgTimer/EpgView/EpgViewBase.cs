@@ -165,7 +165,7 @@ namespace EpgTimer.EpgView
                     .Where(id => serviceDic.ContainsKey(id) == true).Select(id => serviceDic[id])
                     .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList }).ToList();
 
-                var keyTime = DateTime.Now.AddDays(-Settings.Instance.EpgNoDisplayOldDays);
+                var keyTime = DateTime.UtcNow.AddHours(9).AddDays(-Settings.Instance.EpgNoDisplayOldDays);
                 foreach (EpgServiceEventInfo item in serviceEventList)
                 {
                     item.eventList = item.eventList.FindAll(eventInfo =>

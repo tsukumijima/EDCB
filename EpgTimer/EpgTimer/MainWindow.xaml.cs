@@ -1303,10 +1303,10 @@ namespace EpgTimer
                 infoText += "録画中:";
                 infoCount = sortList.Count(info => info.IsOnRec()) - 1;
             }
-            else if (Settings.Instance.UpdateTaskText == true && sortList[0].OnTime(DateTime.Now.AddHours(1)) >= 0) //1時間以内に開始されるもの
+            else if (Settings.Instance.UpdateTaskText == true && sortList[0].OnTime(DateTime.UtcNow.AddHours(9).AddHours(1)) >= 0) //1時間以内に開始されるもの
             {
                 infoText += "まもなく録画:";
-                infoCount = sortList.Count(info => info.OnTime(DateTime.Now.AddHours(1)) >= 0) - 1;
+                infoCount = sortList.Count(info => info.OnTime(DateTime.UtcNow.AddHours(9).AddHours(1)) >= 0) - 1;
             }
             else
             {

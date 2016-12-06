@@ -1474,7 +1474,7 @@ namespace EpgTimer
             {
                 String filePath = SettingPath.ModulePath + "\\Log";
                 Directory.CreateDirectory(filePath);
-                filePath += "\\EpgTimerNotify_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
+                filePath += "\\EpgTimerNotify_" + DateTime.UtcNow.AddHours(9).ToString("yyyyMMdd") + ".txt";
                 using (var file = new StreamWriter(filePath, true))
                 {
                     file.WriteLine(new NotifySrvInfoItem(notifyInfo));

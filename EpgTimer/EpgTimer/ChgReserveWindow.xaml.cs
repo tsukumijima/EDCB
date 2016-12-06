@@ -131,7 +131,7 @@ namespace EpgTimer
                 addMode = AddMode.Add;
                 openMode = 0;
                 reserveInfo = new ReserveData();
-                reserveInfo.StartTime = DateTime.Now.AddMinutes(1);
+                reserveInfo.StartTime = DateTime.UtcNow.AddHours(9).AddMinutes(1);
                 reserveInfo.StartTimeEpg = reserveInfo.StartTime;
                 reserveInfo.DurationSecond = 1800;
                 reserveInfo.EventID = 0xFFFF;
