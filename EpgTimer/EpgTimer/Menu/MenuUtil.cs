@@ -685,7 +685,7 @@ namespace EpgTimer
                 List<ReserveData> modList = (SyncAll == true ? syncList : AutoAddSyncModifyReserveList(syncList, itemlist));
 
                 int cMin = Settings.Instance.CautionOnRecChange == true ? Settings.Instance.CautionOnRecMarginMin : 1;
-                deleteList.AddRange(modList.FindAll(data => data.IsEnabled == true && data.OnTime(DateTime.UtcNow.AddHours(9).AddMinutes(cMin)) >= 0));
+                deleteList.AddRange(modList.FindAll(data => data.IsEnabled == true && data.OnTime(DateTime.UtcNow.AddHours(9).AddMinutes(cMin)) < 0));
                 syncList = syncList.Except(deleteList).ToList();
             }
 
