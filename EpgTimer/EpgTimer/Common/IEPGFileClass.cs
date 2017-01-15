@@ -15,7 +15,7 @@ namespace EpgTimer
             try
             {
                 Dictionary<String, String> paramList = new Dictionary<string, string>();
-                reader = (new System.IO.StreamReader(filePath, System.Text.Encoding.Default));
+                reader = (new System.IO.StreamReader(filePath, Encoding.GetEncoding(932)));
                 while (reader.Peek() >= 0)
                 {
                     string buff = reader.ReadLine();
@@ -172,7 +172,7 @@ namespace EpgTimer
             try
             {
                 Dictionary<String, String> paramList = new Dictionary<string, string>();
-                reader = (new System.IO.StreamReader(filePath, System.Text.Encoding.Default));
+                reader = (new System.IO.StreamReader(filePath, Encoding.GetEncoding(932)));
                 while (reader.Peek() >= 0)
                 {
                     string buff = reader.ReadLine();

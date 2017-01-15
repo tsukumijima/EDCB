@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.ComponentModel;
 using System.IO;
@@ -66,7 +67,7 @@ namespace EpgTimer
                 dlg.Filter = "txt Files (.txt)|*.txt;|all Files(*.*)|*.*";
                 if (dlg.ShowDialog() == true)
                 {
-                    using (var file = new StreamWriter(dlg.FileName))
+                    using (var file = new StreamWriter(dlg.FileName, false, Encoding.GetEncoding(932)))
                     {
                         lstCtrl.dataList.ForEach(info => file.WriteLine(info));
                     }

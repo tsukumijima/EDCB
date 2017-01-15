@@ -56,7 +56,7 @@ namespace EpgTimer
         {
             try
             {
-                using (var sr = new StreamReader(SettingPath.SettingFolderPath + "\\ChSet5.txt", Encoding.Default))
+                using (var sr = new StreamReader(SettingPath.SettingFolderPath + "\\ChSet5.txt", Encoding.GetEncoding(932)))
                 {
                     return ChSet5.Load(sr);
                 }
@@ -111,7 +111,7 @@ namespace EpgTimer
             {
                 if (chList == null) return false;
                 //
-                using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, Encoding.Default))
+                using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, Encoding.GetEncoding(932)))
                 {
                     foreach (ChSet5Item info in chList.Values)
                     {

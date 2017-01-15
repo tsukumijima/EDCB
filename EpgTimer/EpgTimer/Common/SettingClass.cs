@@ -83,7 +83,7 @@ namespace EpgTimer
                     break;
                 }
             }
-            return Encoding.Default.GetString(buff, 0, (int)resultSize).TrimEnd('\0').Split('\0');
+            return Encoding.GetEncoding(932).GetString(buff, 0, (int)resultSize).TrimEnd('\0').Split('\0');
         }
 
         /// <summary>INIファイルから連番のキー/セクションを削除する。lpAppNameにnullを指定すると連番セクションを削除する。</summary>

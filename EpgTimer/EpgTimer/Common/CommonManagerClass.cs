@@ -1475,7 +1475,7 @@ namespace EpgTimer
                 String filePath = SettingPath.ModulePath + "\\Log";
                 Directory.CreateDirectory(filePath);
                 filePath += "\\EpgTimerNotify_" + DateTime.UtcNow.AddHours(9).ToString("yyyyMMdd") + ".txt";
-                using (var file = new StreamWriter(filePath, true))
+                using (var file = new StreamWriter(filePath, true, Encoding.GetEncoding(932)))
                 {
                     file.WriteLine(new NotifySrvInfoItem(notifyInfo));
                 }
@@ -1500,7 +1500,7 @@ namespace EpgTimer
                     //EpgTimerが作成したEpgTimerSrv.iniからBonDriverセクションを拾い出す
                     //将来にわたって確実なリストアップではないし、本来ならSendEnumPlugIn()あたりを変更して取得すべきだが、
                     //参考表示なので構わない
-                    using (var reader = (new System.IO.StreamReader(SettingPath.TimerSrvIniPath, Encoding.Default)))
+                    using (var reader = (new System.IO.StreamReader(SettingPath.TimerSrvIniPath, Encoding.GetEncoding(932))))
                     {
                         while (reader.Peek() >= 0)
                         {
