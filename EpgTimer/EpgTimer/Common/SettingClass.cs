@@ -108,9 +108,11 @@ namespace EpgTimer
 
         public static void UpdateSrvProfileIniNW(List<string> iniList = null)
         {
-            if (CommonManager.Instance.NW.IsConnected == false) return;
-
-            ReloadSettingFilesNW(iniList);
+            if (CommonManager.Instance.NWMode == true)
+            {
+                if (CommonManager.Instance.NW.IsConnected == false) return;
+                ReloadSettingFilesNW(iniList);
+            }
 
             ChSet5.Clear();
             Settings.Instance.RecPresetList = null;

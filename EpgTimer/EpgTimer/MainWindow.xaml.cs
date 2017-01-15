@@ -1442,12 +1442,12 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.IniFile:
                     {
-                        if (CommonManager.Instance.NWMode == true)
+                        if (CommonManager.Instance.NWMode == true || status.param4 == "EpgTimerSrvSetting")
                         {
                             IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
                             NotifyLogWindow.UpdatesInfo();
-                            StatusManager.StatusNotifyAppend("設定ファイル転送 < ");
+                            StatusManager.StatusNotifyAppend("EpgTimerSrv設定変更に伴う画面更新 < ");
                         }
                     }
                     break;

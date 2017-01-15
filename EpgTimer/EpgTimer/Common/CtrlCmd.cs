@@ -565,7 +565,7 @@ namespace EpgTimer
         /// <summary>保存された情報通知ログを取得する</summary>
         public ErrCode SendGetNotifyLog(int val, ref string resVal) { object o = resVal; var ret = SendAndReceiveCmdData(CtrlCmd.CMD_EPG_SRV_GET_NOTIFY_LOG, val, ref o); resVal = (string)o; return ret; }
         /// <summary>設定ファイル(ini)の更新を通知させる</summary>
-        public ErrCode SendNotifyProfileUpdate() { return SendCmdWithoutData(CtrlCmd.CMD_EPG_SRV_PROFILE_UPDATE); }
+        public ErrCode SendNotifyProfileUpdate(string val = "EpgTimer") { return SendCmdData(CtrlCmd.CMD_EPG_SRV_PROFILE_UPDATE, val); }
         /// <summary>ネットワークモードのEpgDataCap_Bonのチャンネルを切り替え</summary>
         public ErrCode SendNwTVSetCh(SetChInfo val) { return SendCmdData(CtrlCmd.CMD_EPG_SRV_NWTV_SET_CH, val); }
         /// <summary>ネットワークモードで起動中のEpgDataCap_Bonを終了</summary>
