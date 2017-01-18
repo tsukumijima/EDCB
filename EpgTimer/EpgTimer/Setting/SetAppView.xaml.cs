@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Documents;
+using System.IO;
+using System.Reflection;
 
 namespace EpgTimer.Setting
 {
@@ -16,17 +18,7 @@ namespace EpgTimer.Setting
     /// </summary>
     public partial class SetAppView : UserControl
     {
-        private List<String> ngProcessList = new List<String>();
-        private String ngMin = "10";
-        public bool ngUsePC = false;
-        public String ngUsePCMin = "3";
-        public bool ngFileStreaming = false;
-        public bool ngShareFile = false;
-
         private EpgSearchKeyInfo defSearchKey;
-
-        private List<String> extList = new List<string>();
-        private List<String> delChkFolderList = new List<string>();
 
         BoxExchangeEditor bxb;
         BoxExchangeEditor bxt;
@@ -46,26 +38,36 @@ namespace EpgTimer.Setting
             if (CommonManager.Instance.NWMode == true)
             {
                 tabItem1.Foreground = SystemColors.GrayTextBrush;
-                groupBox1.Foreground = SystemColors.GrayTextBrush;
-                ViewUtil.ChangeChildren(grid_rec_stanby, false);
-                button_standbyCtrl.IsEnabled = true;
-                groupBox2.IsEnabled = false;
+                ViewUtil.ChangeChildren(grid_rec, false);
+                grid_AppCancel.IsEnabled = true;
+                ViewUtil.ChangeChildren(grid_AppCancelMain, false);
+                listBox_process.IsEnabled = true;
+                textBox_process.SetReadOnlyWithEffect(true);
 
-                tabControl1.SelectedItem = tabItem2;
                 checkBox_back_priority.IsEnabled = false;
                 checkBox_fixedTunerPriority.IsEnabled = false;
                 checkBox_autoDel.IsEnabled = false;
-                checkBox_recname.IsEnabled = false;
-                comboBox_recname.IsEnabled = false;
-                button_recname.IsEnabled = false;
+
+                grid_App2Del.Foreground = SystemColors.GrayTextBrush;
+                ViewUtil.ChangeChildren(grid_App2DelMain, false);
+                listBox_ext.IsEnabled = true;
+                textBox_ext.SetReadOnlyWithEffect(true);
+                grid_App2DelChkFolderText.IsEnabled = true;
+                textBox_chk_folder.SetReadOnlyWithEffect(true);
+
+                grid_recname.IsEnabled = false;
+                checkBox_noChkYen.IsEnabled = false;
+                ViewUtil.ChangeChildren(grid_delReserve, false);
+
+                listBox_ext.IsEnabled = true;
+                textBox_ext.SetReadOnlyWithEffect(true);
+                listBox_chk_folder.IsEnabled = true;
+                textBox_chk_folder.SetReadOnlyWithEffect(true);
+                button_chk_open.IsEnabled = true;
 
                 checkBox_tcpServer.IsEnabled = false;
-                label41.IsEnabled = false;
-                textBox_tcpPort.IsEnabled = false;
-                label_tcpAcl.IsEnabled = false;
-                textBox_tcpAcl.IsEnabled = false;
-                label_tcpResTo.IsEnabled = false;
-                textBox_tcpResTo.IsEnabled = false;
+                ViewUtil.ChangeChildren(grid_tcpCtrl, false);
+                textBox_tcpAcl.SetReadOnlyWithEffect(true);
                 stackPanel_autoDelRecInfo.IsEnabled = false;
                 stackPanel_timeSync.IsEnabled = false;
                 checkBox_wakeReconnect.IsEnabled = true;
@@ -74,7 +76,8 @@ namespace EpgTimer.Setting
                 checkBox_ngAutoEpgLoad.IsEnabled = true;
                 checkBox_keepTCPConnect.IsEnabled = true;
                 checkBox_srvResident.IsEnabled = false;
-                checkBox_noChkYen.IsEnabled = false;
+                label_shortCutSrv.IsEnabled = false;
+                button_shortCutSrv.IsEnabled = false;
                 checkBox_srvSaveNotifyLog.IsEnabled = false;
                 checkBox_srvSaveDebugLog.IsEnabled = false;
             }
@@ -87,23 +90,27 @@ namespace EpgTimer.Setting
                 checkBox_reboot.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "Reboot", 0, SettingPath.TimerSrvIniPath) == 1;
                 textBox_pcWakeTime.Text = IniFileHandler.GetPrivateProfileInt("SET", "WakeTime", 5, SettingPath.TimerSrvIniPath).ToString();
 
+                var bx = new BoxExchangeEditor(null, listBox_process, true);
+                listBox_process.SelectionChanged += ViewUtil.ListBox_TextBoxSyncSelectionChanged(listBox_process, textBox_process);
+                if (CommonManager.Instance.NWMode == false)
+                {
+                    bx.AllowKeyAction();
+                    bx.AllowDragDrop();
+                    button_process_del.Click += new RoutedEventHandler(bx.button_Delete_Click);
+                    button_process_add.Click += ViewUtil.ListBox_TextCheckAdd(listBox_process, textBox_process);
+                    textBox_process.KeyDown += ViewUtil.KeyDown_Enter(button_process_add);
+                }
+
                 int ngCount = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "Count", 0, SettingPath.TimerSrvIniPath);
-                if (ngCount == 0)
+                for (int i = 0; i < ngCount; i++)
                 {
-                    ngProcessList.Add("EpgDataCap_Bon.exe");
+                    listBox_process.Items.Add(IniFileHandler.GetPrivateProfileString("NO_SUSPEND", i.ToString(), "", SettingPath.TimerSrvIniPath));
                 }
-                else
-                {
-                    for (int i = 0; i < ngCount; i++)
-                    {
-                        ngProcessList.Add(IniFileHandler.GetPrivateProfileString("NO_SUSPEND", i.ToString(), "", SettingPath.TimerSrvIniPath));
-                    }
-                }
-                ngMin = IniFileHandler.GetPrivateProfileString("NO_SUSPEND", "NoStandbyTime", "10", SettingPath.TimerSrvIniPath);
-                ngUsePC = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoUsePC", 0, SettingPath.TimerSrvIniPath) == 1;
-                ngUsePCMin = IniFileHandler.GetPrivateProfileString("NO_SUSPEND", "NoUsePCTime", "3", SettingPath.TimerSrvIniPath);
-                ngFileStreaming = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoFileStreaming", 0, SettingPath.TimerSrvIniPath) == 1;
-                ngShareFile = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoShareFile", 0, SettingPath.TimerSrvIniPath) == 1;
+                textBox_ng_min.Text = IniFileHandler.GetPrivateProfileString("NO_SUSPEND", "NoStandbyTime", "10", SettingPath.TimerSrvIniPath);
+                checkBox_ng_usePC.IsChecked = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoUsePC", 0, SettingPath.TimerSrvIniPath) == 1;
+                textBox_ng_usePC_min.Text = IniFileHandler.GetPrivateProfileString("NO_SUSPEND", "NoUsePCTime", "3", SettingPath.TimerSrvIniPath);
+                checkBox_ng_fileStreaming.IsChecked = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoFileStreaming", 0, SettingPath.TimerSrvIniPath) == 1;
+                checkBox_ng_shareFile.IsChecked = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoShareFile", 0, SettingPath.TimerSrvIniPath) == 1;
 
                 textBox_megine_start.Text = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath).ToString();
                 textBox_margine_end.Text = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath).ToString();
@@ -122,24 +129,38 @@ namespace EpgTimer.Setting
                 checkBox_back_priority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BackPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_fixedTunerPriority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "FixedTunerPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_autoDel.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "AutoDel", 0, SettingPath.TimerSrvIniPath) == 1;
+
+                var bxe = new BoxExchangeEditor(null, listBox_ext, true);
+                var bxc = new BoxExchangeEditor(null, listBox_chk_folder, true);
+                listBox_ext.SelectionChanged += ViewUtil.ListBox_TextBoxSyncSelectionChanged(listBox_ext, textBox_ext);
+                bxc.TargetBox.SelectionChanged += ViewUtil.ListBox_TextBoxSyncSelectionChanged(bxc.TargetBox, textBox_chk_folder);
+                bxc.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_chk_open);
+                bxc.targetBoxAllowDoubleClick(bxc.TargetBox, (sender, e) => button_chk_open.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
+                if (CommonManager.Instance.NWMode == false)
+                {
+                    bxe.AllowKeyAction();
+                    bxe.AllowDragDrop();
+                    button_ext_del.Click += new RoutedEventHandler(bxe.button_Delete_Click);
+                    button_ext_add.Click += ViewUtil.ListBox_TextCheckAdd(listBox_ext, textBox_ext);
+                    bxc.AllowKeyAction();
+                    bxc.AllowDragDrop();
+                    button_chk_del.Click += new RoutedEventHandler(bxc.button_Delete_Click);
+                    button_chk_add.Click += ViewUtil.ListBox_TextCheckAdd(listBox_chk_folder, textBox_chk_folder);
+
+                    textBox_ext.KeyDown += ViewUtil.KeyDown_Enter(button_ext_add);
+                    textBox_chk_folder.KeyDown += ViewUtil.KeyDown_Enter(button_chk_add);
+                }
+                
                 int count;
                 count = IniFileHandler.GetPrivateProfileInt("DEL_EXT", "Count", 0, SettingPath.TimerSrvIniPath);
-                if (count == 0)
+                for (int i = 0; i < count; i++)
                 {
-                    extList.Add(".ts.err");
-                    extList.Add(".ts.program.txt");
-                }
-                else
-                {
-                    for (int i = 0; i < count; i++)
-                    {
-                        extList.Add(IniFileHandler.GetPrivateProfileString("DEL_EXT", i.ToString(), "", SettingPath.TimerSrvIniPath));
-                    }
+                    listBox_ext.Items.Add(IniFileHandler.GetPrivateProfileString("DEL_EXT", i.ToString(), "", SettingPath.TimerSrvIniPath));
                 }
                 count = IniFileHandler.GetPrivateProfileInt("DEL_CHK", "Count", 0, SettingPath.TimerSrvIniPath);
                 for (int i = 0; i < count; i++)
                 {
-                    delChkFolderList.Add(IniFileHandler.GetPrivateProfileString("DEL_CHK", i.ToString(), "", SettingPath.TimerSrvIniPath));
+                    listBox_chk_folder.Items.Add(IniFileHandler.GetPrivateProfileString("DEL_CHK", i.ToString(), "", SettingPath.TimerSrvIniPath));
                 }
 
                 checkBox_recname.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecNamePlugIn", 0, SettingPath.TimerSrvIniPath) == 1;
@@ -208,7 +229,7 @@ namespace EpgTimer.Setting
                     "EpgTimerNW側の設定です。" :
                     "録画終了時にスタンバイ、休止する場合は必ず表示されます(ただし、サービス未使用時はこの設定は使用されず15秒固定)。";
 
-                //4 その他
+                //0 全般
                 checkBox_closeMin.IsChecked = Settings.Instance.CloseMin;
                 checkBox_minWake.IsChecked = Settings.Instance.WakeMin;
                 checkBox_showTray.IsChecked = Settings.Instance.ShowTray;
@@ -238,6 +259,12 @@ namespace EpgTimer.Setting
                     checkBox_srvShowTray.IsChecked = residentMode >= 2;
                     checkBox_srvNoBalloonTip.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "NoBalloonTip", 0, SettingPath.TimerSrvIniPath) != 0;
                 }
+
+                string StartUpPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                button_shortCut.Content = (File.Exists(System.IO.Path.Combine(StartUpPath, SettingPath.ModuleName + ".lnk"))
+                                                ? "削除" : "作成");
+                button_shortCutSrv.Content = (File.Exists(System.IO.Path.Combine(StartUpPath, "EpgTimerSrv.lnk"))
+                                                ? "削除" : "作成");
 
                 checkBox_srvSaveNotifyLog.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "SaveNotifyLog", 0, SettingPath.TimerSrvIniPath) != 0;
                 checkBox_AutoSaveNotifyLog.IsChecked = Settings.Instance.AutoSaveNotifyLog == 1;
@@ -292,6 +319,7 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "Reboot", checkBox_reboot.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "WakeTime", textBox_pcWakeTime.Text, SettingPath.TimerSrvIniPath);
 
+                List<String> ngProcessList = listBox_process.Items.OfType<string>().ToList();
                 IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "Count", ngProcessList.Count.ToString(), SettingPath.TimerSrvIniPath);
                 IniFileHandler.DeletePrivateProfileNumberKeys("NO_SUSPEND", SettingPath.TimerSrvIniPath);
                 for (int i = 0; i < ngProcessList.Count; i++)
@@ -299,11 +327,11 @@ namespace EpgTimer.Setting
                     IniFileHandler.WritePrivateProfileString("NO_SUSPEND", i.ToString(), ngProcessList[i], SettingPath.TimerSrvIniPath);
                 }
 
-                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoStandbyTime", ngMin, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoUsePC", ngUsePC == true ? "1" : "0", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoUsePCTime", ngUsePCMin, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoFileStreaming", ngFileStreaming == true ? "1" : "0", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoShareFile", ngShareFile == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoStandbyTime", textBox_ng_min.Text, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoUsePC", checkBox_ng_usePC.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoUsePCTime", textBox_ng_usePC_min.Text, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoFileStreaming", checkBox_ng_fileStreaming.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoShareFile", checkBox_ng_shareFile.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
 
                 IniFileHandler.WritePrivateProfileString("SET", "StartMargin", textBox_megine_start.Text, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "EndMargin", textBox_margine_end.Text, SettingPath.TimerSrvIniPath);
@@ -321,6 +349,9 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "FixedTunerPriority", checkBox_fixedTunerPriority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDel", checkBox_autoDel.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+
+                List<String> extList = listBox_ext.Items.OfType<string>().ToList();
+                List<String> delChkFolderList = listBox_chk_folder.Items.OfType<string>().ToList();
                 IniFileHandler.WritePrivateProfileString("DEL_EXT", "Count", extList.Count.ToString(), SettingPath.TimerSrvIniPath);
                 IniFileHandler.DeletePrivateProfileNumberKeys("DEL_EXT", SettingPath.TimerSrvIniPath);
                 for (int i = 0; i < extList.Count; i++)
@@ -353,7 +384,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.SuspendChk = (uint)(checkBox_suspendChk.IsChecked == true ? 1 : 0);
                 Settings.Instance.SuspendChkTime = MenuUtil.MyToNumerical(textBox_suspendChkTime, Convert.ToUInt32, Settings.Instance.SuspendChkTime);
 
-                //4 その他
+                //0 全般
                 Settings.Instance.CloseMin = (bool)checkBox_closeMin.IsChecked;
                 Settings.Instance.WakeMin = (bool)checkBox_minWake.IsChecked;
                 Settings.Instance.ShowTray = (bool)checkBox_showTray.IsChecked;
@@ -417,40 +448,19 @@ namespace EpgTimer.Setting
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        private void button_standbyCtrl_Click(object sender, RoutedEventArgs e)
+        private void button_process_open_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new SetAppCancelWindow();
-            dlg.Owner = CommonUtil.GetTopWindow(this);
-            dlg.processList = this.ngProcessList.ToList();
-            dlg.ngMin = this.ngMin;
-            dlg.ngUsePC = this.ngUsePC;
-            dlg.ngUsePCMin = this.ngUsePCMin;
-            dlg.ngFileStreaming = this.ngFileStreaming;
-            dlg.ngShareFile = this.ngShareFile;
-
-            if (dlg.ShowDialog() == true)
-            {
-                this.ngProcessList = dlg.processList.ToList();
-                this.ngMin = dlg.ngMin;
-                this.ngUsePC = dlg.ngUsePC;
-                this.ngUsePCMin = dlg.ngUsePCMin;
-                this.ngFileStreaming = dlg.ngFileStreaming;
-                this.ngShareFile = dlg.ngShareFile;
-            }
+            CommonManager.GetFileNameByDialog(textBox_process, true, "", ".exe");
         }
 
-        private void button_autoDel_Click(object sender, RoutedEventArgs e)
+        private void button_ext_def_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new SetApp2DelWindow();
-            dlg.Owner = CommonUtil.GetTopWindow(this);
-            dlg.extList = this.extList.ToList();
-            dlg.delChkFolderList = this.delChkFolderList.ToList();
-
-            if (dlg.ShowDialog() == true)
-            {
-                this.extList = dlg.extList.ToList();
-                this.delChkFolderList = dlg.delChkFolderList.ToList();
-            }
+            ViewUtil.ListBox_TextCheckAdd(listBox_ext, ".ts.err", true);
+            ViewUtil.ListBox_TextCheckAdd(listBox_ext, ".ts.program.txt", true);
+        }
+        private void button_chk_open_Click(object sender, RoutedEventArgs e)
+        {
+            CommonManager.GetFolderNameByDialog(textBox_chk_folder, "自動削除対象フォルダの選択", true);
         }
 
         private void button_recname_Click(object sender, RoutedEventArgs e)
@@ -597,6 +607,70 @@ namespace EpgTimer.Setting
         {
             Settings.Instance.AndKeyList = new List<string>();
             Settings.Instance.NotKeyList = new List<string>();
+        }
+
+        private void button_shortCut_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string shortcutPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), SettingPath.ModuleName + ".lnk");
+                if (File.Exists(shortcutPath))
+                {
+                    File.Delete(shortcutPath);
+                    button_shortCut.Content = "作成";
+                }
+                else
+                {
+                    CreateShortCut(shortcutPath, Assembly.GetEntryAssembly().Location, "");
+                    button_shortCut.Content = "削除";
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+        }
+
+        private void button_shortCutSrv_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string shortcutPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "EpgTimerSrv.lnk");
+                if (File.Exists(shortcutPath))
+                {
+                    File.Delete(shortcutPath);
+                    button_shortCutSrv.Content = "作成";
+                }
+                else
+                {
+                    CreateShortCut(shortcutPath, System.IO.Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"), "");
+                    button_shortCutSrv.Content = "削除";
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+        }
+
+        /// <summary>
+        /// ショートカットの作成
+        /// </summary>
+        /// <remarks>WSHを使用して、ショートカット(lnkファイル)を作成します。(遅延バインディング)</remarks>
+        /// <param name="path">出力先のファイル名(*.lnk)</param>
+        /// <param name="targetPath">対象のアセンブリ(*.exe)</param>
+        /// <param name="description">説明</param>
+        private void CreateShortCut(String path, String targetPath, String description)
+        {
+            //using System.Reflection;
+
+            // WSHオブジェクトを作成し、CreateShortcutメソッドを実行する
+            Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+            object shell = Activator.CreateInstance(shellType);
+            object shortCut = shellType.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] { path });
+
+            Type shortcutType = shell.GetType();
+            // TargetPathプロパティをセットする
+            shortcutType.InvokeMember("TargetPath", BindingFlags.SetProperty, null, shortCut, new object[] { targetPath });
+            shortcutType.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, shortCut, new object[] { System.IO.Path.GetDirectoryName(targetPath) });
+            // Descriptionプロパティをセットする
+            shortcutType.InvokeMember("Description", BindingFlags.SetProperty, null, shortCut, new object[] { description });
+            // Saveメソッドを実行する
+            shortcutType.InvokeMember("Save", BindingFlags.InvokeMethod, null, shortCut, null);
         }
     }
 }

@@ -420,20 +420,23 @@ namespace EpgTimer
             });
         }
 
-        public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox)
+        public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, bool noMsg = false)
         {
-            return new RoutedEventHandler((sender, e) => ListBox_TextCheckAdd(lstBox, txtBox == null ? null : txtBox.Text));
+            return new RoutedEventHandler((sender, e) => ListBox_TextCheckAdd(lstBox, txtBox == null ? null : txtBox.Text, noMsg));
         }
-        public static void ListBox_TextCheckAdd(ListBox lstBox, string text)
+        public static bool ListBox_TextCheckAdd(ListBox lstBox, string text, bool noMsg = false)
         {
-            if (lstBox == null || String.IsNullOrEmpty(text) == true) return;
+            if (lstBox == null || String.IsNullOrEmpty(text) == true) return false;
             //
             if (lstBox.Items.OfType<object>().Any(s => String.Compare(text, s.ToString(), true) == 0) == true)
             {
-                MessageBox.Show("すでに追加されています");
-                return;
+                if (noMsg == false) MessageBox.Show("すでに追加されています");
+                return false;
             }
             lstBox.Items.Add(text);
+            lstBox.SelectedIndex = lstBox.Items.Count - 1;
+            lstBox.ScrollIntoView(lstBox.SelectedItem);
+            return true;
         }
 
         public static KeyEventHandler KeyDown_Escape_Close()
