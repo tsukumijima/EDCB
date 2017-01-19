@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="右クリックメニューの設定" Height="600" Width="650" Loaded="Window_Loaded" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" >
 
-    <Grid Margin="6">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
@@ -167,7 +167,7 @@
                 </StackPanel>
             </TabItem>
         </TabControl>
-        <Grid Grid.Row="2" Margin="24,10,24,0" MinWidth="300">
+        <Grid Grid.Row="1" Margin="30,10,30,6" MinWidth="300">
             <Button Content="設定の初期化" Click="button_Initialize_Click" HorizontalAlignment="Left" MinWidth="100" ToolTip="Shift+クリックでショートカットキーのみ初期化&#10;(※他はダイアログを開いた時の状態に戻ります)" />
             <DockPanel HorizontalAlignment="Right">
                 <Button Content="OK" Margin="0,0,20,0" MinWidth="75" Click="button_OK_Click" />
