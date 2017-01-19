@@ -48,6 +48,7 @@
                         <CheckBox Content="タスクトレイアイコンを表示する" Margin="18,4,0,0" Name="checkBox_srvShowTray" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
                         <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
+                    <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTipService.ShowOnDisabled="True" ToolTip="※設定項目は、この設定画面と重複します。"/>
                     <StackPanel Margin="0,4,0,0" >
                         <Label Content="スタートアップにショートカットを作成する" />
                         <StackPanel Margin="18,-4,0,0" Orientation="Horizontal">

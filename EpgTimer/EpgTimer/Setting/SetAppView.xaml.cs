@@ -76,6 +76,7 @@ namespace EpgTimer.Setting
                 checkBox_ngAutoEpgLoad.IsEnabled = true;
                 checkBox_keepTCPConnect.IsEnabled = true;
                 checkBox_srvResident.IsEnabled = false;
+                button_srvSetting.IsEnabled = false;
                 label_shortCutSrv.IsEnabled = false;
                 button_shortCutSrv.IsEnabled = false;
                 checkBox_srvSaveNotifyLog.IsEnabled = false;
@@ -259,6 +260,8 @@ namespace EpgTimer.Setting
                     checkBox_srvShowTray.IsChecked = residentMode >= 2;
                     checkBox_srvNoBalloonTip.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "NoBalloonTip", 0, SettingPath.TimerSrvIniPath) != 0;
                 }
+
+                button_srvSetting.Click += (sender,e) => CommonManager.OpenSrvSetting();
 
                 string StartUpPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
                 button_shortCut.Content = (File.Exists(System.IO.Path.Combine(StartUpPath, SettingPath.ModuleName + ".lnk"))

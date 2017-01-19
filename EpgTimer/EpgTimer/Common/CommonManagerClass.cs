@@ -1546,5 +1546,27 @@ namespace EpgTimer
             }
             return src;
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        private static Process SrvSettingProcess = null;
+
+        public static void OpenSrvSetting()
+        {
+            if (Instance.NWMode == true) return;
+
+            try
+            {
+                if (SrvSettingProcess == null || SrvSettingProcess.HasExited)
+                {
+                    SrvSettingProcess = Process.Start(Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"), "/setting");
+                }
+                else
+                {
+                    SetForegroundWindow(SrvSettingProcess.MainWindowHandle);
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+        }
     }
 }
