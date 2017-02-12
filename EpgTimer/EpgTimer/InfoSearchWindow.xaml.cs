@@ -136,9 +136,6 @@ namespace EpgTimer
                 checkBox_EpgAutoAddInfo.IsChecked = Settings.Instance.InfoSearchEpgAutoAddInfo;
                 checkBox_ManualAutoAddInfo.IsChecked = Settings.Instance.InfoSearchManualAutoAddInfo;
 
-                //ツールチップオプションの設定の登録
-                InfoSearchItem.RegisterTooltipOption(() => this.checkBox_ShowToolTip.IsChecked == true, this);
-
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
             }
@@ -230,6 +227,7 @@ namespace EpgTimer
                     });
 
                     dataList.AddRange(hitItems);
+                    ToolTipCheck();
                     return true;
                 });
 
@@ -252,7 +250,12 @@ namespace EpgTimer
         }
         private void checkBox_ShowToolTip_Checked(object sender, RoutedEventArgs e)
         {
+            ToolTipCheck();
             listView_result.Items.Refresh();
+        }
+        private void ToolTipCheck()
+        {
+            lstCtrl.dataList.ForEach(item => item.IsToolTipEnabled = checkBox_ShowToolTip.IsChecked == true);
         }
 
         private void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e)

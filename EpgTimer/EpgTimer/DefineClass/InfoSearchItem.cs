@@ -221,36 +221,13 @@ namespace EpgTimer
             return DataTitle;
         }
 
-        //ツールチップオプション関係
-        private static RoutedCommand CmdGetTooltipOption = new RoutedCommand();
-        private class TooltipOptionObj { public Func<bool> FuncTooltipOption;}
-        private static Func<bool> GetTooltipOptionFunc(IInputElement target = null)
-        {
-            var param = new TooltipOptionObj();
-            CmdGetTooltipOption.Execute(param, target);
-            return param.FuncTooltipOption;
-        }
-        public static void RegisterTooltipOption(Func<bool> funcTooltipOption, UIElement target)
-        {
-            target.CommandBindings.Add(new CommandBinding(CmdGetTooltipOption, (sender, e) =>
-            {
-                (e.Parameter as TooltipOptionObj).FuncTooltipOption = funcTooltipOption;
-            }));
-        }
-        private Func<bool> funcTooltipOption = null;
+        public bool IsToolTipEnabled = false;
         public override TextBlock ToolTipView
         {
             get
             {
-                if (funcTooltipOption == null)
-                {
-                    funcTooltipOption = GetTooltipOptionFunc();
-                }
-
-                if ((funcTooltipOption == null && Settings.Instance.InfoSearchItemTooltip == false)
-                     || (funcTooltipOption != null && funcTooltipOption() == false))
-                { return null; }
-
+                if (IsToolTipEnabled == false) return null; 
+                //
                 return ViewItem.ToolTipViewAlways;
             }
         }
