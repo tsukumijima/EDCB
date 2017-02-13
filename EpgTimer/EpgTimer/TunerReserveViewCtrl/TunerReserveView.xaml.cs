@@ -152,7 +152,8 @@ namespace EpgTimer.TunerReserveViewCtrl
         }
         protected override void SetTooltip(PanelItem toolInfo)
         {
-            Tooltip.ToolTip = new ReserveItem((toolInfo as ReserveViewItem).ReserveInfo).ToolTipViewAlways;
+            Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(new ReserveItem((toolInfo as ReserveViewItem).ReserveInfo)
+                                    .ConvertInfoText(Settings.Instance.TunerToolTipMode));
         }
 
     }

@@ -109,8 +109,11 @@ namespace EpgTimer
                 return ReserveInfo.DurationSecond;
             }
         }
-        public override String ConvertInfoText()
+        public override String ConvertInfoText(object param = null)
         {
+            var mode = param is Int32 ? (Int32)param : Settings.Instance.ReserveToolTipMode;
+            if (mode == 1) return base.ConvertInfoText();
+
             if (ReserveInfo == null) return "";
             //
             String view = CommonManager.ConvertTimeText(ReserveInfo.StartTime, ReserveInfo.DurationSecond, false, false, false) + "\r\n";

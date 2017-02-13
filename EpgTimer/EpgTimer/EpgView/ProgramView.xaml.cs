@@ -171,7 +171,7 @@ namespace EpgTimer.EpgView
             if (info.TitleDrawErr == false && Settings.Instance.EpgToolTipNoViewOnly == true) return;
 
             Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(CommonManager.ConvertProgramText(info.EventInfo,
-                Settings.Instance.EpgExtInfoTooltip == true ? EventInfoTextMode.TextAll : EventInfoTextMode.BasicText));
+                Settings.Instance.EpgExtInfoTooltip == true ? EventInfoTextMode.All : EventInfoTextMode.BasicText));
         }
 
         public ProgramViewItem GetProgramViewData(Point cursorPos)

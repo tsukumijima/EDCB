@@ -20,6 +20,7 @@ namespace EpgTimer.Setting
         private MenuSettingData ctxmSetInfo;
         private RadioBtnSelect epgPopupRadioBtns;
         private RadioBtnSelect tunerPopupRadioBtns;
+        private RadioBtnSelect tunerToolTipRadioBtns;
 
         public bool IsChangeEpgArcLoadSetting { get; private set; }
         //public bool IsClearColorSetting { get; private set; }
@@ -79,8 +80,11 @@ namespace EpgTimer.Setting
                 textBox_tuner_popup_Width.Text = Settings.Instance.TunerPopupWidth.ToString();
                 checkBox_tuner_title_indent.IsChecked = Settings.Instance.TunerTitleIndent;
                 checkBox_tunerDescToolTip.IsChecked = Settings.Instance.TunerToolTip;
+                tunerToolTipRadioBtns = new RadioBtnSelect(radioButton_tunerToolTipTunerInfo, radioButton_tunerToolTipEpgInfo);
+                tunerToolTipRadioBtns.Value = Settings.Instance.TunerToolTipMode;
                 textBox_tunerToolTipWait.Text = Settings.Instance.TunerToolTipViewWait.ToString();
                 checkBox_tunerSingleOpen.IsChecked = Settings.Instance.TunerInfoSingleClick;
+                checkBox_tunerEpgInfoOpenMode.IsChecked = (Settings.Instance.TunerEpgInfoOpenMode != 0);
                 checkBox_tuner_scrollAuto.IsChecked = Settings.Instance.TunerMouseScrollAuto;
                 checkBox_tuner_service_nowrap.IsChecked = Settings.Instance.TunerServiceNoWrap;
                 checkBox_tunerColorModeUse.IsChecked = Settings.Instance.TunerColorModeUse;
@@ -184,6 +188,7 @@ namespace EpgTimer.Setting
                 textBox_dropWrnIgnore.Text = Settings.Instance.RecInfoDropWrnIgnore.ToString();
                 textBox_scrambleIgnore.Text = Settings.Instance.RecInfoScrambleIgnore.ToString();
                 checkBox_playDClick.IsChecked = Settings.Instance.PlayDClick;
+                checkBox_recToolTipEpgInfo.IsChecked = (Settings.Instance.RecInfoToolTipMode != 0);
                 checkBox_recinfo_errCritical.IsChecked = Settings.Instance.RecinfoErrCriticalDrops;
                 checkBox_recNoYear.IsChecked = Settings.Instance.RecInfoNoYear;
                 checkBox_recNoSecond.IsChecked = Settings.Instance.RecInfoNoSecond;
@@ -223,6 +228,9 @@ namespace EpgTimer.Setting
                 checkBox_displayPresetOnSearch.IsChecked = Settings.Instance.DisplayPresetOnSearch;
                 checkBox_toolTips.IsChecked = !Settings.Instance.NoToolTip;
                 textBox_ToolTipsWidth.Text = Settings.Instance.ToolTipWidth.ToString();
+                checkBox_reserveToolTipEpgInfo.IsChecked = (Settings.Instance.ReserveToolTipMode != 0);
+                checkBox_reserveEpgInfoOpenMode.IsChecked = (Settings.Instance.ReserveEpgInfoOpenMode != 0);
+                checkBox_searchEpgInfoOpenMode.IsChecked = (Settings.Instance.SearchEpgInfoOpenMode != 0);
                 checkBox_NotNoStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", System.IO.Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location) + ".rd.xaml");
                 checkBox_NotNoStyle.IsChecked = Settings.Instance.NoStyle == 0;
                 checkBox_displayStatus.IsChecked = Settings.Instance.DisplayStatus;
@@ -277,7 +285,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.EpgGradation = (checkBox_gradation.IsChecked == true);
                 Settings.Instance.EpgGradationHeader = (checkBox_gradationHeader.IsChecked == true);
                 Settings.Instance.EpgInfoSingleClick = (checkBox_singleOpen.IsChecked == true);
-                Settings.Instance.EpgInfoOpenMode = (byte)(checkBox_openInfo.IsChecked == true ? 1 : 0);
+                Settings.Instance.EpgInfoOpenMode = (checkBox_openInfo.IsChecked == true ? 1 : 0);
                 Settings.Instance.MouseScrollAuto = (checkBox_scrollAuto.IsChecked == true);
                 Settings.Instance.DisplayNotifyEpgChange = (checkBox_displayNotifyChange.IsChecked == true);
                 Settings.Instance.ReserveRectBackground = (checkBox_reserveBackground.IsChecked == true);
@@ -299,12 +307,14 @@ namespace EpgTimer.Setting
                 Settings.Instance.TunerServiceNoWrap = (checkBox_tuner_service_nowrap.IsChecked == true);
                 Settings.Instance.TunerTitleIndent = (checkBox_tuner_title_indent.IsChecked == true);
                 Settings.Instance.TunerToolTip = (checkBox_tunerDescToolTip.IsChecked == true);
+                Settings.Instance.TunerToolTipMode = tunerToolTipRadioBtns.Value;
                 Settings.Instance.TunerToolTipViewWait = MenuUtil.MyToNumerical(textBox_tunerToolTipWait, Convert.ToInt32, Int32.MaxValue, Int32.MinValue, 1500);
                 Settings.Instance.TunerPopup = (checkBox_tuner_popup.IsChecked == true);
                 Settings.Instance.TunerPopupMode = tunerPopupRadioBtns.Value;
                 Settings.Instance.TunerPopupRecinfo = (checkBox_tuner_popup_recInfo.IsChecked == true);
                 Settings.Instance.TunerPopupWidth = MenuUtil.MyToNumerical(textBox_tuner_popup_Width, Convert.ToDouble, double.MaxValue, 0, 1);
                 Settings.Instance.TunerInfoSingleClick = (checkBox_tunerSingleOpen.IsChecked == true);
+                Settings.Instance.TunerEpgInfoOpenMode = (checkBox_tunerEpgInfoOpenMode.IsChecked == true ? 1 : 0);
                 Settings.Instance.TunerColorModeUse = (checkBox_tunerColorModeUse.IsChecked == true);
                 Settings.Instance.TunerDisplayOffReserve = (checkBox_tuner_display_offres.IsChecked == true);
 
@@ -382,6 +392,7 @@ namespace EpgTimer.Setting
 
                 //録画済み一覧画面
                 Settings.Instance.PlayDClick = (checkBox_playDClick.IsChecked == true);
+                Settings.Instance.RecInfoToolTipMode = (checkBox_recToolTipEpgInfo.IsChecked == true ? 1 : 0);
                 Settings.Instance.RecInfoDropErrIgnore = MenuUtil.MyToNumerical(textBox_dropErrIgnore, Convert.ToInt64, Settings.Instance.RecInfoDropErrIgnore);
                 Settings.Instance.RecInfoDropWrnIgnore = MenuUtil.MyToNumerical(textBox_dropWrnIgnore, Convert.ToInt64, Settings.Instance.RecInfoDropWrnIgnore);
                 Settings.Instance.RecInfoScrambleIgnore = MenuUtil.MyToNumerical(textBox_scrambleIgnore, Convert.ToInt64, Settings.Instance.RecInfoScrambleIgnore);
@@ -421,6 +432,9 @@ namespace EpgTimer.Setting
                 Settings.Instance.NoStyle = (checkBox_NotNoStyle.IsChecked == true ? 0 : 1);
                 Settings.Instance.NoToolTip = checkBox_toolTips.IsChecked == false;
                 Settings.Instance.ToolTipWidth = MenuUtil.MyToNumerical(textBox_ToolTipsWidth, Convert.ToDouble, Double.MaxValue, 16, 400);
+                Settings.Instance.ReserveToolTipMode = (checkBox_reserveToolTipEpgInfo.IsChecked == true ? 1 : 0);
+                Settings.Instance.ReserveEpgInfoOpenMode = (checkBox_reserveEpgInfoOpenMode.IsChecked == true ? 1 : 0);
+                Settings.Instance.SearchEpgInfoOpenMode = (checkBox_searchEpgInfoOpenMode.IsChecked == true ? 1 : 0);
                 Settings.Instance.DisplayStatus = (checkBox_displayStatus.IsChecked == true);
                 Settings.Instance.DisplayStatusNotify = (checkBox_displayStatusNotify.IsChecked == true);
                 Settings.Instance.IsVisibleReserveView = (checkBox_IsVisibleReserveView.IsChecked == true);

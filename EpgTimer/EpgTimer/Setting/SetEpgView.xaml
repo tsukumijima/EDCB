@@ -382,16 +382,23 @@
                                         </WrapPanel>
                                     </StackPanel>
                                     <CheckBox Content="詳細をツールチップ表示する" Margin="0,6,0,0" Name="checkBox_tunerDescToolTip" />
-                                    <WrapPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_tunerDescToolTip, UpdateSourceTrigger=PropertyChanged}" >
-                                        <Label Content="ツールチップを表示するまでの時間(ミリ秒)" />
-                                        <TextBox Width="55" Margin="12,0,0,0" Name="textBox_tunerToolTipWait" />
-                                    </WrapPanel>
+                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_tunerDescToolTip, UpdateSourceTrigger=PropertyChanged}" >
+                                        <WrapPanel>
+                                            <RadioButton Margin="0,6,12,0" Content="予約情報" Name="radioButton_tunerToolTipTunerInfo" />
+                                            <RadioButton Margin="0,6,12,0" Content="番組情報" Name="radioButton_tunerToolTipEpgInfo" />
+                                        </WrapPanel>
+                                        <WrapPanel>
+                                            <Label Content="ツールチップを表示するまでの時間(ミリ秒) " />
+                                            <TextBox Width="55" Name="textBox_tunerToolTipWait" />
+                                        </WrapPanel>
+                                    </StackPanel>
                                 </StackPanel>
                                 <StackPanel Margin="327,64,0,0" >
                                     <CheckBox Content="シングルクリックで予約ダイアログを開く" Margin="0,6,0,0" Name="checkBox_tunerSingleOpen" />
-                                    <CheckBox Content="サービスのフォント色を優先度で変える('色'タブの設定)" Margin="0,6,0,0" Name="checkBox_tunerColorModeUse" ToolTip="チェックされていない場合はこの画面の設定色が使われます。" Click="checkBox_tunerColorModeUse_Click" />
+                                    <CheckBox Content="番組詳細タブを選択した状態で予約ダイアログを開く" Margin="0,6,0,0" Name="checkBox_tunerEpgInfoOpenMode" />
                                     <CheckBox Content="サービス名と番組名の表示位置をあわせる" Margin="0,6,0,0" Name="checkBox_tuner_title_indent" />
                                     <CheckBox Content="サービス名を改行しない" Margin="0,6,0,0" Name="checkBox_tuner_service_nowrap" />
+                                    <CheckBox Content="サービスのフォント色を優先度で変える('色'タブの設定)" Margin="0,6,0,0" Name="checkBox_tunerColorModeUse" ToolTip="チェックされていない場合はこの画面の設定色が使われます。" Click="checkBox_tunerColorModeUse_Click" />
                                     <CheckBox Content="無効の予約も表示する" Margin="0,6,0,0" Name="checkBox_tuner_display_offres" />
                                 </StackPanel>
                             </Grid>
@@ -464,19 +471,20 @@
                 <GroupBox Header="各種設定" Margin="6,6,6,0">
                     <StackPanel Margin="11,6,0,0" >
                         <CheckBox Content="録画済み一覧のダブルクリックで再生を行う" Name="checkBox_playDClick" />
+                        <CheckBox Margin="0,6,0,0" Content="詳細情報のツールチップに番組情報を表示する (表示が重くなる場合あり)" Name="checkBox_recToolTipEpgInfo" ToolTip="表示設定は[予約一覧・共通]タブにあります" />
                         <StackPanel Orientation="Horizontal" >
-                            <Label Content="リスト表示で省略する" VerticalAlignment="Top" />
-                            <CheckBox Content="'年'" Margin="12,0,0,0" Name="checkBox_recNoYear" VerticalAlignment="Center" />
-                            <CheckBox Content="'秒'" Margin="12,0,0,0" Name="checkBox_recNoSecond" VerticalAlignment="Center" />
-                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0"  Name="checkBox_recNoDurSecond" VerticalAlignment="Center" />
+                            <Label Content="リスト表示で省略する" />
+                            <CheckBox Content="'年'" Margin="12,0,0,0" Name="checkBox_recNoYear" />
+                            <CheckBox Content="'秒'" Margin="12,0,0,0" Name="checkBox_recNoSecond" />
+                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0"  Name="checkBox_recNoDurSecond" />
                         </StackPanel >
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <Label Content="番組情報・エラーログのキャッシュ" VerticalAlignment="Center" ToolTip="起動中、取得したテキストデータを保持します。(キャッシュしない場合、必要時に毎回EpgTimerSrvから取得します。)" />
-                            <CheckBox Content="する　（" Margin="12,0,0,0" Name="checkBox_ChacheOn" VerticalAlignment="Center" />
-                            <CheckBox Content="不要データを削除する　" Margin="12,0,0,0" Name="checkBox_CacheOptimize" VerticalAlignment="Center" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_ChacheOn, UpdateSourceTrigger=PropertyChanged}"/>
-                            <CheckBox Content="再接続時も保持する　）" Margin="12,0,0,0" Name="checkBox_CacheKeepConnect"  VerticalAlignment="Center" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_ChacheOn, UpdateSourceTrigger=PropertyChanged}"/>
+                        <StackPanel Orientation="Horizontal" >
+                            <Label Content="番組情報・エラーログのキャッシュ" ToolTip="起動中、取得したテキストデータを保持します。(キャッシュしない場合、必要時に毎回EpgTimerSrvから取得します。)" />
+                            <CheckBox Content="する　（" Margin="12,0,0,0" Name="checkBox_ChacheOn" />
+                            <CheckBox Content="不要データを削除する　" Margin="12,0,0,0" Name="checkBox_CacheOptimize" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_ChacheOn, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="再接続時も保持する　）" Margin="12,0,0,0" Name="checkBox_CacheKeepConnect"  IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_ChacheOn, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel >
-                        <GroupBox Header="ドロップ・スクランブル未解除" Margin="0,0,0,6">
+                        <GroupBox Header="ドロップ・スクランブル未解除" Margin="0,6,0,6">
                             <Grid>
                                 <Label Content="ドロップをエラー扱いしない閾値" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="264,6,0,0" Name="textBox_dropErrIgnore" VerticalAlignment="Top" Width="62" />
@@ -519,55 +527,73 @@
                             <Setter Property="Margin" Value="0,0,12,0"/>
                         </Style>
                     </TabItem.Resources>
-                    <GroupBox Header="各種設定" Margin="6,6,6,0" VerticalAlignment="Top" Padding="0,0,0,6">
-                        <StackPanel Margin="11,0,0,0" >
-                            <Button Margin="0,6,0,4" Content="右クリックメニューの設定" HorizontalAlignment="Left" Name="button_set_cm" Click="button_set_cm_Click" />
-                            <CheckBox Margin="0,4,0,0" Content="自動予約登録(キーワード予約、プログラム予約)を見失った予約を強調表示する" Name="checkBox_displayAutoAddMissing" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わったときなどに発生する場合があります" />
-                            <CheckBox Margin="0,4,0,0" Content="重複しているEPG予約を強調表示する" Name="checkBox_displayMultiple" ToolTip="プログラム予約は対象外です" />
-                            <StackPanel Margin="0,2,0,-2" Orientation="Horizontal" >
-                                <Label Content="番組表などへジャンプしたときの強調表示の継続時間" />
-                                <TextBox Width="55" Margin="12,0,0,0" Name="textBox_DisplayJumpTime" />
-                                <Label Content="秒" Margin="12,0,0,0" />
-                            </StackPanel>
-                            <StackPanel Margin="0,2,0,-2" Orientation="Horizontal" >
-                                <Label Content="リスト表示で省略する(録画済み一覧以外)" VerticalAlignment="Center" />
-                                <CheckBox Content="'年'" Margin="12,0,0,0" Name="checkBox_resNoYear" />
-                                <CheckBox Content="'秒'" Margin="12,0,0,0" Name="checkBox_resNoSecond" ToolTip="たまに'秒'単位の番組も存在します。" />
-                                <CheckBox Content="長さの'秒'" Margin="12,0,0,0" Name="checkBox_resNoDurSecond" ToolTip="たまに'秒'単位の番組も存在します。" />
-                            </StackPanel>
-                            <CheckBox Margin="0,4,0,0" Content="番組名で並べ替えるとき記号類を無視する" Name="checkBox_TrimSortTitle" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わった場合などに発生する場合があります" />
-                            <StackPanel Margin="0,2,0,-2" Orientation="Horizontal" >
-                                <CheckBox Content="深夜時間表示をする" Name="checkBox_LaterTimeUse" />
-                                <TextBox Width="55" Margin="12,0,0,0" Name="textBox_LaterTimeHour" />
-                                <Label Content="時まで" Margin="12,0,0,0" />
-                            </StackPanel>
-                            <CheckBox Margin="0,4,0,0" Content="検索/キーワード予約ダイアログの録画設定タブにプリセットを表示する" Name="checkBox_displayPresetOnSearch" />
-                            <CheckBox Margin="0,4,0,0" Content="テーマを適用する(要再起動)" Name="checkBox_NotNoStyle" />
-                            <StackPanel Margin="0,2,0,-2" Orientation="Horizontal" >
-                                <CheckBox Content="詳細情報のツールチップを表示する  ツールチップの幅" Name="checkBox_toolTips" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
-                                <TextBox Margin="6,0,0,0" Name="textBox_ToolTipsWidth" Width="62" />
-                            </StackPanel>
-                            <CheckBox Margin="0,4,0,0" Content="ステータス表示をする" Name="checkBox_displayStatus" />
-                            <CheckBox Margin="14,4,0,0" Content="主要操作の操作結果を表示をする" Name="checkBox_displayStatusNotify" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_displayStatus, UpdateSourceTrigger=PropertyChanged}" />
-                            <GroupBox Header="初期表示画面" Margin="0,4,0,0" >
-                                <WrapPanel Name="wrapPanel_StartTab" Margin="6,6,0,0" />
-                            </GroupBox>
-                            <DockPanel Margin="0,4,0,0">
+                    <GroupBox Header="各種設定" Margin="6,6,6,0" VerticalAlignment="Top">
+                        <Grid Margin="11,0,0,0" >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+                            <WrapPanel Orientation="Vertical">
+                                <CheckBox Margin="0,6,12,0" Content="自動予約登録(キーワード/プログラム予約)を見失った予約を強調表示する" Name="checkBox_displayAutoAddMissing" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わったときなどに発生する場合があります" />
+                                <CheckBox Margin="0,6,12,0" Content="重複しているEPG予約を強調表示する" Name="checkBox_displayMultiple" ToolTip="プログラム予約は対象外です" />
+                                <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
+                                    <Label Content="番組表などへジャンプしたときの強調表示の継続時間 " />
+                                    <TextBox Width="40" Name="textBox_DisplayJumpTime" />
+                                    <Label Content="秒" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,0" >
+                                    <Label Content="リスト表示で省略する(録画済み一覧以外)" />
+                                    <WrapPanel Margin="14,-2,0,0" >
+                                        <CheckBox Content="'年' 　" Name="checkBox_resNoYear" />
+                                        <CheckBox Content="'秒' 　" Name="checkBox_resNoSecond" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                        <CheckBox Content="長さの'秒'" Name="checkBox_resNoDurSecond" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    </WrapPanel>
+                                </StackPanel>
+                                <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" Name="checkBox_TrimSortTitle" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わった場合などに発生する場合があります" />
+                                <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
+                                    <CheckBox Content="深夜時間表示をする 　" Name="checkBox_LaterTimeUse" />
+                                    <TextBox Width="40" Name="textBox_LaterTimeHour" />
+                                    <Label Content="時まで" />
+                                </StackPanel>
+                                <CheckBox Margin="0,6,12,0" Content="検索/キーワード予約ダイアログの録画設定タブにプリセットを表示する" Name="checkBox_displayPresetOnSearch" />
+                                <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
+                                    <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " Name="checkBox_toolTips" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
+                                    <TextBox Name="textBox_ToolTipsWidth" Width="55" />
+                                </StackPanel>
+                                <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧画面)" Name="checkBox_reserveToolTipEpgInfo"  ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
+                                <StackPanel Margin="0,0,12,0" >
+                                    <Label Content="番組詳細タブを選択した状態で予約ダイアログを開く" ToolTip="番組表などはそれぞれの設定タブを参照" />
+                                    <WrapPanel Margin="14,-2,0,0" >
+                                        <CheckBox Content="予約一覧画面 　" Name="checkBox_reserveEpgInfoOpenMode" />
+                                        <CheckBox Content="検索/キーワード予約ダイアログ" Name="checkBox_searchEpgInfoOpenMode" ToolTip="予約情報検索ダイアログも含む" />
+                                    </WrapPanel>
+                                </StackPanel>
+                                <StackPanel Margin="0,4,12,0" >
+                                    <CheckBox Content="ステータス表示をする" Name="checkBox_displayStatus" />
+                                    <CheckBox Margin="14,4,0,0" Content="主要操作の操作結果を表示をする" Name="checkBox_displayStatusNotify" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_displayStatus, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <CheckBox Margin="0,6,12,0" Content="テーマを適用する(要再起動)" Name="checkBox_NotNoStyle" />
+                                <Button Margin="0,12,12,6" Content="右クリックメニューの設定" HorizontalAlignment="Left" Name="button_set_cm" Click="button_set_cm_Click" />
+                            </WrapPanel>
+                            <DockPanel Grid.Row="1" Margin="0,6,0,0" >
+                                <GroupBox DockPanel.Dock="Top" Header="初期表示画面" >
+                                    <WrapPanel Name="wrapPanel_StartTab" Margin="6,6,0,0" />
+                                </GroupBox>
                                 <GroupBox Header="各画面のボタン列の位置" >
                                     <WrapPanel Name="wrapPanel_MainViewButtonsDock" Margin="6,6,0,0" />
                                 </GroupBox>
                                 <GroupBox Header="各画面のボタン列を表示する" Margin="6,0,0,0" >
                                     <WrapPanel Margin="6,6,0,0">
-                                        <CheckBox Content="予約一覧" Margin="0,0,12,0" Name="checkBox_IsVisibleReserveView" />
-                                        <CheckBox Content="録画済み一覧" Margin="0,0,12,0" Name="checkBox_IsVisibleRecInfoView" />
+                                        <CheckBox Content="予約一覧　 " Name="checkBox_IsVisibleReserveView" />
+                                        <CheckBox Content="録画済み一覧　 " Name="checkBox_IsVisibleRecInfoView" />
                                         <StackPanel Orientation="Horizontal">
-                                            <CheckBox Content="自動予約登録（" Margin="0,0,12,0" Name="checkBox_IsVisibleAutoAddView" />
-                                            <CheckBox Content="「並び替え」のみ表示　）" Margin="-6,0,12,0" Name="checkBox_IsVisibleAutoAddViewMoveOnly" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_IsVisibleAutoAddView, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <CheckBox Content="自動予約登録（　" Name="checkBox_IsVisibleAutoAddView" />
+                                            <CheckBox Content="「並び替え」のみ表示　）" Name="checkBox_IsVisibleAutoAddViewMoveOnly" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_IsVisibleAutoAddView, UpdateSourceTrigger=PropertyChanged}"/>
                                         </StackPanel>
                                     </WrapPanel>
                                 </GroupBox>
                             </DockPanel>
-                        </StackPanel>
+                        </Grid>
                     </GroupBox>
                 </TabItem>
                 <TabItem Header="色" >

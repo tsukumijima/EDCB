@@ -19,7 +19,7 @@ namespace EpgTimer
         {
             get { return ViewUtil.GetTooltipBlockStandard(ConvertInfoText()); }
         }
-        public virtual String ConvertInfoText() { return ""; }
+        public virtual String ConvertInfoText(object param = null) { return ""; }
 
         public virtual int NowJumpingTable { set; get; }
         public virtual Brush ForeColor

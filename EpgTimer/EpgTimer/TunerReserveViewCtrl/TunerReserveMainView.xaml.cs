@@ -44,6 +44,7 @@ namespace EpgTimer
         }
         public void RefreshMenu()
         {
+            mc.EpgInfoOpenMode = Settings.Instance.TunerEpgInfoOpenMode;
             mBinds.ResetInputBindings(this);
             mm.CtxmGenerateContextMenu(cmdMenu, CtxmCode.TunerReserveView, false);
         }

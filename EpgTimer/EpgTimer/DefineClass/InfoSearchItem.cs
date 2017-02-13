@@ -204,14 +204,9 @@ namespace EpgTimer
         {
             if (TitleOnly == false)
             {
-                if (ViewItem is ReserveItem)
+                if (ViewItem is ReserveItem || ViewItem is RecInfoItem)
                 {
-                    //EPGデータ無しの場合SearchItem.ConvertInfoText()は空白になるので手元の情報との合成にする。
-                    return ViewItem.ConvertInfoText() + new SearchItem(((ReserveItem)ViewItem).EventInfo).ConvertInfoText();
-                }
-                else if (ViewItem is RecInfoItem)
-                {
-                    return ViewItem.ConvertInfoText() + ((RecInfoItem)ViewItem).RecInfo.ProgramInfo;
+                    return ViewItem.ConvertInfoText(0) + ViewItem.ConvertInfoText(1);
                 }
                 else if (ViewItem is AutoAddDataItem)
                 {

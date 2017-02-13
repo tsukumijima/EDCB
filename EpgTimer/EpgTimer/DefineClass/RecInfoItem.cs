@@ -189,10 +189,13 @@ namespace EpgTimer
                 return CommonManager.Instance.RecEndDefBackColor;
             }
         }
-        public override string ConvertInfoText()
+        public override String ConvertInfoText(object param = null)
         {
             if (RecInfo == null) return "";
             //
+            var mode = param is Int32 ? (Int32)param : Settings.Instance.RecInfoToolTipMode;
+            if (mode == 1) return RecInfo.ProgramInfo;
+
             String view = CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, false, false, false) + "\r\n";
             view += ServiceName + "(" + NetworkName + ")" + "\r\n";
             view += EventName + "\r\n\r\n";

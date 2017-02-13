@@ -75,6 +75,7 @@ namespace EpgTimer
         }
         public void RefreshMenu()
         {
+            mc.EpgInfoOpenMode = Settings.Instance.ReserveEpgInfoOpenMode;
             mm.CtxmGenerateContextMenu(listView_reserve.ContextMenu, CtxmCode.ReserveView, true);
             mBinds.ResetInputBindings(this, listView_reserve);
             //mBinds.SetCommandBindings(mc.CommandBindings(), this, listView_reserve.ContextMenu);//やめ。あるだけ全部最初に登録することにする。

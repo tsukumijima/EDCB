@@ -265,6 +265,8 @@ namespace EpgTimer
         public string ReserveRectColorAutoAddMissing { get; set; }
         public string ReserveRectColorMultiple { get; set; }
         public bool ReserveRectBackground { get; set; }
+        public Int32 ReserveToolTipMode { get; set; }
+        public Int32 ReserveEpgInfoOpenMode { get; set; }
         public string TitleColor1 { get; set; }
         public string TitleColor2 { get; set; }
         public UInt32 TitleCustColor1 { get; set; }
@@ -293,6 +295,8 @@ namespace EpgTimer
         public bool TunerInfoSingleClick { get; set; }
         public bool TunerColorModeUse { get; set; }
         public bool TunerDisplayOffReserve { get; set; }
+        public Int32 TunerToolTipMode { get; set; }
+        public Int32 TunerEpgInfoOpenMode { get; set; }
         public bool EpgTitleIndent { get; set; }
         public bool EpgToolTip { get; set; }
         public bool EpgToolTipNoViewOnly { get; set; }
@@ -342,6 +346,7 @@ namespace EpgTimer
             }
             set { recPresetList = value; }
         }
+        public Int32 RecInfoToolTipMode { get; set; }
         public string RecInfoColumnHead { get; set; }
         public ListSortDirection RecInfoSortDirection { get; set; }
         public long RecInfoDropErrIgnore { get; set; }
@@ -392,7 +397,7 @@ namespace EpgTimer
         public List<string> StatColors { get; set; }
         public List<uint> StatCustColors { get; set; }
         public bool EpgInfoSingleClick { get; set; }
-        public byte EpgInfoOpenMode { get; set; }
+        public Int32 EpgInfoOpenMode { get; set; }
         public UInt32 ExecBat { get; set; }
         public UInt32 SuspendChk { get; set; }
         public UInt32 SuspendChkTime { get; set; }
@@ -406,6 +411,7 @@ namespace EpgTimer
         public List<ListColumnInfo> SearchWndColumn { get; set; }
         public string SearchColumnHead { get; set; }
         public ListSortDirection SearchSortDirection { get; set; }
+        public Int32 SearchEpgInfoOpenMode { get; set; }
         public bool SaveSearchKeyword { get; set; }
         public List<ListColumnInfo> InfoSearchWndColumn { get; set; }
         public string InfoSearchColumnHead { get; set; }
@@ -476,6 +482,8 @@ namespace EpgTimer
             PlayDClick = false;
             RecinfoErrCriticalDrops = false;
             DragScroll = 1.5;
+            ReserveToolTipMode = 0;
+            ReserveEpgInfoOpenMode = 0;
             TunerFontNameService = System.Drawing.SystemFonts.DefaultFont.Name;
             TunerFontSizeService = 12;
             TunerFontBoldService = true;
@@ -498,6 +506,8 @@ namespace EpgTimer
             TunerPopupWidth = 1;
             TunerColorModeUse = false;
             TunerDisplayOffReserve = false;
+            TunerToolTipMode = 0;
+            TunerEpgInfoOpenMode = 0;
             EpgTitleIndent = true;
             EpgToolTip = false;
             EpgToolTipNoViewOnly = true;
@@ -533,6 +543,7 @@ namespace EpgTimer
             AndKeyList = new List<string>();
             NotKeyList = new List<string>();
             DefSearchKey = new EpgSearchKeyInfo();
+            RecInfoToolTipMode = 0;
             RecInfoColumnHead = "";
             RecInfoSortDirection = ListSortDirection.Ascending;
             RecInfoDropErrIgnore = 0;
@@ -587,6 +598,7 @@ namespace EpgTimer
             SearchWndColumn = new List<ListColumnInfo>();
             SearchColumnHead = "";
             SearchSortDirection = ListSortDirection.Ascending;
+            SearchEpgInfoOpenMode = 0;
             SaveSearchKeyword = true;
             InfoSearchWndColumn = new List<ListColumnInfo>();
             InfoSearchColumnHead = "";

@@ -274,11 +274,7 @@ namespace EpgTimer
                 //UpdataDBのときは、取得出来なくても取得済み扱いにする。
                 if (UpdateDB == true)
                 {
-                    var list = recFileInfo.Values.Where(info => info.HasErrPackets == true
-                        && recFileAppendList.ContainsKey(info.ID) == false).ToList();
-
-                    ReadRecFileAppend(list);
-
+                    ReadRecFileAppend(recFileInfo.Values.Where(info => info.HasErrPackets == true));
                     recFileAppendList.TryGetValue(master.ID, out retv);
                 }
                 else
@@ -293,14 +289,14 @@ namespace EpgTimer
             }
             return retv ?? new RecFileInfoAppend(master);
         }
-        public void ReadRecFileAppend(List<RecFileInfo> list = null)
+        public void ReadRecFileAppend(IEnumerable<RecFileInfo> rlist = null)
         {
             if (recFileAppendList == null)
             {
                 recFileAppendList = new Dictionary<uint, RecFileInfoAppend>();
             }
 
-            list = list ?? recFileInfo.Values.Where(info => recFileAppendList.ContainsKey(info.ID) == false).ToList();
+            var list = (rlist ?? recFileInfo.Values).Where(info => recFileAppendList.ContainsKey(info.ID) == false).ToList();
             if (list.Count == 0) return;
 
             try

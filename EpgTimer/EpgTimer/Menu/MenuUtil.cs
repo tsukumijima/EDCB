@@ -880,7 +880,7 @@ namespace EpgTimer
             return true;
         }
 
-        public static bool? OpenEpgReserveDialog(EpgEventInfo Data, UIElement Owner, byte epgInfoOpenMode = 0)
+        public static bool? OpenEpgReserveDialog(EpgEventInfo Data, UIElement Owner, Int32 epgInfoOpenMode = 0)
         {
             try
             {
@@ -900,7 +900,7 @@ namespace EpgTimer
             return null;
         }
 
-        public static bool? OpenChangeReserveDialog(ReserveData Data, UIElement Owner, byte epgInfoOpenMode = 0)
+        public static bool? OpenChangeReserveDialog(ReserveData Data, UIElement Owner, Int32 epgInfoOpenMode = 0)
         {
             var win = ChgReserveWindow.GetDataReplaceWindow() as ChgReserveWindow;
             if (win != null)
@@ -914,7 +914,7 @@ namespace EpgTimer
         {
             return OpenChgReserveDialog(null, Owner);
         }
-        public static bool? OpenChgReserveDialog(ReserveData Data, UIElement Owner, byte epgInfoOpenMode = 0)
+        public static bool? OpenChgReserveDialog(ReserveData Data, UIElement Owner, Int32 epgInfoOpenMode = 0)
         {
             try
             {

@@ -145,6 +145,7 @@ namespace EpgTimer
         public override void RefreshMenu() { ResetMenu(true); }
         public void ResetMenu(bool forceReset = false)
         {
+            (dic_mc[typeof(ReserveData)] as CmdExeReserve).EpgInfoOpenMode = Settings.Instance.SearchEpgInfoOpenMode;
             var list = lstCtrl.GetSelectedItemsList().Select(item => item.Data).OfType<IRecWorkMainData>().ToList();
             bool isSame = list.All(item => list[0].GetType() == item.GetType());
             Type changedType = (list.Count == 0 || isSame == false) ? typeof(InfoSearchItem) : list[0].GetType();
@@ -256,6 +257,13 @@ namespace EpgTimer
         private void ToolTipCheck()
         {
             lstCtrl.dataList.ForEach(item => item.IsToolTipEnabled = checkBox_ShowToolTip.IsChecked == true);
+
+            //ツールチップに番組情報を表示する場合は先に一括で詳細情報を読込んでおく
+            if (checkBox_ShowToolTip.IsChecked == true && Settings.Instance.RecInfoToolTipMode == 1)
+            {
+                var list = lstCtrl.dataList.Select(item => item.Data).OfType<RecFileInfo>();
+                CommonManager.Instance.DB.ReadRecFileAppend(list);
+            }
         }
 
         private void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e)

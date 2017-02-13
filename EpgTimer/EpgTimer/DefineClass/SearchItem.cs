@@ -267,7 +267,7 @@ namespace EpgTimer
                 return CustomMarginValue(ReserveInfo.EndMarginResActual);
             }
         }
-        public override String ConvertInfoText()
+        public override String ConvertInfoText(object param = null)
         {
             return CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.All);
         }

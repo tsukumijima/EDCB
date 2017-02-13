@@ -100,7 +100,7 @@ namespace EpgTimer
                 return _data.IsEnabled;
             }
         }
-        public override String ConvertInfoText() { return ""; }
+        public override String ConvertInfoText(object param = null) { return ""; }
         public override Brush ForeColor
         {
             get
@@ -294,7 +294,7 @@ namespace EpgTimer
             }
             return view;
         }
-        public override String ConvertInfoText()
+        public override String ConvertInfoText(object param = null)
         {
             if (EpgAutoAddInfo == null) return "";
             //

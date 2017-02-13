@@ -89,6 +89,13 @@ namespace EpgTimer
                 {
                     dataList.Add(new RecInfoItem(info));
                 }
+
+                //ツールチップに番組情報を表示する場合は先に一括で詳細情報を読込んでおく
+                if (Settings.Instance.NoToolTip == false && Settings.Instance.RecInfoToolTipMode == 1)
+                {
+                    CommonManager.Instance.DB.ReadRecFileAppend();
+                }
+
                 return true;
             });
         }

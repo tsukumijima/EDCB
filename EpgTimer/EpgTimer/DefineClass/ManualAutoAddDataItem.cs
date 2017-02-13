@@ -125,7 +125,7 @@ namespace EpgTimer
                 return ManualAutoAddInfo.stationName;
             }
         }
-        public override String ConvertInfoText()
+        public override String ConvertInfoText(object param = null)
         {
             if (ManualAutoAddInfo == null) return "";
             //
