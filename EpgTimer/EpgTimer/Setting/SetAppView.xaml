@@ -163,6 +163,7 @@
             <StackPanel Margin="6" >
                 <CheckBox Margin="0,0,0,6" Content="優先度が同じで時間が重なった場合、後の予約を優先する" Name="checkBox_back_priority" />
                 <CheckBox Margin="0,0,0,6" Content="優先度が同じ場合、チューナー強制指定された予約を先にチューナー割り当てする" Name="checkBox_fixedTunerPriority" />
+                <CheckBox Margin="0,0,0,6" Content="録画情報保存フォルダ指定時は録画ファイルと同じ場所を参照しない" Name="checkBox_recInfoFolderOnly" />
                 <CheckBox Margin="0,0,0,6" Content="HDDの空きが少ない場合、古い録画ファイルを削除する" Name="checkBox_autoDel" />
                 <GroupBox Header="削除設定" Name="grid_App2Del" Margin="0,0,0,6" Grid.Row="1">
                     <Grid Margin="6,6,0,0" Name="grid_App2DelMain">

@@ -46,6 +46,7 @@ namespace EpgTimer.Setting
 
                 checkBox_back_priority.IsEnabled = false;
                 checkBox_fixedTunerPriority.IsEnabled = false;
+                checkBox_recInfoFolderOnly.IsEnabled = false;
                 checkBox_autoDel.IsEnabled = false;
 
                 grid_App2Del.Foreground = SystemColors.GrayTextBrush;
@@ -129,6 +130,7 @@ namespace EpgTimer.Setting
                 //2 予約管理情報
                 checkBox_back_priority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BackPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_fixedTunerPriority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "FixedTunerPriority", 1, SettingPath.TimerSrvIniPath) == 1;
+                checkBox_recInfoFolderOnly.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecInfoFolderOnly", 1, SettingPath.TimerSrvIniPath) != 0;
                 checkBox_autoDel.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "AutoDel", 0, SettingPath.TimerSrvIniPath) == 1;
 
                 var bxe = new BoxExchangeEditor(null, listBox_ext, true);
@@ -351,6 +353,7 @@ namespace EpgTimer.Setting
                 //2 予約管理情報
                 IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "FixedTunerPriority", checkBox_fixedTunerPriority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolderOnly", checkBox_recInfoFolderOnly.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDel", checkBox_autoDel.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
 
                 List<String> extList = listBox_ext.Items.OfType<string>().ToList();
