@@ -83,7 +83,7 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_del2_epgAutoAdd, EpgCmds.Delete2InDialog);
                 mBinds.SetCommandToButton(button_up_epgAutoAdd, EpgCmds.UpItem);
                 mBinds.SetCommandToButton(button_down_epgAutoAdd, EpgCmds.DownItem);
-                mBinds.AddInputCommand(EpgCmds.Cancel);//ショートカット登録
+                mBinds.SetCommandToButton(button_cancel, EpgCmds.Cancel);
 
                 //メニューの作成、ショートカットの登録
                 RefreshMenu();
