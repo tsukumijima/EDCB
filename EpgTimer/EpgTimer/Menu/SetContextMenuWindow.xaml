@@ -10,96 +10,98 @@
         </Grid.RowDefinitions>
         <TabControl>
             <TabItem Header="共通設定" >
-                <DockPanel>
-                    <DockPanel.Resources>
-                        <Style TargetType="Separator" x:Key="LineBase" BasedOn="{StaticResource {x:Type Separator}}" />
-                        <Style TargetType="Separator" x:Key="TopLine" BasedOn="{StaticResource LineBase}">
-                            <Setter Property="Margin" Value="0,-4,0,-4"/>
-                        </Style>
-                        <Style TargetType="Separator" x:Key="MiddleLine" BasedOn="{StaticResource LineBase}">
-                            <Setter Property="Margin" Value="12,4,12,4"/>
-                        </Style>
-                        <Style TargetType="Separator" x:Key="UnderLine" BasedOn="{StaticResource LineBase}">
-                            <Setter Property="Margin" Value="0,6,0,6"/>
-                        </Style>
-                        <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-                            <Setter Property="Content" Value=""/>
-                            <Setter Property="Margin" Value="6,0,6,1"/>
-                        </Style>
-                    </DockPanel.Resources>
-                    <StackPanel Name="stackPanel_menu">
-                        <Label Content="表示項目" />
-                        <Separator Style="{StaticResource TopLine}" />
-                        <Separator Style="{StaticResource UnderLine}" />
-                        <CheckBox Content="簡易予約/予約←→無効" />
-                        <CheckBox Content="削除" />
-                        <CheckBox Content="予約ごと削除" />
-                        <CheckBox Content="予約を自動登録に合わせる" />
-                        <CheckBox Content="プロテクト←→解除" />
-                        <CheckBox Content="新規プログラム予約/自動登録..." />
-                        <Separator Style="{StaticResource MiddleLine}" />
-                        <CheckBox Content="予約一覧へジャンプ" />
-                        <CheckBox Content="チューナー画面へジャンプ" />
-                        <CheckBox Content="番組表へジャンプ" />
-                        <CheckBox Content="一覧へジャンプ(予約情報検索)" />
-                        <CheckBox Content="自動予約登録変更" />
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Content="番組名でキーワード予約作成..." />
-                        <CheckBox Content="番組名で再検索" />
-                        <CheckBox Content="番組名で再検索(別ウィンドウ)" />
-                        <CheckBox Content="再生/追っかけ再生" />
-                        <CheckBox Content="録画フォルダを開く" />
-                        <Separator Style="{StaticResource MiddleLine}" />
-                        <CheckBox Content="番組名/ANDキーをコピー" />
-                        <CheckBox Content="番組情報をコピー" />
-                        <CheckBox Content="番組名/ANDキーで予約情報検索" />
-                        <CheckBox Content="番組名/ANDキーをネットで検索" />
-                        <CheckBox Content="NOTキーをコピー" />
-                        <CheckBox Content="NOTキーに貼り付け" />
-                        <Separator Style="{StaticResource MiddleLine}" />
-                        <CheckBox Content="右クリックメニューの設定..." />
-                        <Separator Style="{StaticResource UnderLine}" />
-                    </StackPanel>
-                    <StackPanel>
-                        <Label Content="オプション" />
-                        <Separator Style="{StaticResource TopLine}" />
-                        <Separator Style="{StaticResource UnderLine}" />
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageDelete2" />
-                        <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageAdjustRes" />
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Visibility="Hidden"/>
-                        <Separator Style="{StaticResource MiddleLine}" />
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Content="関連候補も表示する" Name="checkBox_AutoAddFazySearch" />
-                        <CheckBox Content="詳細ツールチップを表示する" Name="checkBox_AutoAddSearchToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
-                        <CheckBox Content="記号類を取り除く" Name="checkBox_EpgKeyword_Trim" />
-                        <CheckBox Content="(↑再検索でも共通)" IsEnabled="false" Name="checkBox_EpgKeyword_Trim2" IsChecked="{Binding Path=IsChecked, ElementName=checkBox_EpgKeyword_Trim, UpdateSourceTrigger=PropertyChanged}" />
-                        <CheckBox Content="自動登録無効を解除する" Name="checkBox_CancelAutoAddOff" />
-                        <CheckBox Visibility="Hidden"/>
-                        <CheckBox Content="一つ上で開く(録画結果除く)" Name="checkBox_OpenParentFolder" />
-                        <Separator Style="{StaticResource MiddleLine}" />
-                        <CheckBox Content="記号類を取り除く" Name="checkBox_CopyTitle_Trim" />
-                        <CheckBox Content="基本情報のみコピーする" Name="checkBox_CopyContentBasic" />
-                        <CheckBox Content="記号類を取り除く" Name="checkBox_InfoSearchTtile_Trim" />
-                        <CheckBox Content="記号類を取り除く" Name="checkBox_SearchTtile_Trim" />
-                        <CheckBox Visibility="Hidden" />
-                        <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageNotKEY" />
-                        <Separator Style="{StaticResource MiddleLine}" />
-                        <CheckBox Visibility="Hidden" />
-                        <Separator Style="{StaticResource UnderLine}" />
-                    </StackPanel>
-                    <StackPanel Name="stackPanel_gesture" >
-                        <Label Content="ショートカット有効" />
-                    </StackPanel>
-                    <StackPanel Name="stackPanel_gesture2" >
-                        <Label Content="ショートカットのみ使用" ToolTip="メニュー非表示でもショートカットを使用できます"/>
-                    </StackPanel>
-                </DockPanel>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <DockPanel>
+                        <DockPanel.Resources>
+                            <Style TargetType="Separator" x:Key="LineBase" BasedOn="{StaticResource {x:Type Separator}}" />
+                            <Style TargetType="Separator" x:Key="TopLine" BasedOn="{StaticResource LineBase}">
+                                <Setter Property="Margin" Value="0,-4,0,-4"/>
+                            </Style>
+                            <Style TargetType="Separator" x:Key="MiddleLine" BasedOn="{StaticResource LineBase}">
+                                <Setter Property="Margin" Value="12,4,12,4"/>
+                            </Style>
+                            <Style TargetType="Separator" x:Key="UnderLine" BasedOn="{StaticResource LineBase}">
+                                <Setter Property="Margin" Value="0,6,0,6"/>
+                            </Style>
+                            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                                <Setter Property="Content" Value=""/>
+                                <Setter Property="Margin" Value="6,0,6,1"/>
+                            </Style>
+                        </DockPanel.Resources>
+                        <StackPanel Name="stackPanel_menu">
+                            <Label Content="表示項目" />
+                            <Separator Style="{StaticResource TopLine}" />
+                            <Separator Style="{StaticResource UnderLine}" />
+                            <CheckBox Content="簡易予約/予約←→無効" />
+                            <CheckBox Content="削除" />
+                            <CheckBox Content="予約ごと削除" />
+                            <CheckBox Content="予約を自動登録に合わせる" />
+                            <CheckBox Content="プロテクト←→解除" />
+                            <CheckBox Content="新規プログラム予約/自動登録..." />
+                            <Separator Style="{StaticResource MiddleLine}" />
+                            <CheckBox Content="予約一覧へジャンプ" />
+                            <CheckBox Content="チューナー画面へジャンプ" />
+                            <CheckBox Content="番組表へジャンプ" />
+                            <CheckBox Content="一覧へジャンプ(予約情報検索)" />
+                            <CheckBox Content="自動予約登録変更" />
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Content="番組名でキーワード予約作成..." />
+                            <CheckBox Content="番組名で再検索" />
+                            <CheckBox Content="番組名で再検索(別ウィンドウ)" />
+                            <CheckBox Content="再生/追っかけ再生" />
+                            <CheckBox Content="録画フォルダを開く" />
+                            <Separator Style="{StaticResource MiddleLine}" />
+                            <CheckBox Content="番組名/ANDキーをコピー" />
+                            <CheckBox Content="番組情報をコピー" />
+                            <CheckBox Content="番組名/ANDキーで予約情報検索" />
+                            <CheckBox Content="番組名/ANDキーをネットで検索" />
+                            <CheckBox Content="NOTキーをコピー" />
+                            <CheckBox Content="NOTキーに貼り付け" />
+                            <Separator Style="{StaticResource MiddleLine}" />
+                            <CheckBox Content="右クリックメニューの設定..." />
+                            <Separator Style="{StaticResource UnderLine}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <Label Content="オプション" />
+                            <Separator Style="{StaticResource TopLine}" />
+                            <Separator Style="{StaticResource UnderLine}" />
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageDelete2" />
+                            <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageAdjustRes" />
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Visibility="Hidden"/>
+                            <Separator Style="{StaticResource MiddleLine}" />
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Content="関連候補も表示する" Name="checkBox_AutoAddFazySearch" />
+                            <CheckBox Content="詳細ツールチップを表示する" Name="checkBox_AutoAddSearchToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
+                            <CheckBox Content="記号類を取り除く" Name="checkBox_EpgKeyword_Trim" />
+                            <CheckBox Content="(↑再検索でも共通)" IsEnabled="false" Name="checkBox_EpgKeyword_Trim2" IsChecked="{Binding Path=IsChecked, ElementName=checkBox_EpgKeyword_Trim, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox Content="自動登録無効を解除する" Name="checkBox_CancelAutoAddOff" />
+                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Content="一つ上で開く(録画結果除く)" Name="checkBox_OpenParentFolder" />
+                            <Separator Style="{StaticResource MiddleLine}" />
+                            <CheckBox Content="記号類を取り除く" Name="checkBox_CopyTitle_Trim" />
+                            <CheckBox Content="基本情報のみコピーする" Name="checkBox_CopyContentBasic" />
+                            <CheckBox Content="記号類を取り除く" Name="checkBox_InfoSearchTtile_Trim" />
+                            <CheckBox Content="記号類を取り除く" Name="checkBox_SearchTtile_Trim" />
+                            <CheckBox Visibility="Hidden" />
+                            <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageNotKEY" />
+                            <Separator Style="{StaticResource MiddleLine}" />
+                            <CheckBox Visibility="Hidden" />
+                            <Separator Style="{StaticResource UnderLine}" />
+                        </StackPanel>
+                        <StackPanel Name="stackPanel_gesture" >
+                            <Label Content="ショートカット有効" />
+                        </StackPanel>
+                        <StackPanel Name="stackPanel_gesture2" >
+                            <Label Content="ショートカットのみ使用" ToolTip="メニュー非表示でもショートカットを使用できます"/>
+                        </StackPanel>
+                    </DockPanel>
+                </ScrollViewer>
             </TabItem>
             <TabItem Header="個別設定" >
                 <Grid Margin="6" >
