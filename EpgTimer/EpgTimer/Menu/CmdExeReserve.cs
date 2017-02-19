@@ -91,16 +91,16 @@ namespace EpgTimer
         {
             if (dataList.Count != 0)//予約情報優先
             {
-                IsCommandExecuted = true == MenuUtil.OpenChangeReserveDialog(dataList[0], this.Owner, EpgInfoOpenMode);
+                IsCommandExecuted = true == MenuUtil.OpenChangeReserveDialog(dataList[0], EpgInfoOpenMode);
             }
             else if (eventListEx.Count != 0)
             {
-                IsCommandExecuted = true == MenuUtil.OpenEpgReserveDialog(eventListEx[0], this.Owner, EpgInfoOpenMode);
+                IsCommandExecuted = true == MenuUtil.OpenEpgReserveDialog(eventListEx[0], EpgInfoOpenMode);
             }
         }
         protected override void mc_ShowAddDialog(object sender, ExecutedRoutedEventArgs e)
         {
-            IsCommandExecuted = true == MenuUtil.OpenManualReserveDialog(Owner);
+            IsCommandExecuted = true == MenuUtil.OpenManualReserveDialog();
         }
         protected override void mc_ChangeOnOff(object sender, ExecutedRoutedEventArgs e)
         {
