@@ -165,11 +165,7 @@ namespace EpgTimer
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             base.UserControl_IsVisibleChanged(sender, e);
-
-            if (this.IsVisible == false) return;
-
-            ViewUtil.JumpToListItem(BlackoutWindow.SelectedData, listView_key, BlackoutWindow.NowJumpTable);
-            BlackoutWindow.Clear();
+            if (this.IsVisible == true) ViewUtil.JumpToListItemTabChanged(listView_key);
         }
     }
 

@@ -103,20 +103,11 @@ namespace EpgTimer
         {
             lstCtrl.SaveViewDataToSettings();
         }
-
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             base.UserControl_IsVisibleChanged(sender, e);
-
-            if (this.IsVisible == false) return;
-
-            if (BlackoutWindow.HasReserveData == true)
-            {
-                ViewUtil.JumpToListItem(BlackoutWindow.SelectedItem.ReserveInfo, listView_reserve, BlackoutWindow.NowJumpTable);
-            }
-            BlackoutWindow.Clear();
+            if (this.IsVisible == true) ViewUtil.JumpToListItemTabChanged(listView_reserve);
         }
-
         protected override void SelectViewItemData(UInt64 id)
         {
             ViewUtil.JumpToListItem(id, listView_reserve, false);

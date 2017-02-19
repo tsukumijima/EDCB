@@ -108,13 +108,8 @@ namespace EpgTimer
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             base.UserControl_IsVisibleChanged(sender, e);
-
-            if (this.IsVisible == false) return;
-
-            ViewUtil.JumpToListItem(BlackoutWindow.SelectedData, this.listView_recinfo, BlackoutWindow.NowJumpTable);
-            BlackoutWindow.Clear();
+            if (this.IsVisible == true) ViewUtil.JumpToListItemTabChanged(listView_recinfo);
         }
-
         protected override void SelectViewItemData(UInt64 id)
         {
             ViewUtil.JumpToListItem(id, listView_recinfo, false);

@@ -194,13 +194,24 @@ namespace EpgTimer
         }
 
         //指定アイテムまでマーキング付で移動する。
+        public static void JumpToListItemTabChanged(ListBox listBox)
+        {
+            if (BlackoutWindow.HasData == true)
+            {
+                ViewUtil.JumpToListItem(BlackoutWindow.SelectedData, listBox, BlackoutWindow.NowJumpTable);
+            }
+            BlackoutWindow.Clear();
+        }
         public static void JumpToListItem(object target, ListBox listBox, bool IsMarking = false)
         {
             if (target is IGridViewSorterItem)
             {
                 JumpToListItem(((IGridViewSorterItem)target).KeyID, listBox, IsMarking);
             }
-            ScrollToFindItem(target, listBox, IsMarking);
+            else
+            {
+                ScrollToFindItem(target, listBox, IsMarking);
+            }
         }
         public static void JumpToListItem(UInt64 gvSorterID, ListBox listBox, bool IsMarking = false)
         {
