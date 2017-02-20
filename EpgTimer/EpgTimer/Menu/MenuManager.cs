@@ -697,7 +697,7 @@ namespace EpgTimer
                 addList.ForEach(autoAdd =>
                 {
                     var menuItem = new MenuItem();
-                    menuItem.IsChecked = chkList.Contains(autoAdd);
+                    menuItem.IsChecked = chkList.Contains(autoAdd) && (info is ReserveData ? (info as ReserveData).IsAutoAdded : true);
 
                     string header = MenuUtil.ConvertAutoddTextMenu(autoAdd);
                     if (header.Length > str_max)
