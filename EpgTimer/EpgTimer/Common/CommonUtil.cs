@@ -78,14 +78,17 @@ namespace EpgTimer
             return topWindow == null ? null : topWindow.RootVisual as Window;
         }
 
-        /// <summary>文字数を制限し、超える場合は省略記号を付与する</summary>
-        public static string LimitLenString(string s, int max_len, string tag = "...")
+        /// <summary>文字数を制限し、超える場合は省略記号を付与する。pos:省略記号の位置(負数指定で中央)</summary>
+        public static string LimitLenString(string s, int max_len, int pos = int.MaxValue, string tag = "...")
         {
             if (string.IsNullOrEmpty(s) == false && s.Length > max_len)
             {
-                tag = tag ?? "";
                 max_len = Math.Max(max_len, 0);
-                s = s.Substring(0, Math.Max(0, max_len - tag.Length)) + tag.Substring(0, Math.Min(max_len, tag.Length));
+                tag = tag ?? "";
+                tag = tag.Substring(0, Math.Min(max_len, tag.Length));
+                int sel_len = Math.Max(0, max_len - tag.Length);
+                pos = pos < 0 ? sel_len / 2 : pos > sel_len ? sel_len : pos;
+                s = s.Substring(0, pos) + tag + s.Substring(s.Length - (sel_len - pos));
             }
             return s;
         }

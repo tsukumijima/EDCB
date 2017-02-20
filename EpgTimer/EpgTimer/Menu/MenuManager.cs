@@ -682,7 +682,7 @@ namespace EpgTimer
             return true;
         }
 
-        private void CtxmGenerateChgAutoAddMenuItem(MenuItem menu, IAutoAddTargetData info, ICommand cmd, bool? IsAutoAddEnabled, bool ByFazy, int str_max = 35)
+        private void CtxmGenerateChgAutoAddMenuItem(MenuItem menu, IAutoAddTargetData info, ICommand cmd, bool? IsAutoAddEnabled, bool ByFazy)
         {
             if (info != null)
             {
@@ -699,17 +699,12 @@ namespace EpgTimer
                     var menuItem = new MenuItem();
                     menuItem.IsChecked = chkList.Contains(autoAdd) && (info is ReserveData ? (info as ReserveData).IsAutoAdded : true);
 
-                    string header = MenuUtil.ConvertAutoddTextMenu(autoAdd);
-                    if (header.Length > str_max)
-                    {
-                        menuItem.ToolTip = ViewUtil.GetTooltipBlockStandard(header);
-                        header = CommonUtil.LimitLenString(header, str_max); // 長すぎる場合は省略
-                    }
+                    menuItem.Header = MenuUtil.ConvertAutoddTextMenu(autoAdd);
+                    LimitLenHeader(menuItem);
                     if (Settings.Instance.MenuSet.AutoAddSearchToolTip == true)
                     {
                         menuItem.ToolTip = AutoAddDataItemEx.CreateIncetance(autoAdd).ToolTipViewAlways;
                     }
-                    menuItem.Header = header;
                     menuItem.Command = cmd;
                     menuItem.CommandParameter = new EpgCmdParam(menu.CommandParameter as EpgCmdParam);
                     (menuItem.CommandParameter as EpgCmdParam).Data = autoAdd.GetType();//オブジェクト入れると残るので
@@ -756,11 +751,28 @@ namespace EpgTimer
         {
             var menuItem = new MenuItem();
             menuItem.Header = header_exp + path;
+            LimitLenHeader(menuItem);
             menuItem.Command = EpgCmds.OpenFolder;
             menuItem.CommandParameter = new EpgCmdParam(menu.CommandParameter as EpgCmdParam);
             (menuItem.CommandParameter as EpgCmdParam).Data = path;
             menuItem.Tag = menuItem.Command;
             menu.Items.Add(menuItem);
+        }
+
+        /// <summary>長すぎるとき省略してツールチップを追加する</summary>
+        public bool LimitLenHeader(MenuItem menu, int max = 45, int pos = -1)
+        {
+            var header = menu.Header as string;
+            if (header == null) return false;
+
+            bool isLengthOver = header.Length > max;
+            if (isLengthOver == true)
+            {
+                menu.ToolTip = ViewUtil.GetTooltipBlockStandard(header);
+                header = CommonUtil.LimitLenString(header, max, pos); // 長すぎる場合は省略
+            }
+            menu.Header = header;
+            return isLengthOver;
         }
 
         private void CtxmClearItemMenu(MenuItem menu, bool isEndDot = false)
