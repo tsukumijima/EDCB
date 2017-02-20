@@ -10,28 +10,30 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <Label Content="録画曜日" Height="28" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label1" VerticalAlignment="Top" />
-        <StackPanel Margin="88,17,0,0" Orientation="Horizontal" VerticalAlignment="Top" >
-            <StackPanel Name="stackPanel_week" Orientation="Horizontal" />
-            <CheckBox Content="自動登録を無効にする" Margin="30,0,0,0" Name="checkBox_keyDisabled" />
+        <StackPanel Margin="12,6,0,0">
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Label Content="番組名" Width="76" />
+                <TextBox Name="textBox_title"  Width="256" />
+                <Label Content="サービス　"  Margin="18,0,0,0" />
+                <ComboBox Name="comboBox_service" Width="200" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Label Content="録画時間" Width="76" />
+                <ComboBox Name="comboBox_startHH" Width="44" />
+                <ComboBox Name="comboBox_startMM" Width="44" Margin="3,0" />
+                <ComboBox Name="comboBox_startSS" Width="44" />
+                <Label Content="　～　" />
+                <ComboBox Name="comboBox_endHH" Width="44" />
+                <ComboBox Name="comboBox_endMM" Width="44" Margin="3,0" />
+                <ComboBox Name="comboBox_endSS" Width="44" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Label Content="録画曜日" Width="76" />
+                <StackPanel Name="stackPanel_week" Orientation="Horizontal" />
+                <CheckBox Content="自動登録を無効にする" Margin="30,0,0,0" Name="checkBox_keyDisabled" />
+            </StackPanel>
+            <my:RecSettingView  Margin="-12,2,0,0" x:Name="recSettingView" />
         </StackPanel>
-        <Label Content="録画時間" Height="28" HorizontalAlignment="Left" Margin="12,46,0,0" Name="label2" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="88,46,0,0" Name="comboBox_startHH" VerticalAlignment="Top" Width="46" ItemsSource="{Binding}" />
-        <Label Content="：" Height="28" HorizontalAlignment="Left" Margin="146,46,0,0" Name="label3" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="176,46,0,0" Name="comboBox_startMM" VerticalAlignment="Top" Width="46" />
-        <Label Content="：" Height="28" HorizontalAlignment="Left" Margin="233,46,0,0" Name="label4" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="263,46,0,0" Name="comboBox_startSS" VerticalAlignment="Top" Width="46" />
-        <Label Content="～" Height="28" HorizontalAlignment="Left" Margin="315,46,0,0" Name="label5" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="343,46,0,0" Name="comboBox_endHH" VerticalAlignment="Top" Width="46" />
-        <Label Content="：" Height="28" HorizontalAlignment="Left" Margin="401,46,0,0" Name="label6" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="431,46,0,0" Name="comboBox_endMM" VerticalAlignment="Top" Width="46" />
-        <Label Content="：" Height="28" HorizontalAlignment="Left" Margin="488,46,0,0" Name="label7" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="518,46,0,0" Name="comboBox_endSS" VerticalAlignment="Top" Width="46" />
-        <Label Content="番組名" Height="28" HorizontalAlignment="Left" Margin="12,80,0,0" Name="label8" VerticalAlignment="Top" />
-        <TextBox Height="24" Margin="88,82,45,0" Name="textBox_title" VerticalAlignment="Top" />
-        <Label Content="サービス" Height="28" HorizontalAlignment="Left" Margin="12,114,0,0" Name="label9" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="88,114,0,0" Name="comboBox_service" VerticalAlignment="Top" Width="194" />
-        <my:RecSettingView Margin="0,144,0,0" x:Name="recSettingView" VerticalAlignment="Top" />
         <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="0,6,0,12" >
             <StackPanel Margin="20,0,20,0" Orientation="Horizontal">
                 <Button Content="追加" Margin="10,0,10,0" Name="button_add" MinWidth="48" />
