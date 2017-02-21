@@ -236,6 +236,7 @@ namespace EpgTimer
 
             var CheckReservableEpg = new Func<MenuItem, bool>(mi =>
             {
+                mi.ToolTip = null;
                 if (eventListEx.Count != 0 && eventListEx.Count(data => data.IsReservable == true) == 0)
                 {
                     mi.IsEnabled = false;
