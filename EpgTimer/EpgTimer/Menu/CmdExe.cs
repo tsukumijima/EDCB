@@ -18,7 +18,6 @@ namespace EpgTimer
             public bool IsNeedClone;//データをコピーする。変更系コマンドで通信エラーなどあった場合に問題が起きないようにする。
             public bool IsNeedItem;//コマンド実行に対象が必要。ビュー切り替えなどはこれがfalse。
             public bool IsReleaseItem;//コマンド実行前に選択アイテムを解除する。
-            public bool IsChangeDB;//コマンドにより、DBの状態が変化するもの。
 
             public cmdOption(ExecutedRoutedEventHandler exe
                 , CanExecuteRoutedEventHandler canExe = null
@@ -26,7 +25,6 @@ namespace EpgTimer
                 , bool needClone = false
                 , bool needItem = true
                 , bool releaseItem = false
-                , bool changeDB = false
                 )
             {
                 Exe = exe;
@@ -35,7 +33,6 @@ namespace EpgTimer
                 IsNeedClone = needClone;
                 IsNeedItem = needItem;
                 IsReleaseItem = releaseItem;
-                IsChangeDB = changeDB;
             }
         }
         public enum cmdExeType
@@ -77,7 +74,7 @@ namespace EpgTimer
         public override void SetFuncSelectSingleData(Func<bool, object> f) { _selectSingleData = f; }
         public override void SetFuncReleaseSelectedData(Action f) { _releaseSelectedData = f; }
 
-        protected virtual int ItemCount { get { return dataList == null ? 0 : dataList.Count; } }
+        protected virtual int ItemCount { get { return dataList.Count; } }
         protected List<T> dataList = new List<T>();
         public bool IsCommandExecuted { get; set; }
 
@@ -89,31 +86,31 @@ namespace EpgTimer
         public CmdExe(UIElement owner)
         {
             this.Owner = owner;
-            cmdList.Add(EpgCmds.Add, new cmdOption(mc_Add, null, cmdExeType.MultiItem, changeDB: true));
-            cmdList.Add(EpgCmds.AddOnPreset, new cmdOption(mc_AddOnPreset, null, cmdExeType.MultiItem, changeDB: true));
-            cmdList.Add(EpgCmds.ChgOnOff, new cmdOption(mc_ChangeOnOff, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgOnPreset, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgResMode, new cmdOption(mc_ChgResMode, null, cmdExeType.MultiItem, changeDB: true));
-            cmdList.Add(EpgCmds.ChgBulkRecSet, new cmdOption(mc_ChgBulkRecSet, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgGenre, new cmdOption(mc_ChgGenre, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgRecmode, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgPriority, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgRelay, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgPittari, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgTuner, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgMarginStart, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgMarginStartValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgMarginEnd, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgMarginEndValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgKeyEnabled, new cmdOption(mc_ChangeKeyEnabled, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ChgOnOffKeyEnabled, new cmdOption(mc_ChangeOnOffKeyEnabled, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.Delete, new cmdOption(mc_Delete, null, cmdExeType.MultiItem, changeDB: true));
-            cmdList.Add(EpgCmds.Delete2, new cmdOption(mc_Delete2, null, cmdExeType.MultiItem, changeDB: true));
-            cmdList.Add(EpgCmds.DeleteAll, new cmdOption(mc_Delete, null, cmdExeType.AllItem, changeDB: true));
-            cmdList.Add(EpgCmds.AdjustReserve, new cmdOption(mc_AdjustReserve, null, cmdExeType.MultiItem, changeDB: true));
-            cmdList.Add(EpgCmds.ShowDialog, new cmdOption(mc_ShowDialog, null, cmdExeType.SingleItem, changeDB: true));
-            cmdList.Add(EpgCmds.ShowAddDialog, new cmdOption(mc_ShowAddDialog, null, cmdExeType.NoSetItem, false, false, true, changeDB: true));
-            cmdList.Add(EpgCmds.ShowAutoAddDialog, new cmdOption(mc_ShowAutoAddDialog, null, cmdExeType.SingleItem, changeDB: true));
+            cmdList.Add(EpgCmds.Add, new cmdOption(mc_Add, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.AddOnPreset, new cmdOption(mc_AddOnPreset, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.ChgOnOff, new cmdOption(mc_ChangeOnOff, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgOnPreset, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgResMode, new cmdOption(mc_ChgResMode, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgBulkRecSet, new cmdOption(mc_ChgBulkRecSet, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgGenre, new cmdOption(mc_ChgGenre, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgRecmode, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgPriority, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgRelay, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgPittari, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgTuner, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgMarginStart, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgMarginStartValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgMarginEnd, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgMarginEndValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgKeyEnabled, new cmdOption(mc_ChangeKeyEnabled, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgOnOffKeyEnabled, new cmdOption(mc_ChangeOnOffKeyEnabled, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.Delete, new cmdOption(mc_Delete, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.Delete2, new cmdOption(mc_Delete2, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.DeleteAll, new cmdOption(mc_Delete, null, cmdExeType.AllItem));
+            cmdList.Add(EpgCmds.AdjustReserve, new cmdOption(mc_AdjustReserve, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.ShowDialog, new cmdOption(mc_ShowDialog, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.ShowAddDialog, new cmdOption(mc_ShowAddDialog, null, cmdExeType.NoSetItem, false, false, true));
+            cmdList.Add(EpgCmds.ShowAutoAddDialog, new cmdOption(mc_ShowAutoAddDialog, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpReserve, new cmdOption(mc_JumpReserve, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpTuner, new cmdOption(mc_JumpTuner, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpTable, new cmdOption(mc_JumpTable, null, cmdExeType.SingleItem));
@@ -128,17 +125,17 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.InfoSearchTitle, new cmdOption(mc_InfoSearchTitle, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.SearchTitle, new cmdOption(mc_SearchTitle, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.CopyNotKey, new cmdOption(mc_CopyNotKey, null, cmdExeType.SingleItem));
-            cmdList.Add(EpgCmds.SetNotKey, new cmdOption(mc_SetNotKey, null, cmdExeType.MultiItem, true, changeDB: true));
-            cmdList.Add(EpgCmds.ProtectChange, new cmdOption(mc_ProtectChange, null, cmdExeType.MultiItem, true, changeDB: true));
+            cmdList.Add(EpgCmds.SetNotKey, new cmdOption(mc_SetNotKey, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ProtectChange, new cmdOption(mc_ProtectChange, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ViewChgSet, new cmdOption(null, null, cmdExeType.Direct, needItem: false));//個別に指定
             cmdList.Add(EpgCmds.ViewChgMode, new cmdOption(null, null, cmdExeType.SingleItem, needItem: false));//個別に指定
             cmdList.Add(EpgCmds.MenuSetting, new cmdOption(mc_MenuSetting, null, cmdExeType.Direct, needItem: false));
 
-            cmdList.Add(EpgCmdsEx.AddMenu, new cmdOption(null, null, cmdExeType.MultiItem));//メニュー用
-            cmdList.Add(EpgCmdsEx.ChgMenu, new cmdOption(null, null, cmdExeType.MultiItem));//メニュー用
-            cmdList.Add(EpgCmdsEx.ShowAutoAddDialogMenu, new cmdOption(null, null, cmdExeType.SingleItem));//メニュー用
-            cmdList.Add(EpgCmdsEx.OpenFolderMenu, new cmdOption(null, null, cmdExeType.SingleItem));//メニュー用
-            cmdList.Add(EpgCmdsEx.ViewMenu, new cmdOption(null, null, cmdExeType.NoSetItem, needItem: false));//メニュー用
+            cmdList.Add(EpgCmdsEx.AddMenu, new cmdOption(null));//メニュー用
+            cmdList.Add(EpgCmdsEx.ChgMenu, new cmdOption(null));//メニュー用
+            cmdList.Add(EpgCmdsEx.ShowAutoAddDialogMenu, new cmdOption(null));//メニュー用
+            cmdList.Add(EpgCmdsEx.OpenFolderMenu, new cmdOption(null));//メニュー用
+            cmdList.Add(EpgCmdsEx.ViewMenu, new cmdOption(null, needItem: false));//メニュー用
         }
         protected virtual void SetData(bool IsAllData = false)
         {
@@ -539,7 +536,8 @@ namespace EpgTimer
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgResModeMenu)
                 {
-                    mm.CtxmGenerateChgResModeAutoAddItems(subMenu, ItemCount == 1 ? dataList[0] as ReserveData : null);
+                    //メニュークリアもあるので先に実行
+                    mm.CtxmGenerateChgResModeAutoAddItems(subMenu, dataList.Count == 1 ? dataList[0] as ReserveData : null);
 
                     if (typeof(T) != typeof(ReserveData))
                     {
@@ -672,41 +670,7 @@ namespace EpgTimer
             cmdMessage.Add(EpgCmds.Delete2, "予約ごと削除を実行");
             cmdMessage.Add(EpgCmds.DeleteAll, "全て削除を実行");
             cmdMessage.Add(EpgCmds.AdjustReserve, "自動予約登録に予約を合わせる");
-            //cmdMessage.Add(EpgCmds.ShowDialog, "");
-            //cmdMessage.Add(EpgCmds.ShowAddDialog, "");
-            //cmdMessage.Add(EpgCmds.ShowAutoAddDialog, "");
-            //cmdMessage.Add(EpgCmds.JumpReserve, "予約一覧へジャンプ");
-            //cmdMessage.Add(EpgCmds.JumpTuner, "チューナー画面へジャンプ");
-            //cmdMessage.Add(EpgCmds.JumpTable, "番組表へジャンプ");
-            //cmdMessage.Add(EpgCmds.ToAutoadd, "");
-            //cmdMessage.Add(EpgCmds.ReSearch, "再検索を実行");
-            //cmdMessage.Add(EpgCmds.ReSearch2, "再検索を実行");
-            //cmdMessage.Add(EpgCmds.Play, "再生/追いかけ再生を実行");
-            //cmdMessage.Add(EpgCmds.OpenFolder, "フォルダーを開く");
-            //cmdMessage.Add(EpgCmds.CopyTitle, "名前をコピー");
-            //cmdMessage.Add(EpgCmds.CopyContent, "番組情報をコピー");
-            //cmdMessage.Add(EpgCmds.SearchTitle, "名前をネットで検索");
-            //cmdMessage.Add(EpgCmds.CopyNotKey, "Notキーをコピー");
-            //cmdMessage.Add(EpgCmds.SetNotKey, "Notキーに貼り付け");
             cmdMessage.Add(EpgCmds.ProtectChange, "プロテクト切替を実行");
-            //cmdMessage.Add(EpgCmds.ViewChgSet, "");
-            //cmdMessage.Add(EpgCmds.ViewChgMode, "");
-            //cmdMessage.Add(EpgCmds.MenuSetting, "");
-
-            //cmdMessage.Add(EpgCmds.AddInDialog, "追加を実行");
-            //cmdMessage.Add(EpgCmds.ChangeInDialog, "変更を実行");
-            //cmdMessage.Add(EpgCmds.DeleteInDialog, "削除を実行");
-            //cmdMessage.Add(EpgCmds.Delete2InDialog, "全て削除を実行");
-            //cmdMessage.Add(EpgCmds.Search, "検索を実行");
-            //cmdMessage.Add(EpgCmds.TopItem, "");
-            //cmdMessage.Add(EpgCmds.UpItem, "");
-            //cmdMessage.Add(EpgCmds.DownItem, "");
-            //cmdMessage.Add(EpgCmds.BottomItem, "");
-            //cmdMessage.Add(EpgCmds.SaveOrder, "");
-            //cmdMessage.Add(EpgCmds.RestoreOrder, "");
-            //cmdMessage.Add(EpgCmds.DragCancel, "");
-            //cmdMessage.Add(EpgCmds.Cancel, "");
-            //cmdMessage.Add(EpgCmds.ChgOnOffCheck, "");//一覧画面のチェックボックス用
         }
     }
 

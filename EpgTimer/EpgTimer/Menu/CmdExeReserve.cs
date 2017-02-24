@@ -20,10 +20,7 @@ namespace EpgTimer
         public Int32 EpgInfoOpenMode { get; set; }
         public RecSettingView recSettingView { get; set; }
 
-        protected override int ItemCount
-        {
-            get { return (dataList == null ? 0 : dataList.Count) + (eventListEx == null ? 0 : eventListEx.Count); }
-        }
+        protected override int ItemCount { get { return dataList.Count + eventListEx.Count; } }
         protected IAutoAddTargetData headData = null;//メニューオープン時に使用
         protected IAutoAddTargetData headDataEv = null;//番組情報優先先頭データ。headDataは予約情報優先。
         protected List<EpgEventInfo> eventList = new List<EpgEventInfo>();
@@ -331,7 +328,7 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmdsEx.OpenFolderMenu)
             {
-                mm.CtxmGenerateOpenFolderItems(menu, headData as ReserveData == null ? null : dataList[0].RecSetting);
+                mm.CtxmGenerateOpenFolderItems(menu, headData is ReserveData ? dataList[0].RecSetting : null);
             }
             else if (menu.Tag == EpgCmdsEx.ViewMenu)
             {

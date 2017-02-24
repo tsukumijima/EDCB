@@ -63,7 +63,7 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmdsEx.OpenFolderMenu)
             {
-                mm.CtxmGenerateOpenFolderItems(menu, this.ItemCount == 0 ? null : dataList[0].RecSettingInfo);
+                mm.CtxmGenerateOpenFolderItems(menu, dataList.Count == 0 ? null : dataList[0].RecSettingInfo);
             }
         }
     }
