@@ -129,6 +129,7 @@ namespace EpgTimer
         public bool CancelAutoAddOff { get; set; }
         public bool AutoAddFazySearch { get; set; }
         public bool AutoAddSearchToolTip { get; set; }
+        public bool ReserveSearchToolTip { get; set; }
         public bool OpenParentFolder { get; set; }
         public bool Keyword_Trim { get; set; }
         public bool CopyTitle_Trim { get; set; }
@@ -150,6 +151,7 @@ namespace EpgTimer
             CancelAutoAddOff = false;
             AutoAddFazySearch = false;
             AutoAddSearchToolTip = false;
+            ReserveSearchToolTip = false;
             OpenParentFolder = false;
             Keyword_Trim = true;
             CopyTitle_Trim = false;
@@ -173,6 +175,7 @@ namespace EpgTimer
             dest.CancelAutoAddOff = src.CancelAutoAddOff;
             dest.AutoAddFazySearch = src.AutoAddFazySearch;
             dest.AutoAddSearchToolTip = src.AutoAddSearchToolTip;
+            dest.ReserveSearchToolTip = src.ReserveSearchToolTip;
             dest.OpenParentFolder = src.OpenParentFolder;
             dest.Keyword_Trim = src.Keyword_Trim;
             dest.CopyTitle_Trim = src.CopyTitle_Trim;

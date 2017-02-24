@@ -900,6 +900,12 @@ namespace EpgTimer
             return null;
         }
 
+        public static bool? OpenChangeReserveDialog(UInt32 id, Int32 epgInfoOpenMode = 0)
+        {
+            ReserveData data;
+            if (CommonManager.Instance.DB.ReserveList.TryGetValue(id, out data) == false) return false;
+            return OpenChangeReserveDialog(data, epgInfoOpenMode);
+        }
         public static bool? OpenChangeReserveDialog(ReserveData Data, Int32 epgInfoOpenMode = 0)
         {
             var win = ChgReserveWindow.GetDataReplaceWindow() as ChgReserveWindow;

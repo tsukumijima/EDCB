@@ -45,6 +45,7 @@
                             <CheckBox Content="一覧へジャンプ(予約情報検索)" />
                             <CheckBox Content="自動予約登録変更" />
                             <CheckBox Visibility="Hidden"/>
+                            <CheckBox Content="予約一覧(自動予約登録)" />
                             <CheckBox Content="番組名でキーワード予約作成..." />
                             <CheckBox Content="番組名で再検索" />
                             <CheckBox Content="番組名で再検索(別ウィンドウ)" />
@@ -78,6 +79,7 @@
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Content="関連候補も表示する" Name="checkBox_AutoAddFazySearch" />
                             <CheckBox Content="詳細ツールチップを表示する" Name="checkBox_AutoAddSearchToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
+                            <CheckBox Content="詳細ツールチップを表示する" Name="checkBox_ReserveSearchToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
                             <CheckBox Content="記号類を取り除く" Name="checkBox_EpgKeyword_Trim" />
                             <CheckBox Content="(↑再検索でも共通)" IsEnabled="false" Name="checkBox_EpgKeyword_Trim2" IsChecked="{Binding Path=IsChecked, ElementName=checkBox_EpgKeyword_Trim, UpdateSourceTrigger=PropertyChanged}" />
                             <CheckBox Content="自動登録無効を解除する" Name="checkBox_CancelAutoAddOff" />

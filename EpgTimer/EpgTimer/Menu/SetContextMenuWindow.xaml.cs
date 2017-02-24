@@ -44,6 +44,7 @@ namespace EpgTimer
             new List<ICommand>{EpgCmds.JumpListView},
             new List<ICommand>{EpgCmdsEx.ShowAutoAddDialogMenu},
             new List<ICommand>{},//オプション用のダミー行
+            new List<ICommand>{EpgCmdsEx.ShowReserveDialogMenu},
             new List<ICommand>{EpgCmds.ToAutoadd},
             new List<ICommand>{EpgCmds.ReSearch},
             new List<ICommand>{EpgCmds.ReSearch2},
@@ -157,6 +158,7 @@ namespace EpgTimer
                 checkBox_CancelAutoAddOff.IsChecked = info.CancelAutoAddOff;
                 checkBox_AutoAddFazySearch.IsChecked = info.AutoAddFazySearch;
                 checkBox_AutoAddSearchToolTip.IsChecked = info.AutoAddSearchToolTip;
+                checkBox_ReserveSearchToolTip.IsChecked = info.ReserveSearchToolTip;
                 checkBox_EpgKeyword_Trim.IsChecked = info.Keyword_Trim;
                 checkBox_CopyTitle_Trim.IsChecked = info.CopyTitle_Trim;
                 checkBox_CopyContentBasic.IsChecked = info.CopyContentBasic;
@@ -226,6 +228,7 @@ namespace EpgTimer
                 info.CancelAutoAddOff = (checkBox_CancelAutoAddOff.IsChecked == true);
                 info.AutoAddFazySearch = (checkBox_AutoAddFazySearch.IsChecked == true);
                 info.AutoAddSearchToolTip = (checkBox_AutoAddSearchToolTip.IsChecked == true);
+                info.ReserveSearchToolTip = (checkBox_ReserveSearchToolTip.IsChecked == true);
                 info.ManualMenuItems = editMenu.Clone();
                 info.Keyword_Trim = (checkBox_EpgKeyword_Trim.IsChecked == true);
                 info.CopyTitle_Trim = (checkBox_CopyTitle_Trim.IsChecked == true);

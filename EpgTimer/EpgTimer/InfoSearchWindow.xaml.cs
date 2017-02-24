@@ -145,7 +145,7 @@ namespace EpgTimer
         public override void RefreshMenu() { ResetMenu(true); }
         public void ResetMenu(bool forceReset = false)
         {
-            (dic_mc[typeof(ReserveData)] as CmdExeReserve).EpgInfoOpenMode = Settings.Instance.SearchEpgInfoOpenMode;
+            foreach (var mc in dic_mc.Values) mc.EpgInfoOpenMode = Settings.Instance.SearchEpgInfoOpenMode;
             var list = lstCtrl.GetSelectedItemsList().Select(item => item.Data).OfType<IRecWorkMainData>().ToList();
             bool isSame = list.All(item => list[0].GetType() == item.GetType());
             Type changedType = (list.Count == 0 || isSame == false) ? typeof(InfoSearchItem) : list[0].GetType();

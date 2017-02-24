@@ -17,7 +17,6 @@ namespace EpgTimer
         public void SetFuncGetEpgEventList(Func<List<EpgEventInfo>> f) { _getEpgEventList = f; }
         public void SetFuncSelectSingleSearchData(Func<bool, SearchItem> f) { _selectSingleSearchData = f; }
 
-        public Int32 EpgInfoOpenMode { get; set; }
         public RecSettingView recSettingView { get; set; }
 
         protected override int ItemCount { get { return dataList.Count + eventListEx.Count; } }

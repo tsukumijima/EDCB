@@ -61,6 +61,10 @@ namespace EpgTimer
             {
                 mcs_jumpTabMenuOpening(menu, "次の無効予約へジャンプ");
             }
+            else if (menu.Tag == EpgCmdsEx.ShowReserveDialogMenu)
+            {
+                menu.IsEnabled = mm.CtxmGenerateShowReserveDialogMenuItems(menu, dataList);
+            }
             else if (menu.Tag == EpgCmdsEx.OpenFolderMenu)
             {
                 mm.CtxmGenerateOpenFolderItems(menu, dataList.Count == 0 ? null : dataList[0].RecSettingInfo);

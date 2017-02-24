@@ -54,6 +54,7 @@ namespace EpgTimer
         public virtual void AddReplaceCommand(ICommand icmd, ExecutedRoutedEventHandler exe, CanExecuteRoutedEventHandler canExe = null) { }
         public virtual void ResetCommandBindings(UIElement cTrgView, UIElement cTrgMenu = null) { }
         public virtual SearchItem GetJumpTabItem(CtxmCode trg_code = CtxmCode.EpgView) { return null; }
+        public virtual Int32 EpgInfoOpenMode { get; set; }
         public virtual void SupportContextMenuLoading(object sender, RoutedEventArgs e) { }
     }
     public class CmdExe<T> : CmdExeBase
@@ -111,6 +112,7 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.ShowDialog, new cmdOption(mc_ShowDialog, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.ShowAddDialog, new cmdOption(mc_ShowAddDialog, null, cmdExeType.NoSetItem, false, false, true));
             cmdList.Add(EpgCmds.ShowAutoAddDialog, new cmdOption(mc_ShowAutoAddDialog, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.ShowReserveDialog, new cmdOption(mc_ShowReserveDialog, null, cmdExeType.MultiItem));
             cmdList.Add(EpgCmds.JumpReserve, new cmdOption(mc_JumpReserve, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpTuner, new cmdOption(mc_JumpTuner, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpTable, new cmdOption(mc_JumpTable, null, cmdExeType.SingleItem));
@@ -134,6 +136,7 @@ namespace EpgTimer
             cmdList.Add(EpgCmdsEx.AddMenu, new cmdOption(null));//メニュー用
             cmdList.Add(EpgCmdsEx.ChgMenu, new cmdOption(null));//メニュー用
             cmdList.Add(EpgCmdsEx.ShowAutoAddDialogMenu, new cmdOption(null));//メニュー用
+            cmdList.Add(EpgCmdsEx.ShowReserveDialogMenu, new cmdOption(null));//メニュー用
             cmdList.Add(EpgCmdsEx.OpenFolderMenu, new cmdOption(null));//メニュー用
             cmdList.Add(EpgCmdsEx.ViewMenu, new cmdOption(null, needItem: false));//メニュー用
         }
@@ -338,6 +341,10 @@ namespace EpgTimer
         protected virtual void mc_ShowAutoAddDialog(object sender, ExecutedRoutedEventArgs e)
         {
             IsCommandExecuted = true == MenuUtil.OpenChangeAutoAddDialog(CmdExeUtil.ReadObjData(e) as Type, (uint)CmdExeUtil.ReadIdData(e));
+        }
+        protected virtual void mc_ShowReserveDialog(object sender, ExecutedRoutedEventArgs e)
+        {
+            IsCommandExecuted = true == MenuUtil.OpenChangeReserveDialog((uint)CmdExeUtil.ReadIdData(e), EpgInfoOpenMode);
         }
         protected virtual void mc_ToAutoadd(object sender, ExecutedRoutedEventArgs e)
         {

@@ -130,6 +130,7 @@ namespace EpgTimer
         }
         public void RefreshMenu()
         {
+            mc.EpgInfoOpenMode = Settings.Instance.SearchEpgInfoOpenMode;
             mBinds.ResetInputBindings(this, listView_key);
             mm.CtxmGenerateContextMenu(listView_key.ContextMenu, viewCode, true);
         }

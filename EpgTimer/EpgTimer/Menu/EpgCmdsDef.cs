@@ -34,6 +34,7 @@ namespace EpgTimer
         public static RoutedUICommand ShowDialog { get; private set; }
         public static RoutedUICommand ShowAddDialog { get; private set; }
         public static RoutedUICommand ShowAutoAddDialog { get; private set; }
+        public static RoutedUICommand ShowReserveDialog { get; private set; }
         public static RoutedUICommand JumpReserve { get; private set; }
         public static RoutedUICommand JumpTuner { get; private set; }
         public static RoutedUICommand JumpTable { get; private set; }
@@ -79,6 +80,7 @@ namespace EpgTimer
         public static RoutedUICommand AddMenu { get; private set; }
         public static RoutedUICommand ChgMenu { get; private set; }
         public static RoutedUICommand ShowAutoAddDialogMenu { get; private set; }
+        public static RoutedUICommand ShowReserveDialogMenu { get; private set; }
         public static RoutedUICommand ChgRecmodeMenu { get; private set; }
         public static RoutedUICommand ChgPriorityMenu { get; private set; }
         public static RoutedUICommand ChgRelayMenu { get; private set; }

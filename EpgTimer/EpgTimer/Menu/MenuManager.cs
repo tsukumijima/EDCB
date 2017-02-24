@@ -203,6 +203,7 @@ namespace EpgTimer
 
             //メニューアイテム:キーワード自動予約登録
             ctmd = DefCtxmData[CtxmCode.EpgAutoAddView];
+            ctmd.Items.Add(new CtxmItemData("予約一覧(_L)", EpgCmdsEx.ShowReserveDialogMenu));
             ctmd.Items.Add(new CtxmItemData("変更(_C)", cm_ChangeMenu));
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
             ctmd.Items.Add(new CtxmItemData("予約ごと削除", EpgCmds.Delete2));
@@ -222,6 +223,7 @@ namespace EpgTimer
 
             //メニューアイテム:プログラム自動予約登録
             ctmd = DefCtxmData[CtxmCode.ManualAutoAddView];
+            ctmd.Items.Add(new CtxmItemData("予約一覧(_L)", EpgCmdsEx.ShowReserveDialogMenu));
             ctmd.Items.Add(new CtxmItemData("変更(_C)", cm_ChangeMenu));
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
             ctmd.Items.Add(new CtxmItemData("予約ごと削除", EpgCmds.Delete2));
@@ -714,6 +716,52 @@ namespace EpgTimer
                     menu.Items.Add(menuItem);
                 });
             }
+        }
+
+        public bool CtxmGenerateShowReserveDialogMenuItems(MenuItem menu, IEnumerable<AutoAddData> list)
+        {
+            menu.Items.Clear();
+
+            if (menu.IsEnabled == true && list != null)
+            {
+                var chkList = new HashSet<ReserveData>(list.GetAutoAddList(true).GetReserveList());
+                var addList = list.GetReserveList().FindAll(info => info.IsOver() == false);//FindAll()は通常無くても同じはず
+                var hasStatus = addList.Any(data => string.IsNullOrWhiteSpace(new ReserveItem(data).Status) == false);
+
+                foreach (var data in addList.OrderBy(info => info.StartTimeActual))
+                {
+                    var resItem = new ReserveItem(data);
+                    var menuItem = new MenuItem();
+
+                    menuItem.IsChecked = chkList.Contains(data) && data.IsAutoAdded;
+                    menuItem.Header = resItem.StartTimeShort + " " + data.Title;
+                    LimitLenHeader(menuItem, 42, 28);
+                    //ステータスがあれば表示する
+                    if (hasStatus == true)
+                    {
+                        var headBlock = new StackPanel { Orientation = Orientation.Horizontal };
+                        headBlock.Children.Add(new TextBlock { Text = resItem.Status, Foreground = resItem.StatusColor, Width = 25 });
+                        headBlock.Children.Add(new TextBlock { Text = menuItem.Header as string });//折り返しも可能だがいまいちな感じ。
+                        menuItem.Header = headBlock;
+                    }
+                    if (Settings.Instance.MenuSet.ReserveSearchToolTip == true)
+                    {
+                        menuItem.ToolTip = resItem.ToolTipViewAlways;
+                    }
+                    menuItem.Command = EpgCmds.ShowReserveDialog;
+                    menuItem.CommandParameter = new EpgCmdParam(menu.CommandParameter as EpgCmdParam);
+                    (menuItem.CommandParameter as EpgCmdParam).ID = (int)(data.ReserveID);
+                    menuItem.Tag = menuItem.Command;
+                    menu.Items.Add(menuItem);
+                }
+            }
+            if (menu.Items.Count == 0)
+            {
+                menu.Items.Add(new object());//メニューに「>」を表示するためのダミー
+                return false;
+            }
+
+            return true;
         }
 
         public void CtxmGenerateOpenFolderItems(MenuItem menu, RecSettingData recSetting = null)
