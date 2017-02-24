@@ -1120,13 +1120,13 @@ namespace EpgTimer
             {
                 if (Settings.Instance.OpenFolderWithFileDialog == true)
                 {
-                    var dlg = new System.Windows.Forms.OpenFileDialog();
+                    var dlg = new Microsoft.Win32.OpenFileDialog();
                     dlg.Title = Description;
                     dlg.CheckFileExists = false;
                     dlg.DereferenceLinks = false;
                     dlg.FileName = "(任意ファイル名)";
                     dlg.InitialDirectory = GetDirectoryName2(InitialPath);
-                    if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    if (dlg.ShowDialog() == true)
                     {
                         return GetDirectoryName2(dlg.FileName);
                     }
@@ -1154,7 +1154,7 @@ namespace EpgTimer
         {
             try
             {
-                var dlg = new System.Windows.Forms.OpenFileDialog();
+                var dlg = new Microsoft.Win32.OpenFileDialog();
                 dlg.Title = Title;
                 dlg.FileName = Path.GetFileName(InitialPath);
                 dlg.InitialDirectory = GetDirectoryName2(InitialPath);
@@ -1162,17 +1162,17 @@ namespace EpgTimer
                 {
                     case ".exe":
                         dlg.DefaultExt = ".exe";
-                        dlg.Filter = "exe Files (.exe)|*.exe;|all Files(*.*)|*.*";
+                        dlg.Filter = "exe Files|*.exe|all Files|*.*";
                         break;
                     case ".bat":
                         dlg.DefaultExt = ".bat";
-                        dlg.Filter = "bat Files (.bat)|*.bat;|all Files(*.*)|*.*";
+                        dlg.Filter = "bat Files|*.bat|all Files|*.*";
                         break;
                     default:
-                        dlg.Filter = "all Files(*.*)|*.*";
+                        dlg.Filter = "all Files|*.*";
                         break;
                 }
-                if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                if (dlg.ShowDialog() == true)
                 {
                     return isNameOnly == true ? dlg.SafeFileName : dlg.FileName;
                 }
