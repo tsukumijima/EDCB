@@ -41,9 +41,9 @@
                 </GridViewColumn>
             </my:GridViewColumnList>
             <my:GridViewColumnList x:Key="ManualAutoAddView">
-                <GridViewColumn DisplayMemberBinding="{Binding Path=DayOfWeek}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=EventName}">
                     <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="曜日" Uid="DayOfWeek"/>
+                        <GridViewColumnHeader Content="番組名" Uid="EventName"/>
                     </GridViewColumn.Header>
                 </GridViewColumn>
                 <GridViewColumn DisplayMemberBinding="{Binding Path=StartTime}">
@@ -61,9 +61,9 @@
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>
                 </GridViewColumn>
-                <GridViewColumn DisplayMemberBinding="{Binding Path=EventName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=DayOfWeek}">
                     <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="番組名" Uid="EventName"/>
+                        <GridViewColumnHeader Content="曜日" Uid="DayOfWeek"/>
                     </GridViewColumn.Header>
                 </GridViewColumn>
             </my:GridViewColumnList>

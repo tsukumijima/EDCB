@@ -204,6 +204,7 @@ namespace EpgTimer
             //録画設定の表示項目を調整
             ColumnList.Remove(ColumnList.Find(data => (data.Header as GridViewColumnHeader).Uid == "Tuijyu"));
             ColumnList.Remove(ColumnList.Find(data => (data.Header as GridViewColumnHeader).Uid == "Pittari"));
+            (ColumnList.Find(data => (data.Header as GridViewColumnHeader).Uid == "SearchCount").Header as GridViewColumnHeader).Content = "曜日数";
 
             //初期化の続き
             base.InitAutoAddView();
