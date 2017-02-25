@@ -63,11 +63,11 @@ namespace EpgTimer
             try
             {
                 var dlg = new Microsoft.Win32.SaveFileDialog();
-                dlg.DefaultExt = ".txt";
-                dlg.Filter = "txt Files (.txt)|*.txt;|all Files(*.*)|*.*";
+                dlg.DefaultExt = ".log";
+                dlg.Filter = "log Files|*.log|all Files|*.*";
                 if (dlg.ShowDialog() == true)
                 {
-                    using (var file = new StreamWriter(dlg.FileName, false, Encoding.GetEncoding(932)))
+                    using (var file = new StreamWriter(dlg.FileName, false, Encoding.Unicode))
                     {
                         lstCtrl.dataList.ForEach(info => file.WriteLine(info));
                     }

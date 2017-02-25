@@ -52,12 +52,15 @@ namespace EpgTimer
             return IsDttv(ONID) == false && IsBS(ONID) == false && IsCS(ONID) == false;
         }
 
+        private static Encoding fileEncoding = Encoding.GetEncoding(932);
         public static bool LoadFile()
         {
             try
             {
                 using (var sr = new StreamReader(SettingPath.SettingFolderPath + "\\ChSet5.txt", Encoding.GetEncoding(932)))
                 {
+                    sr.Peek();//CurrentEncodingが更新される
+                    fileEncoding = sr.CurrentEncoding;
                     return ChSet5.Load(sr);
                 }
             }
@@ -111,7 +114,7 @@ namespace EpgTimer
             {
                 if (chList == null) return false;
                 //
-                using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, Encoding.GetEncoding(932)))
+                using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, fileEncoding))
                 {
                     foreach (ChSet5Item info in chList.Values)
                     {
