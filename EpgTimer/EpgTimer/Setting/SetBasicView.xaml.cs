@@ -100,8 +100,8 @@ namespace EpgTimer.Setting
                 checkBox_cs2.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS2BasicOnly", 1, SettingPath.CommonIniPath) == 1;
                 checkBox_cs3.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS3BasicOnly", 0, SettingPath.CommonIniPath) == 1;
 
-                int capCount = IniFileHandler.GetPrivateProfileInt("EPG_CAP", "Count", 0, SettingPath.TimerSrvIniPath);
-                if (capCount == 0)
+                int capCount = IniFileHandler.GetPrivateProfileInt("EPG_CAP", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
+                if (capCount == int.MaxValue)
                 {
                     var item = new EpgCaptime();
                     item.IsSelected = true;

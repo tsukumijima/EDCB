@@ -140,7 +140,7 @@ namespace EpgTimer
             PittariFlag = 0;
             BatFilePath = "";
             RecFolderList = new List<RecFileSetInfo>();
-            SuspendMode = 0;
+            SuspendMode = 2;
             RebootFlag = 0;
             UseMargineFlag = 0;
             StartMargine = 5;

@@ -88,7 +88,7 @@ namespace EpgTimer.Setting
             {
                 //1 録画動作
                 recEndModeRadioBtns = new RadioBtnSelect(radioButton_none, radioButton_standby, radioButton_suspend, radioButton_shutdown);
-                recEndModeRadioBtns.Value = IniFileHandler.GetPrivateProfileInt("SET", "RecEndMode", 0, SettingPath.TimerSrvIniPath);
+                recEndModeRadioBtns.Value = IniFileHandler.GetPrivateProfileInt("SET", "RecEndMode", 2, SettingPath.TimerSrvIniPath);
                 checkBox_reboot.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "Reboot", 0, SettingPath.TimerSrvIniPath) == 1;
                 textBox_pcWakeTime.Text = IniFileHandler.GetPrivateProfileInt("SET", "WakeTime", 5, SettingPath.TimerSrvIniPath).ToString();
 
@@ -103,10 +103,17 @@ namespace EpgTimer.Setting
                     textBox_process.KeyDown += ViewUtil.KeyDown_Enter(button_process_add);
                 }
 
-                int ngCount = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "Count", 0, SettingPath.TimerSrvIniPath);
-                for (int i = 0; i < ngCount; i++)
+                int ngCount = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
+                if (ngCount == int.MaxValue)
                 {
-                    listBox_process.Items.Add(IniFileHandler.GetPrivateProfileString("NO_SUSPEND", i.ToString(), "", SettingPath.TimerSrvIniPath));
+                    listBox_process.Items.Add("EpgDataCap_Bon.exe");
+                }
+                else
+                {
+                    for (int i = 0; i < ngCount; i++)
+                    {
+                        listBox_process.Items.Add(IniFileHandler.GetPrivateProfileString("NO_SUSPEND", i.ToString(), "", SettingPath.TimerSrvIniPath));
+                    }
                 }
                 textBox_ng_min.Text = IniFileHandler.GetPrivateProfileString("NO_SUSPEND", "NoStandbyTime", "10", SettingPath.TimerSrvIniPath);
                 checkBox_ng_usePC.IsChecked = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoUsePC", 0, SettingPath.TimerSrvIniPath) == 1;
@@ -155,10 +162,17 @@ namespace EpgTimer.Setting
                 }
                 
                 int count;
-                count = IniFileHandler.GetPrivateProfileInt("DEL_EXT", "Count", 0, SettingPath.TimerSrvIniPath);
-                for (int i = 0; i < count; i++)
+                count = IniFileHandler.GetPrivateProfileInt("DEL_EXT", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
+                if (count == int.MaxValue)
                 {
-                    listBox_ext.Items.Add(IniFileHandler.GetPrivateProfileString("DEL_EXT", i.ToString(), "", SettingPath.TimerSrvIniPath));
+                    button_ext_def_Click(null, null);
+                }
+                else
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        listBox_ext.Items.Add(IniFileHandler.GetPrivateProfileString("DEL_EXT", i.ToString(), "", SettingPath.TimerSrvIniPath));
+                    }
                 }
                 count = IniFileHandler.GetPrivateProfileInt("DEL_CHK", "Count", 0, SettingPath.TimerSrvIniPath);
                 for (int i = 0; i < count; i++)
