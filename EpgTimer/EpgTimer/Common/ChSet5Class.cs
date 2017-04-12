@@ -33,7 +33,7 @@ namespace EpgTimer
         }
         public static bool IsCS(UInt16 ONID)
         {
-            return IsCS1(ONID) || IsCS2(ONID);
+            return IsCS1(ONID) || IsCS2(ONID) || IsCS3(ONID);
         }
         public static bool IsCS1(UInt16 ONID)
         {
@@ -43,7 +43,7 @@ namespace EpgTimer
         {
             return ONID == 0x0007;
         }
-        public static bool IsSkyPerfectv(UInt16 ONID)
+        public static bool IsCS3(UInt16 ONID)
         {
             return ONID == 0x000A;
         }
@@ -161,7 +161,7 @@ namespace EpgTimer
         public bool IsCS { get { return ChSet5.IsCS(ONID); } }
         public bool IsCS1 { get { return ChSet5.IsCS1(ONID); } }
         public bool IsCS2 { get { return ChSet5.IsCS2(ONID); } }
-        public bool IsSkyPerfectv { get { return ChSet5.IsSkyPerfectv(ONID); } }
+        public bool IsCS3 { get { return ChSet5.IsCS3(ONID); } }
         public bool IsOther { get { return ChSet5.IsOther(ONID); } }
 
         public EpgServiceInfo ToInfo()

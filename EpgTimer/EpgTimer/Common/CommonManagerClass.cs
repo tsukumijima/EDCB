@@ -875,9 +875,9 @@ namespace EpgTimer
             {
                 retText = IsSimple == true ? "CS" : "CS2";
             }
-            else if (ChSet5.IsSkyPerfectv(originalNetworkID) == true)
+            else if (ChSet5.IsCS3(originalNetworkID) == true)
             {
-                retText = "スカパー";
+                retText = IsSimple == true ? "CS" : "CS3";
             }
             else
             {

@@ -20,7 +20,7 @@ namespace EpgTimer
         }
         public String NetworkName
         {
-            get { return CommonManager.ConvertNetworkNameText(ServiceInfo.ONID, true); }
+            get { return CommonManager.ConvertNetworkNameText(ServiceInfo.ONID); }
         }
     }
 }

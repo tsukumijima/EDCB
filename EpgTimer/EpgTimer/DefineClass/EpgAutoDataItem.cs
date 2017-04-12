@@ -236,29 +236,13 @@ namespace EpgTimer
             {
                 if (EpgAutoAddInfo == null) return "";
                 //
-                String view1 = "";
-                List<string> networkKeyList1 = new List<string>();
-                foreach (ulong service1 in this.EpgAutoAddInfo.searchInfo.serviceList)
-                {
-                    string network1 = "?";
-                    ChSet5Item chSet5Item1;
-                    if (ChSet5.ChList.TryGetValue(service1, out chSet5Item1) == true)
-                    {
-                        network1 = CommonManager.ConvertNetworkNameText(chSet5Item1.ONID, true);
-                    }
-                    if (networkKeyList1.Contains(network1) == false)
-                    {
-                        networkKeyList1.Add(network1);
-                        view1 += network1 + ",";
-                    }
-                }
-                if (view1 == "")
-                {
-                    view1 = "なし";
-                }
-                return view1.TrimEnd(','); ;
+                return this.EpgAutoAddInfo.searchInfo.serviceList.Count == 0 ? "なし": 
+                    string.Join(",", this.EpgAutoAddInfo.searchInfo.serviceList
+                        .Select(service1 => CommonManager.ConvertNetworkNameText((ushort)(service1 >> 32), true))
+                        .Distinct());
             }
-        }        /// <summary>
+        }
+        /// <summary>
         /// NHK総合１・東京、NHKBS1
         /// </summary>
         public override String ServiceName
