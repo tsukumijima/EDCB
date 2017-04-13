@@ -36,9 +36,13 @@ namespace EpgTimer
             {
                 var time = (DateTime)((Button)sender).DataContext;
 
-                if (timeList.Count < 1 || time < timeList[0])
+                if (timeList.Count < 1 || time < timeList.First())
                 {
-                    epgProgramView.scrollViewer.ScrollToVerticalOffset(0);
+                    epgProgramView.scrollViewer.ScrollToTop();
+                }
+                else if (time >= timeList.Last())
+                {
+                    epgProgramView.scrollViewer.ScrollToBottom();
                 }
                 else
                 {
