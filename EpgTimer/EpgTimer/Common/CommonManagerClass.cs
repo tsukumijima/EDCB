@@ -100,13 +100,13 @@ namespace EpgTimer
             RecModeForeColor = new List<Brush>();
         }
 
-        public static Dictionary<UInt16, ContentKindInfo> ContentKindDictionary { get; private set; }
-        public static Dictionary<Int32, string> AttributeInfoDictionary { get; private set; }
-        public static Dictionary<UInt16, string> ComponentKindDictionary { get; private set; }
-        public static string[] DayOfWeekArray { get; private set; }
-        public static List<string> RecModeList { get; private set; }
-        public static List<string> YesNoList { get; private set; }
-        public static List<string> PriorityList { get; private set; }
+        public static readonly Dictionary<UInt16, ContentKindInfo> ContentKindDictionary;
+        public static readonly Dictionary<Int32, string> AttributeInfoDictionary;
+        public static readonly Dictionary<UInt16, string> ComponentKindDictionary;
+        public static readonly string[] DayOfWeekArray;
+        public static readonly string[] RecModeList;
+        public static readonly string[] YesNoList;
+        public static readonly string[] PriorityList;
         
         static CommonManager()
         {
@@ -384,9 +384,9 @@ namespace EpgTimer
                 { 0x05E4, "H.264|MPEG-4 AVC、1080p(1125p)、アスペクト比 > 16:9" }
             };
             DayOfWeekArray = new string[] { "日", "月", "火", "水", "木", "金", "土" };
-            RecModeList = new List<string> { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
-            YesNoList = new List<string> { "しない", "する" };
-            PriorityList = new List<string> { "1 (低)", "2", "3", "4", "5 (高)" };
+            RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
+            YesNoList = new string[] { "しない", "する" };
+            PriorityList = new string[] { "1 (低)", "2", "3", "4", "5 (高)" };
         }
 
         public static IEnumerable<ContentKindInfo> ContentKindList
@@ -968,9 +968,9 @@ namespace EpgTimer
             return retText.TrimEnd('\r', '\n');
         }
 
-        static String ConvertValueText(int val, List<string> textList, string errText = "不明")
+        static String ConvertValueText(int val, string[] textList, string errText = "不明")
         {
-            return 0 <= val && val < textList.Count ? textList[val] : errText;
+            return 0 <= val && val < textList.Length ? textList[val] : errText;
         }
 
         public static String ConvertRecModeText(int val)
@@ -1005,7 +1005,7 @@ namespace EpgTimer
 
         public static String ConvertViewModeText(int viewMode)
         {
-            return ConvertValueText(viewMode, new List<string> { "標準モード", "1週間モード", "リスト表示モード" }, "");
+            return ConvertValueText(viewMode, new string[] { "標準モード", "1週間モード", "リスト表示モード" }, "");
         }
 
         public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo)
