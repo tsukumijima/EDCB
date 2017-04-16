@@ -21,8 +21,8 @@ namespace EpgTimer.EpgView
 
         public void ClearInfo()
         {
-            stackPanel_day.Children.Clear();
-            stackPanel_time.Children.Clear();
+            uniformGrid_day.Children.Clear();
+            uniformGrid_time.Children.Clear();
         }
 
         public void SetTime(List<DateTime> timeList)
@@ -35,35 +35,36 @@ namespace EpgTimer.EpgView
                 DateTime itemTime = timeList.First().Date;
                 while (itemTime <= timeList.Last())
                 {
-                    var day_btn = new Button();
-                    day_btn.Padding = new Thickness(1);
-                    day_btn.Width = 105;
-                    day_btn.Content = itemTime.ToString("M/d(ddd)");
+                    var day = new Button();
+                    day.Padding = new Thickness(1);
+                    day.Content = itemTime.ToString("M/d(ddd)");
                     if (itemTime.DayOfWeek == DayOfWeek.Saturday)
                     {
-                        day_btn.Foreground = Brushes.Blue;
+                        day.Foreground = Brushes.Blue;
                     }
                     else if (itemTime.DayOfWeek == DayOfWeek.Sunday)
                     {
-                        day_btn.Foreground = Brushes.Red;
+                        day.Foreground = Brushes.Red;
                     }
-                    day_btn.DataContext = itemTime;
-                    day_btn.Click += new RoutedEventHandler(button_time_Click);
-                    stackPanel_day.Children.Add(day_btn);
+                    day.DataContext = itemTime;
+                    day.Click += new RoutedEventHandler(button_time_Click);
+                    uniformGrid_day.Children.Add(day);
 
                     for (int i = 6; i <= 18; i += 6)
                     {
-                        var hour_btn = new Button();
-                        hour_btn.Padding = new Thickness(1);
-                        hour_btn.Width = 35;
-                        hour_btn.Content = itemTime.ToString(i.ToString() + "時");
-                        hour_btn.DataContext = itemTime.AddHours(i);
-                        hour_btn.Click += new RoutedEventHandler(button_time_Click);
-                        stackPanel_time.Children.Add(hour_btn);
+                        var hour = new Button();
+                        hour.Padding = new Thickness(1);
+                        hour.Content = i.ToString();
+                        hour.DataContext = itemTime.AddHours(i);
+                        hour.Click += new RoutedEventHandler(button_time_Click);
+                        uniformGrid_time.Children.Add(hour);
                     }
 
                     itemTime += TimeSpan.FromDays(1);
                 }
+            
+                columnDefinition.MinWidth = uniformGrid_time.Children.Count * 15;
+                columnDefinition.MaxWidth = uniformGrid_time.Children.Count * 40;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

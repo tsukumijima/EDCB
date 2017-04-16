@@ -3,9 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              MinWidth="30" MinHeight="30">
     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-        <StackPanel>
-            <StackPanel Name="stackPanel_day" Orientation="Horizontal" />
-            <StackPanel Name="stackPanel_time" Orientation="Horizontal" />
-        </StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Name="columnDefinition" Width="*" />
+            </Grid.ColumnDefinitions>
+            <UniformGrid Grid.Row="0" Name="uniformGrid_day" Rows="1" />
+            <UniformGrid Grid.Row="1" Name="uniformGrid_time" Rows="1" />
+        </Grid>
     </ScrollViewer>
 </UserControl>
