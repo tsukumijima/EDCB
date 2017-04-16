@@ -18,6 +18,23 @@ namespace EpgTimer
             }
         }
         public static void Clear() { chList = null; }
+
+        public static IEnumerable<ChSet5Item> ChListSelected
+        {
+            get { return GetSortedChList(Settings.Instance.ShowEpgCapServiceOnly == false); }
+        }
+        public static IEnumerable<ChSet5Item> ChListSorted
+        {
+            get { return GetSortedChList(); }
+        }
+        private static IEnumerable<ChSet5Item> GetSortedChList(bool ignoreEpgCap = true)
+        {
+            //ネットワーク種別優先かつ限定受信を分離したID順ソート
+            return ChList.Values.Where(item => (ignoreEpgCap || item.EpgCapFlag)).OrderBy(item => (
+                (ulong)(IsDttv(item.ONID) ? 0 : IsBS(item.ONID) ? 1 : IsCS(item.ONID) ? 2 : 3) << 56 |
+                (ulong)(IsDttv(item.ONID) && item.PartialFlag ? 1 : 0) << 48 |
+                item.Key));
+        }
         
         public static bool IsVideo(UInt16 ServiceType)
         {
@@ -91,9 +108,9 @@ namespace EpgTimer
                             item.TSID = Convert.ToUInt16(list[3]);
                             item.SID = Convert.ToUInt16(list[4]);
                             item.ServiceType = Convert.ToUInt16(list[5]);
-                            item.PartialFlag = Convert.ToByte(list[6]);
-                            item.EpgCapFlag = Convert.ToByte(list[7]);
-                            item.SearchFlag = Convert.ToByte(list[8]);
+                            item.PartialFlag = Convert.ToInt32(list[6]) != 0;
+                            item.EpgCapFlag = Convert.ToInt32(list[7]) != 0;
+                            item.SearchFlag = Convert.ToInt32(list[8]) != 0;
                         }
                         finally
                         {
@@ -125,9 +142,9 @@ namespace EpgTimer
                             info.TSID,
                             info.SID,
                             info.ServiceType,
-                            info.PartialFlag,
-                            info.EpgCapFlag,
-                            info.SearchFlag);
+                            info.PartialFlag == true ? 1 : 0,
+                            info.EpgCapFlag == true ? 1 : 0,
+                            info.SearchFlag == true ? 1 : 0);
                     }
                 }
             }
@@ -148,12 +165,11 @@ namespace EpgTimer
         public UInt16 TSID { get; set; }
         public UInt16 SID { get; set; }
         public UInt16 ServiceType { get; set; }
-        public Byte PartialFlag { get; set; }
+        public bool PartialFlag { get; set; }
         public String ServiceName { get; set; }
         public String NetworkName { get; set; }
-        public Byte EpgCapFlag { get; set; }
-        public Byte SearchFlag { get; set; }
-        public Byte RemoconID { get; set; }
+        public bool EpgCapFlag { get; set; }
+        public bool SearchFlag { get; set; }
 
         public bool IsVideo { get { return ChSet5.IsVideo(ServiceType); } }
         public bool IsDttv { get { return ChSet5.IsDttv(ONID); } }
@@ -172,8 +188,8 @@ namespace EpgTimer
                 TSID = this.TSID,
                 SID = this.SID,
                 network_name = this.NetworkName,
-                partialReceptionFlag = this.PartialFlag,
-                remote_control_key_id = this.RemoconID,
+                partialReceptionFlag = (byte)(this.PartialFlag ? 1 : 0),
+                remote_control_key_id = 0,
                 service_name = this.ServiceName,
                 service_provider_name = this.NetworkName,
                 service_type = (byte)this.ServiceType,

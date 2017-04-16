@@ -31,7 +31,7 @@ namespace EpgTimer
                     "ServiceName : " + ServiceInfo.ServiceName + "\r\n" +
                     "ServiceType : " + ServiceInfo.ServiceType.ToString() + "(0x" + ServiceInfo.ServiceType.ToString("X2") + ")" + "\r\n" +
                     CommonManager.Convert64KeyString(ServiceInfo.Key) + "\r\n" +
-                    "PartialReception : " + ServiceInfo.PartialFlag.ToString());
+                    "PartialReception : " + (ServiceInfo.PartialFlag ? 1 : 0));
             }
         }
     }

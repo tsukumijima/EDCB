@@ -1075,23 +1075,31 @@ namespace EpgTimer
                 setInfo[i].ID = -1 * (i + 1);
             }
 
-            foreach (ChSet5Item info in ChSet5.ChList.Values)
+            bool ignoreEpgCap = Settings.Instance.ShowEpgCapServiceOnly == false;
+            //リモコンキー優先のID順ソート
+            foreach (EpgServiceAllEventInfo info in CommonManager.Instance.DB.ServiceEventList.Values.Where(item =>
+            {
+                ulong key = item.serviceInfo.Create64Key();
+                return ignoreEpgCap || ChSet5.ChList.ContainsKey(key) && ChSet5.ChList[key].EpgCapFlag;
+            }).OrderBy(item => (
+                (ulong)(ChSet5.IsDttv(item.serviceInfo.ONID) ? (item.serviceInfo.remote_control_key_id + 255) % 256 : 0) << 48 |
+                item.serviceInfo.Create64Key())))
             {
                 int i = 3;//その他
-                if (info.IsDttv == true)//地デジ
+                if (ChSet5.IsDttv(info.serviceInfo.ONID) == true)//地デジ
                 {
                     i = 0;
                 }
-                else if (info.IsBS == true)//BS
+                else if (ChSet5.IsBS(info.serviceInfo.ONID) == true)//BS
                 {
                     i = 1;
                 }
-                else if (info.IsCS == true)//CS
+                else if (ChSet5.IsCS(info.serviceInfo.ONID) == true)//CS
                 {
                     i = 2;
                 }
 
-                setInfo[i].ViewServiceList.Add(info.Key);
+                setInfo[i].ViewServiceList.Add(info.serviceInfo.Create64Key());
             }
 
             return setInfo.Where(info => info.ViewServiceList.Count != 0).ToList();

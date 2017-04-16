@@ -15,7 +15,6 @@ namespace EpgTimer.Setting
     public partial class SetBasicView : UserControl
     {
         private ObservableCollection<EpgCaptime> timeList = new ObservableCollection<EpgCaptime>();
-        private List<ServiceViewItem> serviceList;
 
         public bool IsChangeSettingPath { get; private set; }
 
@@ -92,8 +91,7 @@ namespace EpgTimer.Setting
                 comboBox_MM.ItemsSource = Enumerable.Range(0, 60);
                 comboBox_MM.SelectedIndex = 0;
 
-                serviceList = ChSet5.ChList.Values.Select(info => new ServiceViewItem(info) { IsSelected = info.EpgCapFlag == 1 }).ToList();
-                listView_service.ItemsSource = serviceList;
+                listView_service.ItemsSource = ChSet5.ChListSorted.Select(info => new ServiceViewItem(info) { IsSelected = info.EpgCapFlag }).ToList();
 
                 checkBox_bs.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BSBasicOnly", 1, SettingPath.CommonIniPath) == 1;
                 checkBox_cs1.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS1BasicOnly", 1, SettingPath.CommonIniPath) == 1;
@@ -193,9 +191,12 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "CS2BasicOnly", checkBox_cs2.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "CS3BasicOnly", checkBox_cs3.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
 
-                foreach (ServiceViewItem info in serviceList.Where(i => ChSet5.ChList.ContainsKey(i.Key)))
+                foreach (ServiceViewItem info in listView_service.ItemsSource)
                 {
-                    ChSet5.ChList[info.Key].EpgCapFlag = (byte)(info.IsSelected == true ? 1 : 0);
+                    if (ChSet5.ChList.ContainsKey(info.Key) == true)//変更中に更新される場合があるため
+                    {
+                        ChSet5.ChList[info.Key].EpgCapFlag = info.IsSelected;
+                    }
                 }
 
                 IniFileHandler.WritePrivateProfileString("EPG_CAP", "Count", timeList.Count.ToString(), SettingPath.TimerSrvIniPath);
@@ -274,15 +275,15 @@ namespace EpgTimer.Setting
 
         private void button_allChk_Click(object sender, RoutedEventArgs e)
         {
-            this.serviceList.ForEach(info => info.IsSelected = true);
+            foreach (ServiceViewItem info in listView_service.ItemsSource) info.IsSelected = true;
         }
         private void button_videoChk_Click(object sender, RoutedEventArgs e)
         {
-            this.serviceList.ForEach(info => info.IsSelected = info.ServiceInfo.IsVideo == true);
+            foreach (ServiceViewItem info in listView_service.ItemsSource) info.IsSelected = info.ServiceInfo.IsVideo == true;
         }
         private void button_allClear_Click(object sender, RoutedEventArgs e)
         {
-            this.serviceList.ForEach(info => info.IsSelected = false);
+            foreach (ServiceViewItem info in listView_service.ItemsSource) info.IsSelected = false;
         }
 
         private void button_addTime_Click(object sender, RoutedEventArgs e)

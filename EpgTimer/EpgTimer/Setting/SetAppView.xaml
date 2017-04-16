@@ -43,6 +43,7 @@
                         <TextBox Margin="6,0,0,0" Name="textBox_ForceHideBalloonTipSec" Width="62" />
                         <Label Content="秒後" />
                     </StackPanel>
+                    <CheckBox Margin="0,6,0,0" Content="EPG取得対象サービスのみ表示する" Name="checkBox_showEpgCapServiceOnly" />
                     <StackPanel Margin="0,6,0,0" >
                         <CheckBox Content="EpgTimerSrvを常駐させる" Name="checkBox_srvResident" />
                         <CheckBox Content="タスクトレイアイコンを表示する" Margin="18,4,0,0" Name="checkBox_srvShowTray" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />

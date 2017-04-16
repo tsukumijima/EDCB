@@ -27,11 +27,11 @@ namespace EpgTimer
                 comboBox_timeH_week.ItemsSource = Enumerable.Range(0, 24);
                 comboBox_timeH_week.SelectedIndex = 4;
 
-                listBox_serviceDttv.ItemsSource = ChSet5.ChList.Values.Where(info => info.IsDttv == true);
-                listBox_serviceBS.ItemsSource = ChSet5.ChList.Values.Where(info => info.IsBS == true);
-                listBox_serviceCS.ItemsSource = ChSet5.ChList.Values.Where(info => info.IsCS == true);
-                listBox_serviceOther.ItemsSource = ChSet5.ChList.Values.Where(info => info.IsOther == true);
-                listBox_serviceAll.ItemsSource = ChSet5.ChList.Values;
+                listBox_serviceDttv.ItemsSource = ChSet5.ChListSelected.Where(info => info.IsDttv == true);
+                listBox_serviceBS.ItemsSource = ChSet5.ChListSelected.Where(info => info.IsBS == true);
+                listBox_serviceCS.ItemsSource = ChSet5.ChListSelected.Where(info => info.IsCS == true);
+                listBox_serviceOther.ItemsSource = ChSet5.ChListSelected.Where(info => info.IsOther == true);
+                listBox_serviceAll.ItemsSource = ChSet5.ChListSelected;
 
                 listBox_jyanru.ItemsSource = CommonManager.ContentKindList;
 

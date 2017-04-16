@@ -268,6 +268,7 @@ namespace EpgTimer.Setting
                 checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "TimeSync", 0, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_noBallonTips.IsChecked = Settings.Instance.NoBallonTips;
                 textBox_ForceHideBalloonTipSec.Text = Settings.Instance.ForceHideBalloonTipSec.ToString();
+                checkBox_showEpgCapServiceOnly.IsChecked = Settings.Instance.ShowEpgCapServiceOnly;
 
                 if (checkBox_srvResident.IsEnabled)
                 {
@@ -323,7 +324,7 @@ namespace EpgTimer.Setting
                 bxi.TargetBox.SelectionChanged += ViewUtil.ListBox_TextBoxSyncSelectionChanged(bxi.TargetBox, textBox_station);
                 textBox_station.KeyDown += ViewUtil.KeyDown_Enter(button_add);
 
-                listBox_service.Items.AddItems(ChSet5.ChList.Values.Select(info => new ServiceViewItem(info)));
+                listBox_service.ItemsSource = ChSet5.ChListSelected.Select(info => new ServiceViewItem(info));
                 stationList = Settings.Instance.IEpgStationList.ToList();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -426,6 +427,7 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 Settings.Instance.NoBallonTips = checkBox_noBallonTips.IsChecked == true;
                 Settings.Instance.ForceHideBalloonTipSec = MenuUtil.MyToNumerical(textBox_ForceHideBalloonTipSec, Convert.ToInt32, 255, 0, Settings.Instance.ForceHideBalloonTipSec);
+                Settings.Instance.ShowEpgCapServiceOnly = (bool)checkBox_showEpgCapServiceOnly.IsChecked;
 
                 IniFileHandler.WritePrivateProfileString("SET", "ResidentMode",
                     checkBox_srvResident.IsChecked == false ? "0" : checkBox_srvShowTray.IsChecked == false ? "1" : "2", SettingPath.TimerSrvIniPath);

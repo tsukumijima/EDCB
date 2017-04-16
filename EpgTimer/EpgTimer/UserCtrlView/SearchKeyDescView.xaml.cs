@@ -12,7 +12,6 @@ namespace EpgTimer
     public partial class SearchKeyDescView : UserControl
     {
         private EpgSearchKeyInfo defKey = new EpgSearchKeyInfo();
-        private Dictionary<Int64, ServiceItem> serviceDict = new Dictionary<Int64, ServiceItem>();
         private RadioBtnSelect freeRadioBtns;
 
         public SearchKeyDescView()
@@ -20,8 +19,8 @@ namespace EpgTimer
             InitializeComponent();
             try
             {
-                serviceDict = ChSet5.ChList.ToDictionary(info => (Int64)info.Key, info => new ServiceItem(info.Value.ToInfo()));
-                listView_service.ItemsSource = serviceDict.Values;
+                //操作するのでToList()は必要
+                listView_service.ItemsSource = ChSet5.ChListSelected.Select(info => new ServiceItem(info.ToInfo())).ToList();
 
                 comboBox_content.ItemsSource = CommonManager.ContentKindList;
                 comboBox_content.SelectedIndex = 0;
@@ -124,16 +123,11 @@ namespace EpgTimer
                     }
                 }
 
-                foreach (ServiceItem info in serviceDict.Values)
+                var defKeySortedServiceList = new List<long>(defKey.serviceList);
+                defKeySortedServiceList.Sort();
+                foreach (ServiceItem info in listView_service.ItemsSource)
                 {
-                    info.IsSelected = false;
-                }
-                foreach (Int64 info in defKey.serviceList)
-                {
-                    if (serviceDict.ContainsKey(info) == true)
-                    {
-                        serviceDict[info].IsSelected = true;
-                    }
+                    info.IsSelected = defKeySortedServiceList.BinarySearch((long)info.ID) >= 0;
                 }
 
                 listBox_date.Items.Clear();
