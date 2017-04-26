@@ -70,8 +70,8 @@
                         <Label Content="以上" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0" >
-                        <CheckBox Content="検索/キーワード予約ダイアログで検索語を保存する" Name="checkBox_saveSearchKeyword" />
-                        <Button Content="検索語をクリア" Margin="18,4,0,0" HorizontalAlignment="Left" Click="button_clearSerchKeywords" />
+                        <CheckBox Content="検索/キーワード予約ダイアログで検索履歴を保存する" Name="checkBox_saveSearchKeyword" />
+                        <Button Content="履歴クリア" Margin="18,4,0,0" HorizontalAlignment="Left" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" ToolTip="即時にクリアされ、設定画面をキャンセルしても戻りません" />
                     </StackPanel>
                     <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" />
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Name="stackPanel_WoLWait" IsEnabled="False">

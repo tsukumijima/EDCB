@@ -15,12 +15,10 @@ namespace EpgTimer
         {
             InitializeComponent();
 
-            try
-            {
-                Settings.Instance.AndKeyList.ForEach(s => ComboBox_andKey.Items.Add(s));
-                Settings.Instance.NotKeyList.ForEach(s => ComboBox_notKey.Items.Add(s));
-            }
-            catch { }
+            Settings.Instance.AndKeyList.ForEach(s => ComboBox_andKey.Items.Add(s));
+            Settings.Instance.NotKeyList.ForEach(s => ComboBox_notKey.Items.Add(s));
+            Button_clearAndKey.Click += (sender, e) => ClearSerchLog(ComboBox_andKey, Settings.Instance.AndKeyList);
+            Button_clearNotKey.Click += (sender, e) => ClearSerchLog(ComboBox_notKey, Settings.Instance.NotKeyList);
         }
 
         protected virtual void ComboBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -39,7 +37,6 @@ namespace EpgTimer
             AddSerchLog(ComboBox_andKey, Settings.Instance.AndKeyList, 30);
             AddSerchLog(ComboBox_notKey, Settings.Instance.NotKeyList, 30);
         }
-
         private void AddSerchLog(ComboBox box, List<string> log, byte MaxLog)
         {
             try
@@ -60,6 +57,14 @@ namespace EpgTimer
             }
             catch { }
         }
+        private void ClearSerchLog(ComboBox box, List<string> log)
+        {
+            string searchWord = box.Text;
+            box.Items.Clear();
+            box.Text = searchWord;
+
+            log.Clear();
+        }
 
         public EpgSearchKeyInfo GetSearchKey()
         {
@@ -69,7 +74,6 @@ namespace EpgTimer
             searchKeyDescView.GetSearchKey(ref key);
             return key;
         }
-
         public void SetSearchKey(EpgSearchKeyInfo key)
         {
             ComboBox_andKey.Text = key.andKey;

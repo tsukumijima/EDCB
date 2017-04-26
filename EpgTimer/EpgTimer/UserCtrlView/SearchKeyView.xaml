@@ -7,13 +7,29 @@
              d:DesignHeight="400" d:DesignWidth="700" xmlns:my="clr-namespace:EpgTimer">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="80" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Label Content="検索キーワード" Height="28" HorizontalAlignment="Left" Margin="12,10,0,0" VerticalAlignment="Top" />
-        <Label Content="NOTキーワード" Height="28" HorizontalAlignment="Left" Margin="12,44,0,0" VerticalAlignment="Top" />
-        <ComboBox Height="24" Margin="112,13,5,0" Name="ComboBox_andKey" VerticalAlignment="Top" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
-        <ComboBox Height="24" Margin="112,46,5,0" Name="ComboBox_notKey" VerticalAlignment="Top" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
+        <Grid Margin="12,10,6,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="6" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="検索キーワード" />
+            <TextBlock Grid.Row="2" Text="NOTキーワード" />
+            <ComboBox VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="2" Name="ComboBox_andKey" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
+            <ComboBox VerticalAlignment="Stretch" Grid.Row="2" Grid.Column="2" Name="ComboBox_notKey" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
+            <Button Content="履歴クリア" Grid.Row="0" Grid.Column="4" Name="Button_clearAndKey" />
+            <Button Content="履歴クリア" Grid.Row="2" Grid.Column="4" Name="Button_clearNotKey" />
+        </Grid>
         <my:SearchKeyDescView Grid.Row="1" x:Name="searchKeyDescView" />
     </Grid>
 </UserControl>

@@ -568,6 +568,8 @@ namespace EpgTimer.Setting
             var dlg = new SetDefSearchSettingWindow();
             dlg.Owner = CommonUtil.GetTopWindow(this);
             dlg.SetDefSetting(defSearchKey);
+            dlg.searchKey.Button_clearAndKey.ToolTip = button_clearSerchKeywords.ToolTip;
+            dlg.searchKey.Button_clearNotKey.ToolTip = button_clearSerchKeywords.ToolTip;
 
             if (dlg.ShowDialog() == true)
             {
@@ -625,7 +627,7 @@ namespace EpgTimer.Setting
             checkBox_WoLWaitRecconect.IsChecked = false;
         }
 
-        private void button_clearSerchKeywords(object sender, RoutedEventArgs e)
+        private void button_clearSerchKeywords_Click(object sender, RoutedEventArgs e)
         {
             Settings.Instance.AndKeyList = new List<string>();
             Settings.Instance.NotKeyList = new List<string>();
