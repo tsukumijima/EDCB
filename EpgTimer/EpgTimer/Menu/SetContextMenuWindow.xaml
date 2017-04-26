@@ -132,7 +132,7 @@
                     <Label Content="表示項目" Grid.Row="2"/>
                     <Label Content="全項目一覧" Grid.Row="2" Grid.Column="4"/>
                     <Button Content="全画面リセット" Name="button_allDefault" HorizontalAlignment="Left" Grid.Column="4" Click="button_allDefault_Click" />
-                    <TextBlock Grid.Row="4" Grid.Column="6" Text="{}" Name="textblocExp" TextWrapping="Wrap" />
+                    <TextBlock Grid.Row="4" Grid.Column="6" VerticalAlignment="Top" Text="{}" Name="textblocExp" TextWrapping="Wrap" />
                     <ListBox Grid.Row="4" Name="listBox_Setting" VerticalAlignment="Stretch" SelectionMode="Extended" />
                     <ListBox Grid.Row="4" Grid.Column="4" Name="listBox_Default" VerticalAlignment="Stretch" SelectionMode="Extended" />
                     <StackPanel Grid.Row="4" Grid.Column="2" MinWidth="65" >

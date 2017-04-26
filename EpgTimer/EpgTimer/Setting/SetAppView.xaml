@@ -266,7 +266,7 @@
                                     <Label Content="秒間" Margin="6,0,0,0" />
                                 </DockPanel>
                                 <DockPanel Margin="0,6,0,0">
-                                    <TextBlock Text="※" Margin="14,0,0,0"/>
+                                    <TextBlock Text="※" Margin="14,0,0,0" VerticalAlignment="Top" />
                                     <TextBlock Text="{}" Margin="6,0,0,0" Name="textblockTimer" TextWrapping="Wrap" />
                                 </DockPanel>
                             </StackPanel>

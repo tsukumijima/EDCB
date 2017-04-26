@@ -19,7 +19,7 @@
                         <Rectangle x:Name="popupItemBorder" />
                         <StackPanel x:Name="popupItemTextArea">
                             <Grid>
-                                <TextBlock x:Name="minText" LineStackingStrategy="BlockLineHeight" />
+                                <TextBlock x:Name="minText" VerticalAlignment="Top" LineStackingStrategy="BlockLineHeight" />
                                 <TextBlock x:Name="titleText" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" />
                             </Grid>
                             <TextBlock x:Name="infoText" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" />
