@@ -671,7 +671,8 @@ namespace EpgTimer
 
         public bool CtxmGenerateChgAutoAdd(MenuItem menu, IAutoAddTargetData info)
         {
-            CtxmClearItemMenu(menu, true);
+            bool skipMenu = Settings.Instance.MenuSet.AutoAddSearchSkipSubMenu;
+            CtxmClearItemMenu(menu, skipMenu);
 
             if (menu.IsEnabled == false) return false;
 
@@ -680,7 +681,7 @@ namespace EpgTimer
             if (menu.Items.Count == 0) return false;
 
             //候補が一つの時は直接メニューを実行出来るようにする
-            CtxmPullUpSubMenu(menu, true);
+            if (skipMenu == true) CtxmPullUpSubMenu(menu, true);
             return true;
         }
 
@@ -823,16 +824,16 @@ namespace EpgTimer
             return isLengthOver;
         }
 
-        private void CtxmClearItemMenu(MenuItem menu, bool isEndDot = false)
+        private void CtxmClearItemMenu(MenuItem menu, bool? isEndDot = null)
         {
             menu.ToolTip = null;
             menu.Command = null;
             (menu.CommandParameter as EpgCmdParam).Data = null;
             (menu.CommandParameter as EpgCmdParam).ID = 0;
             menu.Items.Clear();
-            if (isEndDot == true) CtxmPullUpSubMenuSwitchEndDot(menu);
+            if (isEndDot != null) CtxmPullUpSubMenuSwitchEndDot(menu, (bool)isEndDot);
         }
-        private void CtxmPullUpSubMenu(MenuItem menu, bool isEndDot = false)
+        private void CtxmPullUpSubMenu(MenuItem menu, bool? isEndDot = null)
         {
             if (menu.Items.Count == 1)
             {
@@ -843,9 +844,9 @@ namespace EpgTimer
                 (menu.CommandParameter as EpgCmdParam).ID = (submenu.CommandParameter as EpgCmdParam).ID;
                 menu.Items.Clear();
             }
-            if (isEndDot == true) CtxmPullUpSubMenuSwitchEndDot(menu);
+            if (isEndDot != null) CtxmPullUpSubMenuSwitchEndDot(menu, (bool)isEndDot);
         }
-        private void CtxmPullUpSubMenuSwitchEndDot(MenuItem menu)
+        private void CtxmPullUpSubMenuSwitchEndDot(MenuItem menu, bool isEndDot = true)
         {
             var header = menu.Header as string;
             if (header != null)
@@ -854,7 +855,7 @@ namespace EpgTimer
                 {
                     menu.Header = header.Substring(0, header.Length - 3);
                 }
-                if (menu.Items.Count == 0)
+                if (isEndDot == true && menu.Items.Count == 0)
                 {
                     menu.Header += "...";
                 }
