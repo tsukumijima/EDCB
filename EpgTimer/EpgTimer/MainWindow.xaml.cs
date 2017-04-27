@@ -43,6 +43,9 @@ namespace EpgTimer
         public MainWindow()
         {
             string appName = System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location);
+#if DEBUG
+            appName += "(debug)";
+#endif
             CommonManager.Instance.NWMode = appName.StartsWith("EpgTimerNW", StringComparison.OrdinalIgnoreCase);
 
             Settings.LoadFromXmlFile(CommonManager.Instance.NWMode);
@@ -87,11 +90,7 @@ namespace EpgTimer
             // レイアウト用のスタイルをロード
             App.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/UserCtrlView/UiLayoutStyles.xaml") });
 
-            string appMutexName = Settings.Instance.ForceNWMode && appName.StartsWith("EpgTimerNW") == false ? "EpgTimerNW" + appName.Substring(8): appName;
-#if DEBUG
-            appMutexName += "(debug)";
-#endif
-            mutex = new Mutex(false, CommonManager.Instance.NWMode ? "Global\\EpgTimer_BonNW" + appMutexName.Substring(10).ToUpper() : "Global\\EpgTimer_Bon2");
+            mutex = new Mutex(false, CommonManager.Instance.NWMode ? "Global\\EpgTimer_BonNW_" + appName.ToUpper() : "Global\\EpgTimer_Bon2");
             if (!mutex.WaitOne(0, false))
             {
                 CheckCmdLine();
@@ -148,7 +147,7 @@ namespace EpgTimer
 
             InitializeComponent();
 
-            Title = appMutexName;
+            Title = appName + (Settings.Instance.ForceNWMode == true ? " - NW Mode" : "");
             initExe = true;
 
             try
