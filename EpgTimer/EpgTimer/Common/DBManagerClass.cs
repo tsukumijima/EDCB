@@ -454,6 +454,9 @@ namespace EpgTimer
                         }
                     }
 
+                    //リモコンIDの登録
+                    ChSet5.SetRemoconID(serviceEventList);
+
                     updateEpgData = false;
                     oneTimeReloadEpg = false;
                 }

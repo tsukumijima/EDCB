@@ -1062,44 +1062,18 @@ namespace EpgTimer
         //デフォルト番組表の情報作成
         public List<CustomEpgTabInfo> CreateDefaultTabInfo()
         {
-            List<CustomEpgTabInfo> setInfo = Enumerable.Range(0, 4).Select(i => new CustomEpgTabInfo()).ToList();
-
-            setInfo[0].TabName = "地デジ";
-            setInfo[1].TabName = "BS";
-            setInfo[2].TabName = "CS";
-            setInfo[3].TabName = "その他";
-
-            for (int i = 0; i < setInfo.Count; i++)
+            //再表示の際の認識用に、負の仮番号を与えておく。
+            var setInfo = new List<CustomEpgTabInfo>
             {
-                //再表示の際の認識用に、負の仮番号を与えておく。
-                setInfo[i].ID = -1 * (i + 1);
-            }
+                new CustomEpgTabInfo(){ID = -1, TabName = "地デジ"},
+                new CustomEpgTabInfo(){ID = -2, TabName = "BS"},
+                new CustomEpgTabInfo(){ID = -3, TabName = "CS"},
+                new CustomEpgTabInfo(){ID = -4, TabName = "その他"},
+            };
 
-            bool ignoreEpgCap = Settings.Instance.ShowEpgCapServiceOnly == false;
-            //リモコンキー優先のID順ソート
-            foreach (EpgServiceAllEventInfo info in CommonManager.Instance.DB.ServiceEventList.Values.Where(item =>
+            foreach (ChSet5Item info in ChSet5.ChListSelected)
             {
-                ulong key = item.serviceInfo.Create64Key();
-                return ignoreEpgCap || ChSet5.ChList.ContainsKey(key) && ChSet5.ChList[key].EpgCapFlag;
-            }).OrderBy(item => (
-                (ulong)(ChSet5.IsDttv(item.serviceInfo.ONID) ? (item.serviceInfo.remote_control_key_id + 255) % 256 : 0) << 48 |
-                item.serviceInfo.Create64Key())))
-            {
-                int i = 3;//その他
-                if (ChSet5.IsDttv(info.serviceInfo.ONID) == true)//地デジ
-                {
-                    i = 0;
-                }
-                else if (ChSet5.IsBS(info.serviceInfo.ONID) == true)//BS
-                {
-                    i = 1;
-                }
-                else if (ChSet5.IsCS(info.serviceInfo.ONID) == true)//CS
-                {
-                    i = 2;
-                }
-
-                setInfo[i].ViewServiceList.Add(info.serviceInfo.Create64Key());
+                setInfo[info.IsDttv ? 0 : info.IsBS ? 1 : info.IsCS ? 2 : 3].ViewServiceList.Add(info.Key);
             }
 
             return setInfo.Where(info => info.ViewServiceList.Count != 0).ToList();

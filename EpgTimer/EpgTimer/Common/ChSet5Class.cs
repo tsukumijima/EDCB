@@ -29,13 +29,22 @@ namespace EpgTimer
         }
         private static IEnumerable<ChSet5Item> GetSortedChList(bool ignoreEpgCap = true)
         {
-            //ネットワーク種別優先かつ限定受信を分離したID順ソート
+            //ネットワーク種別優先かつ限定受信を分離したID順ソート。可能なら地上波はリモコンID優先にする。
             return ChList.Values.Where(item => (ignoreEpgCap || item.EpgCapFlag)).OrderBy(item => (
-                (ulong)(IsDttv(item.ONID) ? 0 : IsBS(item.ONID) ? 1 : IsCS(item.ONID) ? 2 : 3) << 56 |
-                (ulong)(IsDttv(item.ONID) && item.PartialFlag ? 1 : 0) << 48 |
+                (ulong)(item.IsDttv ? 0 : item.IsBS ? 1 : item.IsCS ? 2 : 3) << 60 |
+                (ulong)(item.IsDttv && item.PartialFlag ? 1 : 0) << 56 |
+                (ulong)(item.IsDttv ? (item.RemoconID + 255) % 256 : 0) << 48 |
                 item.Key));
         }
-        
+
+        public static void SetRemoconID(Dictionary<ulong, EpgServiceAllEventInfo> infoList)
+        {
+            foreach (ChSet5Item item in ChList.Values)
+            {
+                item.RemoconID = infoList.ContainsKey(item.Key) == false ? (byte)0 : infoList[item.Key].serviceInfo.remote_control_key_id;
+            }
+        }
+
         public static bool IsVideo(UInt16 ServiceType)
         {
             return ServiceType == 0x01 || ServiceType == 0xA5 || ServiceType == 0xAD;
@@ -170,6 +179,7 @@ namespace EpgTimer
         public String NetworkName { get; set; }
         public bool EpgCapFlag { get; set; }
         public bool SearchFlag { get; set; }
+        public Byte RemoconID { get; set; }
 
         public bool IsVideo { get { return ChSet5.IsVideo(ServiceType); } }
         public bool IsDttv { get { return ChSet5.IsDttv(ONID); } }
@@ -189,7 +199,7 @@ namespace EpgTimer
                 SID = this.SID,
                 network_name = this.NetworkName,
                 partialReceptionFlag = (byte)(this.PartialFlag ? 1 : 0),
-                remote_control_key_id = 0,
+                remote_control_key_id = this.RemoconID,
                 service_name = this.ServiceName,
                 service_provider_name = this.NetworkName,
                 service_type = (byte)this.ServiceType,
