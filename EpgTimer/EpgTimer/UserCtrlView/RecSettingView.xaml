@@ -45,26 +45,10 @@
                     <ListView Height="79" Margin="11,125,109,0" Name="listView_recFolder" VerticalAlignment="Top">
                         <ListView.View>
                             <GridView x:Name="gridView_recFolder">
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=RecFolder}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="録画フォルダ" HorizontalContentAlignment="Left"/>
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=WritePlugIn}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="出力PlugIn" HorizontalContentAlignment="Left"/>
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=RecNamePlugIn}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="ファイル名PlugIn" HorizontalContentAlignment="Left"/>
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=PartialRecYesNo}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="部分受信" HorizontalContentAlignment="Left"/>
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
+                                <GridViewColumn Header="録画フォルダ" DisplayMemberBinding="{Binding Path=RecFolder}" />
+                                <GridViewColumn Header="出力PlugIn" DisplayMemberBinding="{Binding Path=WritePlugIn}" />
+                                <GridViewColumn Header="ファイル名PlugIn" DisplayMemberBinding="{Binding Path=RecNamePlugIn}" />
+                                <GridViewColumn Header="部分受信" DisplayMemberBinding="{Binding Path=PartialRecYesNo}" />
                             </GridView>
                         </ListView.View>
                     </ListView>

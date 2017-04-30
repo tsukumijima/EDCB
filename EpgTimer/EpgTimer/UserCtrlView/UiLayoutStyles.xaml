@@ -27,5 +27,8 @@
     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
 
 </ResourceDictionary>

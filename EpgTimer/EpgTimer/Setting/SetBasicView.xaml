@@ -71,11 +71,7 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=ServiceName}" >
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="サービス名" HorizontalContentAlignment="Left" Width="150" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
+                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
                             </GridView>
                         </ListView.View>
                     </ListView>
@@ -100,16 +96,8 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=ViewTime}" >
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="開始時間" HorizontalContentAlignment="Left" Width="70" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=ViewBasicOnly}" >
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="種別(BS,CS1,2,3)" HorizontalContentAlignment="Left" Width="120" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
+                                <GridViewColumn Header="開始時間" DisplayMemberBinding="{Binding Path=ViewTime}" />
+                                <GridViewColumn Header="種別(BS,CS1,2,3)" DisplayMemberBinding="{Binding Path=ViewBasicOnly}" />
                             </GridView>
                         </ListView.View>
                     </ListView>

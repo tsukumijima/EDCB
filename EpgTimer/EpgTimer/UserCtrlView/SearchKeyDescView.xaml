@@ -30,25 +30,14 @@
                         <ListView.View>
                             <GridView x:Name="gridView_service">
                                 <GridViewColumn>
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content=""/>
-                                    </GridViewColumn.Header>
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <CheckBox IsChecked="{Binding Path=IsSelected}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=NetworkName}" >
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="ネットワーク" HorizontalContentAlignment="Left"/>
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=ServiceName}" >
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="サービス名" HorizontalContentAlignment="Left"/>
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
+                                <GridViewColumn Header="ネットワーク" DisplayMemberBinding="{Binding Path=NetworkName}" />
+                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
                             </GridView>
                         </ListView.View>
                     </ListView>

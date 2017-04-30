@@ -41,20 +41,13 @@
             <ListView.View>
                 <GridView x:Name="gridView_service">
                     <GridViewColumn>
-                        <GridViewColumn.Header>
-                            <GridViewColumnHeader Content=""/>
-                        </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <CheckBox IsChecked="{Binding Path=IsSelected}" Checked="CheckBox_Changed" Unchecked="CheckBox_Changed" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=ServiceName}" >
-                        <GridViewColumn.Header>
-                            <GridViewColumnHeader Content="サービス名" HorizontalContentAlignment="Left" />
-                        </GridViewColumn.Header>
-                    </GridViewColumn>
+                    <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
                 </GridView>
             </ListView.View>
         </ListView>

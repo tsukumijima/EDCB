@@ -17,11 +17,6 @@
             <Button Content="変更" Name="button_reload" />
         </StackPanel>
         <ListView Grid.Row="1" Name="listView_log" Margin="6">
-            <ListView.Resources>
-                <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
-                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                </Style>
-            </ListView.Resources>
             <ListView.View>
                 <GridView x:Name="gridView_log">
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Time}">
