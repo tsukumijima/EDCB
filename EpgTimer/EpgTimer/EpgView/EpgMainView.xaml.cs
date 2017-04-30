@@ -222,7 +222,7 @@ namespace EpgTimer
                 }
 
                 //縦位置の設定
-                if (viewCustNeedTimeOnly == false)
+                if (viewCustNeedTimeOnly == false && programList.Count != 0)
                 {
                     ViewUtil.AddTimeList(timeList, programList.Values.Min(item => item.EventInfo.start_time), 0);
                 }
