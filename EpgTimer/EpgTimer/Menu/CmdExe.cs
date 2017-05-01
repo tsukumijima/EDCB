@@ -203,7 +203,6 @@ namespace EpgTimer
         {
             try
             {
-                var cBinds = new CommandBindingCollection();
                 foreach (var item in cmdList)
                 {
                     //Exeがあるものを処理する。
