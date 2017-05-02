@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -96,6 +97,7 @@ namespace EpgTimer.Setting
                 var bx = new BoxExchangeEditor(null, this.listBox_tab, true, true, true);
                 bx.targetBoxAllowDoubleClick(bx.TargetBox, (sender, e) => button_tab_chg.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
                 button_tab_del.Click += new RoutedEventHandler(bx.button_Delete_Click);
+                button_tab_del_all.Click += new RoutedEventHandler(bx.button_DeleteAll_Click);
                 button_tab_up.Click += new RoutedEventHandler(bx.button_Up_Click);
                 button_tab_down.Click += new RoutedEventHandler(bx.button_Down_Click);
                 button_tab_top.Click += new RoutedEventHandler(bx.button_Top_Click);
@@ -104,7 +106,7 @@ namespace EpgTimer.Setting
                 radioButton_1_def.IsChecked = (Settings.Instance.UseCustomEpgView == false);
                 radioButton_1_cust.IsChecked = (Settings.Instance.UseCustomEpgView != false);
 
-                listBox_tab.Items.AddItems(Settings.Instance.CustomEpgTabList);
+                listBox_tab.Items.AddItems(Settings.Instance.CustomEpgTabList.Select(info => new CustomEpgTabInfoView(info.Clone())));
                 if (listBox_tab.Items.Count > 0) listBox_tab.SelectedIndex = 0;
 
                 XmlLanguage FLanguage = XmlLanguage.GetLanguage("ja-JP");
@@ -343,7 +345,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.TunerFontBoldService = (checkBox_fontTunerBoldService.IsChecked == true);
 
                 Settings.Instance.UseCustomEpgView = (radioButton_1_cust.IsChecked == true);
-                Settings.Instance.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfo>().ToList();
+                Settings.Instance.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfoView>().Select(item => item.Info).ToList();
                 Settings.SetCustomEpgTabInfoID();
 
                 var getComboColor1 = new Func<ComboBox, string>((cmb) => ((ComboItem)(cmb.SelectedItem)).Key);
@@ -453,17 +455,31 @@ namespace EpgTimer.Setting
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
+        private class CustomEpgTabInfoView
+        {
+            public CustomEpgTabInfoView(CustomEpgTabInfo info) { Info = info; }
+            public CustomEpgTabInfo Info { get; private set; }
+            public bool IsVisible { get { return Info.IsVisible; } set { Info.IsVisible = value; } }
+            public string TabName { get { return Info.TabName; } }
+            public string ViewMode { get { return CommonManager.ConvertViewModeText(Info.ViewMode).Replace("モード", ""); } }
+            public string SearchMode { get { return Info.SearchMode == false ? "" : Info.SearchKey.andKey == "" ? "(空白)" : Info.SearchKey.andKey; } }
+            public string ContentMode { get { return CommonManager.ConvertJyanruText(Info); } }
+        }
+
         private void button_tab_add_Click(object sender, RoutedEventArgs e)
         {
+            var item = new CustomEpgTabInfoView(new CustomEpgTabInfo());
             var dlg = new EpgDataViewSettingWindow();
             dlg.Owner = CommonUtil.GetTopWindow(this);
+            dlg.SetDefSetting(item.Info);
             if (dlg.ShowDialog() == true)
             {
-                var info = new CustomEpgTabInfo();
+                CustomEpgTabInfo info = item.Info;
                 dlg.GetSetting(ref info);
-                listBox_tab.Items.Add(info);
-                listBox_tab.SelectedItem = info;
-                listBox_tab.ScrollIntoView(info);
+                listBox_tab.Items.Add(item);
+                listBox_tab.SelectedItem = item;
+                listBox_tab.ScrollIntoView(item);
+                listBox_tab_Refresh();
             }
         }
         private void button_tab_chg_Click(object sender, RoutedEventArgs e)
@@ -475,18 +491,19 @@ namespace EpgTimer.Setting
                     listBox_tab.SelectedIndex = 0;
                 }
             }
-            var setInfo = listBox_tab.SelectedItem as CustomEpgTabInfo;
-            if (setInfo != null)
+            var item = listBox_tab.SelectedItem as CustomEpgTabInfoView;
+            if (item != null)
             {
                 listBox_tab.UnselectAll();
-                listBox_tab.SelectedItem = setInfo;
+                listBox_tab.SelectedItem = item;
                 var dlg = new EpgDataViewSettingWindow();
                 dlg.Owner = CommonUtil.GetTopWindow(this);
-                dlg.SetDefSetting(setInfo);
+                dlg.SetDefSetting(item.Info);
                 if (dlg.ShowDialog() == true)
                 {
-                    dlg.GetSetting(ref setInfo);
-                    listBox_tab.Items.Refresh();
+                    CustomEpgTabInfo info = item.Info;
+                    dlg.GetSetting(ref info);
+                    listBox_tab_Refresh();
                 }
             }
             else
@@ -499,26 +516,59 @@ namespace EpgTimer.Setting
         {
             if (listBox_tab.SelectedItem != null)
             {
-                List<CustomEpgTabInfo> items = listBox_tab.SelectedItems.OfType<CustomEpgTabInfo>().ToList().Clone();
-                items.ForEach(info => info.TabName += "～コピー");
-                button_tab_copyAdd(items);
+                button_tab_copyAdd(listBox_tab.SelectedItems.OfType<CustomEpgTabInfoView>().Select(item => item.Info).Clone());
             }
         }
-
         private void button_tab_defaultCopy_Click(object sender, RoutedEventArgs e)
         {
             button_tab_copyAdd(CommonManager.Instance.CreateDefaultTabInfo());
         }
-
-        private void button_tab_copyAdd(List<CustomEpgTabInfo> items)
+        private void button_tab_copyAdd(List<CustomEpgTabInfo> infos)
         {
-            if (items.Count != 0)
+            if (infos.Count != 0)
             {
+                List<CustomEpgTabInfoView> items = infos.Select(info => new CustomEpgTabInfoView(info)).ToList();
                 listBox_tab.Items.AddItems(items);
                 listBox_tab.UnselectAll();
                 listBox_tab.SelectedItemsAdd(items);
                 listBox_tab.ScrollIntoViewIndex(int.MaxValue);
             }
+        }
+
+        private void button_tab_Select_Click(object sender, RoutedEventArgs e)
+        {
+            button_tab_Change_Visible(listBox_tab.SelectedItems, true);
+        }
+        private void button_tab_Select_All_Click(object sender, RoutedEventArgs e)
+        {
+            button_tab_Change_Visible(listBox_tab.Items, true);
+        }
+        private void button_tab_None_Click(object sender, RoutedEventArgs e)
+        {
+            button_tab_Change_Visible(listBox_tab.SelectedItems, false);
+        }
+        private void button_tab_NoneAll_Click(object sender, RoutedEventArgs e)
+        {
+            button_tab_Change_Visible(listBox_tab.Items, false);
+        }
+        private void button_tab_Change_Visible(ICollection items, bool isVisible)
+        {
+            foreach (var item in items.OfType<CustomEpgTabInfoView>())
+            {
+                item.IsVisible = isVisible;
+            }
+            listBox_tab.Items.Refresh();
+        }
+
+        //とりあえずボタンから追加・変更したときは列幅を整える
+        private void listBox_tab_Refresh()
+        {
+            foreach (var col in gridView_tab.Columns)
+            {
+                col.Width = 0;
+                col.Width = double.NaN;
+            }
+            listBox_tab.Items.Refresh();
         }
 
         private void button_Color_Click(object sender, RoutedEventArgs e)

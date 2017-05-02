@@ -897,6 +897,18 @@ namespace EpgTimer
                 return ConvertJyanruText(eventInfo.ContentInfo.nibbleList);
             }
         }
+        public static String ConvertJyanruText(CustomEpgTabInfo info)
+        {
+            if (info == null)
+            {
+                return "";
+            }
+            else
+            {
+                string retText = ConvertJyanruText(info.ViewContentKindList.Select(id => new EpgContentData { content_nibble_level_1 = (byte)(id >> 8), content_nibble_level_2 = (byte)id }).ToList());
+                return ((retText != "" && info.ViewNotContentFlag == true) ? "NOT " : "") + retText;
+            }
+        }
         public static String ConvertJyanruText(EpgSearchKeyInfo searchKeyInfo)
         {
             if (searchKeyInfo == null)
@@ -905,7 +917,8 @@ namespace EpgTimer
             }
             else
             {
-                return ConvertJyanruText(searchKeyInfo.contentList);
+                string retText = ConvertJyanruText(searchKeyInfo.contentList);
+                return ((retText != "" && searchKeyInfo.notContetFlag == 1) ? "NOT " : "") + retText;
             }
         }
         public static String ConvertJyanruText(List<EpgContentData> nibbleList)

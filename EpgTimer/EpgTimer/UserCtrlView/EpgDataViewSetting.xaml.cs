@@ -54,6 +54,7 @@ namespace EpgTimer
             searchKey = setInfo.SearchKey.Clone();
 
             textBox_tabName.Text = setInfo.TabName;
+            checkBox_isVisible.IsChecked = setInfo.IsVisible;
             viewModeRadioBtns.Value = setInfo.ViewMode;
 
             checkBox_noTimeView_rate.IsChecked = setInfo.NeedTimeOnlyBasic;
@@ -92,6 +93,7 @@ namespace EpgTimer
         public void GetSetting(ref CustomEpgTabInfo info)
         {
             info.TabName = textBox_tabName.Text;
+            info.IsVisible = checkBox_isVisible.IsChecked == true;
             info.ViewMode = viewModeRadioBtns.Value;
 
             info.NeedTimeOnlyBasic = (checkBox_noTimeView_rate.IsChecked == true);

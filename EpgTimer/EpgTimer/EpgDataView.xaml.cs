@@ -99,7 +99,7 @@ namespace EpgTimer
                 }
                 else
                 {
-                    setInfo = Settings.Instance.CustomEpgTabList;
+                    setInfo = Settings.Instance.CustomEpgTabList.FindAll(info => info.IsVisible == true);
                 }
 
                 int selectIndex = 0;

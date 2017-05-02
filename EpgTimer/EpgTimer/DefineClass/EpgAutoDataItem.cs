@@ -219,12 +219,7 @@ namespace EpgTimer
             {
                 if (EpgAutoAddInfo == null || EpgAutoAddInfo.searchInfo == null) return "";
                 //
-                String view = CommonManager.ConvertJyanruText(EpgAutoAddInfo.searchInfo);
-                if (view != "" && EpgAutoAddInfo.searchInfo.notContetFlag == 1)
-                {
-                    view = "NOT " + view;
-                }
-                return view;
+                return CommonManager.ConvertJyanruText(EpgAutoAddInfo.searchInfo);
             }
         }
         /// <summary>

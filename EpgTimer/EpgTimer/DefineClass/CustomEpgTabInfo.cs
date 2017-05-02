@@ -20,6 +20,7 @@ namespace EpgTimer
             SearchGenreNoSyncView = false;
             FilterEnded = false;
             ID = -1;
+            IsVisible = true;
         }
         public String TabName { get; set; }
         public int ViewMode { get; set; }
@@ -34,6 +35,7 @@ namespace EpgTimer
         public bool SearchGenreNoSyncView { get; set; }
         public bool FilterEnded { get; set; }
         public int ID { get; set; }
+        public bool IsVisible { get; set; }
 
         public EpgSearchKeyInfo GetSearchKeyReloadEpg()
         {
@@ -64,6 +66,7 @@ namespace EpgTimer
             dest.FilterEnded = src.FilterEnded;
             dest.SearchKey = src.SearchKey.Clone();
             dest.ID = src.ID;
+            dest.IsVisible = src.IsVisible;
         }
 
         public override string ToString()

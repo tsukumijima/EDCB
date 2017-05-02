@@ -22,12 +22,14 @@ namespace EpgTimer
         {
             checkBox_tryEpgSetting.Visibility = Visibility.Visible;
             checkBox_tryEpgSetting.IsChecked = (Settings.Instance.TryEpgSetting == true);
+            checkBox_tryEpgSetting_Click(null, null);
         }
 
         public void SetTrySetModeOnly()
         {
             checkBox_tryEpgSetting.IsEnabled  = false;
             checkBox_tryEpgSetting.IsChecked = true;
+            checkBox_tryEpgSetting_Click(null, null);
             checkBox_tryEpgSetting.ToolTip = "デフォルト表示では一時的な変更のみ可能で設定は保存されません。";
         }
 
@@ -53,6 +55,11 @@ namespace EpgTimer
         {
             //これはダイアログの設定なので即座に反映
             Settings.Instance.TryEpgSetting = (checkBox_tryEpgSetting.IsChecked == true);
+            epgDataViewSetting.checkBox_isVisible.IsEnabled = Settings.Instance.TryEpgSetting != true;
+            if (Settings.Instance.TryEpgSetting == true)
+            {
+                epgDataViewSetting.checkBox_isVisible.IsChecked = true;
+            }
         }
 
         private void button_OK_Click(object sender, RoutedEventArgs e)

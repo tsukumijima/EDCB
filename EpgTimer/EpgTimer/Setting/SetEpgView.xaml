@@ -292,36 +292,57 @@
                             <RadioButton Content="デフォルト表示" Name="radioButton_1_def" />
                             <RadioButton Content="カスタマイズ表示" Name="radioButton_1_cust" Margin="0,6,0,0" />
                         </StackPanel>
-                        <GroupBox Header="カスタマイズ表示設定" Margin="0,6,0,0" >
-                            <Grid Margin="6" >
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto" />
-                                    <RowDefinition Height="6" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="6" />
-                                    <RowDefinition Height="auto" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto" />
-                                    <ColumnDefinition Width="auto" />
-                                    <ColumnDefinition Width="7*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Content="表示タブ" />
-                                <ListBox Grid.Row="2" Name="listBox_tab" SelectionMode="Extended" />
-                                <Grid Grid.Row="4" MinWidth="200" >
-                                    <Button HorizontalAlignment="Left" MinWidth="54" Content="コピー" Name="button_tab_clone" Click="button_tab_clone_Click" />
-                                    <Button HorizontalAlignment="Right" Margin="20,0,0,0" Content="デフォルト表示をコピー" Name="button_tab_defaultCopy" Click="button_tab_defaultCopy_Click" />
-                                </Grid>
-                                <StackPanel MinWidth="54" Margin="12,0,0,0" Grid.Row="2" Grid.Column="1">
-                                    <Button Content="追加" Margin="0,0,0,6" Name="button_tab_add" Click="button_tab_add_Click" />
-                                    <Button Content="変更" Margin="0,0,0,6" Name="button_tab_chg" Click="button_tab_chg_Click" />
-                                    <Button Content="削除" Margin="0,0,0,12" Name="button_tab_del" />
-                                    <Button Content="↑↑" Margin="0,0,0,6" Name="button_tab_top" />
-                                    <Button Content="↑" Margin="0,0,0,6" Name="button_tab_up" />
-                                    <Button Content="↓" Margin="0,0,0,6" Name="button_tab_down" />
-                                    <Button Content="↓↓" Margin="0,0,0,6" Name="button_tab_bottom" />
+                        <GroupBox Header="カスタマイズ表示の設定" Margin="0,6,0,0" >
+                            <DockPanel Margin="6" >
+                                <StackPanel DockPanel.Dock="Right" Margin="12,0,0,0">
+                                    <StackPanel.Resources>
+                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                            <Setter Property="MinWidth" Value="54"/>
+                                        </Style>
+                                    </StackPanel.Resources>
+                                    <Button Content="追加" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_add" Click="button_tab_add_Click" />
+                                    <Button Content="変更" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_chg" Click="button_tab_chg_Click" />
+                                    <DockPanel Margin="0,0,0,4" >
+                                        <Button Content="削除" Name="button_tab_del" />
+                                        <Button Content="全削除" Margin="6,0,0,0" Name="button_tab_del_all" />
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4,0,4" >
+                                        <Button Content="選択" Click="button_tab_Select_Click" />
+                                        <Button Content="全選択" Margin="6,0,0,0" Click="button_tab_Select_All_Click" />
+                                    </DockPanel>
+                                    <DockPanel Margin="0,0,0,4" >
+                                        <Button Content="解除" Click="button_tab_None_Click" />
+                                        <Button Content="全解除" Margin="6,0,0,0" Click="button_tab_NoneAll_Click" />
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4,0,4" >
+                                        <Button Content="↑" Name="button_tab_up" ToolTip="1つ上へ" />
+                                        <Button Content="↑↑" Margin="6,0,0,0" Name="button_tab_top" ToolTip="一番上へ" />
+                                    </DockPanel>
+                                    <DockPanel Margin="0,0,0,4" >
+                                        <Button Content="↓" Name="button_tab_down" ToolTip="1つ下へ" />
+                                        <Button Content="↓↓" Margin="6,0,0,0" Name="button_tab_bottom" ToolTip="一番下へ" />
+                                    </DockPanel>
+                                    <Button Content="コピー" Margin="0,4,0,4" HorizontalAlignment="Left" Click="button_tab_clone_Click" />
+                                    <Button Content="デフォルト表示をコピー" Margin="0,0,0,4" Click="button_tab_defaultCopy_Click" />
                                 </StackPanel>
-                            </Grid>
+                                <ListView Name="listBox_tab" >
+                                    <ListView.View>
+                                        <GridView x:Name="gridView_tab">
+                                            <GridViewColumn>
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox IsChecked="{Binding Path=IsVisible}" />
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn Header="タブ名" DisplayMemberBinding="{Binding Path=TabName}" />
+                                            <GridViewColumn Header="表示モード" DisplayMemberBinding="{Binding Path=ViewMode}" />
+                                            <GridViewColumn Header="検索絞り込み" DisplayMemberBinding="{Binding Path=SearchMode}" />
+                                            <GridViewColumn Header="表示ジャンル" DisplayMemberBinding="{Binding Path=ContentMode}" />
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </DockPanel>
                         </GroupBox>
                     </DockPanel>
                 </TabItem>
