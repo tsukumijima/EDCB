@@ -14,6 +14,7 @@ namespace EpgTimer
     public partial class EpgListMainView : EpgViewBase
     {
         private static int? lastActivateClass = null;
+        public override object GetViewState() { return GetSelectID(); }
 
         private ListViewController<SearchItem> lstCtrl;
         private List<ServiceItem> serviceList = new List<ServiceItem>();
@@ -82,7 +83,7 @@ namespace EpgTimer
             try
             {
                 //表示していたサービスの保存
-                var lastSID = new HashSet<UInt64>(serviceList.Where(s => s.IsSelected == false).Select(s => s.ID));
+                var lastSID = (restoreData as HashSet<UInt64>) ?? GetSelectID();
 
                 listBox_service.ItemsSource = null;
 
@@ -114,6 +115,10 @@ namespace EpgTimer
             {
                 listView_event.ScrollIntoView(listView_event.SelectedItem);
             }
+        }
+        private HashSet<UInt64> GetSelectID()
+        {
+            return new HashSet<UInt64>(serviceList.Where(s => s.IsSelected == false).Select(s => s.ID));
         }
 
         private void CheckBox_Changed(object sender, RoutedEventArgs e)
