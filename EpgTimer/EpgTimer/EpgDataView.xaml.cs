@@ -9,18 +9,23 @@ namespace EpgTimer
     /// <summary>
     /// EpgView.xaml の相互作用ロジック
     /// </summary>
-    public partial class EpgDataView : UserControl
+    public partial class EpgDataView : EpgTimer.UserCtrlView.DataViewBase
     {
-        private bool ReloadInfo = true;
-
         public EpgDataView()
         {
             InitializeComponent();
+            base.noStatus = true;
         }
 
         private List<EpgDataViewItem> Views
         {
             get { return tabControl.Items.Cast<TabItem>().Select(item => item.Content).OfType<EpgDataViewItem>().ToList(); }
+        }
+
+        //メニューの更新
+        public void RefreshMenu()
+        {
+            this.Views.ForEach(view => view.RefreshMenu());
         }
 
         public void SaveViewData()
@@ -29,32 +34,29 @@ namespace EpgTimer
             this.Views.ForEach(view => view.SaveViewData());
         }
 
-        /// <summary>
-        /// EPGデータの更新通知
-        /// </summary>
-        public void UpdateInfo(bool reload = true)
+        /// <summary>EPGデータの再描画</summary>
+        protected override bool ReloadInfoData()
         {
-            ReloadInfo |= reload;
-            if (ReloadInfo == true && this.IsVisible == true)
+            //タブが無ければ生成、あれば更新
+            if (tabControl.Items.Count == 0)
             {
-                ReloadInfo = !ReloadInfoData();
+                return CreateTabItem();
             }
+
+            this.Views.ForEach(view => view.UpdateInfo());
+            return true;
         }
 
-        /// <summary>
-        /// 予約情報の更新通知
-        /// </summary>
+        /// <summary>予約情報の更新通知</summary>
         public void UpdateReserveInfo(bool reload = true)
         {
             this.Views.ForEach(view => view.UpdateReserveInfo(reload));
         }
 
-        /// <summary>
-        /// 設定の更新通知
-        /// </summary>
         CustomEpgTabInfo oldInfo = null;
         object oldState = null;
         int? oldID = null;
+        /// <summary>設定の更新通知</summary>
         public void UpdateSetting()
         {
             try
@@ -85,9 +87,7 @@ namespace EpgTimer
             oldState = null;
         }
 
-        /// <summary>
-        /// タブ生成
-        /// </summary>
+        /// <summary>タブ生成</summary>
         private bool CreateTabItem()
         {
             try
@@ -133,61 +133,34 @@ namespace EpgTimer
             return true;
         }
 
-        /// <summary>
-        /// EPGデータの再描画
-        /// </summary>
-        private bool ReloadInfoData(bool reload = true)
+        protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            //タブが無ければ生成、あれば更新
-            if (tabControl.Items.Count == 0)
-            {
-                return CreateTabItem();
-            }
-
-            this.Views.ForEach(view => view.UpdateInfo(reload));
-            return true;
+            base.UserControl_IsVisibleChanged(sender, e);
+            if (this.IsVisible == true) this.searchJumpTargetProgram();//EPG更新後に探す
         }
 
-        //メニューの更新
-        public void RefreshMenu()
-        {
-            this.Views.ForEach(view => view.RefreshMenu());
-        }
-
-        private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        /// <summary>予約一覧からのジャンプ先を番組表タブから探す</summary>
+        void searchJumpTargetProgram()
         {
             try
             {
-                UpdateInfo(false);
-                if (this.IsVisible)
+                UInt64 serviceKey_Target1 = BlackoutWindow.Create64Key();
+                if (serviceKey_Target1 == 0) return;
+
+                foreach (TabItem tabItem1 in this.tabControl.Items)
                 {
-                    this.searchJumpTargetProgram();//EPG更新後に探す
+                    var epgView1 = tabItem1.Content as EpgDataViewItem;
+                    foreach (UInt64 serviceKey_OnTab1 in epgView1.GetViewMode().ViewServiceList)
+                    {
+                        if (serviceKey_Target1 == serviceKey_OnTab1)
+                        {
+                            tabItem1.IsSelected = true;
+                            return;
+                        }
+                    }
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
-
-        /// <summary>
-        /// 予約一覧からのジャンプ先を番組表タブから探す
-        /// </summary>
-        void searchJumpTargetProgram()
-        {
-            UInt64 serviceKey_Target1 = BlackoutWindow.Create64Key();
-            if (serviceKey_Target1 == 0) return;
-
-            foreach (TabItem tabItem1 in this.tabControl.Items)
-            {
-                var epgView1 = tabItem1.Content as EpgDataViewItem;
-                foreach (UInt64 serviceKey_OnTab1 in epgView1.GetViewMode().ViewServiceList)
-                {
-                    if (serviceKey_Target1 == serviceKey_OnTab1)
-                    {
-                        tabItem1.IsSelected = true;
-                        return;
-                    }
-                }
-            }
-        }
-
     }
 }

@@ -10,6 +10,7 @@ namespace EpgTimer.UserCtrlView
         protected MenuBinds mBinds = new MenuBinds();
         protected string[] status = { "", "", "", "" };
         protected bool ReloadInfoFlg = true;
+        protected bool noStatus = false;
 
         public virtual void UpdateInfo(bool reload = true)
         {
@@ -28,12 +29,12 @@ namespace EpgTimer.UserCtrlView
         protected virtual bool ReloadInfoData() { return true; }
         protected void UpdateStatus(int mode = 0)
         {
-            if (Settings.Instance.DisplayStatus == false) return;
+            if (noStatus || Settings.Instance.DisplayStatus == false) return;
             UpdateStatusData(mode);
             RefreshStatus();
         }
         protected virtual void UpdateStatusData(int mode = 0) { }
-        protected void RefreshStatus(bool force = false)
+        protected virtual void RefreshStatus(bool force = false)
         {
             if (this.IsVisible == true || force == true)
             {
