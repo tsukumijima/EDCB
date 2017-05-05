@@ -48,7 +48,7 @@
         -->
     </UserControl.Resources>
     <TabControl>
-        <TabItem Header="番組表">
+        <TabItem Header="番組表" Name="tabEpg">
             <TabControl>
                 <TabItem Header="基本">
                     <StackPanel>
@@ -286,7 +286,7 @@
                         </GroupBox>
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="表示項目">
+                <TabItem Header="表示項目" Name="tabEpgTab">
                     <DockPanel Margin="6">
                         <StackPanel DockPanel.Dock="Top">
                             <RadioButton Content="デフォルト表示" Name="radioButton_1_def" />

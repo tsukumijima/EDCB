@@ -182,7 +182,7 @@ namespace EpgTimer
                     btn.Content = key;
                     buttonList.Add(key, btn);
                 };
-                ButtonGen("設定", OpenSettingDialog);
+                ButtonGen("設定", () => OpenSettingDialog());
                 ButtonGen("再接続", OpenConnectDialog);
                 ButtonGen("再接続(前回)", () => ConnectCmd());
                 ButtonGen("検索", OpenSearchDialog);
@@ -878,12 +878,17 @@ namespace EpgTimer
             }
         }
 
-        void OpenSettingDialog()
+        public void OpenSettingDialog(SettingWindow.SettingMode mode = SettingWindow.SettingMode.Default)
         {
             //複数ダイアログの禁止(タスクアイコンからの起動対策)
-            if (ViewUtil.SingleWindowCheck(typeof(SettingWindow)) != 0) return;
-
-            new SettingWindow().Show();
+            if (ViewUtil.SingleWindowCheck(typeof(SettingWindow)) != 0)
+            {
+                Application.Current.Windows.OfType<SettingWindow>().First().SetMode(mode);
+            }
+            else
+            {
+                new SettingWindow(mode).Show();
+            }
         }
         public void RefreshSetting(SettingWindow setting)
         {

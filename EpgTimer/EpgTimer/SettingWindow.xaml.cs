@@ -9,7 +9,10 @@ namespace EpgTimer
     /// </summary>
     public partial class SettingWindow : AttendantWindow
     {
-        public SettingWindow()
+        public enum SettingMode { Default, EpgSetting }
+        public SettingMode Mode { get; private set; }
+
+        public SettingWindow(SettingMode mode = SettingMode.Default)
         {
             InitializeComponent();
 
@@ -17,10 +20,24 @@ namespace EpgTimer
             this.Pinned = true;
 
             button_cancel.Click += (sender, e) => this.Close();
+            SetMode(mode);
         }
 
         //このメソッドとxamlのWindowStartupLocation="CenterOwner"を削除すると、ウィンドウの位置・サイズ保存されるようになるが、とりあえずこのまま。
         protected override void WriteWindowSaveData() { Settings.Instance.WndSettings.Remove(this); }
+
+        public void SetMode(SettingMode mode)
+        {
+            Mode = mode;
+            switch (mode)
+            {
+                case SettingMode.EpgSetting:
+                    tabItem_epgView.IsSelected = true;
+                    setEpgView.tabEpg.IsSelected = true;
+                    setEpgView.tabEpgTab.IsSelected = true;
+                    break;
+            }
+        }
 
         private void button_OK_Click(object sender, RoutedEventArgs e)
         {

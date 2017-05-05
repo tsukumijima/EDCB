@@ -118,6 +118,25 @@ namespace EpgTimer
                     chkbox.Unchecked += new RoutedEventHandler(checkBox_IsManualMenuCode_Checked);
                     wrapPanel_IsManualMenu.Children.Add(chkbox);
                 }
+
+                //細かいオプションの設定
+                checkBox_NoMessageKeyGesture.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageKeyGesture));
+                checkBox_NoMessageDeleteAll.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageDeleteAll));
+                checkBox_NoMessageDelete2.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageDelete2));
+                checkBox_NoMessageAdjustRes.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageAdjustRes));
+                checkBox_CancelAutoAddOff.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.CancelAutoAddOff));
+                checkBox_AutoAddFazySearch.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddFazySearch));
+                checkBox_AutoAddSearchToolTip.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddSearchToolTip));
+                checkBox_AutoAddSearchSkipSubMenu.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddSearchSkipSubMenu));
+                checkBox_ReserveSearchToolTip.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.ReserveSearchToolTip));
+                checkBox_EpgKeyword_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.Keyword_Trim));
+                checkBox_CopyTitle_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.CopyTitle_Trim));
+                checkBox_CopyContentBasic.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.CopyContentBasic));
+                checkBox_InfoSearchTtile_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.InfoSearchTitle_Trim));
+                checkBox_SearchTtile_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.SearchTitle_Trim));
+                textBox_SearchURI.SetBinding(TextBox.TextProperty, CommonUtil.NameOf(() => info.SearchURI));
+                checkBox_NoMessageNotKEY.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageNotKEY));
+                checkBox_OpenParentFolder.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.OpenParentFolder));
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -144,6 +163,8 @@ namespace EpgTimer
         {
             try
             {
+                this.DataContext = info;
+
                 ManualMenuCheckboxWorking = true;
                 foreach (var chkbox in IsManualChkBox)
                 {
@@ -151,24 +172,6 @@ namespace EpgTimer
                 }
                 ManualMenuCheckboxWorking = false;
                 checkBox_IsManualMenuCode_Checked(null, null);
-
-                checkBox_NoMessageKeyGesture.IsChecked = info.NoMessageKeyGesture;
-                checkBox_NoMessageDeleteAll.IsChecked = info.NoMessageDeleteAll;
-                checkBox_NoMessageDelete2.IsChecked = info.NoMessageDelete2;
-                checkBox_NoMessageAdjustRes.IsChecked = info.NoMessageAdjustRes;
-                checkBox_CancelAutoAddOff.IsChecked = info.CancelAutoAddOff;
-                checkBox_AutoAddFazySearch.IsChecked = info.AutoAddFazySearch;
-                checkBox_AutoAddSearchToolTip.IsChecked = info.AutoAddSearchToolTip;
-                checkBox_AutoAddSearchSkipSubMenu.IsChecked = info.AutoAddSearchSkipSubMenu;
-                checkBox_ReserveSearchToolTip.IsChecked = info.ReserveSearchToolTip;
-                checkBox_EpgKeyword_Trim.IsChecked = info.Keyword_Trim;
-                checkBox_CopyTitle_Trim.IsChecked = info.CopyTitle_Trim;
-                checkBox_CopyContentBasic.IsChecked = info.CopyContentBasic;
-                checkBox_InfoSearchTtile_Trim.IsChecked = info.InfoSearchTitle_Trim;
-                checkBox_SearchTtile_Trim.IsChecked = info.SearchTitle_Trim;
-                textBox_SearchURI.Text = info.SearchURI;
-                checkBox_NoMessageNotKEY.IsChecked = info.NoMessageNotKEY;
-                checkBox_OpenParentFolder.IsChecked = info.OpenParentFolder;
 
                 defaultMenu = mm.GetDefaultCtxmSettingForEditor();
                 editMenu = info.ManualMenuItems.Clone();
@@ -223,24 +226,7 @@ namespace EpgTimer
                 }
 
                 info.IsManualAssign = IsManualChkBox.Where(c => c.IsChecked == true).Select(c => (CtxmCode)c.Tag).ToList();
-                info.NoMessageKeyGesture = (checkBox_NoMessageKeyGesture.IsChecked == true);
-                info.NoMessageDeleteAll = (checkBox_NoMessageDeleteAll.IsChecked == true);
-                info.NoMessageDelete2 = (checkBox_NoMessageDelete2.IsChecked == true);
-                info.NoMessageAdjustRes = (checkBox_NoMessageAdjustRes.IsChecked == true);
-                info.CancelAutoAddOff = (checkBox_CancelAutoAddOff.IsChecked == true);
-                info.AutoAddFazySearch = (checkBox_AutoAddFazySearch.IsChecked == true);
-                info.AutoAddSearchToolTip = (checkBox_AutoAddSearchToolTip.IsChecked == true);
-                info.AutoAddSearchSkipSubMenu = (checkBox_AutoAddSearchSkipSubMenu.IsChecked == true);
-                info.ReserveSearchToolTip = (checkBox_ReserveSearchToolTip.IsChecked == true);
                 info.ManualMenuItems = editMenu.Clone();
-                info.Keyword_Trim = (checkBox_EpgKeyword_Trim.IsChecked == true);
-                info.CopyTitle_Trim = (checkBox_CopyTitle_Trim.IsChecked == true);
-                info.CopyContentBasic = (checkBox_CopyContentBasic.IsChecked == true);
-                info.InfoSearchTitle_Trim = (checkBox_InfoSearchTtile_Trim.IsChecked == true);
-                info.SearchTitle_Trim = (checkBox_SearchTtile_Trim.IsChecked == true);
-                info.SearchURI = textBox_SearchURI.Text;
-                info.NoMessageNotKEY = (checkBox_NoMessageNotKEY.IsChecked == true);
-                info.OpenParentFolder = (checkBox_OpenParentFolder.IsChecked == true);
 
                 DialogResult = true;
                 return;
