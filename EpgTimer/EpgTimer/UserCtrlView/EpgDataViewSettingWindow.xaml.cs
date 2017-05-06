@@ -1,75 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using System.Windows;
 
 namespace EpgTimer
 {
-    /// <summary>
-    /// EpgDataViewSettingWindow.xaml の相互作用ロジック
-    /// </summary>
+    /// <summary>EpgDataViewSettingWindow.xaml の相互作用ロジック</summary>
     public partial class EpgDataViewSettingWindow : Window
     {
-        public EpgDataViewSettingWindow()
+        public EpgDataViewSettingWindow(CustomEpgTabInfo setInfo = null)
         {
             InitializeComponent();
+            button_ok.Click += new RoutedEventHandler((sender, e) => DialogResult = true);
+            button_cancel.Click += new RoutedEventHandler((sender, e) => DialogResult = false);
             checkBox_tryEpgSetting.Visibility = Visibility.Hidden;
+            SetDefSetting(setInfo ?? new CustomEpgTabInfo());
         }
-
-        public void SetTrySetModeEnable()
-        {
-            checkBox_tryEpgSetting.Visibility = Visibility.Visible;
-            checkBox_tryEpgSetting.IsChecked = (Settings.Instance.TryEpgSetting == true);
-            checkBox_tryEpgSetting_Click(null, null);
-        }
-
-        public void SetTrySetModeOnly()
-        {
-            checkBox_tryEpgSetting.IsEnabled  = false;
-            checkBox_tryEpgSetting.IsChecked = true;
-            checkBox_tryEpgSetting_Click(null, null);
-            checkBox_tryEpgSetting.ToolTip = "デフォルト表示では一時的な変更のみ可能で設定は保存されません。";
-        }
-
-        /// <summary>
-        /// デフォルト表示の設定値
-        /// </summary>
-        /// <param name="setInfo"></param>
+        /// <summary>デフォルト表示の設定値</summary>
         public void SetDefSetting(CustomEpgTabInfo setInfo)
         {
             epgDataViewSetting.SetSetting(setInfo);
         }
-
-        /// <summary>
-        /// 設定値の取得
-        /// </summary>
-        /// <param name="setInfo"></param>
-        public void GetSetting(ref CustomEpgTabInfo info)
+        /// <summary>設定値の取得</summary>
+        public CustomEpgTabInfo GetSetting()
         {
-            epgDataViewSetting.GetSetting(ref info);
+            return epgDataViewSetting.GetSetting();
         }
-
+        public void SetTryMode(bool tryOnly = false)
+        {
+            checkBox_tryEpgSetting.Visibility = Visibility.Visible;
+            checkBox_tryEpgSetting.IsChecked = tryOnly == true || Settings.Instance.TryEpgSetting == true;
+            if (tryOnly == true)
+            {
+                checkBox_tryEpgSetting.IsEnabled = false;
+                checkBox_tryEpgSetting.ToolTip = "デフォルト表示では一時的な変更のみ可能で設定は保存されません。";
+            }
+            checkBox_tryEpgSetting_Click(null, null);
+        }
         private void checkBox_tryEpgSetting_Click(object sender, RoutedEventArgs e)
         {
-            //これはダイアログの設定なので即座に反映
-            Settings.Instance.TryEpgSetting = (checkBox_tryEpgSetting.IsChecked == true);
-            epgDataViewSetting.checkBox_isVisible.IsEnabled = Settings.Instance.TryEpgSetting != true;
-            if (Settings.Instance.TryEpgSetting == true)
+            if (sender != null)
             {
-                epgDataViewSetting.checkBox_isVisible.IsChecked = true;
+                //これはダイアログの設定なので即座に反映
+                Settings.Instance.TryEpgSetting = (checkBox_tryEpgSetting.IsChecked == true);
             }
-        }
-
-        private void button_OK_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
-
-        private void button_cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
+            epgDataViewSetting.checkBox_isVisible.IsEnabled = Settings.Instance.TryEpgSetting != true;
+            epgDataViewSetting.textBox_tabName.IsEnabled = Settings.Instance.TryEpgSetting != true;
         }
     }
 }

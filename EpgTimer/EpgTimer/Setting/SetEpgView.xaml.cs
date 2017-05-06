@@ -458,7 +458,7 @@ namespace EpgTimer.Setting
         private class CustomEpgTabInfoView
         {
             public CustomEpgTabInfoView(CustomEpgTabInfo info) { Info = info; }
-            public CustomEpgTabInfo Info { get; private set; }
+            public CustomEpgTabInfo Info { get; set; }
             public bool IsVisible { get { return Info.IsVisible; } set { Info.IsVisible = value; } }
             public string TabName { get { return Info.TabName; } }
             public string ViewMode { get { return CommonManager.ConvertViewModeText(Info.ViewMode).Replace("モード", ""); } }
@@ -468,14 +468,11 @@ namespace EpgTimer.Setting
 
         private void button_tab_add_Click(object sender, RoutedEventArgs e)
         {
-            var item = new CustomEpgTabInfoView(new CustomEpgTabInfo());
             var dlg = new EpgDataViewSettingWindow();
             dlg.Owner = CommonUtil.GetTopWindow(this);
-            dlg.SetDefSetting(item.Info);
             if (dlg.ShowDialog() == true)
             {
-                CustomEpgTabInfo info = item.Info;
-                dlg.GetSetting(ref info);
+                var item = new CustomEpgTabInfoView(dlg.GetSetting());
                 listBox_tab.Items.Add(item);
                 listBox_tab.SelectedItem = item;
                 listBox_tab.ScrollIntoView(item);
@@ -496,13 +493,11 @@ namespace EpgTimer.Setting
             {
                 listBox_tab.UnselectAll();
                 listBox_tab.SelectedItem = item;
-                var dlg = new EpgDataViewSettingWindow();
+                var dlg = new EpgDataViewSettingWindow(item.Info);
                 dlg.Owner = CommonUtil.GetTopWindow(this);
-                dlg.SetDefSetting(item.Info);
                 if (dlg.ShowDialog() == true)
                 {
-                    CustomEpgTabInfo info = item.Info;
-                    dlg.GetSetting(ref info);
+                    item.Info = dlg.GetSetting();
                     listBox_tab_Refresh();
                 }
             }

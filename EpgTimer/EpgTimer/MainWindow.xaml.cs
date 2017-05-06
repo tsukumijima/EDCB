@@ -916,7 +916,7 @@ namespace EpgTimer
                 tunerReserveView.UpdateInfo();
                 recInfoView.UpdateInfo();
                 autoAddView.UpdateInfo();
-                epgView.UpdateSetting();
+                epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgSetting);
                 SearchWindow.UpdatesInfo(false);
                 InfoSearchWindow.UpdatesInfo();
                 NotifyLogWindow.UpdatesInfo();

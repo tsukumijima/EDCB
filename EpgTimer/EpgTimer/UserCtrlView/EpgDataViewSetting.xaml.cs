@@ -14,8 +14,8 @@ namespace EpgTimer
     /// </summary>
     public partial class EpgDataViewSetting : UserControl
     {
+        private CustomEpgTabInfo info = new CustomEpgTabInfo();
         private EpgSearchKeyInfo searchKey = new EpgSearchKeyInfo();
-        private int tabInfoID = -1;
         private RadioBtnSelect viewModeRadioBtns;
 
         public EpgDataViewSetting()
@@ -50,7 +50,7 @@ namespace EpgTimer
         /// <param name="setInfo"></param>
         public void SetSetting(CustomEpgTabInfo setInfo)
         {
-            tabInfoID = setInfo.ID;
+            info = setInfo.Clone();
             searchKey = setInfo.SearchKey.Clone();
 
             textBox_tabName.Text = setInfo.TabName;
@@ -90,10 +90,10 @@ namespace EpgTimer
         /// 設定値の取得
         /// </summary>
         /// <param name="setInfo"></param>
-        public void GetSetting(ref CustomEpgTabInfo info)
+        public CustomEpgTabInfo GetSetting()
         {
-            info.TabName = textBox_tabName.Text;
-            info.IsVisible = checkBox_isVisible.IsChecked == true;
+            info.TabName = textBox_tabName.IsEnabled == true ? textBox_tabName.Text : info.TabName;
+            info.IsVisible = checkBox_isVisible.IsEnabled == true ? checkBox_isVisible.IsChecked == true : info.IsVisible;
             info.ViewMode = viewModeRadioBtns.Value;
 
             info.NeedTimeOnlyBasic = (checkBox_noTimeView_rate.IsChecked == true);
@@ -104,11 +104,12 @@ namespace EpgTimer
             info.FilterEnded = (checkBox_filterEnded.IsChecked == true);
             info.SearchKey = searchKey.Clone();
             info.SearchKey.serviceList.Clear();//不要なので削除
-            info.ID = tabInfoID;
 
             info.ViewServiceList = listBox_serviceView.Items.OfType<ChSet5Item>().Select(item => item.Key).ToList();
             info.ViewContentKindList = listBox_jyanruView.Items.OfType<ContentKindInfo>().Select(item => item.ID).ToList();
             info.ViewNotContentFlag = checkBox_notContent.IsChecked == true;
+
+            return info.Clone();
         }
 
         //サービス選択関係は他でも使用するので
@@ -318,8 +319,7 @@ namespace EpgTimer
 
         private void button_searchKey_Click(object sender, RoutedEventArgs e)
         {
-            var tabInfo = new CustomEpgTabInfo();
-            GetSetting(ref tabInfo);
+            CustomEpgTabInfo tabInfo = this.GetSetting();
 
             var dlg = new SetDefSearchSettingWindow();
             dlg.Owner = CommonUtil.GetTopWindow(this);

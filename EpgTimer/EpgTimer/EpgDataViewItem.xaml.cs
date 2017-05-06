@@ -13,7 +13,9 @@ namespace EpgTimer
     /// </summary>
     public partial class EpgDataViewItem : UserControl
     {
-        private EpgViewBase viewCtrl = null;
+        public event ViewSettingClickHandler ViewSettingClick = null; 
+        public EpgViewBase viewCtrl { get; private set; }
+
         public EpgDataViewItem()
         {
             InitializeComponent();
@@ -64,8 +66,8 @@ namespace EpgTimer
                 CustomEpgTabInfo viewInfo = viewCtrl.GetViewMode();
                 if (viewInfo != null && viewInfo.ViewMode == setInfo.ViewMode)
                 {
-                    viewInfo = setInfo.Clone();
-                    viewCtrl.SetViewMode(viewInfo);
+                    viewCtrl.SetViewMode(setInfo);
+                    viewCtrl.UpdateInfo();
                     return;
                 }
             }
@@ -92,44 +94,9 @@ namespace EpgTimer
             grid_main.Children.Add(viewCtrl);
         }
 
-        private void item_ViewSettingClick(object sender, object param)
+        private void item_ViewSettingClick(object sender, CustomEpgTabInfo info)
         {
-            try
-            {
-                if (param is CustomEpgTabInfo)
-                {
-                    this.SetViewMode(param as CustomEpgTabInfo);
-                }
-                else
-                {
-                    var dlg = new EpgDataViewSettingWindow();
-                    dlg.Owner = CommonUtil.GetTopWindow(this);
-                    dlg.SetDefSetting(this.GetViewMode());
-                    dlg.SetTrySetModeEnable();
-                    if (Settings.Instance.UseCustomEpgView == false)
-                    {
-                        dlg.SetTrySetModeOnly();
-                    }
-                    if (dlg.ShowDialog() == true)
-                    {
-                        var setInfo = new CustomEpgTabInfo();
-                        dlg.GetSetting(ref setInfo);
-
-                        if (Settings.Instance.UseCustomEpgView == true && Settings.Instance.TryEpgSetting == false)
-                        {
-                            if (setInfo.ID >= 0 && setInfo.ID <= Settings.Instance.CustomEpgTabList.Count)
-                            {
-                                Settings.Instance.CustomEpgTabList[setInfo.ID] = setInfo;
-                                Settings.SaveToXmlFile();
-                            }
-                        }
-
-                        this.SetViewMode(setInfo);
-                        viewCtrl.UpdateInfo();
-                    }
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            if (ViewSettingClick != null) ViewSettingClick(this, info);
         }
     }
 }

@@ -137,7 +137,7 @@ namespace EpgTimer
             
             //ビューモードサブメニュー
             var cm_ViewMenu = new CtxmItemData("表示モード", EpgCmdsEx.ViewMenu);
-            cm_ViewMenu.Items.Add(new CtxmItemData("表示設定...", EpgCmds.ViewChgSet));
+            cm_ViewMenu.Items.Add(new CtxmItemData("表示設定...(_S)", EpgCmds.ViewChgSet));
             cm_ViewMenu.Items.Add(new CtxmItemData(cm_Separator));
             for (int i = 0; i <= 2; i++)
             {

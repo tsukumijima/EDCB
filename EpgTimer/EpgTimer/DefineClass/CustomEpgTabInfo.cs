@@ -35,6 +35,7 @@ namespace EpgTimer
         public bool SearchGenreNoSyncView { get; set; }
         public bool FilterEnded { get; set; }
         public int ID { get; set; }
+        public String Uid { get { return ID.ToString(); } }
         public bool IsVisible { get; set; }
 
         public EpgSearchKeyInfo GetSearchKeyReloadEpg()

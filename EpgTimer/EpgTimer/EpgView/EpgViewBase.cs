@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace EpgTimer.EpgView
 {
-    public delegate void ViewSettingClickHandler(object sender, object param);
+    public delegate void ViewSettingClickHandler(object sender, CustomEpgTabInfo info);
 
     public class EpgViewBase : EpgTimer.UserCtrlView.DataViewBase
     {
@@ -41,10 +41,10 @@ namespace EpgTimer.EpgView
 
         public virtual event ViewSettingClickHandler ViewSettingClick = null;
         protected bool EnableViewSetting() { return ViewSettingClick != null; }
-        protected void ViewSetting(object sender, object param)
+        protected void ViewSetting(object sender, CustomEpgTabInfo info)
         {
             if (EnableViewSetting() == false) return;
-            ViewSettingClick(sender, param);
+            ViewSettingClick(sender, info);
         }
 
         /// <summary>右クリックメニュー 表示モードイベント呼び出し</summary>
