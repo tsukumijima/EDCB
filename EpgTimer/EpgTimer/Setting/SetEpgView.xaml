@@ -302,19 +302,17 @@
                                     </StackPanel.Resources>
                                     <Button Content="追加" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_add" Click="button_tab_add_Click" />
                                     <Button Content="変更" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_chg" Click="button_tab_chg_Click" />
-                                    <DockPanel Margin="0,0,0,4" >
-                                        <Button Content="削除" Name="button_tab_del" />
-                                        <Button Content="全削除" Margin="6,0,0,0" Name="button_tab_del_all" />
-                                    </DockPanel>
-                                    <DockPanel Margin="0,4,0,4" >
-                                        <Button Content="選択" Click="button_tab_Select_Click" />
-                                        <Button Content="全選択" Margin="6,0,0,0" Click="button_tab_Select_All_Click" />
+                                    <Button Content="削除" Margin="0,4,0,4" HorizontalAlignment="Left" Name="button_tab_del" />
+                                    <Button Content="全削除" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_del_all" />
+                                    <DockPanel Margin="0,6,0,4" >
+                                        <Button Content="表示" Click="button_tab_Select_Click" />
+                                        <Button Content="全表示" Margin="6,0,0,0" Click="button_tab_Select_All_Click" />
                                     </DockPanel>
                                     <DockPanel Margin="0,0,0,4" >
-                                        <Button Content="解除" Click="button_tab_None_Click" />
-                                        <Button Content="全解除" Margin="6,0,0,0" Click="button_tab_NoneAll_Click" />
+                                        <Button Content="外す" Click="button_tab_None_Click" />
+                                        <Button Content="全外し" Margin="6,0,0,0" Click="button_tab_NoneAll_Click" />
                                     </DockPanel>
-                                    <DockPanel Margin="0,4,0,4" >
+                                    <DockPanel Margin="0,6,0,4" >
                                         <Button Content="↑" Name="button_tab_up" ToolTip="1つ上へ" />
                                         <Button Content="↑↑" Margin="6,0,0,0" Name="button_tab_top" ToolTip="一番上へ" />
                                     </DockPanel>
@@ -322,7 +320,7 @@
                                         <Button Content="↓" Name="button_tab_down" ToolTip="1つ下へ" />
                                         <Button Content="↓↓" Margin="6,0,0,0" Name="button_tab_bottom" ToolTip="一番下へ" />
                                     </DockPanel>
-                                    <Button Content="コピー" Margin="0,4,0,4" HorizontalAlignment="Left" Click="button_tab_clone_Click" />
+                                    <Button Content="コピー" Margin="0,6,0,4" HorizontalAlignment="Left" Click="button_tab_clone_Click" />
                                     <Button Content="デフォルト表示をコピー" Margin="0,0,0,4" Click="button_tab_defaultCopy_Click" />
                                 </StackPanel>
                                 <ListView Name="listBox_tab" >
