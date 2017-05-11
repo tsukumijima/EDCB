@@ -104,7 +104,7 @@ namespace EpgTimer
         protected override void OnClosed(EventArgs e)
         {
             //フォーカスがおかしくなるときがあるので、とりあえずの対応
-            if (Application.Current.Windows.OfType<AttendantWindow>().Count() == 0)
+            if (Application.Current.Windows.OfType<AttendantWindow>().Any() != true)
             {
                 mainWindow.Activate();
             }

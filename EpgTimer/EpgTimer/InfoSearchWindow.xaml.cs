@@ -224,7 +224,7 @@ namespace EpgTimer
 
                         //キーワード予約を考慮し、逆に対象のタイトルで検索ワードのAND検索もしておく。
                         string[] trgWords = CommonManager.AdjustSearchText(data.DataTitle).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        return trgWords.Count() != 0 && trgWords.All(word => sText.Contains(word));
+                        return trgWords.Any() == true && trgWords.All(word => sText.Contains(word));
                     });
 
                     dataList.AddRange(hitItems);

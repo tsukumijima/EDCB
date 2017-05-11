@@ -393,7 +393,7 @@ namespace EpgTimer
                     if (code == 0)
                     {
                         //一覧画面非表示の状態から実施する場合のためのコード
-                        if (AutoAddView.IsVisible == false && autoAddDBList.Count() == 0)
+                        if (AutoAddView.IsVisible == false && autoAddDBList.Any() != true)
                         {
                             ReloadAutoAddDBList(true);
                         }

@@ -186,7 +186,7 @@ namespace EpgTimer
 
         public static void AdjustTimeList(IEnumerable<PanelItem> list, List<DateTime> timeList, double MinutesHeight)
         {
-            if (list.Count() != 0 && timeList.Count > 0)
+            if (list.Any() == true && timeList.Count > 0)
             {
                 double bottom = list.Max(info => info.TopPos + info.Height);
                 AddTimeList(timeList, timeList.Last().AddHours(1), timeList.First().AddMinutes(bottom / MinutesHeight));
@@ -301,7 +301,7 @@ namespace EpgTimer
         }
         public static string ConvertReserveStatus(IEnumerable<SearchItem> list, string itemText = "予約数", int reserveMode = 0)
         {
-            if (reserveMode == 0 && list.Count() == 0) return "";
+            if (reserveMode == 0 && list.Any() != true) return "";
             return ConvertReserveStatus(list.GetReserveList(), itemText, reserveMode);
         }
         public static string ConvertReserveStatus(List<ReserveData> rlist, string itemText = "予約数", int reserveMode = 0)

@@ -95,7 +95,7 @@ namespace EpgTimer
 
         public void SetContextMenu(IEnumerable<Tuple<string,string>> list)
         {
-            if (list.Count() == 0)
+            if (list.Any() != true)
             {
                 notifyIcon.ContextMenuStrip = null;
             }

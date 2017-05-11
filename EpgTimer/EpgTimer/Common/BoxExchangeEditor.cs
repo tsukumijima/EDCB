@@ -248,7 +248,7 @@ namespace EpgTimer.BoxExchangeEdit
         {
             try
             {
-                if (srcList == null || srcList.Cast<object>().Count() == 0 || target == null) return false;
+                if (srcList == null || srcList.Cast<object>().Any() != true || target == null) return false;
 
                 var trgItems = trgItemsSource ?? target.Items;
                 var addList = srcList.Cast<object>()

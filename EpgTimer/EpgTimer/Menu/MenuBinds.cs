@@ -168,7 +168,7 @@ namespace EpgTimer
             List<KeyGesture> ShortCutKeys = gestures.OfType<KeyGesture>().ToList();
 
             string ret = "";
-            ShortCutKeys.ForEach(item => ret += (ret.Count() != 0 ? ", " : "") + GetInputGestureText(item));
+            ShortCutKeys.ForEach(item => ret += (ret.Any() == true ? ", " : "") + GetInputGestureText(item));
             return ret == "" ? null : ret;
         }
 

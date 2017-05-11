@@ -30,7 +30,7 @@ namespace EpgTimer.EpgView
             try
             {
                 ClearInfo();
-                if (timeList.Count() == 0) return;
+                if (timeList.Any() != true) return;
 
                 DateTime itemTime = timeList.First().Date;
                 while (itemTime <= timeList.Last())
