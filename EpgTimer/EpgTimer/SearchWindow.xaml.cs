@@ -244,14 +244,8 @@ namespace EpgTimer
                 if (listView_result.SelectedItem != null)
                 {
                     SearchItem item = lstCtrl.SelectSingleItem();
-
-                    EpgSearchKeyInfo defKey = GetSearchKey();
-                    defKey.andKey = MenuUtil.TrimEpgKeyword(item.EventName, CmdExeUtil.IsKeyGesture(e));
-                    defKey.regExpFlag = 0;
-                    defKey.serviceList.Clear();
-                    UInt64 sidKey = item.EventInfo.Create64Key();
-                    defKey.serviceList.Add((Int64)sidKey);
-
+                    EpgSearchKeyInfo defKey = MenuUtil.SendAutoAddKey(item.EventInfo, CmdExeUtil.IsKeyGesture(e), GetSearchKey());
+                    
                     if (e.Command == EpgCmds.ReSearch)
                     {
                         SetSearchKey(defKey);

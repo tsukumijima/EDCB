@@ -126,6 +126,8 @@ namespace EpgTimer
         public bool NoMessageDeleteAll { get; set; }
         public bool NoMessageDelete2 { get; set; }
         public bool NoMessageAdjustRes { get; set; }
+        public bool SetJunreToAutoAdd { get; set; }
+        public bool SetJunreContentToAutoAdd { get; set; }        
         public bool CancelAutoAddOff { get; set; }
         public bool AutoAddFazySearch { get; set; }
         public bool AutoAddSearchToolTip { get; set; }
@@ -149,6 +151,8 @@ namespace EpgTimer
             NoMessageDeleteAll = false;
             NoMessageDelete2 = false;
             NoMessageAdjustRes = false;
+            SetJunreToAutoAdd = true;
+            SetJunreContentToAutoAdd = false;
             CancelAutoAddOff = false;
             AutoAddFazySearch = false;
             AutoAddSearchToolTip = false;
@@ -174,6 +178,8 @@ namespace EpgTimer
             dest.NoMessageDeleteAll = src.NoMessageDeleteAll;
             dest.NoMessageDelete2 = src.NoMessageDelete2;
             dest.NoMessageAdjustRes = src.NoMessageAdjustRes;
+            dest.SetJunreToAutoAdd = src.SetJunreToAutoAdd;
+            dest.SetJunreContentToAutoAdd = src.SetJunreContentToAutoAdd;
             dest.CancelAutoAddOff = src.CancelAutoAddOff;
             dest.AutoAddFazySearch = src.AutoAddFazySearch;
             dest.AutoAddSearchToolTip = src.AutoAddSearchToolTip;

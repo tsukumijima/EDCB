@@ -48,6 +48,7 @@ namespace EpgTimer
             new List<ICommand>{EpgCmdsEx.ShowReserveDialogMenu},
             new List<ICommand>{EpgCmds.ToAutoadd},
             new List<ICommand>{EpgCmds.ReSearch},
+            new List<ICommand>{},//オプション用のダミー行
             new List<ICommand>{EpgCmds.ReSearch2},
             new List<ICommand>{EpgCmds.Play},
             new List<ICommand>{EpgCmds.OpenFolder, EpgCmdsEx.OpenFolderMenu},
@@ -124,6 +125,8 @@ namespace EpgTimer
                 checkBox_NoMessageDeleteAll.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageDeleteAll));
                 checkBox_NoMessageDelete2.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageDelete2));
                 checkBox_NoMessageAdjustRes.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageAdjustRes));
+                checkBox_SetJunreToAutoAdd.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.SetJunreToAutoAdd));
+                checkBox_SetJunreContentToAutoAdd.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.SetJunreContentToAutoAdd));                
                 checkBox_CancelAutoAddOff.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.CancelAutoAddOff));
                 checkBox_AutoAddFazySearch.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddFazySearch));
                 checkBox_AutoAddSearchToolTip.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddSearchToolTip));

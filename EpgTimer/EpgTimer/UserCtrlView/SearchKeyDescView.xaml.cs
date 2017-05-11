@@ -111,15 +111,33 @@ namespace EpgTimer
                 listBox_content.Items.Clear();
                 foreach (EpgContentData item in defKey.contentList)
                 {
-                    var contentKey = (UInt16)(item.content_nibble_level_1 << 8 | item.content_nibble_level_2);
-                    if (CommonManager.ContentKindDictionary.ContainsKey(contentKey) == true)
+                    var ID1 = (UInt16)(item.content_nibble_level_1 << 8 | 0xFF);
+                    var ID2 = (UInt16)(item.content_nibble_level_1 << 8 | item.content_nibble_level_2);
+
+                    if (ID2 == 0x0E01)//CS、仮対応データをそのまま使用。
                     {
-                        listBox_content.Items.Add(CommonManager.ContentKindDictionary[contentKey]);
+                        ID1 = (UInt16)((item.user_nibble_1 | 0x70) << 8 | 0xFF);
+                        ID2 = (UInt16)((item.user_nibble_1 | 0x70) << 8 | item.user_nibble_2);
                     }
-                    else
+
+                    //番組特性コードをパス
+                    if (ID2 == 0x0E00) continue;
+
+                    if (CommonManager.ContentKindDictionary.ContainsKey(ID2) == true)
                     {
-                        //未知のジャンル
-                        listBox_content.Items.Add(new ContentKindInfo("?", "?", item.content_nibble_level_1, item.content_nibble_level_2));
+                        listBox_content.Items.Add(CommonManager.ContentKindDictionary[ID2]);
+                    }
+                    //未知のジャンル
+                    else 
+                    {
+                        ContentKindInfo kindInfo;
+                        string ContentName = "不明(0x" + item.content_nibble_level_1.ToString("X2") + ")";
+                        string SubName = "不明(0x" + item.content_nibble_level_2.ToString("X2") + ")";
+                        if (CommonManager.ContentKindDictionary.TryGetValue(ID1, out kindInfo) == true)
+                        {
+                            ContentName = kindInfo.ContentName;
+                        }
+                        listBox_content.Items.Add(new ContentKindInfo(ContentName, SubName, item.content_nibble_level_1, item.content_nibble_level_2));
                     }
                 }
 

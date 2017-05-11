@@ -970,7 +970,7 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return null;
         }
-        public static void SendAutoAdd(IBasicPgInfo item, bool NotToggle = false)
+        public static void SendAutoAdd(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
         {
             try
             {
@@ -978,13 +978,7 @@ namespace EpgTimer
 
                 var dlg = new SearchWindow();
                 dlg.SetViewMode(AutoAddMode.NewAdd);
-
-                EpgSearchKeyInfo key = Settings.Instance.DefSearchKey.Clone();
-                key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
-                key.regExpFlag = 0;
-                key.serviceList.Clear();
-                key.serviceList.Add((Int64)item.Create64Key());
-                dlg.SetSearchKey(key);
+                dlg.SetSearchKey(key ?? SendAutoAddKey(item, NotToggle));
 
                 if (item is IRecSetttingData)
                 {
@@ -1001,6 +995,31 @@ namespace EpgTimer
                 dlg.Show();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+        }
+        public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
+        {
+            key = key ?? Settings.Instance.DefSearchKey.Clone();
+            key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
+            key.regExpFlag = 0;
+            key.serviceList.Clear();
+            key.serviceList.Add((Int64)item.Create64Key());
+
+            var eventInfo = item as EpgEventInfo;
+            if (eventInfo != null && Settings.Instance.MenuSet.SetJunreToAutoAdd == true)
+            {
+                key.notContetFlag = 0;
+                key.contentList.Clear();
+                if (eventInfo.ContentInfo != null)
+                {
+                    key.contentList = eventInfo.ContentInfo.nibbleList;
+                    if (Settings.Instance.MenuSet.SetJunreContentToAutoAdd == true)
+                    {
+                        key.contentList = key.contentList.Select(data => data.content_nibble_level_1).Distinct()
+                            .Select(n1 => new EpgContentData() { content_nibble_level_1 = n1, content_nibble_level_2 = Byte.MaxValue }).ToList();
+                    }
+                }
+            }
+            return key;
         }
 
         public static bool? OpenAddManualAutoAddDialog()

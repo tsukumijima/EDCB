@@ -164,6 +164,7 @@ namespace EpgTimer
         protected override void mc_ToAutoadd(object sender, ExecutedRoutedEventArgs e)
         {
             ReserveData resData = null;
+            IBasicPgInfo eventRefData = null;
             if (eventList.Count != 0)
             {
                 resData = CtrlCmdDefEx.ConvertEpgToReserveData(eventList[0]);
@@ -175,12 +176,16 @@ namespace EpgTimer
                 {
                     resData.RecSetting = Settings.Instance.RecPresetList[0].RecPresetData.Clone();
                 }
+                eventRefData = eventList[0];
             }
             else if (dataList.Count != 0)
             {
                 resData = dataList[0];
+                eventRefData = new ReserveItem(resData).EventInfo ?? (IBasicPgInfo)resData;
             }
-            MenuUtil.SendAutoAdd(resData, CmdExeUtil.IsKeyGesture(e));
+
+            var key = MenuUtil.SendAutoAddKey(eventRefData, CmdExeUtil.IsKeyGesture(e));
+            MenuUtil.SendAutoAdd(resData, CmdExeUtil.IsKeyGesture(e), key);
             IsCommandExecuted = true;
         }
         protected override void mc_Play(object sender, ExecutedRoutedEventArgs e)
