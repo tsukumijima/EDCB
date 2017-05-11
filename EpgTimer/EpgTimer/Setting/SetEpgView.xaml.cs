@@ -108,6 +108,7 @@ namespace EpgTimer.Setting
 
                 listBox_tab.Items.AddItems(Settings.Instance.CustomEpgTabList.Select(info => new CustomEpgTabInfoView(info.Clone())));
                 if (listBox_tab.Items.Count > 0) listBox_tab.SelectedIndex = 0;
+                checkBox_EpgTabMoveCheckEnabled.IsChecked = Settings.Instance.EpgTabMoveCheckEnabled;
 
                 XmlLanguage FLanguage = XmlLanguage.GetLanguage("ja-JP");
                 List<string> fontList = Fonts.SystemFontFamilies
@@ -347,6 +348,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.UseCustomEpgView = (radioButton_1_cust.IsChecked == true);
                 Settings.Instance.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfoView>().Select(item => item.Info).ToList();
                 Settings.SetCustomEpgTabInfoID();
+                Settings.Instance.EpgTabMoveCheckEnabled = checkBox_EpgTabMoveCheckEnabled.IsChecked == true;
 
                 var getComboColor1 = new Func<ComboBox, string>((cmb) => ((ComboItem)(cmb.SelectedItem)).Key);
                 var getComboColors = new Action<List<string>, Panel>((list, pnl) =>
@@ -453,17 +455,6 @@ namespace EpgTimer.Setting
                 if (dock != null) Settings.Instance.MainViewButtonsDock = (Dock)dock;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-        }
-
-        private class CustomEpgTabInfoView
-        {
-            public CustomEpgTabInfoView(CustomEpgTabInfo info) { Info = info; }
-            public CustomEpgTabInfo Info { get; set; }
-            public bool IsVisible { get { return Info.IsVisible; } set { Info.IsVisible = value; } }
-            public string TabName { get { return Info.TabName; } }
-            public string ViewMode { get { return CommonManager.ConvertViewModeText(Info.ViewMode).Replace("モード", ""); } }
-            public string SearchMode { get { return Info.SearchMode == false ? "" : Info.SearchKey.andKey == "" ? "(空白)" : Info.SearchKey.andKey; } }
-            public string ContentMode { get { return CommonManager.ConvertJyanruText(Info); } }
         }
 
         private void button_tab_add_Click(object sender, RoutedEventArgs e)
@@ -610,5 +601,16 @@ namespace EpgTimer.Setting
                 setting.button_OK.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             }
         }*/
+    }
+
+    public class CustomEpgTabInfoView
+    {
+        public CustomEpgTabInfoView(CustomEpgTabInfo info) { Info = info; }
+        public CustomEpgTabInfo Info { get; set; }
+        public bool IsVisible { get { return Info.IsVisible; } set { Info.IsVisible = value; } }
+        public string TabName { get { return Info.TabName; } }
+        public string ViewMode { get { return CommonManager.ConvertViewModeText(Info.ViewMode).Replace("モード", ""); } }
+        public string SearchMode { get { return Info.SearchMode == false ? "" : Info.SearchKey.andKey == "" ? "(空白)" : Info.SearchKey.andKey; } }
+        public string ContentMode { get { return CommonManager.ConvertJyanruText(Info); } }
     }
 }

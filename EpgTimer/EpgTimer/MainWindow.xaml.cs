@@ -878,16 +878,16 @@ namespace EpgTimer
             }
         }
 
-        public void OpenSettingDialog(SettingWindow.SettingMode mode = SettingWindow.SettingMode.Default)
+        public void OpenSettingDialog(SettingWindow.SettingMode mode = SettingWindow.SettingMode.Default, object param = null)
         {
             //複数ダイアログの禁止(タスクアイコンからの起動対策)
             if (ViewUtil.SingleWindowCheck(typeof(SettingWindow)) != 0)
             {
-                Application.Current.Windows.OfType<SettingWindow>().First().SetMode(mode);
+                Application.Current.Windows.OfType<SettingWindow>().First().SetMode(mode, param);
             }
             else
             {
-                new SettingWindow(mode).Show();
+                new SettingWindow(mode, param).Show();
             }
         }
         public void RefreshSetting(SettingWindow setting)

@@ -238,6 +238,7 @@ namespace EpgTimer
     {
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
+        public bool EpgTabMoveCheckEnabled { get; set; }
         public double MinHeight { get; set; }
         public double MinimumHeight { get; set; }
         public double ServiceWidth { get; set; }
@@ -467,6 +468,7 @@ namespace EpgTimer
             
             UseCustomEpgView = false;
             CustomEpgTabList = new List<CustomEpgTabInfo>();
+            EpgTabMoveCheckEnabled = true;
             MinHeight = 2;
             MinimumHeight = 0;
             ServiceWidth = 150;

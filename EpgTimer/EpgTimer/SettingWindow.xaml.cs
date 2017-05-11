@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace EpgTimer
 {
+    using EpgTimer.Setting;
     /// <summary>
     /// SettingWindow.xaml の相互作用ロジック
     /// </summary>
@@ -12,7 +14,7 @@ namespace EpgTimer
         public enum SettingMode { Default, EpgSetting }
         public SettingMode Mode { get; private set; }
 
-        public SettingWindow(SettingMode mode = SettingMode.Default)
+        public SettingWindow(SettingMode mode = SettingMode.Default, object param = null)
         {
             InitializeComponent();
 
@@ -20,13 +22,13 @@ namespace EpgTimer
             this.Pinned = true;
 
             button_cancel.Click += (sender, e) => this.Close();
-            SetMode(mode);
+            SetMode(mode, param);
         }
 
         //このメソッドとxamlのWindowStartupLocation="CenterOwner"を削除すると、ウィンドウの位置・サイズ保存されるようになるが、とりあえずこのまま。
         protected override void WriteWindowSaveData() { Settings.Instance.WndSettings.Remove(this); }
 
-        public void SetMode(SettingMode mode)
+        public void SetMode(SettingMode mode, object param)
         {
             Mode = mode;
             switch (mode)
@@ -35,6 +37,7 @@ namespace EpgTimer
                     tabItem_epgView.IsSelected = true;
                     setEpgView.tabEpg.IsSelected = true;
                     setEpgView.tabEpgTab.IsSelected = true;
+                    setEpgView.listBox_tab.SelectedItem = setEpgView.listBox_tab.Items.OfType<CustomEpgTabInfoView>().FirstOrDefault(item => item.Info.Uid == param as string);
                     break;
             }
         }

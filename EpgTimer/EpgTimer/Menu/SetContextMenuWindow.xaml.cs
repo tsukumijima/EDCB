@@ -137,7 +137,6 @@ namespace EpgTimer
                 textBox_SearchURI.SetBinding(TextBox.TextProperty, CommonUtil.NameOf(() => info.SearchURI));
                 checkBox_NoMessageNotKEY.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageNotKEY));
                 checkBox_OpenParentFolder.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.OpenParentFolder));
-                checkBox_ShowEnabledCheckTab.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.ShowEnabledCheckTab));
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

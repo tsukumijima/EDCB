@@ -285,7 +285,7 @@ namespace EpgTimer
 
                 ctxm.Items.Add(menu_vs);
                 ctxm.Items.Add(menu_tb);
-                tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表の設定...(_O)", "");
+                tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表の設定...(_O)", trg.Uid);
                 ctxm.Items.Add(new Separator());
 
                 if (tabInfo.Count == 0)
@@ -328,7 +328,7 @@ namespace EpgTimer
                 switch (menu.Tag as edvCmds?)
                 {
                     case edvCmds.Setting:
-                        ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgSetting);
+                        ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgSetting, menu.Uid);
                         return;
                     case edvCmds.ViewSetting:
                         TabItem tab = tabControl.Items.OfType<TabItem>().FirstOrDefault(ti => ti.Uid == menu.Uid);
@@ -361,7 +361,7 @@ namespace EpgTimer
                         break;
                     case edvCmds.Delete://現在のところVisibleChangeと同じになる
                     case edvCmds.VisibleChange:
-                        if (Settings.Instance.MenuSet.ShowEnabledCheckTab == true) selectID = menu.Uid;
+                        if (Settings.Instance.EpgTabMoveCheckEnabled == true) selectID = menu.Uid;
                         var info = tabInfo.Find(ti => ti.Uid == menu.Uid);
                         if (info != null) info.IsVisible = !info.IsVisible;
                         break;

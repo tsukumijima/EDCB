@@ -139,7 +139,6 @@ namespace EpgTimer
         public bool SearchTitle_Trim { get; set; }
         public String SearchURI { get; set; }
         public bool NoMessageNotKEY { get; set; }
-        public bool ShowEnabledCheckTab { get; set; }
         public List<CmdSaveData> EasyMenuItems { get; set; }
         public List<CtxmSetting> ManualMenuItems { get; set; }
 
@@ -163,7 +162,6 @@ namespace EpgTimer
             SearchTitle_Trim = true;
             SearchURI = "https://www.google.co.jp/search?hl=ja&q=";
             NoMessageNotKEY = false;
-            ShowEnabledCheckTab = true;
             EasyMenuItems = new List<CmdSaveData>();
             ManualMenuItems = new List<CtxmSetting>();
         }
@@ -189,7 +187,6 @@ namespace EpgTimer
             dest.SearchTitle_Trim = src.SearchTitle_Trim;
             dest.SearchURI = src.SearchURI;
             dest.NoMessageNotKEY = src.NoMessageNotKEY;
-            dest.ShowEnabledCheckTab = src.ShowEnabledCheckTab;
             dest.EasyMenuItems = src.EasyMenuItems.Clone();
             dest.ManualMenuItems = src.ManualMenuItems.Clone();
         }
