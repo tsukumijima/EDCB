@@ -5,8 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Reflection;
-using System.Collections;
-using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Windows;
@@ -14,8 +12,6 @@ using System.Windows.Controls;
 
 namespace EpgTimer
 {
-    using UserCtrlView;
-
     class IniFileHandler
     {
         [DllImport("KERNEL32.DLL", CharSet = CharSet.Unicode)]
@@ -236,6 +232,9 @@ namespace EpgTimer
 
     public class Settings
     {
+        private int verSaved = 0;
+        public int SettingFileVer { get { return 20170512; } set { verSaved = value; } }
+
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
         public bool EpgTabMoveCheckEnabled { get; set; }
@@ -709,6 +708,19 @@ namespace EpgTimer
                 // MenuManager側のワークデータ作成時に実行する。
 
                 SetCustomEpgTabInfoID();
+
+                //互換用コード。旧CS仮対応コード(+0x70)も変換する。
+                if (Instance.verSaved < Instance.SettingFileVer)
+                {
+                    foreach (var info in Settings.Instance.CustomEpgTabList)
+                    {
+                        info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
+                        EpgContentData.FixNibble(info.ViewContentList);
+                        EpgContentData.FixNibble(info.SearchKey.contentList);
+                        info.ViewContentKindList = null;
+                    }
+                    EpgContentData.FixNibble(Settings.Instance.DefSearchKey.contentList);
+                }
 
                 //色設定関係
                 Instance.SetColorSetting();

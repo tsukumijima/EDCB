@@ -519,7 +519,7 @@ namespace EpgTimer
     }
 
     /// <summary>EPGジャンルデータ</summary>
-    public class EpgContentData : ICtrlCmdReadWrite
+    public partial class EpgContentData : ICtrlCmdReadWrite
     {
         public byte content_nibble_level_1;
         public byte content_nibble_level_2;
@@ -1194,6 +1194,9 @@ namespace EpgTimer
                 chkDurationMin = (ushort)(dur / 10000);
                 chkDurationMax = (ushort)(dur % 10000);
             }
+
+            //旧CS仮対応コード(+0x70)の処置
+            EpgContentData.FixNibble(contentList);
         }
     }
 

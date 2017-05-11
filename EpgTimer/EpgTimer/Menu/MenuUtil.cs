@@ -1011,12 +1011,12 @@ namespace EpgTimer
                 key.contentList.Clear();
                 if (eventInfo.ContentInfo != null)
                 {
-                    key.contentList = eventInfo.ContentInfo.nibbleList;
+                    var kindList = eventInfo.ContentInfo.nibbleList.Where(info => info.IsAttributeInfo == false);
                     if (Settings.Instance.MenuSet.SetJunreContentToAutoAdd == true)
                     {
-                        key.contentList = key.contentList.Select(data => data.content_nibble_level_1).Distinct()
-                            .Select(n1 => new EpgContentData() { content_nibble_level_1 = n1, content_nibble_level_2 = Byte.MaxValue }).ToList();
+                        kindList = kindList.GroupBy(info => info.CategoryKey).Select(gr => new EpgContentData(gr.Key));
                     }
+                    key.contentList = kindList.Clone();
                 }
             }
             return key;

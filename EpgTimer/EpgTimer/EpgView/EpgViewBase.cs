@@ -13,7 +13,7 @@ namespace EpgTimer.EpgView
         protected static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
 
         protected CustomEpgTabInfo setViewInfo = null;
-        protected Dictionary<UInt16, UInt16> viewCustContentKindList = new Dictionary<UInt16, UInt16>();
+        protected HashSet<UInt32> viewContentMatchingHash = new HashSet<UInt32>();
         protected List<EpgServiceEventInfo> serviceEventList = new List<EpgServiceEventInfo>();
 
         protected CmdExeReserve mc; //予約系コマンド集
@@ -89,7 +89,7 @@ namespace EpgTimer.EpgView
         public virtual void SetViewMode(CustomEpgTabInfo setInfo)
         {
             setViewInfo = setInfo.Clone();
-            this.viewCustContentKindList = setViewInfo.ViewContentKindList.ToDictionary(id => id, id => id);
+            this.viewContentMatchingHash = new HashSet<UInt32>(setViewInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
 
             ReloadInfoFlg = true;
         }
@@ -179,7 +179,7 @@ namespace EpgTimer.EpgView
                         && (Settings.Instance.EpgNoDisplayOld == false || eventInfo.IsOver(keyTime) == false)
 
                         //ジャンル絞り込み
-                        && (ViewUtil.ContainsContent(eventInfo, viewCustContentKindList, setViewInfo.ViewNotContentFlag) == true)
+                        && (ViewUtil.ContainsContent(eventInfo, viewContentMatchingHash, setViewInfo.ViewNotContentFlag) == true)
                     );
                 }
 

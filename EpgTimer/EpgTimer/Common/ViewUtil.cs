@@ -98,37 +98,31 @@ namespace EpgTimer
         }
         
         //ジャンル絞り込み
-        public static bool ContainsContent(EpgEventInfo info, Dictionary<UInt16, UInt16> ContentKindList, bool notContent = false)
+        public static bool ContainsContent(EpgEventInfo info, HashSet<UInt32> ContentHash, bool notContent = false)
         {
             //絞り込み無し
-            if (ContentKindList.Count == 0) return true;
+            if (ContentHash.Count == 0) return true;
 
-            //ジャンルデータ'なし'扱い
-            if (info.ContentInfo == null || info.ContentInfo.nibbleList.Count == 0)
+            //ジャンルデータ'なし'扱い。
+            if (info.ContentInfo == null)
             {
-                return ContentKindList.ContainsKey(0xFFFF) == !notContent;
+                return ContentHash.Contains(0xFFFF0000) == !notContent;
+            }
+            if (ContentHash.Contains(0xFFFF0000) == true &&
+                    info.ContentInfo.nibbleList.Any(data => data.IsAttributeInfo == false) != true)
+            {
+                return !notContent;
             }
 
-            foreach (EpgContentData contentInfo in info.ContentInfo.nibbleList)
+            //不明なジャンル
+            if (ContentHash.Contains(0xFEFF0000) == true &&
+                    info.ContentInfo.nibbleList.Any(data => CommonManager.ContentKindDictionary.ContainsKey(data.Key) == false))
             {
-                var ID1 = (UInt16)(contentInfo.content_nibble_level_1 << 8 | 0xFF);
-                var ID2 = (UInt16)(contentInfo.content_nibble_level_1 << 8 | contentInfo.content_nibble_level_2);
-                
-                //CS検索の仮対応
-                if (ID2 == 0x0E01)
-                {
-                    ID1 = (UInt16)((contentInfo.user_nibble_1 | 0x70) << 8 | 0xFF);
-                    ID2 = (UInt16)((contentInfo.user_nibble_1 | 0x70) << 8 | contentInfo.user_nibble_2);
-                }
-
-                if (ContentKindList.ContainsKey(ID1) == true || ContentKindList.ContainsKey(ID2) == true)
-                {
-                    return !notContent;
-                }
+                return !notContent;
             }
 
-            //見つからない
-            return notContent;
+            //検索
+            return info.ContentInfo.nibbleList.Any(data => ContentHash.Contains(data.Key)) != notContent;
         }
 
         public static void AddTimeList(ICollection<DateTime> timeList, DateTime startTime, UInt32 duration)

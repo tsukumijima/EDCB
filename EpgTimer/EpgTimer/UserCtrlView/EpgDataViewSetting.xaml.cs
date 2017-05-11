@@ -71,17 +71,9 @@ namespace EpgTimer
                     listBox_serviceView.Items.Add(ChSet5.ChList[id]);
                 }
             }
-            foreach (UInt16 id in setInfo.ViewContentKindList)
+            foreach (EpgContentData data in setInfo.ViewContentList)
             {
-                if (CommonManager.ContentKindDictionary.ContainsKey(id) == true)
-                {
-                    listBox_jyanruView.Items.Add(CommonManager.ContentKindDictionary[id]);
-                }
-                else
-                {
-                    //未知のジャンル
-                    listBox_jyanruView.Items.Add(new ContentKindInfo("?", "?", (byte)(id >> 8), (byte)id));
-                }
+                listBox_jyanruView.Items.Add(CommonManager.ContentKindInfoForDisplay(data));
             }
             checkBox_notContent.IsChecked = setInfo.ViewNotContentFlag;
         }
@@ -106,7 +98,7 @@ namespace EpgTimer
             info.SearchKey.serviceList.Clear();//不要なので削除
 
             info.ViewServiceList = listBox_serviceView.Items.OfType<ChSet5Item>().Select(item => item.Key).ToList();
-            info.ViewContentKindList = listBox_jyanruView.Items.OfType<ContentKindInfo>().Select(item => item.ID).ToList();
+            info.ViewContentList = listBox_jyanruView.Items.OfType<ContentKindInfo>().Select(item => item.Data).Clone();
             info.ViewNotContentFlag = checkBox_notContent.IsChecked == true;
 
             return info.Clone();
@@ -338,15 +330,9 @@ namespace EpgTimer
                 //ジャンルリストの同期はオプションによる
                 if (tabInfo.SearchGenreNoSyncView == false)
                 {
+                    var items = searchKey.contentList.Select(data => CommonManager.ContentKindInfoForDisplay(data));
                     listBox_jyanruView.Items.Clear();
-                    foreach (EpgContentData cnt in searchKey.contentList)
-                    {
-                        var ID = (UInt16)(cnt.content_nibble_level_1 << 8 | cnt.content_nibble_level_2);
-                        if (CommonManager.ContentKindDictionary.ContainsKey(ID) == true)
-                        {
-                            listBox_jyanruView.Items.Add(CommonManager.ContentKindDictionary[ID]);
-                        }
-                    }
+                    listBox_jyanruView.Items.AddItems(items);
                     checkBox_notContent.IsChecked = searchKey.notContetFlag != 0;
                 }
             }

@@ -135,6 +135,14 @@ namespace EpgTimer
                 else                                        return "";
             }
         }
+        public String Attrib
+        {
+            get
+            {
+                if (ViewItem is ReserveItem)                return ((ReserveItem)ViewItem).Attrib;
+                else                                        return "";
+            }
+        }
         public bool IsEnabled
         {
             set

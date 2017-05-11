@@ -129,7 +129,7 @@
                                 <Button Content="削除" Margin="0,0,0,6" Name="button_jyanru_del" />
                                 <Button Content="全削除" Margin="0,0,0,6" Name="button_jyanru_delAll" />
                             </StackPanel>
-                            <Label Grid.Column="4" Content="ジャンル一覧" />
+                            <Label Grid.Column="4" Content="ジャンル等一覧" />
                             <ListBox Grid.Column="4" Grid.Row="2" Name="listBox_jyanru" SelectionMode="Extended" />
                         </Grid>
                     </TabItem>

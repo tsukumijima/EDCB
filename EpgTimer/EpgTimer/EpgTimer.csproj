@@ -405,7 +405,7 @@
     <Compile Include="Common\DBManagerClass.cs" />
     <Compile Include="Common\DefineEnum.cs" />
     <Compile Include="Common\SettingClass.cs" />
-    <Compile Include="DefineClass\ContentKindInfo.cs" />
+    <Compile Include="CtrlCmdDefEx\EpgContentDataEx.cs" />
     <Compile Include="DefineClass\CustomEpgTabInfo.cs" />
     <Compile Include="EpgView\DateView.xaml.cs">
       <DependentUpon>DateView.xaml</DependentUpon>

@@ -129,6 +129,15 @@ namespace EpgTimer
                 return CommonManager.ConvertJyanruText(EventInfo);
             }
         }
+        public String Attrib
+        {
+            get
+            {
+                if (EventInfo == null) return "";
+                //
+                return CommonManager.ConvertAttribText(EventInfo);
+            }
+        }
         public bool IsEnabled
         {
             set

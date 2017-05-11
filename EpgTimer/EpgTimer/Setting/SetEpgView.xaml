@@ -337,7 +337,7 @@
                                             <GridViewColumn Header="タブ名" DisplayMemberBinding="{Binding Path=TabName}" />
                                             <GridViewColumn Header="表示モード" DisplayMemberBinding="{Binding Path=ViewMode}" />
                                             <GridViewColumn Header="検索絞り込み" DisplayMemberBinding="{Binding Path=SearchMode}" />
-                                            <GridViewColumn Header="表示ジャンル" DisplayMemberBinding="{Binding Path=ContentMode}" />
+                                            <GridViewColumn Header="表示ジャンル等" DisplayMemberBinding="{Binding Path=ContentMode}" />
                                         </GridView>
                                     </ListView.View>
                                 </ListView>

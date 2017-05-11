@@ -83,7 +83,7 @@ namespace EpgTimer
                 key.titleOnlyFlag = (byte)(checkBox_titleOnly.IsChecked == true ? 1 : 0);
                 key.caseFlag = (byte)(checkBox_case.IsChecked == true ? 1 : 0);
                 key.keyDisabledFlag = (byte)(checkBox_keyDisabled.IsChecked == true ? 1 : 0);
-                key.contentList = listBox_content.Items.OfType<ContentKindInfo>().Select(info => new EpgContentData { content_nibble_level_1 = info.Nibble1, content_nibble_level_2 = info.Nibble2 }).ToList();
+                key.contentList = listBox_content.Items.OfType<ContentKindInfo>().Select(info => info.Data).Clone();
                 key.notContetFlag = (byte)(checkBox_notContent.IsChecked == true ? 1 : 0);
                 key.serviceList = listView_service.Items.OfType<ServiceItem>().Where(info => info.IsSelected == true).Select(info => (Int64)info.ID).ToList();
                 key.dateList = listBox_date.Items.OfType<DateItem>().Select(info => info.DateInfo).ToList();
@@ -111,35 +111,9 @@ namespace EpgTimer
                 listBox_content.Items.Clear();
                 foreach (EpgContentData item in defKey.contentList)
                 {
-                    var ID1 = (UInt16)(item.content_nibble_level_1 << 8 | 0xFF);
-                    var ID2 = (UInt16)(item.content_nibble_level_1 << 8 | item.content_nibble_level_2);
-
-                    if (ID2 == 0x0E01)//CS、仮対応データをそのまま使用。
-                    {
-                        ID1 = (UInt16)((item.user_nibble_1 | 0x70) << 8 | 0xFF);
-                        ID2 = (UInt16)((item.user_nibble_1 | 0x70) << 8 | item.user_nibble_2);
-                    }
-
-                    //番組特性コードをパス
-                    if (ID2 == 0x0E00) continue;
-
-                    if (CommonManager.ContentKindDictionary.ContainsKey(ID2) == true)
-                    {
-                        listBox_content.Items.Add(CommonManager.ContentKindDictionary[ID2]);
-                    }
-                    //未知のジャンル
-                    else 
-                    {
-                        ContentKindInfo kindInfo;
-                        string ContentName = "不明(0x" + item.content_nibble_level_1.ToString("X2") + ")";
-                        string SubName = "不明(0x" + item.content_nibble_level_2.ToString("X2") + ")";
-                        if (CommonManager.ContentKindDictionary.TryGetValue(ID1, out kindInfo) == true)
-                        {
-                            ContentName = kindInfo.ContentName;
-                        }
-                        listBox_content.Items.Add(new ContentKindInfo(ContentName, SubName, item.content_nibble_level_1, item.content_nibble_level_2));
-                    }
+                    listBox_content.Items.Add(CommonManager.ContentKindInfoForDisplay(item));
                 }
+                checkBox_notContent.IsChecked = (defKey.notContetFlag == 1);
 
                 var defKeySortedServiceList = new List<long>(defKey.serviceList);
                 defKeySortedServiceList.Sort();
@@ -153,8 +127,6 @@ namespace EpgTimer
                 {
                     listBox_date.Items.Add(new DateItem(info));
                 }
-
-                checkBox_notContent.IsChecked = (defKey.notContetFlag == 1);
                 checkBox_notDate.IsChecked = (defKey.notDateFlag == 1);
 
                 freeRadioBtns.Value = defKey.freeCAFlag;
@@ -174,14 +146,11 @@ namespace EpgTimer
         {
             if (comboBox_content.SelectedItem != null)
             {
-                foreach (ContentKindInfo info in listBox_content.Items)
+                var key = (comboBox_content.SelectedItem as ContentKindInfo).Data.Key;
+                if (listBox_content.Items.OfType<ContentKindInfo>().Any(item => item.Data.Key == key) == true)
                 {
-                    ContentKindInfo select = comboBox_content.SelectedItem as ContentKindInfo;
-                    if (select.Nibble1 == info.Nibble1 && select.Nibble2 == info.Nibble2)
-                    {
-                        MessageBox.Show("すでに追加されています");
-                        return;
-                    }
+                    MessageBox.Show("すでに追加されています");
+                    return;
                 }
                 listBox_content.Items.Add(comboBox_content.SelectedItem);
             }
