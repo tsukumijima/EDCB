@@ -26,12 +26,8 @@
                 </StackPanel>
                 <WrapPanel Orientation="Vertical" Margin="6,135,0,0">
                     <StackPanel Margin="0,6,12,0" Orientation="Horizontal" Name="stackPanel_autoDelRecInfo" >
-                        <StackPanel>
-                            <CheckBox Content="録画結果を自動的に削除する" Name="checkBox_autoDelRecInfo" />
-                            <CheckBox Margin="18,4,0,0" Content="録画ファイルも削除する" Name="checkBox_autoDelRecFile" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_autoDelRecInfo, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                        <Label Content="保持件数" />
-                        <TextBox Name="textBox_autoDelRecInfo" Width="62" />
+                        <CheckBox Content="録画結果を自動的に削除する 保持件数" Name="checkBox_autoDelRecInfo" />
+                        <TextBox Name="textBox_autoDelRecInfo" Width="62" Margin="6,0,0,0" />
                     </StackPanel>
                     <StackPanel Margin="0,6,12,0" Name="stackPanel_timeSync">
                         <CheckBox Content="EPG取得時に放送波時間でPC時計を同期する" Name="checkBox_timeSync" />
@@ -165,7 +161,9 @@
                 <CheckBox Margin="0,0,0,6" Content="優先度が同じで時間が重なった場合、後の予約を優先する" Name="checkBox_back_priority" />
                 <CheckBox Margin="0,0,0,6" Content="優先度が同じ場合、チューナー強制指定された予約を先にチューナー割り当てする" Name="checkBox_fixedTunerPriority" />
                 <CheckBox Margin="0,0,0,6" Content="録画情報保存フォルダ指定時は録画ファイルと同じ場所を参照しない" Name="checkBox_recInfoFolderOnly" />
-                <CheckBox Margin="0,0,0,6" Content="HDDの空きが少ない場合、古い録画ファイルを削除する" Name="checkBox_autoDel" />
+                <CheckBox Margin="0,0,0,6" Content="録画済み一覧から削除するときに録画ファイルも削除する" Name="checkBox_recInfoDelFile" Click="checkBox_autoDel_Click" ToolTipService.ShowOnDisabled="True" ToolTip="自動削除時([全般]のタブの「録画結果を自動的に削除する」チェック時)にも適用されます" />
+                <CheckBox Margin="20,0,0,6" Content="同時に削除するファイルの拡張子は削除設定に従う" Name="checkBox_applyExtTo" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_recInfoDelFile}" Click="checkBox_autoDel_Click" />
+                <CheckBox Margin="0,0,0,6" Content="HDDの空きが少ない場合、古い*.tsファイルを削除する" Name="checkBox_autoDel" Click="checkBox_autoDel_Click" />
                 <GroupBox Header="削除設定" Name="grid_App2Del" Margin="0,0,0,6" Grid.Row="1">
                     <Grid Margin="6,6,0,0" Name="grid_App2DelMain">
                         <Grid.RowDefinitions>

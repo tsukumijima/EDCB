@@ -47,6 +47,8 @@ namespace EpgTimer.Setting
                 checkBox_back_priority.IsEnabled = false;
                 checkBox_fixedTunerPriority.IsEnabled = false;
                 checkBox_recInfoFolderOnly.IsEnabled = false;
+                checkBox_recInfoDelFile.IsEnabled = false;
+                checkBox_applyExtTo.IsEnabled = false;
                 checkBox_autoDel.IsEnabled = false;
 
                 grid_App2Del.Foreground = SystemColors.GrayTextBrush;
@@ -54,17 +56,13 @@ namespace EpgTimer.Setting
                 listBox_ext.IsEnabled = true;
                 textBox_ext.SetReadOnlyWithEffect(true);
                 grid_App2DelChkFolderText.IsEnabled = true;
+                listBox_chk_folder.IsEnabled = true;
                 textBox_chk_folder.SetReadOnlyWithEffect(true);
+                button_chk_open.IsEnabled = true;
 
                 grid_recname.IsEnabled = false;
                 checkBox_noChkYen.IsEnabled = false;
                 ViewUtil.ChangeChildren(grid_delReserve, false);
-
-                listBox_ext.IsEnabled = true;
-                textBox_ext.SetReadOnlyWithEffect(true);
-                listBox_chk_folder.IsEnabled = true;
-                textBox_chk_folder.SetReadOnlyWithEffect(true);
-                button_chk_open.IsEnabled = true;
 
                 checkBox_tcpServer.IsEnabled = false;
                 ViewUtil.ChangeChildren(grid_tcpCtrl, false);
@@ -138,6 +136,8 @@ namespace EpgTimer.Setting
                 checkBox_back_priority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BackPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_fixedTunerPriority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "FixedTunerPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_recInfoFolderOnly.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecInfoFolderOnly", 1, SettingPath.TimerSrvIniPath) != 0;
+                checkBox_recInfoDelFile.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecInfoDelFile", 0, SettingPath.CommonIniPath) == 1;
+                checkBox_applyExtTo.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "ApplyExtToRecInfoDel", 0, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_autoDel.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "AutoDel", 0, SettingPath.TimerSrvIniPath) == 1;
 
                 var bxe = new BoxExchangeEditor(null, listBox_ext, true);
@@ -159,6 +159,8 @@ namespace EpgTimer.Setting
 
                     textBox_ext.KeyDown += ViewUtil.KeyDown_Enter(button_ext_add);
                     textBox_chk_folder.KeyDown += ViewUtil.KeyDown_Enter(button_chk_add);
+
+                    checkBox_autoDel_Click(null, null);
                 }
                 
                 int count;
@@ -262,7 +264,6 @@ namespace EpgTimer.Setting
                 textBox_tcpResTo.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPResponseTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
 
                 checkBox_autoDelRecInfo.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfo", 0, SettingPath.TimerSrvIniPath) == 1;
-                checkBox_autoDelRecFile.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecInfoDelFile", 0, SettingPath.CommonIniPath) == 1;
                 textBox_autoDelRecInfo.Text = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfoNum", 100, SettingPath.TimerSrvIniPath).ToString();
 
                 checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "TimeSync", 0, SettingPath.TimerSrvIniPath) == 1;
@@ -369,6 +370,8 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "FixedTunerPriority", checkBox_fixedTunerPriority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolderOnly", checkBox_recInfoFolderOnly.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "RecInfoDelFile", checkBox_recInfoDelFile.IsChecked == true ? "1" : null, SettingPath.CommonIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "ApplyExtToRecInfoDel", checkBox_applyExtTo.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDel", checkBox_autoDel.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
 
                 List<String> extList = listBox_ext.Items.OfType<string>().ToList();
@@ -421,7 +424,6 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "TCPResponseTimeoutSec", textBox_tcpResTo.Text, SettingPath.TimerSrvIniPath);
 
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfo", checkBox_autoDelRecInfo.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "RecInfoDelFile", checkBox_autoDelRecFile.IsChecked == true ? "1" : null, SettingPath.CommonIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfoNum", textBox_autoDelRecInfo.Text.ToString(), SettingPath.TimerSrvIniPath);
 
                 IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
@@ -695,6 +697,22 @@ namespace EpgTimer.Setting
             shortcutType.InvokeMember("Description", BindingFlags.SetProperty, null, shortCut, new object[] { description });
             // Saveメソッドを実行する
             shortcutType.InvokeMember("Save", BindingFlags.InvokeMethod, null, shortCut, null);
+        }
+
+        private void checkBox_autoDel_Click(object sender, RoutedEventArgs e)
+        {
+            bool chkEnabled = checkBox_autoDel.IsChecked == true;
+            bool extEnabled = chkEnabled || checkBox_recInfoDelFile.IsChecked == true && checkBox_applyExtTo.IsChecked == true;
+            listBox_ext.IsEnabled = extEnabled;
+            textBox_ext.IsEnabled = extEnabled;
+            button_ext_def.IsEnabled = extEnabled;
+            button_ext_del.IsEnabled = extEnabled;
+            button_ext_add.IsEnabled = extEnabled;
+            listBox_chk_folder.IsEnabled = chkEnabled;
+            textBox_chk_folder.IsEnabled = chkEnabled;
+            button_chk_del.IsEnabled = chkEnabled;
+            button_chk_add.IsEnabled = chkEnabled;
+            button_chk_open.IsEnabled = chkEnabled;
         }
     }
 }
