@@ -122,6 +122,7 @@ namespace EpgTimer
                 iniList = new List<string> {
                     "EpgTimerSrv.ini"
                     ,"Common.ini"
+                    ,"BonCtrl.ini"
                     ,"EpgDataCap_Bon.ini"
                     ,"ChSet5.txt"
                 };
@@ -156,6 +157,10 @@ namespace EpgTimer
         private static string IniPath
         {
             get { return (CommonManager.Instance.NWMode == false ? ModulePath : SettingFolderPath); }
+        }
+        public static string BonCtrlIniPath
+        {
+            get { return IniPath.TrimEnd('\\') + "\\BonCtrl.ini"; }
         }
         public static string CommonIniPath
         {

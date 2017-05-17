@@ -97,6 +97,8 @@ namespace EpgTimer.Setting
                 checkBox_cs1.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS1BasicOnly", 1, SettingPath.CommonIniPath) == 1;
                 checkBox_cs2.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS2BasicOnly", 1, SettingPath.CommonIniPath) == 1;
                 checkBox_cs3.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS3BasicOnly", 0, SettingPath.CommonIniPath) == 1;
+                textBox_EpgCapTimeOut.Text = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapTimeOut", 15, SettingPath.BonCtrlIniPath).ToString();
+                checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapSaveTimeOut", 0, SettingPath.BonCtrlIniPath) == 1;
 
                 int capCount = IniFileHandler.GetPrivateProfileInt("EPG_CAP", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
                 if (capCount == int.MaxValue)
@@ -190,6 +192,8 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "CS1BasicOnly", checkBox_cs1.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "CS2BasicOnly", checkBox_cs2.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "CS3BasicOnly", checkBox_cs3.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
+                IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapTimeOut", textBox_EpgCapTimeOut.Text, SettingPath.BonCtrlIniPath);
+                IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapSaveTimeOut", checkBox_EpgCapSaveTimeOut.IsChecked == true ? "1" : "0", SettingPath.BonCtrlIniPath);
 
                 foreach (ServiceViewItem info in listView_service.ItemsSource)
                 {

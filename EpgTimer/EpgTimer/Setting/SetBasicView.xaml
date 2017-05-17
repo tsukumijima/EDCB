@@ -113,7 +113,13 @@
                     <Label Content="使用チューナー条件" Height="28" HorizontalAlignment="Left" Margin="12,394,0,0" Name="label28" VerticalAlignment="Top" />
                     <TextBox Height="24" HorizontalAlignment="Left" Margin="159,396,0,0" Name="textBox_ngTunerMin" VerticalAlignment="Top" Width="49" />
                     <Label Content="分以内に予約がある場合、使用しない" Height="28" HorizontalAlignment="Left" Margin="226,394,0,0" Name="label29" VerticalAlignment="Top" />
-                </Grid>
+                    <DockPanel Margin="16,430,0,0"  VerticalAlignment="Top" HorizontalAlignment="Left" >
+                        <TextBlock Text="EPG取得時のタイムアウト判定時間"/>
+                        <TextBox Margin="12,0,6,0" Name="textBox_EpgCapTimeOut" Width="49" />
+                        <TextBlock Text="分" />
+                        <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="20,0,0,0" Name="checkBox_EpgCapSaveTimeOut" />
+                    </DockPanel>
+            </Grid>
             </TabItem>
         </TabControl>
 
