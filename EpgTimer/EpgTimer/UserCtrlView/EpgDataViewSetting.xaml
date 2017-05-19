@@ -9,10 +9,10 @@
         <TabItem Header="表示設定" >
             <StackPanel Margin="6">
                 <CheckBox Content="表示する" Name="checkBox_isVisible" />
-                <StackPanel Orientation="Horizontal" Margin="0,6,0,0" >
-                    <Label Content="タブ名" />
-                    <TextBox Margin="6,0,0,0" Name="textBox_tabName" MinWidth="200" />
-                </StackPanel>
+                <DockPanel Margin="0,6,0,0" >
+                    <Label Content="タブ名" Name="label_tabName" />
+                    <TextBox Margin="6,0,0,0" Name="textBox_tabName" MinWidth="160" HorizontalAlignment="Left"/>
+                </DockPanel>
                 <Label Content="表示モード" Margin="0,6,0,0" />
                 <RadioButton Content="標準モード" Margin="14,6,0,0" Name="radioButton_rate" />
                 <CheckBox Content="番組のない時間帯は表示しない" Margin="28,6,0,0" Name="checkBox_noTimeView_rate" />

@@ -52,6 +52,7 @@ namespace EpgTimer
         public static RoutedUICommand SetNotKey { get; private set; }
         public static RoutedUICommand ProtectChange { get; private set; }
         public static RoutedUICommand ViewChgSet { get; private set; }
+        public static RoutedUICommand ViewChgReSet { get; private set; }
         public static RoutedUICommand ViewChgMode { get; private set; }
         public static RoutedUICommand MenuSetting { get; private set; }
 

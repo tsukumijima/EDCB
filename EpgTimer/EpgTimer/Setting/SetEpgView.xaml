@@ -294,7 +294,7 @@
                         </StackPanel>
                         <GroupBox Header="カスタマイズ表示の設定" Margin="0,6,0,0" >
                             <DockPanel Margin="6" >
-                                <CheckBox DockPanel.Dock="Bottom" Margin="0,6,0,0" Content="番組表タブのコンテキストメニューで、表示したタブに移動する" Name="checkBox_EpgTabMoveCheckEnabled" />
+                                <CheckBox DockPanel.Dock="Bottom" Margin="0,6,0,0" Content="番組表タブのコンテキストメニューで、表示に切り替えたタブへ移動する" Name="checkBox_EpgTabMoveCheckEnabled" />
                                 <StackPanel DockPanel.Dock="Right" Margin="12,0,0,0">
                                     <StackPanel.Resources>
                                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

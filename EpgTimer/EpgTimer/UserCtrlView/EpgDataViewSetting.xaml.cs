@@ -44,6 +44,13 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
+        public void SetTryMode(bool tryMode)
+        {
+            checkBox_isVisible.IsEnabled = !tryMode;
+            label_tabName.IsEnabled = !tryMode;
+            textBox_tabName.SetReadOnlyWithEffect(tryMode);
+        }
+
         /// <summary>
         /// デフォルト表示の設定値
         /// </summary>

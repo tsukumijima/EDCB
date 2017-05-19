@@ -32,17 +32,13 @@ namespace EpgTimer
                 checkBox_tryEpgSetting.IsEnabled = false;
                 checkBox_tryEpgSetting.ToolTip = "デフォルト表示では一時的な変更のみ可能で設定は保存されません。";
             }
-            checkBox_tryEpgSetting_Click(null, null);
+            epgDataViewSetting.SetTryMode(checkBox_tryEpgSetting.IsChecked == true);
         }
         private void checkBox_tryEpgSetting_Click(object sender, RoutedEventArgs e)
         {
-            if (sender != null)
-            {
-                //これはダイアログの設定なので即座に反映
-                Settings.Instance.TryEpgSetting = (checkBox_tryEpgSetting.IsChecked == true);
-            }
-            epgDataViewSetting.checkBox_isVisible.IsEnabled = Settings.Instance.TryEpgSetting != true;
-            epgDataViewSetting.textBox_tabName.IsEnabled = Settings.Instance.TryEpgSetting != true;
+            //これはダイアログの設定なので即座に反映
+            Settings.Instance.TryEpgSetting = (checkBox_tryEpgSetting.IsChecked == true);
+            epgDataViewSetting.SetTryMode(checkBox_tryEpgSetting.IsChecked == true);
         }
     }
 }

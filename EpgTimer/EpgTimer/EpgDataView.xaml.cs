@@ -179,13 +179,18 @@ namespace EpgTimer
                         Settings.SaveToXmlFile();
                     }
 
-                    tab.Header = info.TabName;
-                    tab.Tag = info.TabName;
                     if (info.IsVisible == false)
                     {
                         tabControl.Items.Remove(tab);
                         return;
                     }
+                    tab.Header = info.TabName;
+                    tab.Tag = info.TabName;
+                }
+                else if (info.ViewMode == -1)
+                {
+                    info = tabInfo.Find(tinfo => tinfo.ID == info.ID);
+                    if (info == null) return;
                 }
 
                 item.SetViewMode(info);
@@ -224,10 +229,10 @@ namespace EpgTimer
         }
 
         //番組表ヘッダ用のコンテキストメニュー関係
-        //ContextMenuOpeningだとListViewのと競合し、ContextMenu.Openedだとメニュー出さないところでチラつくので。
-        private enum edvCmds { Setting, ViewSetting, Reset, ResetAll, All, Delete, DeleteOther, ModeChange, VisibleChange }
+        private enum edvCmds { Setting, ResetAll, All, /*Delete,*/ DeleteAll, ModeChange, VisibleChange }
         private void TabContextMenuOpened(object sender, RoutedEventArgs e)
         {
+            //チラつき防止関係。なお、ContextMenuOpeningだとチラつかないが、ListViewのと競合する。
             tabControl.ContextMenu.IsOpen = tabControl.ContextMenu.Visibility == Visibility.Visible;
         }
         private void TabContextMenuOpening(object sender, RoutedEventArgs e)
@@ -249,7 +254,7 @@ namespace EpgTimer
 
                 //メニュー追加用
                 MenuItem menu1;
-                Func<ItemsControl, bool, edvCmds?, object, string, MenuItem> tabMenuAdd = (menu, en, cmds, header, uid) =>
+                Func<ItemsControl, bool, object, object, string, MenuItem> tabMenuAdd = (menu, en, cmds, header, uid) =>
                 {
                     menu1 = new MenuItem { Header = header, IsEnabled = en, Uid = uid, Tag = cmds };
                     menu1.Click += new RoutedEventHandler(MenuCmdsExecute);
@@ -260,12 +265,13 @@ namespace EpgTimer
                 //操作用メニューの設定
                 //ビューモードサブメニュー
                 var menu_vs = new MenuItem { Header = trg.Tag + " の表示モード(_V)", IsEnabled = trg.Uid != "", Uid = trg.Uid };
-                tabMenuAdd(menu_vs, true, edvCmds.ViewSetting, "表示設定...(_S)", trg.Uid);
+                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgSet, "表示設定...(_S)", trg.Uid);
+                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgReSet, "一時的な変更をクリア(_R)", trg.Uid);
                 menu_vs.Items.Add(new Separator());
                 for (int i = 0; i <= 2; i++)
                 {
-                    menu1 = tabMenuAdd(menu_vs, true, edvCmds.ViewSetting, CommonManager.ConvertViewModeText(i) + string.Format(" (_{0})", i + 1), trg.Uid);
-                    menu1.CommandParameter = new EpgCmdParam(null, 0, i);//menuにTabItemを紐付けたくないのでコマンドは直接ではなくedvCmds.ViewSettingから走らせる。
+                    menu1 = tabMenuAdd(menu_vs, true, EpgCmds.ViewChgMode, CommonManager.ConvertViewModeText(i) + string.Format(" (_{0})", i + 1), trg.Uid);
+                    menu1.CommandParameter = new EpgCmdParam(null, 0, i);//コマンド自体は、menuの処理メソッドから走らせる。
                     menu1.IsChecked = trg.Uid == "" ? false : i == (trg.Content as EpgDataViewItem).GetViewMode().ViewMode;
                 }
 
@@ -274,18 +280,15 @@ namespace EpgTimer
                 menu1 = tabMenuAdd(menu_tb, true, edvCmds.ModeChange, (Settings.Instance.UseCustomEpgView == true ? "デフォルト" : "カスタマイズ") + "表示に切り替え(_M)", "");
                 menu1.ToolTip = "現在の表示 : " + (Settings.Instance.UseCustomEpgView == false ? "デフォルト" : "カスタマイズ") + "表示";
                 menu_tb.Items.Add(new Separator());
-                tabMenuAdd(menu_tb, tabInfo.Count != 0, edvCmds.All, "全ての番組表を表示(_A)", "");
-                tabMenuAdd(menu_tb, trg.Uid != "", edvCmds.Delete, trg.Tag + " を非表示(_D)", trg.Uid);
-                tabMenuAdd(menu_tb, trg.Uid != "", edvCmds.DeleteOther, trg.Tag + " 以外を非表示(_U)", trg.Uid);
-                menu_tb.Items.Add(new Separator());
-                menu1 = tabMenuAdd(menu_tb, tabInfo.Count != 0, edvCmds.ResetAll, "全ての番組表の一時的な変更をクリア(_R)", "");
-                menu1.ToolTip = "全ての番組表を再描画します";
-                menu1 = tabMenuAdd(menu_tb, trg.Uid != "", edvCmds.Reset, trg.Tag + " の一時的な変更をクリア(_C)", trg.Uid);
-                menu1.ToolTip = "番組表を再描画します";
+                tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == true) || Settings.Instance.UseCustomEpgView == false, edvCmds.ResetAll, "一時的な変更を全てクリア(_R)", "");
+                tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == false), edvCmds.All, "全て表示(_A)", "");
+                tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == true), edvCmds.DeleteAll, "全て非表示(_H)", "");
 
                 ctxm.Items.Add(menu_vs);
                 ctxm.Items.Add(menu_tb);
                 tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表の設定...(_O)", trg.Uid);
+                //ctxm.Items.Add(new Separator());
+                //tabMenuAdd(ctxm, trg.Uid != "", edvCmds.Delete, trg.Tag + " を非表示(_D)", trg.Uid);
                 ctxm.Items.Add(new Separator());
 
                 if (tabInfo.Count == 0)
@@ -312,7 +315,6 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
-
         private void ClearTabHeader()
         {
             foreach (TabItem tab in tabControl.Items) tab.Header = tab.Tag;
@@ -325,27 +327,20 @@ namespace EpgTimer
                 string selectID = null;
                 var menu = sender as MenuItem;
 
+                if (menu.Tag is RoutedUICommand)
+                {
+                    TabItem tab = tabControl.Items.OfType<TabItem>().FirstOrDefault(ti => ti.Uid == menu.Uid);
+                    if (tab != null)
+                    {
+                        (menu.Tag as RoutedUICommand).Execute(menu.CommandParameter, (tab.Content as EpgDataViewItem).viewCtrl);
+                    }
+                    return;
+                }
                 switch (menu.Tag as edvCmds?)
                 {
                     case edvCmds.Setting:
                         ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgSetting, menu.Uid);
                         return;
-                    case edvCmds.ViewSetting:
-                        TabItem tab = tabControl.Items.OfType<TabItem>().FirstOrDefault(ti => ti.Uid == menu.Uid);
-                        if (tab != null)
-                        {
-                            RoutedCommand cmd = menu.CommandParameter == null ? EpgCmds.ViewChgSet : EpgCmds.ViewChgMode;
-                            cmd.Execute(menu.CommandParameter, (tab.Content as EpgDataViewItem).viewCtrl);
-                        }
-                        return;
-                    case edvCmds.Reset:
-                        TabItem tab1 = tabControl.Items.OfType<TabItem>().FirstOrDefault(ti => ti.Uid == menu.Uid);
-                        if (tab1 != null)
-                        {
-                            if (tab1.IsSelected == true) selectID = tab1.Uid;
-                            tabControl.Items.Remove(tab1);
-                        }
-                        break;
                     case edvCmds.ResetAll:
                         this.UpdateSetting(true);
                         return;
@@ -356,12 +351,15 @@ namespace EpgTimer
                     case edvCmds.All:
                         tabInfo.ForEach(ti => ti.IsVisible = true);
                         break;
-                    case edvCmds.DeleteOther:
-                        tabInfo.FindAll(ti => ti.Uid != menu.Uid).ForEach(ti => ti.IsVisible = false);
+                    case edvCmds.DeleteAll:
+                        tabInfo.ForEach(ti => ti.IsVisible = false);
                         break;
-                    case edvCmds.Delete://現在のところVisibleChangeと同じになる
+                    //case edvCmds.Delete://現在のところVisibleChangeと同じになる
                     case edvCmds.VisibleChange:
-                        if (Settings.Instance.EpgTabMoveCheckEnabled == true) selectID = menu.Uid;
+                        if (Settings.Instance.EpgTabMoveCheckEnabled == true || tabControl.Items.Count == 0)
+                        {
+                            selectID = menu.Uid;
+                        }
                         var info = tabInfo.Find(ti => ti.Uid == menu.Uid);
                         if (info != null) info.IsVisible = !info.IsVisible;
                         break;

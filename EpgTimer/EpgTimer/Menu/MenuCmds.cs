@@ -85,6 +85,7 @@ namespace EpgTimer
             AddCommand(EpgCmds.SetNotKey, Key.V, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.ProtectChange, Key.S, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.ViewChgSet, spc: GestureTrg.ToView);
+            AddCommand(EpgCmds.ViewChgReSet, spc: GestureTrg.ToView);
             AddCommand(EpgCmds.ViewChgMode, spc: GestureTrg.ToView);
             AddCommand(EpgCmds.MenuSetting, spc: GestureTrg.ToView);
 

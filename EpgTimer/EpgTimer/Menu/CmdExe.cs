@@ -130,6 +130,7 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.SetNotKey, new cmdOption(mc_SetNotKey, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ProtectChange, new cmdOption(mc_ProtectChange, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ViewChgSet, new cmdOption(null, null, cmdExeType.Direct, needItem: false));//個別に指定
+            cmdList.Add(EpgCmds.ViewChgReSet, new cmdOption(null, null, cmdExeType.SingleItem, needItem: false));//個別に指定
             cmdList.Add(EpgCmds.ViewChgMode, new cmdOption(null, null, cmdExeType.SingleItem, needItem: false));//個別に指定
             cmdList.Add(EpgCmds.MenuSetting, new cmdOption(mc_MenuSetting, null, cmdExeType.Direct, needItem: false));
 

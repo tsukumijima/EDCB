@@ -33,6 +33,7 @@ namespace EpgTimer.EpgView
 
             //コマンド集にないものを登録
             mc.AddReplaceCommand(EpgCmds.ViewChgSet, (sender, e) => ViewSetting(this, null));
+            mc.AddReplaceCommand(EpgCmds.ViewChgReSet, (sender, e) => ViewSetting(this, new CustomEpgTabInfo { ID = setViewInfo.ID, ViewMode = -1 }));
             mc.AddReplaceCommand(EpgCmds.ViewChgMode, mc_ViewChgMode);
 
             //コマンド集を振り替えるもの
@@ -40,11 +41,9 @@ namespace EpgTimer.EpgView
         }
 
         public virtual event ViewSettingClickHandler ViewSettingClick = null;
-        protected bool EnableViewSetting() { return ViewSettingClick != null; }
         protected void ViewSetting(object sender, CustomEpgTabInfo info)
         {
-            if (EnableViewSetting() == false) return;
-            ViewSettingClick(sender, info);
+            if (ViewSettingClick != null) ViewSettingClick(sender, info);
         }
 
         /// <summary>右クリックメニュー 表示モードイベント呼び出し</summary>
