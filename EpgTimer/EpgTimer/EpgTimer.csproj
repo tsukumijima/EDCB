@@ -153,7 +153,6 @@
     </Compile>
     <Compile Include="DefineClass\ManualAutoAddDataItem.cs" />
     <Compile Include="DefineClass\EpgAutoDataItem.cs" />
-    <Compile Include="DefineClass\EpgCaptime.cs" />
     <Compile Include="UserCtrlView\ListBoxDragMoverView.xaml.cs">
       <DependentUpon>ListBoxDragMoverView.xaml</DependentUpon>
     </Compile>
@@ -491,6 +490,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="InfoSearchWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserCtrlView\DataListViewStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

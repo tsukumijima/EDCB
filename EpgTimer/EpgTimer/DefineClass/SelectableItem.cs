@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.ComponentModel;
 
 namespace EpgTimer
@@ -21,15 +21,52 @@ namespace EpgTimer
 
         public bool IsSelected
         {
-            get
-            {
-                return this.selected;
-            }
+            get { return this.selected; }
             set
             {
                 this.selected = value;
                 NotifyPropertyChanged("IsSelected");
+                NotifyPropertyChanged("IsSelectedViewCmd");
             }
+        }
+        public virtual bool IsSelectedViewCmd
+        {
+            get { return this.IsSelected; }
+            set
+            {
+                CMD_CheckBox_PreviewChanged.Execute(this, null);
+            }
+        }
+
+        public static RoutedCommand CMD_CheckBox_PreviewChanged = new RoutedCommand();
+        public static void Set_CheckBox_PreviewChanged(ListBox box, Action hdlr = null)
+        {
+            Action SelectedItemsChange = () =>
+            {
+                foreach (var item in box.SelectedItems.OfType<SelectableItem>())
+                {
+                    item.IsSelected = !item.IsSelected;
+                }
+            };
+
+            //キー操作(スペースキー)
+            box.PreviewKeyDown += new KeyEventHandler((sender, e) =>
+            {
+                if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Space)
+                {
+                    e.Handled = true;
+                    (hdlr ?? SelectedItemsChange)();
+                }
+            });
+            //マウス操作
+            box.CommandBindings.Add(new CommandBinding(SelectableItem.CMD_CheckBox_PreviewChanged, (sender, e) =>
+            {
+                if (box.SelectedItems.Contains(e.Parameter) == false)
+                {
+                    box.SelectedItem = e.Parameter;
+                }
+                (hdlr ?? SelectedItemsChange)();
+            }));
         }
     }
 

@@ -8,9 +8,6 @@
              d:DesignHeight="300" d:DesignWidth="300" IsVisibleChanged="UserControl_IsVisibleChanged">
     <UserControl.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="UserCtrlView\ReserveListViewStyles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
             <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource {x:Type CheckBox}}" >
                 <Setter Property="Template">
                     <Setter.Value>

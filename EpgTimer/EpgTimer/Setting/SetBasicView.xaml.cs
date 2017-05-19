@@ -43,7 +43,7 @@ namespace EpgTimer.Setting
                 tabItem3.Foreground = SystemColors.GrayTextBrush;
                 ViewUtil.ChangeChildren(grid_epg, false);
                 listView_service.IsEnabled = true;
-                ListView_time.IsEnabled = true;
+                listView_time.IsEnabled = true;
             }
 
             listBox_Button_Set();
@@ -85,7 +85,8 @@ namespace EpgTimer.Setting
                 combo_bon_epgnum.Items.Add("すべて");
                 combo_bon_epgnum.Items.AddItems(Enumerable.Range(0, 100));
 
-                comboBox_wday.ItemsSource = new string[] { "" }.Concat(CommonManager.DayOfWeekArray);
+                comboBox_wday.ItemsSource = new string[] { "毎日" }.Concat(CommonManager.DayOfWeekArray);
+                comboBox_wday.SelectedIndex = 0;
                 comboBox_HH.ItemsSource = Enumerable.Range(0, 24);
                 comboBox_HH.SelectedIndex = 0;
                 comboBox_MM.ItemsSource = Enumerable.Range(0, 60);
@@ -129,7 +130,7 @@ namespace EpgTimer.Setting
                         timeList.Add(item);
                     }
                 }
-                ListView_time.ItemsSource = timeList;
+                listView_time.ItemsSource = timeList;
 
                 textBox_ngCapMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTime", 20, SettingPath.TimerSrvIniPath).ToString();
                 textBox_ngTunerMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTunerTime", 20, SettingPath.TimerSrvIniPath).ToString();
@@ -240,7 +241,7 @@ namespace EpgTimer.Setting
             //エスケープキャンセルだけは常に有効にする。
             var bxr = new BoxExchangeEditor(null, this.listBox_recFolder, true);
             var bxb = new BoxExchangeEditor(null, this.listBox_bon, true);
-            var bxt = new BoxExchangeEditor(null, this.ListView_time, true);
+            var bxt = new BoxExchangeEditor(null, this.listView_time, true);
 
             bxr.TargetBox.SelectionChanged += ViewUtil.ListBox_TextBoxSyncSelectionChanged(bxr.TargetBox, textBox_recFolder);
             bxr.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_rec_open);
@@ -267,8 +268,10 @@ namespace EpgTimer.Setting
                 bxt.AllowDragDrop();
                 bxt.AllowKeyAction();
                 button_delTime.Click += new RoutedEventHandler(bxt.button_Delete_Click);
+                SelectableItem.Set_CheckBox_PreviewChanged(listView_time);
 
                 new BoxExchangeEditor(null, this.listView_service, true);
+                SelectableItem.Set_CheckBox_PreviewChanged(listView_service);
             }
         }
 
@@ -322,6 +325,7 @@ namespace EpgTimer.Setting
                     item.CS2BasicOnly = checkBox_cs2.IsChecked == true;
                     item.CS3BasicOnly = checkBox_cs3.IsChecked == true;
                     timeList.Add(item);
+                    listView_time.ScrollIntoViewLast();
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -343,6 +347,30 @@ namespace EpgTimer.Setting
             UInt32 val = 0;
             UInt32.TryParse(s, out val);
             return val;
+        }
+    }
+
+    //Epg取得情報の表示・設定用クラス
+    public class EpgCaptime : SelectableItemNWMode
+    {
+        public string Time { get; set; }
+        public bool BSBasicOnly { get; set; }
+        public bool CS1BasicOnly { get; set; }
+        public bool CS2BasicOnly { get; set; }
+        public bool CS3BasicOnly { get; set; }
+        public string ViewTime { get { return Time.Substring(0, 5); } }//曜日情報は削除
+        public string ViewBasicOnly { get { return (BSBasicOnly ? "基" : "詳") + "," + (CS1BasicOnly ? "基" : "詳") + "," + (CS2BasicOnly ? "基" : "詳") + "," + (CS3BasicOnly ? "基" : "詳"); } }
+        public string WeekDay
+        {
+            get
+            {
+                int i = Time.IndexOf('w');
+                if (i < 0) return "";
+                //
+                uint wday;
+                uint.TryParse(Time.Substring(i + 1), out wday);
+                return "日月火水木金土"[(int)(wday % 7)].ToString();
+            }
         }
     }
 }

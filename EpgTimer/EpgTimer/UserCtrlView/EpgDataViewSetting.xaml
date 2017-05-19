@@ -4,7 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="500" d:DesignWidth="550">
+             d:DesignHeight="500" d:DesignWidth="650">
+    <UserControl.Resources>
+        <!-- デザイン時用。これが無いと、このビューを組み込んだコントロールでデザイナがエラーになる。 -->
+        <Style TargetType="{x:Type ListViewItem}" BasedOn="{StaticResource {x:Static GridView.GridViewItemContainerStyleKey}}"/>
+    </UserControl.Resources>
     <TabControl>
         <TabItem Header="表示設定" >
             <StackPanel Margin="6">
@@ -49,14 +53,23 @@
                                 <RowDefinition Height="100" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*" />
+                                <ColumnDefinition Width="8*" />
                                 <ColumnDefinition Width="6" />
                                 <ColumnDefinition Width="auto" />
                                 <ColumnDefinition Width="6" />
-                                <ColumnDefinition Width="5*" />
+                                <ColumnDefinition Width="7*" />
                             </Grid.ColumnDefinitions>
                             <Label Grid.ColumnSpan="3" Content="表示サービス (同一TSでSIDを逆順にすると結合)" />
-                            <ListBox Grid.Row="2" Name="listBox_serviceView" VerticalAlignment="Stretch" SelectionChanged="listBox_serviceView_SelectionChanged" IsManipulationEnabled="False" SelectionMode="Extended" />
+                            <ListView  Grid.Row="2" Name="listBox_serviceView" VerticalAlignment="Stretch" SelectionChanged="listBox_serviceView_SelectionChanged" >
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
+                                        <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                                        <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                        <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
                             <StackPanel Grid.Row="2" Grid.Column="2">
                                 <Button Content="全追加" HorizontalAlignment="Left" Margin="0,0,0,4" Name="button_service_addAll" />
                                 <Button Content="映像のみ全追加" Margin="0,0,0,4" Name="button_service_addVideo" Click="button_service_addVideo_Click" />
@@ -78,29 +91,65 @@
                             <Label Grid.Column="4" Content="サービス一覧" />
                             <TabControl Grid.Row="2" Grid.Column="4" Name="tab_ServiceList" >
                                 <TabControl.Resources>
-                                    <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
+                                    <Style TargetType="ListView">
                                         <EventSetter Event="SelectionChanged" Handler="listBox_service_SelectionChanged"/>
-                                        <Setter Property="SelectionMode" Value="Extended"/>
                                     </Style>
                                 </TabControl.Resources>
-                                <TabItem Header="地デジ" >
-                                    <ListBox Name="listBox_serviceDttv" />
+                                <TabItem Header="地デジ" Name="tab_serviceDttv">
+                                    <ListView Name="listBox_serviceDttv" >
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                                <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
                                 </TabItem>
-                                <TabItem Header="BS" >
-                                    <ListBox Name="listBox_serviceBS" />
+                                <TabItem Header="BS" Name="tab_serviceBS">
+                                    <ListView  Name="listBox_serviceBS" >
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
                                 </TabItem>
-                                <TabItem Header="CS" >
-                                    <ListBox Name="listBox_serviceCS" />
+                                <TabItem Header="CS" Name="tab_serviceCS">
+                                    <ListView  Name="listBox_serviceCS" >
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
                                 </TabItem>
-                                <TabItem Header="その他" >
-                                    <ListBox Name="listBox_serviceOther" />
+                                <TabItem Header="その他" Name="tab_serviceOther" >
+                                    <ListView Name="listBox_serviceOther" >
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
                                 </TabItem>
                                 <TabItem Header="全て" >
-                                    <ListBox Name="listBox_serviceAll" />
+                                    <ListView  Name="listBox_serviceAll" >
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                                <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
                                 </TabItem>
                             </TabControl>
-                            <TextBox Grid.Row="4" Grid.ColumnSpan="3" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView1" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
-                            <TextBox Grid.Row="4" Grid.Column="42" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView2" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
+                            <TextBox Grid.Row="4" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                            <TextBox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView2" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                         </Grid>
                     </TabItem>
                     <TabItem Header="表示ジャンル" >
@@ -111,11 +160,11 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60*" />
+                                <ColumnDefinition Width="5*" />
                                 <ColumnDefinition Width="6" />
                                 <ColumnDefinition Width="auto" />
                                 <ColumnDefinition Width="6" />
-                                <ColumnDefinition Width="40*" />
+                                <ColumnDefinition Width="4*" />
                             </Grid.ColumnDefinitions>
                             <WrapPanel Grid.ColumnSpan="3">
                                 <Label Content="表示ジャンル(未登録で全ジャンル対象)" HorizontalAlignment="Center" />

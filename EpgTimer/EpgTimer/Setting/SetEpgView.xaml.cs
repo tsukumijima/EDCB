@@ -93,7 +93,8 @@ namespace EpgTimer.Setting
                 button_tunerFontCustColorService.IsEnabled = !Settings.Instance.TunerColorModeUse;
                 checkBox_tuner_display_offres.IsChecked = Settings.Instance.TunerDisplayOffReserve;
 
-                this.listBox_tab.KeyDown += ViewUtil.KeyDown_Enter(button_tab_chg);
+                listBox_tab.KeyDown += ViewUtil.KeyDown_Enter(button_tab_chg);
+                SelectableItem.Set_CheckBox_PreviewChanged(listBox_tab);
                 var bx = new BoxExchangeEditor(null, this.listBox_tab, true, true, true);
                 bx.targetBoxAllowDoubleClick(bx.TargetBox, (sender, e) => button_tab_chg.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
                 button_tab_del.Click += new RoutedEventHandler(bx.button_Delete_Click);
@@ -465,9 +466,8 @@ namespace EpgTimer.Setting
             {
                 var item = new CustomEpgTabInfoView(dlg.GetSetting());
                 listBox_tab.Items.Add(item);
-                listBox_tab.SelectedItem = item;
-                listBox_tab.ScrollIntoView(item);
-                listBox_tab_Refresh();
+                listBox_tab.FitColumnWidth();
+                listBox_tab.ScrollIntoViewLast();
             }
         }
         private void button_tab_chg_Click(object sender, RoutedEventArgs e)
@@ -489,7 +489,7 @@ namespace EpgTimer.Setting
                 if (dlg.ShowDialog() == true)
                 {
                     item.Info = dlg.GetSetting();
-                    listBox_tab_Refresh();
+                    listBox_tab.FitColumnWidth();
                 }
             }
             else
@@ -541,20 +541,8 @@ namespace EpgTimer.Setting
         {
             foreach (var item in items.OfType<CustomEpgTabInfoView>())
             {
-                item.IsVisible = isVisible;
+                item.IsSelected = isVisible;
             }
-            listBox_tab.Items.Refresh();
-        }
-
-        //とりあえずボタンから追加・変更したときは列幅を整える
-        private void listBox_tab_Refresh()
-        {
-            foreach (var col in gridView_tab.Columns)
-            {
-                col.Width = 0;
-                col.Width = double.NaN;
-            }
-            listBox_tab.Items.Refresh();
         }
 
         private void button_Color_Click(object sender, RoutedEventArgs e)
@@ -603,11 +591,23 @@ namespace EpgTimer.Setting
         }*/
     }
 
-    public class CustomEpgTabInfoView
+    public class CustomEpgTabInfoView : SelectableItem
     {
-        public CustomEpgTabInfoView(CustomEpgTabInfo info) { Info = info; }
-        public CustomEpgTabInfo Info { get; set; }
-        public bool IsVisible { get { return Info.IsVisible; } set { Info.IsVisible = value; } }
+        public CustomEpgTabInfoView(CustomEpgTabInfo info1) { Info = info1; }
+        private CustomEpgTabInfo info;
+        public CustomEpgTabInfo Info 
+        {
+            get
+            {
+                info.IsVisible = this.IsSelected;
+                return info;
+            }
+            set
+            {
+                info = value;
+                IsSelected = info.IsVisible;
+            } 
+        }
         public string TabName { get { return Info.TabName; } }
         public string ViewMode { get { return CommonManager.ConvertViewModeText(Info.ViewMode).Replace("モード", ""); } }
         public string SearchMode { get { return Info.SearchMode == false ? "" : Info.SearchKey.andKey == "" ? "(空白)" : Info.SearchKey.andKey; } }

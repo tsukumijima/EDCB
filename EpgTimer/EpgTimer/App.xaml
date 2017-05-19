@@ -3,12 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <!-- アプリケーション レベルでスコープされたリソースは、ここで定義する必要があります。 -->
-        
-        <!-- デザイン時用。最初のスタイル適用で上書きされてしまう。 -->
+        <!-- UiLayoutStylesはデザイン時用。最初のスタイル適用で一度上書きされる。 -->
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="UserCtrlView\UiLayoutStyles.xaml"/>
+                <ResourceDictionary Source="UserCtrlView\DataListViewStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

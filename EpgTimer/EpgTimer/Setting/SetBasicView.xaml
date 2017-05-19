@@ -52,75 +52,97 @@
                 </StackPanel>
             </Grid>
             </TabItem>
-            <TabItem Header="EPG取得" Name="tabItem3">
-                <Grid Name="grid_epg">
-                    <Label Content="EPG取得対象サービス" Height="28" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label21" VerticalAlignment="Top" />
-                    <ListView Height="183" HorizontalAlignment="Left" Margin="32,46,0,0" Name="listView_service" VerticalAlignment="Top" Width="196">
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="{x:Type ListViewItem}" BasedOn="{StaticResource {x:Type ListViewItem}}" >
-                                <Setter Property="ToolTipService.ShowDuration" Value="20000" />
-                                <Setter Property="ToolTip" Value="{Binding Path=ToolTipView}" />
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                        <ListView.View>
-                            <GridView x:Name="gridView_service">
-                                <GridViewColumn>
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <CheckBox IsChecked="{Binding Path=IsSelected}" IsEnabled="{Binding Path=IsEnabled}"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                    <Label Content="基本情報のみ取得するネットワーク" Height="28" HorizontalAlignment="Left" Margin="234,145,0,0" Name="labe22" VerticalAlignment="Top" />
-                    <CheckBox Content="BS" Height="16" HorizontalAlignment="Left" Margin="275,179,0,0" Name="checkBox_bs" VerticalAlignment="Top" />
-                    <CheckBox Content="CS1" Height="16" HorizontalAlignment="Left" Margin="330,179,0,0" Name="checkBox_cs1" VerticalAlignment="Top" />
-                    <CheckBox Content="CS2" Height="16" HorizontalAlignment="Left" Margin="396,179,0,0" Name="checkBox_cs2" VerticalAlignment="Top" />
-                    <CheckBox Content="CS3" Height="16" HorizontalAlignment="Left" Margin="462,179,0,0" Name="checkBox_cs3" VerticalAlignment="Top" />
-                    <Label Content="※詳細情報は取得できないが、短時間で取得可能になります（地デジは対象外）" Height="28" HorizontalAlignment="Left" Margin="234,201,0,0" Name="label23" VerticalAlignment="Top" />
-                    <Button Content="全チェック" Height="23" HorizontalAlignment="Left" Margin="234,46,0,0" Name="button_allChk" VerticalAlignment="Top" Width="169" Click="button_allChk_Click" />
-                    <Button Content="映像サービスのみチェック" Height="23" HorizontalAlignment="Left" Margin="234,75,0,0" Name="button_videoChk" VerticalAlignment="Top" Width="169" Click="button_videoChk_Click" />
-                    <Button Content="全クリア" Height="23" HorizontalAlignment="Left" Margin="234,104,0,0" Name="button_allClear" VerticalAlignment="Top" Width="169" Click="button_allClear_Click" />
-                    <Label Content="EPG取得開始時間 (有効にするものにチェック)" Height="28" HorizontalAlignment="Left" Margin="12,235,0,0" Name="label24" VerticalAlignment="Top" />
-
-                    <ListView Height="86" HorizontalAlignment="Left" Margin="32,270,0,0" Name="ListView_time" VerticalAlignment="Top" Width="250">
-                        <ListView.View>
-                            <GridView x:Name="gridView_time">
-                                <GridViewColumn>
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <CheckBox IsChecked="{Binding Path=IsSelected}" IsEnabled="{Binding Path=IsEnabled}"/>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-                                <GridViewColumn Header="開始時間" DisplayMemberBinding="{Binding Path=ViewTime}" />
-                                <GridViewColumn Header="種別(BS,CS1,2,3)" DisplayMemberBinding="{Binding Path=ViewBasicOnly}" />
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                    <Button Content="追加" Height="23" HorizontalAlignment="Left" Margin="290,270,0,0" Name="button_addTime" VerticalAlignment="Top" Width="75" Click="button_addTime_Click" />
-                    <Button Content="削除" Height="23" HorizontalAlignment="Left" Margin="290,299,0,0" Name="button_delTime" VerticalAlignment="Top" Width="75" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="445,269,0,0" Name="comboBox_HH" VerticalAlignment="Top" Width="47" ItemsSource="{Binding}" />
-                    <Label Content="：" Height="28" HorizontalAlignment="Left" Margin="494,268,0,0" Name="label25" VerticalAlignment="Top" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="518,269,0,0" Name="comboBox_MM" VerticalAlignment="Top" Width="47" ItemsSource="{Binding}" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="384,269,0,0" Name="comboBox_wday" VerticalAlignment="Top" Width="47" SelectedIndex="0" />
-                    <Label Content="実行抑制条件" Height="28" HorizontalAlignment="Left" Margin="12,360,0,0" Name="label26" VerticalAlignment="Top" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="159,362,0,0" Name="textBox_ngCapMin" VerticalAlignment="Top" Width="49" />
-                    <Label Content="分以内に予約がある場合、実行しない　(0で録画時も実行)" Height="28" HorizontalAlignment="Left" Margin="226,360,0,0" Name="label27" VerticalAlignment="Top" />
-                    <Label Content="使用チューナー条件" Height="28" HorizontalAlignment="Left" Margin="12,394,0,0" Name="label28" VerticalAlignment="Top" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="159,396,0,0" Name="textBox_ngTunerMin" VerticalAlignment="Top" Width="49" />
-                    <Label Content="分以内に予約がある場合、使用しない" Height="28" HorizontalAlignment="Left" Margin="226,394,0,0" Name="label29" VerticalAlignment="Top" />
-                    <DockPanel Margin="16,430,0,0"  VerticalAlignment="Top" HorizontalAlignment="Left" >
-                        <TextBlock Text="EPG取得時のタイムアウト判定時間"/>
-                        <TextBox Margin="12,0,6,0" Name="textBox_EpgCapTimeOut" Width="49" />
-                        <TextBlock Text="分" />
-                        <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="20,0,0,0" Name="checkBox_EpgCapSaveTimeOut" />
+        <TabItem Header="EPG取得" Name="tabItem3">
+            <Grid Name="grid_epg" Margin="10,10,6,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="120" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="EPG取得対象サービス" Margin="0,0,0,4" />
+                <ListView Grid.Row="1" Grid.ColumnSpan="2" Name="listView_service" Style="{StaticResource ServiceListViewStyle}" >
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" IsEnabled="{Binding Path=IsEnabled}"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
+                            <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                            <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                            <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                            <GridViewColumn Header="サービスタイプ" DisplayMemberBinding="{Binding Path=ServiceType}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="20,0,0,0">
+                    <StackPanel HorizontalAlignment="Left" >
+                        <Button Content="全チェック" Click="button_allChk_Click" />
+                        <Button Content="映像サービスのみチェック" Margin="0,6,0,0" Click="button_videoChk_Click" />
+                        <Button Content="全クリア" Margin="0,6,0,0" Click="button_allClear_Click" />
+                    </StackPanel>
+                    <TextBlock Text="基本情報のみ取得するネットワーク" Margin="0,12,0,0" />
+                    <DockPanel Margin="0,6,0,0" >
+                        <CheckBox Content="BS" Margin="20,0,0,0" Name="checkBox_bs"/>
+                        <CheckBox Content="CS1" Margin="12,0,0,0" Name="checkBox_cs1"/>
+                        <CheckBox Content="CS2" Margin="12,0,0,0" Name="checkBox_cs2"/>
+                        <CheckBox Content="CS3" Margin="12,0,0,0" Name="checkBox_cs3"/>
                     </DockPanel>
+                    <TextBlock Text="※詳細情報は取得できないが、短時間で取得可能になります&#10;　 (地デジは対象外)" Margin="0,6,0,0" />
+                    <DockPanel Margin="0,12,0,0" >
+                        <TextBlock Text="EPG取得時のタイムアウト判定時間" />
+                        <TextBox Margin="12,0,6,0" Name="textBox_EpgCapTimeOut" Width="42" />
+                        <TextBlock Text="分" />
+                    </DockPanel>
+                    <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="0,6,0,0"  Name="checkBox_EpgCapSaveTimeOut"/>
+                </StackPanel>
+                <TextBlock Grid.Row="2" Text="EPG取得開始時間" Margin="0,12,0,4" />
+                <ListView Grid.Row="3" Name="listView_time">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" IsEnabled="{Binding Path=IsEnabled}"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="開始時間" DisplayMemberBinding="{Binding Path=ViewTime}" />
+                            <GridViewColumn Header="曜日" DisplayMemberBinding="{Binding Path=WeekDay}" />
+                            <GridViewColumn Header="種別(BS,CS1,2,3)" DisplayMemberBinding="{Binding Path=ViewBasicOnly}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="20,0,0,0">
+                    <StackPanel Orientation="Horizontal" >
+                        <Button Content="追加" MinWidth="42" Click="button_addTime_Click" />
+                        <ComboBox Name="comboBox_HH" Margin="20,0,0,0" Width="44"  VerticalAlignment="Stretch"/>
+                        <TextBlock Text="：" Margin="4,0,0,0" />
+                        <ComboBox Name="comboBox_MM" Margin="4,0,0,0" Width="44" VerticalAlignment="Stretch"/>
+                        <ComboBox Name="comboBox_wday" Margin="20,0,0,0" Width="56" VerticalAlignment="Stretch"/>
+                    </StackPanel>
+                    <Button Content="削除" Name="button_delTime" MinWidth="42" HorizontalAlignment="Left" Margin="0,6,0,0" />
+                    <DockPanel Margin="0,12,0,0">
+                        <TextBlock Text="実行抑制条件" Width="110"/>
+                        <TextBox Margin="0,0,6,0" Name="textBox_ngCapMin" Width="42" />
+                        <TextBlock Text="分以内に予約がある場合、実行しない (0で録画時も実行)" />
+                    </DockPanel>
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Text="使用チューナー条件" Width="110"/>
+                        <TextBox Margin="0,0,6,0" Name="textBox_ngTunerMin" Width="42" />
+                        <TextBlock Text="分以内に予約がある場合、使用しない" />
+                    </DockPanel>
+                </StackPanel>
             </Grid>
-            </TabItem>
-        </TabControl>
-
+        </TabItem>
+    </TabControl>
 </UserControl>

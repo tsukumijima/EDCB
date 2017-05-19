@@ -102,6 +102,7 @@ namespace EpgTimer
 
         public static readonly Dictionary<UInt32, ContentKindInfo> ContentKindDictionary;
         public static readonly Dictionary<UInt16, string> ComponentKindDictionary;
+        public static readonly Dictionary<UInt16, string> ServiceTypeDictionary;
         public static readonly string[] DayOfWeekArray;
         public static readonly string[] RecModeList;
         public static readonly string[] YesNoList;
@@ -389,6 +390,34 @@ namespace EpgTimer
                 { 0x05E3, "H.264|MPEG-4 AVC、1080p(1125p)、アスペクト比16:9 パンベクトルなし" },
                 { 0x05E4, "H.264|MPEG-4 AVC、1080p(1125p)、アスペクト比 > 16:9" }
             };
+
+            ServiceTypeDictionary = new Dictionary<UInt16, string>()
+            {
+                { 0x01, "デジタルTVサービス"},
+                { 0x02, "デジタル音声サービス"},
+                { 0xA1, "臨時映像サービス"},
+                { 0xA2, "臨時音声サービス"},
+                { 0xA3, "臨時データサービス"},
+                { 0xA4, "エンジニアリングサービス"},
+                { 0xA5, "プロモーション映像サービス"},
+                { 0xA6, "プロモーション音声サービス"},
+                { 0xA7, "プロモーションデータサービス"},
+                { 0xA8, "事前蓄積用データサービス"},
+                { 0xA9, "蓄積専用データサービス"},
+                { 0xAA, "ブックマーク一覧データサービス"},
+                { 0xAB, "サーバー型サイマルサービス"},
+                { 0xAC, "独立ファイルサービス"},
+                { 0xAD, "超高精細度4K専用TVサービス"},
+                { 0xC0, "データサービス"},
+                { 0xC1, "TLVを用いた蓄積型サービス"},
+                { 0xC2, "マルチメディアサービス"},
+                { 0xFF, "無効"},
+            };
+            for (UInt16 i = 0; i < 0xFF; i++)
+            {
+                if (ServiceTypeDictionary.ContainsKey(i) == false) ServiceTypeDictionary.Add(i, "不明");
+            }
+
             DayOfWeekArray = new string[] { "日", "月", "火", "水", "木", "金", "土" };
             RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
             YesNoList = new string[] { "しない", "する" };

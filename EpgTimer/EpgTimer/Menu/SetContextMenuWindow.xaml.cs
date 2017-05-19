@@ -295,8 +295,7 @@ namespace EpgTimer
         private void button_separator_Click(object sender, RoutedEventArgs e)
         {
             listBox_Setting.Items.Add(new StringItem(EpgCmdsEx.SeparatorString));
-            listBox_Setting.SelectedIndex = listBox_Setting.Items.Count - 1;
-            listBox_Setting.ScrollIntoView(listBox_Setting.SelectedItem);
+            listBox_Setting.ScrollIntoViewLast();
         }
 
         private bool ManualMenuCheckboxWorking = false;

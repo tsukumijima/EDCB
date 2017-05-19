@@ -1,0 +1,28 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:my="clr-namespace:EpgTimer">
+
+    <Style TargetType="ListViewItem" x:Key="ToolTipListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+        <Setter Property="ToolTipService.ShowDuration" Value="20000" />
+        <Setter Property="ToolTip" Value="{Binding ToolTipView}"/>
+    </Style>
+    <Style TargetType="ListView" x:Key="ServiceListViewStyle">
+        <Style.Resources>
+            <Style TargetType="ListViewItem" BasedOn="{StaticResource ToolTipListViewItem}" />
+        </Style.Resources>
+    </Style>
+
+    <Style TargetType="ListViewItem" x:Key="DataListItemStyle" BasedOn="{StaticResource ToolTipListViewItem}" >
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Foreground"  Value="{Binding ForeColor}" />
+        <Setter Property="Background" Value="{Binding BackColor}" />
+        <Setter Property="BorderThickness" Value="5,0,0,1" />
+        <Setter Property="BorderBrush" Value="{Binding BorderBrush}" />
+    </Style>
+    <Style TargetType="ListView" x:Key="DataListViewStyle">
+        <Style.Resources>
+            <Style TargetType="ListViewItem" BasedOn="{StaticResource DataListItemStyle}" />
+        </Style.Resources>
+    </Style>
+
+</ResourceDictionary>

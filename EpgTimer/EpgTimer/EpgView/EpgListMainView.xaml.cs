@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace EpgTimer
 {
     using EpgView;
+    using EpgTimer.BoxExchangeEdit;
 
     /// <summary>
     /// EpgListMainView.xaml の相互作用ロジック
@@ -17,7 +19,7 @@ namespace EpgTimer
         public override object GetViewState() { return GetSelectID(); }
 
         private ListViewController<SearchItem> lstCtrl;
-        private List<ServiceItem> serviceList = new List<ServiceItem>();
+        private List<ServiceViewItem> serviceList = new List<ServiceViewItem>();
 
         public EpgListMainView()
         {
@@ -54,6 +56,9 @@ namespace EpgTimer
             listView_event.ContextMenu.Tag = (int)2;//setViewInfo.ViewMode;
             listView_event.ContextMenu.Opened += new RoutedEventHandler(mc.SupportContextMenuLoading);
 
+            //その他の設定
+            SelectableItem.Set_CheckBox_PreviewChanged(listBox_service, listBox_service_Click_SelectChange);
+
             //メニューの作成、ショートカットの登録
             RefreshMenu();
         }
@@ -87,8 +92,10 @@ namespace EpgTimer
 
                 listBox_service.ItemsSource = null;
 
-                serviceList = serviceEventList.Select(item => new ServiceItem(item.serviceInfo)).ToList();
-                serviceList.ForEach(item => item.IsSelected = lastSID.Contains(item.ID) == false);
+                serviceList = serviceEventList.Select(item => item.serviceInfo.Create64Key())
+                                            .Where(key => ChSet5.ChList.ContainsKey(key))
+                                            .Select(key => new ServiceViewItem(ChSet5.ChList[key])).ToList();
+                serviceList.ForEach(item => item.IsSelected = lastSID.Contains(item.Key) == false);
 
                 listBox_service.ItemsSource = serviceList;
 
@@ -118,10 +125,10 @@ namespace EpgTimer
         }
         private HashSet<UInt64> GetSelectID()
         {
-            return new HashSet<UInt64>(serviceList.Where(s => s.IsSelected == false).Select(s => s.ID));
+            return new HashSet<UInt64>(serviceList.Where(s => s.IsSelected == false).Select(s => s.Key));
         }
 
-        private void CheckBox_Changed(object sender, RoutedEventArgs e)
+        private void UpdateServiceChecked()
         {
             UpdateEventList();
             UpdateStatus();
@@ -139,7 +146,20 @@ namespace EpgTimer
             listBox_service.ItemsSource = null;
             serviceList.ForEach(info => info.IsSelected = selected);
             listBox_service.ItemsSource = serviceList;
-            CheckBox_Changed(null, null);
+            UpdateServiceChecked();
+        }
+        private void listBox_service_Click_SelectChange()
+        {
+            if (listBox_service.SelectedIndex < 0) return;
+
+            var SelectedList = listBox_service.SelectedItems.OfType<SelectableItem>().ToList();
+
+            listBox_service.ItemsSource = null;
+            SelectedList.ForEach(item => item.IsSelected = !item.IsSelected);
+            listBox_service.ItemsSource = serviceList;
+
+            listBox_service.SelectedItemsAdd(SelectedList);
+            UpdateServiceChecked();
         }
 
         private void listView_event_SelectionChanged(object sender, SelectionChangedEventArgs e)

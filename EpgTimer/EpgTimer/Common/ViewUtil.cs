@@ -251,6 +251,21 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
+        /// <summary> 列の端でダブルクリックしたのと同様の効果。見えてない行まで考慮されないのも同じ。 </summary>
+        public static void FitColumnWidth(this ListView box)
+        {
+            var gridView = box.View as GridView;
+            if (gridView != null)
+            {
+                foreach (var col in gridView.Columns)
+                {
+                    col.Width = 0;
+                    col.Width = double.NaN;
+                }
+                box.Items.Refresh();
+            }
+        }
+
         /*/未使用
         public static void DisableControlChildren(Control ctrl)
         {
@@ -439,8 +454,7 @@ namespace EpgTimer
                 return false;
             }
             lstBox.Items.Add(text);
-            lstBox.SelectedIndex = lstBox.Items.Count - 1;
-            lstBox.ScrollIntoView(lstBox.SelectedItem);
+            lstBox.ScrollIntoViewLast();
             return true;
         }
 
@@ -497,6 +511,12 @@ namespace EpgTimer
                 box.ScrollIntoView(item);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+        }
+        ///<summary>最後のアイテムを選択してスクロールさせる</summary>
+        public static void ScrollIntoViewLast(this ListBox box)
+        {
+            box.SelectedIndex = box.Items.Count - 1;
+            box.ScrollIntoView(box.SelectedItem);
         }
 
         public static DependencyObject GetPlacementItem(this ItemsControl lb, Point? pt = null)

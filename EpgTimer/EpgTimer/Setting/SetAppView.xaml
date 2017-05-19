@@ -339,25 +339,43 @@
                     </GroupBox>
                 </StackPanel>
             </TabItem>
-            <TabItem Header="iEPG Ver.1" Name="tabItem6">
-                <Grid>
-                    <Label Content="iEPG Version 1用の設定です。Version 2では必要ありません" Height="28" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label62" VerticalAlignment="Top" Foreground="Red" />
-                    <Label Content="サービス一覧" Height="28" HorizontalAlignment="Left" Margin="12,46,0,0" Name="label61" VerticalAlignment="Top" />
-                    <ListBox Height="225" HorizontalAlignment="Left" Margin="12,80,0,0" Name="listBox_service" VerticalAlignment="Top" Width="178" DisplayMemberPath="ServiceName" SelectionChanged="listBox_service_SelectionChanged">
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                                <Setter Property="ToolTipService.ShowDuration" Value="20000" />
-                                <Setter Property="ToolTip" Value="{Binding Path=ToolTipView}" />
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                    </ListBox>
-                    <Label Content="iEPG放送局名" Height="28" HorizontalAlignment="Left" Margin="221,46,0,0" Name="label63" VerticalAlignment="Top" />
-                    <ListBox Height="125" HorizontalAlignment="Left" Margin="221,80,0,0" Name="listBox_iEPG" VerticalAlignment="Top" Width="185" SelectionMode="Extended" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="221,211,0,0" Name="textBox_station" VerticalAlignment="Top" Width="120" />
-                    <Button Content="追加" Height="23" HorizontalAlignment="Left" Margin="347,212,0,0" Name="button_add" VerticalAlignment="Top" Width="59" Click="button_add_iepg_Click" />
-                    <Button Content="削除" Height="23" HorizontalAlignment="Left" Margin="412,80,0,0" Name="button_del" VerticalAlignment="Top" Width="59" Click="button_del_iepg_Click" />
-                </Grid>
-            </TabItem>
-        </TabControl>
-
+        <TabItem Header="iEPG Ver.1" Name="tabItem6">
+            <Grid Margin="10,10,6,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="44" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="4" />
+                    <RowDefinition Height="120" />
+                    <RowDefinition Height="4" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Margin="0,0,0,12" Grid.ColumnSpan="5" Text="iEPG Version 1用の設定です。Version 2では必要ありません" Foreground="Red" />
+                <TextBlock Grid.Row="1" Text="サービス一覧" />
+                <ListView Grid.Row="3" Grid.RowSpan="4" Name="listBox_service" SelectionChanged="listBox_service_SelectionChanged" Style="{StaticResource ServiceListViewStyle}" SelectionMode="Single">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
+                            <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                            <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                            <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                            <GridViewColumn Header="サービスタイプ" DisplayMemberBinding="{Binding Path=ServiceType}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="iEPG放送局名" />
+                <ListBox Grid.Row="3" Grid.Column="2" Name="listBox_iEPG" SelectionMode="Extended" />
+                <TextBox Grid.Row="5" Grid.Column="2" Name="textBox_station" />
+                <Button Grid.Row="3" Grid.Column="4" Content="削除" Name="button_del" Click="button_del_iepg_Click" VerticalAlignment="Bottom"/>
+                <Button Grid.Row="5" Grid.Column="4" Content="追加" Name="button_add" Click="button_add_iepg_Click" />
+            </Grid>
+        </TabItem>
+    </TabControl>
 </UserControl>

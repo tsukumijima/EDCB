@@ -252,7 +252,7 @@ namespace EpgTimer.BoxExchangeEdit
 
                 var trgItems = trgItemsSource ?? target.Items;
                 var addList = srcList.Cast<object>()
-                    .Where(item => IsEnableDuplicate(item) == true || bxContains(target.Items, item) == false)
+                    .Where(item => IsEnableDuplicate(item) == true || bxContains(trgItems, item) == false)
                     .Select(item => IsEnableDuplicate(item) == true ? CloneObj(item) : item).ToList();
 
                 int scrollTo = target.SelectedIndex;

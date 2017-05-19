@@ -326,11 +326,11 @@
                                 </StackPanel>
                                 <ListView Name="listBox_tab" >
                                     <ListView.View>
-                                        <GridView x:Name="gridView_tab">
+                                        <GridView>
                                             <GridViewColumn>
                                                 <GridViewColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <CheckBox IsChecked="{Binding Path=IsVisible}" />
+                                                        <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" />
                                                     </DataTemplate>
                                                 </GridViewColumn.CellTemplate>
                                             </GridViewColumn>

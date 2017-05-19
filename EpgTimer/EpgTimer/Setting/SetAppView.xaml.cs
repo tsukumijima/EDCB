@@ -605,6 +605,7 @@ namespace EpgTimer.Setting
             var key = (listBox_service.SelectedItem as ServiceViewItem).Key;
             stationList.Add(new IEPGStationInfo { StationName = textBox_station.Text, Key = key });
             ReLoadStation();
+            listBox_iEPG.ScrollIntoViewLast();
         }
 
         private void button_del_iepg_Click(object sender, RoutedEventArgs e)

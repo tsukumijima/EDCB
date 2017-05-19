@@ -37,17 +37,20 @@
                 </ListView.View>
             </ListView>
         </Grid>
-        <ListView Margin="0,0,5,29" Name="listBox_service" ItemsSource="{Binding}">
+        <ListView Margin="0,0,5,29" Name="listBox_service" Style="{StaticResource ServiceListViewStyle}" >
             <ListView.View>
-                <GridView x:Name="gridView_service">
+                <GridView>
                     <GridViewColumn>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Path=IsSelected}" Checked="CheckBox_Changed" Unchecked="CheckBox_Changed" />
+                                <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                    <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
+                    <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                    <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
                 </GridView>
             </ListView.View>
         </ListView>
