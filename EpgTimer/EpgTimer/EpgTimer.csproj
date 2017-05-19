@@ -97,6 +97,7 @@
     <Compile Include="CtrlCmdDefEx\RecSettingDataEx.cs" />
     <Compile Include="CtrlCmdDefEx\ReserveDataEx.cs" />
     <Compile Include="CtrlCmdDefEx\RecFileInfoEx.cs" />
+    <Compile Include="DefineClass\ValueConverter.cs" />
     <Compile Include="DefineClass\RadioBtnSelect.cs" />
     <Compile Include="DefineClass\GridViewSorterItem.cs" />
     <Compile Include="DefineClass\SerializableDictionary.cs" />
@@ -211,7 +212,6 @@
       <DependentUpon>EpgListMainView.xaml</DependentUpon>
     </Compile>
     <Compile Include="DefineClass\SearchItem.cs" />
-    <Compile Include="DefineClass\ServiceItem.cs" />
     <Compile Include="DefineClass\ReserveItem.cs" />
     <Compile Include="DefineClass\RecPresetItem.cs" />
     <Compile Include="DefineClass\ReserveViewItem.cs" />
@@ -248,9 +248,6 @@
     </Compile>
     <Compile Include="UserCtrlView\SearchKeyView.xaml.cs">
       <DependentUpon>SearchKeyView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UserCtrlView\SearchKeyDescView.xaml.cs">
-      <DependentUpon>SearchKeyDescView.xaml</DependentUpon>
     </Compile>
     <Compile Include="SearchWindow.xaml.cs">
       <DependentUpon>SearchWindow.xaml</DependentUpon>
@@ -458,10 +455,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UserCtrlView\SearchKeyView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UserCtrlView\SearchKeyDescView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

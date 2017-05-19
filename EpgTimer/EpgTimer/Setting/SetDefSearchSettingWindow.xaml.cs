@@ -19,12 +19,12 @@ namespace EpgTimer
 
         public void SetDefSetting(EpgSearchKeyInfo key)
         {
-            searchKey.SetSearchKey(key);
+            searchKeyView.SetSearchKey(key);
         }
 
         public EpgSearchKeyInfo GetSetting()
         {
-            return searchKey.GetSearchKey();
+            return searchKeyView.GetSearchKey();
         }
 
         private void button_OK_Click(object sender, RoutedEventArgs e)

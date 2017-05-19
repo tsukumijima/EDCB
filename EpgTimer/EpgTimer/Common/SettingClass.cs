@@ -321,6 +321,7 @@ namespace EpgTimer
         public string ResColumnHead { get; set; }
         public ListSortDirection ResSortDirection { get; set; }
         public WindowSettingData WndSettings { get; set; }
+        public double SearchWndTabsHeight { get; set; }
         public bool CloseMin { get; set; }
         public bool WakeMin { get; set; }
         public bool ViewButtonShowAsTab { get; set; }
@@ -534,6 +535,7 @@ namespace EpgTimer
             ResColumnHead = "";
             ResSortDirection = ListSortDirection.Ascending;
             WndSettings = new WindowSettingData();
+            SearchWndTabsHeight = 410;
             CloseMin = false;
             WakeMin = false;
             ViewButtonShowAsTab = false;

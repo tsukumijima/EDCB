@@ -484,7 +484,7 @@ namespace EpgTimer
                 var dlg = new SetDefSearchSettingWindow();
                 dlg.Owner = CommonUtil.GetTopWindow(owner);
                 dlg.SetDefSetting(infoList[0]);
-                dlg.searchKey.searchKeyDescView.SetChangeMode(0);
+                dlg.searchKeyView.SetChangeMode(0);
 
                 if (dlg.ShowDialog() == false) return false;
 

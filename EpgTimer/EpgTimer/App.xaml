@@ -1,6 +1,7 @@
 ﻿<Application x:Class="EpgTimer.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:EpgTimer"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <!-- UiLayoutStylesはデザイン時用。最初のスタイル適用で一度上書きされる。 -->
@@ -9,6 +10,8 @@
                 <ResourceDictionary Source="UserCtrlView\UiLayoutStyles.xaml"/>
                 <ResourceDictionary Source="UserCtrlView\DataListViewStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <local:BoolInverter x:Key="invert" />
+            <local:BoolConverter x:Key="convert" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

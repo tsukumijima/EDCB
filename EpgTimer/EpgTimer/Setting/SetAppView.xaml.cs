@@ -570,8 +570,8 @@ namespace EpgTimer.Setting
             var dlg = new SetDefSearchSettingWindow();
             dlg.Owner = CommonUtil.GetTopWindow(this);
             dlg.SetDefSetting(defSearchKey);
-            dlg.searchKey.Button_clearAndKey.ToolTip = button_clearSerchKeywords.ToolTip;
-            dlg.searchKey.Button_clearNotKey.ToolTip = button_clearSerchKeywords.ToolTip;
+            dlg.searchKeyView.Button_clearAndKey.ToolTip = button_clearSerchKeywords.ToolTip;
+            dlg.searchKeyView.Button_clearNotKey.ToolTip = button_clearSerchKeywords.ToolTip;
 
             if (dlg.ShowDialog() == true)
             {

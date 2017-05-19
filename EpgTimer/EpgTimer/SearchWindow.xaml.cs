@@ -26,6 +26,7 @@ namespace EpgTimer
             {
                 buttonID = "検索";
                 base.SetParam(true, checkBox_windowPinned, checkBox_dataReplace);
+                grid_Tabs.Height = new GridLength(Settings.Instance.SearchWndTabsHeight);
 
                 //リストビュー関連の設定
                 var list_columns = Resources["ReserveItemViewColumns"] as GridViewColumnList;
@@ -88,8 +89,9 @@ namespace EpgTimer
                 //メニューの作成、ショートカットの登録
                 RefreshMenu();
 
-                //その他のショートカット(検索ダイアログ固有の設定)
-                searchKeyView.InputBindings.Add(new InputBinding(EpgCmds.Search, new KeyGesture(Key.Enter)));
+                //その他のショートカット(検索ダイアログ固有の設定)。コマンドだとコンボボックスアイテムの処理と協調しにくいので‥。
+                //searchKeyView.InputBindings.Add(new InputBinding(EpgCmds.Search, new KeyGesture(Key.Enter)));
+                searchKeyView.KeyUp += (sender, e) => { if (e.Key == Key.Enter)button_search_Click(null, null); };
 
                 //録画プリセット変更時の対応
                 recSettingView.SelectedPresetChanged += new EventHandler(SetRecSettingTabHeader);
@@ -192,7 +194,7 @@ namespace EpgTimer
         }
         public override void SetWindowTitle()
         {
-            this.Title = ViewUtil.WindowTitleText(searchKeyView.ComboBox_andKey.Text, (winMode == AutoAddMode.Find ? "検索" : "キーワード自動予約登録"));
+            this.Title = ViewUtil.WindowTitleText(searchKeyView.comboBox_andKey.Text, (winMode == AutoAddMode.Find ? "検索" : "キーワード自動予約登録"));
         }
         private void UpdateStatus(int mode = 0)
         {
@@ -223,7 +225,7 @@ namespace EpgTimer
 
             if (ret != 0) return ret;
 
-            if (proc < 2 && Settings.Instance.CautionManyChange == true && searchKeyView.searchKeyDescView.checkBox_keyDisabled.IsChecked != true)
+            if (proc < 2 && Settings.Instance.CautionManyChange == true && searchKeyView.checkBox_keyDisabled.IsChecked != true)
             {
                 if (MenuUtil.CautionManyMessage(lstCtrl.dataList.GetNoReserveList().Count, "予約追加の確認") == false)
                 { return 2; }
@@ -272,9 +274,9 @@ namespace EpgTimer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if ((winMode == AutoAddMode.Find || winMode == AutoAddMode.NewAdd) && string.IsNullOrEmpty(searchKeyView.ComboBox_andKey.Text))
+            if ((winMode == AutoAddMode.Find || winMode == AutoAddMode.NewAdd) && string.IsNullOrEmpty(searchKeyView.comboBox_andKey.Text))
             {
-                this.searchKeyView.ComboBox_andKey.Focus();
+                this.searchKeyView.comboBox_andKey.Focus();
             }
             else
             {
@@ -286,6 +288,7 @@ namespace EpgTimer
         {
             lstCtrl.SaveViewDataToSettings();
             base.WriteWindowSaveData();
+            Settings.Instance.SearchWndTabsHeight = grid_Tabs.Height.Value;
         }
 
         private bool RefreshReserveInfoFlg = false;

@@ -1,35 +1,188 @@
-﻿<UserControl x:Class="EpgTimer.SearchKey"
+﻿<UserControl x:Class="EpgTimer.SearchKeyView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="400" d:DesignWidth="700" xmlns:my="clr-namespace:EpgTimer">
-    <Grid>
+    <Grid Margin="10,10,6,6">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Margin="12,10,6,6">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="12" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="6" />
-                <ColumnDefinition Width="auto" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="6" />
-                <RowDefinition Height="auto" />
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="検索キーワード" />
-            <TextBlock Grid.Row="2" Text="NOTキーワード" />
-            <ComboBox VerticalAlignment="Stretch" Grid.Row="0" Grid.Column="2" Name="ComboBox_andKey" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
-            <ComboBox VerticalAlignment="Stretch" Grid.Row="2" Grid.Column="2" Name="ComboBox_notKey" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
-            <Button Content="履歴クリア" Grid.Row="0" Grid.Column="4" Name="Button_clearAndKey" />
-            <Button Content="履歴クリア" Grid.Row="2" Grid.Column="4" Name="Button_clearNotKey" />
-        </Grid>
-        <my:SearchKeyDescView Grid.Row="1" x:Name="searchKeyDescView" />
+        <StackPanel>
+            <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="検索キーワード" Width="80"/>
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="履歴クリア" Name="Button_clearAndKey" />
+                <ComboBox VerticalAlignment="Stretch" Name="comboBox_andKey" KeyUp="comboBox_andKey_KeyUp" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
+            </DockPanel>
+            <DockPanel Margin="0,0,0,6">
+                <TextBlock Text="NOTキーワード" Width="80"/>
+                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="履歴クリア" Name="Button_clearNotKey" />
+                <ComboBox VerticalAlignment="Stretch" Name="comboBox_notKey" KeyUp="comboBox_notKey_KeyUp" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
+            </DockPanel>
+            <StackPanel KeyboardNavigation.TabNavigation="Once" Margin="15,0,0,6" Orientation="Horizontal" >
+                <CheckBox Content="正規表現モード" Margin="0,0,15,0" Name="checkBox_regExp" />
+                <CheckBox Content="あいまい検索モード" Margin="0,0,15,0" Name="checkBox_aimai" ToolTip="正規表現モードでは無効" ToolTipService.ShowOnDisabled="True" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_regExp, Converter={StaticResource invert}}" />
+                <CheckBox Content="番組名のみ検索対象にする" Margin="0,0,15,0" Name="checkBox_titleOnly" />
+                <CheckBox Content="大小文字区別" Margin="0,0,15,0" Name="checkBox_case" />
+                <CheckBox Content="自動登録を無効にする" Margin="0,0,15,0" Name="checkBox_keyDisabled" />
+            </StackPanel>
+        </StackPanel>
+        <Border Grid.Row="1" BorderBrush="#FF8C8E94" BorderThickness="0,0,0,1" Margin="-20,0,-20,6"/>
+        <DockPanel Grid.Row="2">
+            <Grid Margin="0,0,20,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="6" />
+                    <RowDefinition Height="150" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <TextBlock Text="ジャンル絞り込み"/>
+                        <CheckBox Content="NOT扱い" HorizontalAlignment="Right" Name="checkBox_notContent" IsEnabled="{Binding Path=IsEnabled, ElementName=listBox_content}" />
+                    </Grid>
+                    <ListBox Margin="0,2,0,4" Grid.Row="1" DisplayMemberPath="ListBoxView" Name="listBox_content" SelectionMode="Extended" />
+                    <ComboBox Grid.Row="2" DisplayMemberPath="ListBoxView" Name="comboBox_content" VerticalAlignment="Stretch" SelectionChanged="comboBox_content_SelectionChanged" />
+                    <StackPanel Grid.RowSpan="3" Grid.Column="2" VerticalAlignment="Bottom" >
+                        <Button Name="button_content_clear" Content="全クリア" />
+                        <Button Name="button_content_del" Content="削除" Margin="0,4,0,0" />
+                        <Button Name="button_content_add" Content="追加" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,2">
+                        <TextBlock Text="時間絞り込み" />
+                        <CheckBox Content="NOT扱い" HorizontalAlignment="Right" Name="checkBox_notDate" IsEnabled="{Binding Path=IsEnabled, ElementName=listBox_date}" />
+                    </Grid>
+                    <ListBox Grid.Row="1" Name="listBox_date" SelectionMode="Extended" />
+                    <StackPanel Margin="0,4,0,4" Grid.Row="2" Orientation="Horizontal">
+                        <RadioButton Content="期間" Name="radioButton_time" Margin="0,0,12,0" />
+                        <RadioButton Content="曜日毎" />
+                    </StackPanel>
+                    <Grid Grid.Row="3" Margin="10,0,0,0">
+                        <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_time, Converter={StaticResource convert}}">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4" >
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_time_sw" Width="44" />
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_time_sh" Width="44" />
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_time_sm" Width="44" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="48,0,0,0" >
+                                <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_time_dash" />
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_time_ew" Width="44" />
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_time_eh" Width="44" />
+                                <ComboBox Margin="0,0,8,0" Name="comboBox_time_em" Width="44" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_time, Converter={StaticResource invert}}">
+                            <StackPanel Name="stack_data_week" KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal" Margin="0,0,0,4" />
+                            <StackPanel Orientation="Horizontal" >
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_week_sh" Width="44" />
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_week_sm" Width="44" />
+                                <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_week_dash" />
+                                <ComboBox Margin="0,0,4,0" Name="comboBox_week_eh" Width="44" />
+                                <ComboBox Margin="0,0,8,0" Name="comboBox_week_em" Width="44" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Grid.Column="3" Grid.RowSpan="2" VerticalAlignment="Bottom" >
+                        <Button Content="全クリア" Name="button_date_clear"/>
+                        <Button Content="削除" Name="button_date_del" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <Button Grid.Row="3" Grid.Column="2" Name="button_date_add" Content="追加" VerticalAlignment="Bottom"/>
+                </Grid>
+            </Grid>
+            <Grid Grid.Column="2" >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="サービス絞り込み"  Margin="0,0,0,2" />
+                    <ListView Grid.Row="1" Name="listView_service" Margin="0,0,90,6" Style="{StaticResource ServiceListViewStyle}" >
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
+                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" Width="110"/>
+                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <StackPanel Grid.Row="2" HorizontalAlignment="Left" >
+                        <StackPanel HorizontalAlignment="Left" Margin="0,0,0,4" Orientation="Horizontal">
+                            <TextBlock Text="スクランブル放送 " />
+                            <ComboBox Name="comboBox_free" SelectedIndex="0" >
+                                <ComboBoxItem Content="無料、有料番組を対象とする" />
+                                <ComboBoxItem Content="無料番組のみ対象とする" />
+                                <ComboBoxItem Content="有料番組のみ対象とする" />
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,4" Orientation="Horizontal" >
+                            <TextBlock Text="番組長 "/>
+                            <TextBox Name="textBox_chkDurationMin" Text="0" Width="40" />
+                            <TextBlock Text=" 分以上　" />
+                            <TextBox Name="textBox_chkDurationMax" Text="0" Width="40" />
+                            <TextBlock Text=" 分以下(0で無制限)" />
+                        </StackPanel>
+                        <GroupBox Header="自動予約登録専用" >
+                            <StackPanel Margin="6,6,6,0">
+                                <CheckBox Content="同一番組名の録画結果があれば無効で登録する" Margin="0,0,0,4" Name="checkBox_chkRecEnd" />
+                                <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_chkRecEnd}" >
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4" >
+                                        <Label Content="確認対象期間 " Padding="0"/>
+                                        <TextBox Name="textBox_chkRecDay" Text="0" Width="40" />
+                                        <Label Content=" 日前まで" Padding="0" />
+                                    </StackPanel>
+                                    <WrapPanel>
+                                        <RadioButton Content="同一サービスのみ無効" Name="radioButton_chkRecNoService1" Margin="0,0,12,0" />
+                                        <RadioButton Content="全てのサービスで無効" Name="radioButton_chkRecNoService2" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.RowSpan="2" HorizontalAlignment="Right" Width="84">
+                        <Button Click="button_all_on_Click" Content="全チェック" Margin="0,0,0,4" />
+                        <Button Click="button_video_on_Click" Content="映像のみ" Margin="0,0,0,4" />
+                        <Button Click="button_all_off_Click" Content="クリア" Margin="0,0,0,4" />
+                        <Button Name="button_dttv_on" Click="button_dttv_on_Click" Content="+地デジ映像" Margin="0,0,0,4" />
+                        <Button Name="button_bs_on" Click="button_bs_on_Click" Content="+BS映像" Margin="0,0,0,4" />
+                        <Button Name="button_cs_on" Click="button_cs_on_Click" Content="+CS映像" Margin="0,0,0,4" />
+                        <Button Name="button_1seg_on" Click="button_1seg_on_Click" Content="+ワンセグ" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </DockPanel>
     </Grid>
 </UserControl>

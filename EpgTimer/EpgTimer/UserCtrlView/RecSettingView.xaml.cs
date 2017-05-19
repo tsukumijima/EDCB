@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -505,18 +503,6 @@ namespace EpgTimer
         private void button_recFolderAdd_1seg_Click(object sender, RoutedEventArgs e)
         {
             recFolderAdd(true);
-        }
-    }
-
-    public class RecSettingViewInverter : IValueConverter
-    {
-        public object Convert(object v, Type t, object p, System.Globalization.CultureInfo c)
-        {
-            return !(v is bool && (bool)v);
-        }
-        public object ConvertBack(object v, Type t, object p, System.Globalization.CultureInfo c)
-        {
-            return !(v is bool && (bool)v);
         }
     }
 }

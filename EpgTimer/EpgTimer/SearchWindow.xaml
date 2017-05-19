@@ -14,14 +14,14 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="410" />
+            <RowDefinition Height="410" Name="grid_Tabs" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <TabControl Name="tabControl1" TabStripPlacement="Bottom" Margin="0,0,0,3">
             <TabItem Header="検索条件" Name="tabItem1" >
-                <my:SearchKey x:Name="searchKeyView" />
+                <my:SearchKeyView x:Name="searchKeyView" />
             </TabItem>
             <TabItem Header="録画設定" Name="tabItem2">
                 <my:RecSettingView x:Name="recSettingView" />
