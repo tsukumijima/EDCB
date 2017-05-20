@@ -738,8 +738,15 @@ namespace EpgTimer
             return reslist.FindAll(info => info.IsAutoAdded == true && (epgAutoList[info.ReserveID].Count + manualAutoList[info.ReserveID].Count) == 0);
         }
 
-        //mode 0:追加、1:変更、2:削除
         private static bool AutoAddCmdSend(IEnumerable<AutoAddData> itemlist, int mode,
+            List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true)
+        {
+            //一時的に予約情報更新を遅延させる
+            return (bool)ViewUtil.MainWindow.ActionWaitResNotify(() => AutoAddCmdSendWork(itemlist, mode, delReserveList, chgReserveList, cautionMany, isViewOrder));
+        }
+
+        //mode 0:追加、1:変更、2:削除
+        private static bool AutoAddCmdSendWork(IEnumerable<AutoAddData> itemlist, int mode,
             List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true)
         {
             try

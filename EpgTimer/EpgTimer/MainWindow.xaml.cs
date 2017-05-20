@@ -1395,6 +1395,11 @@ namespace EpgTimer
                     }
                     break;
                 case UpdateNotifyItem.ReserveInfo:
+                    if (WaitResNotify == true)
+                    {
+                        resNotifyWaiting.Add(status);
+                    }
+                    else
                     {
                         //使用している箇所多いので即取得する。
                         //というより後ろでタスクトレイのルーチンが取得をかけるので遅延の効果がない。
@@ -1465,6 +1470,25 @@ namespace EpgTimer
             }
 
             taskTray.Text = GetTaskTrayReserveInfoText();
+        }
+
+        //自動予約登録変更時に頻繁に送られてくる予約情報更新を間引く。
+        private bool WaitResNotify = false;
+        private List<NotifySrvInfo> resNotifyWaiting = new List<NotifySrvInfo>();
+        public object ActionWaitResNotify(Func<object> work)
+        {
+            WaitResNotify = true;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                WaitResNotify = false;
+                foreach (var gr in resNotifyWaiting.GroupBy(st => st.notifyID))
+                {
+                    try { NotifyStatus(gr.First()); }
+                    catch { }
+                }
+                resNotifyWaiting.Clear();
+            }), DispatcherPriority.Background);
+            return work();
         }
 
         void RefreshReserveInfo()

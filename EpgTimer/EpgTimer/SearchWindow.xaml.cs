@@ -325,6 +325,7 @@ namespace EpgTimer
         protected UInt32 autoAddID = 0;
         protected AutoAddData autoAddData { get { return AutoAddData.AutoAddList(typeof(S), autoAddID); } }
         protected virtual IEnumerable<AutoAddData> autoAddDBList { get { return AutoAddData.GetDBManagerList(typeof(S)); } }
+        protected virtual IEnumerable<AutoAddData> autoAddDBListSrv() { return AutoAddData.GetAutoAddListSrv(typeof(S)); }
         protected virtual ErrCode ReloadAutoAddDBList(bool notify = false) { return AutoAddData.ReloadDBManagerList(typeof(S), notify); }
 
         protected AutoAddMode winMode = AutoAddMode.Find;
@@ -389,27 +390,11 @@ namespace EpgTimer
                 {
                     if (code == 0)
                     {
-                        //一覧画面非表示の状態から実施する場合のためのコード
-                        if (AutoAddView.IsVisible == false && autoAddDBList.Any() != true)
-                        {
-                            ReloadAutoAddDBList(true);
-                        }
-
-                        List<uint> oldlist = autoAddDBList.Select(item => item.DataID).ToList();
-
                         ret = MenuUtil.AutoAddAdd(CommonUtil.ToList(data));
                         if (ret == true)
                         {
-                            //以降の処理をEpgTimerSrvからの更新通知後に実行すればReload減らせるが、トラブル増えそうなのでこのまま。
-                            ReloadAutoAddDBList(true);
-
-                            List<uint> newlist = autoAddDBList.Select(item => item.DataID).ToList();
-                            List<uint> diflist = newlist.Except(oldlist).ToList();
-
-                            if (diflist.Count == 1)
-                            {
-                                ChangeAutoAddData(AutoAddData.AutoAddList(typeof(S), diflist[0]), false);
-                            }
+                            //割り当てられたIDが欲しいだけなのでEpgTimer内のもろもろは再構築せず、Srvからデータだけ取得する。
+                            ChangeAutoAddData(autoAddDBListSrv().LastOrDefault(), false);
                         }
                     }
                     else

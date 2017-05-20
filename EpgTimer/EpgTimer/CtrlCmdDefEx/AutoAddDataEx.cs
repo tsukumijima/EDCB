@@ -65,6 +65,22 @@ namespace EpgTimer
             }
             return new List<AutoAddData>();
         }
+        public static IEnumerable<AutoAddData> GetAutoAddListSrv(Type t)
+        {
+            if (t == typeof(EpgAutoAddData))
+            {
+                var list = new List<EpgAutoAddData>();
+                CommonManager.Instance.CtrlCmd.SendEnumEpgAutoAdd(ref list);
+                return list;
+            }
+            else if (t == typeof(ManualAutoAddData))
+            {
+                var list = new List<ManualAutoAddData>();
+                CommonManager.Instance.CtrlCmd.SendEnumManualAdd(ref list);
+                return list;
+            }
+            return new List<AutoAddData>();
+        }
 
         public virtual object CloneObj() { return null; }
 
