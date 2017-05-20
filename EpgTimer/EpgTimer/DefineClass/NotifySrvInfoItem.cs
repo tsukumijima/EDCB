@@ -11,6 +11,7 @@ namespace EpgTimer
         public NotifySrvInfoItem(NotifySrvInfo info)
         {
             Time = info.time.ToString("yyyy/MM/dd HH:mm:ss.fff");
+            TimeView = info.time.ToString("yyyy/MM/dd(ddd) HH:mm:ss.fff");
             var notifyID = (UpdateNotifyItem)info.notifyID;
             Title = notifyID == UpdateNotifyItem.PreRecStart ? "予約録画開始準備" :
                     notifyID == UpdateNotifyItem.RecStart ? "録画開始" :
@@ -28,10 +29,13 @@ namespace EpgTimer
         {
             string[] s = text.Split(new char[] { '[', ']' }, 3);
             Time = s.Length > 0 ? s[0].TrimEnd(' ') : "";
+            DateTime time;
+            TimeView = DateTime.TryParse(Time, out time) == false ? Time : time.ToString("yyyy/MM/dd(ddd) HH:mm:ss.fff");
             Title = s.Length > 1 ? s[1] : "";
             LogText = s.Length > 2 ? s[2].TrimStart(' ') : "";
             keyID = (ulong)this.ToString().GetHashCode();
         }
+        public String TimeView { get; private set; }
         public String Time { get; private set; }
         public String Title { get; private set; }
         public String LogText { get; private set; }

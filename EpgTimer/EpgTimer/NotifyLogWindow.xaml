@@ -19,9 +19,9 @@
         <ListView Grid.Row="1" Name="listView_log" Margin="6">
             <ListView.View>
                 <GridView x:Name="gridView_log">
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Time}">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=TimeView}">
                         <GridViewColumn.Header>
-                            <GridViewColumnHeader Content="日時" Uid="Time" />
+                            <GridViewColumnHeader Content="日時" Uid="TimeView" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Title}">
