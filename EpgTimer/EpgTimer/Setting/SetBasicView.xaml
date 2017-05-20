@@ -8,6 +8,8 @@
 
     <TabControl Name="tabControl1">
         <TabItem Header="基本" Name="tabItem1">
+        <StackPanel>
+            <CheckBox Content="フォルダ選択にOpenFileDialogを使用する" Margin="12,12,0,0" Name="checkbox_OpenFolderWithFileDialog" VerticalAlignment="Top" ToolTip="若干分かりにくいですが、FolderBrowserDialogで初期フォルダまでスクロールしない場合はこちらの方が便利かもしれません" />                
             <Grid Name="grid_folder">
                 <Label Content="設定関係保存フォルダ" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label1" VerticalAlignment="Top" />
                 <TextBox HorizontalAlignment="Left" Margin="157,14,0,0" Name="textBox_setPath" VerticalAlignment="Top" Width="414" />
@@ -51,7 +53,8 @@
                     </DockPanel>
                 </StackPanel>
             </Grid>
-            </TabItem>
+            </StackPanel>
+        </TabItem>
         <TabItem Header="EPG取得" Name="tabItem3">
             <Grid Name="grid_epg" Margin="10,10,6,6">
                 <Grid.ColumnDefinitions>

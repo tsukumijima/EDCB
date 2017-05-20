@@ -172,6 +172,10 @@
                     <CheckBox Margin="0,6,0,0" Content="ショートカット操作に対する確認メッセージを表示しない" Name="checkBox_NoMessageKeyGesture" />
                     <Label Margin="0,-4,0,-4" Content="※削除、自動予約登録画面の並び替え関係、予約ダイアログの確定操作など" />
                     <CheckBox Margin="0,6,0,0" Content="「全て削除」(録画済み一覧、検索/自動登録ダイアログ)で確認メッセージを表示しない" Name="checkBox_NoMessageDeleteAll" />
+                    <DockPanel Margin="0,12,0,0" >
+                        <TextBlock Text="※ " VerticalAlignment="Top"/>
+                        <TextBlock Text="共通設定にあるショートカットキーを変更したい場合は、設定ファイル(XML)で直接指定してください。&#10;設定項目　&lt;EasyMenuItems&gt;&lt;CmdSaveData&gt;&lt;ShortCuts&gt;"/>
+                    </DockPanel>
                 </StackPanel>
             </TabItem>
         </TabControl>

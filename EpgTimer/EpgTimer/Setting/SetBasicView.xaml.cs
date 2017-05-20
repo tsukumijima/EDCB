@@ -27,6 +27,7 @@ namespace EpgTimer.Setting
             if (CommonManager.Instance.NWMode == true)
             {
                 ViewUtil.ChangeChildren(grid_folder, false);
+                checkbox_OpenFolderWithFileDialog.IsEnabled = true;
                 label1.IsEnabled = true;
                 textBox_setPath.IsEnabled = true;
                 button_setPath.IsEnabled = true;
@@ -50,6 +51,10 @@ namespace EpgTimer.Setting
 
             try
             {
+                checkbox_OpenFolderWithFileDialog.IsChecked = Settings.Instance.OpenFolderWithFileDialog;
+                checkbox_OpenFolderWithFileDialog.Click += (sender, e) =>
+                    Settings.Instance.OpenFolderWithFileDialog = checkbox_OpenFolderWithFileDialog.IsChecked == true;
+
                 textBox_setPath.Text = SettingPath.SettingFolderPath;
                 textBox_exe.Text = SettingPath.EdcbExePath;
 

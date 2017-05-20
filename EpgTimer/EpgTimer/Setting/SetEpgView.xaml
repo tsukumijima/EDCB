@@ -513,8 +513,10 @@
                                 <Label Content="スクランブル未解除を警告扱いしない閾値" Height="28" HorizontalAlignment="Left" Margin="6,66,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="264,66,0,0" Name="textBox_scrambleIgnore" VerticalAlignment="Top" Width="62" />
                                 <Label Content="※それぞれ-1指定で、ドロップなどを全て無視。" Height="28" HorizontalAlignment="Left" Margin="6,87,0,0" VerticalAlignment="Top" />
-                                <CheckBox Content="エラー・警告表示にドロップ(映像・音声)、" Height="16" HorizontalAlignment="Left" Margin="352,12,0,0" Name="checkBox_recinfo_errCritical" VerticalAlignment="Top" />
-                                <Label Content="スクランブル未解除(映像・音声)を使う" Height="28" HorizontalAlignment="Left" Margin="410,21,0,0" VerticalAlignment="Top" />
+                                <StackPanel Margin="352,12,0,0" ToolTipService.ShowDuration="20000" ToolTip="PIDの選択を変更したい場合は、設定ファイル(XML)で直接指定してください&#10;設定項目　&lt;RecInfoDropExclude&gt;">
+                                    <CheckBox Content="エラー・警告表示にドロップ(映像・音声)、" Name="checkBox_recinfo_errCritical"/>
+                                    <TextBlock Text="スクランブル未解除(映像・音声)を使う" Margin="60,2,0,0"/>
+                                </StackPanel>
                             </Grid>
                         </GroupBox>
                     </StackPanel>
