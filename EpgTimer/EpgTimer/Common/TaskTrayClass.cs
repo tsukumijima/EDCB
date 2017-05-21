@@ -48,11 +48,7 @@ namespace EpgTimer
             get { return notifyIcon.Visible; }
             set { notifyIcon.Visible = value; }
         }
-        public WindowState LastViewState
-        {
-            get;
-            set;
-        }
+        public WindowState LastViewState { get; set; }
         public event EventHandler ContextMenuClick = null;
 
         public TaskTrayClass(Window target)
@@ -126,32 +122,15 @@ namespace EpgTimer
         {
             try
             {
-                if (title.Length > 0)
-                {
-                    notifyIcon.BalloonTipTitle = title;
-                }
-                else
-                {
-                    notifyIcon.BalloonTipTitle = " ";
-                }
-                if (tips.Length > 0)
-                {
-                    notifyIcon.BalloonTipText = tips;
-                }
-                else
-                {
-                    notifyIcon.BalloonTipText = " ";
-                }
+                notifyIcon.BalloonTipTitle = title.Length > 0 ? title : " ";
+                notifyIcon.BalloonTipText = tips.Length > 0 ? title : " ";
                 notifyIcon.BalloonTipIcon = ToolTipIcon.Info;
                 if (Settings.Instance.NoBallonTips == false)
                 {
                     notifyIcon.ShowBalloonTip(timeOutMSec);
                 }
             }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-            }
+            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         void  newcontitem_Click(object sender, EventArgs e)

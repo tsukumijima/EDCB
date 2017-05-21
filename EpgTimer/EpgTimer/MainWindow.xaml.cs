@@ -729,10 +729,6 @@ namespace EpgTimer
                     mutex.ReleaseMutex();
                     mutex.Close();
                 }
-                if (taskTray != null)
-                {
-                    taskTray.Dispose();
-                }
             }
         }
 
