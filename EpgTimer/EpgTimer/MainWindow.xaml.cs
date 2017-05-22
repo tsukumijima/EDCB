@@ -42,7 +42,7 @@ namespace EpgTimer
 
         public MainWindow()
         {
-            string appName = System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location);
+            string appName = SettingPath.ModuleName;
 #if DEBUG
             appName += "(debug)";
 #endif

@@ -56,7 +56,7 @@ namespace EpgTimer.Setting
                 checkBox_playOnAirWithExe.IsChecked = Settings.Instance.FilePlayOnAirWithExe;
                 checkBox_playOnNwWithExe.IsChecked = Settings.Instance.FilePlayOnNwWithExe;
 
-                comboBox_bon.ItemsSource = CommonManager.Instance.GetBonFileList();
+                comboBox_bon.ItemsSource = CommonManager.GetBonFileList();
                 if (comboBox_bon.Items.Count > 0)
                 {
                     comboBox_bon.SelectedIndex = 0;

@@ -187,7 +187,7 @@ namespace EpgTimer.Setting
                 {
                     CommonManager.Instance.DB.ReloadPlugInFile();
                 }
-                comboBox_recname.ItemsSource = CommonManager.Instance.DB.RecNamePlugInList.Values;
+                comboBox_recname.ItemsSource = CommonManager.Instance.DB.RecNamePlugInList;
                 comboBox_recname.SelectedItem = IniFileHandler.GetPrivateProfileString("SET", "RecNamePlugInFile", "RecName_Macro.dll", SettingPath.TimerSrvIniPath);
 
                 checkBox_noChkYen.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "NoChkYen", 0, SettingPath.TimerSrvIniPath) == 1;

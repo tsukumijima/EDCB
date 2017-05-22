@@ -67,7 +67,7 @@ namespace EpgTimer.Setting
                 textBox_recInfoFolder.Text = IniFileHandler.GetPrivateProfileString("SET", "RecInfoFolder", "", SettingPath.CommonIniPath);
 
                 var tunerInfo = new List<KeyValuePair<Int32, TunerInfo>>();
-                foreach (string fileName in CommonManager.Instance.GetBonFileList())
+                foreach (string fileName in CommonManager.GetBonFileList())
                 {
                     var item = new TunerInfo(fileName);
                     item.TunerNum = IniFileHandler.GetPrivateProfileInt(item.BonDriver, "Count", 0, SettingPath.TimerSrvIniPath).ToString();

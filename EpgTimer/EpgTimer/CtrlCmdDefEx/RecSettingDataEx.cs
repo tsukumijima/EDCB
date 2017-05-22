@@ -30,15 +30,12 @@ namespace EpgTimer
         {
             get
             {
-                var list = new List<string>();
                 List<string> defs = Settings.Instance.DefRecFolders;
                 string def1 = defs.Count == 0 ? "!Default" : defs[0];
                 Func<string, string> AdjustName = (f => f == "!Default" ? def1 : f);
 
-                this.RecFolderList.ForEach(info => list.Add(AdjustName(info.RecFolder)));
-                this.PartialRecFolder.ForEach(info => list.Add("(ワンセグ) " + AdjustName(info.RecFolder)));
-
-                return list;
+                return RecFolderList.Select(info => AdjustName(info.RecFolder)).Concat(
+                    PartialRecFolder.Select(info => "(ワンセグ) " + AdjustName(info.RecFolder))).ToList();
             }
         }
 

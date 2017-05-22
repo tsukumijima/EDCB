@@ -507,7 +507,7 @@ namespace EpgTimer.Setting
         }
         private void button_tab_defaultCopy_Click(object sender, RoutedEventArgs e)
         {
-            button_tab_copyAdd(CommonManager.Instance.CreateDefaultTabInfo());
+            button_tab_copyAdd(CommonManager.CreateDefaultTabInfo());
         }
         private void button_tab_copyAdd(List<CustomEpgTabInfo> infos)
         {

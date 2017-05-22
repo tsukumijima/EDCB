@@ -1029,7 +1029,7 @@ namespace EpgTimer
                         h.MouseLeftButtonDown += new MouseButtonEventHandler(h_MouseLeftButtonDown);
                         h.Foreground = Brushes.Blue;
                         h.Cursor = Cursors.Hand;
-                        String url = CommonManager.ReplaceUrl(matchVal.Value.Replace("\r\n", ""));
+                        String url = ReplaceUrl(matchVal.Value.Replace("\r\n", ""));
                         h.NavigateUri = new Uri(url);
                         para.Inlines.Add(h);
                         para.Inlines.Add("\r\n");
@@ -1054,7 +1054,7 @@ namespace EpgTimer
         }
 
         //デフォルト番組表の情報作成
-        public List<CustomEpgTabInfo> CreateDefaultTabInfo()
+        public static List<CustomEpgTabInfo> CreateDefaultTabInfo()
         {
             //再表示の際の認識用に、負の仮番号を与えておく。
             var setInfo = new List<CustomEpgTabInfo>
@@ -1175,7 +1175,7 @@ namespace EpgTimer
 
             string base_src = "";
             string base_nw = "";
-            if (checkNWPath == true && CommonManager.Instance.NWMode == true && path != "" && path.StartsWith("\\\\") == false)
+            if (checkNWPath == true && Instance.NWMode == true && path != "" && path.StartsWith("\\\\") == false)
             {
                 //可能ならUNCパスをサーバ側のパスに戻す。
                 //複数の共有フォルダ使ってる場合はとりあえず諦める。(サーバ側で要逆変換)
@@ -1458,13 +1458,13 @@ namespace EpgTimer
             }
         }
 
-        public List<string> GetBonFileList()
+        public static List<string> GetBonFileList()
         {
             var list = new List<string>();
 
             try
             {
-                if (NWMode == false)
+                if (Instance.NWMode == false)
                 {
                     foreach (string info in Directory.GetFiles(SettingPath.SettingFolderPath, "*.ChSet4.txt"))
                     {

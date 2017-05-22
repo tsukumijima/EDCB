@@ -20,10 +20,10 @@ namespace EpgTimer
             {
                 CommonManager.Instance.DB.ReloadPlugInFile();
             }
-            comboBox_writePlugIn.ItemsSource = CommonManager.Instance.DB.WritePlugInList.Values;
+            comboBox_writePlugIn.ItemsSource = CommonManager.Instance.DB.WritePlugInList;
             comboBox_writePlugIn.SelectedItem = "Write_Default.dll";
 
-            var list = CommonManager.Instance.DB.RecNamePlugInList.Values.ToList();
+            var list = CommonManager.Instance.DB.RecNamePlugInList.ToList();
             list.Insert(0, "なし");
             comboBox_recNamePlugIn.ItemsSource = list;
             comboBox_recNamePlugIn.SelectedItem = "なし";

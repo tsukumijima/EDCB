@@ -8,7 +8,7 @@ using System.Windows.Media;
 
 namespace EpgTimer
 {
-    class CommonUtil
+    public static class CommonUtil
     {
         [DllImport("user32.dll")]
         static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);

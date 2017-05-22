@@ -107,7 +107,7 @@ namespace EpgTimer
             try
             {
                 tabInfo = Settings.Instance.UseCustomEpgView == false ?
-                    CommonManager.Instance.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
+                    CommonManager.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
 
                 foreach (CustomEpgTabInfo info in tabInfo.Where(info => info.IsVisible == true))
                 {
