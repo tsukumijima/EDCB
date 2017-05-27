@@ -118,16 +118,16 @@ namespace EpgTimer
             }
         }
 
-        public void ShowBalloonTip(String title, String tips, Int32 timeOutMSec)
+        /// <summary> timeOutMilliSecは設定しても効かない環境がある </summary>
+        public void ShowBalloonTip(String title, String tips, Int32 timeOutMilliSec = 10 * 1000)
         {
             try
             {
-                notifyIcon.BalloonTipTitle = title.Length > 0 ? title : " ";
-                notifyIcon.BalloonTipText = tips.Length > 0 ? title : " ";
-                notifyIcon.BalloonTipIcon = ToolTipIcon.Info;
                 if (Settings.Instance.NoBallonTips == false)
                 {
-                    notifyIcon.ShowBalloonTip(timeOutMSec);
+                    title = string.IsNullOrEmpty(title) == true ? " " : title;
+                    tips = string.IsNullOrEmpty(tips) == true ? " " : tips;
+                    notifyIcon.ShowBalloonTip(timeOutMilliSec, title, tips, ToolTipIcon.Info);
                 }
             }
             catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

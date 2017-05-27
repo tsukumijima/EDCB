@@ -35,8 +35,6 @@ namespace EpgTimer
 
         private DispatcherTimer chkTimer = null;
 
-        private bool idleShowBalloon = false;
-
         //にじみ対策用(拡大表示時には十分ではないが無いよりは良い)
         public Matrix DeviceMatrix;
 
@@ -1322,20 +1320,12 @@ namespace EpgTimer
 
         void NotifyStatus(NotifySrvInfo status)
         {
-            int IdleTimeSec = 10 * 60;
-            int TimeOutMSec = 10 * 1000;
-            var TaskTrayBaloonWork = new Action<string, string>((title, tips) =>
+            bool notifyLogWindowUpdate = false;
+            var NotifyWork = new Action<string, string>((title, tips) =>
             {
-                if (CommonUtil.GetIdleTimeSec() < IdleTimeSec || idleShowBalloon == false)
-                {
-                    taskTray.ShowBalloonTip(title, tips, TimeOutMSec);
-                    if (CommonUtil.GetIdleTimeSec() > IdleTimeSec)
-                    {
-                        idleShowBalloon = true;
-                    }
-                }
+                taskTray.ShowBalloonTip(title, tips);
                 CommonManager.AddNotifyLog(status);
-                NotifyLogWindow.UpdatesInfo();
+                notifyLogWindowUpdate = true;
             });
 
             System.Diagnostics.Trace.WriteLine((UpdateNotifyItem)status.notifyID);
@@ -1346,29 +1336,29 @@ namespace EpgTimer
                     taskTray.Icon = GetTaskTrayIcon(status.param1);
                     break;
                 case UpdateNotifyItem.PreRecStart:
-                    TaskTrayBaloonWork("予約録画開始準備", status.param4);
+                    NotifyWork("予約録画開始準備", status.param4);
                     break;
                 case UpdateNotifyItem.RecStart:
-                    TaskTrayBaloonWork("録画開始", status.param4);
+                    NotifyWork("録画開始", status.param4);
                     RefreshAllViewsReserveInfo();
                     break;
                 case UpdateNotifyItem.RecEnd:
-                    TaskTrayBaloonWork("録画終了", status.param4);
+                    NotifyWork("録画終了", status.param4);
                     break;
                 case UpdateNotifyItem.RecTuijyu:
-                    TaskTrayBaloonWork("追従発生", status.param4);
+                    NotifyWork("追従発生", status.param4);
                     break;
                 case UpdateNotifyItem.ChgTuijyu:
-                    TaskTrayBaloonWork("番組変更", status.param4);
+                    NotifyWork("番組変更", status.param4);
                     break;
                 case UpdateNotifyItem.PreEpgCapStart:
-                    TaskTrayBaloonWork("EPG取得", status.param4);
+                    NotifyWork("EPG取得", status.param4);
                     break;
                 case UpdateNotifyItem.EpgCapStart:
-                    TaskTrayBaloonWork("取得", "開始");
+                    NotifyWork("取得", "開始");
                     break;
                 case UpdateNotifyItem.EpgCapEnd:
-                    TaskTrayBaloonWork("取得", "終了");
+                    NotifyWork("取得", "終了");
                     break;
                 case UpdateNotifyItem.EpgData:
                     {
@@ -1398,7 +1388,6 @@ namespace EpgTimer
                     else
                     {
                         //使用している箇所多いので即取得する。
-                        //というより後ろでタスクトレイのルーチンが取得をかけるので遅延の効果がない。
                         CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.ReserveInfo);
                         CommonManager.Instance.DB.ReloadReserveInfo();
                         RefreshAllViewsReserveInfo();
@@ -1451,21 +1440,15 @@ namespace EpgTimer
                         {
                             IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
-                            NotifyLogWindow.UpdatesInfo();
+                            notifyLogWindowUpdate = true;
                             StatusManager.StatusNotifyAppend("EpgTimerSrv設定変更に伴う画面更新 < ");
                         }
                     }
                     break;
-                default:
-                    break;
-            }
-
-            if (CommonUtil.GetIdleTimeSec() < IdleTimeSec)
-            {
-                idleShowBalloon = false;
             }
 
             taskTray.Text = GetTaskTrayReserveInfoText();
+            if (notifyLogWindowUpdate == true) NotifyLogWindow.UpdatesInfo();
         }
 
         //自動予約登録変更時に頻繁に送られてくる予約情報更新を間引く。
