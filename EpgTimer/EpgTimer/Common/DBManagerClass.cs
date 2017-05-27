@@ -340,9 +340,9 @@ namespace EpgTimer
 
         /// <summary>データの更新があったことを通知</summary>
         /// <param name="updateInfo">[IN]更新のあったデータのフラグ</param>
-        public void SetUpdateNotify(UInt32 updateInfo)
+        public void SetUpdateNotify(UpdateNotifyItem updateInfo)
         {
-            switch ((UpdateNotifyItem)updateInfo)
+            switch (updateInfo)
             {
                 case UpdateNotifyItem.EpgData:
                     updateEpgData = true;
@@ -379,8 +379,9 @@ namespace EpgTimer
         public void ResetUpdateNotifyEpg() { updateEpgData = false; }
 
         /// <summary>EPGデータの更新があれば再読み込みする</summary>
-        public ErrCode ReloadEpgData()
+        public ErrCode ReloadEpgData(bool immediately = false)
         {
+            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.EpgData);
             var ret = ErrCode.CMD_SUCCESS;
             try
             {
@@ -428,8 +429,9 @@ namespace EpgTimer
         }
 
         /// <summary>予約情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadReserveInfo()
+        public ErrCode ReloadReserveInfo(bool immediately = false)
         {
+            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.ReserveInfo);
             var ret = ErrCode.CMD_SUCCESS;
             try
             {
@@ -459,8 +461,9 @@ namespace EpgTimer
         }
 
         /// <summary>録画済み情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadrecFileInfo()
+        public ErrCode ReloadrecFileInfo(bool immediately = false)
         {
+            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.RecInfo);
             var ret = ErrCode.CMD_SUCCESS;
             try
             {
@@ -485,8 +488,9 @@ namespace EpgTimer
         }
 
         /// <summary>PlugInFileの再読み込み指定があればする</summary>
-        public ErrCode ReloadPlugInFile()
+        public ErrCode ReloadPlugInFile(bool immediately = false)
         {
+            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.PlugInFile);
             var ret = ErrCode.CMD_SUCCESS;
             try
             {
@@ -513,8 +517,9 @@ namespace EpgTimer
         }
 
         /// <summary>EPG自動予約登録情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadEpgAutoAddInfo()
+        public ErrCode ReloadEpgAutoAddInfo(bool immediately = false)
         {
+            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.AutoAddEpgInfo);
             var ret = ErrCode.CMD_SUCCESS;
             try
             {
@@ -541,8 +546,9 @@ namespace EpgTimer
 
 
         /// <summary>自動予約登録情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadManualAutoAddInfo()
+        public ErrCode ReloadManualAutoAddInfo(bool immediately = false)
         {
+            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.AutoAddManualInfo);
             var ret = ErrCode.CMD_SUCCESS;
             try
             {

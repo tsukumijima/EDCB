@@ -596,17 +596,13 @@ namespace EpgTimer
 
             IniFileHandler.UpdateSrvProfileIniNW();
 
-            CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.ReserveInfo);
-            CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.RecInfo);
-            CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddEpgInfo);
-            CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddManualInfo);
-            CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.EpgData);
-            CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.PlugInFile);
-            CommonManager.Instance.DB.ReloadReserveInfo();
+            CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
+            CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.PlugInFile);
+            CommonManager.Instance.DB.ReloadReserveInfo(true);
             CommonManager.Instance.DB.ClearRecFileAppend(true);
-            CommonManager.Instance.DB.ReloadEpgAutoAddInfo();
-            CommonManager.Instance.DB.ReloadManualAutoAddInfo();
-            CommonManager.Instance.DB.ReloadEpgData();
+            CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
+            CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
+            CommonManager.Instance.DB.ReloadEpgData(true);
             reserveView.UpdateInfo();
             tunerReserveView.UpdateInfo();
             autoAddView.UpdateInfo();
@@ -902,8 +898,7 @@ namespace EpgTimer
 
                 if (setting.setEpgView.IsChangeEpgArcLoadSetting == true)
                 {
-                    CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.EpgData);
-                    CommonManager.Instance.DB.ReloadEpgData();
+                    CommonManager.Instance.DB.ReloadEpgData(true);
                 }
 
                 reserveView.UpdateInfo();
@@ -1364,8 +1359,7 @@ namespace EpgTimer
                     {
                         //NWでは重いが、使用している箇所多いので即取得する。
                         //自動取得falseのときはReloadEpgData()ではじかれているので元々読込まれない。
-                        CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.EpgData);
-                        CommonManager.Instance.DB.ReloadEpgData();
+                        CommonManager.Instance.DB.ReloadEpgData(true);
                         reserveView.UpdateInfo();//ジャンルや番組内容などが更新される
                         if (Settings.Instance.DisplayReserveAutoAddMissing == true)
                         {
@@ -1387,20 +1381,14 @@ namespace EpgTimer
                     }
                     else
                     {
-                        //使用している箇所多いので即取得する。
-                        CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.ReserveInfo);
-                        CommonManager.Instance.DB.ReloadReserveInfo();
+                        CommonManager.Instance.DB.ReloadReserveInfo(true);
                         RefreshAllViewsReserveInfo();
                         StatusManager.StatusNotifyAppend("予約データ更新 < ");
                     }
                     break;
                 case UpdateNotifyItem.RecInfo:
                     {
-                        CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.RecInfo);
-                        if (CommonManager.Instance.NWMode == false)
-                        {
-                            CommonManager.Instance.DB.ReloadrecFileInfo();
-                        }
+                        CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
                         recInfoView.UpdateInfo();
                         InfoSearchWindow.UpdatesInfo();
                         StatusManager.StatusNotifyAppend("録画済みデータ更新 < ");
@@ -1408,9 +1396,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.AutoAddEpgInfo:
                     {
-                        //使用箇所多いので即取得する。
-                        CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddEpgInfo);
-                        CommonManager.Instance.DB.ReloadEpgAutoAddInfo();
+                        CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
                         autoAddView.epgAutoAddView.UpdateInfo();
 
                         if (Settings.Instance.DisplayReserveAutoAddMissing == true)
@@ -1422,9 +1408,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.AutoAddManualInfo:
                     {
-                        //使用箇所多いので即取得する。
-                        CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddManualInfo);
-                        CommonManager.Instance.DB.ReloadManualAutoAddInfo();
+                        CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
                         autoAddView.manualAutoAddView.UpdateInfo();
 
                         if (Settings.Instance.DisplayReserveAutoAddMissing == true)
@@ -1478,8 +1462,7 @@ namespace EpgTimer
                 DBManager DB = CommonManager.Instance.DB;
 
                 //誤って変更しないよう、一度Srv側のリストを読み直す
-                DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddEpgInfo);
-                if (DB.ReloadEpgAutoAddInfo() == ErrCode.CMD_SUCCESS)
+                if (DB.ReloadEpgAutoAddInfo(true) == ErrCode.CMD_SUCCESS)
                 {
                     if (DB.EpgAutoAddList.Count != 0)
                     {
@@ -1490,8 +1473,7 @@ namespace EpgTimer
                 DB.ClearEpgAutoAddDataAppend();
 
                 //EPG自動登録とは独立
-                DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddManualInfo);
-                if (DB.ReloadManualAutoAddInfo() == ErrCode.CMD_SUCCESS)
+                if (DB.ReloadManualAutoAddInfo(true) == ErrCode.CMD_SUCCESS)
                 {
                     if (DB.ManualAutoAddList.Count != 0)
                     {
@@ -1500,13 +1482,12 @@ namespace EpgTimer
                 }
 
                 //上の二つが空リストでなくても、予約情報の更新がされない場合もある
-                DB.SetUpdateNotify((UInt32)UpdateNotifyItem.ReserveInfo);
-                if (DB.ReloadReserveInfo() == ErrCode.CMD_SUCCESS)
+                if (DB.ReloadReserveInfo(true) == ErrCode.CMD_SUCCESS)
                 {
                     if (DB.ReserveList.Count != 0)
                     {
                         //予約一覧は一つでも更新をかければ、再構築される。
-                        cmd.SendChgReserve(new List<ReserveData> { DB.ReserveList.Values.ToList()[0] });
+                        cmd.SendChgReserve(new List<ReserveData> { DB.ReserveList.Values.First() });
                     }
                     else
                     {

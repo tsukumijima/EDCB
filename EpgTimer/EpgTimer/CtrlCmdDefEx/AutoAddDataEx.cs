@@ -43,13 +43,11 @@ namespace EpgTimer
         {
             if (t == typeof(EpgAutoAddData))
             {
-                if (notify == true) CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddEpgInfo);
-                return CommonManager.Instance.DB.ReloadEpgAutoAddInfo();
+                return CommonManager.Instance.DB.ReloadEpgAutoAddInfo(notify);
             }
             else if (t == typeof(ManualAutoAddData))
             {
-                if (notify == true) CommonManager.Instance.DB.SetUpdateNotify((UInt32)UpdateNotifyItem.AutoAddManualInfo);
-                return CommonManager.Instance.DB.ReloadManualAutoAddInfo();
+                return CommonManager.Instance.DB.ReloadManualAutoAddInfo(notify);
             }
             return ErrCode.CMD_ERR;
         }
