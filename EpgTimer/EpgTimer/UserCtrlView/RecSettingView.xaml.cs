@@ -290,6 +290,7 @@ namespace EpgTimer
                 {
                     listView_recFolder.Items.Add(new RecFileSetInfoView(info.Clone(), true));
                 }
+                listView_recFolder.FitColumnWidth();
 
                 checkBox_suspendDef.IsChecked = null;//切り替え時のイベント発生のために必要
                 checkBox_suspendDef.IsChecked = recSetting.SuspendMode == 0;
@@ -385,6 +386,7 @@ namespace EpgTimer
                     setting.GetSetting(ref selectInfo);
                 }
                 listView_recFolder.Items.Refresh();
+                listView_recFolder.FitColumnWidth();
             }
             else
             {
@@ -413,6 +415,7 @@ namespace EpgTimer
                     }
                 }
                 listView_recFolder.Items.Add(new RecFileSetInfoView(setInfo, partialRec));
+                listView_recFolder.FitColumnWidth();
             }
         }
         
