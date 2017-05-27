@@ -39,13 +39,16 @@ namespace EpgTimer
         }
         protected override bool ReloadInfoData()
         {
+            checkBox_displayInternal.IsEnabled = IniFileHandler.GetPrivateProfileInt("SET", "SaveNotifyLog", 0, SettingPath.TimerSrvIniPath) != 0;
+            checkBox_displayInternal.ToolTip = checkBox_displayInternal.IsEnabled == true ? null : "未接続または「情報通知ログをファイルに保存する(EpgTimerSrv)」が無効です";
+            checkBox_displayInternal.IsChecked = checkBox_displayInternal.IsEnabled == false || Settings.Instance.NotifyLogEpgTimer;
             return lstCtrl.ReloadInfoData(dataList =>
             {
-                string notifyLog = "";
-                if (IniFileHandler.GetPrivateProfileInt("SET", "SaveNotifyLog", 0, SettingPath.TimerSrvIniPath) != 0
-                    && CommonManager.Instance.CtrlCmd.SendGetNotifyLog(Math.Max(Settings.Instance.NotifyLogMax, 1), ref notifyLog) == ErrCode.CMD_SUCCESS)
+                if (checkBox_displayInternal.IsChecked == false)
                 {
                     //サーバに保存されたログを使う
+                    string notifyLog = "";
+                    CommonManager.Instance.CtrlCmd.SendGetNotifyLog(Math.Max(Settings.Instance.NotifyLogMax, 1), ref notifyLog);
                     dataList.AddRange(notifyLog.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                                                 .Select(text => new NotifySrvInfoItem(text)));
                 }
@@ -80,6 +83,11 @@ namespace EpgTimer
             int logMax;
             int.TryParse(textBox_logMax.Text, out logMax);
             Settings.Instance.NotifyLogMax = logMax;
+        }
+        private void checkBox_displayInternal_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.Instance.NotifyLogEpgTimer = checkBox_displayInternal.IsChecked == true;
+            ReloadInfoData();
         }
     }
     public class NotifyLogWindowBase : AttendantDataWindow<NotifyLogWindow> { }

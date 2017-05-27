@@ -23,7 +23,7 @@ namespace EpgTimer
                     notifyID == UpdateNotifyItem.EpgCapEnd ? "EPG取得" : info.notifyID.ToString();
             LogText = notifyID == UpdateNotifyItem.EpgCapStart ? "開始" :
                       notifyID == UpdateNotifyItem.EpgCapEnd ? "終了" : info.param4.Replace("\r\n", "  ");
-            keyID = info.notifyID;
+            keyID = (ulong)this.ToString().GetHashCode();
         }
         public NotifySrvInfoItem(string text)
         {
