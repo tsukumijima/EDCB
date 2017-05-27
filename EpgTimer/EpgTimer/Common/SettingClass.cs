@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Xml.Serialization;
 
 namespace EpgTimer
 {
@@ -60,7 +61,7 @@ namespace EpgTimer
 
         public static double GetPrivateProfileDouble(string lpAppName, string lpKeyName, double dDefault, string lpFileName)
         {
-            string s = IniFileHandler.GetPrivateProfileString(lpAppName, lpKeyName, dDefault.ToString(), lpFileName);
+            string s = GetPrivateProfileString(lpAppName, lpKeyName, dDefault.ToString(), lpFileName);
             double.TryParse(s, out dDefault);
             return dDefault;
         }
@@ -92,11 +93,11 @@ namespace EpgTimer
                 {
                     if (lpAppName != null)
                     {
-                        IniFileHandler.WritePrivateProfileString(lpAppName, key, null, lpFileName);
+                        WritePrivateProfileString(lpAppName, key, null, lpFileName);
                     }
                     else
                     {
-                        IniFileHandler.WritePrivateProfileString(key, null, null, lpFileName);
+                        WritePrivateProfileString(key, null, null, lpFileName);
                     }
                 }
             }
@@ -112,7 +113,7 @@ namespace EpgTimer
 
             ChSet5.Clear();
             Settings.Instance.RecPresetList = null;
-            Settings.Instance.ReloadOtherOptions();
+            Settings.ReloadOtherOptions();
         }
 
         public static void ReloadSettingFilesNW(List<string> iniList = null)
@@ -340,7 +341,7 @@ namespace EpgTimer
         public List<string> NotKeyList { get; set; }
         public EpgSearchKeyInfo DefSearchKey { get; set; }
         private List<RecPresetItem> recPresetList = null;
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         public List<RecPresetItem> RecPresetList
         {
             get
@@ -658,9 +659,7 @@ namespace EpgTimer
             TrimSortTitle = false;
         }
 
-        [NonSerialized()]
         private static Settings _instance;
-        [System.Xml.Serialization.XmlIgnore]
         public static Settings Instance
         {
             get
@@ -672,44 +671,34 @@ namespace EpgTimer
             set { _instance = value; }
         }
 
-        /// <summary>
-        /// 設定ファイルロード関数
-        /// </summary>
+        private static bool noSave = false;
+        /// <summary>設定ファイルロード関数</summary>
         public static void LoadFromXmlFile(bool nwMode = false)
         {
-            _LoadFromXmlFile(GetSettingPath(), nwMode);
-        }
-        private static void _LoadFromXmlFile(string path, bool nwMode)
-        {
+            string path = GetSettingPath();
             try
             {
                 using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                 {
                     //読み込んで逆シリアル化する
-                    var xs = new System.Xml.Serialization.XmlSerializer(typeof(Settings));
-                    Instance = (Settings)(xs.Deserialize(fs));
+                    Instance = (Settings)(new XmlSerializer(typeof(Settings)).Deserialize(fs));
                 }
             }
             catch (Exception ex)
             {
-                if (ex.GetBaseException().GetType() != typeof(System.IO.FileNotFoundException))
+                if (ex.GetBaseException().GetType() != typeof(FileNotFoundException))
                 {
-                    string backPath = path + ".back";
-                    if (System.IO.File.Exists(backPath) == true)
-                    {
-                        if (MessageBox.Show("設定ファイルが異常な可能性があります。\r\nバックアップファイルから読み込みますか？", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                        {
-                            _LoadFromXmlFile(backPath, nwMode);
-                            return;
-                        }
-                    }
+                    noSave = true;
+                    MessageBox.Show("設定ファイルの読込に失敗しました。\r\n" +
+                                    "現在の設定ファイルを削除するか、バックアップ(" + path + ".back)から復元してください。" +
+                                    "EpgTimerを再起動するまで設定ファイルは上書き保存されません。", "設定ファイルエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                     MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
                 }
             }
 
             try
             {
-                nwMode |= Settings.Instance.ForceNWMode;
+                nwMode |= Instance.ForceNWMode;
 
                 // タイミング合わせにくいので、メニュー系のデータチェックは
                 // MenuManager側のワークデータ作成時に実行する。
@@ -719,14 +708,14 @@ namespace EpgTimer
                 //互換用コード。旧CS仮対応コード(+0x70)も変換する。
                 if (Instance.verSaved < Instance.SettingFileVer)
                 {
-                    foreach (var info in Settings.Instance.CustomEpgTabList)
+                    foreach (var info in Instance.CustomEpgTabList)
                     {
                         info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
                         EpgContentData.FixNibble(info.ViewContentList);
                         EpgContentData.FixNibble(info.SearchKey.contentList);
                         info.ViewContentKindList = null;
                     }
-                    EpgContentData.FixNibble(Settings.Instance.DefSearchKey.contentList);
+                    EpgContentData.FixNibble(Instance.DefSearchKey.contentList);
                 }
 
                 //色設定関係
@@ -785,46 +774,37 @@ namespace EpgTimer
                 }
                 if (Instance.RecInfoDropExclude.Count == 0)
                 {
-                    Settings.Instance.RecInfoDropExclude = new List<string> { "EIT", "NIT", "CAT", "SDT", "SDTT", "TOT", "ECM", "EMM" };
+                    Instance.RecInfoDropExclude = new List<string> { "EIT", "NIT", "CAT", "SDT", "SDTT", "TOT", "ECM", "EMM" };
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
- 
+
+        /// <summary>設定ファイルセーブ関数</summary>
         public static void SaveToXmlFile()
         {
             try
             {
-                string path = GetSettingPath();
+                if (noSave == true) return;
 
-                if (System.IO.File.Exists(path) == true)
+                string path = GetSettingPath();
+                if (File.Exists(path) == true)
                 {
-                    string backPath = path + ".back";
-                    System.IO.File.Copy(path, backPath, true);
+                    File.Copy(path, path + ".back", true);
                 }
 
                 using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     //シリアル化して書き込む
-                    var xs = new System.Xml.Serialization.XmlSerializer(typeof(Settings));
-                    xs.Serialize(fs, Instance);
+                    new XmlSerializer(typeof(Settings)).Serialize(fs, Instance);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         private static string GetSettingPath()
         {
-            Assembly myAssembly = Assembly.GetEntryAssembly();
-            string path = myAssembly.Location + ".xml";
-
-            return path;
+            return Assembly.GetEntryAssembly().Location + ".xml";
         }
 
         public void SetSettings(string propertyName, object value)
@@ -848,21 +828,21 @@ namespace EpgTimer
             preset.RecPresetData.CopyTo(defKey);
         }
 
-        public void ReloadOtherOptions()
+        public static void ReloadOtherOptions()
         {
-            DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
-            DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
-            defRecfolders = null;
+            Instance.DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
+            Instance.DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
+            Instance.defRecfolders = null;
         }
 
         //デフォルトマージン
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         public int DefStartMargin { get; private set; }
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         public int DefEndMargin { get; private set; }
 
         List<string> defRecfolders = null;
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         public List<string> DefRecFolders
         {
             get
@@ -894,9 +874,9 @@ namespace EpgTimer
 
         public static void SetCustomEpgTabInfoID()
         {
-            for (int i = 0; i < Settings.Instance.CustomEpgTabList.Count; i++)
+            for (int i = 0; i < Instance.CustomEpgTabList.Count; i++)
             {
-                Settings.Instance.CustomEpgTabList[i].ID = i;
+                Instance.CustomEpgTabList[i].ID = i;
             }
         }
 
@@ -1085,7 +1065,7 @@ namespace EpgTimer
             return null;
         }
 
-        public void ResetColorSetting()
+        private void ResetColorSetting()
         {
             ContentColorList = new List<string>();
             ContentCustColorList = new List<uint>();
@@ -1124,7 +1104,7 @@ namespace EpgTimer
         {
             if (list.Count < val.Count()) list.AddRange(val.Skip(list.Count));
         }
-        public void SetColorSetting()
+        private void SetColorSetting()
         {
             int num;
             //番組表の背景色
