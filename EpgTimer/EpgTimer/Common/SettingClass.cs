@@ -201,15 +201,17 @@ namespace EpgTimer
         {
             get
             {
-                string path = DefSettingFolderPath;
+                string path;
                 if (CommonManager.Instance.NWMode == false)
                 {
-                    path = IniFileHandler.GetPrivateProfileString("SET", "DataSavePath", path, CommonIniPath);
+                    path = IniFileHandler.GetPrivateProfileString("SET", "DataSavePath", "", CommonIniPath);
                 }
                 else
                 {
-                    path = Settings.Instance.SettingFolderPathNW == "" ? path : Settings.Instance.SettingFolderPathNW;
+                    path = Settings.Instance.SettingFolderPathNW;
                 }
+                //※ドライブなしルートパス(\)について : EpgTimerSrvは、SettingFolderPath、DefRecFoldersでは認識しない(空白扱い)だが、ReserveData.RecSettingでは認識する。
+                path = path.TrimEnd('\\') == "" ? DefSettingFolderPath : path.TrimEnd('\\');
                 return (Path.IsPathRooted(path) ? "" : ModulePath.TrimEnd('\\') + "\\") + path;
             }
             set
@@ -853,20 +855,15 @@ namespace EpgTimer
                 {
                     defRecfolders = new List<string>();
                     int num = IniFileHandler.GetPrivateProfileInt("SET", "RecFolderNum", 0, SettingPath.CommonIniPath);
-                    if (num == 0)
+                    if (num <= 0)
                     {
-                        defRecfolders.Add(IniFileHandler.GetPrivateProfileString("SET", "DataSavePath", "Setting", SettingPath.CommonIniPath));
+                        defRecfolders.Add(SettingPath.SettingFolderPath);
                     }
                     else
                     {
                         for (uint i = 0; i < num; i++)
                         {
-                            string key = "RecFolderPath" + i.ToString();
-                            string folder = IniFileHandler.GetPrivateProfileString("SET", key, "", SettingPath.CommonIniPath);
-                            if (folder.Length > 0)
-                            {
-                                defRecfolders.Add(folder);
-                            }
+                            defRecfolders.Add(IniFileHandler.GetPrivateProfileString("SET", "RecFolderPath" + i.ToString(), "", SettingPath.CommonIniPath));
                         }
                     }
                 }
