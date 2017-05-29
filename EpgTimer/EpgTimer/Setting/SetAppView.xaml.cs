@@ -129,6 +129,9 @@ namespace EpgTimer.Setting
                 checkBox_appNW.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecNW", 0, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_appKeepDisk.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "KeepDisk", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_appOverWrite.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecOverWrite", 0, SettingPath.TimerSrvIniPath) == 1;
+                checkBox_wakeUpHdd.IsChecked = Settings.Instance.WakeUpHdd;
+                textBox_noWakeUpHddMin.Text = Settings.Instance.NoWakeUpHddMin.ToString();
+                checkBox_onlyWakeUpHddOverlap.IsChecked = Settings.Instance.WakeUpHddOverlapNum >= 1;
                 comboBox_process.Items.AddItems(new string[] { "リアルタイム", "高", "通常以上", "通常", "通常以下", "低" });
                 comboBox_process.SelectedIndex = IniFileHandler.GetPrivateProfileInt("SET", "ProcessPriority", 3, SettingPath.TimerSrvIniPath);
 
@@ -365,6 +368,10 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "KeepDisk", checkBox_appKeepDisk.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "RecOverWrite", checkBox_appOverWrite.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "ProcessPriority", comboBox_process.SelectedIndex.ToString(), SettingPath.TimerSrvIniPath);
+                Settings.Instance.WakeUpHdd = checkBox_wakeUpHdd.IsChecked == true;
+                if (Settings.Instance.WakeUpHdd == false) CommonManager.WakeUpHDDLogClear();
+                Settings.Instance.NoWakeUpHddMin = MenuUtil.MyToNumerical(textBox_noWakeUpHddMin, Convert.ToInt32, Int32.MaxValue, 0, Settings.Instance.NoWakeUpHddMin);
+                Settings.Instance.WakeUpHddOverlapNum = checkBox_onlyWakeUpHddOverlap.IsChecked == true ? 1 : 0;
 
                 //2 予約管理情報
                 IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);

@@ -153,6 +153,15 @@
                     <CheckBox Content="番組情報を出力する" HorizontalAlignment="Left" Margin="186,22,0,0" Name="checkBox_addPgInfo" VerticalAlignment="Top" />
                     <CheckBox Content="録画ファイルの容量確保を行う" HorizontalAlignment="Left" Margin="355,22,0,0" Name="checkBox_appKeepDisk" VerticalAlignment="Top" />
                     <CheckBox Content="同一ファイル名が存在した場合に上書きする" HorizontalAlignment="Left" Margin="0,44,0,0" Name="checkBox_appOverWrite" VerticalAlignment="Top" />
+                    <StackPanel Orientation="Horizontal" Margin="0,63,0,0" >
+                        <CheckBox Content="録画用アプリ起動時に録画先フォルダへのアクセスを発生させる[試験的]" Name="checkBox_wakeUpHdd" ToolTipService.ShowDuration="60000" ToolTipService.ShowOnDisabled="True" ToolTip="EpgTimerが実行中であれば、録画するHDDのスリープ解除を試みます。&#10;EpgTimerは予約録画開始準備の通知を受け、録画フォルダに一時ファイルを作成・削除します。&#10;同じフォルダに録画中または情報保持期間内にアクセスの記録があれば何もしませんが、&#10;判定は録画先フォルダのみで行い、ドライブの確認を行いません。"/>
+                        <StackPanel Orientation="Horizontal" ToolTipService.ShowDuration="20000" ToolTipService.ShowOnDisabled="True" ToolTip="録画用アプリの起動時間×2＋1分より大きい値を設定してください。&#10;それ以下に設定すると、情報の保持効果が不十分または失われます。">
+                            <TextBlock Text=" ( 情報保持期間 "/>
+                            <TextBox Name="textBox_noWakeUpHddMin" Width="42" />
+                            <TextBlock Text=" 分" Margin="0,0,12,0" />
+                        </StackPanel>
+                        <CheckBox Content="複数同時開始時のみ )" Name="checkBox_onlyWakeUpHddOverlap"  ToolTipService.ShowOnDisabled="True" ToolTip="1分以内の同時開始予約または複数フォルダへの書き出しがある場合のみ実行します" />
+                    </StackPanel>
                 </Grid>
             </StackPanel>
         </TabItem>

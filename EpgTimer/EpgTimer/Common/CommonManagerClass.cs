@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Collections;
 using System.IO;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace EpgTimer
 {
@@ -1543,6 +1544,80 @@ namespace EpgTimer
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+        }
+
+        //2回呼び出されるが、2回目の呼び出しはキャッシュヒットで落ちる。
+        private static Dictionary<string, DateTime> wakeLog = null;
+        public static void WakeUpHDDLogClear() { wakeLog = null; }
+        public static void WakeUpHDDWork()
+        {
+            if (CommonManager.Instance.NWMode == true || Settings.Instance.WakeUpHdd == false)
+            { return; }
+
+            wakeLog = wakeLog ?? new Dictionary<string, DateTime>();
+
+            //録画中の予約と、録画が始まる予約を抽出
+            var now = DateTime.UtcNow.AddHours(9);
+            var start = now.AddMinutes(1 + IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath));
+            var past = start.AddMinutes(-Settings.Instance.NoWakeUpHddMin);
+            List<ReserveData> reslist = Instance.DB.ReserveList.Values.Where(info => info.RecSetting.RecMode < 4).ToList();
+            List<ReserveData> onlist = reslist.Where(info => info.IsOnRec(now)).ToList();
+            List<ReserveData> stlist = reslist.Where(info => info.OnTime(start) >= 0).Except(onlist).ToList();
+
+            //録画フォルダの抽出メソッド
+            //※EpgTimerSrvは、ドライブなしルートパス(\)をDefRecFoldersでは認識しない(空白扱い)だが、ReserveData.RecSettingでは認識する。
+            string def1 = Settings.Instance.DefRecFolders.Count == 0 ? "" : Settings.Instance.DefRecFolders[0];
+            def1 = def1.TrimEnd('\\') == "" ? SettingPath.SettingFolderPath : def1;
+            var cnv = new PathConverter(SettingPath.EdcbExePath);//今のところ同じフォルダにある前提だが、設定があるので変換しておく
+            Func<List<ReserveData>, IEnumerable<IGrouping<string, string>>> RecFolders = list =>
+            {
+                var fs = new List<string>();
+                foreach (RecSettingData s in list.Select(data => data.RecSetting))
+                {
+                    fs.AddRange(s.RecFolderList.Select(f => f.RecFolder));
+                    if (s.PartialRecFlag != 0) fs.AddRange(s.PartialRecFolder.Select(f => f.RecFolder));
+                    if (s.RecFolderList.Count == 0 || s.PartialRecFlag != 0 && s.PartialRecFolder.Count == 0) fs.Add(def1);
+                }
+                return fs.Select(f => cnv.Convert(f == "!Default" ? def1 : f))
+                        .Except(new string[] { null }).GroupBy(f => f.ToLower());//日本語でもこれでいい
+            };
+
+            //保存情報の更新・追加
+            wakeLog.Where(info => info.Value < past).ToList().ForEach(item => wakeLog.Remove(item.Key));
+            foreach (var f in RecFolders(onlist)) wakeLog[f.Key] = now;//録画中のフォルダは常に回避
+            List<IGrouping<string, string>> stFolders = RecFolders(stlist).Where(f => wakeLog.ContainsKey(f.Key) == false).ToList();
+
+            //対象があるかどうかと複数書き出しのチェック
+            if (stFolders.Count <= Settings.Instance.WakeUpHddOverlapNum) return;
+
+            stFolders.ForEach(f =>
+            {
+                wakeLog[f.Key] = now;//見込みではなく確定情報で更新
+                AddNotifyLog(new NotifySrvInfo { notifyID = (uint)UpdateNotifyItem.PreRecStart, time = now, param4 = string.Format("EpgTimer > Access to \"{0}\"", f.First()) });
+            });
+
+            //Writeを発生。バッチで投げちゃった方がいいかも？
+            var folder = "\\EpgTimer_WakeUpHDD_" + now.ToString("yyyyMMddHHmmssfff");
+            var flist = stFolders.Select(f => f.First().TrimEnd('\\') + folder).ToList();
+            Task.Factory.StartNew(() => flist.ForEach(f => { try { Directory.Delete(Directory.CreateDirectory(f).FullName); } catch { } }));
+        }
+        class PathConverter
+        {
+            string refPath = null;
+            string n(string s) { return string.IsNullOrEmpty(s) == true ? null : s; }
+            string d(string s) { return s.TrimEnd('\\') + "\\"; }
+            public PathConverter(string refFile = null)
+            {
+                try { refPath = Path.GetDirectoryName(Path.GetFullPath(n(refFile))); }
+                catch { }
+                refPath = d(refPath ?? SettingPath.ModulePath);
+            }
+            public string Convert(string folder)
+            {
+                folder = d(n(folder) ?? ".");
+                try { return d(Path.GetFullPath(Path.IsPathRooted(folder) == true ? folder : refPath + Path.GetDirectoryName(folder))); }
+                catch { return null; }
+            }
         }
     }
 }

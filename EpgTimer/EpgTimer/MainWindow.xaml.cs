@@ -1332,6 +1332,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.PreRecStart:
                     NotifyWork("予約録画開始準備", status.param4);
+                    CommonManager.WakeUpHDDWork();
                     break;
                 case UpdateNotifyItem.RecStart:
                     NotifyWork("録画開始", status.param4);
