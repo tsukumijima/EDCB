@@ -38,19 +38,14 @@ namespace EpgTimer.Setting
             if (CommonManager.Instance.NWMode == true)
             {
                 tabItem1.Foreground = SystemColors.GrayTextBrush;
-                ViewUtil.ChangeChildren(grid_rec, false);
-                grid_AppCancel.IsEnabled = true;
+                grid_AppRecEnd.IsEnabled = false;
+                grid_AppRec.IsEnabled = false;
                 ViewUtil.ChangeChildren(grid_AppCancelMain, false);
-                listBox_process.IsEnabled = true;
+                grid_AppCancelMainInput.IsEnabled = true;
+                ViewUtil.ChangeChildren(grid_AppCancelMainInput, false);
                 textBox_process.SetReadOnlyWithEffect(true);
 
-                checkBox_back_priority.IsEnabled = false;
-                checkBox_fixedTunerPriority.IsEnabled = false;
-                checkBox_recInfoFolderOnly.IsEnabled = false;
-                checkBox_recInfoDelFile.IsEnabled = false;
-                checkBox_applyExtTo.IsEnabled = false;
-                checkBox_autoDel.IsEnabled = false;
-
+                grid_AppReserve1.IsEnabled = false;
                 grid_App2Del.Foreground = SystemColors.GrayTextBrush;
                 ViewUtil.ChangeChildren(grid_App2DelMain, false);
                 listBox_ext.IsEnabled = true;
@@ -62,7 +57,7 @@ namespace EpgTimer.Setting
 
                 grid_recname.IsEnabled = false;
                 checkBox_noChkYen.IsEnabled = false;
-                ViewUtil.ChangeChildren(grid_delReserve, false);
+                grid_delReserve.IsEnabled = false;
 
                 checkBox_tcpServer.IsEnabled = false;
                 ViewUtil.ChangeChildren(grid_tcpCtrl, false);
