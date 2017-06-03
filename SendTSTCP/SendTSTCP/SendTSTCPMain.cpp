@@ -12,8 +12,6 @@ CSendTSTCPMain::CSendTSTCPMain(void)
 {
 	m_hStopSendEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hSendThread = NULL;
-	m_hStopConnectEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hConnectThread = NULL;
 
 	InitializeCriticalSection(&m_sendLock);
 	InitializeCriticalSection(&m_buffLock);
@@ -24,18 +22,6 @@ CSendTSTCPMain::CSendTSTCPMain(void)
 
 CSendTSTCPMain::~CSendTSTCPMain(void)
 {
-	if( m_hConnectThread != NULL ){
-		::SetEvent(m_hStopConnectEvent);
-		// スレッド終了待ち
-		if ( ::WaitForSingleObject(m_hConnectThread, 2000) == WAIT_TIMEOUT ){
-			::TerminateThread(m_hConnectThread, 0xffffffff);
-		}
-		CloseHandle(m_hConnectThread);
-		m_hConnectThread = NULL;
-	}
-	::CloseHandle(m_hStopConnectEvent);
-	m_hStopConnectEvent = NULL;
-
 	if( m_hSendThread != NULL ){
 		::SetEvent(m_hStopSendEvent);
 		// スレッド終了待ち
@@ -58,11 +44,6 @@ CSendTSTCPMain::~CSendTSTCPMain(void)
 		}
 	}
 	m_SendList.clear();
-
-	for( int i=0; i<(int)m_TSBuff.size(); i++ ){
-		SAFE_DELETE(m_TSBuff[i]);
-	}
-	m_TSBuff.clear();
 
 	WSACleanup();
 }
@@ -140,15 +121,12 @@ DWORD CSendTSTCPMain::ClearSendAddr(
 DWORD CSendTSTCPMain::StartSend(
 	)
 {
-	if( m_hSendThread != NULL || m_hConnectThread != NULL){
+	if( m_hSendThread != NULL ){
 		return FALSE;
 	}
 
-	ResetEvent(m_hStopConnectEvent);
 	ResetEvent(m_hStopSendEvent);
-	m_hConnectThread = (HANDLE)_beginthreadex(NULL, 0, ConnectThread, (LPVOID)this, CREATE_SUSPENDED, NULL);
 	m_hSendThread = (HANDLE)_beginthreadex(NULL, 0, SendThread, (LPVOID)this, CREATE_SUSPENDED, NULL);
-	ResumeThread(m_hConnectThread);
 	ResumeThread(m_hSendThread);
 
 	return TRUE;
@@ -159,16 +137,6 @@ DWORD CSendTSTCPMain::StartSend(
 DWORD CSendTSTCPMain::StopSend(
 	)
 {
-	if( m_hConnectThread != NULL ){
-		::SetEvent(m_hStopConnectEvent);
-		// スレッド終了待ち
-		if ( ::WaitForSingleObject(m_hConnectThread, 5000) == WAIT_TIMEOUT ){
-			::TerminateThread(m_hConnectThread, 0xffffffff);
-		}
-		CloseHandle(m_hConnectThread);
-		m_hConnectThread = NULL;
-	}
-
 	if( m_hSendThread != NULL ){
 		::SetEvent(m_hStopSendEvent);
 		// スレッド終了待ち
@@ -201,18 +169,14 @@ DWORD CSendTSTCPMain::AddSendData(
 	)
 {
 
-	if( m_hSendThread != NULL || m_hConnectThread != NULL){
+	if( m_hSendThread != NULL ){
 		CBlockLock lock(&m_buffLock);
-		TS_DATA* pItem = new TS_DATA;
-		pItem->pbBuff = new BYTE[dwSize];
-		ZeroMemory( pItem->pbBuff, dwSize );
-		memcpy( pItem->pbBuff, pbData, dwSize );
-		pItem->dwSize = dwSize;
-
-		m_TSBuff.push_back(pItem);
+		m_TSBuff.push_back(vector<BYTE>());
+		m_TSBuff.back().reserve(sizeof(DWORD) * 2 + dwSize);
+		m_TSBuff.back().resize(sizeof(DWORD) * 2);
+		m_TSBuff.back().insert(m_TSBuff.back().end(), pbData, pbData + dwSize);
 		if( m_TSBuff.size() > 500 ){
-			SAFE_DELETE(m_TSBuff[0]);
-			m_TSBuff.erase(m_TSBuff.begin());
+			for( ; m_TSBuff.size() > 250; m_TSBuff.pop_front() );
 		}
 	}
 	return TRUE;
@@ -224,23 +188,27 @@ DWORD CSendTSTCPMain::ClearSendBuff(
 	)
 {
 	CBlockLock lock(&m_buffLock);
-	for( int i=0; i<(int)m_TSBuff.size(); i++ ){
-		SAFE_DELETE(m_TSBuff[i]);
-	}
 	m_TSBuff.clear();
 
 	return TRUE;
 }
 
-UINT WINAPI CSendTSTCPMain::ConnectThread(LPVOID pParam)
+UINT WINAPI CSendTSTCPMain::SendThread(LPVOID pParam)
 {
 	CSendTSTCPMain* pSys = (CSendTSTCPMain*)pParam;
+	DWORD dwWait = 0;
+	DWORD dwCount = 0;
+	DWORD dwCheckConnectTick = GetTickCount();
 	while(1){
-		if( ::WaitForSingleObject(pSys->m_hStopConnectEvent, 500) != WAIT_TIMEOUT ){
+		if( ::WaitForSingleObject(pSys->m_hStopSendEvent, dwWait) != WAIT_TIMEOUT ){
 			//キャンセルされた
 			break;
 		}
 
+		DWORD tick = GetTickCount();
+		if( tick - dwCheckConnectTick > 1000 )
+		{
+		dwCheckConnectTick = tick;
 		CBlockLock lock(&pSys->m_sendLock);
 
 		map<wstring, SEND_INFO>::iterator itr;
@@ -290,80 +258,31 @@ UINT WINAPI CSendTSTCPMain::ConnectThread(LPVOID pParam)
 				}
 			}
 		}
-	}
-	return 0;
-}
+		} //m_sendLock
 
-UINT WINAPI CSendTSTCPMain::SendThread(LPVOID pParam)
-{
-	CSendTSTCPMain* pSys = (CSendTSTCPMain*)pParam;
-	DWORD dwWait = 0;
-	DWORD dwCount = 0;
-	while(1){
-		if( ::WaitForSingleObject(pSys->m_hStopSendEvent, dwWait) != WAIT_TIMEOUT ){
-			//キャンセルされた
-			break;
-		}
-
-		DWORD dwSend = 0;
-		BYTE* pbSend = NULL;
+		std::list<vector<BYTE>> item;
 		{
-		CBlockLock lock(&pSys->m_buffLock);
-/*
-		if( pSys->m_TSBuff.size() >= 3 ){
+			CBlockLock lock(&pSys->m_buffLock);
 
-			dwSend = sizeof(DWORD)*2 + pSys->m_TSBuff[0]->dwSize + pSys->m_TSBuff[1]->dwSize + pSys->m_TSBuff[2]->dwSize;
-			pbSend = new BYTE[dwSend];
-			DWORD dwCmd[2] = {0,0};
-			dwCmd[0]=dwCount;
-			dwCmd[1]=pSys->m_TSBuff[0]->dwSize + pSys->m_TSBuff[1]->dwSize + pSys->m_TSBuff[2]->dwSize;
-			memcpy(pbSend, (BYTE*)&dwCmd, sizeof(DWORD)*2);
-			memcpy(pbSend+sizeof(DWORD)*2, pSys->m_TSBuff[0]->pbBuff, pSys->m_TSBuff[0]->dwSize);
-			memcpy(pbSend+sizeof(DWORD)*2+pSys->m_TSBuff[0]->dwSize, pSys->m_TSBuff[1]->pbBuff, pSys->m_TSBuff[1]->dwSize);
-			memcpy(pbSend+sizeof(DWORD)*2+pSys->m_TSBuff[0]->dwSize+pSys->m_TSBuff[1]->dwSize, pSys->m_TSBuff[2]->pbBuff, pSys->m_TSBuff[2]->dwSize);
-
-			SAFE_DELETE(pSys->m_TSBuff[0]);
-			SAFE_DELETE(pSys->m_TSBuff[1]);
-			SAFE_DELETE(pSys->m_TSBuff[2]);
-			pSys->m_TSBuff.erase( pSys->m_TSBuff.begin() );
-			pSys->m_TSBuff.erase( pSys->m_TSBuff.begin() );
-			pSys->m_TSBuff.erase( pSys->m_TSBuff.begin() );
-		}
-*/
-
-		if( pSys->m_TSBuff.size() >= 2 ){
-
-			dwSend = sizeof(DWORD)*2 + pSys->m_TSBuff[0]->dwSize + pSys->m_TSBuff[1]->dwSize;
-			pbSend = new BYTE[dwSend];
-			DWORD dwCmd[2] = {0,0};
-			dwCmd[0]=dwCount;
-			dwCmd[1]=pSys->m_TSBuff[0]->dwSize + pSys->m_TSBuff[1]->dwSize;
-			memcpy(pbSend, (BYTE*)&dwCmd, sizeof(DWORD)*2);
-			memcpy(pbSend+sizeof(DWORD)*2, pSys->m_TSBuff[0]->pbBuff, pSys->m_TSBuff[0]->dwSize);
-			memcpy(pbSend+sizeof(DWORD)*2+pSys->m_TSBuff[0]->dwSize, pSys->m_TSBuff[1]->pbBuff, pSys->m_TSBuff[1]->dwSize);
-
-			SAFE_DELETE(pSys->m_TSBuff[0]);
-			SAFE_DELETE(pSys->m_TSBuff[1]);
-			pSys->m_TSBuff.erase( pSys->m_TSBuff.begin() );
-			pSys->m_TSBuff.erase( pSys->m_TSBuff.begin() );
-		}
-		if( pSys->m_TSBuff.size() < 2 ){
-			dwWait = 10;
-		}
-		//実際にやりたかったのはこっちかもしれない(挙動を変えるのは若干危険を感じるので保留)
-		//dwWait = pSys->m_TSBuff.size() < 2 ? 10 : 0;
-
+			if( pSys->m_TSBuff.empty() == false ){
+				item.splice(item.end(), pSys->m_TSBuff, pSys->m_TSBuff.begin());
+				DWORD dwCmd[2] = { dwCount, (DWORD)(item.back().size() - sizeof(DWORD) * 2) };
+				memcpy(&item.back().front(), dwCmd, sizeof(dwCmd));
+			}
+			dwWait = pSys->m_TSBuff.empty() ? 100 : 0;
 		} //m_buffLock
-		if( pbSend != NULL ){
+
+		if( item.empty() == false ){
+			vector<BYTE>& buffSend = item.back();
 			CBlockLock lock(&pSys->m_sendLock);
 
 			map<wstring, SEND_INFO>::iterator itr;
 			for( itr = pSys->m_SendList.begin(); itr != pSys->m_SendList.end(); itr++){
 				if( itr->second.bConnect == TRUE ){
-					DWORD dwAdjust = HIWORD(itr->second.dwPort) == 1 ? dwSend - sizeof(DWORD)*2 : dwSend;
-					if( dwAdjust > 0 && send(itr->second.sock, 
-						(char*)pbSend + (dwSend - dwAdjust),
-						dwAdjust,
+					size_t adjust = HIWORD(itr->second.dwPort) == 1 ? buffSend.size() - sizeof(DWORD)*2 : buffSend.size();
+					if( adjust > 0 && send(itr->second.sock, 
+						(char*)&buffSend.front() + (buffSend.size() - adjust),
+						(int)adjust,
 						0
 						) == INVALID_SOCKET){
 							closesocket(itr->second.sock);
@@ -373,9 +292,6 @@ UINT WINAPI CSendTSTCPMain::SendThread(LPVOID pParam)
 					dwCount++;
 				}
 			}
-		}
-		if( pbSend != NULL ){
-			delete[] pbSend;
 		}
 	}
 	return 0;

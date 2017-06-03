@@ -107,7 +107,7 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 
 	for( int i=0; i<24; i++ ){
 		WCHAR buff[32];
-		wsprintf(buff, L"%d",i);
+		swprintf_s(buff, L"%d", i);
 		int index = ComboBox_AddString(GetDlgItem(IDC_COMBO_REC_H), buff);
 		ComboBox_SetItemData(GetDlgItem(IDC_COMBO_REC_H), index, i);
 	}
@@ -115,7 +115,7 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 
 	for( int i=0; i<60; i++ ){
 		WCHAR buff[32];
-		wsprintf(buff, L"%d",i);
+		swprintf_s(buff, L"%d", i);
 		int index = ComboBox_AddString(GetDlgItem(IDC_COMBO_REC_M), buff);
 		ComboBox_SetItemData(GetDlgItem(IDC_COMBO_REC_M), index, i);
 	}
@@ -136,7 +136,7 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 			err = ERR_FALSE;
 			WCHAR log[512 + 64] = L"";
 			GetDlgItemText(m_hWnd, IDC_EDIT_LOG, log, 512);
-			lstrcat(log, L"BonDriverが見つかりませんでした\r\n");
+			wcscat_s(log, L"BonDriverが見つかりませんでした\r\n");
 			SetDlgItemText(m_hWnd, IDC_EDIT_LOG, log);
 		}
 	}
@@ -310,11 +310,8 @@ void CEpgDataCap_BonDlg::OnTimer(UINT_PTR nIDEvent)
 					udp = L"UDP送信：";
 					for( size_t i=0; i<udpSendList.size(); i++ ){
 						wstring buff;
-						if( udpSendList[i].broadcastFlag == FALSE ){
-							Format(buff, L"%s:%d ",udpSendList[i].ipString.c_str(), udpSendList[i].port);
-						}else{
-							Format(buff, L"%s:%d(Broadcast) ",udpSendList[i].ipString.c_str(), udpSendList[i].port);
-						}
+						Format(buff, L":%d%s ", udpSendList[i].port, udpSendList[i].broadcastFlag ? L"(Broadcast)" : L"");
+						udp += udpSendList[i].ipString.find(L':') == wstring::npos ? udpSendList[i].ipString : L'[' + udpSendList[i].ipString + L']';
 						udp += buff;
 					}
 					udp += L"\r\n";
@@ -326,7 +323,8 @@ void CEpgDataCap_BonDlg::OnTimer(UINT_PTR nIDEvent)
 					tcp = L"TCP送信：";
 					for( size_t i=0; i<tcpSendList.size(); i++ ){
 						wstring buff;
-						Format(buff, L"%s:%d ",tcpSendList[i].ipString.c_str(), tcpSendList[i].port);
+						Format(buff, L":%d ", tcpSendList[i].port);
+						tcp += tcpSendList[i].ipString.find(L':') == wstring::npos ? tcpSendList[i].ipString : L'[' + tcpSendList[i].ipString + L']';
 						tcp += buff;
 					}
 					tcp += L"\r\n";
@@ -529,7 +527,7 @@ LRESULT CEpgDataCap_BonDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lPara
 			WCHAR log[512 + 64] = L"";
 			GetDlgItemText(m_hWnd, IDC_EDIT_LOG, log, 512);
 			if( wstring(log).find(L"予約録画中\r\n") == wstring::npos ){
-				lstrcat(log, L"予約録画中\r\n");
+				wcscat_s(log, L"予約録画中\r\n");
 				SetDlgItemText(m_hWnd, IDC_EDIT_LOG, log);
 			}
 			ChgIconStatus();
@@ -944,7 +942,7 @@ void CEpgDataCap_BonDlg::ReloadServiceList(BOOL ini)
 	if( ret != NO_ERR || this->serviceList.size() == 0 ){
 		WCHAR log[512 + 64] = L"";
 		GetDlgItemText(m_hWnd, IDC_EDIT_LOG, log, 512);
-		lstrcat(log, L"チャンネル情報の読み込みに失敗しました\r\n");
+		wcscat_s(log, L"チャンネル情報の読み込みに失敗しました\r\n");
 		SetDlgItemText(m_hWnd, IDC_EDIT_LOG, log);
 	}else{
 		int selectSel = 0;
@@ -1033,10 +1031,8 @@ void CEpgDataCap_BonDlg::OnBnClickedButtonRec()
 		SetDlgItemText(m_hWnd, IDC_EDIT_LOG, L"録画を開始できませんでした\r\n");
 		return;
 	}
-	SYSTEMTIME now;
-	GetLocalTime(&now);
 	SYSTEMTIME end;
-	GetSumTime(now, 30*60, &end);
+	ConvertSystemTime(GetNowI64Time() + 30 * 60 * I64_1SEC, &end);
 
 	ComboBox_SetCurSel(GetDlgItem(IDC_COMBO_REC_H), end.wHour);
 	ComboBox_SetCurSel(GetDlgItem(IDC_COMBO_REC_M), end.wMinute);
@@ -1103,13 +1099,11 @@ void CEpgDataCap_BonDlg::OnBnClickedCheckRecSet()
 	// TODO: ここにコントロール通知ハンドラー コードを追加します。
 	if( Button_GetCheck(GetDlgItem(IDC_CHECK_REC_SET)) != BST_UNCHECKED ){
 		BtnUpdate(GUI_REC_SET_TIME);
-		SYSTEMTIME now;
-		GetLocalTime(&now);
 
 		int selH = ComboBox_GetCurSel(GetDlgItem(IDC_COMBO_REC_H));
 		int selM = ComboBox_GetCurSel(GetDlgItem(IDC_COMBO_REC_M));
 
-		DWORD nowTime = now.wHour*60*60 + now.wMinute*60 + now.wSecond;
+		DWORD nowTime = (DWORD)(GetNowI64Time() / I64_1SEC % (24*60*60));
 		DWORD endTime = selH*60*60 + selM*60;
 
 		if( nowTime > endTime ){

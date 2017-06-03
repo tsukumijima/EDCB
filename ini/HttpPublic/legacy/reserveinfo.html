@@ -13,33 +13,50 @@ ct=[=[
 <div id="main">
 ]=]
 
-id=tonumber(mg.get_var(mg.request_info.query_string,'id')) or 0
-recFilePath=edcb.GetRecFilePath and edcb.GetRecFilePath(id) or nil
+id=GetVarInt(mg.request_info.query_string,'id') or 0
+recFilePath=edcb.GetRecFilePath(id)
 edcb.htmlEscape=15
 r=edcb.GetReserveData(id)
 if r then
   if recFilePath and NativeToDocumentPath(recFilePath) then
     for i,ext in ipairs({'.mp4','.webm',''}) do
-      edcb.htmlEscape=0
-      f=io.open(edcb.Convert('cp932', 'utf-8', recFilePath..ext), 'rb')
-      edcb.htmlEscape=15
+      f=edcb.FindFile and edcb.FindFile(recFilePath..ext, 1)
       if f then
-        f:close()
-        video=PathToRoot()..NativeToDocumentPath(recFilePath)..ext
+        video=NativeToDocumentPath(recFilePath)..ext
         break
       end
     end
   end
   epgInfo=_ConvertEpgInfoText2(r.onid, r.tsid, r.sid, r.eid)
+  dur=r.startTime.hour*3600+r.startTime.min*60+r.startTime.sec+r.durationSecond
   ct=ct..'  <dl>\n'
     ..'    <dt>番組情報</dt><dd>'..(#epgInfo>0 and '\n'..string.gsub(epgInfo, '\r?\n', '<br>\n')
-      or FormatTimeAndDuration(os.time(r.startTime), r.durationSecond)..'<br>'..r.stationName..'<br>'..r.title)..'</dd>\n'
-    ..(video and '    <dt>ファイル</dt><dd><a href="'..mg.url_encode(video):gsub('%%2f','/')..'">'..edcb.Convert('utf-8', 'utf-8', video)..'</a> [<a href="'
-       ..mg.url_encode(video:gsub('[^\\/]*$','')..'chunk.lua'):gsub('%%2f','/')..'?0='..mg.url_encode(video:match('[^\\/]*$'))..'">chunk.lua</a>]</dd>\n' or '')
+      or FormatTimeAndDuration(r.startTime, r.durationSecond)..'<br>'..r.stationName..'<br>'..r.title..'<br><br>'
+        ..string.format('OriginalNetworkID:%d(0x%04X)<br>', r.onid, r.onid)
+        ..string.format('TransportStreamID:%d(0x%04X)<br>', r.tsid, r.tsid)
+        ..string.format('ServiceID:%d(0x%04X)<br>', r.sid, r.sid)
+      )..'</dd>\n'
+  if video then
+    ct=ct..'    <dt>ファイル</dt><dd><a href="'..PathToRoot()..mg.url_encode(video):gsub('%%2f','/')..'">/'..edcb.Convert('utf-8', 'utf-8', video)..'</a>\n'
+      ..'[<a href="xcode.lua?0='..mg.url_encode(video)..'">xcode.lua</a>\n'
+    for i=1,9 do
+      ct=ct..'<a href="xcode.lua?'..(i*10)..'='..mg.url_encode(video)..'">'..i..'</a>\n'
+    end
+    ct=ct..'<a href="xcode.lua?99='..mg.url_encode(video)..'">(?M)</a>]</dd>\n'
+  end
+  ct=ct..'    <dt>プログラム予約'..(r.eid==65535 and '' or '化（プログラム予約化は元に戻せません。番組を特定できなくなるため追従もできません。）')
+    ..'</dt><dd>\n'
+    ..'<form method="POST" action="reservechg.html?id='..r.reserveID
+    ..'"><div><input type="hidden" name="ctok" value="'..CsrfToken()..'">\n'
+    ..'予約日時: <input type="text" name="startDate" value="'..string.format('%d/%d/%d', r.startTime.year, r.startTime.month, r.startTime.day)
+    ..'"> <input type="text" name="startTime" value="'..string.format('%d:%d:%d', r.startTime.hour, r.startTime.min, r.startTime.sec)
+    ..'"> ～ <input type="text" name="endTime" value="'..string.format('%d:%d:%d', math.floor(dur/3600)%24, math.floor(dur/60)%60, dur%60)
+    ..'"><br>\n'
+    ..'<input type="submit" value="変更"></div></form></dd>\n'
     ..'    <dt>プリセット</dt><dd>\n'
     ..'<form action="reserveinfo.html"><div>\n'
     ..'<input type="hidden" name="id" value="'..r.reserveID..'"><select name="presetID">\n'
-  presetID=tonumber(mg.get_var(mg.request_info.query_string,'presetID')) or 65535
+  presetID=GetVarInt(mg.request_info.query_string,'presetID') or 65535
   preset=false
   rs=r.recSetting
   for i,v in ipairs(edcb.EnumRecPresetInfo()) do

@@ -75,7 +75,7 @@ void CEpgDataCap_BonMain::ReloadSetting()
 	}else{
 		for( int i = 0; i < iNum; i++ ){
 			WCHAR key[64];
-			wsprintf(key, L"RecFolderPath%d", i );
+			swprintf_s(key, L"RecFolderPath%d", i);
 			this->recFolderList.push_back(GetPrivateProfileToString( L"SET", key, L"", commonIniPath.c_str() ));
 		}
 	}
@@ -209,7 +209,7 @@ DWORD CEpgDataCap_BonMain::SetCh(
 		if( this->bonCtrl.GetEpgCapStatus(NULL) == CBonCtrl::ST_WORKING ){
 			this->bonCtrl.StopEpgCap();
 		}
-		err = this->bonCtrl.SetCh(ONID, TSID);
+		err = this->bonCtrl.SetCh(ONID, TSID, SID);
 		if( err == NO_ERR ){
 			this->lastONID = ONID;
 			this->lastTSID = TSID;
@@ -317,16 +317,17 @@ BOOL CEpgDataCap_BonMain::SendUDP(
 			NW_SEND_INFO item;
 
 			WCHAR key[64];
-			wsprintf(key, L"IP%d",i);
-			item.ip = GetPrivateProfileInt( L"SET_UDP", key, 2130706433, appIniPath.c_str() );
-			wsprintf(key, L"Port%d",i);
+			swprintf_s(key, L"IP%d", i);
+			item.ipString = GetPrivateProfileToString(L"SET_UDP", key, L"2130706433", appIniPath.c_str());
+			if( item.ipString.size() >= 2 && item.ipString[0] == L'[' ){
+				item.ipString.erase(0, 1).pop_back();
+			}else{
+				UINT ip = _wtoi(item.ipString.c_str());
+				Format(item.ipString, L"%d.%d.%d.%d", ip >> 24, ip >> 16 & 0xFF, ip >> 8 & 0xFF, ip & 0xFF);
+			}
+			swprintf_s(key, L"Port%d", i);
 			item.port = GetPrivateProfileInt( L"SET_UDP", key, 1234, appIniPath.c_str() );
-			Format(item.ipString, L"%d.%d.%d.%d",
-				(item.ip&0xFF000000)>>24,
-				(item.ip&0x00FF0000)>>16,
-				(item.ip&0x0000FF00)>>8,
-				(item.ip&0x000000FF) );
-			wsprintf(key, L"BroadCast%d",i);
+			swprintf_s(key, L"BroadCast%d", i);
 			item.broadcastFlag = GetPrivateProfileInt( L"SET_UDP", key, 0, appIniPath.c_str() );
 
 			udpSendList.push_back(item);
@@ -384,15 +385,16 @@ BOOL CEpgDataCap_BonMain::SendTCP(
 			NW_SEND_INFO item;
 
 			WCHAR key[64];
-			wsprintf(key, L"IP%d",i);
-			item.ip = GetPrivateProfileInt( L"SET_TCP", key, 2130706433, appIniPath.c_str() );
-			wsprintf(key, L"Port%d",i);
+			swprintf_s(key, L"IP%d", i);
+			item.ipString = GetPrivateProfileToString(L"SET_TCP", key, L"2130706433", appIniPath.c_str());
+			if( item.ipString.size() >= 2 && item.ipString[0] == L'[' ){
+				item.ipString.erase(0, 1).pop_back();
+			}else{
+				UINT ip = _wtoi(item.ipString.c_str());
+				Format(item.ipString, L"%d.%d.%d.%d", ip >> 24, ip >> 16 & 0xFF, ip >> 8 & 0xFF, ip & 0xFF);
+			}
+			swprintf_s(key, L"Port%d", i);
 			item.port = GetPrivateProfileInt( L"SET_TCP", key, 2230, appIniPath.c_str() );
-			Format(item.ipString, L"%d.%d.%d.%d",
-				(item.ip&0xFF000000)>>24,
-				(item.ip&0x00FF0000)>>16,
-				(item.ip&0x0000FF00)>>8,
-				(item.ip&0x000000FF) );
 			item.broadcastFlag = 0;
 
 			tcpSendList.push_back(item);
@@ -496,9 +498,7 @@ DWORD CEpgDataCap_BonMain::GetEpgInfo(
 	if(epgInfo != NULL ){
 		*epgInfo = L"";
 		if( ret == NO_ERR ){
-			wstring epgText = L"";
-			_ConvertEpgInfoText(&info, epgText);
-			*epgInfo = epgText.c_str();
+			*epgInfo = ConvertEpgInfoText(&info);
 		}
 	}
 
@@ -572,7 +572,7 @@ BOOL CEpgDataCap_BonMain::StartRec(
 
 	wstring fileName = L"";
 	SYSTEMTIME now;
-	GetLocalTime(&now);
+	ConvertSystemTime(GetNowI64Time(), &now);
 	Format(fileName, L"%04d%02d%02d-%02d%02d%02d-%s.ts",
 		now.wYear,
 		now.wMonth,
@@ -706,13 +706,11 @@ void CEpgDataCap_BonMain::ViewAppOpen()
 		wstring strOpen;
 		Format(strOpen, L"\"%s\" %s", this->viewPath.c_str(), this->viewOpt.c_str());
 
-		WCHAR* pszOpen = new WCHAR[strOpen.size() + 1];
-		lstrcpy(pszOpen, strOpen.c_str());
-		CreateProcess( NULL, pszOpen, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi );
-		delete [] pszOpen;
-
-		CloseHandle(pi.hThread);
-		CloseHandle(pi.hProcess);
+		vector<WCHAR> strBuff(strOpen.c_str(), strOpen.c_str() + strOpen.size() + 1);
+		if( CreateProcess(NULL, &strBuff.front(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi) ){
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+		}
 	}
 }
 

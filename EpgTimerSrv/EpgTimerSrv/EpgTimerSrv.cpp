@@ -14,7 +14,7 @@
 
 SERVICE_STATUS_HANDLE g_hStatusHandle;
 CEpgTimerSrvMain* g_pMain;
-static HANDLE g_hDebugLog;
+static FILE* g_debugLog;
 static CRITICAL_SECTION g_debugLogLock;
 static bool g_saveDebugLog;
 
@@ -26,14 +26,11 @@ static void StartDebugLog()
 		wstring logPath;
 		GetModuleFolderPath(logPath);
 		logPath += L"\\EpgTimerSrvDebugLog.txt";
-		g_hDebugLog = CreateFile(logPath.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		if( g_hDebugLog != INVALID_HANDLE_VALUE ){
-			if( GetLastError() == ERROR_SUCCESS ){
-				DWORD dwWritten;
-				WriteFile(g_hDebugLog, "\xFF\xFE", sizeof(char) * 2, &dwWritten, NULL);
-			}else{
-				LARGE_INTEGER liPos = {};
-				SetFilePointerEx(g_hDebugLog, liPos, NULL, FILE_END);
+		g_debugLog = _wfsopen(logPath.c_str(), L"ab", _SH_DENYWR);
+		if( g_debugLog ){
+			_fseeki64(g_debugLog, 0, SEEK_END);
+			if( _ftelli64(g_debugLog) == 0 ){
+				fputwc(L'\xFEFF', g_debugLog);
 			}
 			InitializeCriticalSection(&g_debugLogLock);
 			g_saveDebugLog = true;
@@ -48,7 +45,7 @@ static void StopDebugLog()
 		OutputDebugString(L"****** LOG STOP ******\r\n");
 		g_saveDebugLog = false;
 		DeleteCriticalSection(&g_debugLogLock);
-		CloseHandle(g_hDebugLog);
+		fclose(g_debugLog);
 	}
 }
 
@@ -60,7 +57,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	SetDllDirectory(_T(""));
 
 	if( lpCmdLine[0] == _T('-') || lpCmdLine[0] == _T('/') ){
-		if( lstrcmpi(_T("install"), lpCmdLine + 1) == 0 ){
+		if( _tcsicmp(_T("install"), lpCmdLine + 1) == 0 ){
 			bool installed = false;
 			TCHAR exePath[512];
 			if( GetModuleFileName(NULL, exePath, _countof(exePath)) != 0 ){
@@ -81,7 +78,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 				MessageBox(NULL, L"Failed to install/remove " SERVICE_NAME L".\r\nRun as Administrator on Vista and later.", NULL, MB_ICONERROR);
 			}
 			return 0;
-		}else if( lstrcmpi(_T("remove"), lpCmdLine + 1) == 0 ){
+		}else if( _tcsicmp(_T("remove"), lpCmdLine + 1) == 0 ){
 			bool removed = false;
 			SC_HANDLE hScm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
 			if( hScm != NULL ){
@@ -101,13 +98,20 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 				MessageBox(NULL, L"Failed to install/remove " SERVICE_NAME L".\r\nRun as Administrator on Vista and later.", NULL, MB_ICONERROR);
 			}
 			return 0;
+		}else if( _tcsicmp(_T("setting"), lpCmdLine + 1) == 0 ){
+			//設定ダイアログを表示する
+			CoInitialize(NULL);
+			CEpgTimerSrvSetting setting;
+			setting.ShowDialog();
+			CoUninitialize();
+			return 0;
 		}
 	}
 
 
 	if( IsInstallService(SERVICE_NAME) == FALSE ){
 		//普通にexeとして起動を行う
-		HANDLE hMutex = CreateMutex(NULL, TRUE, EPG_TIMER_BON_SRV_MUTEX);
+		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
 				StartDebugLog();
@@ -121,12 +125,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 				CoUninitialize();
 				StopDebugLog();
 			}
-			ReleaseMutex(hMutex);
 			CloseHandle(hMutex);
 		}
 	}else if( IsStopService(SERVICE_NAME) == FALSE ){
 		//サービスとして実行
-		HANDLE hMutex = CreateMutex(NULL, TRUE, EPG_TIMER_BON_SRV_MUTEX);
+		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
 				StartDebugLog();
@@ -139,7 +142,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 				}
 				StopDebugLog();
 			}
-			ReleaseMutex(hMutex);
 			CloseHandle(hMutex);
 		}
 	}else{
@@ -234,18 +236,11 @@ void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 		CBlockLock lock(&g_debugLogLock);
 		SYSTEMTIME st;
 		GetLocalTime(&st);
-		WCHAR header[64];
-		int len = wsprintf(header, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
-		                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-		DWORD dwWritten;
-		WriteFile(g_hDebugLog, header, sizeof(WCHAR) * len, &dwWritten, NULL);
-		if( lpOutputString ){
-			len = lstrlen(lpOutputString);
-			WriteFile(g_hDebugLog, lpOutputString, sizeof(WCHAR) * len, &dwWritten, NULL);
-			if( len == 0 || lpOutputString[len - 1] != L'\n' ){
-				WriteFile(g_hDebugLog, L"<NOBR>\r\n", sizeof(WCHAR) * 8, &dwWritten, NULL);
-			}
-		}
+		fwprintf(g_debugLog, L"[%02d%02d%02d%02d%02d%02d.%03d] %s%s",
+		         st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
+		         lpOutputString ? lpOutputString : L"",
+		         lpOutputString && lpOutputString[0] && lpOutputString[wcslen(lpOutputString) - 1] == L'\n' ? L"" : L"<NOBR>\r\n");
+		fflush(g_debugLog);
 	}
 	OutputDebugStringW(lpOutputString);
 }
