@@ -155,6 +155,8 @@ namespace EpgTimer
 
     class SettingPath
     {
+        //Path.Combine()はドライブ区切り':'の扱いがアヤシイのでここでは使用しないことにする。
+        //なお、他のEpgTimerコード中で使っているところはModelePathに対してなので大丈夫。(ModelePathは'C:'のようなパスを返さない)
         private static string IniPath
         {
             get { return (CommonManager.Instance.NWMode == false ? ModulePath : SettingFolderPath); }
@@ -210,8 +212,8 @@ namespace EpgTimer
                 {
                     path = Settings.Instance.SettingFolderPathNW;
                 }
-                //※ドライブなしルートパス(\)について : EpgTimerSrvは、SettingFolderPath、DefRecFoldersでは認識しない(空白扱い)だが、ReserveData.RecSettingでは認識する。
-                path = path.TrimEnd('\\') == "" ? DefSettingFolderPath : path.TrimEnd('\\');
+                path = (string.IsNullOrEmpty(path) == true ? DefSettingFolderPath : path).TrimEnd('\\');
+                path += (path.Length > 0 && path.Last() == Path.VolumeSeparatorChar ? "\\" : "");
                 return (Path.IsPathRooted(path) ? "" : ModulePath.TrimEnd('\\') + "\\") + path;
             }
             set

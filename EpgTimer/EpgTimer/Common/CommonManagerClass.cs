@@ -1565,9 +1565,8 @@ namespace EpgTimer
             List<ReserveData> stlist = reslist.Where(info => info.OnTime(start) >= 0).Except(onlist).ToList();
 
             //録画フォルダの抽出メソッド
-            //※EpgTimerSrvは、ドライブなしルートパス(\)をDefRecFoldersでは認識しない(空白扱い)だが、ReserveData.RecSettingでは認識する。
             string def1 = Settings.Instance.DefRecFolders.Count == 0 ? "" : Settings.Instance.DefRecFolders[0];
-            def1 = def1.TrimEnd('\\') == "" ? SettingPath.SettingFolderPath : def1;
+            def1 = string.IsNullOrEmpty(def1) == true ? SettingPath.SettingFolderPath : def1;
             var cnv = new PathConverter(SettingPath.EdcbExePath);//今のところ同じフォルダにある前提だが、設定があるので変換しておく
             Func<List<ReserveData>, IEnumerable<IGrouping<string, string>>> RecFolders = list =>
             {
