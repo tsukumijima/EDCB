@@ -1160,7 +1160,7 @@ namespace EpgTimer
 
         private static string GetDirectoryName2(string folder_path)
         {
-            string path = folder_path.Trim();
+            string path = SettingPath.CheckFolder(folder_path);
             while (path != "")
             {
                 if (Directory.Exists(path)) break;
@@ -1172,7 +1172,7 @@ namespace EpgTimer
         //ネットワークパス対応のパス設定
         private static void GetPathByDialog(TextBox tbox, bool checkNWPath, Func<string, string> funcGetPathDialog)
         {
-            string path = tbox.Text.Trim();
+            string path = SettingPath.CheckFolder(tbox.Text);
 
             string base_src = "";
             string base_nw = "";
@@ -1210,9 +1210,8 @@ namespace EpgTimer
                 if (base_nw != "" && path.StartsWith(base_nw) == true)
                 {
                     path = path.Replace(base_nw, base_src);
-                    if (path.EndsWith(":") == true) path += "\\";//EpgTimerSrvに削除されてしまうが‥
                 }
-                tbox.Text = path;
+                tbox.Text = SettingPath.CheckFolder(path);
             }
         }
 

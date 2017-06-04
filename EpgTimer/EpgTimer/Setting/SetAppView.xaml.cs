@@ -153,6 +153,7 @@ namespace EpgTimer.Setting
                     bxc.AllowKeyAction();
                     bxc.AllowDragDrop();
                     button_chk_del.Click += new RoutedEventHandler(bxc.button_Delete_Click);
+                    button_chk_add.Click += (sender, e) => textBox_chk_folder.Text = SettingPath.CheckFolder(textBox_chk_folder.Text);
                     button_chk_add.Click += ViewUtil.ListBox_TextCheckAdd(listBox_chk_folder, textBox_chk_folder);
 
                     textBox_ext.KeyDown += ViewUtil.KeyDown_Enter(button_ext_add);
@@ -177,7 +178,7 @@ namespace EpgTimer.Setting
                 count = IniFileHandler.GetPrivateProfileInt("DEL_CHK", "Count", 0, SettingPath.TimerSrvIniPath);
                 for (int i = 0; i < count; i++)
                 {
-                    listBox_chk_folder.Items.Add(IniFileHandler.GetPrivateProfileString("DEL_CHK", i.ToString(), "", SettingPath.TimerSrvIniPath));
+                    listBox_chk_folder.Items.Add(IniFileHandler.GetPrivateProfileFolder("DEL_CHK", i.ToString(), SettingPath.TimerSrvIniPath));
                 }
 
                 checkBox_recname.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecNamePlugIn", 0, SettingPath.TimerSrvIniPath) == 1;
@@ -377,7 +378,7 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDel", checkBox_autoDel.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
 
                 List<String> extList = listBox_ext.Items.OfType<string>().ToList();
-                List<String> delChkFolderList = listBox_chk_folder.Items.OfType<string>().ToList();
+                List<String> delChkFolderList = ViewUtil.GetFolderList(listBox_chk_folder);
                 IniFileHandler.WritePrivateProfileString("DEL_EXT", "Count", extList.Count.ToString(), SettingPath.TimerSrvIniPath);
                 IniFileHandler.DeletePrivateProfileNumberKeys("DEL_EXT", SettingPath.TimerSrvIniPath);
                 for (int i = 0; i < extList.Count; i++)
@@ -642,7 +643,7 @@ namespace EpgTimer.Setting
         {
             try
             {
-                string shortcutPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), SettingPath.ModuleName + ".lnk");
+                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), SettingPath.ModuleName + ".lnk");
                 if (File.Exists(shortcutPath))
                 {
                     File.Delete(shortcutPath);
@@ -661,7 +662,7 @@ namespace EpgTimer.Setting
         {
             try
             {
-                string shortcutPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "EpgTimerSrv.lnk");
+                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "EpgTimerSrv.lnk");
                 if (File.Exists(shortcutPath))
                 {
                     File.Delete(shortcutPath);
@@ -669,7 +670,7 @@ namespace EpgTimer.Setting
                 }
                 else
                 {
-                    CreateShortCut(shortcutPath, System.IO.Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"), "");
+                    CreateShortCut(shortcutPath, Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"), "");
                     button_shortCutSrv.Content = "削除";
                 }
             }
@@ -695,7 +696,7 @@ namespace EpgTimer.Setting
             Type shortcutType = shell.GetType();
             // TargetPathプロパティをセットする
             shortcutType.InvokeMember("TargetPath", BindingFlags.SetProperty, null, shortCut, new object[] { targetPath });
-            shortcutType.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, shortCut, new object[] { System.IO.Path.GetDirectoryName(targetPath) });
+            shortcutType.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, shortCut, new object[] { Path.GetDirectoryName(targetPath) });
             // Descriptionプロパティをセットする
             shortcutType.InvokeMember("Description", BindingFlags.SetProperty, null, shortCut, new object[] { description });
             // Saveメソッドを実行する

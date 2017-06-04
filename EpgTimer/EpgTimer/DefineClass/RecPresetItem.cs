@@ -46,8 +46,6 @@ namespace EpgTimer
 
             string IDS = ID == 0 ? "" : ID.ToString();
             string defName = "REC_DEF" + IDS;
-            string defFolderName = "REC_DEF_FOLDER" + IDS;
-            string defFolder1SegName = "REC_DEF_FOLDER_1SEG" + IDS;
 
             recPresetData = new RecSettingData();
             recPresetData.RecMode = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "RecMode", 1, SettingPath.TimerSrvIniPath);
@@ -57,27 +55,20 @@ namespace EpgTimer
             recPresetData.PittariFlag = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "PittariFlag", 0, SettingPath.TimerSrvIniPath);
             recPresetData.BatFilePath = IniFileHandler.GetPrivateProfileString(defName, "BatFilePath", "", SettingPath.TimerSrvIniPath);
 
-            int count = IniFileHandler.GetPrivateProfileInt(defFolderName, "Count", 0, SettingPath.TimerSrvIniPath);
-            for (int i = 0; i < count; i++)
+            var GetRecFileSetInfo = new Action<string, List<RecFileSetInfo>>((appName, folderList) =>
             {
-                RecFileSetInfo folderInfo = new RecFileSetInfo();
-                folderInfo.RecFolder = IniFileHandler.GetPrivateProfileString(defFolderName, i.ToString(), "", SettingPath.TimerSrvIniPath);
-                folderInfo.WritePlugIn = IniFileHandler.GetPrivateProfileString(defFolderName, "WritePlugIn" + i.ToString(), "Write_Default.dll", SettingPath.TimerSrvIniPath);
-                folderInfo.RecNamePlugIn = IniFileHandler.GetPrivateProfileString(defFolderName, "RecNamePlugIn" + i.ToString(), "", SettingPath.TimerSrvIniPath);
-
-                recPresetData.RecFolderList.Add(folderInfo);
-            }
-
-            count = IniFileHandler.GetPrivateProfileInt(defFolder1SegName, "Count", 0, SettingPath.TimerSrvIniPath);
-            for (int i = 0; i < count; i++)
-            {
-                RecFileSetInfo folderInfo = new RecFileSetInfo();
-                folderInfo.RecFolder = IniFileHandler.GetPrivateProfileString(defFolder1SegName, i.ToString(), "", SettingPath.TimerSrvIniPath);
-                folderInfo.WritePlugIn = IniFileHandler.GetPrivateProfileString(defFolder1SegName, "WritePlugIn" + i.ToString(), "Write_Default.dll", SettingPath.TimerSrvIniPath);
-                folderInfo.RecNamePlugIn = IniFileHandler.GetPrivateProfileString(defFolder1SegName, "RecNamePlugIn" + i.ToString(), "", SettingPath.TimerSrvIniPath);
-
-                recPresetData.PartialRecFolder.Add(folderInfo);
-            }
+                int count = IniFileHandler.GetPrivateProfileInt(appName, "Count", 0, SettingPath.TimerSrvIniPath);
+                for (int i = 0; i < count; i++)
+                {
+                    var folderInfo = new RecFileSetInfo();
+                    folderInfo.RecFolder = IniFileHandler.GetPrivateProfileFolder(appName, i.ToString(), SettingPath.TimerSrvIniPath);
+                    folderInfo.WritePlugIn = IniFileHandler.GetPrivateProfileString(appName, "WritePlugIn" + i.ToString(), "Write_Default.dll", SettingPath.TimerSrvIniPath);
+                    folderInfo.RecNamePlugIn = IniFileHandler.GetPrivateProfileString(appName, "RecNamePlugIn" + i.ToString(), "", SettingPath.TimerSrvIniPath);
+                    folderList.Add(folderInfo);
+                }
+            });
+            GetRecFileSetInfo("REC_DEF_FOLDER" + IDS, recPresetData.RecFolderList);
+            GetRecFileSetInfo("REC_DEF_FOLDER_1SEG" + IDS, recPresetData.PartialRecFolder);
 
             recPresetData.SuspendMode = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "SuspendMode", 0, SettingPath.TimerSrvIniPath);
             recPresetData.RebootFlag = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "RebootFlag", 0, SettingPath.TimerSrvIniPath);
@@ -94,8 +85,6 @@ namespace EpgTimer
 
             string IDS = ID == 0 ? "" : ID.ToString();
             string defName = "REC_DEF" + IDS;
-            string defFolderName = "REC_DEF_FOLDER" + IDS;
-            string defFolder1SegName = "REC_DEF_FOLDER_1SEG" + IDS;
 
             IniFileHandler.WritePrivateProfileString(defName, "SetName", DisplayName, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "RecMode", recPresetData.RecMode.ToString(), SettingPath.TimerSrvIniPath);
@@ -105,20 +94,18 @@ namespace EpgTimer
             IniFileHandler.WritePrivateProfileString(defName, "PittariFlag", recPresetData.PittariFlag.ToString(), SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "BatFilePath", recPresetData.BatFilePath, SettingPath.TimerSrvIniPath);
 
-            IniFileHandler.WritePrivateProfileString(defFolderName, "Count", recPresetData.RecFolderList.Count.ToString(), SettingPath.TimerSrvIniPath);
-            for (int j = 0; j < recPresetData.RecFolderList.Count; j++)
+            var WriteRecFileSetInfo = new Action<string, List<RecFileSetInfo>>((appName, folderList) =>
             {
-                IniFileHandler.WritePrivateProfileString(defFolderName, j.ToString(), recPresetData.RecFolderList[j].RecFolder, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString(defFolderName, "WritePlugIn" + j.ToString(), recPresetData.RecFolderList[j].WritePlugIn, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString(defFolderName, "RecNamePlugIn" + j.ToString(), recPresetData.RecFolderList[j].RecNamePlugIn, SettingPath.TimerSrvIniPath);
-            }
-            IniFileHandler.WritePrivateProfileString(defFolder1SegName, "Count", recPresetData.PartialRecFolder.Count.ToString(), SettingPath.TimerSrvIniPath);
-            for (int j = 0; j < recPresetData.PartialRecFolder.Count; j++)
-            {
-                IniFileHandler.WritePrivateProfileString(defFolder1SegName, j.ToString(), recPresetData.PartialRecFolder[j].RecFolder, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString(defFolder1SegName, "WritePlugIn" + j.ToString(), recPresetData.PartialRecFolder[j].WritePlugIn, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString(defFolder1SegName, "RecNamePlugIn" + j.ToString(), recPresetData.PartialRecFolder[j].RecNamePlugIn, SettingPath.TimerSrvIniPath);
-            }
+                IniFileHandler.WritePrivateProfileString(appName, "Count", folderList.Count.ToString(), SettingPath.TimerSrvIniPath);
+                for (int j = 0; j < folderList.Count; j++)
+                {
+                    IniFileHandler.WritePrivateProfileString(appName, j.ToString(), folderList[j].RecFolder, SettingPath.TimerSrvIniPath);
+                    IniFileHandler.WritePrivateProfileString(appName, "WritePlugIn" + j.ToString(), folderList[j].WritePlugIn, SettingPath.TimerSrvIniPath);
+                    IniFileHandler.WritePrivateProfileString(appName, "RecNamePlugIn" + j.ToString(), folderList[j].RecNamePlugIn, SettingPath.TimerSrvIniPath);
+                }
+            });
+            WriteRecFileSetInfo("REC_DEF_FOLDER" + IDS, recPresetData.RecFolderList);
+            WriteRecFileSetInfo("REC_DEF_FOLDER_1SEG" + IDS, recPresetData.PartialRecFolder);
 
             IniFileHandler.WritePrivateProfileString(defName, "SuspendMode", recPresetData.SuspendMode.ToString(), SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "RebootFlag", recPresetData.RebootFlag.ToString(), SettingPath.TimerSrvIniPath);

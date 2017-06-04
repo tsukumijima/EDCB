@@ -59,6 +59,12 @@ namespace EpgTimer
             return buff.ToString();
         }
 
+        public static string GetPrivateProfileFolder(string lpAppName, string lpKeyName, string lpFileName)
+        {
+            var path = IniFileHandler.GetPrivateProfileString(lpAppName ?? "", lpKeyName ?? "", "", lpFileName ?? "");
+            return SettingPath.CheckFolder(path);
+        }
+
         public static double GetPrivateProfileDouble(string lpAppName, string lpKeyName, double dDefault, string lpFileName)
         {
             string s = GetPrivateProfileString(lpAppName, lpKeyName, dDefault.ToString(), lpFileName);
@@ -156,7 +162,13 @@ namespace EpgTimer
     class SettingPath
     {
         //Path.Combine()はドライブ区切り':'の扱いがアヤシイのでここでは使用しないことにする。
-        //なお、他のEpgTimerコード中で使っているところはModelePathに対してなので大丈夫。(ModelePathは'C:'のようなパスを返さない)
+        //他のEpgTimerコード中で使っているところはModelePathに対してなので大丈夫。(ModelePathは'C:'のようなパスを返さない)
+        public static string CheckFolder(string path)
+        {
+            path = (path ?? "").Trim(' ');
+            if (path != "\\") path = path.TrimEnd('\\');
+            return path + (path.EndsWith(Path.VolumeSeparatorChar.ToString()) == true ? "\\" : "");
+        }
         private static string IniPath
         {
             get { return (CommonManager.Instance.NWMode == false ? ModulePath : SettingFolderPath); }
@@ -206,19 +218,18 @@ namespace EpgTimer
                 string path;
                 if (CommonManager.Instance.NWMode == false)
                 {
-                    path = IniFileHandler.GetPrivateProfileString("SET", "DataSavePath", "", CommonIniPath);
+                    path = IniFileHandler.GetPrivateProfileFolder("SET", "DataSavePath", CommonIniPath);
                 }
                 else
                 {
-                    path = Settings.Instance.SettingFolderPathNW;
+                    path = CheckFolder(Settings.Instance.SettingFolderPathNW);
                 }
-                path = (string.IsNullOrEmpty(path) == true ? DefSettingFolderPath : path).TrimEnd('\\');
-                path += (path.Length > 0 && path.Last() == Path.VolumeSeparatorChar ? "\\" : "");
+                path = string.IsNullOrEmpty(path) == true ? DefSettingFolderPath : path;
                 return (Path.IsPathRooted(path) ? "" : ModulePath.TrimEnd('\\') + "\\") + path;
             }
             set
             {
-                string path = value.Trim();
+                string path = CheckFolder(value);
                 bool isDefaultPath = string.Compare(path.TrimEnd('\\'), SettingPath.DefSettingFolderPath.TrimEnd('\\'), true) == 0;
                 if (CommonManager.Instance.NWMode == false)
                 {
@@ -875,17 +886,15 @@ namespace EpgTimer
                 {
                     defRecfolders = new List<string>();
                     int num = IniFileHandler.GetPrivateProfileInt("SET", "RecFolderNum", 0, SettingPath.CommonIniPath);
-                    if (num <= 0)
+                    if (num <= 0) defRecfolders.Add("");
+
+                    for (int i = 0; i < num; i++)
                     {
-                        defRecfolders.Add(SettingPath.SettingFolderPath);
+                        defRecfolders.Add(IniFileHandler.GetPrivateProfileFolder("SET", "RecFolderPath" + i.ToString(), SettingPath.CommonIniPath));
                     }
-                    else
-                    {
-                        for (uint i = 0; i < num; i++)
-                        {
-                            defRecfolders.Add(IniFileHandler.GetPrivateProfileString("SET", "RecFolderPath" + i.ToString(), "", SettingPath.CommonIniPath));
-                        }
-                    }
+
+                    if (defRecfolders[0] == "") defRecfolders[0] = SettingPath.SettingFolderPath;
+                    defRecfolders = defRecfolders.Except(new[] { "" }).ToList();
                 }
                 return defRecfolders;
             }

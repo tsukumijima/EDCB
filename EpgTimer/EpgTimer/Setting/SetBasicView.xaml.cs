@@ -64,7 +64,7 @@ namespace EpgTimer.Setting
                 textBox_cmdViewOff.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", viewAppIniPath);
 
                 Settings.Instance.DefRecFolders.ForEach(folder => listBox_recFolder.Items.Add(folder));
-                textBox_recInfoFolder.Text = IniFileHandler.GetPrivateProfileString("SET", "RecInfoFolder", "", SettingPath.CommonIniPath);
+                textBox_recInfoFolder.Text = IniFileHandler.GetPrivateProfileFolder("SET", "RecInfoFolder", SettingPath.CommonIniPath);
 
                 var tunerInfo = new List<KeyValuePair<Int32, TunerInfo>>();
                 foreach (string fileName in CommonManager.GetBonFileList())
@@ -147,11 +147,11 @@ namespace EpgTimer.Setting
         {
             try
             {
-                string setPath = textBox_setPath.Text.Trim();
+                string setPath = SettingPath.CheckFolder(textBox_setPath.Text);
                 setPath = setPath == "" ? SettingPath.DefSettingFolderPath : setPath;
                 System.IO.Directory.CreateDirectory(setPath);
 
-                IsChangeSettingPath = SettingPath.SettingFolderPath.TrimEnd('\\') != setPath.TrimEnd('\\');
+                IsChangeSettingPath = string.Compare(setPath, SettingPath.SettingFolderPath, true) != 0;
                 SettingPath.SettingFolderPath = setPath;
 
                 IniFileHandler.WritePrivateProfileString("SET", "RecExePath",
@@ -171,19 +171,18 @@ namespace EpgTimer.Setting
                     IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "ViewOff", textBox_cmdViewOff.Text, viewAppIniPath);
                 }
 
-                int recFolderCount = listBox_recFolder.Items.Count == 1 &&
-                    string.Compare(((string)listBox_recFolder.Items[0]).TrimEnd('\\'), textBox_setPath.Text.TrimEnd('\\'), true) == 0 ? 0 : listBox_recFolder.Items.Count;
+                List<String> recFolderList = ViewUtil.GetFolderList(listBox_recFolder);
+                int recFolderCount = recFolderList.Count == 1 &&
+                    string.Compare(recFolderList[0], SettingPath.SettingFolderPath, true) == 0 ? 0 : recFolderList.Count;
                 IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount.ToString(), SettingPath.CommonIniPath);
                 IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
                 for (int i = 0; i < recFolderCount; i++)
                 {
-                    string key = "RecFolderPath" + i.ToString();
-                    string val = listBox_recFolder.Items[i] as string;
-                    IniFileHandler.WritePrivateProfileString("SET", key, val, SettingPath.CommonIniPath);
+                    IniFileHandler.WritePrivateProfileString("SET", "RecFolderPath" + i.ToString(), recFolderList[i], SettingPath.CommonIniPath);
                 }
 
-                IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolder",
-                    textBox_recInfoFolder.Text.Trim() == "" ? null : textBox_recInfoFolder.Text, SettingPath.CommonIniPath);
+                var recInfoFolder = SettingPath.CheckFolder(textBox_recInfoFolder.Text);
+                IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolder", recInfoFolder == "" ? null : recInfoFolder, SettingPath.CommonIniPath);
 
                 for (int i = 0; i < listBox_bon.Items.Count; i++)
                 {
@@ -260,6 +259,7 @@ namespace EpgTimer.Setting
                 button_rec_up.Click += new RoutedEventHandler(bxr.button_Up_Click);
                 button_rec_down.Click += new RoutedEventHandler(bxr.button_Down_Click);
                 button_rec_del.Click += new RoutedEventHandler(bxr.button_Delete_Click);
+                button_rec_add.Click += (sender, e) => textBox_recFolder.Text = SettingPath.CheckFolder(textBox_recFolder.Text);
                 button_rec_add.Click += ViewUtil.ListBox_TextCheckAdd(listBox_recFolder, textBox_recFolder);
                 textBox_recFolder.KeyDown += ViewUtil.KeyDown_Enter(button_rec_add);
 

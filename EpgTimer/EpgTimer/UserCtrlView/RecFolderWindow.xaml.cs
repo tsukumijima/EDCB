@@ -108,7 +108,8 @@ namespace EpgTimer
 
         private void button_ok_Click(object sender, RoutedEventArgs e)
         {
-            defSet.RecFolder = textBox_recFolder.Text == "" ? "!Default" : textBox_recFolder.Text;
+            var recFolder = SettingPath.CheckFolder(textBox_recFolder.Text);
+            defSet.RecFolder = recFolder == "" ? "!Default" : recFolder;
             defSet.WritePlugIn = (String)comboBox_writePlugIn.SelectedItem;
             defSet.RecNamePlugIn = (String)comboBox_recNamePlugIn.SelectedItem;
             if (String.Compare(defSet.RecNamePlugIn, "なし", true) == 0)

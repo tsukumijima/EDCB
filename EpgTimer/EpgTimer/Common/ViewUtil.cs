@@ -616,6 +616,11 @@ namespace EpgTimer
             win.Top = double.IsNaN(win.Top) == true ? double.NaN : 100;
         }
 
+        public static List<string> GetFolderList(ListBox box)
+        {
+            return box.Items.OfType<string>().Select(s => SettingPath.CheckFolder(s)).Where(s => s != "").ToList();
+        }
+
         public static TextBlock GetPanelTextBlock(string s = null)
         {
             return new TextBlock
