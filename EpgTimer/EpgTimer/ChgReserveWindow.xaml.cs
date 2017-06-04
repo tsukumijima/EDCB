@@ -68,7 +68,7 @@ namespace EpgTimer
             mBinds.SetCommandToButton(button_chg_reserve, mode == AddMode.Change ? EpgCmds.ChangeInDialog : EpgCmds.AddInDialog);
             button_del_reserve.Visibility = mode == AddMode.Add ? Visibility.Collapsed : Visibility.Visible;
             checkBox_dataReplace.Visibility = mode == AddMode.Add ? Visibility.Collapsed : Visibility.Visible;
-            stack_Status.Visibility = mode == AddMode.Add ? Visibility.Collapsed : Visibility.Visible;
+            stack_Status.Visibility = mode == AddMode.Add ? Visibility.Hidden : Visibility.Visible;
             stack_Status.IsEnabled = mode == AddMode.Change;
             switch (mode)
             {
