@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Reflection;
+using System.Windows.Interop;
 
 namespace EpgTimer
 {
@@ -629,6 +627,14 @@ namespace EpgTimer
                 TextAlignment = TextAlignment.Center,
                 FontSize = 12,
             };
+        }
+
+        public static void WritePlugInSet(string pName, Visual vis)     { PlugInSet(pName, "Write", vis); }
+        public static void RecNamePlugInSet(string pName, Visual vis)   { PlugInSet(pName, "RecName", vis); }
+        public static void PlugInSet(string pName, string pFolder, Visual vis)
+        {
+            string dllPath = System.IO.Path.Combine(SettingPath.ModulePath, pFolder ?? "", pName ?? "");
+            PlugIns.Setting(dllPath, ((HwndSource)HwndSource.FromVisual(vis)).Handle);
         }
     }
 }

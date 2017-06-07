@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
-using System.Windows.Interop;
 
 namespace EpgTimer
 {
@@ -77,33 +76,13 @@ namespace EpgTimer
 
         private void button_write_Click(object sender, RoutedEventArgs e)
         {
-            if (comboBox_writePlugIn.SelectedItem != null)
-            {
-                string name = comboBox_writePlugIn.SelectedItem as string;
-                string filePath = System.IO.Path.Combine(SettingPath.ModulePath, "Write\\" + name);
-
-                WritePlugInClass plugin = new WritePlugInClass();
-                HwndSource hwnd = (HwndSource)HwndSource.FromVisual(this);
-
-                plugin.Setting(filePath, hwnd.Handle);
-            }
+            ViewUtil.WritePlugInSet(comboBox_writePlugIn.SelectedItem as string, this);
         }
 
         private void button_recName_Click(object sender, RoutedEventArgs e)
         {
-            if (comboBox_recNamePlugIn.SelectedItem != null)
-            {
-                string name = comboBox_recNamePlugIn.SelectedItem as string;
-                if (String.Compare(name, "なし", true) != 0)
-                {
-                    string filePath = System.IO.Path.Combine(SettingPath.ModulePath, "RecName\\" + name);
-
-                    RecNamePluginClass plugin = new RecNamePluginClass();
-                    HwndSource hwnd = (HwndSource)HwndSource.FromVisual(this);
-
-                    plugin.Setting(filePath, hwnd.Handle);
-                }
-            }
+            if (comboBox_recNamePlugIn.SelectedIndex <= 0) return;
+            ViewUtil.RecNamePlugInSet(comboBox_recNamePlugIn.SelectedItem as string, this);
         }
 
         private void button_ok_Click(object sender, RoutedEventArgs e)

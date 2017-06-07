@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Documents;
 using System.IO;
 using System.Reflection;
@@ -492,16 +491,7 @@ namespace EpgTimer.Setting
 
         private void button_recname_Click(object sender, RoutedEventArgs e)
         {
-            if (comboBox_recname.SelectedItem != null)
-            {
-                string name = comboBox_recname.SelectedItem as string;
-                string filePath = SettingPath.ModulePath + "\\RecName\\" + name;
-
-                RecNamePluginClass plugin = new RecNamePluginClass();
-                HwndSource hwnd = (HwndSource)HwndSource.FromVisual(this);
-
-                plugin.Setting(filePath, hwnd.Handle);
-            }
+            ViewUtil.RecNamePlugInSet(comboBox_recname.SelectedItem as string, this);
         }
 
         private void drag_drop(object sender, DragEventArgs e, Button add, Button ins)

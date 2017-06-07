@@ -93,6 +93,7 @@
     <Compile Include="Common\BoxExchangeEditor.cs" />
     <Compile Include="Common\ItemFontCache.cs" />
     <Compile Include="Common\StatusManager.cs" />
+    <Compile Include="Common\PlugInClass.cs" />
     <Compile Include="CtrlCmdDefEx\EpgEventInfoEx.cs" />
     <Compile Include="CtrlCmdDefEx\RecSettingDataEx.cs" />
     <Compile Include="CtrlCmdDefEx\ReserveDataEx.cs" />
@@ -194,8 +195,6 @@
     </Compile>
     <Compile Include="Common\CommonUtil.cs" />
     <Compile Include="Common\PipeServer.cs" />
-    <Compile Include="Common\RecNamePluginClass.cs" />
-    <Compile Include="Common\WritePlugInClass.cs" />
     <Compile Include="Common\ChSet5Class.cs" />
     <Compile Include="Common\ColorDefClass.cs" />
     <Compile Include="DefineClass\IEPGStationInfo.cs" />
