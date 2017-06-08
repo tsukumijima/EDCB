@@ -314,14 +314,9 @@ namespace EpgTimer.Setting
                         time += "w" + ((wday + 5) % 7 + 1);
                     }
 
-                    foreach (EpgCaptime info in timeList)
-                    {
-                        if (String.Compare(info.Time, time, true) == 0)
-                        {
-                            MessageBox.Show("すでに登録済みです");
-                            return;
-                        }
-                    }
+                    if (timeList.Any(info => String.Compare(info.Time, time, true) == 0) == true)
+                    { return; }
+
                     var item = new EpgCaptime();
                     item.IsSelected = true;
                     item.Time = time;

@@ -481,8 +481,8 @@ namespace EpgTimer.Setting
 
         private void button_ext_def_Click(object sender, RoutedEventArgs e)
         {
-            ViewUtil.ListBox_TextCheckAdd(listBox_ext, ".ts.err", true);
-            ViewUtil.ListBox_TextCheckAdd(listBox_ext, ".ts.program.txt", true);
+            ViewUtil.ListBox_TextCheckAdd(listBox_ext, ".ts.err");
+            ViewUtil.ListBox_TextCheckAdd(listBox_ext, ".ts.program.txt");
         }
         private void button_chk_open_Click(object sender, RoutedEventArgs e)
         {

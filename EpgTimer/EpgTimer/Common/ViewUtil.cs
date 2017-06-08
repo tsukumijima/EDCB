@@ -440,21 +440,17 @@ namespace EpgTimer
             });
         }
 
-        public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, bool noMsg = false)
+        public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, bool noCase = true)
         {
-            return new RoutedEventHandler((sender, e) => ListBox_TextCheckAdd(lstBox, txtBox == null ? null : txtBox.Text, noMsg));
+            return new RoutedEventHandler((sender, e) => ListBox_TextCheckAdd(lstBox, txtBox == null ? null : txtBox.Text, noCase));
         }
-        public static bool ListBox_TextCheckAdd(ListBox lstBox, string text, bool noMsg = false)
+        public static bool ListBox_TextCheckAdd(ListBox lstBox, string text, bool noCase = true)
         {
             if (lstBox == null || String.IsNullOrEmpty(text) == true) return false;
             //
-            if (lstBox.Items.OfType<object>().Any(s => String.Compare(text, s.ToString(), true) == 0) == true)
-            {
-                if (noMsg == false) MessageBox.Show("すでに追加されています");
-                return false;
-            }
-            lstBox.ScrollIntoViewLast(text);
-            return true;
+            var isAdd = lstBox.Items.OfType<object>().All(s => String.Compare(text, s.ToString(), noCase) != 0);
+            if (isAdd == true) lstBox.ScrollIntoViewLast(text);
+            return isAdd;
         }
 
         public static KeyEventHandler KeyDown_Escape_Close()
