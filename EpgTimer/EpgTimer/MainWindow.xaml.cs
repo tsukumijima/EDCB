@@ -1420,7 +1420,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.IniFile:
                     {
-                        if (CommonManager.Instance.NWMode == true || status.param4 == "EpgTimerSrvSetting")
+                        if (CommonManager.Instance.NWMode == true || status.param4 != "EpgTimer")
                         {
                             IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
