@@ -85,8 +85,7 @@ namespace EpgTimer.Setting
 
         private void button_add_Click(object sender, RoutedEventArgs e)
         {
-            listBox_preset.Items.Add(new RecPresetItem(textBox_preset.Text, 0, recSettingView.GetRecSetting()));
-            listBox_preset.ScrollIntoViewLast();
+            listBox_preset.ScrollIntoViewLast(new RecPresetItem(textBox_preset.Text, 0, recSettingView.GetRecSetting()));
         }
 
         private void button_ok_Click(object sender, RoutedEventArgs e)

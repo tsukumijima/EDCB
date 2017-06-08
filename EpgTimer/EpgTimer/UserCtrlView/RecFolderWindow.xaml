@@ -1,21 +1,32 @@
 ﻿<Window x:Class="EpgTimer.RecFolderWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="録画フォルダ、使用PlugIn設定" Height="225" Width="600" WindowStartupLocation="CenterOwner">
+        Title="録画フォルダ、使用PlugIn設定" SizeToContent="Height" Width="600" WindowStartupLocation="CenterOwner">
 
-    <Grid>
-        <Label Content="録画フォルダ" Height="28" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label1" VerticalAlignment="Top" />
-        <TextBox Height="24" Margin="125,14,61,0" Name="textBox_recFolder" VerticalAlignment="Top" />
-        <Button Content="開く" Height="23" Margin="0,14,12,0" Name="button_folder" VerticalAlignment="Top" HorizontalAlignment="Right" Width="43" Click="button_folder_Click" />
-        <Label Content="出力PlugIn" Height="28" HorizontalAlignment="Left" Margin="12,46,0,0" Name="label2" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="125,46,0,0" Name="comboBox_writePlugIn" VerticalAlignment="Top" Width="254" />
-        <Button Content="設定" Height="23" HorizontalAlignment="Left" Margin="385,48,0,0" Name="button_write" VerticalAlignment="Top" Width="43" Click="button_write_Click" />
-        <Label Content="ファイル名PlugIn" Height="28" HorizontalAlignment="Left" Margin="12,80,0,0" Name="label3" VerticalAlignment="Top" />
-        <ComboBox Height="24" HorizontalAlignment="Left" Margin="125,80,0,0" Name="comboBox_recNamePlugIn" VerticalAlignment="Top" Width="254" />
-        <Button Content="設定" Height="23" HorizontalAlignment="Left" Margin="385,82,0,0" Name="button_recName" VerticalAlignment="Top" Width="43" Click="button_recName_Click" />
-        <Label Content="ファイル名PlugInオプション" Height="28" HorizontalAlignment="Left" Margin="12,114,0,0" VerticalAlignment="Top" />
-        <TextBox Height="24" Margin="180,114,12,0" Name="textBox_recNameOption" VerticalAlignment="Top" />
-        <Button Content="追加" Height="23" HorizontalAlignment="Right" Margin="0,151,99,0" Name="button_ok" VerticalAlignment="Top" Width="75" Click="button_ok_Click" IsDefault="True" />
-        <Button Content="キャンセル" Height="23" HorizontalAlignment="Right" Margin="0,151,12,0" Name="button_cancel" VerticalAlignment="Top" Width="75" Click="button_cancel_Click" IsCancel="True" />
-    </Grid>
+    <StackPanel Margin="12" >
+        <DockPanel Margin="0,0,0,8">
+            <TextBlock Text="録画フォルダ" Width="100" Margin="0,0,8,0" />
+            <Button Content="開く" Name="button_folder" Margin="8,0,0,0" DockPanel.Dock="Right" Width="43" Click="button_folder_Click" />
+            <TextBox Name="textBox_recFolder" />
+        </DockPanel>
+        <DockPanel Margin="0,0,0,8">
+            <TextBlock Text="出力PlugIn" Width="100" Margin="0,0,8,0" />
+            <Button Content="設定" Margin="8,0,0,0" Name="button_write" DockPanel.Dock="Right" Width="43" Click="button_write_Click" />
+            <ComboBox Name="comboBox_writePlugIn" VerticalAlignment="Stretch" />
+        </DockPanel>
+        <DockPanel Margin="0,0,0,8">
+            <TextBlock Text="ファイル名PlugIn" Width="100" Margin="0,0,8,0" />
+            <Button Content="設定" Margin="8,0,0,0" Name="button_recName" DockPanel.Dock="Right" Width="43" Click="button_recName_Click" />
+            <ComboBox Name="comboBox_recNamePlugIn" VerticalAlignment="Stretch" />
+        </DockPanel>
+        <DockPanel Margin="0,0,0,8">
+            <TextBlock Text="ファイル名PlugInオプション" Margin="0,0,8,0" />
+            <TextBox Name="textBox_recNameOption" />
+        </DockPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <CheckBox Content="部分受信" Name="chkbox_partial" Margin="0,0,20,0" />
+            <Button Content="追加" Margin="0,0,12,0" Name="button_ok" Width="75" IsDefault="True" />
+            <Button Content="キャンセル"  Name="button_cancel" Width="75" IsCancel="True" />
+        </StackPanel>
+    </StackPanel>
 </Window>

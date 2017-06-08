@@ -464,10 +464,8 @@ namespace EpgTimer.Setting
             dlg.Owner = CommonUtil.GetTopWindow(this);
             if (dlg.ShowDialog() == true)
             {
-                var item = new CustomEpgTabInfoView(dlg.GetSetting());
-                listBox_tab.Items.Add(item);
+                listBox_tab.ScrollIntoViewLast(new CustomEpgTabInfoView(dlg.GetSetting()));
                 listBox_tab.FitColumnWidth();
-                listBox_tab.ScrollIntoViewLast();
             }
         }
         private void button_tab_chg_Click(object sender, RoutedEventArgs e)
@@ -513,11 +511,7 @@ namespace EpgTimer.Setting
         {
             if (infos.Count != 0)
             {
-                List<CustomEpgTabInfoView> items = infos.Select(info => new CustomEpgTabInfoView(info)).ToList();
-                listBox_tab.Items.AddItems(items);
-                listBox_tab.UnselectAll();
-                listBox_tab.SelectedItemsAdd(items);
-                listBox_tab.ScrollIntoViewIndex(int.MaxValue);
+                listBox_tab.ScrollIntoViewLast(infos.Select(info => new CustomEpgTabInfoView(info)));
             }
         }
 

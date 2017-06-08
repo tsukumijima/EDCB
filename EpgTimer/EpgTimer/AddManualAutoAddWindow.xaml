@@ -2,11 +2,12 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:user="clr-namespace:EpgTimer.UserCtrlView"
-        Title="プログラム自動予約登録" SizeToContent="Height" Width="780" xmlns:my="clr-namespace:EpgTimer" >
+        Title="プログラム自動予約登録" Height="570" Width="780" xmlns:my="clr-namespace:EpgTimer" >
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
@@ -32,9 +33,9 @@
                 <StackPanel Name="stackPanel_week" Orientation="Horizontal" />
                 <CheckBox Content="自動登録を無効にする" Margin="30,0,0,0" Name="checkBox_keyDisabled" />
             </StackPanel>
-            <my:RecSettingView  Margin="-12,2,0,0" x:Name="recSettingView" />
         </StackPanel>
-        <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="0,6,0,12" >
+        <my:RecSettingView Grid.Row="1" Margin="-12,2,0,0" x:Name="recSettingView" />
+        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" Margin="0,6,0,12" >
             <StackPanel Margin="20,0,20,0" Orientation="Horizontal">
                 <Button Content="追加" Margin="10,0,10,0" Name="button_add" MinWidth="48" />
                 <Button Content="変更" Margin="10,0,10,0" Name="button_chg" MinWidth="48" />
@@ -47,7 +48,7 @@
             </StackPanel>
             <Button Content="閉じる" Margin="20,0,20,0" Name="button_cancel" MinWidth="48" />
         </WrapPanel>
-        <DockPanel Grid.Row="2" Margin="12,0,12,5" >
+        <DockPanel Grid.Row="3" Margin="12,0,12,5" >
             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" >
                 <CheckBox Content="このウィンドウにデータを開く" Margin="6,0,0,0" Name="checkBox_dataReplace" />
                 <CheckBox Content="メインウィンドウの前面に表示" Margin="6,0,0,0" Name="checkBox_windowPinned" />

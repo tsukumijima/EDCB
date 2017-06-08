@@ -177,10 +177,10 @@ namespace EpgTimer
         public static bool EqualsTo(this RecFileSetInfo src, RecFileSetInfo dest) { return CopyObj.EqualsTo(src, dest, EqualsValue); }
         public static bool EqualsValue(RecFileSetInfo src, RecFileSetInfo dest)
         {
-            return src.RecFileName == dest.RecFileName
-                && src.RecFolder == dest.RecFolder
-                && src.RecNamePlugIn == dest.RecNamePlugIn
-                && src.WritePlugIn == dest.WritePlugIn;
+            return String.Compare(src.RecFileName, dest.RecFileName, true) == 0
+                && String.Compare(src.RecFolder, dest.RecFolder, true) == 0
+                && String.Compare(src.RecNamePlugIn, dest.RecNamePlugIn, true) == 0
+                && String.Compare(src.WritePlugIn, dest.WritePlugIn, true) == 0;
         }
 
         public static ReserveData ConvertEpgToReserveData(EpgEventInfo epgInfo)

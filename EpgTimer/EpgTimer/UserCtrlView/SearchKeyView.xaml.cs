@@ -230,8 +230,7 @@ namespace EpgTimer
                 if (listBox_content.Items.OfType<ContentKindInfo>().Any(item => item.Data.Key == key) == true)
                 { return; }
 
-                listBox_content.Items.Add(comboBox_content.SelectedItem);
-                listBox_content.ScrollIntoViewLast();
+                listBox_content.ScrollIntoViewLast(comboBox_content.SelectedItem);
                 CheckListBox(listBox_content);
             }
         }

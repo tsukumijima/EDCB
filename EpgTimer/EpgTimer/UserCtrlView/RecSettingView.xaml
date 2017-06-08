@@ -21,6 +21,12 @@
         </StackPanel>
         <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FF8C8E94" Padding="4,1,4,7">
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid>
                     <Label Content="録画モード" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" Name="label7" VerticalAlignment="Top" />
                     <ComboBox Height="24" HorizontalAlignment="Left" Margin="83,6,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="160" />
                     <Label Content="イベントリレー追従" Height="28" HorizontalAlignment="Left" Margin="300,6,0,0" Name="label8" VerticalAlignment="Top" />
@@ -39,22 +45,30 @@
                     <CheckBox Content="デフォルト" Height="16" HorizontalAlignment="Left" Margin="160,98,0,0" Name="checkBox_serviceMode" VerticalAlignment="Top" Checked="checkBox_serviceMode_Checked" Unchecked="checkBox_serviceMode_Checked" />
                     <CheckBox Content="字幕を含める" Height="16" HorizontalAlignment="Left" Margin="260,98,0,0" Name="checkBox_serviceCaption" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
                     <CheckBox Content="データカルーセルを含める" Height="16" HorizontalAlignment="Left" Margin="370,98,0,0" Name="checkBox_serviceData" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
-                    <ListView Height="79" Margin="11,125,109,0" Name="listView_recFolder" VerticalAlignment="Top">
+                </Grid>
+                <DockPanel Grid.Row="1" Margin="11,4,11,7" Panel.ZIndex="1">
+                    <StackPanel DockPanel.Dock="Right" Margin="5,0,0,0" Width="44" >
+                        <Button Content="追加" Margin="0,0,0,6" Name="button_recFolderAdd" Click="button_recFolderAdd_Click" />
+                        <Button Content="変更" Margin="0,0,0,6" Name="button_recFolderChg" Click="button_recFolderChg_Click" />
+                        <Button Content="コピー" Margin="0,0,0,6" Name="button_recFolderCopy" Click="button_recFolderCopy_Click" />
+                        <Button Content="削除" Name="button_recFolderDel" />
+                    </StackPanel>
+                    <DockPanel DockPanel.Dock="Bottom" Margin="0,5,0,0" >
+                        <CheckBox Content="部分受信(ワンセグ)を別ファイルに同時出力する" Margin="30,0,30,0" Name="checkBox_partial" ToolTipService.ShowDuration="30000" ToolTip="ワンセグを指定フォルダに出力したい場合は、部分受信用の録画フォルダ設定を追加してください。&#10;部分受信用の設定が存在しない場合、ワンセグはデフォルトの録画保存フォルダに出力されます。&#10;(「部分受信でない録画フォルダ設定」のフォルダに同時出力されるわけではありません)"/>
+                        <CheckBox Content="後ろの予約を同一ファイルで出力する" Name="checkBox_continueRec" />
+                    </DockPanel>
+                    <ListView Name="listView_recFolder" >
                         <ListView.View>
                             <GridView x:Name="gridView_recFolder">
+                                <GridViewColumn Header="部分受信" DisplayMemberBinding="{Binding Path=PartialRecYesNo}" />
                                 <GridViewColumn Header="録画フォルダ" DisplayMemberBinding="{Binding Path=RecFolder}" />
                                 <GridViewColumn Header="出力PlugIn" DisplayMemberBinding="{Binding Path=WritePlugIn}" />
                                 <GridViewColumn Header="ファイル名PlugIn" DisplayMemberBinding="{Binding Path=RecNamePlugIn}" />
-                                <GridViewColumn Header="部分受信" DisplayMemberBinding="{Binding Path=PartialRecYesNo}" />
                             </GridView>
                         </ListView.View>
                     </ListView>
-                    <Button Content="追加" Height="23" HorizontalAlignment="Right" Margin="0,153,11,0" Name="button_recFolderAdd" VerticalAlignment="Top" Width="93" Click="button_recFolderAdd_Click" />
-                    <Button Content="部分受信追加" Height="23" HorizontalAlignment="Right" Margin="0,181,11,0" Name="button_recFolderAdd_1seg" VerticalAlignment="Top" Width="93" Click="button_recFolderAdd_1seg_Click" />
-                    <Button Content="変更" Height="23" HorizontalAlignment="Right" Margin="0,125,60,0" Name="button_recFolderChg" VerticalAlignment="Top" Width="44" Click="button_recFolderChg_Click" />
-                    <Button Content="削除" Height="23" HorizontalAlignment="Right" Margin="0,125,11,0" Name="button_recFolderDel" VerticalAlignment="Top" Width="44" />
-                    <CheckBox Content="部分受信（ワンセグ）を別ファイルに同時出力する" Height="16" HorizontalAlignment="Left" Margin="30,208,0,0" Name="checkBox_partial" VerticalAlignment="Top" />
-                    <CheckBox Content="後ろの予約を同一ファイルで出力する" Height="16" HorizontalAlignment="Left" Margin="370,208,0,0" Name="checkBox_continueRec" VerticalAlignment="Top" />
+                </DockPanel>
+                <Grid Grid.Row="2" Margin="0,-231,0,0">
                     <Label Content="使用チューナー強制指定" Height="28" HorizontalAlignment="Left" Margin="6,231,0,0" Name="label23" VerticalAlignment="Top" />
                     <ComboBox Height="24" HorizontalAlignment="Left" Margin="160,231,0,0" Name="comboBox_tuner" VerticalAlignment="Top" Width="370" />
                     <Label Content="録画後動作" Height="28" HorizontalAlignment="Left" Margin="6,260,0,0" Name="label18" VerticalAlignment="Top" />
@@ -66,7 +80,8 @@
                     <CheckBox Content="復帰後再起動する" Height="16" HorizontalAlignment="Left" Margin="540,265,0,0" Name="checkBox_reboot" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
                     <Label Content="録画後実行bat" Height="28" HorizontalAlignment="Left" Margin="6,289,0,0" Name="label16" VerticalAlignment="Top" />
                     <TextBox Height="24" Margin="110,291,60,0" Name="textBox_bat" VerticalAlignment="Top" />
-                    <Button Content="開く" Height="23" HorizontalAlignment="Right" Margin="0,291,11,0" Name="button_bat" VerticalAlignment="Top" Width="44" Click="button_bat_Click" />
+                    <Button Content="開く" Height="23" HorizontalAlignment="Right " Margin="0,291,11,0" Name="button_bat" VerticalAlignment="Top" Width="44" Click="button_bat_Click" />
+                </Grid>
             </Grid>
         </Border>
     </Grid>

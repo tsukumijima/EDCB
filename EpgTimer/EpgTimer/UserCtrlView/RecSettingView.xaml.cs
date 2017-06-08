@@ -304,18 +304,6 @@ namespace EpgTimer
             OnUpdatingView = false;
         }
 
-        private class RecFileSetInfoView
-        {
-            public RecFileSetInfoView(RecFileSetInfo info, bool partialRec) { Info = info; PartialRec = partialRec; }
-            public string RecFileName { get { return Info.RecFileName; } }
-            public string RecFolder { get { return Info.RecFolder; } }
-            public string RecNamePlugIn { get { return Info.RecNamePlugIn; } }
-            public string WritePlugIn { get { return Info.WritePlugIn; } }
-            public RecFileSetInfo Info { get; private set; }
-            public bool PartialRec { get; private set; }
-            public string PartialRecYesNo { get { return PartialRec ? "はい" : "いいえ"; } } 
-        }
-
         private void checkBox_margineDef_Checked(object sender, RoutedEventArgs e)
         {
             RecSettingData recSet = recSetting.Clone();
@@ -360,61 +348,43 @@ namespace EpgTimer
             CommonManager.GetFileNameByDialog(textBox_bat, false, "", ".bat", true);
         }
 
-        private void button_recFolderAdd_Click(object sender, RoutedEventArgs e)
-        {
-            recFolderAdd(false);
-        }
-
         private void button_recFolderChg_Click(object sender, RoutedEventArgs e)
         {
             if (listView_recFolder.SelectedItem == null)
             {
-                if (listView_recFolder.Items.Count != 0)
-                {
-                    listView_recFolder.SelectedIndex = 0;
-                }
+                listView_recFolder.SelectedIndex = 0;
             }
-            if (listView_recFolder.SelectedItem != null)
+            var selectInfo = listView_recFolder.SelectedItem as RecFileSetInfoView;
+            if (selectInfo != null)
             {
-                var setting = new RecFolderWindow();
-                setting.Owner = CommonUtil.GetTopWindow(this);
-                var selectInfo = ((RecFileSetInfoView)listView_recFolder.SelectedItem).Info;
+                var setting = new RecFolderWindow { Owner = CommonUtil.GetTopWindow(this) };
                 setting.SetDefSetting(selectInfo);
-                setting.SetPartialMode(((RecFileSetInfoView)listView_recFolder.SelectedItem).PartialRec);
                 if (setting.ShowDialog() == true)
                 {
                     setting.GetSetting(ref selectInfo);
+                    listView_recFolder.Items.Refresh();
+                    listView_recFolder.FitColumnWidth();
                 }
-                listView_recFolder.Items.Refresh();
-                listView_recFolder.FitColumnWidth();
             }
             else
             {
-                recFolderAdd(false);
+                button_recFolderAdd_Click(null, null);
             }
         }
-
-        private void recFolderAdd(bool partialRec)
+        private void button_recFolderCopy_Click(object sender, RoutedEventArgs e)
         {
-            var setting = new RecFolderWindow();
-            setting.Owner = CommonUtil.GetTopWindow(this);
-            setting.SetPartialMode(partialRec);
+            if (listView_recFolder.SelectedItem == null) return;
+            var items = listView_recFolder.SelectedItems.OfType<RecFileSetInfoView>().Select(item => new RecFileSetInfoView(item.Info.Clone(), item.PartialRec));
+            listView_recFolder.ScrollIntoViewLast(items);
+        }
+        private void button_recFolderAdd_Click(object sender, RoutedEventArgs e)
+        {
+            var setting = new RecFolderWindow { Owner = CommonUtil.GetTopWindow(this) };
             if (setting.ShowDialog() == true)
             {
-                var setInfo = new RecFileSetInfo();
+                var setInfo = new RecFileSetInfoView(new RecFileSetInfo());
                 setting.GetSetting(ref setInfo);
-                foreach (RecFileSetInfoView info in listView_recFolder.Items)
-                {
-                    if (info.PartialRec == partialRec &&
-                        String.Compare(setInfo.RecFolder, info.RecFolder, true) == 0 &&
-                        String.Compare(setInfo.WritePlugIn, info.WritePlugIn, true) == 0 &&
-                        String.Compare(setInfo.RecNamePlugIn, info.RecNamePlugIn, true) == 0)
-                    {
-                        MessageBox.Show("すでに追加されています");
-                        return;
-                    }
-                }
-                listView_recFolder.Items.Add(new RecFileSetInfoView(setInfo, partialRec));
+                listView_recFolder.ScrollIntoViewLast(setInfo);
                 listView_recFolder.FitColumnWidth();
             }
         }
@@ -502,10 +472,17 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
+    }
 
-        private void button_recFolderAdd_1seg_Click(object sender, RoutedEventArgs e)
-        {
-            recFolderAdd(true);
-        }
+    public class RecFileSetInfoView
+    {
+        public RecFileSetInfoView(RecFileSetInfo info, bool partialRec = false) { Info = info; PartialRec = partialRec; }
+        public RecFileSetInfo Info { get; set; }
+        public bool PartialRec { get; set; }
+        public string RecFileName { get { return Info.RecFileName; } }
+        public string RecFolder { get { return Info.RecFolder; } }
+        public string RecNamePlugIn { get { return Info.RecNamePlugIn; } }
+        public string WritePlugIn { get { return Info.WritePlugIn; } }
+        public string PartialRecYesNo { get { return PartialRec ? "はい" : "いいえ"; } }
     }
 }

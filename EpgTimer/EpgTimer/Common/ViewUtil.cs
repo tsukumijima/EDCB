@@ -11,6 +11,8 @@ using System.Windows.Interop;
 
 namespace EpgTimer
 {
+    using BoxExchangeEdit;
+
     public static class ViewUtil
     {
         public static MainWindow MainWindow { get { return (MainWindow)Application.Current.MainWindow; } }
@@ -451,8 +453,7 @@ namespace EpgTimer
                 if (noMsg == false) MessageBox.Show("すでに追加されています");
                 return false;
             }
-            lstBox.Items.Add(text);
-            lstBox.ScrollIntoViewLast();
+            lstBox.ScrollIntoViewLast(text);
             return true;
         }
 
@@ -510,11 +511,19 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
-        ///<summary>最後のアイテムを選択してスクロールさせる</summary>
-        public static void ScrollIntoViewLast(this ListBox box)
+        ///<summary>最後のアイテムを選択してスクロールさせる。addItemがあればリストに追加する。</summary>
+        public static void ScrollIntoViewLast(this ListBox box, object addItem = null)
         {
+            box.ScrollIntoViewLast(new List<object> { addItem });
+        }
+        ///<summary>addItemsを追加し、最後のアイテムを選択してスクロールさせる</summary>
+        public static void ScrollIntoViewLast(this ListBox box, IEnumerable<object> addItems)
+        {
+            addItems = (addItems ?? new List<object>()).Where(item => item != null).ToList();
+            box.Items.AddItems(addItems);
             box.SelectedIndex = box.Items.Count - 1;
             box.ScrollIntoView(box.SelectedItem);
+            box.SelectedItemsAdd(addItems);
         }
 
         public static DependencyObject GetPlacementItem(this ItemsControl lb, Point? pt = null)

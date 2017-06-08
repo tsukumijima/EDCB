@@ -9,11 +9,18 @@ namespace EpgTimer
     /// </summary>
     public partial class RecFolderWindow : Window
     {
-        private RecFileSetInfo defSet = new RecFileSetInfo();
-
         public RecFolderWindow()
         {
             InitializeComponent();
+
+            if (CommonManager.Instance.NWMode == true)
+            {
+                button_write.IsEnabled = false;
+                button_recName.IsEnabled = false;
+            }
+
+            button_ok.Click += (sender, e) => DialogResult = true;
+            button_cancel.Click += (sender, e) => DialogResult = false;
 
             if (CommonManager.Instance.IsConnected == true)
             {
@@ -22,51 +29,35 @@ namespace EpgTimer
             comboBox_writePlugIn.ItemsSource = CommonManager.Instance.DB.WritePlugInList;
             comboBox_writePlugIn.SelectedItem = "Write_Default.dll";
 
-            var list = CommonManager.Instance.DB.RecNamePlugInList.ToList();
-            list.Insert(0, "なし");
-            comboBox_recNamePlugIn.ItemsSource = list;
-            comboBox_recNamePlugIn.SelectedItem = "なし";
-
-            if (CommonManager.Instance.NWMode == true)
-            {
-                button_write.IsEnabled = false;
-                button_recName.IsEnabled = false;
-            }
+            comboBox_recNamePlugIn.ItemsSource = new[] { "なし" }.Concat(CommonManager.Instance.DB.RecNamePlugInList);
+            comboBox_recNamePlugIn.SelectedIndex = 0;
         }
 
-        public void SetPartialMode(bool partialRec)
-        {
-            this.Title = "録画フォルダ、使用PlugIn設定" + (partialRec == true ? " (部分受信)" : "");
-        }
-
-        public void SetDefSetting(RecFileSetInfo info)
+        public void SetDefSetting(RecFileSetInfoView info)
         {
             button_ok.Content = "変更";
-            textBox_recFolder.Text = String.Compare(info.RecFolder, "!Default", true) == 0 ? "" : info.RecFolder;
-            foreach (string text in comboBox_writePlugIn.Items)
+            chkbox_partial.IsChecked = info.PartialRec;
+            textBox_recFolder.Text = String.Compare(info.RecFolder, "!Default", true) == 0 ? "" : SettingPath.CheckFolder(info.RecFolder);
+            comboBox_writePlugIn.SelectedItem = comboBox_writePlugIn.Items.OfType<string>().FirstOrDefault(s => String.Compare(s, info.WritePlugIn, true) == 0);
+            string pluginName = info.RecNamePlugIn.Substring(0, (info.RecNamePlugIn + '?').IndexOf('?'));
+            var plugin = comboBox_recNamePlugIn.Items.OfType<string>().FirstOrDefault(s => String.Compare(s, pluginName, true) == 0);
+            if (plugin != null)
             {
-                if (String.Compare(text, info.WritePlugIn, true) == 0)
-                {
-                    comboBox_writePlugIn.SelectedItem = text;
-                    break;
-                }
-            }
-            foreach (string text in comboBox_recNamePlugIn.Items)
-            {
-                if (String.Compare(text, info.RecNamePlugIn.Substring(0, (info.RecNamePlugIn + '?').IndexOf('?')), true) == 0)
-                {
-                    comboBox_recNamePlugIn.SelectedItem = text;
-                    textBox_recNameOption.Text = info.RecNamePlugIn.IndexOf('?') < 0 ? "" : info.RecNamePlugIn.Substring(info.RecNamePlugIn.IndexOf('?') + 1);
-                    break;
-                }
+                comboBox_recNamePlugIn.SelectedItem = plugin;
+                textBox_recNameOption.Text = info.RecNamePlugIn.Length <= pluginName.Length + 1 ? "" : info.RecNamePlugIn.Substring(pluginName.Length + 1);
             }
         }
-
-        public void GetSetting(ref RecFileSetInfo info)
+        public void GetSetting(ref RecFileSetInfoView info)
         {
-            info.RecFolder = defSet.RecFolder;
-            info.WritePlugIn = defSet.WritePlugIn;
-            info.RecNamePlugIn = defSet.RecNamePlugIn;
+            var recFolder = SettingPath.CheckFolder(textBox_recFolder.Text);
+            info.Info.RecFolder = recFolder == "" ? "!Default" : recFolder;
+            info.Info.WritePlugIn = comboBox_writePlugIn.SelectedItem as string ?? "";
+            info.Info.RecNamePlugIn = comboBox_recNamePlugIn.SelectedIndex <= 0 ? "" : comboBox_recNamePlugIn.SelectedItem as string ?? "";
+            if (info.RecNamePlugIn != "" && textBox_recNameOption.Text.Trim() != "")
+            {
+                info.Info.RecNamePlugIn += '?' + textBox_recNameOption.Text.Trim();
+            }
+            info.PartialRec = chkbox_partial.IsChecked == true;
         }
 
         private void button_folder_Click(object sender, RoutedEventArgs e)
@@ -83,28 +74,6 @@ namespace EpgTimer
         {
             if (comboBox_recNamePlugIn.SelectedIndex <= 0) return;
             ViewUtil.RecNamePlugInSet(comboBox_recNamePlugIn.SelectedItem as string, this);
-        }
-
-        private void button_ok_Click(object sender, RoutedEventArgs e)
-        {
-            var recFolder = SettingPath.CheckFolder(textBox_recFolder.Text);
-            defSet.RecFolder = recFolder == "" ? "!Default" : recFolder;
-            defSet.WritePlugIn = (String)comboBox_writePlugIn.SelectedItem;
-            defSet.RecNamePlugIn = (String)comboBox_recNamePlugIn.SelectedItem;
-            if (String.Compare(defSet.RecNamePlugIn, "なし", true) == 0)
-            {
-                defSet.RecNamePlugIn = "";
-            }
-            else if (textBox_recNameOption.Text.Length != 0)
-            {
-                defSet.RecNamePlugIn += '?' + textBox_recNameOption.Text;
-            }
-            DialogResult = true;
-        }
-
-        private void button_cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
         }
     }
 }
