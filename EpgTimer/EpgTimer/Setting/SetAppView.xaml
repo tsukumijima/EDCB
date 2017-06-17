@@ -66,7 +66,11 @@
                         <CheckBox Margin="0,6,0,0" Content="情報通知ログをファイルに保存する(EpgTimer側)" Name="checkBox_AutoSaveNotifyLog" />
                     </StackPanel>
                     <CheckBox Margin="0,6,0,0" Content="デバッグ出力をファイルに保存する" Name="checkBox_srvSaveDebugLog" />
-                    <StackPanel Margin="0,6,0,-2" Orientation="Horizontal" >
+                    <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" Name="grid_tsExt">
+                        <Label Content="TSファイルの拡張子" />
+                        <TextBox Name="textBox_tsExt" Width="62" />
+                    </StackPanel>
+                    <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" >
                         <CheckBox Content="多数の項目を処理するとき警告する" Name="checkBox_cautionManyChange" />
                         <TextBox Margin="6,0,0,0" Name="textBox_cautionManyChange" Width="62" />
                         <Label Content="以上" />

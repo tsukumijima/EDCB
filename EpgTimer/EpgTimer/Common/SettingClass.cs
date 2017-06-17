@@ -169,6 +169,14 @@ namespace EpgTimer
             if (path != "\\") path = path.TrimEnd('\\');
             return path + (path.EndsWith(Path.VolumeSeparatorChar.ToString()) == true ? "\\" : "");
         }
+        public static string CheckTSExtension(string ext)
+        {
+            //5文字以下の英数字拡張子に限る
+            if (ext.Length < 2 || ext.Length > 6 || ext[0] != '.'
+                || ext.Substring(1).Any(c => !('0' <= c && c <= '9' || 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z')))
+            { return ".ts"; }
+            return ext;
+        }
         private static string IniPath
         {
             get { return (CommonManager.Instance.NWMode == false ? ModulePath : SettingFolderPath); }
