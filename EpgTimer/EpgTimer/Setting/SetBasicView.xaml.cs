@@ -103,7 +103,7 @@ namespace EpgTimer.Setting
                 checkBox_cs1.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS1BasicOnly", 1, SettingPath.CommonIniPath) == 1;
                 checkBox_cs2.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS2BasicOnly", 1, SettingPath.CommonIniPath) == 1;
                 checkBox_cs3.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS3BasicOnly", 0, SettingPath.CommonIniPath) == 1;
-                textBox_EpgCapTimeOut.Text = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapTimeOut", 15, SettingPath.BonCtrlIniPath).ToString();
+                textBox_EpgCapTimeOut.Text = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapTimeOut", 10, SettingPath.BonCtrlIniPath).ToString();
                 checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapSaveTimeOut", 0, SettingPath.BonCtrlIniPath) == 1;
 
                 int capCount = IniFileHandler.GetPrivateProfileInt("EPG_CAP", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
