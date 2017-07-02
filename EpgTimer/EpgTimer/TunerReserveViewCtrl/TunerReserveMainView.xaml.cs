@@ -28,6 +28,7 @@ namespace EpgTimer
             tunerReserveView.ScrollChanged += new ScrollChangedEventHandler(tunerReserveView_ScrollChanged);
             tunerReserveView.LeftDoubleClick += new TunerReserveView.PanelViewClickHandler(tunerReserveView_LeftDoubleClick);
             tunerReserveView.RightClick += new TunerReserveView.PanelViewClickHandler(tunerReserveView_RightClick);
+            button_now.Click += (sender, e) => tunerReserveView.scrollViewer.ScrollToVerticalOffset(0);
 
             //ビューコードの登録
             mBinds.View = CtxmCode.TunerReserveView;
