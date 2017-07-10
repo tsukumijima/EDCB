@@ -93,19 +93,4 @@ namespace EpgTimer
         EPG = 2,            //個別予約(EPG)
         Program = 3         //個別予約(プログラム)
     };
-
-    public class CMD_STREAM
-    {
-        public uint uiParam;
-        public uint uiSize;
-        public byte[] bData;
-
-        public CMD_STREAM()
-        {
-            uiParam = 0;
-            uiSize = 0;
-            bData = null;
-        }
-    }
-
 }
