@@ -34,7 +34,7 @@
                 <CheckBox Content="自動登録を無効にする" Margin="30,0,0,0" Name="checkBox_keyDisabled" />
             </StackPanel>
         </StackPanel>
-        <my:RecSettingView Grid.Row="1" Margin="-12,2,0,0" x:Name="recSettingView" />
+        <my:RecSettingView Grid.Row="1" Margin="1,2,0,0" x:Name="recSettingView" />
         <WrapPanel Grid.Row="2" HorizontalAlignment="Right" Margin="0,6,0,12" >
             <StackPanel Margin="20,0,20,0" Orientation="Horizontal">
                 <Button Content="追加" Margin="10,0,10,0" Name="button_add" MinWidth="48" />
