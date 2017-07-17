@@ -64,18 +64,14 @@ namespace EpgTimer
             for (int i1 = 0; i1 < this._multiHeaderSortDict.Count; i1++)
             {
                 GridViewColumnHeader columnHeader1 = this._multiHeaderSortDict.ElementAt(i1).Key;
-                ListSortDirection sortDirection1 = this._multiHeaderSortDict.ElementAt(i1).Value;
                 string path = getHeaderString(columnHeader1);
                 if (string.IsNullOrEmpty(path) == true) continue;
 
+                ListSortDirection sortDirection1 = this._multiHeaderSortDict.ElementAt(i1).Value;
+                var comparer = new ItemComparer(path, sortDirection1, gvCache1);
+
                 sortGroupList1 = CreateSortedItemGroupList(prevPath, sortGroupList1, idxData, gvCache1);
-                foreach (var kvp1 in sortGroupList1)
-                {
-                    idxData.Sort(
-                        kvp1.Item1,
-                        kvp1.Item2 - kvp1.Item1 + 1,
-                        new ItemComparer(path, sortDirection1, gvCache1));
-                }
+                sortGroupList1.ForEach(kvp1 => idxData.Sort(kvp1.Item1, kvp1.Item2 - kvp1.Item1 + 1, comparer));
                 prevPath = path;
             }
 
