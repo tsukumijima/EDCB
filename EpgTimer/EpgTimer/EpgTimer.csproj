@@ -109,6 +109,10 @@
     <Compile Include="DefineClass\NWPresetItem.cs" />
     <Compile Include="DefineClass\InfoSearchItem.cs" />
     <Compile Include="DefineClass\WindowSettingData.cs" />
+    <Compile Include="DefineClass\PresetItem.cs" />
+    <Compile Include="Setting\SetPresetWindow.xaml.cs">
+      <DependentUpon>SetPresetWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserCtrlView\AutoAddListView.xaml.cs">
       <DependentUpon>AutoAddListView.xaml</DependentUpon>
     </Compile>
@@ -212,7 +216,6 @@
     </Compile>
     <Compile Include="DefineClass\SearchItem.cs" />
     <Compile Include="DefineClass\ReserveItem.cs" />
-    <Compile Include="DefineClass\RecPresetItem.cs" />
     <Compile Include="DefineClass\ReserveViewItem.cs" />
     <Compile Include="Common\TaskTrayClass.cs" />
     <Compile Include="EpgView\WeekDayView.xaml.cs">
@@ -220,9 +223,6 @@
     </Compile>
     <Compile Include="EpgView\EpgWeekMainView.xaml.cs">
       <DependentUpon>EpgWeekMainView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Setting\SetDefSearchSettingWindow.xaml.cs">
-      <DependentUpon>SetDefSearchSettingWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserCtrlView\PanelViewBase.cs">
       <SubType>Code</SubType>
@@ -235,9 +235,6 @@
     </Compile>
     <Compile Include="Setting\SetBasicView.xaml.cs">
       <DependentUpon>SetBasicView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Setting\SetDefRecSettingWindow.xaml.cs">
-      <DependentUpon>SetDefRecSettingWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserCtrlView\RecSettingView.xaml.cs">
       <DependentUpon>RecSettingView.xaml</DependentUpon>
@@ -264,6 +261,9 @@
     <Compile Include="InfoSearchWindow.xaml.cs">
       <DependentUpon>InfoSearchWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserCtrlView\PresetEditor.xaml.cs">
+      <DependentUpon>PresetEditor.xaml</DependentUpon>
+    </Compile>
     <Page Include="AddManualAutoAddWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -289,6 +289,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Menu\SetContextMenuWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Setting\SetPresetWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -425,10 +429,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Setting\SetDefSearchSettingWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="UserCtrlView\RecFolderWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -438,10 +438,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Setting\SetBasicView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Setting\SetDefRecSettingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -486,6 +482,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="UserCtrlView\DataListViewStyles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserCtrlView\PresetEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -314,12 +314,12 @@ namespace EpgTimer
         {
             CustomEpgTabInfo tabInfo = this.GetSetting();
 
-            var dlg = new SetDefSearchSettingWindow();
-            dlg.Owner = CommonUtil.GetTopWindow(this);
-            dlg.SetDefSetting(tabInfo.GetSearchKeyReloadEpg());
+            var dlg = new SetSearchPresetWindow(this);
+            dlg.SetSettingMode("検索条件");
+            dlg.DataView.SetSearchKey(tabInfo.GetSearchKeyReloadEpg());
             if (dlg.ShowDialog() == true)
             {
-                searchKey = dlg.GetSetting();
+                searchKey = dlg.DataView.GetSearchKey();
 
                 //サービスリストは表示順を保持する
                 var oldList = listBox_serviceView.Items.OfType<object>().ToList();

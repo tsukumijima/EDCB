@@ -12,10 +12,15 @@ namespace EpgTimer
     /// <summary>
     /// SearchKey.xaml の相互作用ロジック
     /// </summary>
-    public partial class SearchKeyView : UserControl
+    public partial class SearchKeyView : UserControl, IPresetItemView
     {
+        public const string ClearButtonTooltip = "即時にクリアされ、設定画面をキャンセルしても戻りません";
+
         private List<ServiceViewItem> serviceList;
         private List<CheckBox> chbxWeekList;
+
+        private PresetEditor<SearchPresetItem> preEdit = new PresetEditor<SearchPresetItem>();
+        private ComboBox comboBox_preSet;
 
         public SearchKeyView()
         {
@@ -77,7 +82,31 @@ namespace EpgTimer
             chbxWeekList = CommonManager.DayOfWeekArray.Select(wd =>
                 new CheckBox { Content = wd, Margin = new Thickness(0, 0, 5, 0) }).ToList();
             chbxWeekList.ForEach(chbx => stack_data_week.Children.Add(chbx));
+
+            grid_PresetEdit.Children.Clear();
+            grid_PresetEdit.Children.Add(preEdit);
+            comboBox_preSet = preEdit.comboBox_preSet;
+            preEdit.Set(this,
+                (item, msg) => UpdateView(item),
+                (list, mode) =>
+                {
+                    Settings.Instance.SearchPresetList = list;
+                    if (comboBox_preSet.SelectedItem == null)
+                    {
+                        preEdit.ChangeSelect(preEdit.FindPreset(PresetItem.CustomID), null, true);
+                    }
+                },
+                "検索プリセット", SetSearchPresetWindow.SettingWithDialog);
+            if (Settings.Instance.UseLastSearchKey == true)
+            {
+                comboBox_preSet.Items.Add(new SearchPresetItem("前回検索条件", SearchPresetItem.LastID, null));
+            }
+            checkBox_setWithoutSearchKeyWord.IsChecked = Settings.Instance.SetWithoutSearchKeyWord;
         }
+
+        public void SetData(object data) { SetSearchKey(data as EpgSearchKeyInfo); }
+        public object GetData() { return GetSearchKey(); }
+        public IEnumerable<PresetItem> DefPresetList() { return Settings.Instance.SearchPresetList.Clone(); }
 
         protected virtual void ComboBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -174,10 +203,23 @@ namespace EpgTimer
         }
         public void SetSearchKey(EpgSearchKeyInfo key)
         {
+            //"登録時"を追加する。既存があれば追加前に削除する。検索ダイアログの上下ボタンの移動用のコード。
+            comboBox_preSet.Items.Remove(preEdit.FindPreset(SearchPresetItem.CustomID));
+            comboBox_preSet.Items.Add(new SearchPresetItem("登録時", SearchPresetItem.CustomID, key.Clone()));
+            loadingSetting = true;
+            comboBox_preSet.SelectedIndex = comboBox_preSet.Items.Count - 1;
+        }
+        private bool loadingSetting = true;
+        public void UpdateView(SearchPresetItem pItem)
+        {
             try
             {
-                comboBox_andKey.Text = key.andKey;
-                comboBox_notKey.Text = key.notKey;
+                EpgSearchKeyInfo key = pItem.Data ?? Settings.Instance.DefSearchKey;
+                if (loadingSetting == true || checkBox_setWithoutSearchKeyWord.IsChecked == false)
+                {
+                    comboBox_andKey.Text = key.andKey;
+                    comboBox_notKey.Text = key.notKey;
+                }
                 checkBox_regExp.IsChecked = key.regExpFlag == 1;
                 checkBox_aimai.IsChecked = key.aimaiFlag == 1;
                 checkBox_titleOnly.IsChecked = key.titleOnlyFlag == 1;
@@ -210,16 +252,24 @@ namespace EpgTimer
                 radioButton_chkRecNoService2.IsChecked = key.chkRecNoService != 0;
                 textBox_chkDurationMin.Text = key.chkDurationMin.ToString();
                 textBox_chkDurationMax.Text = key.chkDurationMax.ToString();
-
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            loadingSetting = false;
         }
 
         public void SetChangeMode(int chgMode)
         {
-            ViewUtil.SetSpecificChgAppearance(listBox_content);
-            listBox_content.Focus();
-            if (listBox_content.Items.Count != 0) listBox_content.SelectedIndex = 0;
+            switch (chgMode)
+            {
+                case 0:
+                    ViewUtil.SetSpecificChgAppearance(listBox_content);
+                    listBox_content.Focus();
+                    if (listBox_content.Items.Count != 0) listBox_content.SelectedIndex = 0;
+                    break;
+            }
+            stackPanel_PresetEdit.Visibility = chgMode == int.MaxValue ? Visibility.Collapsed : Visibility.Visible;
+            Button_clearAndKey.ToolTip = chgMode == int.MaxValue ? SearchKeyView.ClearButtonTooltip : null;
+            Button_clearNotKey.ToolTip = Button_clearAndKey.ToolTip;
         }
 
         private void button_content_add_Click(object sender, RoutedEventArgs e)
@@ -356,6 +406,12 @@ namespace EpgTimer
             {
                 button_content_add_Click(null, null);
             }
+        }
+
+        private void checkBox_setWithoutSearchKeyWord_Click(object sender, RoutedEventArgs e)
+        {
+            //これはダイアログの設定なので即座に反映
+            Settings.Instance.SetWithoutSearchKeyWord = (checkBox_setWithoutSearchKeyWord.IsChecked == true);
         }
     }
 

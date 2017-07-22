@@ -395,7 +395,7 @@ namespace EpgTimer
 
             if (e.Command == EpgCmds.ChgOnPreset)
             {
-                return MenuUtil.ChangeOnPreset(infoList, (uint)CmdExeUtil.ReadIdData(e, 0, 0xFE));
+                return MenuUtil.ChangeOnPreset(infoList, CmdExeUtil.ReadIdData(e, 0, 0xFE));
             }
             else if (e.Command == EpgCmds.ChgRecmode)
             {
@@ -539,7 +539,7 @@ namespace EpgTimer
                     RecPresetItem pre_0 = listr[0].RecSettingInfo.LookUpPreset(listr[0].IsManual);
                     RecPresetItem value = listr.All(data => data.RecSettingInfo.LookUpPreset(data.IsManual).ID == pre_0.ID) ? pre_0 : null;
                     subMenu.Header = string.Format("プリセット : {0}", value == null ? "*" : value.DisplayName);
-                    SetCheckmarkSubMenus(subMenu, value == null ? int.MinValue : (int)value.ID);
+                    SetCheckmarkSubMenus(subMenu, value == null ? int.MinValue : value.ID);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgResModeMenu)
                 {

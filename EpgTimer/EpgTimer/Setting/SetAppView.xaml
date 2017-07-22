@@ -17,8 +17,8 @@
                         <CheckBox Content="最小化時にタスクトレイに格納する" Name="checkBox_minHide" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_showTray, UpdateSourceTrigger=PropertyChanged}" />
                     </DockPanel>
                     <StackPanel Orientation="Horizontal" Margin="12">
-                        <Button Content="録画プリセット設定" Margin="0,0,20,0" Name="button_recDef" Width="200" Click="button_recDef_Click" />
-                        <Button Content="検索条件のデフォルト値を設定" Name="button_searchDef" Width="200" Click="button_searchDef_Click" />
+                        <Button Content="録画プリセット設定" Margin="0,0,20,0" Name="button_recDef" Width="150" Click="button_recDef_Click" />
+                        <Button Content="検索プリセット設定" Name="button_searchDef" Width="150" Click="button_searchDef_Click" />
                     </StackPanel>
                     <CheckBox Content="EpgTimerNWなどからのネットワーク接続を許可する　※WebUI用の許可設定は別途INIファイルの設定が必要です。" Margin="0,0,6,0" Name="checkBox_tcpServer" />
                     <StackPanel Margin="0,2,0,0"  Name="grid_tcpCtrl" Orientation="Horizontal">
@@ -75,9 +75,10 @@
                         <TextBox Margin="6,0,0,0" Name="textBox_cautionManyChange" Width="62" />
                         <Label Content="以上" />
                     </StackPanel>
+                    <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,0,0" Name="checkBox_useLastSearchKey" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている検索条件はクリアされます。"/>
                     <StackPanel Margin="0,6,0,0" >
-                        <CheckBox Content="検索/キーワード予約ダイアログで検索履歴を保存する" Name="checkBox_saveSearchKeyword" />
-                        <Button Content="履歴クリア" Margin="18,4,0,0" HorizontalAlignment="Left" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" ToolTip="即時にクリアされ、設定画面をキャンセルしても戻りません" />
+                        <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" Name="checkBox_saveSearchKeyword" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは無関係に、検索キーワードのみ保存します"/>
+                        <Button Content="履歴クリア" Margin="18,4,0,0" HorizontalAlignment="Left" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
                     </StackPanel>
                     <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" />
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Name="stackPanel_WoLWait" IsEnabled="False">

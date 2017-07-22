@@ -17,8 +17,6 @@ namespace EpgTimer.Setting
     /// </summary>
     public partial class SetAppView : UserControl
     {
-        private EpgSearchKeyInfo defSearchKey;
-
         BoxExchangeEditor bxb;
         BoxExchangeEditor bxt;
         private List<string> buttonItem;
@@ -28,7 +26,8 @@ namespace EpgTimer.Setting
         private RadioBtnSelect recEndModeRadioBtns;
         private RadioBtnSelect delReserveModeRadioBtns;
 
-        private List<RecPresetItem> recPresetList;
+        private List<RecPresetItem> recPresetList = new List<RecPresetItem>();
+        private List<SearchPresetItem> searchPresetList = new List<SearchPresetItem>();
 
         public SetAppView()
         {
@@ -253,9 +252,9 @@ namespace EpgTimer.Setting
                 checkBox_showTray.IsChecked = Settings.Instance.ShowTray;
                 checkBox_minHide.IsChecked = Settings.Instance.MinHide;
 
-                Settings.Instance.RecPresetList.LoadRecPresetData();
                 recPresetList = Settings.Instance.RecPresetList.Clone();
-                defSearchKey = Settings.Instance.DefSearchKey.Clone();
+                searchPresetList = Settings.Instance.SearchPresetList.Clone();
+                checkBox_useLastSearchKey.IsChecked = Settings.Instance.UseLastSearchKey;
 
                 checkBox_tcpServer.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "EnableTCPSrv", 0, SettingPath.TimerSrvIniPath) == 1;
                 textBox_tcpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPPort", 4510, SettingPath.TimerSrvIniPath).ToString();
@@ -294,6 +293,7 @@ namespace EpgTimer.Setting
                 checkBox_cautionManyChange.IsChecked = Settings.Instance.CautionManyChange;
                 textBox_cautionManyChange.Text = Settings.Instance.CautionManyNum.ToString();
                 checkBox_saveSearchKeyword.IsChecked = Settings.Instance.SaveSearchKeyword;
+                button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
                 textBox_upDateTaskText.IsChecked = Settings.Instance.UpdateTaskText;
                 checkBox_wakeReconnect.IsChecked = Settings.Instance.WakeReconnectNW;
                 checkBox_WoLWait.IsChecked = Settings.Instance.WoLWait;
@@ -418,9 +418,10 @@ namespace EpgTimer.Setting
                 Settings.Instance.ShowTray = (bool)checkBox_showTray.IsChecked;
                 Settings.Instance.MinHide = (bool)checkBox_minHide.IsChecked;
 
-                RecPresetItem.SaveRecPresetList(ref recPresetList, true);
                 Settings.Instance.RecPresetList = recPresetList.Clone();
-                Settings.Instance.DefSearchKey = defSearchKey.Clone();
+                Settings.Instance.SearchPresetList = searchPresetList.Clone();
+                Settings.Instance.UseLastSearchKey = (bool)checkBox_useLastSearchKey.IsChecked;
+                if (Settings.Instance.UseLastSearchKey == false) Settings.Instance.DefSearchKey = new EpgSearchKeyInfo();
 
                 IniFileHandler.WritePrivateProfileString("SET", "EnableTCPSrv", checkBox_tcpServer.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "TCPPort", textBox_tcpPort.Text, SettingPath.TimerSrvIniPath);
@@ -552,9 +553,7 @@ namespace EpgTimer.Setting
 
         private void button_recDef_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new SetDefRecSettingWindow();
-            dlg.Owner = CommonUtil.GetTopWindow(this);
-            dlg.SetPresetList(recPresetList);
+            var dlg = new SetRecPresetWindow(this, recPresetList);
             if (dlg.ShowDialog() == true)
             {
                 recPresetList = dlg.GetPresetList();
@@ -563,15 +562,10 @@ namespace EpgTimer.Setting
 
         private void button_searchDef_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new SetDefSearchSettingWindow();
-            dlg.Owner = CommonUtil.GetTopWindow(this);
-            dlg.SetDefSetting(defSearchKey);
-            dlg.searchKeyView.Button_clearAndKey.ToolTip = button_clearSerchKeywords.ToolTip;
-            dlg.searchKeyView.Button_clearNotKey.ToolTip = button_clearSerchKeywords.ToolTip;
-
+            var dlg = new SetSearchPresetWindow(this, searchPresetList);
             if (dlg.ShowDialog() == true)
             {
-                defSearchKey = dlg.GetSetting();
+                searchPresetList = dlg.GetPresetList();
             }
         }
 

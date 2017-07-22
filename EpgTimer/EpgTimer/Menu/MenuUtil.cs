@@ -219,14 +219,14 @@ namespace EpgTimer
             }
         }
         
-        public static bool ReserveAdd(List<EpgEventInfo> itemlist, RecSettingView recSettingView, uint presetID = 0, bool cautionMany = true)
+        public static bool ReserveAdd(List<EpgEventInfo> itemlist, RecSettingView recSettingView, int presetID = 0, bool cautionMany = true)
         {
             try
             {
                 itemlist = CheckReservable(itemlist);
                 if (itemlist == null) return false;
 
-                var setInfo = new RecSettingData();
+                RecSettingData setInfo;
                 if (recSettingView != null)
                 {
                     //ダイアログからの予約、SearchWindowの簡易予約
@@ -235,7 +235,7 @@ namespace EpgTimer
                 else
                 {
                     //簡易予約やプリセット予約
-                    Settings.GetDefRecSetting(presetID, ref setInfo);
+                    setInfo = Settings.RecPreset(presetID).Data;
                 }
 
                 var list = new List<ReserveData>();
@@ -244,7 +244,7 @@ namespace EpgTimer
                 {
                     var resInfo = new ReserveData();
                     item.ConvertToReserveData(ref resInfo);
-                    resInfo.RecSetting = setInfo;
+                    resInfo.RecSetting = setInfo;//setInfoはコピーしなくても大丈夫。
                     list.Add(resInfo);
                 }
 
@@ -290,30 +290,19 @@ namespace EpgTimer
         {
             try
             {
-                //無効から戻す録画モードの選択
-                var setInfo = new RecSettingData();
+                //無効から戻す録画モードの選択。とりあえずデフォルト設定から。無効で登録なら指定サービスにする。
+                byte defMode = Settings.Instance.RecPresetList[0].Data.RecMode;
+                defMode = defMode != 5 ? defMode : (byte)1;
 
-                //現在の設定を読み込む。SearchWindowの場合だけ。
+                //SearchWindowの場合は現在のビューの設定を読み込む。ただし無効で登録ならデフォルト優先。
                 if (recSettingView != null)
                 {
-                    setInfo = recSettingView.GetRecSetting();
-                    
-                    //現在の設定が無効で登録の場合は、デフォルトの設定を読み込みに行く
-                    if (setInfo.RecMode == 5)
-                    {
-                        recSettingView = null;
-                    }
+                    byte viewMode = recSettingView.GetRecSetting().RecMode;
+                    defMode = viewMode != 5 ? viewMode : defMode;
                 }
-                //デフォルト設定を読み込む
-                if (recSettingView == null)
-                {
-                    Settings.GetDefRecSetting(0, ref setInfo);
-                }
-                //デフォルトも無効で登録なら、指定サービスにする
-                byte recMode = setInfo.RecMode != 5 ? setInfo.RecMode : (byte)1;
 
                 //個別設定なので、ChangeRecmode()は不可。
-                itemlist.ForEach(item => item.RecSetting.RecMode = (item.RecSetting.RecMode == 5 ? recMode : (byte)5));
+                itemlist.ForEach(item => item.RecSetting.RecMode = (item.RecSetting.RecMode == 5 ? defMode : (byte)5));
 
                 return ReserveChange(itemlist, cautionMany);
             }
@@ -321,11 +310,12 @@ namespace EpgTimer
             return false;
         }
 
-        public static bool ChangeOnPreset(List<RecSettingData> infoList, uint presetID)
+        public static bool ChangeOnPreset(List<RecSettingData> infoList, int presetID)
         {
             try
             {
-                infoList.ForEach(info => Settings.GetDefRecSetting(presetID, ref info));
+                RecSettingData setInfo = Settings.RecPreset(presetID).Data;
+                infoList.ForEach(info => setInfo.CopyTo(info));
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -418,14 +408,13 @@ namespace EpgTimer
             {
                 infoList[0].UseMargineFlag = 1;
 
-                var dlg = new Setting.SetDefRecSettingWindow();
-                dlg.Owner = CommonUtil.GetTopWindow(owner);
+                var dlg = new SetRecPresetWindow(owner);
                 dlg.SetSettingMode(start == true ? "開始マージン設定" : "終了マージン設定", start == true ? 0 : 1);
-                dlg.recSettingView.SetDefSetting(infoList[0]);
+                dlg.DataView.SetDefSetting(infoList[0]);
 
                 if (dlg.ShowDialog() == false) return false;
 
-                RecSettingData setData = dlg.recSettingView.GetRecSetting();
+                RecSettingData setData = dlg.DataView.GetRecSetting();
 
                 infoList.ForEach(info =>
                 {
@@ -460,15 +449,14 @@ namespace EpgTimer
         {
             try
             {
-                var dlg = new Setting.SetDefRecSettingWindow();
-                dlg.Owner = CommonUtil.GetTopWindow(owner);
+                var dlg = new SetRecPresetWindow(owner);
                 dlg.SetSettingMode("まとめて録画設定を変更");
-                dlg.recSettingView.SetDefSetting(infoList[0], pgAll == true);
-                dlg.recSettingView.SetViewMode(pgAll != true);
+                dlg.DataView.SetViewMode(pgAll != true);
+                dlg.DataView.SetDefSetting(infoList[0]);
 
                 if (dlg.ShowDialog() == false) return false;
 
-                RecSettingData setData = dlg.recSettingView.GetRecSetting();
+                RecSettingData setData = dlg.DataView.GetRecSetting();
                 
                 infoList.ForEach(info => setData.CopyTo(info));
                 return true;
@@ -481,14 +469,13 @@ namespace EpgTimer
         {
             try
             {
-                var dlg = new SetDefSearchSettingWindow();
-                dlg.Owner = CommonUtil.GetTopWindow(owner);
-                dlg.SetDefSetting(infoList[0]);
-                dlg.searchKeyView.SetChangeMode(0);
+                var dlg = new SetSearchPresetWindow(owner);
+                dlg.SetSettingMode("まとめてジャンル設定を変更", 0);
+                dlg.DataView.SetSearchKey(infoList[0]);
 
                 if (dlg.ShowDialog() == false) return false;
 
-                EpgSearchKeyInfo setData = dlg.GetSetting();
+                EpgSearchKeyInfo setData = dlg.DataView.GetSearchKey();
                 infoList.ForEach(info => info.contentList = setData.contentList.Clone());
                 return true;
             }
@@ -991,7 +978,7 @@ namespace EpgTimer
                 {
                     var item_r = (item as IRecSetttingData);
                     RecPresetItem recPreSet = item_r.RecSettingInfo.LookUpPreset(item_r.IsManual, true);
-                    RecSettingData recSet = recPreSet.RecPresetData;
+                    RecSettingData recSet = recPreSet.Data;
                     if (recPreSet.IsCustom == true && recSet.RecMode == 5)
                     {
                         recSet.RecMode = 1;
@@ -1005,7 +992,7 @@ namespace EpgTimer
         }
         public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
         {
-            key = key ?? Settings.Instance.DefSearchKey.Clone();
+            key = key ?? Settings.Instance.SearchPresetList[0].Data.Clone();
             key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
             key.regExpFlag = 0;
             key.serviceList.Clear();

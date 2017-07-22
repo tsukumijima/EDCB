@@ -85,6 +85,7 @@ namespace EpgTimer
         {
             obj.Background = Brushes.LavenderBlush;
             obj.BorderThickness = new Thickness(2);
+            obj.BorderBrush = Brushes.Red;
         }
 
         public static bool ReloadReserveData(Control Owner = null)

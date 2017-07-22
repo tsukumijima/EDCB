@@ -178,7 +178,7 @@ namespace EpgTimer
             {
                 comboBox_service.SelectedItem = ChSet5.ChList[key];
             }
-            recSettingView.SetDefSetting(data.recSetting, true);
+            recSettingView.SetDefSetting(data.recSetting);
 
             return true;
         }

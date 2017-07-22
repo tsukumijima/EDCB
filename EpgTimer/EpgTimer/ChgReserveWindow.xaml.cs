@@ -108,7 +108,8 @@ namespace EpgTimer
             if (epgInfoOpenMode != null) openMode = epgInfoOpenMode == 1 ? 1 : 0;
             addMode = AddMode.Change;
             reserveInfo = info.Clone();
-            recSettingView.SetDefSetting(reserveInfo.RecSetting, reserveInfo.IsManual);
+            recSettingView.SetViewMode(!reserveInfo.IsManual);
+            recSettingView.SetDefSetting(reserveInfo.RecSetting);
             checkBox_releaseAutoAdd.IsChecked = false;
             checkBox_releaseAutoAdd.IsEnabled = reserveInfo.IsAutoAdded;
         }

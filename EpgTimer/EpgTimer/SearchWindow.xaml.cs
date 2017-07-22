@@ -94,13 +94,10 @@ namespace EpgTimer
                 searchKeyView.KeyUp += (sender, e) => { if (e.Key == Key.Enter)button_search_Click(null, null); };
 
                 //録画プリセット変更時の対応
-                recSettingView.SelectedPresetChanged += new EventHandler(SetRecSettingTabHeader);
+                recSettingView.SelectedPresetChanged += SetRecSettingTabHeader;
 
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
-
-                SetSearchKey(Settings.Instance.DefSearchKey);
-                SetRecSetting(Settings.Instance.RecPresetList[0].RecPresetData);
 
                 //notify残ってれば更新。通常残ってないはず。
                 ViewUtil.ReloadReserveData();
@@ -153,16 +150,12 @@ namespace EpgTimer
             base.ChangeAutoAddData(data);
             if (refresh == true) SearchPg();
         }
-        public void SetRecSettingTabHeader(object sender, EventArgs e)
+        public void SetRecSettingTabHeader(bool Sync = true)
         {
             string preset_str = "";
             if (Settings.Instance.DisplayPresetOnSearch == true)
             {
-                RecPresetItem preset = recSettingView.SelectedPreset(sender == null);
-                if (preset != null && string.IsNullOrEmpty(preset.DisplayName) == false)
-                {
-                    preset_str = string.Format(" - {0}", preset.DisplayName);
-                }
+                preset_str = string.Format(" - {0}", recSettingView.SelectedPreset(!Sync).ToString());
             }
             tabItem2.Header = "録画設定" + preset_str;
         }
@@ -170,6 +163,7 @@ namespace EpgTimer
         private void button_search_Click(object sender, ExecutedRoutedEventArgs e)
         {
             SearchPg(true);
+            if (Settings.Instance.UseLastSearchKey == true) Settings.Instance.DefSearchKey = GetSearchKey();
             StatusManager.StatusNotifySet(true, "検索を実行");
         }
         private void SearchPg(bool addSearchLog = false)
@@ -189,7 +183,7 @@ namespace EpgTimer
             });
 
             UpdateStatus();
-            SetRecSettingTabHeader(null, null);
+            SetRecSettingTabHeader(false);
             SetWindowTitle();
         }
         public override void SetWindowTitle()

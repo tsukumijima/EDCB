@@ -80,7 +80,7 @@ namespace EpgTimer
         }
         protected override void mc_AddOnPreset(object sender, ExecutedRoutedEventArgs e)
         {
-            uint presetID = (uint)CmdExeUtil.ReadIdData(e, 0, 0xFE);
+            int presetID = CmdExeUtil.ReadIdData(e, 0, 0xFE);
             IsCommandExecuted = MenuUtil.ReserveAdd(eventListEx, null, presetID);
         }
         protected override void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e)
@@ -174,7 +174,7 @@ namespace EpgTimer
                 }
                 else
                 {
-                    resData.RecSetting = Settings.Instance.RecPresetList[0].RecPresetData.Clone();
+                    resData.RecSetting = Settings.Instance.RecPresetList[0].Data.Clone();
                 }
                 eventRefData = eventList[0];
             }

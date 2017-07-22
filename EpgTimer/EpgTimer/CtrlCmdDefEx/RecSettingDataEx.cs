@@ -15,15 +15,12 @@ namespace EpgTimer
     {
         public RecPresetItem LookUpPreset(bool IsManual = false, bool CopyData = false)
         {
-            return LookUpPreset(Settings.Instance.RecPresetList, IsManual, CopyData);
-        }
-        public RecPresetItem LookUpPreset(IEnumerable<RecPresetItem> refdata, bool IsManual = false, bool CopyData = false)
-        {
-            RecPresetItem preset = refdata.FirstOrDefault(p1 =>
-            {
-                return p1.RecPresetData.EqualsSettingTo(this, IsManual);
-            });
+            RecPresetItem preset = LookUpPreset(Settings.Instance.RecPresetList, IsManual);
             return preset == null ? new RecPresetItem("登録時", RecPresetItem.CustomID, CopyData == true ? this.Clone() : null) : preset;
+        }
+        public RecPresetItem LookUpPreset(IEnumerable<RecPresetItem> refdata, bool IsManual = false)
+        {
+            return refdata.FirstOrDefault(p1 => p1.Data.EqualsSettingTo(this, IsManual));
         }
 
         public List<string> RecFolderViewList

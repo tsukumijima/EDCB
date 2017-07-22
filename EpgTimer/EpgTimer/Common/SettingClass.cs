@@ -262,7 +262,7 @@ namespace EpgTimer
     public class Settings
     {
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20170512; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20170717; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -363,6 +363,9 @@ namespace EpgTimer
         public List<string> AndKeyList { get; set; }
         public List<string> NotKeyList { get; set; }
         public EpgSearchKeyInfo DefSearchKey { get; set; }
+        public bool UseLastSearchKey { get; set; }
+        public List<SearchPresetItem> SearchPresetList { get; set; }
+        public bool SetWithoutSearchKeyWord { get; set; }
         private List<RecPresetItem> recPresetList = null;
         [XmlIgnore]
         public List<RecPresetItem> RecPresetList
@@ -371,11 +374,15 @@ namespace EpgTimer
             {
                 if (recPresetList == null)
                 {
-                    recPresetList = RecPresetItem.LoadRecPresetList();
+                    recPresetList = RecPresetItem.LoadPresetList();
                 }
                 return recPresetList;
             }
-            set { recPresetList = value; }
+            set
+            { 
+                recPresetList = value;
+                RecPresetItem.SavePresetList(recPresetList);
+            }
         }
         public Int32 RecInfoToolTipMode { get; set; }
         public string RecInfoColumnHead { get; set; }
@@ -596,6 +603,9 @@ namespace EpgTimer
             AndKeyList = new List<string>();
             NotKeyList = new List<string>();
             DefSearchKey = new EpgSearchKeyInfo();
+            UseLastSearchKey = false;
+            SearchPresetList = new List<SearchPresetItem>();
+            SetWithoutSearchKeyWord = false;
             RecInfoToolTipMode = 0;
             RecInfoColumnHead = "";
             RecInfoSortDirection = ListSortDirection.Ascending;
@@ -747,9 +757,16 @@ namespace EpgTimer
                 // MenuManager側のワークデータ作成時に実行する。
 
                 SetCustomEpgTabInfoID();
+                Instance.SearchPresetList.FixUp();
+
+                //互換用コード。検索プリセット対応。DefSearchKeyの吸収があるので旧CS仮対応コードより前。
+                if (Instance.verSaved < 20170717)
+                {
+                    Instance.SearchPresetList[0].Data = Instance.DefSearchKey;
+                }
 
                 //互換用コード。旧CS仮対応コード(+0x70)も変換する。
-                if (Instance.verSaved < Instance.SettingFileVer)
+                if (Instance.verSaved < 20170512)
                 {
                     foreach (var info in Instance.CustomEpgTabList)
                     {
@@ -758,7 +775,7 @@ namespace EpgTimer
                         EpgContentData.FixNibble(info.SearchKey.contentList);
                         info.ViewContentKindList = null;
                     }
-                    EpgContentData.FixNibble(Instance.DefSearchKey.contentList);
+                    EpgContentData.FixNibble(Instance.SearchPresetList[0].Data.contentList);
                 }
 
                 //色設定関係
@@ -864,11 +881,9 @@ namespace EpgTimer
             return (info == null ? null : info.GetValue(this, null));
         }
 
-        public static void GetDefRecSetting(UInt32 presetID, ref RecSettingData defKey)
+        public static RecPresetItem RecPreset(Int32 presetID)
         {
-            RecPresetItem preset = Instance.RecPresetList.FirstOrDefault(item => item.ID == presetID);
-            if (preset == null) preset = new RecPresetItem("", presetID);
-            preset.RecPresetData.CopyTo(defKey);
+            return Instance.RecPresetList[Math.Max(0, Math.Min(presetID, Instance.RecPresetList.Count - 1))];
         }
 
         public static void ReloadOtherOptions()

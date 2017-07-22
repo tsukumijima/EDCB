@@ -6,12 +6,19 @@ using System.Windows.Controls;
 
 namespace EpgTimer
 {
+    using BoxExchangeEdit;
+    using PresetEditor;
+
     /// <summary>
     /// RecSettingView.xaml の相互作用ロジック
     /// </summary>
-    public partial class RecSettingView : UserControl
+    public partial class RecSettingView : UserControl, IPresetItemView
     {
-        public virtual event EventHandler SelectedPresetChanged = null;
+        public event Action<bool> SelectedPresetChanged = null;
+        private void SelectedPreset_Changed(bool Sync = true)
+        {
+            if (SelectedPresetChanged != null) SelectedPresetChanged(Sync);
+        }
 
         private RecSettingData _recSet;
         private int recEndMode;
@@ -35,6 +42,11 @@ namespace EpgTimer
         private List<TunerSelectInfo> tunerList = new List<TunerSelectInfo>();
         private static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
 
+        private bool IsManual = false;
+
+        private PresetEditor<RecPresetItem> preEdit = new PresetEditor<RecPresetItem>();
+        private ComboBox comboBox_preSet;
+
         private bool initLoad = false;
         public RecSettingView()
         {
@@ -44,12 +56,15 @@ namespace EpgTimer
             {
                 if (CommonManager.Instance.NWMode == true)
                 {
-                    button_add_preset.IsEnabled = false;
-                    button_chg_preset.IsEnabled = false;
-                    button_del_preset.IsEnabled = false;
+                    preEdit.button_add.IsEnabled = false;
+                    preEdit.button_chg.IsEnabled = false;
+                    preEdit.button_del.IsEnabled = false;
+                    preEdit.button_add.ToolTip = "EpgTimerNWからは変更出来ません";
+                    preEdit.button_chg.ToolTip = preEdit.button_add.ToolTip;
+                    preEdit.button_del.ToolTip = preEdit.button_add.ToolTip;
                 }
 
-                recSetting = Settings.Instance.RecPresetList[0].RecPresetData.Clone();
+                recSetting = Settings.Instance.RecPresetList[0].Data.Clone();
 
                 comboBox_recMode.ItemsSource = CommonManager.RecModeList;
                 comboBox_tuijyu.ItemsSource = CommonManager.YesNoList;
@@ -69,10 +84,10 @@ namespace EpgTimer
                 comboBox_tuner.ItemsSource = tunerList;
                 comboBox_tuner.SelectedIndex = 0;
 
-                Settings.Instance.RecPresetList.LoadRecPresetData();
-                Settings.Instance.RecPresetList.ForEach(info => comboBox_preSet.Items.Add(info.Clone()));//現在の処理ならClone()無くても大丈夫
-                comboBox_preSet.SelectedIndex = 0;
-                comboBox_preSet.KeyDown += ViewUtil.KeyDown_Enter(button_reload_preset);
+                stackPanel_PresetEdit.Children.Clear();
+                stackPanel_PresetEdit.Children.Add(preEdit);
+                preEdit.Set(this, PresetSelectChanged, PresetEdited, "録画プリセット", SetRecPresetWindow.SettingWithDialog);
+                comboBox_preSet = preEdit.comboBox_preSet;
 
                 var bx = new BoxExchangeEdit.BoxExchangeEditor(null, listView_recFolder, true, true, true);
                 bx.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_recFolderChg);
@@ -82,23 +97,13 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        public void SavePreset()
-        {
-            var list = comboBox_preSet.Items.OfType<RecPresetItem>().Where(item => item.IsCustom == false).ToList();
-            RecPresetItem.SaveRecPresetList(ref list, true);
-            Settings.Instance.RecPresetList = list.Clone();
-
-            comboBox_preSet.Items.Refresh();
-
-            if (CommonManager.Instance.NWMode == false)
-            {
-                CommonManager.Instance.CtrlCmd.SendNotifyProfileUpdate();
-                ViewUtil.MainWindow.RefreshAllViewsReserveInfo(MainWindow.UpdateViewMode.ReserveInfoNoTuner);
-            }
-        }
+        public void SetData(object data) { SetDefSetting(data as RecSettingData); }
+        public object GetData() { return GetRecSetting(); }
+        public IEnumerable<PresetItem> DefPresetList() { return Settings.Instance.RecPresetList.Clone(); }
 
         public void SetViewMode(bool epgMode)
         {
+            IsManual = !epgMode;
             comboBox_tuijyu.IsEnabled = (epgMode == true);
             comboBox_pittari.IsEnabled = (epgMode == true);
         }
@@ -118,60 +123,63 @@ namespace EpgTimer
                     textBox_margineEnd.SelectAll();
                     break;
             }
-            stackPanel_PresetEdit.Visibility = chgMode == 2 ? Visibility.Collapsed : Visibility.Visible;
+            stackPanel_PresetEdit.Visibility = chgMode == int.MaxValue ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        //予約データがプリセットに該当するときに、プリセットではなく予約データを画面に読むようにするフラグ
-        bool loadingDefSetting = false;
-        public void SetDefSetting(RecSettingData set, bool isDisplayManual = false)
+        private enum PresetSelectMode { Normal, SelectOnly, InitLoad };
+        private void PresetEdited(List<RecPresetItem> list, PresetEdit mode)
+        {
+            Settings.Instance.RecPresetList = list;
+            if (CommonManager.Instance.NWMode == false)
+            {
+                CommonManager.Instance.CtrlCmd.SendNotifyProfileUpdate();
+                ViewUtil.MainWindow.RefreshAllViewsReserveInfo(MainWindow.UpdateViewMode.ReserveInfoNoTuner);
+            }
+
+            if (mode == PresetEdit.Set)
+            {
+                preEdit.ChangeSelect(MatchPresetOrDefault() ?? preEdit.Items.Last(), PresetSelectMode.SelectOnly);
+            }
+            SelectedPreset_Changed(false);
+        }
+        private void PresetSelectChanged(RecPresetItem item, object msg)
+        {
+            var code = (msg as PresetSelectMode?) ?? PresetSelectMode.Normal;
+            if (code != PresetSelectMode.SelectOnly)
+            {
+                if (code != PresetSelectMode.InitLoad)
+                {
+                    recSetting = item.Data.Clone();
+                }
+                UpdateView();
+            }
+            preEdit.button_chg.IsEnabled = !item.IsCustom && CommonManager.Instance.NWMode == false;
+            preEdit.button_del.IsEnabled = preEdit.button_chg.IsEnabled;
+            SelectedPreset_Changed(code == PresetSelectMode.Normal);
+        }
+
+        //このへんそのうちpreEditに移動か
+        public RecPresetItem MatchPresetOrDefault(RecSettingData data = null)
+        {
+            return (data ?? GetRecSetting()).LookUpPreset(preEdit.Items, IsManual);
+        }
+        public RecPresetItem SelectedPreset(bool isCheckData = false)
+        {
+            var select = comboBox_preSet.SelectedItem as RecPresetItem;
+            return (isCheckData == false ? select : MatchPresetOrDefault())
+                ?? new RecPresetItem((select != null ? select.ToString() : "カスタム") + "*", PresetItem.CustomID);
+        }
+
+        public void SetDefSetting(RecSettingData set)
         {
             recSetting = set.Clone();
 
             //"登録時"を追加する。既存があれば追加前に削除する。検索ダイアログの上下ボタンの移動用のコード。
-            comboBox_preSet.Items.Remove(FindPresetItem(RecPresetItem.CustomID));
-            comboBox_preSet.Items.Add(new RecPresetItem("登録時", RecPresetItem.CustomID, set.Clone()));
+            comboBox_preSet.Items.Remove(preEdit.FindPreset(RecPresetItem.CustomID));
+            comboBox_preSet.Items.Add(new RecPresetItem("登録時", RecPresetItem.CustomID, recSetting.Clone()));
 
-            //該当するものがあれば選択、無ければ"登録時"。一応特定条件下で齟齬が出ないように2回検索にしておく。
-            object target = FindPresetItem(set.LookUpPreset(isDisplayManual).ID);
-            if (target == null) target = comboBox_preSet.Items[comboBox_preSet.Items.Count - 1];
-
-            //強制更新
-            comboBox_preSet.SelectedItem = null;
-            loadingDefSetting = true;
-            comboBox_preSet.SelectedItem = target;
-        }
-
-        //未使用。プリセット指定で予約追加ダイアログを立ち上げるときに使えると思うが、そのような処理がない。
-        public void SetDefSetting(UInt32 presetID)
-        {
-            RecPresetItem target = FindPresetItem(presetID);
-            if (target == null) target = comboBox_preSet.Items[0] as RecPresetItem;
-
-            recSetting = target.RecPresetData.Clone();
-
-            //強制更新
-            comboBox_preSet.SelectedItem = null;
-            comboBox_preSet.SelectedItem = target;
-        }
-
-        private RecPresetItem FindPresetItem(UInt32 presetID)
-        {
-            return comboBox_preSet.Items.OfType<RecPresetItem>().FirstOrDefault(item => item.ID == presetID);
-        }
-
-        public RecPresetItem SelectedPreset(bool isCheckData = false, bool isDisplayManual = false)
-        {
-            var preset = comboBox_preSet.SelectedItem as RecPresetItem;
-            if (isCheckData == true)
-            {
-                var preset_back = preset;
-                preset = GetRecSetting().LookUpPreset(comboBox_preSet.Items.OfType<RecPresetItem>(), isDisplayManual);
-                if (preset != null & comboBox_preSet.Items.Contains(preset) == false)
-                {
-                    preset.DisplayName = (preset_back != null ? preset_back.DisplayName : "カスタム") + "*";
-                }
-            }
-            return preset;
+            //該当するものがあれば選択、無ければ"登録時"。
+            preEdit.ChangeSelect(MatchPresetOrDefault(recSetting), PresetSelectMode.InitLoad);
         }
 
         public RecSettingData GetRecSetting()
@@ -247,24 +255,6 @@ namespace EpgTimer
                 UpdateView();
                 initLoad = true;
             }
-        }
-
-        private void comboBox_preSet_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                if (comboBox_preSet.SelectedItem != null)
-                {
-                    if (SelectedPresetChanged != null) SelectedPresetChanged(this, new EventArgs());
-                    if (loadingDefSetting != true)
-                    {
-                        recSetting = (comboBox_preSet.SelectedItem as RecPresetItem).RecPresetData.Clone();
-                    }
-                    UpdateView();
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            loadingDefSetting = false;
         }
 
         private bool OnUpdatingView = false;
@@ -387,90 +377,6 @@ namespace EpgTimer
                 listView_recFolder.ScrollIntoViewLast(setInfo);
                 listView_recFolder.FitColumnWidth();
             }
-        }
-        
-        private void button_del_preset_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (comboBox_preSet.SelectedItem != null)
-                {
-                    var item = comboBox_preSet.SelectedItem as RecPresetItem;
-                    if (item.ID == 0)
-                    {
-                        MessageBox.Show("デフォルトは削除できません");
-                        return;
-                    }
-                    else if (item.IsCustom == true)
-                    {
-                        MessageBox.Show("このプリセットは変更できません");
-                        return;
-                    }
-                    else
-                    {
-                        int newIndex = Math.Max(0, Math.Min(comboBox_preSet.SelectedIndex, comboBox_preSet.Items.Count - 2));
-                        comboBox_preSet.Items.Remove(item);
-                        comboBox_preSet.SelectedIndex = newIndex;
-                        SavePreset();
-                    }
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-        }
-
-        private void button_reload_preset_Click(object sender, RoutedEventArgs e)
-        {
-            comboBox_preSet_SelectionChanged(null, null);
-        }
-
-        private void button_add_preset_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var setting = new AddPresetWindow();
-                setting.Owner = CommonUtil.GetTopWindow(this);
-                if (setting.ShowDialog() == true)
-                {
-                    RecPresetItem preCust = FindPresetItem(RecPresetItem.CustomID);
-                    int insertIndex = comboBox_preSet.Items.Count + (preCust == null ? 0 : -1);
-                    var newInfo = new RecPresetItem(setting.GetName(), 0, GetRecSetting());//IDはSavePresetですぐ割り振られる。
-                    comboBox_preSet.Items.Insert(insertIndex, newInfo);
-                    comboBox_preSet.SelectedIndex = insertIndex;
-                    SavePreset();
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-        }
-
-        private void button_chg_preset_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (comboBox_preSet.SelectedItem != null)
-                {
-                    var item = comboBox_preSet.SelectedItem as RecPresetItem;
-
-                    if (item.IsCustom == true)
-                    {
-                        MessageBox.Show("このプリセットは変更できません");
-                        return;
-                    }
-
-                    var setting = new AddPresetWindow();
-                    setting.Owner = CommonUtil.GetTopWindow(this);
-                    setting.SetMode(true);
-                    setting.SetName(item.DisplayName);
-                    if (setting.ShowDialog() == true)
-                    {
-                        item.DisplayName = setting.GetName();
-                        item.RecPresetData = GetRecSetting();
-                        comboBox_preSet.SelectedItem = null;
-                        comboBox_preSet.SelectedItem = item;
-                        SavePreset();
-                    }
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
     }
 
