@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using System.Drawing;
 using System.ComponentModel;
 using System.Windows;
@@ -27,10 +25,9 @@ namespace EpgTimer
             get { return iconSpec; }
             set
             {
-                if (iconSpec == value) return;
-                //
+                System.Drawing.Size size = SystemInformation.SmallIconSize;
                 iconSpec = value;
-                notifyIcon.Icon = GetTaskTrayIcon(value);
+                notifyIcon.Icon = value == TaskIconSpec.TaskIconNone ? null : new Icon(GetTaskTrayIcon(value), new System.Drawing.Size((size.Width + 15) / 16 * 16, (size.Height + 15) / 16 * 16));
             }
         }
         private Icon GetTaskTrayIcon(TaskIconSpec status)

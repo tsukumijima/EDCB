@@ -519,18 +519,6 @@
     <None Include="Resources\EpgTimer_Bon_Vista_blue_rev2.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\EpgTimer_Bon_Vista_gray_rev2.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\EpgTimer_Bon_Vista_green_rev2.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\EpgTimer_Bon_Vista_red_rev2.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\TaskIconBlue.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\TaskIconGray.ico" />
   </ItemGroup>
   <ItemGroup>
