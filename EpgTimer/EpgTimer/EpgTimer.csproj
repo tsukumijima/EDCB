@@ -528,10 +528,10 @@
     <None Include="Resources\TaskIconRed.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\key.png" />
+    <Resource Include="Resources\key.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\key_no.png" />
+    <Resource Include="Resources\key_no.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\drag.cur" />
