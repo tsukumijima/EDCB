@@ -14,7 +14,7 @@
             </VisualBrush.Visual>
         </VisualBrush>
         <Style x:Key="colorCombo" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Type ComboBox}}">
-            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=SelectedItem.Key}"/>
+            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=SelectedItem.ToolTipText}"/>
             <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
             <Setter Property="Height" Value="24"/>
             <Setter Property="Width" Value="120"/>
@@ -25,7 +25,7 @@
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <Label BorderBrush="Black" BorderThickness="1" Background="{Binding Path=Value}" Width="20" Height="15" />
-                            <TextBlock Text="{Binding Path=Key}" Margin="5,0,0,0" />
+                            <TextBlock Text="{Binding Path=Name}" Margin="5,0,0,0" />
                         </StackPanel>
                     </DataTemplate>
                 </Setter.Value>

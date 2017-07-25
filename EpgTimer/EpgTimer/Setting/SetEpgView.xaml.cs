@@ -11,7 +11,6 @@ using System.Windows.Shapes;
 namespace EpgTimer.Setting
 {
     using BoxExchangeEdit;
-    using ComboItem = KeyValuePair<string, Brush>;
 
     /// <summary>
     /// SetEpgView.xaml の相互作用ロジック
@@ -134,8 +133,8 @@ namespace EpgTimer.Setting
                 textBox_fontTunerSizeService.Text = Settings.Instance.TunerFontSizeService.ToString();
                 checkBox_fontTunerBoldService.IsChecked = Settings.Instance.TunerFontBoldService;
 
-                var colorReference = typeof(Brushes).GetProperties().ToDictionary(p => p.Name, p => new ComboItem(p.Name, (Brush)p.GetValue(null, null)));
-                colorReference.Add("カスタム", new ComboItem("カスタム", this.Resources["HatchBrush"] as VisualBrush));
+                var colorReference = typeof(Brushes).GetProperties().ToDictionary(p => p.Name, p => new ColorComboItem(p.Name, (Brush)p.GetValue(null, null)));
+                colorReference.Add("カスタム", new ColorComboItem("カスタム", this.Resources["HatchBrush"] as VisualBrush));
 
                 var setComboColor1 = new Action<string, ComboBox>((name, cmb) =>
                 {
@@ -351,7 +350,7 @@ namespace EpgTimer.Setting
                 Settings.SetCustomEpgTabInfoID();
                 Settings.Instance.EpgTabMoveCheckEnabled = checkBox_EpgTabMoveCheckEnabled.IsChecked == true;
 
-                var getComboColor1 = new Func<ComboBox, string>((cmb) => ((ComboItem)(cmb.SelectedItem)).Key);
+                var getComboColor1 = new Func<ComboBox, string>(cmb => ((ColorComboItem)(cmb.SelectedItem)).Name);
                 var getComboColors = new Action<List<string>, Panel>((list, pnl) =>
                 {
                     foreach (var cmb in pnl.Children.OfType<ComboBox>())
@@ -583,6 +582,21 @@ namespace EpgTimer.Setting
                 setting.button_OK.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             }
         }*/
+    }
+
+    public class ColorComboItem
+    {
+        public ColorComboItem(string name, Brush value) { Name = name; Value = value; }
+        public string Name { get; set; }
+        public Brush Value { get; set; }
+        public string ToolTipText 
+        {
+            get 
+            {
+                var solid = Value as SolidColorBrush;
+                return Name + (solid == null ? "" : string.Format(":#{0:X8}", ColorDef.ToUInt(solid.Color)));
+            }
+        }
     }
 
     public class CustomEpgTabInfoView : SelectableItem
