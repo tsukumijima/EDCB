@@ -1242,8 +1242,8 @@ namespace EpgTimer
 
             //録画モード別予約文字色
             num = 6;
-            _FillList(RecModeFontColors, "カスタム", num);
-            _FillList(RecModeFontCustColors, 0xFF042271, num);
+            _FillList(RecModeFontColors, ListDefColor, num);//そのときのデフォルト色をあてる
+            _FillList(RecModeFontCustColors, ListDefCustColor, num);
 
             //状態別予約背景色
             num = 6;
