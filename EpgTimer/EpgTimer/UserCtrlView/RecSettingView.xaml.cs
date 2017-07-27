@@ -15,9 +15,9 @@ namespace EpgTimer
     public partial class RecSettingView : UserControl, IPresetItemView
     {
         public event Action<bool> SelectedPresetChanged = null;
-        private void SelectedPreset_Changed(bool Sync = true)
+        private void SelectedPreset_Changed(bool SimpleChanged = true)
         {
-            if (SelectedPresetChanged != null) SelectedPresetChanged(Sync);
+            if (SelectedPresetChanged != null) SelectedPresetChanged(SimpleChanged);
         }
 
         private RecSettingData _recSet;

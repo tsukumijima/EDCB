@@ -150,12 +150,12 @@ namespace EpgTimer
             base.ChangeAutoAddData(data);
             if (refresh == true) SearchPg();
         }
-        public void SetRecSettingTabHeader(bool Sync = true)
+        public void SetRecSettingTabHeader(bool SimpleChanged = true)
         {
             string preset_str = "";
             if (Settings.Instance.DisplayPresetOnSearch == true)
             {
-                preset_str = string.Format(" - {0}", recSettingView.SelectedPreset(!Sync).ToString());
+                preset_str = string.Format(" - {0}", recSettingView.SelectedPreset(!SimpleChanged).ToString());
             }
             tabItem2.Header = "録画設定" + preset_str;
         }
@@ -271,6 +271,7 @@ namespace EpgTimer
             if ((winMode == AutoAddMode.Find || winMode == AutoAddMode.NewAdd) && string.IsNullOrEmpty(searchKeyView.comboBox_andKey.Text))
             {
                 this.searchKeyView.comboBox_andKey.Focus();
+                SetRecSettingTabHeader(true);
             }
             else
             {
