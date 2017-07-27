@@ -67,13 +67,18 @@ namespace EpgTimer.Setting
                 checkBox_suspendClose.IsEnabled = true;
                 checkBox_ngAutoEpgLoad.IsEnabled = true;
                 checkBox_keepTCPConnect.IsEnabled = true;
-                checkBox_srvResident.IsEnabled = false;
+                grid_srvResident.IsEnabled = false;
                 button_srvSetting.IsEnabled = false;
                 label_shortCutSrv.IsEnabled = false;
                 button_shortCutSrv.IsEnabled = false;
                 checkBox_srvSaveNotifyLog.IsEnabled = false;
                 checkBox_srvSaveDebugLog.IsEnabled = false;
                 grid_tsExt.IsEnabled = false;
+            }
+            else
+            {
+                checkBox_srvResident.Click += (sender, e) => SetIsEnabledBlinkPreRec();
+                checkBox_srvShowTray.Click += (sender, e) => SetIsEnabledBlinkPreRec();
             }
 
             try
@@ -269,13 +274,12 @@ namespace EpgTimer.Setting
                 textBox_ForceHideBalloonTipSec.Text = Settings.Instance.ForceHideBalloonTipSec.ToString();
                 checkBox_showEpgCapServiceOnly.IsChecked = Settings.Instance.ShowEpgCapServiceOnly;
 
-                if (checkBox_srvResident.IsEnabled)
-                {
-                    int residentMode = IniFileHandler.GetPrivateProfileInt("SET", "ResidentMode", 0, SettingPath.TimerSrvIniPath);
-                    checkBox_srvResident.IsChecked = residentMode >= 1;
-                    checkBox_srvShowTray.IsChecked = residentMode >= 2;
-                    checkBox_srvNoBalloonTip.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "NoBalloonTip", 0, SettingPath.TimerSrvIniPath) != 0;
-                }
+                int residentMode = IniFileHandler.GetPrivateProfileInt("SET", "ResidentMode", 0, SettingPath.TimerSrvIniPath);
+                checkBox_srvResident.IsChecked = residentMode >= 1;
+                checkBox_srvShowTray.IsChecked = residentMode >= 2;
+                SetIsEnabledBlinkPreRec();
+                checkBox_blinkPreRec.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BlinkPreRec", 0, SettingPath.TimerSrvIniPath) != 0;
+                checkBox_srvNoBalloonTip.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "NoBalloonTip", 0, SettingPath.TimerSrvIniPath) != 0;
 
                 button_srvSetting.Click += (sender,e) => CommonManager.OpenSrvSetting();
 
@@ -438,6 +442,7 @@ namespace EpgTimer.Setting
 
                 IniFileHandler.WritePrivateProfileString("SET", "ResidentMode",
                     checkBox_srvResident.IsChecked == false ? "0" : checkBox_srvShowTray.IsChecked == false ? "1" : "2", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "BlinkPreRec", checkBox_blinkPreRec.IsChecked == false ? "0" : "1", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "NoBalloonTip", checkBox_srvNoBalloonTip.IsChecked == false ? "0" : "1", SettingPath.TimerSrvIniPath);
 
                 IniFileHandler.WritePrivateProfileString("SET", "SaveNotifyLog", checkBox_srvSaveNotifyLog.IsChecked == false ? "0" : "1", SettingPath.TimerSrvIniPath);
@@ -704,6 +709,10 @@ namespace EpgTimer.Setting
             button_chk_del.IsEnabled = chkEnabled;
             button_chk_add.IsEnabled = chkEnabled;
             button_chk_open.IsEnabled = chkEnabled;
+        }
+        private void SetIsEnabledBlinkPreRec()
+        {
+            checkBox_blinkPreRec.IsEnabled = checkBox_srvResident.IsEnabled == true && checkBox_srvResident.IsChecked == true && checkBox_srvShowTray.IsChecked == true;
         }
     }
 }

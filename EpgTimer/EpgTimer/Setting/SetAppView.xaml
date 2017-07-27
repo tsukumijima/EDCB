@@ -46,9 +46,12 @@
                         <Label Content="秒後" />
                     </StackPanel>
                     <CheckBox Margin="0,6,0,0" Content="EPG取得対象サービスのみ表示する" Name="checkBox_showEpgCapServiceOnly" />
-                    <StackPanel Margin="0,6,0,0" >
+                    <StackPanel Margin="0,6,12,0" Name="grid_srvResident">
                         <CheckBox Content="EpgTimerSrvを常駐させる" Name="checkBox_srvResident" />
-                        <CheckBox Content="タスクトレイアイコンを表示する" Margin="18,4,0,0" Name="checkBox_srvShowTray" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
+                        <DockPanel Margin="18,4,0,0" >
+                            <CheckBox Content="タスクトレイアイコンを表示する" Name="checkBox_srvShowTray" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox Content="開始準備で点滅させる" Margin="12,0,0,0" Name="checkBox_blinkPreRec" />
+                        </DockPanel>
                         <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTipService.ShowOnDisabled="True" ToolTip="※設定項目は、この設定画面と重複します。"/>
@@ -76,9 +79,9 @@
                         <Label Content="以上" />
                     </StackPanel>
                     <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,0,0" Name="checkBox_useLastSearchKey" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている検索条件はクリアされます。"/>
-                    <StackPanel Margin="0,6,0,0" >
+                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
                         <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" Name="checkBox_saveSearchKeyword" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは無関係に、検索キーワードのみ保存します"/>
-                        <Button Content="履歴クリア" Margin="18,4,0,0" HorizontalAlignment="Left" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
+                        <Button Content="履歴クリア" Margin="6,0,0,0" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
                     </StackPanel>
                     <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" />
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Name="stackPanel_WoLWait" IsEnabled="False">
