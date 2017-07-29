@@ -182,7 +182,7 @@ namespace EpgTimer.Setting
                 }
 
                 var recInfoFolder = SettingPath.CheckFolder(textBox_recInfoFolder.Text);
-                IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolder", recInfoFolder == "" ? null : recInfoFolder, SettingPath.CommonIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolder", recInfoFolder, "", SettingPath.CommonIniPath);
 
                 for (int i = 0; i < listBox_bon.Items.Count; i++)
                 {

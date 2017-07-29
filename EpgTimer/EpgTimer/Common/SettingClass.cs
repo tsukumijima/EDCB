@@ -42,6 +42,19 @@ namespace EpgTimer
           string lpString,
           string lpFileName);
 
+        /// <summary>書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()</summary>
+        public static uint WritePrivateProfileString(string lpAppName, string lpKeyName, object val, string lpFileName)
+        {
+            string lpString = val == null ? null : !(val is bool) ? val.ToString() : (bool)val ? "1" : "0";
+            return WritePrivateProfileString(lpAppName, lpKeyName, lpString, lpFileName);
+        }
+        /// <summary>デフォルト値の時キーを削除する。書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()</summary>
+        public static uint WritePrivateProfileString<T>(string lpAppName, string lpKeyName, T val, T defval, string lpFileName)
+        {
+            //引数をTからobjectにすると、valueがdoubleなどのときEqualsで失敗する
+            return WritePrivateProfileString(lpAppName, lpKeyName, object.Equals(val, defval) == true ? null : (object)val, lpFileName);
+        }
+
         public static string
           GetPrivateProfileString(string lpAppName,
           string lpKeyName, string lpDefault, string lpFileName)
@@ -65,11 +78,16 @@ namespace EpgTimer
             return SettingPath.CheckFolder(path);
         }
 
-        public static double GetPrivateProfileDouble(string lpAppName, string lpKeyName, double dDefault, string lpFileName)
+        /// <summary>"0"をfalse、それ以外をtrueで読み込む。</summary>
+        public static bool GetPrivateProfileBool(string lpAppName, string lpKeyName, bool defval, string lpFileName)
         {
-            string s = GetPrivateProfileString(lpAppName, lpKeyName, dDefault.ToString(), lpFileName);
-            double.TryParse(s, out dDefault);
-            return dDefault;
+            return GetPrivateProfileString(lpAppName, lpKeyName, defval == false ? "0" : "1", lpFileName) != "0";
+        }
+        public static double GetPrivateProfileDouble(string lpAppName, string lpKeyName, double defval, string lpFileName)
+        {
+            string s = GetPrivateProfileString(lpAppName, lpKeyName, defval.ToString(), lpFileName);
+            double.TryParse(s, out defval);
+            return defval;
         }
 
         /// <summary>INIファイルから指定セクションのキー一覧を取得する。lpAppNameにnullを指定すると全セクションの一覧を取得する。</summary>
