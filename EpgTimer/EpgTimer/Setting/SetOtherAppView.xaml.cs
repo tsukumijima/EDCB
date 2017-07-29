@@ -24,21 +24,24 @@ namespace EpgTimer.Setting
         {
             InitializeComponent();
 
-            if (CommonManager.Instance.NWMode == true)
-            {
-                label3.IsEnabled = false;
-                button_del.IsEnabled = false;
-                button_add.IsEnabled = false;
-                checkBox_playOnNwWithExe.IsEnabled = true;
-            }
-
             //エスケープキャンセルだけは常に有効にする。
             var bx = new BoxExchangeEdit.BoxExchangeEditor(null, this.listBox_bon, true);
             if (CommonManager.Instance.NWMode == false)
             {
                 bx.AllowDragDrop();
                 bx.AllowKeyAction();
+                button_up.Click += new RoutedEventHandler(bx.button_Up_Click);
+                button_down.Click += new RoutedEventHandler(bx.button_Down_Click);
                 button_del.Click += new RoutedEventHandler(bx.button_Delete_Click);
+            }
+            else
+            {
+                label3.IsEnabled = false;
+                button_up.IsEnabled = false;
+                button_down.IsEnabled = false;
+                button_del.IsEnabled = false;
+                button_add.IsEnabled = false;
+                checkBox_playOnNwWithExe.IsEnabled = true;
             }
 
             try

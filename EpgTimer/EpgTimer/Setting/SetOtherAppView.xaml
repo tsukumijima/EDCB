@@ -6,51 +6,82 @@
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="780">
 
-        <TabControl Name="tabControl">
-            <TabItem Header="TVTest連携" Name="tabItem_tvtest">
-                <Grid>
-                    <Label Content="※利用にはTVtestに EpgTimerPlugIn.tvtp か EdcbPlugIn.tvtp を追加しておく必要があります。" Height="28" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label1" VerticalAlignment="Top" Foreground="Red" />
-                    <Label Content="TVTest.exeパス" Height="28" HorizontalAlignment="Left" Margin="12,46,0,0" Name="label2" VerticalAlignment="Top" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="134,48,0,0" Name="textBox_exe" VerticalAlignment="Top" Width="456" />
-                    <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="596,48,0,0" Name="button_exe" VerticalAlignment="Top" Width="56" Click="button_exe_Click" />
-                    <Label Content="コマンドライン引数" Height="28" HorizontalAlignment="Left" Margin="12,80,0,0" Name="label4" VerticalAlignment="Top" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="134,80,0,0" Name="textBox_cmd" VerticalAlignment="Top" Width="456" />
-                    <Label Content="視聴に使用するBonDriver" Height="28" HorizontalAlignment="Left" Margin="12,144,0,0" Name="label3" VerticalAlignment="Top" />
-                    <ListBox Height="64" HorizontalAlignment="Left" Margin="44,178,0,0" Name="listBox_bon" VerticalAlignment="Top" Width="247" SelectionMode="Extended" />
-                    <Button Content="削除" Height="23" HorizontalAlignment="Left" Margin="297,178,0,0" Name="button_del" VerticalAlignment="Top" Width="56" />
-                    <Button Content="追加" Height="23" HorizontalAlignment="Left" Margin="297,248,0,0" Name="button_add" VerticalAlignment="Top" Width="56" Click="button_add_Click" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="44,248,0,0" Name="comboBox_bon" VerticalAlignment="Top" Width="247" />
-                    <CheckBox Content="NetworkTVモード(録画用アプリやEpgTimerSrvからのUDP、TCP送信)で視聴する" Height="16" HorizontalAlignment="Left" Margin="12,277,0,0" Name="checkBox_nwTvMode" VerticalAlignment="Top" />
-                    <CheckBox Content="UDP有効" Height="16" HorizontalAlignment="Left" Margin="44,330,0,0" Name="checkBox_nwUDP" VerticalAlignment="Top" />
-                    <CheckBox Content="TCP有効" Height="16" HorizontalAlignment="Left" Margin="134,330,0,0" Name="checkBox_nwTCP" VerticalAlignment="Top" />
-                    <Label Content="(BonDriverに関するオプションは自動的に付加されます)" Height="28" HorizontalAlignment="Left" Margin="134,110,0,0" Name="label5" VerticalAlignment="Top" />
-                    <Label Content="NetworkTVモードの送信方式 (追っかけ再生はNetworkTVモードで動作します。使用する場合はチェックしてください)" Height="28" HorizontalAlignment="Left" Margin="12,302,0,0" Name="label9" VerticalAlignment="Top" />
-                    <StackPanel Margin="396,172,0,0" >
-                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0" >
-                            <Label Content="TvTestの起動待ち時間" />
+    <TabControl Name="tabControl">
+        <TabItem Header="TVTest連携" Name="tabItem_tvtest">
+            <StackPanel Margin="10,10,6,6" >
+                <Label Content="※利用にはTVtestに EpgTimerPlugIn.tvtp か EdcbPlugIn.tvtp を追加しておく必要があります。" Foreground="Red" />
+                <DockPanel Margin="0,6,0,0">
+                    <Label Content="TVTest.exeパス" Width="{Binding Path=ActualWidth, ElementName=label_cmdline, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button DockPanel.Dock="Right" Content="開く" Name="button_exe" Click="button_exe_Click" />
+                    <TextBox Margin="0,0,6,0" Name="textBox_exe" />
+                </DockPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <Label Content="コマンドライン引数 " Name="label_cmdline" />
+                    <TextBox Margin="0,0,6,0" Name="textBox_cmd" Width="{Binding Path=ActualWidth, ElementName=textBox_exe, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <DockPanel Margin="0,6,0,0">
+                    <TextBlock Width="{Binding Path=ActualWidth, ElementName=label_cmdline, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="(BonDriverに関するオプションは自動的に付加されます)" />
+                </DockPanel>
+                <Label Content="視聴に使用するBonDriver" Name="label3" Margin="0,12,0,0"/>
+                <DockPanel>
+                    <StackPanel>
+                        <DockPanel Width="300" HorizontalAlignment="Left" >
+                            <StackPanel Width="44" DockPanel.Dock="Right">
+                                <Button Content="↑" Name="button_up" />
+                                <Button Content="↓" Margin="0,4,0,0" Name="button_down" />
+                                <Button Content="削除" Margin="0,4,0,0" Name="button_del" />
+                            </StackPanel>
+                            <ListBox Name="listBox_bon" Margin="0,0,4,0" SelectionMode="Extended" />
+                        </DockPanel>
+                        <DockPanel Width="300" Margin="0,4,0,0" HorizontalAlignment="Left">
+                            <Button Content="追加" Name="button_add" Width="44" DockPanel.Dock="Right" Click="button_add_Click" />
+                            <ComboBox Name="comboBox_bon" Margin="0,0,4,0" />
+                        </DockPanel>
+                    </StackPanel>
+                    <StackPanel Margin="36,0,0,0" >
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="TvTestの起動待ち時間" Width="{Binding Path=ActualWidth, ElementName=label_wait_bon, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBox Margin="6,0,0,0" Name="textBox_TvTestOpenWait" Width="62" />
                             <Label Content="ミリ秒" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0" >
-                            <Label Content="BonDriverの切り替え待ち時間" />
+                            <Label Content="BonDriverの切り替え待ち時間" Name="label_wait_bon"/>
                             <TextBox Margin="6,0,0,0" Name="textBox_TvTestChgBonWait" Width="62" />
                             <Label Content="ミリ秒" />
                         </StackPanel>
                     </StackPanel>
-                </Grid>
-            </TabItem>
-            <TabItem Header="ファイル再生" Name="tabItem_play">
-                <Grid>
-                    <Label Content="再生アプリのexeパス" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" Name="label6" VerticalAlignment="Top" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="138,8,0,0" Name="textBox_playExe" VerticalAlignment="Top" Width="456" />
-                    <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="600,8,0,0" Name="button_playExe" VerticalAlignment="Top" Width="56" Click="button_playExe_Click" />
-                    <Label Content="コマンドライン引数" Height="28" HorizontalAlignment="Left" Margin="16,38,0,0" Name="label7" VerticalAlignment="Top" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="138,38,0,0" Name="textBox_playCmd" VerticalAlignment="Top" Width="456" />
-                    <CheckBox Content="EpgTimerNWでも使用する" Height="16" HorizontalAlignment="Left" Margin="323,68,0,0" Name="checkBox_playOnNwWithExe" VerticalAlignment="Top" IsEnabled="False" />
-                    <CheckBox Content="追っかけ再生にも使用する" Height="16" HorizontalAlignment="Left" Margin="138,68,0,0" Name="checkBox_playOnAirWithExe" VerticalAlignment="Top" />
-                    <Label HorizontalAlignment="Left" Margin="138,90,0,0" VerticalAlignment="Top" Content="再生アプリのexeパスが未指定の場合は規定の再生アプリを使用します。&#10;コマンドラインでは、$FilePath$:パス+ファイル名、$FileNameExt$:ファイル名のみ、が使用出来ます。&#10;　※再生アプリが未指定の場合も、コマンドラインをファイル名として展開します。&#10;　※空白は$FilePath$相当です。" />
-                </Grid>
-            </TabItem>
-        </TabControl>
-
+                </DockPanel>
+                <CheckBox Margin="0,12,0,0" Content="NetworkTVモード(録画用アプリやEpgTimerSrvからのUDP、TCP送信)で視聴する" Name="checkBox_nwTvMode" />
+                <Label Margin="0,6,0,0" Content="NetworkTVモードの送信方式 (追っかけ再生はNetworkTVモードで動作します。使用する場合はチェックしてください)" />
+                <DockPanel Margin="18,2,0,0">
+                    <CheckBox Content="UDP有効" Name="checkBox_nwUDP" />
+                    <CheckBox Content="TCP有効" Margin="24,0,0,0" Name="checkBox_nwTCP" />
+                </DockPanel>
+            </StackPanel>
+        </TabItem>
+        <TabItem Header="ファイル再生" Name="tabItem_play">
+            <StackPanel Margin="10,10,6,6" >
+                <DockPanel Margin="0,6,0,0">
+                    <Label Content="再生アプリのexeパス" Name="label_app_path"/>
+                    <Button DockPanel.Dock="Right" Content="開く" Name="button_playExe" Click="button_playExe_Click" />
+                    <TextBox Margin="6,0" Name="textBox_playExe" />
+                </DockPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <Label Content="コマンドライン引数" Width="{Binding Path=ActualWidth, ElementName=label_app_path, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Margin="6,0" Name="textBox_playCmd" Width="{Binding Path=ActualWidth, ElementName=textBox_playExe, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <DockPanel Margin="6,6,0,0">
+                    <TextBlock Width="{Binding Path=ActualWidth, ElementName=label_app_path, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel>
+                        <DockPanel>
+                            <CheckBox Content="追っかけ再生にも使用する" Name="checkBox_playOnAirWithExe" />
+                            <CheckBox Content="EpgTimerNWでも使用する"  Margin="24,0,0,0" Name="checkBox_playOnNwWithExe" IsEnabled="False" />
+                        </DockPanel>
+                        <TextBlock Margin="10,6,0,0" Text="再生アプリのexeパスが未指定の場合は規定の再生アプリを使用します。&#10;コマンドラインでは、$FilePath$:パス+ファイル名、$FileNameExt$:ファイル名のみ、が使用出来ます。&#10;　※再生アプリが未指定の場合も、コマンドラインをファイル名として展開します。&#10;　※空白は$FilePath$相当です。" />
+                    </StackPanel>
+                </DockPanel>
+            </StackPanel>
+        </TabItem>
+    </TabControl>
 </UserControl>

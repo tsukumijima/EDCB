@@ -127,21 +127,25 @@
                 </ListView>
                 <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="20,0,0,0">
                     <StackPanel Orientation="Horizontal" >
-                        <Button Content="追加" MinWidth="42" Click="button_addTime_Click" />
+                        <Button Content="↑" Name="button_upTime" MinWidth="42" />
+                        <Button Content="追加" Margin="6,0,0,0" MinWidth="42" Click="button_addTime_Click" />
                         <ComboBox Name="comboBox_HH" Margin="20,0,0,0" Width="44"  VerticalAlignment="Stretch"/>
                         <TextBlock Text="：" Margin="4,0,0,0" />
                         <ComboBox Name="comboBox_MM" Margin="4,0,0,0" Width="44" VerticalAlignment="Stretch"/>
                         <ComboBox Name="comboBox_wday" Margin="20,0,0,0" Width="56" VerticalAlignment="Stretch"/>
                     </StackPanel>
-                    <Button Content="削除" Name="button_delTime" MinWidth="42" HorizontalAlignment="Left" Margin="0,6,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <Button Content="↓" Name="button_downTime" MinWidth="42" HorizontalAlignment="Left" />
+                        <Button Content="削除" Margin="6,0,0,0" Name="button_delTime" MinWidth="42" HorizontalAlignment="Left" />
+                    </StackPanel>
                     <DockPanel Margin="0,12,0,0">
-                        <TextBlock Text="実行抑制条件" Width="110"/>
-                        <TextBox Margin="0,0,6,0" Name="textBox_ngCapMin" Width="42" />
+                        <TextBlock Text="実行抑制条件" Width="{Binding Path=ActualWidth, ElementName=label_time_tuner, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Margin="6,0,6,0" Name="textBox_ngCapMin" Width="42" />
                         <TextBlock Text="分以内に予約がある場合、実行しない (0で録画時も実行)" />
                     </DockPanel>
                     <DockPanel Margin="0,6,0,0">
-                        <TextBlock Text="使用チューナー条件" Width="110"/>
-                        <TextBox Margin="0,0,6,0" Name="textBox_ngTunerMin" Width="42" />
+                        <TextBlock Text="使用チューナー条件" Name="label_time_tuner"/>
+                        <TextBox Margin="6,0,6,0" Name="textBox_ngTunerMin" Width="42" />
                         <TextBlock Text="分以内に予約がある場合、使用しない" />
                     </DockPanel>
                 </StackPanel>

@@ -246,6 +246,7 @@ namespace EpgTimer.Setting
             var bxr = new BoxExchangeEditor(null, this.listBox_recFolder, true);
             var bxb = new BoxExchangeEditor(null, this.listBox_bon, true);
             var bxt = new BoxExchangeEditor(null, this.listView_time, true);
+            new BoxExchangeEditor(null, this.listView_service, true);
 
             bxr.TargetBox.SelectionChanged += ViewUtil.ListBox_TextBoxSyncSelectionChanged(bxr.TargetBox, textBox_recFolder);
             bxr.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_rec_open);
@@ -272,10 +273,11 @@ namespace EpgTimer.Setting
                 bxt.TargetItemsSource = timeList;
                 bxt.AllowDragDrop();
                 bxt.AllowKeyAction();
+                button_upTime.Click += new RoutedEventHandler(bxt.button_Up_Click);
+                button_downTime.Click += new RoutedEventHandler(bxt.button_Down_Click);
                 button_delTime.Click += new RoutedEventHandler(bxt.button_Delete_Click);
                 SelectableItem.Set_CheckBox_PreviewChanged(listView_time);
 
-                new BoxExchangeEditor(null, this.listView_service, true);
                 SelectableItem.Set_CheckBox_PreviewChanged(listView_service);
             }
         }
