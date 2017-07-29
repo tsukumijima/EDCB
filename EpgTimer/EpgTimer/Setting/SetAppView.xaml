@@ -8,105 +8,81 @@
 
     <TabControl Name="tabControl1">
         <TabItem Header="全般">
-            <DockPanel Margin="6">
-                <StackPanel DockPanel.Dock="Top">
-                    <DockPanel>
-                        <CheckBox Content="×ボタンで最小化する" Margin="0,0,12,0" Name="checkBox_closeMin" />
-                        <CheckBox Content="最小化で起動する" Margin="0,0,12,0" Name="checkBox_minWake" />
-                        <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,0,12,0" Name="checkBox_showTray" />
-                        <CheckBox Content="最小化時にタスクトレイに格納する" Name="checkBox_minHide" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_showTray, UpdateSourceTrigger=PropertyChanged}" />
-                    </DockPanel>
-                    <StackPanel Orientation="Horizontal" Margin="12">
-                        <Button Content="録画プリセット設定" Margin="0,0,20,0" Name="button_recDef" Width="150" Click="button_recDef_Click" />
-                        <Button Content="検索プリセット設定" Name="button_searchDef" Width="150" Click="button_searchDef_Click" />
+            <WrapPanel Orientation="Vertical" Margin="6">
+                <StackPanel Margin="0,6,12,0">
+                    <StackPanel Orientation="Horizontal" >
+                        <CheckBox Content="最小化で起動する" Name="checkBox_minWake" />
+                        <CheckBox Content="×ボタンで最小化する" Margin="12,0,0,0" Name="checkBox_closeMin" />
                     </StackPanel>
-                    <CheckBox Content="EpgTimerNWなどからのネットワーク接続を許可する　※WebUI用の許可設定は別途INIファイルの設定が必要です。" Margin="0,0,6,0" Name="checkBox_tcpServer" />
-                    <StackPanel Margin="0,2,0,0"  Name="grid_tcpCtrl" Orientation="Horizontal">
-                        <Label Content="ポート" Margin="18,0,0,0" />
-                        <TextBox Name="textBox_tcpPort" Width="62" />
-                        <Label Content="アクセス制御" Margin="18,0,0,0" />
-                        <TextBox Name="textBox_tcpAcl" Width="220" />
-                        <Label Content="無通信タイムアウト(秒)" Margin="18,0,0,0" />
-                        <TextBox Name="textBox_tcpResTo" Width="62" />
+                    <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,6,0,0" Name="checkBox_showTray" />
+                    <CheckBox Content="最小化時にタスクトレイに格納する" Margin="18,4,0,0" Name="checkBox_minHide" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_showTray, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <CheckBox Margin="0,6,0,0" Content="バルーンチップでの動作通知を抑制する" Name="checkBox_noBallonTips" />
+                <StackPanel Margin="0,4,12,-2" Orientation="Horizontal" >
+                    <Label Content="バルーンチップを強制的に閉じる" ToolTip="0でタイムアウト無し"/>
+                    <TextBox Margin="6,0,0,0" Name="textBox_ForceHideBalloonTipSec" Width="62" />
+                    <Label Content="秒後" />
+                </StackPanel>
+                <StackPanel Margin="0,6,12,0" Name="grid_srvResident">
+                    <CheckBox Content="EpgTimerSrvを常駐させる" Name="checkBox_srvResident" />
+                    <CheckBox Content="タスクトレイアイコンを表示する" Margin="18,4,0,0" Name="checkBox_srvShowTray" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox Content="開始準備で点滅させる" Margin="36,4,0,0" Name="checkBox_blinkPreRec" />
+                    <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTipService.ShowOnDisabled="True" ToolTip="※設定項目は、この設定画面と重複します。"/>
+                <StackPanel Margin="0,4,12,0" >
+                    <Label Content="スタートアップにショートカットを作成する" />
+                    <StackPanel Margin="18,-4,0,0" Orientation="Horizontal">
+                        <Label Content="EpgTimerSrv" Name="label_shortCutSrv" />
+                        <Button Margin="6,0,0,0" Content="作成" Name="button_shortCutSrv" Click="button_shortCutSrv_Click" />
+                        <Label Margin="20,0,0,0" Content="EpgTimer" />
+                        <Button Margin="6,0,0,0" Content="作成" Name="button_shortCut" Click="button_shortCut_Click" />
                     </StackPanel>
                 </StackPanel>
-                <WrapPanel Orientation="Vertical" >
-                    <StackPanel Margin="0,6,12,0" Orientation="Horizontal" Name="stackPanel_autoDelRecInfo" >
-                        <CheckBox Content="録画結果を自動的に削除する 保持件数" Name="checkBox_autoDelRecInfo" />
-                        <TextBox Name="textBox_autoDelRecInfo" Width="62" Margin="6,0,0,0" />
+                <StackPanel Margin="0,6,12,0" >
+                    <Label Content="情報通知ログをファイルに保存する" />
+                    <StackPanel Margin="18,-2,0,0" Orientation="Horizontal">
+                        <CheckBox Content="EpgTimerSrv側" Name="checkBox_srvSaveNotifyLog" ToolTipService.ShowOnDisabled="True" ToolTip="また、チェック時は情報通知ダイアログでEpgTimerSrv側のログを表示します。"/>
+                        <CheckBox Margin="18,0,0,0" Content="EpgTimer側" Name="checkBox_AutoSaveNotifyLog" />
                     </StackPanel>
-                    <StackPanel Margin="0,6,12,0" Name="stackPanel_timeSync">
-                        <CheckBox Content="EPG取得時に放送波時間でPC時計を同期する" Name="checkBox_timeSync" />
-                        <Label Margin="0,-4,0,-4" Content="※EpgTimerSrv.exeにシステム時刻の変更特権が必要です" />
+                </StackPanel>
+                <CheckBox Margin="0,6,0,0" Content="デバッグ出力をファイルに保存する" Name="checkBox_srvSaveDebugLog" />
+                <StackPanel Margin="0,4,12,-2" Orientation="Horizontal" Name="grid_tsExt">
+                    <Label Content="TSファイルの拡張子" />
+                    <TextBox Name="textBox_tsExt" Width="62" />
+                </StackPanel>
+                <StackPanel Margin="0,4,12,-2" Orientation="Horizontal" >
+                    <CheckBox Content="多数の項目を処理するとき警告する" Name="checkBox_cautionManyChange" />
+                    <TextBox Margin="6,0,0,0" Name="textBox_cautionManyChange" Width="62" />
+                    <Label Content="以上" />
+                </StackPanel>
+                <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" />
+                <StackPanel Orientation="Horizontal" Margin="0,6,12,0" Name="stackPanel_WoLWait" IsEnabled="False">
+                    <StackPanel>
+                        <CheckBox Content="WoLしてから接続する" Name="checkBox_WoLWait" Checked="checkBox_WoLWait_Checked" ToolTipService.ShowOnDisabled="True" ToolTip="WoL→待機→接続" />
+                        <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" Name="checkBox_WoLWaitRecconect" Checked="checkBox_WoLWaitRecconect_Checked" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="WoL→接続(→待機→接続)&#10;とりあえず最初にマジックパケットは投げます。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
                     </StackPanel>
-                    <CheckBox Margin="0,6,0,0" Content="バルーンチップでの動作通知を抑制する" Name="checkBox_noBallonTips" />
-                    <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" >
-                        <Label Content="バルーンチップを強制的に閉じる" ToolTip="0でタイムアウト無し"/>
-                        <TextBox Margin="6,0,0,0" Name="textBox_ForceHideBalloonTipSec" Width="62" />
-                        <Label Content="秒後" />
+                    <Border Height="28" Width="10" Margin="6,0,0,0" BorderBrush="Gray" BorderThickness="0,1,1,1" />
+                    <TextBox Margin="6,0,0,0" Name="textBox_WoLWaitSecond" Width="62" />
+                    <Label Content="秒後" />
+                </StackPanel>
+                <CheckBox Content="休止／スタンバイ移行時にEpgTimerNWを終了する" Margin="0,6,0,0" Name="checkBox_suspendClose" IsEnabled="False" />
+                <CheckBox Content="EPGデータを自動的に読み込まない" Margin="0,6,0,0" Name="checkBox_ngAutoEpgLoad" IsEnabled="False" />
+                <StackPanel Orientation="Horizontal" Margin="0,6,12,0" >
+                    <StackPanel>
+                        <CheckBox Content="EpgTimerSrvとの接続維持を試みる" Name="checkBox_keepTCPConnect" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="EpgTimerNW使用時、EpgTimerSrv側の再起動時などに接続維持を試みます" />
+                        <CheckBox Content="タスクトレイアイコンのツールチップを更新する" Margin="0,6,0,0" Name="textBox_upDateTaskText" ToolTip="EpgTimerNWで「EpgTimerSrvとの接続維持を試みる」使用時以外はほとんど効果ありません" />
                     </StackPanel>
-                    <CheckBox Margin="0,6,0,0" Content="EPG取得対象サービスのみ表示する" Name="checkBox_showEpgCapServiceOnly" />
-                    <StackPanel Margin="0,6,12,0" Name="grid_srvResident">
-                        <CheckBox Content="EpgTimerSrvを常駐させる" Name="checkBox_srvResident" />
-                        <DockPanel Margin="18,4,0,0" >
-                            <CheckBox Content="タスクトレイアイコンを表示する" Name="checkBox_srvShowTray" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
-                            <CheckBox Content="開始準備で点滅させる" Margin="12,0,0,0" Name="checkBox_blinkPreRec" />
-                        </DockPanel>
-                        <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
-                    </StackPanel>
-                    <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTipService.ShowOnDisabled="True" ToolTip="※設定項目は、この設定画面と重複します。"/>
-                    <StackPanel Margin="0,4,0,0" >
-                        <Label Content="スタートアップにショートカットを作成する" />
-                        <StackPanel Margin="18,-4,0,0" Orientation="Horizontal">
-                            <Label Content="EpgTimerSrv" Name="label_shortCutSrv" />
-                            <Button Margin="6,0,0,0" Content="作成" Name="button_shortCutSrv" Click="button_shortCutSrv_Click" />
-                            <Label Margin="20,0,0,0" Content="EpgTimer" />
-                            <Button Margin="6,0,0,0" Content="作成" Name="button_shortCut" Click="button_shortCut_Click" />
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel Margin="0,6,0,0" >
-                        <CheckBox Content="情報通知ログをファイルに保存する(EpgTimerSrv側)" Name="checkBox_srvSaveNotifyLog" ToolTipService.ShowOnDisabled="True" ToolTip="また、チェック時は情報通知ダイアログでEpgTimerSrv側のログを表示します。"/>
-                        <CheckBox Margin="0,6,0,0" Content="情報通知ログをファイルに保存する(EpgTimer側)" Name="checkBox_AutoSaveNotifyLog" />
-                    </StackPanel>
-                    <CheckBox Margin="0,6,0,0" Content="デバッグ出力をファイルに保存する" Name="checkBox_srvSaveDebugLog" />
-                    <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" Name="grid_tsExt">
-                        <Label Content="TSファイルの拡張子" />
-                        <TextBox Name="textBox_tsExt" Width="62" />
-                    </StackPanel>
-                    <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" >
-                        <CheckBox Content="多数の項目を処理するとき警告する" Name="checkBox_cautionManyChange" />
-                        <TextBox Margin="6,0,0,0" Name="textBox_cautionManyChange" Width="62" />
-                        <Label Content="以上" />
-                    </StackPanel>
-                    <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,0,0" Name="checkBox_useLastSearchKey" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている検索条件はクリアされます。"/>
-                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" Name="checkBox_saveSearchKeyword" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは無関係に、検索キーワードのみ保存します"/>
-                        <Button Content="履歴クリア" Margin="6,0,0,0" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
-                    </StackPanel>
-                    <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" />
-                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Name="stackPanel_WoLWait" IsEnabled="False">
-                        <StackPanel>
-                            <CheckBox Content="WoLしてから接続する" Name="checkBox_WoLWait" Checked="checkBox_WoLWait_Checked" ToolTipService.ShowOnDisabled="True" ToolTip="WoL→待機→接続" />
-                            <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" Name="checkBox_WoLWaitRecconect" Checked="checkBox_WoLWaitRecconect_Checked" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="WoL→接続(→待機→接続)&#10;とりあえず最初にマジックパケットは投げます。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
-                        </StackPanel>
-                        <Border Height="28" Width="10" Margin="6,0,0,0" BorderBrush="Gray" BorderThickness="0,1,1,1" />
-                        <TextBox Margin="6,0,0,0" Name="textBox_WoLWaitSecond" Width="62" />
-                        <Label Content="秒後" />
-                    </StackPanel>
-                    <CheckBox Content="休止／スタンバイ移行時にEpgTimerNWを終了する" Margin="0,6,0,0" Name="checkBox_suspendClose" IsEnabled="False" />
-                    <CheckBox Content="EPGデータを自動的に読み込まない" Margin="0,6,0,0" Name="checkBox_ngAutoEpgLoad" IsEnabled="False" />
-                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0" >
-                        <StackPanel>
-                            <CheckBox Content="EpgTimerSrvとの接続維持を試みる" Name="checkBox_keepTCPConnect" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="EpgTimerNW使用時、EpgTimerSrv側の再起動時などに接続維持を試みます" />
-                            <CheckBox Content="タスクトレイアイコンのツールチップを更新する" Margin="0,6,0,0" Name="textBox_upDateTaskText" ToolTip="EpgTimerNWで「EpgTimerSrvとの接続維持を試みる」使用時以外はほとんど効果ありません" />
-                        </StackPanel>
-                        <Border Height="28" Width="10" Margin="6,0,0,0" BorderBrush="Gray" BorderThickness="0,1,1,1" />
-                        <TextBox Margin="6,0,0,0" Name="textBox_chkTimerInterval" Width="62" />
-                        <Label Content="分間隔" />
-                    </StackPanel>
-                    <CheckBox Content="EpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" Name="checkBox_forceNWMode" ToolTip="このオプションを使用しなくても、実行ファイル名を「EpgTimerNW」から始まる名前にすればNWモードで起動します。&#10;(通常のNWモードの使用方法)" />
-                </WrapPanel>
-            </DockPanel>
+                    <Border Height="28" Width="10" Margin="6,0,0,0" BorderBrush="Gray" BorderThickness="0,1,1,1" />
+                    <TextBox Margin="6,0,0,0" Name="textBox_chkTimerInterval" Width="62" />
+                    <Label Content="分間隔" />
+                </StackPanel>
+                <CheckBox Content="EpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" Name="checkBox_forceNWMode" ToolTip="このオプションを使用しなくても、実行ファイル名を「EpgTimerNW」から始まる名前にすればNWモードで起動します。&#10;(通常のNWモードの使用方法)" />
+                <StackPanel Orientation="Horizontal" Margin="0,12,12,0">
+                    <Button Content="録画プリセット設定" Margin="0,0,20,0" Name="button_recDef" Click="button_recDef_Click" />
+                    <Button Content="検索プリセット設定" Name="button_searchDef" Click="button_searchDef_Click" />
+                </StackPanel>
+            </WrapPanel>
         </TabItem>
         <TabItem Header="録画動作" Name="tabItem1">
             <Grid Margin="6">
@@ -204,7 +180,11 @@
                     <CheckBox Margin="0,0,0,4" Content="優先度が同じで時間が重なった場合、後の予約を優先する" Name="checkBox_back_priority" />
                     <CheckBox Margin="0,0,0,4" Content="優先度が同じ場合、チューナー強制指定された予約を先にチューナー割り当てする" Name="checkBox_fixedTunerPriority" />
                     <CheckBox Margin="0,0,0,4" Content="録画情報保存フォルダ指定時は録画ファイルと同じ場所を参照しない" Name="checkBox_recInfoFolderOnly" />
-                    <CheckBox Margin="0,0,0,4" Content="録画済み一覧から削除するときに録画ファイルも削除する" Name="checkBox_recInfoDelFile" Click="checkBox_autoDel_Click" ToolTipService.ShowOnDisabled="True" ToolTip="自動削除時([全般]のタブの「録画結果を自動的に削除する」チェック時)にも適用されます" />
+                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal" Name="stackPanel_autoDelRecInfo" >
+                        <CheckBox Content="録画結果を自動的に削除する 保持件数" Name="checkBox_autoDelRecInfo" />
+                        <TextBox Name="textBox_autoDelRecInfo" Width="62" Margin="6,0,0,0" />
+                    </StackPanel>
+                    <CheckBox Margin="0,0,0,4" Content="録画済み一覧から削除するときに録画ファイルも削除する" Name="checkBox_recInfoDelFile" Click="checkBox_autoDel_Click" ToolTipService.ShowOnDisabled="True" ToolTip="自動削除時(「録画結果を自動的に削除する」チェック時)にも適用されます" />
                     <CheckBox Margin="20,0,0,4" Content="同時に削除するファイルの拡張子は削除設定に従う" Name="checkBox_applyExtTo" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_recInfoDelFile}" Click="checkBox_autoDel_Click" />
                     <CheckBox Margin="0,0,0,4" Content="HDDの空きが少ない場合、古い*.tsファイルを削除する" Name="checkBox_autoDel" Click="checkBox_autoDel_Click" />
                 </StackPanel>

@@ -57,11 +57,6 @@ namespace EpgTimer.Setting
                 checkBox_noChkYen.IsEnabled = false;
                 grid_delReserve.IsEnabled = false;
 
-                checkBox_tcpServer.IsEnabled = false;
-                ViewUtil.ChangeChildren(grid_tcpCtrl, false);
-                textBox_tcpAcl.SetReadOnlyWithEffect(true);
-                stackPanel_autoDelRecInfo.IsEnabled = false;
-                stackPanel_timeSync.IsEnabled = false;
                 checkBox_wakeReconnect.IsEnabled = true;
                 stackPanel_WoLWait.IsEnabled = true;
                 checkBox_suspendClose.IsEnabled = true;
@@ -138,6 +133,8 @@ namespace EpgTimer.Setting
                 checkBox_back_priority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BackPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_fixedTunerPriority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "FixedTunerPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_recInfoFolderOnly.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecInfoFolderOnly", 1, SettingPath.TimerSrvIniPath) != 0;
+                checkBox_autoDelRecInfo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "AutoDelRecInfo", false, SettingPath.TimerSrvIniPath);
+                textBox_autoDelRecInfo.Text = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfoNum", 100, SettingPath.TimerSrvIniPath).ToString();
                 checkBox_recInfoDelFile.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecInfoDelFile", 0, SettingPath.CommonIniPath) == 1;
                 checkBox_applyExtTo.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "ApplyExtToRecInfoDel", 0, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_autoDel.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "AutoDel", 0, SettingPath.TimerSrvIniPath) == 1;
@@ -259,20 +256,9 @@ namespace EpgTimer.Setting
 
                 recPresetList = Settings.Instance.RecPresetList.Clone();
                 searchPresetList = Settings.Instance.SearchPresetList.Clone();
-                checkBox_useLastSearchKey.IsChecked = Settings.Instance.UseLastSearchKey;
 
-                checkBox_tcpServer.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "EnableTCPSrv", 0, SettingPath.TimerSrvIniPath) == 1;
-                textBox_tcpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPPort", 4510, SettingPath.TimerSrvIniPath).ToString();
-                textBox_tcpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "TCPAccessControlList", "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
-                textBox_tcpResTo.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPResponseTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
-
-                checkBox_autoDelRecInfo.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfo", 0, SettingPath.TimerSrvIniPath) == 1;
-                textBox_autoDelRecInfo.Text = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfoNum", 100, SettingPath.TimerSrvIniPath).ToString();
-
-                checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "TimeSync", 0, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_noBallonTips.IsChecked = Settings.Instance.NoBallonTips;
                 textBox_ForceHideBalloonTipSec.Text = Settings.Instance.ForceHideBalloonTipSec.ToString();
-                checkBox_showEpgCapServiceOnly.IsChecked = Settings.Instance.ShowEpgCapServiceOnly;
 
                 int residentMode = IniFileHandler.GetPrivateProfileInt("SET", "ResidentMode", 0, SettingPath.TimerSrvIniPath);
                 checkBox_srvResident.IsChecked = residentMode >= 1;
@@ -296,8 +282,6 @@ namespace EpgTimer.Setting
 
                 checkBox_cautionManyChange.IsChecked = Settings.Instance.CautionManyChange;
                 textBox_cautionManyChange.Text = Settings.Instance.CautionManyNum.ToString();
-                checkBox_saveSearchKeyword.IsChecked = Settings.Instance.SaveSearchKeyword;
-                button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
                 textBox_upDateTaskText.IsChecked = Settings.Instance.UpdateTaskText;
                 checkBox_wakeReconnect.IsChecked = Settings.Instance.WakeReconnectNW;
                 checkBox_WoLWait.IsChecked = Settings.Instance.WoLWait;
@@ -378,6 +362,8 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "FixedTunerPriority", checkBox_fixedTunerPriority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolderOnly", checkBox_recInfoFolderOnly.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfo", checkBox_autoDelRecInfo.IsChecked, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfoNum", textBox_autoDelRecInfo.Text, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "RecInfoDelFile", checkBox_recInfoDelFile.IsChecked == true ? "1" : null, SettingPath.CommonIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "ApplyExtToRecInfoDel", checkBox_applyExtTo.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDel", checkBox_autoDel.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
@@ -424,21 +410,9 @@ namespace EpgTimer.Setting
 
                 Settings.Instance.RecPresetList = recPresetList.Clone();
                 Settings.Instance.SearchPresetList = searchPresetList.Clone();
-                Settings.Instance.UseLastSearchKey = (bool)checkBox_useLastSearchKey.IsChecked;
-                if (Settings.Instance.UseLastSearchKey == false) Settings.Instance.DefSearchKey = new EpgSearchKeyInfo();
 
-                IniFileHandler.WritePrivateProfileString("SET", "EnableTCPSrv", checkBox_tcpServer.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TCPPort", textBox_tcpPort.Text, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TCPAccessControlList", textBox_tcpAcl.Text, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TCPResponseTimeoutSec", textBox_tcpResTo.Text, SettingPath.TimerSrvIniPath);
-
-                IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfo", checkBox_autoDelRecInfo.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfoNum", textBox_autoDelRecInfo.Text.ToString(), SettingPath.TimerSrvIniPath);
-
-                IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 Settings.Instance.NoBallonTips = checkBox_noBallonTips.IsChecked == true;
                 Settings.Instance.ForceHideBalloonTipSec = MenuUtil.MyToNumerical(textBox_ForceHideBalloonTipSec, Convert.ToInt32, 255, 0, Settings.Instance.ForceHideBalloonTipSec);
-                Settings.Instance.ShowEpgCapServiceOnly = (bool)checkBox_showEpgCapServiceOnly.IsChecked;
 
                 IniFileHandler.WritePrivateProfileString("SET", "ResidentMode",
                     checkBox_srvResident.IsChecked == false ? "0" : checkBox_srvShowTray.IsChecked == false ? "1" : "2", SettingPath.TimerSrvIniPath);
@@ -452,7 +426,6 @@ namespace EpgTimer.Setting
 
                 Settings.Instance.CautionManyChange = checkBox_cautionManyChange.IsChecked != false;
                 Settings.Instance.CautionManyNum = MenuUtil.MyToNumerical(textBox_cautionManyChange, Convert.ToInt32, Settings.Instance.CautionManyNum);
-                Settings.Instance.SaveSearchKeyword = checkBox_saveSearchKeyword.IsChecked != false;
                 Settings.Instance.WakeReconnectNW = checkBox_wakeReconnect.IsChecked == true;
                 Settings.Instance.WoLWait = checkBox_WoLWait.IsChecked == true;
                 Settings.Instance.WoLWaitRecconect = checkBox_WoLWaitRecconect.IsChecked == true;
@@ -623,12 +596,6 @@ namespace EpgTimer.Setting
         private void checkBox_WoLWait_Checked(object sender, RoutedEventArgs e)
         {
             checkBox_WoLWaitRecconect.IsChecked = false;
-        }
-
-        private void button_clearSerchKeywords_Click(object sender, RoutedEventArgs e)
-        {
-            Settings.Instance.AndKeyList = new List<string>();
-            Settings.Instance.NotKeyList = new List<string>();
         }
 
         private void button_shortCut_Click(object sender, RoutedEventArgs e)

@@ -87,26 +87,28 @@
                         </GridView>
                     </ListView.View>
                 </ListView>
-                <StackPanel Grid.Row="1" Grid.Column="2" Margin="20,0,0,0">
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="20,0,0,0" Name="grid_ServiceOptions">
                     <StackPanel HorizontalAlignment="Left" >
                         <Button Content="全チェック" Click="button_allChk_Click" />
-                        <Button Content="映像サービスのみチェック" Margin="0,6,0,0" Click="button_videoChk_Click" />
-                        <Button Content="全クリア" Margin="0,6,0,0" Click="button_allClear_Click" />
+                        <Button Content="映像サービスのみチェック" Margin="0,4,0,0" Click="button_videoChk_Click" />
+                        <Button Content="全クリア" Margin="0,4,0,0" Click="button_allClear_Click" />
                     </StackPanel>
-                    <TextBlock Text="基本情報のみ取得するネットワーク" Margin="0,12,0,0" />
-                    <DockPanel Margin="0,6,0,0" >
+                    <TextBlock Text="基本情報のみ取得するネットワーク" Margin="0,10,0,0" />
+                    <DockPanel Margin="0,4,0,0" >
                         <CheckBox Content="BS" Margin="20,0,0,0" Name="checkBox_bs"/>
                         <CheckBox Content="CS1" Margin="12,0,0,0" Name="checkBox_cs1"/>
                         <CheckBox Content="CS2" Margin="12,0,0,0" Name="checkBox_cs2"/>
                         <CheckBox Content="CS3" Margin="12,0,0,0" Name="checkBox_cs3"/>
                     </DockPanel>
-                    <TextBlock Text="※詳細情報は取得できないが、短時間で取得可能になります&#10;　 (地デジは対象外)" Margin="0,6,0,0" />
-                    <DockPanel Margin="0,12,0,0" >
+                    <TextBlock Text="※詳細情報は取得できないが、短時間で取得可能になります&#10;　 (地デジは対象外)" Margin="0,4,0,0" />
+                    <DockPanel Margin="0,10,0,0" >
                         <TextBlock Text="EPG取得時のタイムアウト判定時間" />
                         <TextBox Margin="12,0,6,0" Name="textBox_EpgCapTimeOut" Width="42" />
                         <TextBlock Text="分" />
                     </DockPanel>
-                    <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="0,6,0,0"  Name="checkBox_EpgCapSaveTimeOut"/>
+                    <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="0,4,0,0"  Name="checkBox_EpgCapSaveTimeOut"/>
+                    <CheckBox Content="EPG取得時に放送波時間でPC時計を同期する" Margin="0,4,0,0" Name="checkBox_timeSync" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="EpgTimerSrv.exeにシステム時刻の変更特権が与えられているか、&#10;EpgTimerAdminProxy.exeがシステム時刻の変更特権を与えられて起動している必要があります。"/>
+                    <CheckBox Content="EPG取得対象サービスのみ表示する" Margin="0,4,0,0" Name="checkBox_showEpgCapServiceOnly" />
                 </StackPanel>
                 <TextBlock Grid.Row="2" Text="EPG取得開始時間" Margin="0,12,0,4" />
                 <ListView Grid.Row="3" Name="listView_time">
@@ -150,6 +152,46 @@
                     </DockPanel>
                 </StackPanel>
             </Grid>
+        </TabItem>
+        <TabItem Header="ネットワーク" Name="tab_NW" >
+            <StackPanel Margin="10,10,6,6">
+                <GroupBox Header="ネットワーク">
+                    <StackPanel Margin="6,6,6,0">
+                        <CheckBox Content="EpgTimerNWなどからのネットワーク接続を許可する" Name="checkBox_tcpServer" />
+                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Name="grid_tcpCtrl">
+                            <TextBlock Text="ポート" Margin="6,0,6,0" />
+                            <TextBox Name="textBox_tcpPort" Width="54" />
+                            <TextBlock Text="アクセス制御" Margin="12,0,6,0" />
+                            <TextBox Name="textBox_tcpAcl" Width="220" />
+                            <TextBlock Text="タイムアウト(秒)" Margin="12,0,6,0" />
+                            <TextBox Name="textBox_tcpResTo" Width="54" />
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="Httpサーバ" Margin="0,6,0,0">
+                    <StackPanel Margin="6,6,6,0">
+                        <CheckBox Name="checkBox_httpServer" Content="Httpサーバ機能(WebUI)を使用する" Margin="0,6,0,0"/>
+                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Name="grid_httpCtrl">
+                            <TextBlock Text="ポート" Margin="6,0,6,0" ToolTipService.ShowOnDisabled="True" ToolTip="SSLや複数ポート指定方法などはCivetWeb本家ドキュメント参照" />
+                            <TextBox Name="textBox_httpPort" Width="54" />
+                            <TextBlock Text="アクセス制御" Margin="12,0,6,0" />
+                            <TextBox Name="textBox_httpAcl" Width="220" />
+                            <TextBlock Text="タイムアウト(秒)" Margin="12,0,6,0" />
+                            <TextBox Name="textBox_httpTimeout" Width="54"/>
+                            <TextBlock Text="スレッド数" Margin="12,0,6,0" />
+                            <TextBox Name="textBox_httpThreads" Width="54"/>
+                        </StackPanel>
+                        <DockPanel Margin="0,6,0,0" Name="grid_httpfolder" >
+                            <TextBlock Text="公開フォルダ" Margin="6,0,6,0"/>
+                            <Button Name="button_docrootPath" Content="開く" Margin="6,0,0,0" DockPanel.Dock="Right" Width="44" Click="button_docrootPath_Click" />
+                            <TextBox Name="textBox_docrootPath" />
+                        </DockPanel>
+                        <CheckBox Name="checkBox_httpLog" Content="ログを保存する" Margin="0,6,0,0" />
+                        <CheckBox Name="checkBox_dlnaServer" Content="DLNA の DMS ぽい機能を使用する" Margin="0,6,0,0" ToolTipService.ShowOnDisabled="True" ToolTip="DLNA の DMS ぽい機能を利用するには ini\HttpPublic フォルダにある dlna 以下のフォルダを公開フォルダにコピーしてください。"/>
+                        <TextBlock Text="　※セキュリティ関係の設定など、詳しくはReadMe_Mod.txtの「■CivetWebの組み込みについて■」を参照のこと" Foreground="Red" Margin="0,12,0,0"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
         </TabItem>
     </TabControl>
 </UserControl>

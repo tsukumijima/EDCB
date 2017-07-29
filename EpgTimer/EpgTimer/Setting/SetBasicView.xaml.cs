@@ -41,10 +41,26 @@ namespace EpgTimer.Setting
                 button_recInfoFolder.IsEnabled = true;
                 listBox_bon.IsEnabled = true;
 
-                tabItem3.Foreground = SystemColors.GrayTextBrush;
                 ViewUtil.ChangeChildren(grid_epg, false);
                 listView_service.IsEnabled = true;
                 listView_time.IsEnabled = true;
+                grid_ServiceOptions.IsEnabled = true;
+                ViewUtil.ChangeChildren(grid_ServiceOptions, false);
+                checkBox_showEpgCapServiceOnly.IsEnabled = true;
+
+                tab_NW.Foreground = SystemColors.GrayTextBrush;
+                checkBox_tcpServer.IsEnabled = false;
+                ViewUtil.ChangeChildren(grid_tcpCtrl, false);
+                textBox_tcpAcl.SetReadOnlyWithEffect(true);
+
+                checkBox_httpServer.IsEnabled = false;
+                ViewUtil.ChangeChildren(grid_httpCtrl, false);
+                textBox_httpAcl.SetReadOnlyWithEffect(true);
+                ViewUtil.ChangeChildren(grid_httpfolder, false);
+                textBox_docrootPath.SetReadOnlyWithEffect(true);
+                button_docrootPath.IsEnabled = true;
+                checkBox_httpLog.IsEnabled = false;
+                checkBox_dlnaServer.IsEnabled = false;
             }
 
             listBox_Button_Set();
@@ -104,7 +120,9 @@ namespace EpgTimer.Setting
                 checkBox_cs2.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS2BasicOnly", 1, SettingPath.CommonIniPath) == 1;
                 checkBox_cs3.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS3BasicOnly", 0, SettingPath.CommonIniPath) == 1;
                 textBox_EpgCapTimeOut.Text = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapTimeOut", 10, SettingPath.BonCtrlIniPath).ToString();
-                checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapSaveTimeOut", 0, SettingPath.BonCtrlIniPath) == 1;
+                checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileBool("EPGCAP", "EpgCapSaveTimeOut", false, SettingPath.BonCtrlIniPath);
+                checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "TimeSync", 0, SettingPath.TimerSrvIniPath) == 1;
+                checkBox_showEpgCapServiceOnly.IsChecked = Settings.Instance.ShowEpgCapServiceOnly;
 
                 int capCount = IniFileHandler.GetPrivateProfileInt("EPG_CAP", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
                 if (capCount == int.MaxValue)
@@ -139,6 +157,23 @@ namespace EpgTimer.Setting
 
                 textBox_ngCapMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTime", 20, SettingPath.TimerSrvIniPath).ToString();
                 textBox_ngTunerMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTunerTime", 20, SettingPath.TimerSrvIniPath).ToString();
+
+                // ネットワーク
+                checkBox_tcpServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableTCPSrv", false, SettingPath.TimerSrvIniPath);
+                textBox_tcpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPPort", 4510, SettingPath.TimerSrvIniPath).ToString();
+                textBox_tcpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "TCPAccessControlList", "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
+                textBox_tcpResTo.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPResponseTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
+
+                int enableHttpSrv = IniFileHandler.GetPrivateProfileInt("SET", "EnableHttpSrv", 0, SettingPath.TimerSrvIniPath);
+                checkBox_httpServer.IsChecked = enableHttpSrv != 0;
+                checkBox_httpLog.IsChecked = enableHttpSrv == 2;
+
+                textBox_httpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpPort", 5510, SettingPath.TimerSrvIniPath).ToString();
+                textBox_httpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpAccessControlList", "+127.0.0.1", SettingPath.TimerSrvIniPath);
+                textBox_httpTimeout.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpRequestTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
+                textBox_httpThreads.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpNumThreads", 5, SettingPath.TimerSrvIniPath).ToString();
+                textBox_docrootPath.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpPublicFolder", System.IO.Path.Combine(SettingPath.ModulePath, "HttpPublic"), SettingPath.TimerSrvIniPath);
+                checkBox_dlnaServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableDMS", false, SettingPath.TimerSrvIniPath);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -199,6 +234,8 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "CS3BasicOnly", checkBox_cs3.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
                 IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapTimeOut", textBox_EpgCapTimeOut.Text, SettingPath.BonCtrlIniPath);
                 IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapSaveTimeOut", checkBox_EpgCapSaveTimeOut.IsChecked == true ? "1" : "0", SettingPath.BonCtrlIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked, SettingPath.TimerSrvIniPath);
+                Settings.Instance.ShowEpgCapServiceOnly = (bool)checkBox_showEpgCapServiceOnly.IsChecked;
 
                 foreach (ServiceViewItem info in listView_service.ItemsSource)
                 {
@@ -223,6 +260,21 @@ namespace EpgTimer.Setting
 
                 IniFileHandler.WritePrivateProfileString("SET", "NGEpgCapTime", textBox_ngCapMin.Text, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "NGEpgCapTunerTime", textBox_ngTunerMin.Text, SettingPath.TimerSrvIniPath);
+
+                // ネットワーク
+                IniFileHandler.WritePrivateProfileString("SET", "EnableTCPSrv", checkBox_tcpServer.IsChecked, false, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "TCPPort", textBox_tcpPort.Text, "4510", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "TCPAccessControlList", textBox_tcpAcl.Text, "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "TCPResponseTimeoutSec", textBox_tcpResTo.Text, "120", SettingPath.TimerSrvIniPath);
+
+                var enableHttpSrv = checkBox_httpServer.IsChecked != true ? null : checkBox_httpLog.IsChecked != true ? "1" : "2";
+                IniFileHandler.WritePrivateProfileString("SET", "EnableHttpSrv", enableHttpSrv, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "HttpPort", textBox_httpPort.Text, "5510", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "HttpAccessControlList", textBox_httpAcl.Text, "+127.0.0.1", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "HttpRequestTimeoutSec", textBox_httpTimeout.Text, "120", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "HttpNumThreads", textBox_httpThreads.Text, "5", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "HttpPublicFolder", textBox_docrootPath.Text, System.IO.Path.Combine(SettingPath.ModulePath, "HttpPublic"), SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "EnableDMS", checkBox_dlnaServer.IsChecked, false, SettingPath.TimerSrvIniPath);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -331,6 +383,11 @@ namespace EpgTimer.Setting
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+        }
+
+        private void button_docrootPath_Click(object sender, RoutedEventArgs e)
+        {
+            CommonManager.GetFolderNameByDialog(textBox_docrootPath, "WebUI公開フォルダの選択");
         }
     }
 

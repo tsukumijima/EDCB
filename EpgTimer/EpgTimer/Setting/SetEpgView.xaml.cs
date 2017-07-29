@@ -228,6 +228,9 @@ namespace EpgTimer.Setting
                 textBox_DisplayJumpTime.Text = Settings.Instance.DisplayNotifyJumpTime.ToString();
                 checkBox_LaterTimeUse.IsChecked = Settings.Instance.LaterTimeUse;
                 textBox_LaterTimeHour.Text = (Settings.Instance.LaterTimeHour + 24).ToString();
+                checkBox_useLastSearchKey.IsChecked = Settings.Instance.UseLastSearchKey;
+                checkBox_saveSearchKeyword.IsChecked = Settings.Instance.SaveSearchKeyword;
+                button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
                 checkBox_displayPresetOnSearch.IsChecked = Settings.Instance.DisplayPresetOnSearch;
                 checkBox_toolTips.IsChecked = !Settings.Instance.NoToolTip;
                 textBox_ToolTipsWidth.Text = Settings.Instance.ToolTipWidth.ToString();
@@ -432,6 +435,9 @@ namespace EpgTimer.Setting
                 Settings.Instance.DisplayNotifyJumpTime = MenuUtil.MyToNumerical(textBox_DisplayJumpTime, Convert.ToDouble, Double.MaxValue, 0, 3);
                 Settings.Instance.LaterTimeUse = (checkBox_LaterTimeUse.IsChecked == true);
                 Settings.Instance.LaterTimeHour = MenuUtil.MyToNumerical(textBox_LaterTimeHour, Convert.ToInt32, 36, 24, 28) - 24;
+                Settings.Instance.UseLastSearchKey = (bool)checkBox_useLastSearchKey.IsChecked;
+                if (Settings.Instance.UseLastSearchKey == false) Settings.Instance.DefSearchKey = new EpgSearchKeyInfo();
+                Settings.Instance.SaveSearchKeyword = checkBox_saveSearchKeyword.IsChecked != false;
                 Settings.Instance.DisplayPresetOnSearch = (checkBox_displayPresetOnSearch.IsChecked == true);
                 Settings.Instance.NoStyle = (checkBox_NotNoStyle.IsChecked == true ? 0 : 1);
                 Settings.Instance.NoToolTip = checkBox_toolTips.IsChecked == false;
@@ -582,6 +588,12 @@ namespace EpgTimer.Setting
                 setting.button_OK.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             }
         }*/
+
+        private void button_clearSerchKeywords_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.Instance.AndKeyList = new List<string>();
+            Settings.Instance.NotKeyList = new List<string>();
+        }
     }
 
     public class ColorComboItem

@@ -577,16 +577,21 @@
                                     <TextBox Width="40" Name="textBox_LaterTimeHour" />
                                     <Label Content="時まで" />
                                 </StackPanel>
+                                <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" Name="checkBox_useLastSearchKey" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
+                                <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
+                                    <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" Name="checkBox_saveSearchKeyword" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>
+                                    <Button Content="履歴クリア" Margin="6,0,0,0" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
+                                </StackPanel>
                                 <CheckBox Margin="0,6,12,0" Content="検索/キーワード予約ダイアログの録画設定タブにプリセットを表示する" Name="checkBox_displayPresetOnSearch" />
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
                                     <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " Name="checkBox_toolTips" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
-                                    <TextBox Name="textBox_ToolTipsWidth" Width="55" />
+                                    <TextBox Name="textBox_ToolTipsWidth" Width="44" />
                                 </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧画面など)" Name="checkBox_reserveToolTipEpgInfo"  ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
+                                <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧など)" Name="checkBox_reserveToolTipEpgInfo"  ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
                                 <StackPanel Margin="0,0,12,0" >
                                     <Label Content="番組詳細タブを選択した状態で予約ダイアログを開く" ToolTip="番組表、使用予定チューナー画面はそれぞれの設定タブを参照" />
                                     <WrapPanel Margin="14,-2,0,0" >
-                                        <CheckBox Content="予約一覧画面 　" Name="checkBox_reserveEpgInfoOpenMode" />
+                                        <CheckBox Content="予約一覧 　" Name="checkBox_reserveEpgInfoOpenMode" />
                                         <CheckBox Content="自動予約登録・検索関連ダイアログなど" Name="checkBox_searchEpgInfoOpenMode" ToolTipService.ShowDuration="20000" ToolTip="対象となるのは、次の画面。&#10;キーワード予約一覧、プログラム予約一覧、&#10;検索/キーワード予約ダイアログ、予約情報検索ダイアログ" />
                                     </WrapPanel>
                                 </StackPanel>
