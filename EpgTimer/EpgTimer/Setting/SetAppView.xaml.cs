@@ -115,7 +115,7 @@ namespace EpgTimer.Setting
 
                 textBox_megine_start.Text = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath).ToString();
                 textBox_margine_end.Text = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath).ToString();
-                textBox_appWakeTime.Text = IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath).ToString();
+                textBox_appWakeTime.Text = Settings.Instance.RecAppWakeTime.ToString();
                 checkBox_appMin.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecMinWake", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_appView.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecView", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_appDrop.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "DropLog", 1, SettingPath.TimerSrvIniPath) == 1;
@@ -344,7 +344,7 @@ namespace EpgTimer.Setting
 
                 IniFileHandler.WritePrivateProfileString("SET", "StartMargin", textBox_megine_start.Text, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "EndMargin", textBox_margine_end.Text, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", textBox_appWakeTime.Text, SettingPath.TimerSrvIniPath);
+                Settings.Instance.RecAppWakeTime = MenuUtil.MyToNumerical(textBox_appWakeTime, Convert.ToInt32, Int32.MaxValue, 0, Settings.Instance.RecAppWakeTime);
                 IniFileHandler.WritePrivateProfileString("SET", "RecMinWake", checkBox_appMin.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "RecView", checkBox_appView.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "DropLog", checkBox_appDrop.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);

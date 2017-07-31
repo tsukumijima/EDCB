@@ -1557,7 +1557,7 @@ namespace EpgTimer
 
             //録画中の予約と、録画が始まる予約を抽出
             var now = DateTime.UtcNow.AddHours(9);
-            var start = now.AddMinutes(1 + IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath));
+            var start = now.AddMinutes(1 + Settings.Instance.RecAppWakeTime);
             var past = start.AddMinutes(-Settings.Instance.NoWakeUpHddMin);
             List<ReserveData> reslist = Instance.DB.ReserveList.Values.Where(info => info.RecSetting.RecMode < 4).ToList();
             List<ReserveData> onlist = reslist.Where(info => info.IsOnRec(now)).ToList();

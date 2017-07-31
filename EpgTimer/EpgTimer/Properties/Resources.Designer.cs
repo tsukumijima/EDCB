@@ -81,6 +81,13 @@ namespace EpgTimer.Properties {
             }
         }
         
+        internal static System.Drawing.Icon TaskIconOrange {
+            get {
+                object obj = ResourceManager.GetObject("TaskIconOrange", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
         internal static System.Drawing.Icon TaskIconRed {
             get {
                 object obj = ResourceManager.GetObject("TaskIconRed", resourceCulture);

@@ -20,6 +20,7 @@ namespace EpgTimer
         private Mutex mutex;
 
         private TaskTrayClass taskTray = null;
+        private TaskTrayState trayState = null;
         private Dictionary<string, Button> buttonList = new Dictionary<string, Button>();
         private static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
 
@@ -234,15 +235,8 @@ namespace EpgTimer
 
                 //タスクトレイの表示
                 taskTray = new TaskTrayClass(this);
-                if (CommonManager.Instance.NWMode == true && Settings.Instance.ChkSrvRegistTCP == true)
-                {
-                    taskTray.Icon = TaskIconSpec.TaskIconGray;
-                }
-                else
-                {
-                    taskTray.Icon = TaskIconSpec.TaskIconBlue;
-                }
                 taskTray.ContextMenuClick += (sender, e) => CommonButtons_Click(sender as string);
+                trayState = new TaskTrayState(taskTray);
 
                 ResetMainView();
 
@@ -386,7 +380,7 @@ namespace EpgTimer
         private void ResetTaskMenu()
         {
             taskTray.Visible = Settings.Instance.ShowTray || this.Visibility == Visibility.Hidden;
-            taskTray.Text = GetTaskTrayReserveInfoText();
+            trayState.UpdateInfo();
             taskTray.SetContextMenu(Settings.Instance.TaskMenuList
                 .Select(s1 => s1.Replace(Settings.TaskMenuSeparator, ""))
                 .Where(s2 => s2 == "" || buttonList.ContainsKey(s2) == true)
@@ -588,10 +582,7 @@ namespace EpgTimer
 
             if (connected == false)
             {
-                if (Settings.Instance.ChkSrvRegistTCP == true)
-                {
-                    taskTray.Icon = TaskIconSpec.TaskIconGray;
-                }
+                trayState.SrvLosted();
                 return false;
             }
 
@@ -647,7 +638,7 @@ namespace EpgTimer
                             {
                                 if (waitPort == 0 && CommonManager.Instance.NW.OnPolling == false ||
                                     waitPort != 0 && registered == false ||
-                                    taskTray.Icon == TaskIconSpec.TaskIconGray)//EpgTimerNW側の休止復帰も含む
+                                    trayState.IsSrvLost == true)//EpgTimerNW側の休止復帰も含む
                                 {
                                     if (ConnectSrv() == true)
                                     {
@@ -661,12 +652,12 @@ namespace EpgTimer
                                 return;
                             }
                         }
-                        taskTray.Icon = TaskIconSpec.TaskIconGray;
+                        trayState.SrvLosted(updateTaskText == false);
                     };
                 }
                 if (updateTaskText == true)
                 {
-                    chkTimer.Tick += (sender, e) => taskTray.Text = GetTaskTrayReserveInfoText();
+                    chkTimer.Tick += (sender, e) => trayState.UpdateInfo();
                 }
                 chkTimer.Start();
             }
@@ -1042,7 +1033,7 @@ namespace EpgTimer
             ViewUtil.SingleWindowCheck(typeof(SuspendCheckWindow), true);
 
             suspendMode = suspendMode == 1 ? suspendMode : (byte)2;
-            ErrCode err = taskTray.Icon == TaskIconSpec.TaskIconGray ? ErrCode.CMD_ERR_CONNECT : cmd.SendChkSuspend();
+            ErrCode err = trayState.IsSrvLost == true ? ErrCode.CMD_ERR_CONNECT : cmd.SendChkSuspend();
             if (err != ErrCode.CMD_SUCCESS)
             {
                 if (err == ErrCode.CMD_ERR_CONNECT)
@@ -1105,8 +1096,8 @@ namespace EpgTimer
         private bool needUnRegist = true;
         void UnRegistTCP()
         {
-            if (Settings.Instance.NWWaitPort != 0 && needUnRegist == true 
-                && CommonManager.Instance.NW.IsConnected == true && taskTray.Icon != TaskIconSpec.TaskIconGray)
+            if (Settings.Instance.NWWaitPort != 0 && needUnRegist == true
+                && CommonManager.Instance.NW.IsConnected == true && trayState.IsSrvLost == false)
             {
                 cmd.SendUnRegistTCP(Settings.Instance.NWWaitPort);
             }
@@ -1250,52 +1241,6 @@ namespace EpgTimer
             return res;
         }
 
-        private TaskIconSpec GetTaskTrayIcon(uint status)
-        {
-            //statusは0,1,2しか取らないはずだが、コード上は任意になっているので、一応変換をかませておく。
-            switch(status)
-            {
-                case 1: return TaskIconSpec.TaskIconRed;
-                case 2: return TaskIconSpec.TaskIconGreen;
-                default: return TaskIconSpec.TaskIconBlue;
-            }
-        }
-
-        private string GetTaskTrayReserveInfoText()
-        {
-            if (Settings.Instance.ShowTray == false) return "";
-
-            var sortList = CommonManager.Instance.DB.ReserveList.Values
-                .Where(info => info.IsEnabled == true && info.IsOver() == false)
-                .OrderBy(info => info.StartTimeActual).ToList();
-
-            string infoText = Settings.Instance.UpdateTaskText == true && taskTray.Icon == TaskIconSpec.TaskIconGray ? "[未接続]\r\n(?)" : "";
-
-            if (sortList.Count == 0) return infoText + "次の予約なし";
-
-            int infoCount = 0;
-            if (sortList[0].IsOnRec() == true)
-            {
-                infoText += "録画中:";
-                infoCount = sortList.Count(info => info.IsOnRec()) - 1;
-            }
-            else if (Settings.Instance.UpdateTaskText == true && sortList[0].OnTime(DateTime.UtcNow.AddHours(9).AddHours(1)) >= 0) //1時間以内に開始されるもの
-            {
-                infoText += "まもなく録画:";
-                infoCount = sortList.Count(info => info.OnTime(DateTime.UtcNow.AddHours(9).AddHours(1)) >= 0) - 1;
-            }
-            else
-            {
-                infoText += "次の予約:";
-            }
-
-            infoText += sortList[0].StationName + " " + new ReserveItem(sortList[0]).StartTimeShort + " " + sortList[0].Title;
-            string endText = (infoCount == 0 ? "" : "\r\n他" + infoCount.ToString());
-            infoText = CommonUtil.LimitLenString(infoText, 63 - endText.Length);
-
-            return infoText + endText;
-        }
-
         void NotifyStatus(NotifySrvInfo status)
         {
             bool notifyLogWindowUpdate = false;
@@ -1311,10 +1256,11 @@ namespace EpgTimer
             switch ((UpdateNotifyItem)status.notifyID)
             {
                 case UpdateNotifyItem.SrvStatus:
-                    taskTray.Icon = GetTaskTrayIcon(status.param1);
+                    trayState.UpdateInfo(status.param1);
                     break;
                 case UpdateNotifyItem.PreRecStart:
                     NotifyWork("予約録画開始準備", status.param4);
+                    trayState.UpdateInfo();
                     CommonManager.WakeUpHDDWork();
                     break;
                 case UpdateNotifyItem.RecStart:
@@ -1367,6 +1313,7 @@ namespace EpgTimer
                     {
                         CommonManager.Instance.DB.ReloadReserveInfo(true);
                         RefreshAllViewsReserveInfo();
+                        trayState.UpdateInfo();
                         StatusManager.StatusNotifyAppend("予約データ更新 < ");
                     }
                     break;
@@ -1409,13 +1356,13 @@ namespace EpgTimer
                             IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
                             notifyLogWindowUpdate = true;
+                            trayState.UpdateInfo();
                             StatusManager.StatusNotifyAppend("EpgTimerSrv設定変更に伴う画面更新 < ");
                         }
                     }
                     break;
             }
 
-            taskTray.Text = GetTaskTrayReserveInfoText();
             if (notifyLogWindowUpdate == true) NotifyLogWindow.UpdatesInfo();
         }
 
@@ -1620,6 +1567,5 @@ namespace EpgTimer
                 this.autoAddView.manualAutoAddView.listView_key.Focus();
             }
         }
-
     }
 }

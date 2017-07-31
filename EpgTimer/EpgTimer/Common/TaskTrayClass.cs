@@ -8,9 +8,9 @@ using System.Windows.Forms;
 
 namespace EpgTimer
 {
-    public enum TaskIconSpec : uint { TaskIconBlue, TaskIconRed, TaskIconGreen, TaskIconGray, TaskIconNone };
+    public enum TaskIconSpec : uint { TaskIconBlue, TaskIconRed, TaskIconOrange, TaskIconGreen, TaskIconGray, TaskIconNone };
 
-    class TaskTrayClass : IDisposable
+    public class TaskTrayClass : IDisposable
     {
         private NotifyIcon notifyIcon = new NotifyIcon();
         private Window targetWindow;
@@ -25,9 +25,10 @@ namespace EpgTimer
             get { return iconSpec; }
             set
             {
-                System.Drawing.Size size = SystemInformation.SmallIconSize;
                 iconSpec = value;
-                notifyIcon.Icon = value == TaskIconSpec.TaskIconNone ? null : new Icon(GetTaskTrayIcon(value), new System.Drawing.Size((size.Width + 15) / 16 * 16, (size.Height + 15) / 16 * 16));
+                Icon icon = GetTaskTrayIcon(value);
+                System.Drawing.Size size = SystemInformation.SmallIconSize;
+                notifyIcon.Icon = icon == null ? null : new Icon(icon, new System.Drawing.Size((size.Width + 15) / 16 * 16, (size.Height + 15) / 16 * 16));
             }
         }
         private Icon GetTaskTrayIcon(TaskIconSpec status)
@@ -36,6 +37,7 @@ namespace EpgTimer
             {
                 case TaskIconSpec.TaskIconBlue:     return Properties.Resources.TaskIconBlue;
                 case TaskIconSpec.TaskIconRed:      return Properties.Resources.TaskIconRed;
+                case TaskIconSpec.TaskIconOrange:   return Properties.Resources.TaskIconOrange;
                 case TaskIconSpec.TaskIconGreen:    return Properties.Resources.TaskIconGreen;
                 case TaskIconSpec.TaskIconGray:     return Properties.Resources.TaskIconGray;
                 default: return null;
@@ -181,5 +183,79 @@ namespace EpgTimer
                 }
             }
         }   
+    }
+
+    public class TaskTrayState
+    {
+        private TaskTrayClass taskTray;
+        private uint srvState = uint.MaxValue;
+        public TaskTrayState(TaskTrayClass tasktray) { taskTray = tasktray ?? new TaskTrayClass(null); }
+
+        public bool IsSrvLost { get { return srvState == uint.MaxValue; } }
+        public void SrvLosted(bool updateTray = true) { UpdateInfo(uint.MaxValue, updateTray); }
+        public void UpdateInfo(uint? srvStatus = null, bool updateTray = true)
+        {
+            if (srvStatus != null) srvState = (uint)srvStatus;
+            if (updateTray == false) return;
+
+            if (Settings.Instance.ShowTray == false)
+            {
+                taskTray.Text = "";
+                return;
+            }
+
+            var sortList = CommonManager.Instance.DB.ReserveList.Values
+                .Where(info => info.IsEnabled == true && info.IsOver() == false)
+                .OrderBy(info => info.StartTimeActual).ToList();
+
+            bool isOnPreRec = false;
+            string infoText = IsSrvLost == true ? "[未接続]\r\n(?)" : "";
+            infoText += srvState == 2 ? "EPG取得中\r\n" : "";
+
+            if (sortList.Count == 0)
+            {
+                infoText += "次の予約なし";
+            }
+            else
+            {
+                int infoCount = 1;
+                if (sortList[0].IsOnRec() == true)
+                {
+                    infoText += "録画中:";
+                    infoCount = sortList.Count(info => info.IsOnRec());
+                }
+                else
+                {
+                    var PreRecTime = DateTime.UtcNow.AddHours(9).AddMinutes(Settings.Instance.RecAppWakeTime);
+                    isOnPreRec = sortList[0].OnTime(PreRecTime) >= 0;
+                    if (isOnPreRec == true) //録画準備中
+                    {
+                        infoText += "録画準備中:";
+                        infoCount = sortList.Count(info => info.OnTime(PreRecTime) >= 0);//あまり意味無い
+                    }
+                    else if (Settings.Instance.UpdateTaskText == true && sortList[0].OnTime(PreRecTime.AddMinutes(30)) >= 0) //30分以内に録画準備に入るもの
+                    {
+                        infoText += "まもなく録画:";
+                        infoCount = sortList.Count(info => info.OnTime(PreRecTime.AddMinutes(30)) >= 0);
+                    }
+                    else
+                    {
+                        infoText += "次の予約:";
+                    }
+                }
+
+                infoText += sortList[0].StationName + " " + new ReserveItem(sortList[0]).StartTimeShort + " " + sortList[0].Title;
+                string endText = (infoCount <= 1 ? "" : "\r\n他" + (infoCount - 1).ToString());
+                infoText = CommonUtil.LimitLenString(infoText, 63 - endText.Length) + endText;
+            }
+
+            taskTray.Text = infoText;
+
+            if (IsSrvLost == true)          taskTray.Icon = TaskIconSpec.TaskIconGray;
+            else if (srvState == 1)         taskTray.Icon = TaskIconSpec.TaskIconRed;
+            else if (isOnPreRec == true)    taskTray.Icon = TaskIconSpec.TaskIconOrange;
+            else if (srvState == 2)         taskTray.Icon = TaskIconSpec.TaskIconGreen;
+            else                            taskTray.Icon = TaskIconSpec.TaskIconBlue;
+        }
     }
 }

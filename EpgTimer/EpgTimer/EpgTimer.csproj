@@ -525,6 +525,9 @@
     <None Include="Resources\TaskIconGreen.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\TaskIconOrange.ico" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Resources\TaskIconRed.ico" />
   </ItemGroup>
   <ItemGroup>

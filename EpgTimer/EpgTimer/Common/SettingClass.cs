@@ -534,6 +534,12 @@ namespace EpgTimer
             get { return IniFileHandler.GetPrivateProfileInt("SET", "WakeUpHddOverlapNum", 0, SettingPath.TimerSrvIniPath); }
             set { IniFileHandler.WritePrivateProfileString("SET", "WakeUpHddOverlapNum", value.ToString(), SettingPath.TimerSrvIniPath); }
         }
+        [XmlIgnore]
+        public Int32 RecAppWakeTime
+        {
+            get { return IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath); }
+            set { IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", value, SettingPath.TimerSrvIniPath); }
+        }
 
         public Settings()
         {
