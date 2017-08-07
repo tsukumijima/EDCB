@@ -88,9 +88,14 @@
                         <GridViewColumnHeader Content="無効予約数" Uid="OffCount" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
+                <GridViewColumn DisplayMemberBinding="{Binding Path=NextReserveName}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="次の予約" Uid="NextReserveName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
                 <GridViewColumn DisplayMemberBinding="{Binding Path=NextReserve}">
                     <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="次の予約" Uid="NextReserve" />
+                        <GridViewColumnHeader Content="次の予約時間" Uid="NextReserve" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
                 <GridViewColumn>

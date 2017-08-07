@@ -66,6 +66,24 @@ namespace EpgTimer
                 return _data.OffCount.ToString();
             }
         }
+        public String NextReserveName
+        {
+            get
+            {
+                if (_data == null) return "";
+                //
+                return new ReserveItem(_data.GetNextReserve()).EventName;
+            }
+        }
+        public String NextReserveNameValue
+        {
+            get
+            {
+                if (_data == null) return "";
+                //
+                return new ReserveItem(_data.GetNextReserve()).EventNameValue;
+            }
+        }
         public String NextReserve
         {
             get

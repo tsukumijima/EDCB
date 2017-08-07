@@ -174,7 +174,8 @@ namespace EpgTimer
                 string ret = "";
                 if      (ViewItem is ReserveItem)           ret = ((ReserveItem)ViewItem).ProgramContent;
                 else if (ViewItem is RecInfoItem)           ret = ((RecInfoItem)ViewItem).DropInfoText;
-                else if (ViewItem is EpgAutoDataItem)       ret = string.IsNullOrEmpty(((EpgAutoDataItem)ViewItem).NotKey) == true ? "" : "Not:" + ((EpgAutoDataItem)ViewItem).NotKey;
+                else if (ViewItem is EpgAutoDataItem)       ret = (string.IsNullOrEmpty(((EpgAutoDataItem)ViewItem).NotKey) == true ? "" : "Notキー:" + ((EpgAutoDataItem)ViewItem).NotKey)
+                                                                + (string.IsNullOrEmpty(((EpgAutoDataItem)ViewItem).NextReserveName) == true ? "" : " 予約:" + ((EpgAutoDataItem)ViewItem).NextReserveName);
                 else if (ViewItem is ManualAutoAddDataItem) ret = ((ManualAutoAddDataItem)ViewItem).StartTimeShort + " " + ((ManualAutoAddDataItem)ViewItem).DayOfWeek;
                 ret = ret.Replace("\r\n", " ");//先に長さを確定
                 return ret.Substring(0, Math.Min(50, ret.Length));
