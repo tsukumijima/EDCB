@@ -20,6 +20,7 @@ namespace EpgTimer
         public RecSettingView recSettingView { get; set; }
 
         protected override int ItemCount { get { return dataList.Count + eventListEx.Count; } }
+        protected bool HasList { get { return _getSearchList != null; } }
         protected IAutoAddTargetData headData = null;//メニューオープン時に使用
         protected IAutoAddTargetData headDataEv = null;//番組情報優先先頭データ。headDataは予約情報優先。
         protected List<EpgEventInfo> eventList = new List<EpgEventInfo>();
@@ -33,11 +34,11 @@ namespace EpgTimer
         protected override void SetData(bool IsAllData = false  )
         {
             base.SetData(IsAllData);
-            if (_getSearchList != null)//SearchItemリストがある場合
+            if (HasList == true)//SearchItemリストがある場合
             {
                 List<SearchItem> searchList = _getSearchList(IsAllData);
                 searchList = searchList == null ? new List<SearchItem>() : searchList.OfType<SearchItem>().ToList();//無くても大丈夫なはずだが一応
-                OrderAdjust<SearchItem>(searchList, _selectSingleSearchData);
+                OrderAdjust(searchList);
                 dataList = searchList.GetReserveList();
                 eventList = searchList.GetEventList();
                 eventListEx = searchList.GetNoReserveList();
@@ -68,10 +69,9 @@ namespace EpgTimer
             eventList.Clear();
             eventListEx.Clear();
         }
-        protected override void SelectSingleData()
+        protected override object SelectSingleData(bool noChange = false)
         {
-            base.SelectSingleData();
-            if (_selectSingleSearchData != null) _selectSingleSearchData(false);
+            return _selectSingleSearchData == null ? base.SelectSingleData(noChange) : _selectSingleSearchData(noChange);
         }
         //以下個別コマンド対応
         protected override void mc_Add(object sender, ExecutedRoutedEventArgs e)
@@ -85,7 +85,7 @@ namespace EpgTimer
         }
         protected override void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e)
         {
-            if (dataList.Count != 0)//予約情報優先
+            if (dataList.Count != 0 && CmdExeUtil.ReadIdData(e) != 1)
             {
                 IsCommandExecuted = true == MenuUtil.OpenChangeReserveDialog(dataList[0], EpgInfoOpenMode);
             }
@@ -104,7 +104,8 @@ namespace EpgTimer
             if (MenuUtil.CautionManyMessage(this.ItemCount, "簡易予約/有効←→無効") == false) return;
 
             bool ret1 = MenuUtil.ReserveChangeOnOff(dataList, this.recSettingView, false);
-            var eList = dataList.Count == 0 ? eventListEx : eventListEx.FindAll(data => data.IsReservable == true);
+            var eList = dataList.Count == 0 ? eventListEx :
+                HasList == true ? eventListEx.FindAll(data => data.IsReservable == true) : new List<EpgEventInfo>();
             bool ret2 = MenuUtil.ReserveAdd(eList, this.recSettingView, 0, false);
             IsCommandExecuted = !(ret1 == false && ret2 == false || dataList.Count == 0 && ret2 == false || eventListEx.Count == 0 && ret1 == false);
         }
@@ -249,11 +250,10 @@ namespace EpgTimer
             //switch使えないのでifで回す。
             if (menu.Tag == EpgCmds.ChgOnOff)
             {
+                menu.Header = view == CtxmCode.ReserveView || dataList.Count != 0 ? "予約←→無効" : "簡易予約";
+                //予約データの有無で切り替える。
                 if (dataList.Count == 0)
                 {
-                    menu.Header = "簡易予約";
-                    //予約データの有無で切り替える。
-
                     if (CheckReservableEpg(menu) == true)
                     {
                         if (view == CtxmCode.SearchWindow)
@@ -270,7 +270,6 @@ namespace EpgTimer
                 }
                 else
                 {
-                    menu.Header = "予約←→無効";
                     menu.ToolTip = null;
                     menu.Visibility = Visibility.Visible;
                     if (view == CtxmCode.TunerReserveView && Settings.Instance.MenuSet.IsManualAssign.Contains(view) == false)
@@ -289,11 +288,13 @@ namespace EpgTimer
                 {
                     menu.IsEnabled = eventListEx.Count != 0;//未予約アイテムがあれば有効
                     mm.CtxmGenerateAddOnPresetItems(menu);
+                    mcs_SetSingleMenuEnabled(menu, HasList == false || headData is EpgEventInfo);
                 }
             }
             else if (menu.Tag == EpgCmdsEx.ChgMenu)
             {
                 mcs_chgMenuOpening(menu);
+                mcs_SetSingleMenuEnabled(menu, headData is ReserveData);
             }
             else if (menu.Tag == EpgCmds.JumpReserve || menu.Tag == EpgCmds.JumpTuner)
             {

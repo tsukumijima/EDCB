@@ -145,13 +145,13 @@ namespace EpgTimer
         {
             var listSrc = _getDataList == null ? null : _getDataList(IsAllData);
             dataList = listSrc == null ? new List<T>() : listSrc.OfType<T>().ToList();
-            OrderAdjust<T>(dataList, _selectSingleData);
+            OrderAdjust(dataList);
         }
-        protected void OrderAdjust<S>(List<S> list, Func<bool, object> _getSingle) where S : class
+        protected void OrderAdjust<S>(List<S> list) where S : class
         {
-            if (list.Count >= 2 && _getSingle != null)
+            if (list.Count >= 2)
             {
-                S single = _getSingle(true) as S;
+                var single = SelectSingleData(true) as S;
                 if (list.Contains(single))
                 {
                     list.Remove(single);
@@ -163,9 +163,9 @@ namespace EpgTimer
         {
             dataList.Clear();
         }
-        protected virtual void SelectSingleData()
+        protected virtual object SelectSingleData(bool noChange = false)
         {
-            if (_selectSingleData != null) _selectSingleData(false);
+            return _selectSingleData == null ? null : _selectSingleData(noChange);
         }
         protected virtual void ReleaseSelectedData()
         {
@@ -462,15 +462,7 @@ namespace EpgTimer
                 foreach (var menu in ctxm.Items.OfType<MenuItem>())
                 {
                     //有効無効制御。ボタンをあまりグレーアウトしたくないのでCanExecuteを使わずここで実施する
-                    menu.IsEnabled = this.ItemCount != 0;
-                    var icmd = menu.Tag as ICommand;
-                    if (icmd != null && cmdList.ContainsKey(icmd) == true)
-                    {
-                        if (GetCmdParam(icmd).IsNeedItem == false)
-                        {
-                            menu.IsEnabled = true;
-                        }
-                    }
+                    menu.IsEnabled = this.ItemCount != 0 || GetCmdParam(menu.Tag as ICommand).IsNeedItem == false;
 
                     //コマンド集に応じた処理
                     mcs_ctxmLoading_switch(ctxm, menu);
@@ -498,6 +490,14 @@ namespace EpgTimer
                     menu.IsEnabled = false;
                     menu.ToolTip = "無効予約は使用予定チューナー画面に表示されない設定になっています。";
                 }
+            }
+        }
+        protected void mcs_SetSingleMenuEnabled(MenuItem menu, bool isEnabled)
+        {
+            if (menu.IsEnabled == false) return;
+            foreach (var subMenu in menu.Items.OfType<MenuItem>())
+            {
+                subMenu.IsEnabled = isEnabled || GetCmdParam(subMenu.Tag as ICommand).ExeType != cmdExeType.SingleItem;
             }
         }
         protected void mcs_chgMenuOpening(MenuItem menu)

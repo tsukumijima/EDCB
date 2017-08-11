@@ -43,7 +43,7 @@ namespace EpgTimer
 
             //予約追加サブメニュー 実行時、セパレータ以降にプリセットを展開する。
             var cm_AddMenu = new CtxmItemData("予約追加", EpgCmdsEx.AddMenu);
-            cm_AddMenu.Items.Add(new CtxmItemData("ダイアログ表示...", EpgCmds.ShowDialog));
+            cm_AddMenu.Items.Add(new CtxmItemData("ダイアログ表示...", EpgCmds.ShowDialog, 1));
             cm_AddMenu.Items.Add(new CtxmItemData(cm_Separator));
             cm_AddMenu.Items.Add(new CtxmItemData("デフォルト", EpgCmds.AddOnPreset, 0));//仮
 
