@@ -62,7 +62,11 @@ namespace EpgTimer
                     }
                     if (ReserveInfo.IsEnabled == false)
                     {
-                        return CommonManager.Instance.CustContentColorList[0x12];
+                        return CommonManager.Instance.TunerReserveOffBorderColor;
+                    }
+                    if (ReserveInfo.IsManual == true)
+                    {
+                        return CommonManager.Instance.TunerReserveProBorderColor;
                     }
                 }
                 return CommonManager.Instance.TunerReserveBorderColor;
@@ -76,26 +80,30 @@ namespace EpgTimer
                 {
                     if (ReserveInfo.IsEnabled == false)
                     {
-                        return CommonManager.Instance.CustContentColorList[0x12];
+                        return CommonManager.Instance.CustEpgResColorList[2];
                     }
                     if (ReserveInfo.OverlapMode == 2)
                     {
-                        return CommonManager.Instance.CustContentColorList[0x13];
+                        return CommonManager.Instance.CustEpgResColorList[3];
                     }
                     if (ReserveInfo.OverlapMode == 1)
                     {
-                        return CommonManager.Instance.CustContentColorList[0x14];
+                        return CommonManager.Instance.CustEpgResColorList[4];
                     }
                     if (ReserveInfo.IsAutoAddInvalid == true)
                     {
-                        return CommonManager.Instance.CustContentColorList[0x15];
+                        return CommonManager.Instance.CustEpgResColorList[5];
                     }
                     if (ReserveInfo.IsMultiple == true)
                     {
-                        return CommonManager.Instance.CustContentColorList[0x16];
+                        return CommonManager.Instance.CustEpgResColorList[6];
+                    }
+                    if (ReserveInfo.IsManual == true)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[1];
                     }
                 }
-                return CommonManager.Instance.CustContentColorList[0x11];
+                return CommonManager.Instance.CustEpgResColorList[0];
             }
         }
     }

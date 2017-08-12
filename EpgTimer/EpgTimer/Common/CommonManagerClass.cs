@@ -38,6 +38,7 @@ namespace EpgTimer
         }
 
         public List<Brush> CustContentColorList { get; private set; }
+        public List<Brush> CustEpgResColorList { get; private set; }
         public Brush CustTitle1Color { get; private set; }
         public Brush CustTitle2Color { get; private set; }
         public Brush CustTunerServiceColor { get; private set; }
@@ -45,6 +46,8 @@ namespace EpgTimer
         public List<Brush> CustTunerServiceColorPri { get; private set; }
         public Brush TunerBackColor { get; private set; }
         public Brush TunerReserveBorderColor { get; private set; }
+        public Brush TunerReserveProBorderColor { get; private set; }
+        public Brush TunerReserveOffBorderColor { get; private set; }
         public Brush TunerTimeFontColor { get; private set; }
         public Brush TunerTimeBackColor { get; private set; }
         public Brush TunerTimeBorderColor { get; private set; }
@@ -96,6 +99,7 @@ namespace EpgTimer
             NWMode = false;
             NotifyLogList = new List<NotifySrvInfo>();
             CustContentColorList = new List<Brush>();
+            CustEpgResColorList = new List<Brush>();
             CustTunerServiceColorPri = new List<Brush>();
             CustTimeColorList = new List<Brush>();
             RecModeForeColor = new List<Brush>();
@@ -1370,13 +1374,11 @@ namespace EpgTimer
                 {
                     CustContentColorList.Add(_GetColorBrush(Settings.Instance.ContentColorList[i], Settings.Instance.ContentCustColorList[i], Settings.Instance.EpgGradation));
                 }
-                CustContentColorList.Add(_GetColorBrush(Settings.Instance.ReserveRectColorNormal, Settings.Instance.ContentCustColorList[0x11]));
-                CustContentColorList.Add(_GetColorBrush(Settings.Instance.ReserveRectColorNo, Settings.Instance.ContentCustColorList[0x12]));
-                CustContentColorList.Add(_GetColorBrush(Settings.Instance.ReserveRectColorNoTuner, Settings.Instance.ContentCustColorList[0x13]));
-                CustContentColorList.Add(_GetColorBrush(Settings.Instance.ReserveRectColorWarning, Settings.Instance.ContentCustColorList[0x14]));
-                CustContentColorList.Add(_GetColorBrush(Settings.Instance.ReserveRectColorAutoAddMissing, Settings.Instance.ContentCustColorList[0x15]));
-                CustContentColorList.Add(_GetColorBrush(Settings.Instance.ReserveRectColorMultiple, Settings.Instance.ContentCustColorList[0x16]));
-
+                CustEpgResColorList.Clear();
+                for (int i = 0; i < Settings.Instance.EpgResColorList.Count; i++)
+                {
+                    CustEpgResColorList.Add(_GetColorBrush(Settings.Instance.EpgResColorList[i], Settings.Instance.EpgResCustColorList[i]));
+                }
                 CustTitle1Color = _GetColorBrush(Settings.Instance.TitleColor1, Settings.Instance.TitleCustColor1);
                 CustTitle2Color = _GetColorBrush(Settings.Instance.TitleColor2, Settings.Instance.TitleCustColor2);
                 CustTunerServiceColor = _GetColorBrush(Settings.Instance.TunerServiceColors[0], Settings.Instance.TunerServiceCustColors[0]);
@@ -1395,6 +1397,8 @@ namespace EpgTimer
                 TunerNameFontColor = _GetColorBrush(Settings.Instance.TunerServiceColors[7 + 5], Settings.Instance.TunerServiceCustColors[7 + 5]);
                 TunerNameBackColor = _GetColorBrush(Settings.Instance.TunerServiceColors[7 + 6], Settings.Instance.TunerServiceCustColors[7 + 6]);
                 TunerNameBorderColor = _GetColorBrush(Settings.Instance.TunerServiceColors[7 + 7], Settings.Instance.TunerServiceCustColors[7 + 7]);
+                TunerReserveProBorderColor = _GetColorBrush(Settings.Instance.TunerServiceColors[7 + 8], Settings.Instance.TunerServiceCustColors[7 + 8]);
+                TunerReserveOffBorderColor = _GetColorBrush(Settings.Instance.TunerServiceColors[7 + 9], Settings.Instance.TunerServiceCustColors[7 + 9]);
 
                 CustTimeColorList.Clear();
                 for (int i = 0; i < Settings.Instance.EpgEtcColors.Count; i++)

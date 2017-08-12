@@ -150,17 +150,12 @@ namespace EpgTimer.Setting
                     }
                 });
 
-                //番組表のフォント色と予約枠色はSettingsが個別のため個別処理。
+                //番組表のフォント色はSettingsが個別のため個別処理。
                 //これをまとめて出来るようにSettingsを変えると以前の設定が消える。
                 setComboColor1(Settings.Instance.TitleColor1, comboBox_colorTitle1);
                 setComboColor1(Settings.Instance.TitleColor2, comboBox_colorTitle2);
                 setComboColors(Settings.Instance.ContentColorList, grid_EpgColors);
-                setComboColor1(Settings.Instance.ReserveRectColorNormal, comboBox_reserveNormal);
-                setComboColor1(Settings.Instance.ReserveRectColorNo, comboBox_reserveNo);
-                setComboColor1(Settings.Instance.ReserveRectColorNoTuner, comboBox_reserveNoTuner);
-                setComboColor1(Settings.Instance.ReserveRectColorWarning, comboBox_reserveWarning);
-                setComboColor1(Settings.Instance.ReserveRectColorAutoAddMissing, comboBox_reserveAutoAddMissing);
-                setComboColor1(Settings.Instance.ReserveRectColorMultiple, comboBox_reserveMultiple);
+                setComboColors(Settings.Instance.EpgResColorList, grid_EpgColorsReserve);
                 setComboColors(Settings.Instance.EpgEtcColors, grid_EpgTimeColors);
                 setComboColors(Settings.Instance.EpgEtcColors, grid_EpgEtcColors);
                 setComboColors(Settings.Instance.TunerServiceColors, grid_TunerFontColor);
@@ -179,7 +174,7 @@ namespace EpgTimer.Setting
                 setButtonColor1(Settings.Instance.TitleCustColor1, button_colorTitle1);
                 setButtonColor1(Settings.Instance.TitleCustColor2, button_colorTitle2);
                 setButtonColors(Settings.Instance.ContentCustColorList, grid_EpgColors);
-                setButtonColors(Settings.Instance.ContentCustColorList, grid_EpgColorsReserve);
+                setButtonColors(Settings.Instance.EpgResCustColorList, grid_EpgColorsReserve);
                 setButtonColors(Settings.Instance.EpgEtcCustColors, grid_EpgTimeColors);
                 setButtonColors(Settings.Instance.EpgEtcCustColors, grid_EpgEtcColors);
                 setButtonColors(Settings.Instance.TunerServiceCustColors, grid_TunerFontColor);
@@ -365,12 +360,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.TitleColor1 = getComboColor1(comboBox_colorTitle1);
                 Settings.Instance.TitleColor2 = getComboColor1(comboBox_colorTitle2);
                 getComboColors(Settings.Instance.ContentColorList, grid_EpgColors);
-                Settings.Instance.ReserveRectColorNormal = getComboColor1(comboBox_reserveNormal);
-                Settings.Instance.ReserveRectColorNo = getComboColor1(comboBox_reserveNo);
-                Settings.Instance.ReserveRectColorNoTuner = getComboColor1(comboBox_reserveNoTuner);
-                Settings.Instance.ReserveRectColorWarning = getComboColor1(comboBox_reserveWarning);
-                Settings.Instance.ReserveRectColorAutoAddMissing = getComboColor1(comboBox_reserveAutoAddMissing);
-                Settings.Instance.ReserveRectColorMultiple = getComboColor1(comboBox_reserveMultiple);
+                getComboColors(Settings.Instance.EpgResColorList, grid_EpgColorsReserve);
                 getComboColors(Settings.Instance.EpgEtcColors, grid_EpgTimeColors);
                 getComboColors(Settings.Instance.EpgEtcColors, grid_EpgEtcColors);
                 getComboColors(Settings.Instance.TunerServiceColors, grid_TunerFontColor);
@@ -390,7 +380,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.TitleCustColor1 = getButtonColor1(button_colorTitle1);
                 Settings.Instance.TitleCustColor2 = getButtonColor1(button_colorTitle2);
                 getButtonColors(Settings.Instance.ContentCustColorList, grid_EpgColors);
-                getButtonColors(Settings.Instance.ContentCustColorList, grid_EpgColorsReserve);
+                getButtonColors(Settings.Instance.EpgResCustColorList, grid_EpgColorsReserve);
                 getButtonColors(Settings.Instance.EpgEtcCustColors, grid_EpgTimeColors);
                 getButtonColors(Settings.Instance.EpgEtcCustColors, grid_EpgEtcColors);
                 getButtonColors(Settings.Instance.TunerServiceCustColors, grid_TunerFontColor);

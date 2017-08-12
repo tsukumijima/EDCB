@@ -304,14 +304,10 @@ namespace EpgTimer
         public double DragScroll { get; set; }
         public List<string> ContentColorList { get; set; }
         public List<UInt32> ContentCustColorList { get; set; }
+        public List<string> EpgResColorList { get; set; }
+        public List<UInt32> EpgResCustColorList { get; set; }
         public List<string> EpgEtcColors { get; set; }
         public List<UInt32> EpgEtcCustColors { get; set; }
-        public string ReserveRectColorNormal { get; set; }
-        public string ReserveRectColorNo { get; set; }
-        public string ReserveRectColorNoTuner { get; set; }
-        public string ReserveRectColorWarning { get; set; }
-        public string ReserveRectColorAutoAddMissing { get; set; }
-        public string ReserveRectColorMultiple { get; set; }
         public bool ReserveRectBackground { get; set; }
         public Int32 ReserveToolTipMode { get; set; }
         public Int32 ReserveEpgInfoOpenMode { get; set; }
@@ -1144,14 +1140,10 @@ namespace EpgTimer
         {
             ContentColorList = new List<string>();
             ContentCustColorList = new List<uint>();
+            EpgResColorList = new List<string>();
+            EpgResCustColorList = new List<uint>();
             EpgEtcColors = new List<string>();
             EpgEtcCustColors = new List<uint>();
-            ReserveRectColorNormal = "Lime";
-            ReserveRectColorNo = "Black";
-            ReserveRectColorNoTuner = "Red";
-            ReserveRectColorWarning = "Yellow";
-            ReserveRectColorAutoAddMissing = "Blue";
-            ReserveRectColorMultiple = "Purple";
             ReserveRectBackground = false;
             TitleColor1 = "Black";
             TitleColor2 = "Black";
@@ -1183,7 +1175,7 @@ namespace EpgTimer
         {
             int num;
             //番組表の背景色
-            num = 0x11;//番組表17色。過去に16色時代があった。
+            num = 17;//番組表17色。過去に16色時代があった。
             if (ContentColorList.Count < num)
             {
                 var defColors = new string[]{
@@ -1207,8 +1199,24 @@ namespace EpgTimer
                     };
                 _FillList(ContentColorList, defColors);
             }
-            num = 0x11 + 6;//番組表17色+予約枠6色
             _FillList(ContentCustColorList, 0xFFFFFFFF, num);
+
+            //番組表の予約枠色
+            num = 7;
+            if (EpgResColorList.Count < num)
+            {
+                var defColors = new string[]{
+                        "Lime"              //通常
+                        ,"Lime"             //通常(プログラム予約)
+                        ,"Black"            //無効
+                        ,"Red"              //チューナ不足
+                        ,"Yellow"           //一部実行
+                        ,"Blue"             //自動予約登録不明
+                        ,"Purple"           //重複EPG予約
+                    };
+                _FillList(EpgResColorList, defColors);
+            }
+            _FillList(EpgResCustColorList, 0xFFFFFFFF, num);
 
             //番組表の時間軸のデフォルトの背景色、その他色
             num = 12;
@@ -1233,7 +1241,7 @@ namespace EpgTimer
             _FillList(EpgEtcCustColors, 0xFFFFFFFF, num);
 
             //チューナー画面各色、保存名はServiceColorsだが他も含む。
-            num = 2 + 5 + 8;//固定色2+優先度色5+ 追加の画面色
+            num = 2 + 5 + 10;//固定色2+優先度色5+追加の画面色
             if (TunerServiceColors.Count < num)
             {
                 var defColors = Enumerable.Repeat("Black", 7)
@@ -1246,6 +1254,8 @@ namespace EpgTimer
                         ,"Black"            //チューナー名文字色
                         ,"AliceBlue"        //チューナー名背景色
                         ,"LightSlateGray"   //チューナー名枠色
+                        ,"LightGray"        //予約枠色(プログラム予約)
+                        ,"Black"            //予約枠色(無効)
                     });
                 _FillList(TunerServiceColors, defColors);
             }
