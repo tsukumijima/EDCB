@@ -33,6 +33,7 @@
                             <Separator Style="{StaticResource TopLine}" />
                             <Separator Style="{StaticResource UnderLine}" />
                             <CheckBox Content="簡易予約/予約←→無効" />
+                            <CheckBox Content="コピーを追加" />
                             <CheckBox Content="削除" />
                             <CheckBox Content="予約ごと削除" />
                             <CheckBox Content="予約を自動登録に合わせる" />
@@ -70,6 +71,7 @@
                             <Separator Style="{StaticResource UnderLine}" />
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
+                            <CheckBox Visibility="Hidden"/>
                             <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageDelete2" />
                             <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageAdjustRes" />
                             <CheckBox Visibility="Hidden"/>
@@ -85,7 +87,7 @@
                             <CheckBox Content="詳細ツールチップを表示する" Name="checkBox_ReserveSearchToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
                             <CheckBox Content="記号類を取り除く" Name="checkBox_EpgKeyword_Trim" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。"/>
                             <CheckBox Content="ジャンル情報を設定する" Name="checkBox_SetJunreToAutoAdd" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;可能ならジャンル情報も設定します。(録画済み一覧、プログラム予約一覧では働きません)"/>
-                            <CheckBox Content="大分類のみ設定する" Margin="20,0,0,0"  Name="checkBox_SetJunreContentToAutoAdd" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;ジャンル情報を設定するとき、小分類を無視して大分類のみで設定します。"/>
+                            <CheckBox Content="大分類のみ設定する" Margin="20,0,6,1"  Name="checkBox_SetJunreContentToAutoAdd" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;ジャンル情報を設定するとき、小分類を無視して大分類のみで設定します。"/>
                             <CheckBox Content="自動登録無効を解除する" Name="checkBox_CancelAutoAddOff" />
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Content="一つ上で開く(録画結果除く)" Name="checkBox_OpenParentFolder" />

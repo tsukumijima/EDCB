@@ -27,6 +27,7 @@ namespace EpgTimer
         public static RoutedUICommand ChgMarginEndValue { get; private set; }
         public static RoutedUICommand ChgKeyEnabled { get; private set; }
         public static RoutedUICommand ChgOnOffKeyEnabled { get; private set; }
+        public static RoutedUICommand CopyItem { get; private set; }
         public static RoutedUICommand Delete { get; private set; }
         public static RoutedUICommand Delete2 { get; private set; }
         public static RoutedUICommand DeleteAll { get; private set; }

@@ -32,6 +32,7 @@ namespace EpgTimer
 
         private static List<List<ICommand>> SettingTable = new List<List<ICommand>>{
             new List<ICommand>{EpgCmds.ChgOnOff},
+            new List<ICommand>{EpgCmds.CopyItem},
             new List<ICommand>{EpgCmds.Delete},
             new List<ICommand>{EpgCmds.Delete2},
             new List<ICommand>{EpgCmds.AdjustReserve},

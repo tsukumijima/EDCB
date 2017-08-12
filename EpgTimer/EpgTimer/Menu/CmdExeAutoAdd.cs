@@ -29,6 +29,10 @@ namespace EpgTimer
             if (MenuUtil.ChangeBulkSet(dataList.RecSettingList(), this.Owner, typeof(T) == typeof(ManualAutoAddData)) == false) return;
             IsCommandExecuted = MenuUtil.AutoAddChange(dataList);
         }
+        protected override void mc_CopyItem(object sender, ExecutedRoutedEventArgs e)
+        {
+            IsCommandExecuted = MenuUtil.AutoAddAdd(dataList);
+        }
         protected override void mc_Delete(object sender, ExecutedRoutedEventArgs e)
         {
             if (mcs_DeleteCheck(e) == false) return;

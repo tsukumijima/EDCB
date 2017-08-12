@@ -62,6 +62,7 @@ namespace EpgTimer
             AddCommand(EpgCmds.Add);
             AddCommand(EpgCmds.ChgOnOff, Key.S, ModifierKeys.Control);
             AddCommand(EpgCmds.ChgGenre, isEnable: false, isSave: false);
+            AddCommand(EpgCmds.CopyItem, Key.M, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.Delete, Key.D, ModifierKeys.Control, Key.Delete);
             AddCommand(EpgCmds.Delete2, Key.D, ModifierKeys.Control | ModifierKeys.Shift);
             AddCommand(EpgCmds.DeleteAll, Key.D, ModifierKeys.Control | ModifierKeys.Alt, spc: GestureTrg.ToView);

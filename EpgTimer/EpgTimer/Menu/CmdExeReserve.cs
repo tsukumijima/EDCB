@@ -21,10 +21,12 @@ namespace EpgTimer
 
         protected override int ItemCount { get { return dataList.Count + eventListEx.Count; } }
         protected bool HasList { get { return _getSearchList != null; } }
+        protected bool IsMultiReserve { get { return eventList.Count != 0 && eventListEx.Count == 0; } }
         protected IAutoAddTargetData headData = null;//メニューオープン時に使用
         protected IAutoAddTargetData headDataEv = null;//番組情報優先先頭データ。headDataは予約情報優先。
         protected List<EpgEventInfo> eventList = new List<EpgEventInfo>();
         protected List<EpgEventInfo> eventListEx = new List<EpgEventInfo>();//reserveData(dataList)とかぶらないもの
+        protected List<EpgEventInfo> eventListAdd { get { return IsMultiReserve == true ? eventList : eventListEx; } }
 
         public CmdExeReserve(UIElement owner)
             : base(owner)
@@ -60,6 +62,8 @@ namespace EpgTimer
                 headData = dataList.Count != 0 ? dataList[0] as IAutoAddTargetData : eventList.Count != 0 ? eventList[0] : null;
                 headDataEv = eventList.Count != 0 ? eventList[0] as IAutoAddTargetData : dataList.Count != 0 ? dataList[0] : null;
             }
+            eventList = eventList.Distinct().ToList();
+            eventListEx = eventListEx.Distinct().ToList();
         }
         protected override void ClearData()
         {
@@ -76,12 +80,12 @@ namespace EpgTimer
         //以下個別コマンド対応
         protected override void mc_Add(object sender, ExecutedRoutedEventArgs e)
         {
-            IsCommandExecuted = MenuUtil.ReserveAdd(eventListEx, this.recSettingView, 0);
+            IsCommandExecuted = MenuUtil.ReserveAdd(eventListAdd, this.recSettingView, 0);
         }
         protected override void mc_AddOnPreset(object sender, ExecutedRoutedEventArgs e)
         {
             int presetID = CmdExeUtil.ReadIdData(e, 0, 0xFE);
-            IsCommandExecuted = MenuUtil.ReserveAdd(eventListEx, null, presetID);
+            IsCommandExecuted = MenuUtil.ReserveAdd(eventListAdd, null, presetID);
         }
         protected override void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e)
         {
@@ -89,9 +93,9 @@ namespace EpgTimer
             {
                 IsCommandExecuted = true == MenuUtil.OpenChangeReserveDialog(dataList[0], EpgInfoOpenMode);
             }
-            else if (eventListEx.Count != 0)
+            else if (eventListAdd.Count != 0)
             {
-                IsCommandExecuted = true == MenuUtil.OpenEpgReserveDialog(eventListEx[0], EpgInfoOpenMode);
+                IsCommandExecuted = true == MenuUtil.OpenEpgReserveDialog(eventListAdd[0], EpgInfoOpenMode);
             }
         }
         protected override void mc_ShowAddDialog(object sender, ExecutedRoutedEventArgs e)
@@ -140,6 +144,12 @@ namespace EpgTimer
             var mList = dataList.FindAll(info => info.IsEpgReserve == false);
             if (MenuUtil.ChangeBulkSet(dataList.RecSettingList(), this.Owner, mList.Count == dataList.Count) == false) return;
             IsCommandExecuted = MenuUtil.ReserveChange(dataList);
+        }
+        protected override void mc_CopyItem(object sender, ExecutedRoutedEventArgs e)
+        {
+            var list = dataList.Clone();
+            list.ForEach(rs => rs.Comment = "");
+            IsCommandExecuted = MenuUtil.ReserveAdd(list);
         }
         protected override void mc_Delete(object sender, ExecutedRoutedEventArgs e)
         {
@@ -231,15 +241,15 @@ namespace EpgTimer
             var view = (menu.CommandParameter as EpgCmdParam).Code;
 
             //有効無効制御の追加分。予約データが無ければ無効
-            new List<ICommand> { EpgCmdsEx.ChgMenu, EpgCmds.Delete, EpgCmds.DeleteAll, EpgCmds.Play }.ForEach(icmd =>
+            new List<ICommand> { EpgCmdsEx.ChgMenu, EpgCmds.CopyItem, EpgCmds.Delete, EpgCmds.DeleteAll, EpgCmds.Play }.ForEach(icmd =>
             {
                 if (menu.Tag == icmd) menu.IsEnabled = dataList.Count != 0;
             });
 
-            var CheckReservableEpg = new Func<MenuItem, bool>(mi =>
+            var CheckReservableEpg = new Func<MenuItem, List<EpgEventInfo>, bool>((mi, list) =>
             {
                 mi.ToolTip = null;
-                if (eventListEx.Count != 0 && eventListEx.Count(data => data.IsReservable == true) == 0)
+                if (list.Count != 0 && list.Count(data => data.IsReservable == true) == 0)
                 {
                     mi.IsEnabled = false;
                     mi.ToolTip = "放映終了";
@@ -254,7 +264,7 @@ namespace EpgTimer
                 //予約データの有無で切り替える。
                 if (dataList.Count == 0)
                 {
-                    if (CheckReservableEpg(menu) == true)
+                    if (CheckReservableEpg(menu, eventListEx) == true)
                     {
                         if (view == CtxmCode.SearchWindow)
                         {
@@ -284,12 +294,14 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmdsEx.AddMenu)
             {
-                if (CheckReservableEpg(menu) == true)
+                if (CheckReservableEpg(menu, eventListAdd) == true)
                 {
-                    menu.IsEnabled = eventListEx.Count != 0;//未予約アイテムがあれば有効
+                    menu.IsEnabled = eventListAdd.Count != 0;//未予約アイテムがあれば有効
                     mm.CtxmGenerateAddOnPresetItems(menu);
-                    mcs_SetSingleMenuEnabled(menu, HasList == false || headData is EpgEventInfo);
+                    mcs_SetSingleMenuEnabled(menu, HasList == false || IsMultiReserve == true || headData is EpgEventInfo);
                 }
+                var s = menu.Header as string;
+                menu.Header = (IsMultiReserve == true ? "重複予約追加" : "予約追加") + s.Substring(s.Length - 4);
             }
             else if (menu.Tag == EpgCmdsEx.ChgMenu)
             {
@@ -351,16 +363,16 @@ namespace EpgTimer
             }
 
             string cmdMsg = cmdMessage[icmd];
-            if (icmd == EpgCmds.Add && eventListEx.Count == 0)
-            {
-                return null;
-            }
+
+            int procCount = (icmd == EpgCmds.Add || icmd == EpgCmds.AddOnPreset) ? eventListAdd.Count : ItemCount;
+            if (procCount == 0) return null;
+
             if (icmd == EpgCmds.ChgOnOff)
             {
                 if (eventListEx.Count == 0) cmdMsg = "有効・無効切替を実行";
                 else if (dataList.Count == 0) cmdMsg = "簡易予約を実行";
             }
-            return GetCmdMessageFormat(cmdMsg, this.ItemCount);
+            return GetCmdMessageFormat(cmdMsg, procCount);
         }
     }
 }
