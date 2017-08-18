@@ -77,6 +77,10 @@ namespace EpgTimer
                         CommonManager.Instance.CtrlCmd.SendGetPgInfo(Create64PgKey(), ref eventInfo);
                     }
                 }
+                else
+                {
+                    eventInfo = SearchEventInfoLikeThat();
+                }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return eventInfo;
