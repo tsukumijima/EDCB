@@ -201,31 +201,30 @@ namespace EpgTimer
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             base.UserControl_IsVisibleChanged(sender, e);
-            if (this.IsVisible == true) this.searchJumpTargetProgram();//EPG更新後に探す
+            if (this.IsVisible == true)
+            {
+                if (SearchJumpTargetProgram(BlackoutWindow.Create64Key()) == false)
+                {
+                    BlackoutWindow.Clear();//見つからなかったときのゴミ掃除
+                }
+            }
         }
 
         /// <summary>予約一覧からのジャンプ先を番組表タブから探す</summary>
-        void searchJumpTargetProgram()
+        public bool SearchJumpTargetProgram(UInt64 serviceKey)
         {
             try
             {
-                UInt64 serviceKey_Target1 = BlackoutWindow.Create64Key();
-                if (serviceKey_Target1 == 0) return;
+                if (serviceKey == 0) return false;
 
-                foreach (TabItem tabItem1 in tabControl.Items)
-                {
-                    var epgView1 = tabItem1.Content as EpgDataViewItem;
-                    foreach (UInt64 serviceKey_OnTab1 in epgView1.GetViewMode().ViewServiceList)
-                    {
-                        if (serviceKey_Target1 == serviceKey_OnTab1)
-                        {
-                            tabItem1.IsSelected = true;
-                            return;
-                        }
-                    }
-                }
+                var tab = tabControl.Items.OfType<TabItem>().OrderBy(tb => tb.IsSelected ? 0 : 1)
+                    .FirstOrDefault(tb => (tb.Content as EpgDataViewItem).GetViewMode().ViewServiceList.Contains(serviceKey) == true);
+
+                if (tab != null) tab.IsSelected = true;
+                return tab != null;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            return false;
         }
 
         //番組表ヘッダ用のコンテキストメニュー関係
