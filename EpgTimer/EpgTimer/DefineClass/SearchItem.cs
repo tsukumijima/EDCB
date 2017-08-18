@@ -115,9 +115,11 @@ namespace EpgTimer
         {
             get
             {
-                if (EventInfo == null || EventInfo.ShortInfo == null) return "";
-                //
-                return EventInfo.ShortInfo.text_char.Replace("\r\n", " ");
+                if (EventInfo == null) return "";
+                //詳細情報しか持ってないイベントはそれを表示する。文字数は基本情報に合わせて80字。
+                var s1 = EventInfo.ShortInfo == null ? "" : EventInfo.ShortInfo.text_char;
+                var s2 = EventInfo.ExtInfo == null ? "" : EventInfo.ExtInfo.text_char;
+                return (s1 + " " + s2.Substring(0, Math.Min(Math.Max(0, 80 - s1.Length), s2.Length))).Trim().Replace("\r\n", " ");
             }
         }
         public String JyanruKey
