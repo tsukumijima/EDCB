@@ -72,8 +72,6 @@ namespace EpgTimer
             Dictionary<uint, AutoAddDataAppend> dict = manualAutoAddAppendList;
             if (dict == null)
             {
-                ReloadReserveInfo();//notify残ってれば更新
-
                 dict = ManualAutoAddList.Values.ToDictionary(item => item.dataID, item => new AutoAddDataAppend(
                     ReserveList.Values.Where(info => info != null && info.IsEpgReserve == false && item.CheckPgHit(info)).ToList()));
 
@@ -130,7 +128,6 @@ namespace EpgTimer
             //予約情報との突き合わせが古い場合
             if (updateEpgAutoAddAppendReserveInfo == true)
             {
-                ReloadReserveInfo();//notify残ってれば更新
                 foreach (EpgAutoAddDataAppend item in dict.Values) item.UpdateCounts();
                 updateEpgAutoAddAppendReserveInfo = false;
             }
@@ -196,13 +193,11 @@ namespace EpgTimer
                 dict = ReserveList.ToDictionary(data => data.Key, data => new ReserveDataAppend());
                 reserveAppendList = dict;
 
-                ReloadEpgAutoAddInfo();//notify残ってれば更新
                 foreach (EpgAutoAddData item in EpgAutoAddList.Values)
                 {
                     item.GetReserveList().ForEach(info => dict[info.ReserveID].EpgAutoList.Add(item));
                 }
 
-                ReloadManualAutoAddInfo();//notify残ってれば更新
                 foreach (ManualAutoAddData item in ManualAutoAddList.Values)
                 {
                     item.GetReserveList().ForEach(info => dict[info.ReserveID].ManualAutoList.Add(item));

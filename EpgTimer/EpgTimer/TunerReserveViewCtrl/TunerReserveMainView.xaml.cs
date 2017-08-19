@@ -87,8 +87,6 @@ namespace EpgTimer
         }
         protected override bool ReloadInfoData()
         {
-            if (ViewUtil.ReloadReserveData(this) == false) return false;
-
             ReloadReserveViewItem();
             return true;
         }

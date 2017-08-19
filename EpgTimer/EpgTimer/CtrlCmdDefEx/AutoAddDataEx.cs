@@ -39,18 +39,6 @@ namespace EpgTimer
             catch { }
             return null;
         }
-        public static ErrCode ReloadDBManagerList(Type t, bool notify = false)
-        {
-            if (t == typeof(EpgAutoAddData))
-            {
-                return CommonManager.Instance.DB.ReloadEpgAutoAddInfo(notify);
-            }
-            else if (t == typeof(ManualAutoAddData))
-            {
-                return CommonManager.Instance.DB.ReloadManualAutoAddInfo(notify);
-            }
-            return ErrCode.CMD_ERR;
-        }
         public static IEnumerable<AutoAddData> GetDBManagerList(Type t)
         {
             if (t == typeof(EpgAutoAddData))

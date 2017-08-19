@@ -88,16 +88,6 @@ namespace EpgTimer
             obj.BorderBrush = Brushes.Red;
         }
 
-        public static bool ReloadReserveData(Control Owner = null)
-        {
-            if (CommonManager.Instance.IsConnected == false) return false;
-
-            ErrCode err = CommonManager.Instance.DB.ReloadReserveInfo();
-            if (CommonManager.CmdErrMsgTypical(err, "予約情報の取得") == false) return false;
-
-            return true;
-        }
-        
         //ジャンル絞り込み
         public static bool ContainsContent(EpgEventInfo info, HashSet<UInt32> ContentHash, bool notContent = false)
         {

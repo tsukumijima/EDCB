@@ -84,8 +84,6 @@ namespace EpgTimer
         {
             return lstCtrl.ReloadInfoData(dataList =>
             {
-                if (ViewUtil.ReloadReserveData(this) == false) return false;
-
                 foreach (ReserveData info in CommonManager.Instance.DB.ReserveList.Values)
                 {
                     dataList.Add(new ReserveItem(info));

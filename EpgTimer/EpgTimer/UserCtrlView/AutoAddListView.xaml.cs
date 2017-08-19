@@ -144,11 +144,7 @@ namespace EpgTimer
 
             return lstCtrl.ReloadInfoData(dataList =>
             {
-                ErrCode err = AutoAddData.ReloadDBManagerList(typeof(T));
-                if (CommonManager.CmdErrMsgTypical(err, "情報の取得") == false) return false;
-
                 dataList.AddRange(AutoAddData.GetDBManagerList(typeof(T)).Select(info => (S)Activator.CreateInstance(typeof(S), info.CloneObj())));
-
                 dragMover.NotSaved = false;
                 return true;
             });

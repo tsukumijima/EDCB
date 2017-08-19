@@ -227,10 +227,10 @@ namespace EpgTimer
                 if (CommonManager.Instance.NWMode == false)
                 {
                     //予約一覧の表示に使用したりするのであらかじめ読込んでおく(暫定処置)
-                    CommonManager.Instance.DB.ReloadReserveInfo();
-                    CommonManager.Instance.DB.ReloadEpgAutoAddInfo();
-                    CommonManager.Instance.DB.ReloadManualAutoAddInfo();
-                    CommonManager.Instance.DB.ReloadEpgData();
+                    CommonManager.Instance.DB.ReloadReserveInfo(true);
+                    CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
+                    CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
+                    CommonManager.Instance.DB.ReloadEpgData();//これはすぐにNotify来る場合があるので現状維持
                 }
 
                 //タスクトレイの表示
