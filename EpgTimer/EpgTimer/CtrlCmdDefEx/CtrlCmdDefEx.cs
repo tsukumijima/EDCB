@@ -9,7 +9,7 @@ namespace EpgTimer
     public interface IRecWorkMainData
     {
         string DataTitle { get; }
-        //ulong DataID { get; }
+        ulong DataID { get; }
     }
     public interface IBasicPgInfo : IRecWorkMainData
     {
@@ -36,6 +36,7 @@ namespace EpgTimer
     public abstract class AutoAddTargetData : IAutoAddTargetData
     {
         public abstract string DataTitle { get; }
+        public abstract ulong DataID { get;}
         public abstract DateTime PgStartTime { get; }
         public abstract uint PgDurationSecond { get; }
         public virtual UInt64 Create64Key() { return Create64PgKey() >> 16; }

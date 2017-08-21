@@ -21,6 +21,7 @@ namespace EpgTimer
             ViewItem = Activator.CreateInstance(vTypes[tIdx], data) as DataListItemBase;
         }
 
+        public ulong DataID { get { return KeyID; } }
         public override RecSettingData RecSettingInfo { get { return ViewItem is IRecSetttingData ? (ViewItem as IRecSetttingData).RecSettingInfo : null; } }
         public override bool IsManual { get { return ViewItem is IRecSetttingData ? (ViewItem as IRecSetttingData).IsManual : false; } }
 
@@ -41,6 +42,7 @@ namespace EpgTimer
 
         private static List<ulong> keyIDOffset = new List<ulong> { 0x01UL << 60, 0x02UL << 60, 0x03UL << 60, 0x04UL << 60, 0 };
         public override ulong KeyID { get { return keyIDOffset[tIdx] | ViewItem.KeyID; } }
+        public override object DataObj { get { return Data; } }
 
         public String Status
         {

@@ -766,8 +766,8 @@ namespace EpgTimer
                             && ReserveCmdSend(manualList, cmd.SendChgManualAdd, "プログラム自動予約の変更", false)
                             && (chgReserveList == null ? true : ReserveChange(chgReserveList, false));
                     case 2:
-                        return ReserveCmdSend(epgList.Select(item => item.DataID).ToList(), cmd.SendDelEpgAutoAdd, "キーワード予約の削除", false)
-                            && ReserveCmdSend(manualList.Select(item => item.DataID).ToList(), cmd.SendDelManualAdd, "プログラム自動予約の削除", false)
+                        return ReserveCmdSend(epgList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelEpgAutoAdd, "キーワード予約の削除", false)
+                            && ReserveCmdSend(manualList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelManualAdd, "プログラム自動予約の削除", false)
                             && (delReserveList == null ? true : ReserveDelete(delReserveList, false));
                 }
             }
@@ -790,7 +790,7 @@ namespace EpgTimer
             }
 
             //並べ替えしなかった
-            Dictionary<uint, uint> changeIDTable = null;
+            Dictionary<ulong, ulong> changeIDTable = null;
             if (AutoAddViewOrderCheckAndSave(view, out changeIDTable) == false) return true;
 
             //並べ替え保存時に何か問題があった
@@ -810,7 +810,7 @@ namespace EpgTimer
             return true;
         }
 
-        public static bool? AutoAddViewOrderCheckAndSave(AutoAddListView view, out Dictionary<uint, uint> changeIDTable)
+        public static bool? AutoAddViewOrderCheckAndSave(AutoAddListView view, out Dictionary<ulong, ulong> changeIDTable)
         {
             changeIDTable = null;
             try
@@ -819,7 +819,7 @@ namespace EpgTimer
                 //
                 var cmdPrm = new EpgCmdParam(null);
                 EpgCmds.SaveOrder.Execute(cmdPrm, view);
-                changeIDTable = cmdPrm.Data as Dictionary<uint, uint>;
+                changeIDTable = cmdPrm.Data as Dictionary<ulong, ulong>;
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -879,16 +879,10 @@ namespace EpgTimer
         {
             try
             {
-                var win = AddReserveEpgWindow.GetDataReplaceWindow() as AddReserveEpgWindow;
-                if (win != null)
-                {
-                    win.SetEventInfo(Data);
-                    return true;
-                }
+                if (AddReserveEpgWindow.ChangeDataLastUsedWindow(Data) != null) return true;
 
-                var dlg = new AddReserveEpgWindow();
-                dlg.SetEventInfo(Data, epgInfoOpenMode);
-                dlg.Dispatcher.BeginInvoke(new Action(() => dlg.Show()));//番組表でのフォーカス対策
+                //番組表でのダブルクリック時のフォーカス対策
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new AddReserveEpgWindow(Data, epgInfoOpenMode).Show()));
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -903,12 +897,7 @@ namespace EpgTimer
         }
         public static bool? OpenChangeReserveDialog(ReserveData Data, Int32 epgInfoOpenMode = 0)
         {
-            var win = ChgReserveWindow.GetDataReplaceWindow() as ChgReserveWindow;
-            if (win != null)
-            {
-                win.ChangeReserveInfo(Data);
-                return true;
-            }
+            if (ChgReserveWindow.ChangeDataLastUsedWindow(Data) != null) return true;
             return OpenChgReserveDialog(Data, epgInfoOpenMode);
         }
         public static bool? OpenManualReserveDialog()
@@ -919,12 +908,8 @@ namespace EpgTimer
         {
             try
             {
-                var dlg = new ChgReserveWindow();
-                if (Data != null)
-                {
-                    dlg.SetReserveInfo(Data, epgInfoOpenMode);
-                }
-                dlg.Dispatcher.BeginInvoke(new Action(() => dlg.Show()));//番組表でのフォーカス対策
+                //番組表でのダブルクリック時のフォーカス対策
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new ChgReserveWindow(Data, epgInfoOpenMode).Show()));
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -941,25 +926,14 @@ namespace EpgTimer
         }
         public static bool? OpenChangeEpgAutoAddDialog(EpgAutoAddData Data)
         {
-            var win = SearchWindow.GetDataReplaceWindow() as SearchWindow;
-            if (win != null)
-            {
-                win.ChangeAutoAddData(Data);
-                return true;
-            }
+            if (SearchWindow.ChangeDataLastUsedWindow(Data) != null) return true;
             return OpenEpgAutoAddDialog(Data, AutoAddMode.Change);
         }
         private static bool? OpenEpgAutoAddDialog(EpgAutoAddData Data, AutoAddMode mode)
         {
             try
             {
-                var dlg = new SearchWindow();
-                dlg.SetViewMode(mode);
-                if (Data != null)
-                {
-                    dlg.SetAutoAddData(Data);
-                }
-                dlg.Show();
+                new SearchWindow(Data, mode).Show();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -971,8 +945,7 @@ namespace EpgTimer
             {
                 if (item == null) return;
 
-                var dlg = new SearchWindow();
-                dlg.SetViewMode(AutoAddMode.NewAdd);
+                var dlg = new SearchWindow(mode: AutoAddMode.NewAdd);
                 dlg.SetSearchKey(key ?? SendAutoAddKey(item, NotToggle));
 
                 if (item is IRecSetttingData)
@@ -1023,25 +996,14 @@ namespace EpgTimer
         }
         public static bool? OpenChangeManualAutoAddDialog(ManualAutoAddData Data)
         {
-            var win = AddManualAutoAddWindow.GetDataReplaceWindow() as AddManualAutoAddWindow;
-            if (win != null)
-            {
-                win.ChangeAutoAddData(Data);
-                return true;
-            }
+            if (AddManualAutoAddWindow.ChangeDataLastUsedWindow(Data) != null) return true;
             return OpenManualAutoAddDialog(Data);
         }
         public static bool? OpenManualAutoAddDialog(ManualAutoAddData Data)
         {
             try
             {
-                var dlg = new AddManualAutoAddWindow();
-                if (Data != null)
-                {
-                    dlg.SetViewMode(AutoAddMode.Change);
-                    dlg.SetAutoAddData(Data);
-                }
-                dlg.Show();
+                new AddManualAutoAddWindow(Data, AutoAddMode.Change).Show();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -1062,22 +1024,12 @@ namespace EpgTimer
             return null;
         }
 
-        public static bool? OpenRecInfoDialog(RecFileInfo info, UIElement Owner)
+        public static bool? OpenRecInfoDialog(RecFileInfo info)
         {
             try
             {
-                if (info == null) return null;
-
-                var win = RecInfoDescWindow.GetDataReplaceWindow() as RecInfoDescWindow;
-                if (win != null)
-                {
-                    win.SetRecInfo(info);
-                    return true;
-                }
-
-                var dlg = new RecInfoDescWindow();
-                dlg.SetRecInfo(info);
-                dlg.Show();
+                if (RecInfoDescWindow.ChangeDataLastUsedWindow(info) != null) return true;
+                new RecInfoDescWindow(info).Show();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

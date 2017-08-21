@@ -223,6 +223,7 @@ namespace EpgTimer.Setting
                 textBox_DisplayJumpTime.Text = Settings.Instance.DisplayNotifyJumpTime.ToString();
                 checkBox_LaterTimeUse.IsChecked = Settings.Instance.LaterTimeUse;
                 textBox_LaterTimeHour.Text = (Settings.Instance.LaterTimeHour + 24).ToString();
+                checkBox_keepReserveWindow.IsChecked = Settings.Instance.KeepReserveWindow;
                 checkBox_useLastSearchKey.IsChecked = Settings.Instance.UseLastSearchKey;
                 checkBox_saveSearchKeyword.IsChecked = Settings.Instance.SaveSearchKeyword;
                 button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
@@ -425,6 +426,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.DisplayNotifyJumpTime = MenuUtil.MyToNumerical(textBox_DisplayJumpTime, Convert.ToDouble, Double.MaxValue, 0, 3);
                 Settings.Instance.LaterTimeUse = (checkBox_LaterTimeUse.IsChecked == true);
                 Settings.Instance.LaterTimeHour = MenuUtil.MyToNumerical(textBox_LaterTimeHour, Convert.ToInt32, 36, 24, 28) - 24;
+                Settings.Instance.KeepReserveWindow = (bool)checkBox_keepReserveWindow.IsChecked;
                 Settings.Instance.UseLastSearchKey = (bool)checkBox_useLastSearchKey.IsChecked;
                 if (Settings.Instance.UseLastSearchKey == false) Settings.Instance.DefSearchKey = new EpgSearchKeyInfo();
                 Settings.Instance.SaveSearchKeyword = checkBox_saveSearchKeyword.IsChecked != false;

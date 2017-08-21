@@ -8,8 +8,10 @@ namespace EpgTimer.EpgView
 {
     public delegate void ViewSettingClickHandler(object sender, CustomEpgTabInfo info);
 
-    public class EpgViewBase : EpgTimer.UserCtrlView.DataViewBase
+    public class EpgViewBase : DataItemViewBase
     {
+        public static event ViewUpdatedHandler ViewReserveUpdated = null;
+
         protected static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
 
         protected CustomEpgTabInfo setViewInfo = null;
@@ -109,6 +111,7 @@ namespace EpgTimer.EpgView
             if (ReloadReserveInfoFlg == true && this.IsVisible == true)
             {
                 ReloadReserveInfoFlg = !ReloadReserveInfoData();
+                if (ViewReserveUpdated != null) ViewReserveUpdated(this, true);
                 UpdateStatus();
             }
         }
@@ -195,7 +198,7 @@ namespace EpgTimer.EpgView
             ReloadReserveInfo();//ReloadInfo()が実行された場合は、こちらは素通りになる。
 
             //「番組表へジャンプ」の場合、またはオプションで指定のある場合に強調表示する。
-            bool isMarking = BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange;
+            var isMarking = (BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
             if (BlackoutWindow.HasReserveData == true)
             {
                 MoveToReserveItem(BlackoutWindow.SelectedItem.ReserveInfo, isMarking);
@@ -208,8 +211,5 @@ namespace EpgTimer.EpgView
 
             RefreshStatus();
         }
-
-        protected virtual void MoveToReserveItem(ReserveData target, bool IsMarking) { }
-        protected virtual void MoveToProgramItem(EpgEventInfo target, bool IsMarking) { }
     }
 }

@@ -10,7 +10,7 @@ namespace EpgTimer.TunerReserveViewCtrl
 
     class TunerReservePanel : PanelBase
     {
-        public List<ReserveViewItem> Items { get; set; }
+        public List<TunerReserveViewItem> Items { get; set; }
 
         protected List<List<TextDrawItem>> CreateDrawTextList()
         {
@@ -39,7 +39,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                 Items = Items.Where(info => info.ReserveInfo.IsOnRec() == false)
                     .Concat(Items.Where(info => info.ReserveInfo.IsOnRec() == true)).ToList();
 
-                foreach (ReserveViewItem info in Items)
+                foreach (TunerReserveViewItem info in Items)
                 {
                     var textDrawList = new List<TextDrawItem>();
                     textDrawLists.Add(textDrawList);
@@ -48,7 +48,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                     {
                         double totalHeight = 0;
                         double useHeight = 0;
-                        var colorTitle = Settings.Instance.TunerColorModeUse == true ? info.ForeColorPriTuner : colorTitleBase;
+                        var colorTitle = Settings.Instance.TunerColorModeUse == true ? info.ForeColorPri : colorTitleBase;
 
                         //分
                         string min = info.ReserveInfo.StartTime.Minute.ToString("d02");
@@ -99,12 +99,12 @@ namespace EpgTimer.TunerReserveViewCtrl
 
                 for (int i = 0; i < textDrawLists.Count; i++)
                 {
-                    ReserveViewItem info = Items[i];
-                    dc.DrawRectangle(info.BorderBrushTuner, null, new Rect(info.LeftPos, info.TopPos, info.Width + 1, Math.Max(info.Height + 1, 1)));
+                    TunerReserveViewItem info = Items[i];
+                    dc.DrawRectangle(info.BorderBrush, null, new Rect(info.LeftPos, info.TopPos, info.Width + 1, Math.Max(info.Height + 1, 1)));
                     if (info.Height > 1)
                     {
                         var textArea = new Rect(info.LeftPos + 1, info.TopPos + 1, info.Width - 1, info.Height - 1);
-                        dc.DrawRectangle(info.BackColorTuner, null, textArea);
+                        dc.DrawRectangle(info.BackColor, null, textArea);
                         DrawTextDrawList(dc, textDrawLists[i], textArea);
                     }
                 }

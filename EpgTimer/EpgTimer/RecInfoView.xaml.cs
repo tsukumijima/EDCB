@@ -6,17 +6,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-using EpgTimer.UserCtrlView;
-
 namespace EpgTimer
 {
     /// <summary>
     /// RecInfoView.xaml の相互作用ロジック
     /// </summary>
-    public partial class RecInfoView : DataViewBase
+    public partial class RecInfoView : DataItemViewBase
     {
         private ListViewController<RecInfoItem> lstCtrl;
         private CmdExeRecinfo mc;
+        protected override ListBox DataListBox { get { return listView_recinfo; } }
 
         public RecInfoView()
         {
@@ -82,7 +81,7 @@ namespace EpgTimer
         {
             return lstCtrl.ReloadInfoData(dataList =>
             {
-                ErrCode err = CommonManager.Instance.DB.ReloadrecFileInfo();
+                ErrCode err = CommonManager.Instance.DB.ReloadRecFileInfo();
                 if (CommonManager.CmdErrMsgTypical(err, "録画情報の取得") == false) return false;
 
                 foreach (RecFileInfo info in CommonManager.Instance.DB.RecFileInfo.Values)
@@ -104,15 +103,6 @@ namespace EpgTimer
             if (mode == 0) this.status[1] = ViewUtil.ConvertRecinfoStatus(lstCtrl.dataList, "録画結果");
             List<RecInfoItem> sList = lstCtrl.GetSelectedItemsList();
             this.status[2] = sList.Count == 0 ? "" : ViewUtil.ConvertRecinfoStatus(sList, "　選択中");
-        }
-        protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            base.UserControl_IsVisibleChanged(sender, e);
-            if (this.IsVisible == true) ViewUtil.JumpToListItemTabChanged(listView_recinfo);
-        }
-        protected override void SelectViewItemData(UInt64 id)
-        {
-            ViewUtil.JumpToListItem(id, listView_recinfo, false);
         }
     }
 }

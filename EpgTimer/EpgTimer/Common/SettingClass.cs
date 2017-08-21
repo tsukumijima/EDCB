@@ -512,6 +512,7 @@ namespace EpgTimer
         public Dock MainViewButtonsDock { get; set; }
         public CtxmCode StartTab { get; set; }
         public bool TrimSortTitle { get; set; }
+        public bool KeepReserveWindow { get; set; }
         [XmlIgnore]
         public bool WakeUpHdd 
         {
@@ -730,6 +731,7 @@ namespace EpgTimer
             MainViewButtonsDock = Dock.Right;
             StartTab = CtxmCode.ReserveView;
             TrimSortTitle = false;
+            KeepReserveWindow = false;
         }
 
         private static Settings _instance;

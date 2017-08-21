@@ -190,7 +190,7 @@ namespace EpgTimer
                     if (checkBox_RecInfo.IsChecked == true)
                     {
                         //起動直後は読み込んでない場合がある。
-                        CommonManager.Instance.DB.ReloadrecFileInfo();
+                        CommonManager.Instance.DB.ReloadRecFileInfo();
 
                         //詳細情報が必要な場合はあらかじめ読込んでおく。
                         if (checkBox_TitleOnly.IsChecked  == false)

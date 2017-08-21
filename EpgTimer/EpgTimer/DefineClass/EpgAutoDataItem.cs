@@ -10,40 +10,40 @@ namespace EpgTimer
     //キーワード予約とプログラム自動登録の共通項目
     public class AutoAddDataItem : RecSettingItem
     {
-        protected AutoAddData _data;
-        public AutoAddData Data { get { return _data; } set { _data = value; } }
+        public AutoAddData Data { get; protected set; }
 
         public AutoAddDataItem() {}
-        public AutoAddDataItem(AutoAddData data) { _data = data; }
+        public AutoAddDataItem(AutoAddData data) { Data = data; }
 
         public override ulong KeyID { get { return Data == null ? 0 : Data.DataID; } }
-        public override RecSettingData RecSettingInfo { get { return _data != null ? _data.RecSettingInfo : null; } }
+        public override object DataObj { get { return Data; } }
+        public override RecSettingData RecSettingInfo { get { return Data != null ? Data.RecSettingInfo : null; } }
 
         public String EventName
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return _data.DataTitle;
+                return Data.DataTitle;
             }
         }
         public String SearchCount
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return _data.SearchCount.ToString();
+                return Data.SearchCount.ToString();
             }
         }
         public String ReserveCount
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return _data.ReserveCount.ToString();
+                return Data.ReserveCount.ToString();
             }
         }
         //"ReserveCount"のうち、有効な予約アイテム数
@@ -51,9 +51,9 @@ namespace EpgTimer
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return _data.OnCount.ToString();
+                return Data.OnCount.ToString();
             }
         }
         //"ReserveCount"のうち、無効な予約アイテム数
@@ -61,46 +61,46 @@ namespace EpgTimer
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return _data.OffCount.ToString();
+                return Data.OffCount.ToString();
             }
         }
         public String NextReserveName
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return new ReserveItem(_data.GetNextReserve()).EventName;
+                return new ReserveItem(Data.GetNextReserve()).EventName;
             }
         }
         public String NextReserveNameValue
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return new ReserveItem(_data.GetNextReserve()).EventNameValue;
+                return new ReserveItem(Data.GetNextReserve()).EventNameValue;
             }
         }
         public String NextReserve
         {
             get
             {
-                if (_data == null) return "";
+                if (Data == null) return "";
                 //
-                return new ReserveItem(_data.GetNextReserve()).StartTime;
+                return new ReserveItem(Data.GetNextReserve()).StartTime;
             }
         }
         public long NextReserveValue
         {
             get
             {
-                if (_data == null) return long.MinValue;
-                if (_data.GetNextReserve() == null) return long.MaxValue;
+                if (Data == null) return long.MinValue;
+                if (Data.GetNextReserve() == null) return long.MaxValue;
                 //
-                return new ReserveItem(_data.GetNextReserve()).StartTimeValue;
+                return new ReserveItem(Data.GetNextReserve()).StartTimeValue;
             }
         }
         public virtual String NetworkName { get { return ""; } }
@@ -113,9 +113,9 @@ namespace EpgTimer
             }
             get
             {
-                if (_data == null) return false;
+                if (Data == null) return false;
                 //
-                return _data.IsEnabled;
+                return Data.IsEnabled;
             }
         }
         public override String ConvertInfoText(object param = null) { return ""; }
@@ -124,7 +124,7 @@ namespace EpgTimer
             get
             {
                 //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0 || _data == null || _data.IsEnabled == true) return base.ForeColor;
+                if (NowJumpingTable != 0 || Data == null || Data.IsEnabled == true) return base.ForeColor;
                 //
                 //無効の場合
                 return CommonManager.Instance.RecModeForeColor[5];
@@ -135,7 +135,7 @@ namespace EpgTimer
             get
             {
                 //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0 || _data == null || _data.IsEnabled == true) return base.BackColor;
+                if (NowJumpingTable != 0 || Data == null || Data.IsEnabled == true) return base.BackColor;
                 //
                 //無効の場合
                 return CommonManager.Instance.ResNoBackColor;
@@ -179,7 +179,7 @@ namespace EpgTimer
         public EpgAutoDataItem() { }
         public EpgAutoDataItem(EpgAutoAddData item) : base(item) { }
 
-        public EpgAutoAddData EpgAutoAddInfo { get { return (EpgAutoAddData)_data; } set { _data = value; } }
+        public EpgAutoAddData EpgAutoAddInfo { get { return (EpgAutoAddData)Data; } set { Data = value; } }
 
         public String NotKey
         {

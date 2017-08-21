@@ -23,6 +23,7 @@ namespace EpgTimer
 
         public RecFileInfo RecInfo { get; set; }
         public override ulong KeyID { get { return RecInfo == null ? 0 : RecInfo.ID; } }
+        public override object DataObj { get { return RecInfo; } }
 
         public bool IsProtect
         {

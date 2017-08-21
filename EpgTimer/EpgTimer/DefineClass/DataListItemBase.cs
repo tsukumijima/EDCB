@@ -6,6 +6,7 @@ namespace EpgTimer
 {
     public class DataListItemBase : GridViewSorterItem
     {
+        public virtual object DataObj { get { return null; } }
         public virtual TextBlock ToolTipView
         {
             get

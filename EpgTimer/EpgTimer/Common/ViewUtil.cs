@@ -12,6 +12,9 @@ using System.Windows.Interop;
 namespace EpgTimer
 {
     using BoxExchangeEdit;
+    using UserCtrlView;
+
+    public enum JumpItemStyle : ulong { None = 0, JumpTo = 1, MoveTo = 2, PanelNoScroll = 0x10000 }
 
     public static class ViewUtil
     {
@@ -179,42 +182,36 @@ namespace EpgTimer
         }
 
         //指定アイテムまでマーキング付で移動する。
-        public static void JumpToListItemTabChanged(ListBox listBox)
-        {
-            if (BlackoutWindow.HasData == true)
-            {
-                ViewUtil.JumpToListItem(BlackoutWindow.SelectedData, listBox, BlackoutWindow.NowJumpTable);
-            }
-            BlackoutWindow.Clear();
-        }
-        public static void JumpToListItem(object target, ListBox listBox, bool IsMarking = false)
+        public static int JumpToListItem(object target, ListBox listBox, JumpItemStyle style = JumpItemStyle.None)
         {
             if (target is IGridViewSorterItem)
             {
-                JumpToListItem(((IGridViewSorterItem)target).KeyID, listBox, IsMarking);
+                return JumpToListItem(((IGridViewSorterItem)target).KeyID, listBox, style);
             }
             else
             {
-                ScrollToFindItem(target, listBox, IsMarking);
+                return ScrollToFindItem(target, listBox, style);
             }
         }
-        public static void JumpToListItem(UInt64 gvSorterID, ListBox listBox, bool IsMarking = false)
+        public static int JumpToListItem(UInt64 gvSorterID, ListBox listBox, JumpItemStyle style = JumpItemStyle.None)
         {
             var target = listBox.Items.OfType<IGridViewSorterItem>().FirstOrDefault(data => data.KeyID == gvSorterID);
-            ScrollToFindItem(target, listBox, IsMarking);
+            return ScrollToFindItem(target, listBox, style);
         }
-        public static void ScrollToFindItem(object target, ListBox listBox, bool IsMarking = false)
+        public static int ScrollToFindItem(object target, ListBox listBox, JumpItemStyle style = JumpItemStyle.None)
         {
+            int selIdx = -1;
             try
             {
                 listBox.SelectedItem = target;
-                if (listBox.SelectedItem == null) return;
+                if (listBox.SelectedItem == null) return selIdx;
 
                 listBox.ScrollIntoView(target);
+                selIdx = listBox.SelectedIndex;
 
                 //パネルビューと比較して、こちらでは最後までゆっくり点滅させる。全表示時間は同じ。
                 //ただ、結局スクロールさせる位置がうまく調整できてないので効果は限定的。
-                if (IsMarking == true && target is DataListItemBase)
+                if ((style & ~JumpItemStyle.PanelNoScroll) == JumpItemStyle.JumpTo && target is DataListItemBase)
                 {
                     var target_item = target as DataListItemBase;
                     listBox.SelectedItem = null;
@@ -240,6 +237,54 @@ namespace EpgTimer
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            return selIdx;
+        }
+
+        //リストボックスの巡回移動
+        public static int GetNextIdx(int oldIdx, int nowIdx, int count, int direction)
+        {
+            if (oldIdx >= count) oldIdx = count - (direction >= 0 ? 1 : 0);
+            if (nowIdx >= count) nowIdx = count - (direction >= 0 ? 1 : 0);
+            oldIdx = (oldIdx == -1 || nowIdx != -1) ? nowIdx : oldIdx;
+            return oldIdx == -1 ? (direction >= 0 ? 0 : count - 1) : ((oldIdx + direction) % count + count) % count;
+        }
+
+        //パネル系画面の移動用
+        public static object MoveNextReserve(ref int itemIdx, PanelViewBase view, IEnumerable<ReserveViewItem> reslist, ref Point? jmpPos,
+                                        UInt64 id, int direction, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            Point? pos = jmpPos;
+            jmpPos = null;
+            if (reslist.Any() == false) return null;
+
+            List<ReserveViewItem> list = reslist.OrderBy(d => d.ReserveInfo.StartTimeActual).ToList();
+            ReserveViewItem viewItem = null;
+            int idx = id == 0 ? -1 : list.FindIndex(item => item.ReserveInfo.ReserveID == id);
+            if (idx == -1 && pos != null)
+            {
+                viewItem = list.GetNearDataList((Point)pos).First() as ReserveViewItem;
+                idx = list.IndexOf(viewItem);
+            }
+            else
+            {
+                idx = ViewUtil.GetNextIdx(itemIdx, idx, list.Count, direction);
+                viewItem = list[idx];
+            }
+            if (move == true) view.ScrollToFindItem(viewItem, style);
+            if (move == true) itemIdx = idx;
+            return viewItem == null ? null : viewItem.ReserveInfo;
+        }
+        public static void OnKyeMoveNextReserve(object sender, KeyEventArgs e, DataItemViewBase view)
+        {
+            if (Keyboard.Modifiers != ModifierKeys.Control || view == null) return;
+            //
+            switch (e.Key)
+            {
+                case Key.Up: view.MoveNextReserve(-1); break;
+                case Key.Down: view.MoveNextReserve(1); break;
+                default: return;
+            }
+            e.Handled = true;
         }
 
         /// <summary> 列の端でダブルクリックしたのと同様の効果。見えてない行まで考慮されないのも同じ。 </summary>

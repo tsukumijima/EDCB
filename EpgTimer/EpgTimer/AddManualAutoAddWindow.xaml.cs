@@ -12,12 +12,17 @@ namespace EpgTimer
     /// </summary>
     public partial class AddManualAutoAddWindow : AddManualAutoAddWindowBase
     {
-        protected override UserCtrlView.DataViewBase DataView { get { return ViewUtil.MainWindow.autoAddView.manualAutoAddView; } }
+        protected override DataItemViewBase DataView { get { return mainWindow.autoAddView.manualAutoAddView; } }
         protected override string AutoAddString { get { return "プログラム予約登録"; } }
 
         private List<CheckBox> chbxList;
 
-        public AddManualAutoAddWindow()
+        static AddManualAutoAddWindow()
+        { 
+            mainWindow.autoAddView.manualAutoAddView.ViewUpdated += AddManualAutoAddWindow.UpdatesViewSelection;
+        }
+        public AddManualAutoAddWindow(ManualAutoAddData data = null, AutoAddMode mode = AutoAddMode.NewAdd)
+            : base(data, mode)
         {
             InitializeComponent();
 
@@ -31,8 +36,8 @@ namespace EpgTimer
                 this.CommandBindings.Add(new CommandBinding(EpgCmds.ChangeInDialog, autoadd_chg, (sender, e) => e.CanExecute = winMode == AutoAddMode.Change));
                 this.CommandBindings.Add(new CommandBinding(EpgCmds.DeleteInDialog, autoadd_del1, (sender, e) => e.CanExecute = winMode == AutoAddMode.Change));
                 this.CommandBindings.Add(new CommandBinding(EpgCmds.Delete2InDialog, autoadd_del2, (sender, e) => e.CanExecute = winMode == AutoAddMode.Change));
-                this.CommandBindings.Add(new CommandBinding(EpgCmds.UpItem, (sender, e) => button_up_down_Click(-1)));
-                this.CommandBindings.Add(new CommandBinding(EpgCmds.DownItem, (sender, e) => button_up_down_Click(1)));
+                this.CommandBindings.Add(new CommandBinding(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1)));
+                this.CommandBindings.Add(new CommandBinding(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1)));
 
                 //ボタンの設定
                 mBinds.SetCommandToButton(button_cancel, EpgCmds.Cancel);
@@ -40,9 +45,9 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_add, EpgCmds.AddInDialog);
                 mBinds.SetCommandToButton(button_del, EpgCmds.DeleteInDialog);
                 mBinds.SetCommandToButton(button_del2, EpgCmds.Delete2InDialog);
-                mBinds.SetCommandToButton(button_up, EpgCmds.UpItem);
-                mBinds.SetCommandToButton(button_down, EpgCmds.DownItem);
-                mBinds.ResetInputBindings(this);
+                mBinds.SetCommandToButton(button_up, EpgCmds.BackItem);
+                mBinds.SetCommandToButton(button_down, EpgCmds.NextItem);
+                RefreshMenu();
 
                 //ステータスバーの登録
                 this.statusBar.Status.Visibility = Visibility.Collapsed;
@@ -70,7 +75,6 @@ namespace EpgTimer
                 comboBox_service.SelectedIndex = 0;
 
                 recSettingView.SetViewMode(false);
-                SetViewMode(AutoAddMode.NewAdd);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -80,12 +84,12 @@ namespace EpgTimer
             this.Title = ViewUtil.WindowTitleText(textBox_title.Text, "プログラム自動予約登録");
         }
 
-        public override AutoAddData GetAutoAddData()
+        public override AutoAddData GetData()
         {
             try
             {
                 var data = new ManualAutoAddData();
-                data.dataID = autoAddID;
+                data.dataID = (uint)dataID;
 
                 UInt32 startTime = ((UInt32)comboBox_startHH.SelectedIndex * 60 * 60) + ((UInt32)comboBox_startMM.SelectedIndex * 60) + (UInt32)comboBox_startSS.SelectedIndex;
                 UInt32 endTime = ((UInt32)comboBox_endHH.SelectedIndex * 60 * 60) + ((UInt32)comboBox_endMM.SelectedIndex * 60) + (UInt32)comboBox_endSS.SelectedIndex;
@@ -125,14 +129,12 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return null;
         }
-        public override bool SetAutoAddData(AutoAddData setdata)
+        protected override bool SetData(ManualAutoAddData data)
         {
-            if (setdata as ManualAutoAddData == null) return false;
-            var data = setdata as ManualAutoAddData;
+            if (data == null) return false;
 
             data = data.Clone();
-
-            autoAddID = data.dataID;
+            dataID = data.dataID;
 
             //深夜時間帯の処理
             if (Settings.Instance.LaterTimeUse == true && DateTime28.IsLateHour(data.PgStartTime.Hour) == true)
@@ -183,5 +185,9 @@ namespace EpgTimer
             return true;
         }
     }
-    public class AddManualAutoAddWindowBase : AutoAddWindow<AddManualAutoAddWindow, ManualAutoAddData> { }
+    public class AddManualAutoAddWindowBase : AutoAddWindow<AddManualAutoAddWindow, ManualAutoAddData>
+    {
+        public AddManualAutoAddWindowBase() { }//デザイナ用
+        public AddManualAutoAddWindowBase(ManualAutoAddData data = null, AutoAddMode mode = AutoAddMode.Find) : base(data, mode) { }
+    }
 }

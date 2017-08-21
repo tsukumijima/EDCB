@@ -59,6 +59,7 @@ namespace EpgTimer.EpgView
 
             programView.ScrollChanged += new ScrollChangedEventHandler(epgProgramView_ScrollChanged);
             programView.LeftDoubleClick += new ProgramView.PanelViewClickHandler(epgProgramView_LeftDoubleClick);
+            programView.LeftClick += (sender, cursorPos) => jmpPos = cursorPos;
             programView.RightClick += new ProgramView.PanelViewClickHandler(epgProgramView_RightClick);
             
             nowViewTimer = new DispatcherTimer(DispatcherPriority.Normal);
@@ -186,19 +187,44 @@ namespace EpgTimer.EpgView
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        protected override void MoveToReserveItem(ReserveData target, bool IsMarking)
-        {
-            uint ID = target.ReserveID;
-            ReserveViewItem target_item = this.reserveList.Find(item => item.ReserveInfo.ReserveID == ID);
-            this.programView.ScrollToFindItem(target_item, IsMarking);
-        }
-        protected override void MoveToProgramItem(EpgEventInfo target, bool IsMarking)
+        public override void MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             ProgramViewItem target_item;
-            this.programList.TryGetValue(target.CurrentPgUID(), out target_item);
-            this.programView.ScrollToFindItem(target_item, IsMarking);
+            programList.TryGetValue(id, out target_item);
+            programView.ScrollToFindItem(target_item, style);
         }
 
+        public override object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            if (programList.Count == 0) return null;
+
+            var list = programList.Values.OrderBy(item => (int)(item.LeftPos / Settings.Instance.ServiceWidth) * 1e6 + item.TopPos + item.Width / Settings.Instance.ServiceWidth / 100).ToList();
+            int idx = list.FindIndex(item => item.EventInfo.CurrentPgUID() == id);
+            idx = ViewUtil.GetNextIdx(ItemIdx, idx, list.Count, direction);
+            if (move == true) programView.ScrollToFindItem(list[idx], style);
+            if (move == true) ItemIdx = idx;
+            return list[idx] == null ? null : list[idx].EventInfo;
+        }
+
+        public override void MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            if (target == null) return;
+            int idx = reserveList.FindIndex(item => item.ReserveInfo.ReserveID == target.ReserveID);
+            if (idx != -1) programView.ScrollToFindItem(reserveList[idx], style);
+            ItemIdx = idx;
+        }
+        public override void MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            MoveToItem(target == null ? 0 : target.CurrentPgUID(), style);
+        }
+        
+        private Point? jmpPos = null;
+        protected int resIdx = -1;
+        public override object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            return ViewUtil.MoveNextReserve(ref resIdx, programView, reserveList, ref jmpPos, id, direction, move, style);
+        }
+        
         /// <summary>表示位置を現在の時刻にスクロールする</summary>
         protected void MoveNowTime()
         {

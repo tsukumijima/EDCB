@@ -13,6 +13,7 @@ namespace EpgTimer
         public ReserveItem(ReserveData item) { base.ReserveInfo = item; }
 
         public override ulong KeyID { get { return ReserveInfo == null ? 0 : ReserveInfo.ReserveID; } }
+        public override object DataObj { get { return ReserveInfo; } }
 
         public override EpgEventInfo EventInfo
         {

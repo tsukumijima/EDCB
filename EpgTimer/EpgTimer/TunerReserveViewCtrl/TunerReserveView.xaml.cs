@@ -36,7 +36,7 @@ namespace EpgTimer.TunerReserveViewCtrl
             reserveViewPanel.Width = ViewUtil.GetScreenWidthMax();
         }
 
-        public void SetReserveList(List<ReserveViewItem> reserveList, double width, double height)
+        public void SetReserveList(List<TunerReserveViewItem> reserveList, double width, double height)
         {
             try
             {
@@ -61,10 +61,10 @@ namespace EpgTimer.TunerReserveViewCtrl
         }
         protected override void SetPopup(PanelItem item)
         {
-            var viewInfo = (ReserveViewItem)item;
+            var viewInfo = (TunerReserveViewItem)item;
             var resItem = new ReserveItem(viewInfo.ReserveInfo);
 
-            popupItem.Background = viewInfo.BackColorTuner;
+            popupItem.Background = viewInfo.BackColor;
             popupItemTextArea.Margin = new Thickness(1, -1, 5, 1);
 
             double sizeTitle = Settings.Instance.TunerFontSizeService;
@@ -74,11 +74,11 @@ namespace EpgTimer.TunerReserveViewCtrl
             var fontTitle = new FontFamily(Settings.Instance.TunerFontNameService);
             var fontNormal = new FontFamily(Settings.Instance.TunerFontName);
             FontWeight weightTitle = Settings.Instance.TunerFontBoldService == true ? FontWeights.Bold : FontWeights.Normal;
-            Brush colorTitle = Settings.Instance.TunerColorModeUse == true ? viewInfo.ForeColorPriTuner : CommonManager.Instance.CustTunerServiceColor;
+            Brush colorTitle = Settings.Instance.TunerColorModeUse == true ? viewInfo.ForeColorPri : CommonManager.Instance.CustTunerServiceColor;
             Brush colorNormal = CommonManager.Instance.CustTunerTextColor;
 
             //録画中は枠をかえる
-            popupItem.BorderBrush = viewInfo.BorderBrushTuner;
+            popupItem.BorderBrush = viewInfo.BorderBrush;
 
             //追加情報の表示
             if (Settings.Instance.TunerPopupRecinfo == true)
@@ -87,7 +87,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                 minText.Visibility = Visibility.Collapsed;
 
                 //'録画中'を表示
-                sutatusText.Text = viewInfo.StatusTuner;
+                sutatusText.Text = viewInfo.Status;
                 sutatusText.Visibility = Visibility.Collapsed;
                 if (sutatusText.Text != "")
                 {
@@ -152,7 +152,7 @@ namespace EpgTimer.TunerReserveViewCtrl
         }
         protected override void SetTooltip(PanelItem toolInfo)
         {
-            Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(new ReserveItem((toolInfo as ReserveViewItem).ReserveInfo)
+            Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(new ReserveItem((toolInfo as TunerReserveViewItem).ReserveInfo)
                                     .ConvertInfoText(Settings.Instance.TunerToolTipMode));
         }
 

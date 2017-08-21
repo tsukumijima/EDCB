@@ -25,4 +25,30 @@
         </Style.Resources>
     </Style>
 
+    <Style TargetType="{x:Type CheckBox}" x:Key="ProtectKey" BasedOn="{StaticResource {x:Type CheckBox}}" >
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <BulletDecorator>
+                        <BulletDecorator.Bullet>
+                            <!--オフ状態のイメージ-->
+                            <Image Name="TickImage" Source="/Resources/key_no.ico" Grid.Column="0" Stretch="None" />
+                        </BulletDecorator.Bullet>
+                        <ContentPresenter VerticalAlignment="Center" Grid.Column="1"/>
+                    </BulletDecorator>
+                    <ControlTemplate.Triggers>
+                        <!--オン状態のイメージ-->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="TickImage" Property="Source" Value="/Resources/key.ico" />
+                        </Trigger>
+                        <!--未確定状態のイメージ-->
+                        <Trigger Property="IsChecked" Value="{x:Null}">
+                            <Setter TargetName="TickImage" Property="Source" Value="/Resources/key.ico" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>

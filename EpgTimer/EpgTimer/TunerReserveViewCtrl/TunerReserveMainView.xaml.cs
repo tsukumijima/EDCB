@@ -13,9 +13,9 @@ namespace EpgTimer
     /// <summary>
     /// TunerReserveMainView.xaml の相互作用ロジック
     /// </summary>
-    public partial class TunerReserveMainView : DataViewBase
+    public partial class TunerReserveMainView : DataItemViewBase
     {
-        private List<ReserveViewItem> reserveList = new List<ReserveViewItem>();
+        private List<TunerReserveViewItem> reserveList = new List<TunerReserveViewItem>();
         private Point clickPos;
 
         private CmdExeReserve mc; //予約系コマンド集
@@ -27,6 +27,7 @@ namespace EpgTimer
 
             tunerReserveView.ScrollChanged += new ScrollChangedEventHandler(tunerReserveView_ScrollChanged);
             tunerReserveView.LeftDoubleClick += new TunerReserveView.PanelViewClickHandler(tunerReserveView_LeftDoubleClick);
+            tunerReserveView.LeftClick += (sender, cursorPos) => jmpPos = cursorPos;
             tunerReserveView.RightClick += new TunerReserveView.PanelViewClickHandler(tunerReserveView_RightClick);
             button_now.Click += (sender, e) => tunerReserveView.scrollViewer.ScrollToVerticalOffset(0);
 
@@ -41,12 +42,14 @@ namespace EpgTimer
             mc.ResetCommandBindings(this, cmdMenu);
 
             //メニューの作成、ショートカットの登録
+            this.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, this);
             //RefreshMenu();
         }
         public void RefreshMenu()
         {
             mc.EpgInfoOpenMode = Settings.Instance.TunerEpgInfoOpenMode;
-            mBinds.ResetInputBindings(this);
+            mBinds.ResetInputBindings(this, tunerReserveView.scrollViewer);
+            mBinds.ResetInputBindings(tunerReserveTimeView.scrollViewer, tunerReserveNameView.scrollViewer);
             mm.CtxmGenerateContextMenu(cmdMenu, CtxmCode.TunerReserveView, false);
         }
         public void RefreshView()
@@ -126,12 +129,12 @@ namespace EpgTimer
                 tunerReserveList.ForEach(info =>
                 {
                     double tunerWidth = tunerWidthSingle;
-                    
+
                     var tunerAddList = new List<ReserveViewItem>();
 
                     foreach (ReserveData resInfo in info.reserveList.Where(id => resDic.ContainsKey(id) == true).Select(id => resDic[id]))
                     {
-                        var newItem = new ReserveViewItem(resInfo);
+                        var newItem = new TunerReserveViewItem(resInfo);
                         reserveList.Add(newItem);
 
                         //横位置の設定
@@ -174,6 +177,7 @@ namespace EpgTimer
 
                 //縦位置の設定
                 var timeList = new List<DateTime>(timeSet.OrderBy(time => time));
+
                 reserveList.ForEach(item =>
                 {
                     ViewUtil.SetItemVerticalPos(timeList, item, item.ReserveInfo.StartTimeActual, item.ReserveInfo.DurationActual, Settings.Instance.TunerMinHeight, true);
@@ -206,18 +210,26 @@ namespace EpgTimer
 
             if (BlackoutWindow.HasReserveData == true)
             {
-                MoveToReserveItem(BlackoutWindow.SelectedItem.ReserveInfo, BlackoutWindow.NowJumpTable);
+                MoveToItem(BlackoutWindow.SelectedItem.ReserveInfo.ReserveID, BlackoutWindow.NowJumpTable == true ? JumpItemStyle.JumpTo : JumpItemStyle.None);
             }
 
             BlackoutWindow.Clear();
         }
 
-        protected void MoveToReserveItem(ReserveData target, bool IsMarking)
+        private Point? jmpPos = null;
+        public override void MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            uint ID = target.ReserveID;
-            ReserveViewItem target_item = this.reserveList.Find(item => item.ReserveInfo.ReserveID == ID);
-            this.tunerReserveView.ScrollToFindItem(target_item, IsMarking);
+            int idx = reserveList.FindIndex(item => item.ReserveInfo.ReserveID == id);
+            if (idx != -1) tunerReserveView.ScrollToFindItem(reserveList[idx], style);
+            ItemIdx = idx;
         }
-
+        public override object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            return ViewUtil.MoveNextReserve(ref itemIdx, tunerReserveView, reserveList, ref jmpPos, id, direction, move, style);
+        }
+        public override object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            return MoveNextItem(direction, id, move, style);
+        }
     }
 }

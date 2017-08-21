@@ -57,7 +57,7 @@ namespace EpgTimer
             ICommand icmd = (sender as ICommandSource).Command ;
             CtxmCode code = ((sender as ICommandSource).CommandParameter as EpgCmdParam).Code;
             var obj = sender as FrameworkElement;
-            obj.ToolTip = (mm.IsGestureDisableOnView(icmd, code) == true ? null : GetInputGestureText(icmd)) ?? "";
+            obj.ToolTip = GetInputGestureTextView(icmd, code);
             if (obj.ToolTip as string == "")
             {
                 e.Handled = true;
@@ -156,6 +156,11 @@ namespace EpgTimer
             return new InputGestureCollection(igc);
         }
 
+        public static string GetInputGestureTextView(ICommand icmd, CtxmCode code)
+        {
+            return (mm.IsGestureDisableOnView(icmd, code) == true ? null : GetInputGestureText(icmd)) ?? "";
+        }
+
         public static string GetInputGestureText(ICommand icmd)
         {
             return GetInputGestureText(GetInputGestureList(icmd));
@@ -176,7 +181,7 @@ namespace EpgTimer
         {
             if (gesture == null) return null;
             string ret = gesture.GetDisplayStringForCulture(System.Globalization.CultureInfo.CurrentCulture);
-            return ret.Replace("Return", "Enter").Replace("Up", "↑").Replace("Down", "↓");
+            return ret.Replace("Return", "Enter").Replace("Up", "↑").Replace("Down", "↓").Replace("Left", "←").Replace("Right", "→");
         }
 
         /* 必要なものだけ登録しようかと思ったけど、やっぱ多少余計なものがあっても全部登録でいい気がしてきた。

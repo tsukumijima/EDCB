@@ -12,7 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid>
+    <Grid Name="grid_main">
         <Grid.RowDefinitions>
             <RowDefinition Height="410" Name="grid_Tabs" />
             <RowDefinition Height="auto" />

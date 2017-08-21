@@ -1,40 +1,11 @@
-﻿<local:DataViewBase x:Class="EpgTimer.RecInfoView"
+﻿<local:DataItemViewBase x:Class="EpgTimer.RecInfoView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             xmlns:local="clr-namespace:EpgTimer.UserCtrlView"
+             xmlns:local="clr-namespace:EpgTimer"
              d:DesignHeight="300" d:DesignWidth="300" IsVisibleChanged="UserControl_IsVisibleChanged">
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource {x:Type CheckBox}}" >
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="CheckBox">
-                            <BulletDecorator>
-                                <BulletDecorator.Bullet>
-                                    <!--オフ状態のイメージ-->
-                                    <Image Name="TickImage" Source="/Resources/key_no.ico" Grid.Column="0" Stretch="None" />
-                                </BulletDecorator.Bullet>
-                                <ContentPresenter VerticalAlignment="Center" Grid.Column="1"/>
-                            </BulletDecorator>
-                            <ControlTemplate.Triggers>
-                                <!--オン状態のイメージ-->
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter TargetName="TickImage" Property="Source" Value="/Resources/key.ico" />
-                                </Trigger>
-                                <!--未確定状態のイメージ-->
-                                <Trigger Property="IsChecked" Value="{x:Null}">
-                                    <Setter TargetName="TickImage" Property="Source" Value="/Resources/key.ico" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </ResourceDictionary>
-    </UserControl.Resources>
     <DockPanel>
         <StackPanel Name="stackPanel_button" MinWidth="100" >
             <Button Content="再生" Name="button_play" Margin="0,10,0,10" />
@@ -52,7 +23,7 @@
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Path=IsProtect}" />
+                                <CheckBox IsChecked="{Binding Path=IsProtect}" Style="{StaticResource ProtectKey}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
@@ -120,4 +91,4 @@
             </ListView.View>
         </ListView>
     </DockPanel>
-</local:DataViewBase>
+</local:DataItemViewBase>

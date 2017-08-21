@@ -9,10 +9,12 @@ using System.Collections.ObjectModel;
 
 namespace EpgTimer
 {
+    using EpgView;
+
     /// <summary>
     /// EpgView.xaml の相互作用ロジック
     /// </summary>
-    public partial class EpgDataView : EpgTimer.UserCtrlView.DataViewBase
+    public partial class EpgDataView : DataItemViewBase
     {
         private List<CustomEpgTabInfo> tabInfo = new List<CustomEpgTabInfo>();//Settingデータの参照を保持
 
@@ -25,6 +27,19 @@ namespace EpgTimer
             tabControl.ContextMenuOpening += new ContextMenuEventHandler(TabContextMenuOpening);
             tabControl.ContextMenu.Opened += new RoutedEventHandler(TabContextMenuOpened);
             tabControl.ContextMenu.Unloaded += new RoutedEventHandler((sender, e) => ClearTabHeader());
+
+            //コマンドだと細かく設定しないといけないパターンなのでこの辺りで一括指定
+            this.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, ActiveView);
+        }
+
+        /// <summary>選択されている番組表を返す</summary>
+        public EpgViewBase ActiveView
+        {
+            get
+            {
+                var tab = tabControl.Items.OfType<TabItem>().FirstOrDefault(tb => tb.IsSelected == true);
+                return tab == null ? null : (tab.Content as EpgDataViewItem).viewCtrl;
+            }
         }
 
         private List<EpgDataViewItem> Views

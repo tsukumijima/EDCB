@@ -456,7 +456,7 @@ namespace EpgTimer
         }
 
         /// <summary>録画済み情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadrecFileInfo(bool immediately = false)
+        public ErrCode ReloadRecFileInfo(bool immediately = false)
         {
             if (immediately == true) SetUpdateNotify(UpdateNotifyItem.RecInfo);
             var ret = ErrCode.CMD_SUCCESS;

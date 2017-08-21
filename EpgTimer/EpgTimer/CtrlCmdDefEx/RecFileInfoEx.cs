@@ -8,6 +8,7 @@ namespace EpgTimer
     public partial class RecFileInfo : AutoAddTargetData
     {
         public override string DataTitle { get { return Title; } }
+        public override ulong DataID { get { return ID; } }
         public override DateTime PgStartTime { get { return StartTime; } }
         public override uint PgDurationSecond { get { return DurationSecond; } }
         public override UInt64 Create64PgKey()

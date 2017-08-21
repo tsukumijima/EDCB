@@ -8,24 +8,33 @@ using System.Windows.Threading;
 
 namespace EpgTimer
 {
+    using EpgView;
+
     /// <summary>
     /// ChgReserveWindow.xaml の相互作用ロジック
     /// </summary>
     public partial class ChgReserveWindow : ChgReserveWindowBase
     {
-        protected override UInt64 DataID { get { return reserveInfo == null ? 0 : reserveInfo.ReserveID; } }
-
         private ReserveData reserveInfo = null;
+        private bool KeepWin = Settings.Instance.KeepReserveWindow;//固定する
 
         protected enum AddMode { Add, Re_Add, Change }
-        private AddMode addMode = AddMode.Add;   //予約モード、再予約モード、変更モード
-        private int openMode = 0;                  //EPGViewで番組表を表示するかどうか
+        private AddMode addMode = AddMode.Add;      //予約モード、再予約モード、変更モード
+        private int selectedTab = 0;                //EPGViewで番組表を表示するかどうか
         private bool resModeProgram = true;         //プログラム予約かEPG予約か
+        private bool initOpen = true;
 
         private EpgEventInfo eventInfoNow = null;
         private ReserveData resInfoDisplay = null;
 
-        public ChgReserveWindow()
+        static ChgReserveWindow()
+        {
+            mainWindow.reserveView.ViewUpdated += ChgReserveWindow.UpdatesViewSelection;
+            mainWindow.tunerReserveView.ViewUpdated += ChgReserveWindow.UpdatesViewSelection;
+            SearchWindow.ViewReserveUpdated += ChgReserveWindow.UpdatesViewSelection;
+            EpgViewBase.ViewReserveUpdated += ChgReserveWindow.UpdatesViewSelection;
+        }
+        public ChgReserveWindow(ReserveData info = null, int epgInfoOpenMode = 0)
         {
             InitializeComponent();
 
@@ -33,16 +42,25 @@ namespace EpgTimer
 
             //コマンドの登録
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Cancel, (sender, e) => this.Close()));
-            this.CommandBindings.Add(new CommandBinding(EpgCmds.AddInDialog, button_chg_reserve_Click, (sender, e) => e.CanExecute = addMode != AddMode.Change));
-            this.CommandBindings.Add(new CommandBinding(EpgCmds.ChangeInDialog, button_chg_reserve_Click, (sender, e) => e.CanExecute = addMode == AddMode.Change));
-            this.CommandBindings.Add(new CommandBinding(EpgCmds.DeleteInDialog, button_del_reserve_Click, (sender, e) => e.CanExecute = addMode == AddMode.Change));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.AddInDialog, reserve_add));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.ChangeInDialog, reserve_chg, (sender, e) => e.CanExecute = addMode == AddMode.Change));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.DeleteInDialog, reserve_del, (sender, e) => e.CanExecute = addMode == AddMode.Change));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1), (sender, e) => e.CanExecute = KeepWin == true));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1), (sender, e) => e.CanExecute = KeepWin == true));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.Search, (sender, e) => MoveViewReserveTarget(), (sender, e) => e.CanExecute = KeepWin == true && DataView is EpgViewBase || DataView is TunerReserveMainView));
 
             //ボタンの設定
             mBinds.SetCommandToButton(button_cancel, EpgCmds.Cancel);
-            mBinds.AddInputCommand(EpgCmds.AddInDialog);//ボタンへの割り振りは後で
-            mBinds.AddInputCommand(EpgCmds.ChangeInDialog);//ボタンへの割り振りは後で
+            mBinds.SetCommandToButton(button_add_reserve, EpgCmds.AddInDialog);
+            mBinds.SetCommandToButton(button_chg_reserve, EpgCmds.ChangeInDialog);
             mBinds.SetCommandToButton(button_del_reserve, EpgCmds.DeleteInDialog);
-            mBinds.ResetInputBindings(this);
+            mBinds.SetCommandToButton(button_up, EpgCmds.BackItem);
+            mBinds.SetCommandToButton(button_down, EpgCmds.NextItem);
+            mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
+            RefreshMenu();
+
+            //録画プリセット変更時の対応
+            recSettingView.SelectedPresetChanged += SetRecSettingTabHeader;
 
             //その他設定
             //深夜時間関係は、comboBoxの表示だけ変更する手もあるが、
@@ -54,37 +72,59 @@ namespace EpgTimer
             comboBox_em.ItemsSource = Enumerable.Range(0, 60);
             comboBox_ss.ItemsSource = Enumerable.Range(0, 60);
             comboBox_es.ItemsSource = Enumerable.Range(0, 60);
+
+            if (info == null)
+            {
+                info = new ReserveData();
+                info.StartTime = DateTime.UtcNow.AddHours(9).AddMinutes(1);
+                info.StartTimeEpg = info.StartTime;
+                info.DurationSecond = 1800;
+                info.EventID = 0xFFFF;
+                info.RecSetting = Settings.Instance.RecPresetList[0].Data.Clone();
+                reserveInfo = info;
+            }
+            selectedTab = epgInfoOpenMode == 1 ? 0 : 1;
+            if (KeepWin == true)
+            {
+                button_cancel.Content = "閉じる";
+                //ステータスバーの設定
+                this.statusBar.Status.Visibility = Visibility.Collapsed;
+                StatusManager.RegisterStatusbar(this.statusBar, this);
+            }
+            else
+            {
+                button_up.Visibility = Visibility.Collapsed;
+                button_down.Visibility = Visibility.Collapsed;
+                button_chk.Visibility = Visibility.Collapsed;
+            }
+            ChangeData(info);
+            initOpen = false;
+            CheckMultiReserve();
         }
 
-        //Addモードではデータの入れ替え関係は未使用なので保存しない
-        protected override void SaveDataReplace()
+        public void SetRecSettingTabHeader(bool SimpleChanged = true)
         {
-            if (addMode != AddMode.Add) base.SaveDataReplace();
+            tabItem_reserve.Header = "予約" + recSettingView.GetRecSettingHeaderString(SimpleChanged);
         }
 
         private void SetAddMode(AddMode mode)
         {
             addMode = mode;
-            mBinds.SetCommandToButton(button_chg_reserve, mode == AddMode.Change ? EpgCmds.ChangeInDialog : EpgCmds.AddInDialog);
-            button_del_reserve.Visibility = mode == AddMode.Add ? Visibility.Collapsed : Visibility.Visible;
-            checkBox_dataReplace.Visibility = mode == AddMode.Add ? Visibility.Collapsed : Visibility.Visible;
-            stack_Status.Visibility = mode == AddMode.Add ? Visibility.Hidden : Visibility.Visible;
-            stack_Status.IsEnabled = mode == AddMode.Change;
             switch (mode)
             {
                 case AddMode.Add:
-                    button_chg_reserve.Content = "予約";
-                    this.EnableDataChange = false;
+                    if (KeepWin == false)
+                    {
+                        button_chg_reserve.Visibility = Visibility.Collapsed;
+                        button_del_reserve.Visibility = Visibility.Collapsed;
+                    }
                     break;
                 case AddMode.Re_Add:
-                    button_chg_reserve.Content = "再予約";
+                    reserveInfo.ReserveID = 0;
                     checkBox_releaseAutoAdd.IsChecked = false;
                     text_Status.ItemsSource = null;
                     label_errStar.Content = null;
-                    //なお、削除ボタンはCanExeの判定でグレーアウトする。
-                    break;
-                case AddMode.Change:
-                    button_chg_reserve.Content = "変更";
+                    //変更及び削除ボタンはCanExeの判定でグレーアウトする。
                     break;
             }
         }
@@ -100,67 +140,76 @@ namespace EpgTimer
             stack_start.IsEnabled = resModeProgram;
             stack_end.IsEnabled = resModeProgram;
             recSettingView.SetViewMode(!resModeProgram);
+
+            CheckMultiReserve();
+        }
+        private void CheckMultiReserve()
+        {
+            if (initOpen == true) return;
+
+            bool setMode = false;
+            if (resModeProgram == false)
+            {
+                var resinfo = new ReserveData();
+                this.GetReserveTimeInfo(ref resinfo);
+                setMode = CommonManager.Instance.DB.ReserveList.Values.Any(rs => rs.IsEpgReserve && rs.IsSamePg(resinfo));
+            }
+            button_add_reserve.Content = setMode == true ? "重複追加" : "追加";
         }
 
-        public void SetReserveInfo(ReserveData info, int? epgInfoOpenMode = null)
+        protected override bool ReloadInfoData()
         {
+            CheckMultiReserve();
+            UpdateErrStatus();
+            return true;
+        }
+
+        public override void ChangeData(object data)
+        {
+            var info = data as ReserveData;
             if (info == null) return;
-            if (epgInfoOpenMode != null) openMode = epgInfoOpenMode == 1 ? 1 : 0;
-            addMode = AddMode.Change;
-            reserveInfo = info.Clone();
+
+            if (reserveInfo != info)
+            {
+                addMode = AddMode.Change;
+                reserveInfo = info.Clone();
+            }
             recSettingView.SetViewMode(!reserveInfo.IsManual);
             recSettingView.SetDefSetting(reserveInfo.RecSetting);
             checkBox_releaseAutoAdd.IsChecked = false;
             checkBox_releaseAutoAdd.IsEnabled = reserveInfo.IsAutoAdded;
-        }
-        public void ChangeReserveInfo(ReserveData info)
-        {
-            if (info == null) return;
-            SetReserveInfo(info);
-            UpdateWindow(true);
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            UpdateWindow();
-        }
-
-        private void UpdateWindow(bool noTabChange = false)
-        {
-            if (reserveInfo == null)
-            {
-                addMode = AddMode.Add;
-                openMode = 0;
-                reserveInfo = new ReserveData();
-                reserveInfo.StartTime = DateTime.UtcNow.AddHours(9).AddMinutes(1);
-                reserveInfo.StartTimeEpg = reserveInfo.StartTime;
-                reserveInfo.DurationSecond = 1800;
-                reserveInfo.EventID = 0xFFFF;
-            }
 
             SetAddMode(addMode);
             SetResModeProgram(reserveInfo.IsManual);
             SetReserveTimeInfo(reserveInfo);
-
-            //エラー状況の表示
-            text_Status.ItemsSource = null;
-
-            if (addMode != AddMode.Add)
-            {
-                var resItem = new ReserveItem(reserveInfo);
-                text_Status.ItemsSource = new string[] { resItem.CommentBase }.Concat(resItem.ErrComment.Select(s => "＊" + s));
-                text_Status.SelectedIndex = 0;
-                label_errStar.Content = text_Status.Items.Count > 1 ? string.Format("＊×{0}", text_Status.Items.Count - 1) : null;
-            }
 
             //番組詳細タブを初期化
             richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(null);
             eventInfoNow = null;
             resInfoDisplay = null;
 
-            int selectedTab = noTabChange == true ? tabControl.SelectedIndex : openMode;
             tabControl.SelectedIndex = -1;
             tabControl.SelectedIndex = selectedTab;
+
+            //エラー状況の表示など
+            CheckMultiReserve();
+            UpdateErrStatus();
+            UpdateViewSelection(0);
+            SetRecSettingTabHeader(false);
+        }
+        private void UpdateErrStatus()
+        {
+            text_Status.ItemsSource = null;
+
+            if (addMode != AddMode.Add)
+            {
+                ReserveData res; //一応重複チューナなどの確認のため、データベースを読みに行く
+                CommonManager.Instance.DB.ReserveList.TryGetValue(reserveInfo.ReserveID, out res);
+                var resItem = new ReserveItem(res ?? reserveInfo);
+                text_Status.ItemsSource = new string[] { resItem.CommentBase }.Concat(resItem.ErrComment.Select(s => "＊" + s));
+                text_Status.SelectedIndex = 0;
+                label_errStar.Content = text_Status.Items.Count > 1 ? string.Format("＊×{0}", text_Status.Items.Count - 1) : null;
+            }
         }
 
         private void SetReserveTimeInfo(ReserveData resInfo)
@@ -234,6 +283,22 @@ namespace EpgTimer
             return -1;
         }
 
+        //proc 0:追加、1:変更、2:削除
+        static string[] cmdMsg = new string[] { "追加", "変更", "削除" };
+        protected virtual bool CheckReserveChange(ExecutedRoutedEventArgs e, int proc)
+        {
+            if (CmdExeUtil.IsDisplayKgMessage(e) == true)
+            {
+                if (MessageBox.Show("予約を" + cmdMsg[proc] + "します。\r\nよろしいですか？", cmdMsg[proc] + "の確認", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+                { return false; }
+            }
+            if (proc != 0)
+            {
+                if (CheckExistReserveItem() == false)
+                { return false; }
+            }
+            return true;
+        }
         private bool CheckExistReserveItem()
         {
             bool retval = CommonManager.Instance.DB.ReserveList.ContainsKey(this.reserveInfo.ReserveID);
@@ -242,33 +307,18 @@ namespace EpgTimer
                 MessageBox.Show("項目がありません。\r\n" + "既に削除されています。", "データエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                 SetAddMode(AddMode.Re_Add);
+                CheckMultiReserve();
             }
             return retval;
         }
 
-        private void button_chg_reserve_Click(object sender, ExecutedRoutedEventArgs e)
+        private void reserve_add(object sender, ExecutedRoutedEventArgs e) { reserve_add_chg(e, 0); }
+        private void reserve_chg(object sender, ExecutedRoutedEventArgs e) { reserve_add_chg(e, 1); }
+        private void reserve_add_chg(ExecutedRoutedEventArgs e, int proc)
         {
             try
             {
-                if (CmdExeUtil.IsDisplayKgMessage(e) == true)
-                {
-                    bool change_proc = false;
-                    switch (addMode)
-                    {
-                        case AddMode.Add:
-                            change_proc = (MessageBox.Show("予約を追加します。\r\nよろしいですか？", "予約の確認", MessageBoxButton.OKCancel) == MessageBoxResult.OK);
-                            break;
-                        case AddMode.Re_Add:
-                            change_proc = (MessageBox.Show("この内容で再予約します。\r\nよろしいですか？", "再予約の確認", MessageBoxButton.OKCancel) == MessageBoxResult.OK);
-                            break;
-                        case AddMode.Change:
-                            change_proc = (MessageBox.Show("この予約を変更します。\r\nよろしいですか？", "変更の確認", MessageBoxButton.OKCancel) == MessageBoxResult.OK);
-                            break;
-                    }
-                    if (change_proc == false) return;
-                }
-
-                if (addMode == AddMode.Change && CheckExistReserveItem() == false) return;
+                if (CheckReserveChange(e, proc) == false) return;
 
                 var resInfo = reserveInfo.Clone();
 
@@ -298,7 +348,7 @@ namespace EpgTimer
                         resInfo.Comment = "";
                     }
                 }
-                if (addMode != AddMode.Change || checkBox_releaseAutoAdd.IsChecked == true)
+                if (proc != 1 || checkBox_releaseAutoAdd.IsChecked == true)
                 {
                     resInfo.Comment = "";
                 }
@@ -306,34 +356,56 @@ namespace EpgTimer
                 resInfo.RecSetting = recSettingView.GetRecSetting();
 
                 bool ret = false;
-                if (addMode == AddMode.Change)
+                HashSet<uint> oldset = null;
+                if (proc == 0)
+                {
+                    oldset = new HashSet<uint>(CommonManager.Instance.DB.ReserveList.Keys);
+                    ret = MenuUtil.ReserveAdd(CommonUtil.ToList(resInfo));
+                    StatusManager.StatusNotifySet(ret, "録画予約を追加");
+                }
+                else
                 {
                     ret = MenuUtil.ReserveChange(CommonUtil.ToList(resInfo));
                     StatusManager.StatusNotifySet(ret, "録画予約を変更");
                 }
-                else
+                if (ret == false) return;
+
+                if (KeepWin == false)
                 {
-                    ret = MenuUtil.ReserveAdd(CommonUtil.ToList(resInfo));
-                    StatusManager.StatusNotifySet(ret, "録画予約を追加");
+                    this.Close();
+                    return;
                 }
-                if (ret == true) this.Close();
+
+                if (proc == 0)
+                {
+                    var list = new List<ReserveData>();
+                    CommonManager.Instance.CtrlCmd.SendEnumReserve(ref list);
+                    var newlist = list.Where(rs => oldset.Contains(rs.ReserveID) == false).ToList();
+                    if (newlist.Count == 1)
+                    {
+                        ChangeData(newlist[0]);
+                    }
+                }
+                SetRecSettingTabHeader(false);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
-        private void button_del_reserve_Click(object sender, ExecutedRoutedEventArgs e)
+        private void reserve_del(object sender, ExecutedRoutedEventArgs e)
         {
-            if (CmdExeUtil.IsDisplayKgMessage(e) == true)
-            {
-                if (MessageBox.Show("この予約を削除します。\r\nよろしいですか？", "削除の確認", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
-                { return; }
-            }
-
-            if (CheckExistReserveItem() == false) return;
+            if (CheckReserveChange(e, 2) == false) return;
 
             bool ret = MenuUtil.ReserveDelete(CommonUtil.ToList(reserveInfo));
             StatusManager.StatusNotifySet(ret, "録画予約を削除");
+            if (ret == false) return;
 
-            this.Close();
+            if (KeepWin == false)
+            {
+                this.Close();
+                return;
+            }
+
+            SetAddMode(AddMode.Re_Add);
+            SetRecSettingTabHeader(false);
         }
 
         //一応大丈夫だが、クリックのたびに実行されないようにしておく。
@@ -389,6 +461,7 @@ namespace EpgTimer
             //ComboBoxのSelectionChangedにも反応するので。(WPFの仕様)
             if (sender != e.OriginalSource) return;
 
+            selectedTab = tabControl.SelectedIndex != -1 ? tabControl.SelectedIndex : selectedTab;
             if (tabItem_program.IsSelected)
             {
                 var resInfo = new ReserveData();
@@ -412,10 +485,99 @@ namespace EpgTimer
                 richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(eventInfo);
             }
         }
+
+        protected override DataItemViewBase DataView { get { return mainWindow.tunerReserveView.IsVisible == true ? mainWindow.tunerReserveView : base.DataView; } }
+        protected override UInt64 DataID { get { return reserveInfo == null ? 0 : reserveInfo.ReserveID; } }
+        protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return CommonManager.Instance.DB.ReserveList.OrderBy(d => d.Value.StartTimeActual).Select(d => new KeyValuePair<UInt64, object>(d.Key, d.Value)); } }
+
+        protected override void UpdateViewSelection(int mode = 0)
+        {
+            //番組表では「前へ」「次へ」の移動の時だけ追従させる。mode=2はアクティブ時の自動追尾
+            var style = JumpItemStyle.MoveTo | (mode < 2 ? JumpItemStyle.PanelNoScroll : JumpItemStyle.None);
+            if (DataView is ReserveView)
+            {
+                if (mode != 0) DataView.MoveToItem(DataID, style);
+            }
+            else if (DataView is TunerReserveMainView)
+            {
+                if (mode != 2) DataView.MoveToItem(DataID, style);
+            }
+            else if (DataView is EpgMainViewBase)
+            {
+                if (mode != 2) DataView.MoveToReserveItem(reserveInfo, style);
+            }
+            else if (DataView is EpgListMainView)
+            {
+                if (mode != 0 && mode != 2) DataView.MoveToReserveItem(reserveInfo, style);
+            }
+            else if (DataView is SearchWindow.AutoAddWinListView)
+            {
+                if (mode != 0) DataView.MoveToReserveItem(reserveInfo, style);
+            }
+        }
+        private void MoveViewReserveTarget()
+        {
+            //予約一覧以外では「前へ」「次へ」の移動の時に追従させる
+            if (DataView is EpgViewBase)
+            {
+                //BeginInvokeはフォーカス対応
+                mainWindow.epgView.SearchJumpTargetProgram(reserveInfo == null ? 0 : reserveInfo.Create64Key());
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    DataView.MoveToReserveItem(reserveInfo);
+                }), DispatcherPriority.Loaded);
+            }
+            else
+            {
+                UpdateViewSelection(3);
+            }
+        }
+        protected override void MoveViewNextItem(int direction)
+        {
+            object NewData = null;
+            if (DataView is EpgViewBase || DataView is SearchWindow.AutoAddWinListView)
+            {
+                NewData = DataView.MoveNextReserve(direction, DataID, true, JumpItemStyle.None);
+                if (NewData != null)
+                {
+                    ChangeData(NewData);
+                    return;
+                }
+            }
+            base.MoveViewNextItem(direction);
+        }
     }
     public class ChgReserveWindowBase : ReserveWindowBase<ChgReserveWindow> { }
     public class ReserveWindowBase<T> : AttendantDataWindow<T>
     {
-        protected override UserCtrlView.DataViewBase DataView { get { return ViewUtil.MainWindow.reserveView; } }
+        public ReserveWindowBase()
+        {
+            var win = Application.Current.Windows.OfType<SearchWindow>().FirstOrDefault(w => w.IsActive == true);
+            if (win != null) SearchWinHash = win.GetHashCode();
+        }
+        protected override DataItemViewBase DataView
+        {
+            get
+            {
+                DataItemViewBase view = mainWindow.epgView.ActiveView;
+                return view != null && view.IsVisible == true ? view : mainWindow.reserveView.IsVisible == true ? mainWindow.reserveView : DataViewSearch;
+            }
+        }
+        protected int SearchWinHash = 0;
+        protected DataItemViewBase DataViewSearch
+        {
+            get
+            {
+                if (SearchWinHash == 0) return null;
+                var win = Application.Current.Windows.OfType<SearchWindow>().FirstOrDefault(w => w.GetHashCode() == SearchWinHash);
+                if (win == null)
+                {
+                    SearchWinHash = 0;
+                    return null;
+                }
+                return win.IsVisible == true ? win.DataListView : null;
+            }
+
+        }
     }
 }

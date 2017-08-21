@@ -43,8 +43,8 @@ namespace EpgTimer.UserCtrlView
 
         public abstract class LVDMHelper
         {
-            public abstract uint GetID(object data);
-            public virtual bool SaveChange(Dictionary<uint, uint> changeIDTable) { return true; }
+            public abstract ulong GetID(object data);
+            public virtual bool SaveChange(Dictionary<ulong, ulong> changeIDTable) { return true; }
             public virtual bool RestoreOrder() { return true; }
             public virtual void StatusChanged() { }
             public virtual void ItemMoved() { }//アイテム動かなくてもステータス変更の場合がある
@@ -177,13 +177,13 @@ namespace EpgTimer.UserCtrlView
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
-        public Dictionary<uint, uint> GetChangeIDTable()
+        public Dictionary<ulong, ulong> GetChangeIDTable()
         {
-            List<uint> dataIdList = this.dataList.OfType<object>().Select(item => hlp.GetID(item)).ToList();
+            List<ulong> dataIdList = this.dataList.OfType<object>().Select(item => hlp.GetID(item)).ToList();
             dataIdList.Sort();//存在する(再利用可能な)IDリストを若い順(元の順)に並べたもの。
 
             //並び替えテーブル
-            var changeIDTable = new Dictionary<uint, uint>();
+            var changeIDTable = new Dictionary<ulong, ulong>();
             for (int i = 0; i < this.dataList.Count; i++)
             {
                 changeIDTable.Add(hlp.GetID(this.dataList[i]), dataIdList[i]);

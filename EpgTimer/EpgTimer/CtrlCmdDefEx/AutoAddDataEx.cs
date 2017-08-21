@@ -9,8 +9,8 @@ namespace EpgTimer
     {
         //IRecWorkMainData
         public abstract string DataTitle { get; set; }
+        public abstract ulong DataID { get; set; }
         //
-        public abstract uint DataID { get; set; }
         public abstract bool IsEnabled { get; set; }
         public abstract RecSettingData RecSettingInfo { get; }
         public virtual bool IsManual { get { return false; } }
@@ -101,7 +101,7 @@ namespace EpgTimer
     public partial class EpgAutoAddData : AutoAddData
     {
         public override string DataTitle { get { return searchInfo.andKey; } set { searchInfo.andKey = value; } }
-        public override uint DataID { get { return dataID; } set { dataID = value; } }
+        public override ulong DataID { get { return dataID; } set { dataID = (uint)value; } }
         public override bool IsEnabled { get { return searchInfo.keyDisabledFlag == 0; } set { searchInfo.keyDisabledFlag = (byte)(value == true ? 0 : 1); } }
         public override RecSettingData RecSettingInfo { get { return recSetting; } }
 
@@ -148,7 +148,7 @@ namespace EpgTimer
             return CommonManager.Create64Key(originalNetworkID, transportStreamID, serviceID);
         }
 
-        public override uint DataID { get { return dataID; } set { dataID = value; } }
+        public override ulong DataID { get { return dataID; } set { dataID = (uint)value; } }
         public override bool IsEnabled { get { return keyDisabledFlag == 0; } set { keyDisabledFlag = (byte)(value == true ? 0 : 1); } }
         public override RecSettingData RecSettingInfo { get { return recSetting; } }
         public override bool IsManual { get { return true; } }

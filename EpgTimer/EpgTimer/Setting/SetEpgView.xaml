@@ -586,6 +586,7 @@
                                     <TextBox Width="40" Name="textBox_LaterTimeHour" />
                                     <Label Content="時まで" />
                                 </StackPanel>
+                                <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" Name="checkBox_keepReserveWindow" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
                                 <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" Name="checkBox_useLastSearchKey" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
                                 <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
                                     <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" Name="checkBox_saveSearchKeyword" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>

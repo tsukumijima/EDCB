@@ -173,22 +173,37 @@ namespace EpgTimer
 
         //データ選択関係
         protected virtual UInt64 DataID { get { return 0; } }
-        protected virtual UserCtrlView.DataViewBase DataView { get { return null; } }
-        public static bool UpdatesViewSelection()
+        protected virtual IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return null; } }
+        private int selIdx = -1;
+        protected virtual DataItemViewBase DataView { get { return null; } }
+        public static bool UpdatesViewSelection(DataViewBase view, bool Reloaded)
         {
+            if (Reloaded == false) return false;
             foreach (var win in Application.Current.Windows.OfType<AttendantDataWindow<T>>())
             {
                 if (win.IsActive == true)
                 {
-                    win.UpdateViewSelection();
+                    win.UpdateViewSelection(1);
                     return true;
                 }
             }
             return false;
         }
-        protected virtual void UpdateViewSelection()
+        protected virtual void UpdateViewSelection(int mode = 0)
         {
-            if (DataView != null) DataView.SelectViewItem(DataID);
+            if (DataView != null && DataView.IsVisible == true) DataView.MoveToItem(DataID);
+        }
+        protected virtual void MoveViewNextItem(int direction)
+        {
+            object NewData = DataView == null ? null : DataView.MoveNextItem(direction, DataID, true, JumpItemStyle.None);
+            if (NewData == null)
+            {
+                IEnumerable<KeyValuePair<UInt64, object>> idList = DataRefList;
+                if (idList == null || idList.Any() == false) return;
+                var list = idList.ToList();
+                NewData = list[selIdx = ViewUtil.GetNextIdx(selIdx, list.FindIndex(d => d.Key == DataID), list.Count, direction)].Value;
+            }
+            ChangeData(NewData);
         }
 
         //データ入れ替え関係
@@ -210,13 +225,16 @@ namespace EpgTimer
                 this.LastUsed = Int32.MinValue;
             }
         }
-        public static Window GetDataReplaceWindow()
+        public static Window ChangeDataLastUsedWindow(object data)
         {
-            var wnds = Application.Current.Windows.OfType<AttendantDataWindow<T>>()
+            var win = Application.Current.Windows.OfType<AttendantDataWindow<T>>()
                 .Where(w => w.EnableDataChange == true && w.IsVisible == true && w.WindowState != WindowState.Minimized)
-                .OrderBy(w => w.LastUsed).ToList();
-            return wnds.Count == 0 ? null : wnds[0];
+                .OrderBy(w => w.LastUsed).FirstOrDefault() as AttendantDataWindow<T>;
+
+            if (win != null) win.ChangeData(data);
+            return win;
         }
+        public virtual void ChangeData(object data) { }
 
         //リロード関係
         protected bool ReloadInfoFlg = false;
@@ -245,7 +263,7 @@ namespace EpgTimer
         {
             ReloadInfo();
             OrderAdjust();
-            UpdateViewSelection();
+            UpdateViewSelection(2);
             base.OnActivated(e);
         }
     }

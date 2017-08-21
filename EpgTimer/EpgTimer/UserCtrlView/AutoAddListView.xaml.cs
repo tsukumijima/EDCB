@@ -13,7 +13,7 @@ namespace EpgTimer
     /// <summary>
     /// EpgAutoAddView.xaml の相互作用ロジック
     /// </summary>
-    public partial class AutoAddListView : DataViewBase
+    public partial class AutoAddListView : DataItemViewBase
     {
         public AutoAddListView()
         {
@@ -31,15 +31,15 @@ namespace EpgTimer
         protected ListViewController<S> lstCtrl;
         protected CmdExeAutoAdd<T> mc;
 
-        protected virtual void PostProcSaveOrder(Dictionary<uint, uint> changeIDTable) { }
+        protected virtual void PostProcSaveOrder(Dictionary<ulong, ulong> changeIDTable) { }
 
         //ドラッグ移動ビュー用の設定
         class lvDragData : ListBoxDragMoverView.LVDMHelper
         {
             private AutoAddViewBaseT<T, S> View;
             public lvDragData(AutoAddViewBaseT<T, S> view) { View = view; }
-            public override uint GetID(object data) { return (data as S).Data.DataID; }
-            public override bool SaveChange(Dictionary<uint, uint> changeIDTable)
+            public override ulong GetID(object data) { return (data as S).Data.DataID; }
+            public override bool SaveChange(Dictionary<ulong, ulong> changeIDTable)
             {
                 var newList = View.lstCtrl.dataList.Select(item => item.Data.CloneObj() as T).ToList();
                 newList.ForEach(item => item.DataID = changeIDTable[item.DataID]);
@@ -149,20 +149,14 @@ namespace EpgTimer
                 return true;
             });
         }
-        protected override void SelectViewItemData(UInt64 id)
-        {
-            ViewUtil.JumpToListItem(id, listView_key, false);
-        }
+
+        protected override ListBox DataListBox { get { return listView_key; } }
+
         protected override void UpdateStatusData(int mode = 0)
         {
             if (mode == 0) this.status[1] = ViewUtil.ConvertAutoAddStatus(lstCtrl.dataList, "自動予約登録数");
             List<S> sList = lstCtrl.GetSelectedItemsList();
             this.status[2] = sList.Count == 0 ? "" : ViewUtil.ConvertAutoAddStatus(sList, "　選択中");
-        }
-        protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            base.UserControl_IsVisibleChanged(sender, e);
-            if (this.IsVisible == true) ViewUtil.JumpToListItemTabChanged(listView_key);
         }
     }
 
@@ -178,11 +172,7 @@ namespace EpgTimer
             //初期化の続き
             base.InitAutoAddView();
         }
-        protected override void UpdateSelectViewItem()
-        {
-            SearchWindow.UpdatesViewSelection();
-        }
-        protected override void PostProcSaveOrder(Dictionary<uint, uint> changeIDTable)
+        protected override void PostProcSaveOrder(Dictionary<ulong, ulong> changeIDTable)
         {
             SearchWindow.UpdatesAutoAddViewOrderChanged(changeIDTable);
         }
@@ -205,11 +195,7 @@ namespace EpgTimer
             //初期化の続き
             base.InitAutoAddView();
         }
-        protected override void UpdateSelectViewItem()
-        {
-            AddManualAutoAddWindow.UpdatesViewSelection();
-        }
-        protected override void PostProcSaveOrder(Dictionary<uint, uint> changeIDTable)
+        protected override void PostProcSaveOrder(Dictionary<ulong, ulong> changeIDTable)
         {
             AddManualAutoAddWindow.UpdatesAutoAddViewOrderChanged(changeIDTable);
         }

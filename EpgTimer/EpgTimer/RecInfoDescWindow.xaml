@@ -1,7 +1,8 @@
-﻿<user:RecInfoDescWindowBase  x:Class="EpgTimer.RecInfoDescWindow"
+﻿<my:RecInfoDescWindowBase  x:Class="EpgTimer.RecInfoDescWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:user="clr-namespace:EpgTimer"
+        xmlns:my="clr-namespace:EpgTimer"
+        xmlns:user="clr-namespace:EpgTimer.UserCtrlView"
         Title="録画情報" Height="361" Width="557" >
     <Grid>
         <Grid.RowDefinitions>
@@ -9,18 +10,33 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <Button Content="再生" HorizontalAlignment="Left" Margin="12,12,0,6" Name="button_play" Width="75" />
-        <TabControl Grid.Row="1" >
-            <TabItem Header="番組情報" >
-                <TextBox Name="textBox_pgInfo" IsReadOnly="True" TextWrapping="Wrap" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" />
-            </TabItem>
-            <TabItem Header="エラーログ" >
-                <TextBox Name="textBox_errLog" IsReadOnly="True" FontFamily="MS Gothic" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
-            </TabItem>
-        </TabControl>
-        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" >
-            <CheckBox Content="このウィンドウにデータを開く" Margin="6" Name="checkBox_dataReplace" />
-            <CheckBox Content="メインウィンドウの前面に表示" Margin="6" Name="checkBox_windowPinned" />
+        <WrapPanel Margin="12,12,0,6">
+            <Button Content="再生" Name="button_play" Width="70" />
+            <Button Content="閉じる" Margin="15,0,0,0" Name="button_cancel" MinWidth="70" />
+            <Button Content="前へ" Margin="30,0,0,0" Name="button_up" MinWidth="56" />
+            <Button Content="次へ" Margin="10,0,0,0" Name="button_down" MinWidth="56" />
+            <Button Content="削除" Margin="30,0,0,0" Name="button_del" MinWidth="56" />
+            <Grid Margin="10,0,0,0" Background="LightSkyBlue" Name="grid_protect" ToolTip="" >
+                <CheckBox  Margin="5,0" IsChecked="{Binding Path=IsProtect}" Name="chk_key" Style="{StaticResource ProtectKey}" />
+            </Grid>
         </WrapPanel>
+        <Grid Grid.Row="1">
+            <TextBlock VerticalAlignment="Top" Name="label_Msg" Margin="130,3,0,0" Foreground="Blue" Text="※録画情報は既に削除されています" ToolTip="別ウィンドウによる操作などにより削除されました" />
+            <TabControl >
+                <TabItem Header="番組情報" >
+                    <TextBox Name="textBox_pgInfo" IsReadOnly="True" TextWrapping="Wrap" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" />
+                </TabItem>
+                <TabItem Header="エラーログ" >
+                    <TextBox Name="textBox_errLog" IsReadOnly="True" FontFamily="MS Gothic" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
+                </TabItem>
+            </TabControl>
+        </Grid>
+        <DockPanel Grid.Row="2" Margin="12,0,12,5" >
+            <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                <CheckBox Content="このウィンドウにデータを開く" Margin="6,0,0,0" Name="checkBox_dataReplace" />
+                <CheckBox Content="メインウィンドウの前面に表示" Margin="6,0,0,0" Name="checkBox_windowPinned" />
+            </WrapPanel>
+            <user:StatusView x:Name="statusBar" HorizontalAlignment="Left" VerticalAlignment="Center" />
+        </DockPanel>
     </Grid>
-</user:RecInfoDescWindowBase>
+</my:RecInfoDescWindowBase>

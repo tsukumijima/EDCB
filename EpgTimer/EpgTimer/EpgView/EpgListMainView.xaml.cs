@@ -20,6 +20,7 @@ namespace EpgTimer
 
         private ListViewController<SearchItem> lstCtrl;
         private List<ServiceViewItem> serviceList = new List<ServiceViewItem>();
+        protected override ListBox DataListBox { get { return listView_event; } }
 
         public EpgListMainView()
         {
@@ -168,21 +169,6 @@ namespace EpgTimer
             if (listView_event.SelectedItem == null) return;
             //
             richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText((listView_event.SelectedItem as SearchItem).EventInfo);
-        }
-
-        protected override void MoveToReserveItem(ReserveData target, bool IsMarking)
-        {
-            //プログラム予約だと見つからないので、それらしい番組へジャンプする。
-            MoveToItem(target.IsEpgReserve == true ? (IAutoAddTargetData)target : target.SearchEventInfoLikeThat(), IsMarking);
-        }
-        protected override void MoveToProgramItem(EpgEventInfo target, bool IsMarking)
-        {
-            MoveToItem(target, IsMarking);
-        }
-        protected void MoveToItem(IAutoAddTargetData target, bool IsMarking)
-        {
-            //過去番組表でイベントIDが重複している場合があるので開始時間も考慮する
-            ViewUtil.JumpToListItem(target == null ? 0 : target.CurrentPgUID(), listView_event, IsMarking);
         }
 
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)

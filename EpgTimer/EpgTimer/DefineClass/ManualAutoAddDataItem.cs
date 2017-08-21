@@ -11,7 +11,7 @@ namespace EpgTimer
         public ManualAutoAddDataItem() { }
         public ManualAutoAddDataItem(ManualAutoAddData item) : base(item) { }
 
-        public ManualAutoAddData ManualAutoAddInfo { get { return (ManualAutoAddData)_data; } set { _data = value; } }
+        public ManualAutoAddData ManualAutoAddInfo { get { return (ManualAutoAddData)Data; } set { Data = value; } }
         public override bool IsManual { get { return true; } }
 
         public String DayOfWeek

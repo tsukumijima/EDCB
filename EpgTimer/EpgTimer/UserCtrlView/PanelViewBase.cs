@@ -96,6 +96,7 @@ namespace EpgTimer.UserCtrlView
     {
         public delegate void PanelViewClickHandler(object sender, Point cursorPos);
         public event PanelViewClickHandler RightClick = null;
+        public event PanelViewClickHandler LeftClick = null;
         public event PanelViewClickHandler LeftDoubleClick = null;
         public event ScrollChangedEventHandler ScrollChanged = null;
 
@@ -400,13 +401,13 @@ namespace EpgTimer.UserCtrlView
                 isDrag = true;
                 isDragMoved = false;
 
+                if (e.ClickCount == 1)
+                {
+                    if (LeftClick != null) LeftClick(sender, Mouse.GetPosition(cnvs));
+                }
                 if (e.ClickCount == 2)
                 {
-                    Point cursorPos = Mouse.GetPosition(cnvs);
-                    if (LeftDoubleClick != null)
-                    {
-                        LeftDoubleClick(sender, cursorPos);
-                    }
+                    if (LeftDoubleClick != null) LeftDoubleClick(sender, Mouse.GetPosition(cnvs));
                 }
                 else if (PopOnClick == true)
                 {
@@ -425,11 +426,7 @@ namespace EpgTimer.UserCtrlView
                 {
                     if (IsSingleClickOpen == true)
                     {
-                        Point cursorPos = Mouse.GetPosition(cnvs);
-                        if (LeftDoubleClick != null)
-                        {
-                            LeftDoubleClick(sender, cursorPos);
-                        }
+                        if (LeftDoubleClick != null) LeftDoubleClick(sender, Mouse.GetPosition(cnvs));
                     }
                 }
                 isDragMoved = false;
@@ -469,18 +466,23 @@ namespace EpgTimer.UserCtrlView
             }
         }
 
-        public virtual void ScrollToFindItem(PanelItem target_item, bool IsMarking)
+        public virtual void ScrollToFindItem(PanelItem target_item, JumpItemStyle style = JumpItemStyle.None)
         {
             try
             {
-                //可能性低いが0では無さそう
                 if (target_item == null) return;
 
-                scroll.ScrollToHorizontalOffset(target_item.LeftPos - 100);
-                scroll.ScrollToVerticalOffset(target_item.TopPos - 100);
+                if ((style & JumpItemStyle.PanelNoScroll) == 0)
+                {
+                    scroll.ScrollToHorizontalOffset(target_item.LeftPos - 100);
+                    scroll.ScrollToVerticalOffset(target_item.TopPos - 100);
+                }
+
+                style &= ~JumpItemStyle.PanelNoScroll;
+                if (style == JumpItemStyle.None) return;
 
                 //マーキング要求のあるとき
-                if (IsMarking == true)
+                if (style == JumpItemStyle.JumpTo)
                 {
                     var rect = new Rectangle();
 
@@ -514,6 +516,43 @@ namespace EpgTimer.UserCtrlView
                         else if (--Brinks >= 0)
                         {
                             rect.Visibility = (Brinks % 2) == 0 ? Visibility.Visible : Visibility.Hidden;
+                        }
+                    };
+                    notifyTimer.Start();
+                }
+                else if (style == JumpItemStyle.MoveTo &&
+                    (Popup.Visibility != Visibility.Visible || target_item.IsPicked(Mouse.GetPosition(cnvs)) == false))
+                {
+                    var rect = new Rectangle();
+
+                    rect.Stroke = target_item is IViewPanelItem ? (target_item as IViewPanelItem).BorderBrush : Brushes.RoyalBlue;
+                    rect.StrokeThickness = 3;
+                    rect.Opacity = 2;
+                    rect.Fill = Brushes.Transparent;
+
+                    rect.Width = target_item.Width + 7;
+                    rect.Height = target_item.Height + 7;
+                    rect.IsHitTestVisible = false;
+
+                    Canvas.SetLeft(rect, target_item.LeftPos - 3);
+                    Canvas.SetTop(rect, target_item.TopPos - 3);
+                    Canvas.SetZIndex(rect, 20);
+
+                    // 一定時間枠を表示する
+                    var notifyTimer = new System.Windows.Threading.DispatcherTimer();
+                    notifyTimer.Interval = TimeSpan.FromSeconds(0.1);
+                    cnvs.Children.Add(rect);
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+                    notifyTimer.Tick += (sender, e) =>
+                    {
+                        if (sw.ElapsedMilliseconds > Settings.Instance.DisplayNotifyJumpTime * 1000 || rect.Opacity < 0.2)
+                        {
+                            notifyTimer.Stop();
+                            cnvs.Children.Remove(rect);
+                        }
+                        else
+                        {
+                            rect.Opacity *= 0.8;
                         }
                     };
                     notifyTimer.Start();

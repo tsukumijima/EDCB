@@ -16,7 +16,7 @@ namespace EpgTimer
         }
         protected override void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e)
         {
-            IsCommandExecuted = true == MenuUtil.OpenRecInfoDialog(dataList[0], this.Owner);
+            IsCommandExecuted = true == MenuUtil.OpenRecInfoDialog(dataList[0]);
         }
         protected override void mc_ProtectChange(object sender, ExecutedRoutedEventArgs e)
         {

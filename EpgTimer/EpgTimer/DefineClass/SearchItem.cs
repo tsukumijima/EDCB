@@ -23,6 +23,7 @@ namespace EpgTimer
         }
 
         public override ulong KeyID { get { return EventInfo == null ? 0 : EventInfo.CurrentPgUID(); } }
+        public override object DataObj { get { return EventInfo; } }
         public bool IsReserved { get { return (ReserveInfo != null); } }
         public override RecSettingData RecSettingInfo { get { return ReserveInfo != null ? ReserveInfo.RecSetting : null; } }
         public override bool IsManual { get { return ReserveInfo != null ? ReserveInfo.IsManual : false; } }

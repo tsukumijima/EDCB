@@ -604,6 +604,9 @@ namespace EpgTimer
             epgView.UpdateInfo();
             SearchWindow.UpdatesInfo();
             InfoSearchWindow.UpdatesInfo();
+            AddReserveEpgWindow.UpdatesInfo();
+            ChgReserveWindow.UpdatesInfo();
+            RecInfoDescWindow.UpdatesInfo();
             NotifyLogWindow.UpdatesInfo();
             return true;
         }
@@ -930,6 +933,8 @@ namespace EpgTimer
             if (mode != UpdateViewMode.ReserveInfoNoAutoAdd) autoAddView.UpdateInfo();
             epgView.UpdateReserveInfo();
             SearchWindow.UpdatesInfo(false);
+            AddReserveEpgWindow.UpdatesInfo();
+            ChgReserveWindow.UpdatesInfo();
             InfoSearchWindow.UpdatesInfo();
         }
         /*
@@ -1299,6 +1304,7 @@ namespace EpgTimer
                         epgView.UpdateInfo();
                         SearchWindow.UpdatesInfo();
                         InfoSearchWindow.UpdatesInfo();
+                        AddReserveEpgWindow.UpdatesInfo();
 
                         StatusManager.StatusNotifyAppend("EPGデータ更新 < ");
                         GC.Collect();
@@ -1322,6 +1328,7 @@ namespace EpgTimer
                         CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
                         recInfoView.UpdateInfo();
                         InfoSearchWindow.UpdatesInfo();
+                        RecInfoDescWindow.UpdatesInfo();
                         StatusManager.StatusNotifyAppend("録画済みデータ更新 < ");
                     }
                     break;

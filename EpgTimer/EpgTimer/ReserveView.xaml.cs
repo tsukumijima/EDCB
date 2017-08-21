@@ -6,17 +6,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-using EpgTimer.UserCtrlView;
-
 namespace EpgTimer
 {
     /// <summary>
     /// ReserveView.xaml の相互作用ロジック
     /// </summary>
-    public partial class ReserveView : DataViewBase
+    public partial class ReserveView : DataItemViewBase
     {
         private ListViewController<ReserveItem> lstCtrl;
         private CmdExeReserve mc; //予約系コマンド集
+        protected override ListBox DataListBox { get { return listView_reserve; } }
 
         public ReserveView()
         {
@@ -41,7 +40,7 @@ namespace EpgTimer
                 //最初にコマンド集の初期化
                 mc = new CmdExeReserve(this);
                 mc.SetFuncGetDataList(isAll => (isAll == true ? lstCtrl.dataList : lstCtrl.GetSelectedItemsList()).GetReserveList());
-                mc.SetFuncSelectSingleData((noChange) =>
+                mc.SetFuncSelectSingleData(noChange =>
                 {
                     var item = lstCtrl.SelectSingleItem(noChange);
                     return item == null ? null : item.ReserveInfo;
@@ -100,15 +99,6 @@ namespace EpgTimer
         public void SaveViewData()
         {
             lstCtrl.SaveViewDataToSettings();
-        }
-        protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            base.UserControl_IsVisibleChanged(sender, e);
-            if (this.IsVisible == true) ViewUtil.JumpToListItemTabChanged(listView_reserve);
-        }
-        protected override void SelectViewItemData(UInt64 id)
-        {
-            ViewUtil.JumpToListItem(id, listView_reserve, false);
         }
     }
 }

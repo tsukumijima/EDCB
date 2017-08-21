@@ -378,6 +378,16 @@ namespace EpgTimer
                 listView_recFolder.FitColumnWidth();
             }
         }
+
+        public string GetRecSettingHeaderString(bool SimpleChanged = true)
+        {
+            string preset_str = "";
+            if (Settings.Instance.DisplayPresetOnSearch == true)
+            {
+                preset_str = string.Format(" - {0}", this.SelectedPreset(!SimpleChanged).ToString());
+            }
+            return preset_str;
+        }
     }
 
     public class RecFileSetInfoView

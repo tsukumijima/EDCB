@@ -164,15 +164,15 @@ namespace EpgTimer
             return ((ComboItem)comboBox_service.Items[idx]).Key;
         }
 
-        protected override void MoveToReserveItem(ReserveData target, bool IsMarking)
+        public override void MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            ChangeViewService(target.Create64Key());
-            base.MoveToReserveItem(target, IsMarking);
+            if (target != null) ChangeViewService(target.Create64Key());
+            base.MoveToReserveItem(target, style);
         }
-        protected override void MoveToProgramItem(EpgEventInfo target, bool IsMarking)
+        public override void MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            ChangeViewService(target.Create64Key());
-            base.MoveToProgramItem(target, IsMarking);
+            if (target != null) ChangeViewService(target.Create64Key());
+            base.MoveToProgramItem(target, style);
         }
         protected void ChangeViewService(UInt64 id)
         {

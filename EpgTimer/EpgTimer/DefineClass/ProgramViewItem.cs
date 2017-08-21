@@ -29,6 +29,11 @@ namespace EpgTimer
         public PanelItem(T info) : base() { Data = info; }
     }
 
+    public interface IViewPanelItem
+    {
+        Brush BorderBrush { get; }
+    }
+
     public static class ViewPanelItemEx
     {
         public static List<T> GetHitDataList<T>(this IEnumerable<PanelItem<T>> list, Point cursorPos)
@@ -39,9 +44,13 @@ namespace EpgTimer
         {
             return list.Where(info => info != null).Select(info => info.Data).ToList();
         }
+        public static IEnumerable<PanelItem<T>> GetNearDataList<T>(this IEnumerable<PanelItem<T>> list, Point cursorPos)
+        {
+            return list.Where(info => info != null).OrderBy(info => Math.Abs(info.LeftPos + info.Width / 2 - cursorPos.X) + Math.Abs(info.TopPos + info.Height / 2 - cursorPos.Y));
+        }
     }
 
-    public class ProgramViewItem : PanelItem<EpgEventInfo>
+    public class ProgramViewItem : PanelItem<EpgEventInfo>, IViewPanelItem
     {
         public ProgramViewItem(EpgEventInfo info) : base(info) { }
         public EpgEventInfo EventInfo { get { return Data; } protected set { Data = value; } }

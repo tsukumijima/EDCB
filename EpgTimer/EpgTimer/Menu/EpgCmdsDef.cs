@@ -67,6 +67,8 @@ namespace EpgTimer
         public static RoutedUICommand UpItem { get; private set; }
         public static RoutedUICommand DownItem { get; private set; }
         public static RoutedUICommand BottomItem { get; private set; }
+        public static RoutedUICommand BackItem { get; private set; }
+        public static RoutedUICommand NextItem { get; private set; }
         public static RoutedUICommand SaveOrder { get; private set; }
         public static RoutedUICommand RestoreOrder { get; private set; }
         public static RoutedUICommand DragCancel { get; private set; }
