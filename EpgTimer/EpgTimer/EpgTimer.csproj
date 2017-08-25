@@ -87,7 +87,7 @@
     <Compile Include="AutoAddView.xaml.cs">
       <DependentUpon>AutoAddView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="BlackoutWindow.xaml.cs">
+    <Compile Include="UserCtrlView\BlackoutWindow.xaml.cs">
       <DependentUpon>BlackoutWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\BoxExchangeEditor.cs" />
@@ -113,7 +113,7 @@
     <Compile Include="Setting\SetPresetWindow.xaml.cs">
       <DependentUpon>SetPresetWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserCtrlView\AutoAddListView.xaml.cs">
+    <Compile Include="AutoAddListView.xaml.cs">
       <DependentUpon>AutoAddListView.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserCtrlView\AttendantWindow.cs" />
@@ -175,7 +175,7 @@
       <DependentUpon>SetOtherAppView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\TVTestCtrlClass.cs" />
-    <Compile Include="SuspendCheckWindow.xaml.cs">
+    <Compile Include="UserCtrlView\SuspendCheckWindow.xaml.cs">
       <DependentUpon>SuspendCheckWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="TunerReserveViewCtrl\TunerReserveMainView.xaml.cs">
@@ -205,10 +205,10 @@
     <Compile Include="EpgDataViewItem.xaml.cs">
       <DependentUpon>EpgDataViewItem.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserCtrlView\EpgDataViewSetting.xaml.cs">
+    <Compile Include="Setting\EpgDataViewSetting.xaml.cs">
       <DependentUpon>EpgDataViewSetting.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserCtrlView\EpgDataViewSettingWindow.xaml.cs">
+    <Compile Include="Setting\EpgDataViewSettingWindow.xaml.cs">
       <DependentUpon>EpgDataViewSettingWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="EpgView\EpgListMainView.xaml.cs">
@@ -248,7 +248,7 @@
     <Compile Include="SearchWindow.xaml.cs">
       <DependentUpon>SearchWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SettingWindow.xaml.cs">
+    <Compile Include="Setting\SettingWindow.xaml.cs">
       <DependentUpon>SettingWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Setting\SetEpgView.xaml.cs">
@@ -272,7 +272,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="BlackoutWindow.xaml">
+    <Page Include="UserCtrlView\BlackoutWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -296,7 +296,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UserCtrlView\AutoAddListView.xaml">
+    <Page Include="AutoAddListView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -316,7 +316,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SuspendCheckWindow.xaml">
+    <Page Include="UserCtrlView\SuspendCheckWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -348,11 +348,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UserCtrlView\EpgDataViewSetting.xaml">
+    <Page Include="Setting\EpgDataViewSetting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UserCtrlView\EpgDataViewSettingWindow.xaml">
+    <Page Include="Setting\EpgDataViewSettingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -457,7 +457,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SettingWindow.xaml">
+    <Page Include="Setting\SettingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -465,7 +465,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UserCtrlView\ReserveListViewStyles.xaml">
+    <Page Include="Style\ReserveListViewStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -473,7 +473,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UserCtrlView\UiLayoutStyles.xaml">
+    <Page Include="Style\UiLayoutStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -481,7 +481,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UserCtrlView\DataListViewStyles.xaml">
+    <Page Include="Style\DataListViewStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
