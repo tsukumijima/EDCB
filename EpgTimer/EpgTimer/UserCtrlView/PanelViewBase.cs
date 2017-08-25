@@ -96,7 +96,7 @@ namespace EpgTimer
     {
         public delegate void PanelViewClickHandler(object sender, Point cursorPos);
         public event PanelViewClickHandler RightClick = null;
-        public event PanelViewClickHandler LeftClick = null;
+        public event PanelViewClickHandler MouseClick = null;
         public event PanelViewClickHandler LeftDoubleClick = null;
         public event ScrollChangedEventHandler ScrollChanged = null;
 
@@ -403,7 +403,7 @@ namespace EpgTimer
 
                 if (e.ClickCount == 1)
                 {
-                    if (LeftClick != null) LeftClick(sender, Mouse.GetPosition(cnvs));
+                    if (MouseClick != null) MouseClick(sender, Mouse.GetPosition(cnvs));
                 }
                 if (e.ClickCount == 2)
                 {
@@ -444,10 +444,8 @@ namespace EpgTimer
             if (e.ClickCount == 1)
             {
                 Point cursorPos = Mouse.GetPosition(cnvs);
-                if (RightClick != null)
-                {
-                    RightClick(sender, cursorPos);
-                }
+                if (RightClick != null) RightClick(sender, cursorPos);
+                if (MouseClick != null) MouseClick(sender, cursorPos);
             }
         }
         protected virtual void canvas_MouseLeave(object sender, MouseEventArgs e)

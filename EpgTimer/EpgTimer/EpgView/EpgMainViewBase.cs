@@ -58,8 +58,8 @@ namespace EpgTimer.EpgView
             horizontalViewScroll = hv;
 
             programView.ScrollChanged += new ScrollChangedEventHandler(epgProgramView_ScrollChanged);
-            programView.LeftDoubleClick += new ProgramView.PanelViewClickHandler(epgProgramView_LeftDoubleClick);
-            programView.LeftClick += (sender, cursorPos) => jmpPos = cursorPos;
+            programView.LeftDoubleClick += (sender, cursorPos) => EpgCmds.ShowDialog.Execute(null, cmdMenu);
+            programView.MouseClick += (sender, cursorPos) => clickPos = cursorPos;
             programView.RightClick += new ProgramView.PanelViewClickHandler(epgProgramView_RightClick);
             
             nowViewTimer = new DispatcherTimer(DispatcherPriority.Normal);
@@ -163,13 +163,6 @@ namespace EpgTimer.EpgView
             programView.view_ScrollChanged(programView.scrollViewer, timeView.scrollViewer, horizontalViewScroll);
         }
 
-        /// <summary>左ボタンダブルクリックイベント呼び出し/summary>
-        protected void epgProgramView_LeftDoubleClick(object sender, Point cursorPos)
-        {
-            clickPos = cursorPos;
-            EpgCmds.ShowDialog.Execute(null, cmdMenu);
-        }
-        
         /// <summary>右ボタンクリック</summary>
         protected void button_erea_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -218,11 +211,10 @@ namespace EpgTimer.EpgView
             MoveToItem(target == null ? 0 : target.CurrentPgUID(), style);
         }
         
-        private Point? jmpPos = null;
         protected int resIdx = -1;
         public override object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            return ViewUtil.MoveNextReserve(ref resIdx, programView, reserveList, ref jmpPos, id, direction, move, style);
+            return ViewUtil.MoveNextReserve(ref resIdx, programView, reserveList, ref clickPos, id, direction, move, style);
         }
         
         /// <summary>表示位置を現在の時刻にスクロールする</summary>

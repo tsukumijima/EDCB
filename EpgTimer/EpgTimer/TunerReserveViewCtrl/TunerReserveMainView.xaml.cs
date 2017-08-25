@@ -25,8 +25,8 @@ namespace EpgTimer
             InitializeComponent();
 
             tunerReserveView.ScrollChanged += new ScrollChangedEventHandler(tunerReserveView_ScrollChanged);
-            tunerReserveView.LeftDoubleClick += new TunerReserveView.PanelViewClickHandler(tunerReserveView_LeftDoubleClick);
-            tunerReserveView.LeftClick += (sender, cursorPos) => jmpPos = cursorPos;
+            tunerReserveView.LeftDoubleClick += (sender, cursorPos) => EpgCmds.ShowDialog.Execute(null, cmdMenu);
+            tunerReserveView.MouseClick += (sender, cursorPos) => clickPos = cursorPos;
             tunerReserveView.RightClick += new TunerReserveView.PanelViewClickHandler(tunerReserveView_RightClick);
             button_now.Click += (sender, e) => tunerReserveView.scrollViewer.ScrollToVerticalOffset(0);
 
@@ -62,13 +62,6 @@ namespace EpgTimer
         void tunerReserveView_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             tunerReserveView.view_ScrollChanged(tunerReserveView.scrollViewer, tunerReserveTimeView.scrollViewer, tunerReserveNameView.scrollViewer);
-        }
-
-        /// <summary>左ボタンダブルクリックイベント呼び出し/summary>
-        void tunerReserveView_LeftDoubleClick(object sender, Point cursorPos)
-        {
-            clickPos = cursorPos;
-            EpgCmds.ShowDialog.Execute(null, cmdMenu);
         }
 
         /// <summary>右ボタンクリック</summary>
@@ -215,7 +208,6 @@ namespace EpgTimer
             BlackoutWindow.Clear();
         }
 
-        private Point? jmpPos = null;
         public override void MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             int idx = reserveList.FindIndex(item => item.ReserveInfo.ReserveID == id);
@@ -224,7 +216,7 @@ namespace EpgTimer
         }
         public override object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            return ViewUtil.MoveNextReserve(ref itemIdx, tunerReserveView, reserveList, ref jmpPos, id, direction, move, style);
+            return ViewUtil.MoveNextReserve(ref itemIdx, tunerReserveView, reserveList, ref clickPos, id, direction, move, style);
         }
         public override object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {

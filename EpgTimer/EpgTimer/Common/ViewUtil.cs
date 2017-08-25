@@ -249,19 +249,19 @@ namespace EpgTimer
         }
 
         //パネル系画面の移動用
-        public static object MoveNextReserve(ref int itemIdx, PanelViewBase view, IEnumerable<ReserveViewItem> reslist, ref Point? jmpPos,
+        public static object MoveNextReserve(ref int itemIdx, PanelViewBase view, IEnumerable<ReserveViewItem> reslist, ref Point jmpPos,
                                         UInt64 id, int direction, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            Point? pos = jmpPos;
-            jmpPos = null;
+            Point pos = jmpPos;
+            jmpPos = new Point(-1, -1);
             if (reslist.Any() == false) return null;
 
             List<ReserveViewItem> list = reslist.OrderBy(d => d.ReserveInfo.StartTimeActual).ToList();
             ReserveViewItem viewItem = null;
             int idx = id == 0 ? -1 : list.FindIndex(item => item.ReserveInfo.ReserveID == id);
-            if (idx == -1 && pos != null)
+            if (idx == -1 && pos.X >= 0)
             {
-                viewItem = list.GetNearDataList((Point)pos).First() as ReserveViewItem;
+                viewItem = list.GetNearDataList(pos).First() as ReserveViewItem;
                 idx = list.IndexOf(viewItem);
             }
             else
