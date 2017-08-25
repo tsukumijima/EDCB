@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Threading;
 
-namespace EpgTimer.UserCtrlView
+namespace EpgTimer
 {
     /// <summary>
     /// StatusView.xaml の相互作用ロジック

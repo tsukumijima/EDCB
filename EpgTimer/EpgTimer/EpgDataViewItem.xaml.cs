@@ -4,10 +4,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-using EpgTimer.EpgView;
-
 namespace EpgTimer
 {
+    using EpgView;
+
     /// <summary>
     /// EpgDataViewItem.xaml の相互作用ロジック
     /// </summary>

@@ -2,13 +2,12 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:EpgTimer"
-        xmlns:user="clr-namespace:EpgTimer.UserCtrlView"
         Title="予約情報検索" Height="600" Width="780" Loaded="Window_Loaded" >
 
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="UserCtrlView\ReserveListViewStyles.xaml"/>
+                <ResourceDictionary Source="Style\ReserveListViewStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -54,7 +53,7 @@
         </ListView>
         <DockPanel Grid.Row="2" Margin="0,6,0,0" >
             <CheckBox DockPanel.Dock="Right" Content="メインウィンドウの前面に表示" Margin="6,0,0,0" Name="checkBox_windowPinned" />
-            <user:StatusView x:Name="statusBar" />
+            <local:StatusView x:Name="statusBar" />
         </DockPanel>
     </Grid>
 </local:InfoSearchWindowBase>

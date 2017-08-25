@@ -5,7 +5,8 @@ using System.Windows.Controls;
 
 namespace EpgTimer
 {
-    using EpgTimer.Setting;
+    using Setting;
+
     /// <summary>
     /// SettingWindow.xaml の相互作用ロジック
     /// </summary>

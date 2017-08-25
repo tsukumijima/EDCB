@@ -4,8 +4,6 @@ using System.Windows.Input;
 
 namespace EpgTimer
 {
-    using UserCtrlView;
-
     static class StatusManager
     {
         private static RoutedCommand CmdGetStatusbar = new RoutedCommand();

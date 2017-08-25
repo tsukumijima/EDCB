@@ -9,7 +9,7 @@ namespace EpgTimer.TunerReserveViewCtrl
     /// <summary>
     /// TunerReserveView.xaml の相互作用ロジック
     /// </summary>
-    public partial class TunerReserveView : EpgTimer.UserCtrlView.PanelViewBase
+    public partial class TunerReserveView : PanelViewBase
     {
         protected override bool IsSingleClickOpen { get { return Settings.Instance.TunerInfoSingleClick; } }
         protected override double DragScroll { get { return Settings.Instance.TunerDragScroll; } }

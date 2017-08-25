@@ -7,8 +7,8 @@
         <!-- UiLayoutStylesはデザイン時用。最初のスタイル適用で一度上書きされる。 -->
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="UserCtrlView\UiLayoutStyles.xaml"/>
-                <ResourceDictionary Source="UserCtrlView\DataListViewStyles.xaml"/>
+                <ResourceDictionary Source="Style\UiLayoutStyles.xaml"/>
+                <ResourceDictionary Source="Style\DataListViewStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <local:BoolInverter x:Key="invert" />
             <local:BoolConverter x:Key="convert" />

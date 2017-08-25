@@ -1,8 +1,7 @@
-﻿<my:RecInfoDescWindowBase  x:Class="EpgTimer.RecInfoDescWindow"
+﻿<local:RecInfoDescWindowBase  x:Class="EpgTimer.RecInfoDescWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:my="clr-namespace:EpgTimer"
-        xmlns:user="clr-namespace:EpgTimer.UserCtrlView"
+        xmlns:local="clr-namespace:EpgTimer"
         Title="録画情報" Height="361" Width="557" >
     <Grid>
         <Grid.RowDefinitions>
@@ -36,7 +35,7 @@
                 <CheckBox Content="このウィンドウにデータを開く" Margin="6,0,0,0" Name="checkBox_dataReplace" />
                 <CheckBox Content="メインウィンドウの前面に表示" Margin="6,0,0,0" Name="checkBox_windowPinned" />
             </WrapPanel>
-            <user:StatusView x:Name="statusBar" HorizontalAlignment="Left" VerticalAlignment="Center" />
+            <local:StatusView x:Name="statusBar" HorizontalAlignment="Left" VerticalAlignment="Center" />
         </DockPanel>
     </Grid>
-</my:RecInfoDescWindowBase>
+</local:RecInfoDescWindowBase>

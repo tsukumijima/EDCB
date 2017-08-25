@@ -12,8 +12,7 @@ using System.Windows.Interop;
 namespace EpgTimer
 {
     using BoxExchangeEdit;
-    using UserCtrlView;
-
+ 
     public enum JumpItemStyle : ulong { None = 0, JumpTo = 1, MoveTo = 2, PanelNoScroll = 0x10000 }
 
     public static class ViewUtil

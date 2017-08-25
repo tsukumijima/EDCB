@@ -7,8 +7,6 @@ using System.Windows.Media;
 
 namespace EpgTimer.EpgView
 {
-    using EpgTimer.UserCtrlView;
-
     class EpgViewPanel : PanelBase
     {
         public List<ProgramViewItem> Items { get; set; }

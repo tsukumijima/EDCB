@@ -1,19 +1,18 @@
-﻿<my:DataItemViewBase x:Class="EpgTimer.AutoAddListView"
+﻿<local:DataItemViewBase x:Class="EpgTimer.AutoAddListView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             xmlns:my="clr-namespace:EpgTimer"
-             xmlns:local="clr-namespace:EpgTimer.UserCtrlView"
+             xmlns:local="clr-namespace:EpgTimer"
              d:DesignHeight="400" d:DesignWidth="300" IsVisibleChanged="UserControl_IsVisibleChanged">
 
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ReserveListViewStyles.xaml"/>
+                <ResourceDictionary Source="Style\ReserveListViewStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <my:GridViewColumnList x:Key="EpgAutoAddView">
+            <local:GridViewColumnList x:Key="EpgAutoAddView">
                 <GridViewColumn DisplayMemberBinding="{Binding Path=EventName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Andキーワード" Uid="EventName" />
@@ -39,8 +38,8 @@
                         <GridViewColumnHeader Content="登録対象数" Uid="AddCount" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-            </my:GridViewColumnList>
-            <my:GridViewColumnList x:Key="ManualAutoAddView">
+            </local:GridViewColumnList>
+            <local:GridViewColumnList x:Key="ManualAutoAddView">
                 <GridViewColumn DisplayMemberBinding="{Binding Path=EventName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="番組名" Uid="EventName"/>
@@ -66,8 +65,8 @@
                         <GridViewColumnHeader Content="曜日" Uid="DayOfWeek"/>
                     </GridViewColumn.Header>
                 </GridViewColumn>
-            </my:GridViewColumnList>
-            <my:GridViewColumnList x:Key="CommonColumns">
+            </local:GridViewColumnList>
+            <local:GridViewColumnList x:Key="CommonColumns">
                 <GridViewColumn DisplayMemberBinding="{Binding Path=SearchCount}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="検索数" Uid="SearchCount" />
@@ -118,7 +117,7 @@
                         <GridViewColumnHeader Content="サービス名" Uid="ServiceName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-            </my:GridViewColumnList>
+            </local:GridViewColumnList>
         </ResourceDictionary>
     </UserControl.Resources>
     <DockPanel>
@@ -135,4 +134,4 @@
             </ListView.View>
         </ListView>
     </DockPanel>
-</my:DataItemViewBase>
+</local:DataItemViewBase>

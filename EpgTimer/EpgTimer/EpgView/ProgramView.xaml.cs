@@ -11,7 +11,7 @@ namespace EpgTimer.EpgView
     /// <summary>
     /// ProgramView.xaml の相互作用ロジック
     /// </summary>
-    public partial class ProgramView : EpgTimer.UserCtrlView.PanelViewBase
+    public partial class ProgramView : PanelViewBase
     {
         protected override bool IsSingleClickOpen { get { return Settings.Instance.EpgInfoSingleClick; } }
         protected override double DragScroll { get { return Settings.Instance.DragScroll; } }

@@ -87,7 +87,7 @@ namespace EpgTimer
             }
 
             // レイアウト用のスタイルをロード
-            App.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/UserCtrlView/UiLayoutStyles.xaml") });
+            App.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Style/UiLayoutStyles.xaml") });
 
             mutex = new Mutex(false, CommonManager.Instance.NWMode ? "Global\\EpgTimer_BonNW_" + appName.ToUpper() : "Global\\EpgTimer_Bon2");
             if (!mutex.WaitOne(0, false))
@@ -357,7 +357,7 @@ namespace EpgTimer
             SetButtonsPanel(autoAddView.manualAutoAddView.stackPanel_button, Settings.Instance.IsVisibleAutoAddView, Settings.Instance.IsVisibleAutoAddViewMoveOnly == false);
 
             //面倒なのでここで処理
-            var SetDragMover = new Action<UserCtrlView.ListBoxDragMoverView>(dm =>
+            var SetDragMover = new Action<ListBoxDragMoverView>(dm =>
             {
                 dm.Margin = IsVertical ? new Thickness(0, 12, 0, 0) : dock == Dock.Top ? new Thickness(6, -2, 0, -5) : new Thickness(6, -6, 0, -1);
                 dm.groupOrder.Header = IsVertical ? dm.textBox_Header2.Text : null;

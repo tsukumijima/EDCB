@@ -9,7 +9,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.IO;
 
-namespace EpgTimer.UserCtrlView
+namespace EpgTimer
 {
     using BoxExchangeEdit;
 

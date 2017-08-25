@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
-namespace EpgTimer.UserCtrlView
+namespace EpgTimer
 {
     public class PanelBase : Panel
     {

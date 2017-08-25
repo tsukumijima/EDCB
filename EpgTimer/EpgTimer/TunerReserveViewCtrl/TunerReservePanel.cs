@@ -6,8 +6,6 @@ using System.Windows.Media;
 
 namespace EpgTimer.TunerReserveViewCtrl
 {
-    using EpgTimer.UserCtrlView;
-
     class TunerReservePanel : PanelBase
     {
         public List<TunerReserveViewItem> Items { get; set; }

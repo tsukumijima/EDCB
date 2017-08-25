@@ -5,11 +5,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-using EpgTimer.TunerReserveViewCtrl;
-using EpgTimer.UserCtrlView;
-
 namespace EpgTimer
 {
+    using TunerReserveViewCtrl;
+
     /// <summary>
     /// TunerReserveMainView.xaml の相互作用ロジック
     /// </summary>

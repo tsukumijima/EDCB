@@ -6,8 +6,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-using EpgTimer.UserCtrlView;
-
 namespace EpgTimer
 {
     /// <summary>
