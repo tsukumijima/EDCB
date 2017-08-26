@@ -667,5 +667,11 @@ namespace EpgTimer
                 FontSize = 12,
             };
         }
+
+        public static void TabControlHeaderCopy(TabControl src, TabControl trg)
+        {
+            trg.Items.Clear();
+            foreach (var tb in src.Items.OfType<TabItem>()) trg.Items.Add(new TabItem { Header = tb.Header as string ?? tb.Tag as string });
+        }
     }
 }

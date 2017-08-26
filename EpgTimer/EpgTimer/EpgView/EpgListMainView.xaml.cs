@@ -16,7 +16,21 @@ namespace EpgTimer
     public partial class EpgListMainView : EpgViewBase
     {
         private static int? lastActivateClass = null;
-        public override object GetViewState() { return GetSelectID(); }
+        protected class EpgViewStateList : EpgViewState
+        {
+            public HashSet<ulong> selectID = null;
+            public ListViewSelectedKeeper selectList = null;
+        }
+        public override EpgViewState GetViewState()
+        {
+            var ret = new EpgViewStateList();
+            ret.viewMode = viewMode;
+            ret.selectID = GetSelectID();
+            ret.selectList = new ListViewSelectedKeeper(null, false, item => (item as SearchItem).KeyID);
+            ret.selectList.StoreListViewSelected(listView_event);
+            return ret;
+        }
+        protected EpgViewStateList RestoreState { get { return restoreState as EpgViewStateList ?? new EpgViewStateList(); } }
 
         private ListViewController<SearchItem> lstCtrl;
         private List<ServiceViewItem> serviceList = new List<ServiceViewItem>();
@@ -59,13 +73,10 @@ namespace EpgTimer
 
             //その他の設定
             SelectableItem.Set_CheckBox_PreviewChanged(listBox_service, listBox_service_Click_SelectChange);
-
-            //メニューの作成、ショートカットの登録
-            RefreshMenu();
         }
-        public override void RefreshMenu()
+        protected override void RefreshMenuInfo()
         {
-            base.RefreshMenu();
+            base.RefreshMenuInfo();
             mBinds.ResetInputBindings(this, listView_event);
             mm.CtxmGenerateContextMenu(listView_event.ContextMenu, CtxmCode.EpgView, true);
         }
@@ -89,7 +100,7 @@ namespace EpgTimer
             try
             {
                 //表示していたサービスの保存
-                var lastSID = (restoreData as HashSet<UInt64>) ?? GetSelectID();
+                var lastSID = RestoreState.selectID ?? GetSelectID();
 
                 listBox_service.ItemsSource = null;
 
@@ -114,10 +125,12 @@ namespace EpgTimer
                 foreach (var list in serviceEventList.Zip(serviceList, (f, s) => new { f, s })
                                             .Where(d => d.s.IsSelected == true).Select(d => d.f.eventList))
                 {
-                    dataList.AddRange(list.Where(e => e.IsGroupMainEvent == true).ToSearchList(setViewInfo.FilterEnded));
+                    dataList.AddRange(list.Where(e => e.IsGroupMainEvent == true).ToSearchList(viewInfo.FilterEnded));
                 }
                 return true;
             });
+
+            if (RestoreState.selectList != null) RestoreState.selectList.RestoreListViewSelected(listView_event);
 
             if (scroll == true)
             {

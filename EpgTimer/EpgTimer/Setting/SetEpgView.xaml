@@ -106,11 +106,11 @@
                                     <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_descToolTip, UpdateSourceTrigger=PropertyChanged}" >
                                         <CheckBox Content="番組名を表示しきれない物のみ表示する" Margin="0,6,0,0" Name="checkBox_toolTip_noView_only" />
                                         <WrapPanel>
-                                            <Label Content="ツールチップを表示するまでの時間(ミリ秒)" />
-                                            <TextBox Width="55" Margin="12,0,0,0" Name="textBox_toolTipWait" />
+                                            <Label Content="ツールチップを表示するまでの時間(ミリ秒) " />
+                                            <TextBox Width="55" Name="textBox_toolTipWait" />
                                         </WrapPanel>
                                     </StackPanel>
-                                    <Label Content="番組内容を詳しく表示する" />
+                                    <Label Content="番組内容を詳しく表示する" Margin="0,0,0,-4"/>
                                     <WrapPanel Margin="20,0,0,0" >
                                         <CheckBox Content="番組表" Margin="0,6,12,0" Name="checkBox_epg_ExtInfo_table" />
                                         <CheckBox Content="ポップアップ" Margin="0,6,12,0" Name="checkBox_epg_ExtInfo_popup" />
@@ -291,13 +291,17 @@
                 </TabItem>
                 <TabItem Header="表示項目" Name="tabEpgTab">
                     <DockPanel Margin="6">
-                        <StackPanel DockPanel.Dock="Top">
-                            <RadioButton Content="デフォルト表示" Name="radioButton_1_def" />
-                            <RadioButton Content="カスタマイズ表示" Name="radioButton_1_cust" Margin="0,6,0,0" />
+                        <StackPanel DockPanel.Dock="Bottom" >
+                            <CheckBox Margin="0,4,0,0" Content="表示項目タブのコンテキストメニューで、「表示」に切り替えたタブへ移動する" Name="checkBox_EpgTabMoveCheckEnabled" />
                         </StackPanel>
-                        <GroupBox Header="カスタマイズ表示の設定" Margin="0,6,0,0" >
-                            <DockPanel Margin="6" >
-                                <CheckBox DockPanel.Dock="Bottom" Margin="0,6,0,0" Content="番組表タブのコンテキストメニューで、表示に切り替えたタブへ移動する" Name="checkBox_EpgTabMoveCheckEnabled" />
+                        <GroupBox Margin="0,18,0,0">
+                            <GroupBox.Header>
+                                <StackPanel Margin="2,-18,0,0" >
+                                    <RadioButton Content="デフォルト表示" Name="radioButton_1_def" />
+                                    <RadioButton Content="カスタマイズ表示" Name="radioButton_1_cust" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </GroupBox.Header>
+                            <DockPanel Margin="6" IsEnabled="{Binding Path=IsChecked, ElementName=radioButton_1_cust, UpdateSourceTrigger=PropertyChanged}">
                                 <StackPanel DockPanel.Dock="Right" Margin="12,0,0,0">
                                     <StackPanel.Resources>
                                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

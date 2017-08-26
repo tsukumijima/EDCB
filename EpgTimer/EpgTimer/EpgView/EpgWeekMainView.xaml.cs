@@ -14,10 +14,12 @@ namespace EpgTimer
     /// </summary>
     public partial class EpgWeekMainView : EpgMainViewBase
     {
+        protected override bool viewCustNeedTimeOnly { get { return viewInfo.NeedTimeOnlyWeek; } }
         private List<DateTime> dayList = new List<DateTime>();
 
-        //class RestoreDateとか用意するところだけど、今回はこれだけなので手抜き
-        public override object GetViewState() { return GetSelectID(); }
+        protected class EpgViewStateWeek : EpgViewState { public ulong? selectID = null; }
+        public override EpgViewState GetViewState() { return new EpgViewStateWeek { viewMode = viewMode, selectID = GetSelectID() }; }
+        protected EpgViewStateWeek RestoreState { get { return restoreState as EpgViewStateWeek ?? new EpgViewStateWeek(); } }
 
         public EpgWeekMainView()
         {
@@ -30,20 +32,14 @@ namespace EpgTimer
             mBinds.SetCommandToButton(button_go_Main, EpgCmds.ViewChgMode, 0);
         }
 
-        public override void SetViewMode(CustomEpgTabInfo setInfo)
-        {
-            this.viewCustNeedTimeOnly = setInfo.NeedTimeOnlyWeek;
-            base.SetViewMode(setInfo);
-        }
-
         //週間番組表での時刻表現用のメソッド。
         protected override DateTime GetViewTime(DateTime time)
         {
-            return new DateTime(2001, 1, time.Hour >= setViewInfo.StartTimeWeek ? 1 : 2).Add(time.TimeOfDay);
+            return new DateTime(2001, 1, time.Hour >= viewInfo.StartTimeWeek ? 1 : 2).Add(time.TimeOfDay);
         }
         private DateTime GetViewDay(DateTime time)
         {
-            return time.AddHours(-setViewInfo.StartTimeWeek).Date;
+            return time.AddHours(-viewInfo.StartTimeWeek).Date;
         }
 
         /// <summary>予約情報の再描画</summary>
@@ -81,7 +77,7 @@ namespace EpgTimer
             try
             {
                 //表示していたサービスがあれば維持
-                ulong selectID = (restoreData as ulong?) ?? GetSelectID();
+                ulong selectID = RestoreState.selectID ?? GetSelectID();
                 comboBox_service.ItemsSource = serviceEventList.Select(item => new ComboItem(item.serviceInfo.Create64Key(), item.serviceInfo.service_name));
                 comboBox_service.SelectedIndex = Math.Max(0, serviceEventList.FindIndex(info => info.serviceInfo.Create64Key() == selectID));
 
@@ -129,7 +125,7 @@ namespace EpgTimer
                 //縦位置の設定
                 if (viewCustNeedTimeOnly == false)
                 {
-                    ViewUtil.AddTimeList(timeList, new DateTime(2001, 1, 1, setViewInfo.StartTimeWeek, 0, 0), 86400);
+                    ViewUtil.AddTimeList(timeList, new DateTime(2001, 1, 1, viewInfo.StartTimeWeek, 0, 0), 86400);
                 }
                 SetProgramViewItemVertical();
 

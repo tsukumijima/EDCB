@@ -54,6 +54,7 @@ namespace EpgTimer
 
         public static List<CustomEpgTabInfo> Clone(IEnumerable<CustomEpgTabInfo> src) { return CopyObj.Clone(src, CopyData); }
         public CustomEpgTabInfo Clone() { return CopyObj.Clone(this, CopyData); }
+        public void CopyTo(CustomEpgTabInfo dest) { CopyObj.CopyTo(this, dest, CopyData); }
         protected static void CopyData(CustomEpgTabInfo src, CustomEpgTabInfo dest)
         {
             dest.TabName = src.TabName;

@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              xmlns:local="clr-namespace:EpgTimer"
              xmlns:epgview="clr-namespace:EpgTimer.EpgView"
-             d:DesignHeight="300" d:DesignWidth="300" xmlns:my="clr-namespace:EpgTimer.TunerReserveViewCtrl" IsVisibleChanged="UserControl_IsVisibleChanged">
+             d:DesignHeight="300" d:DesignWidth="300" xmlns:my="clr-namespace:EpgTimer.TunerReserveViewCtrl" IsVisibleChanged="UserControl_IsVisibleChanged" SnapsToDevicePixels="True">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />

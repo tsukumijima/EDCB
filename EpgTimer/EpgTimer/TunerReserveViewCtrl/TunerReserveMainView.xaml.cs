@@ -40,9 +40,8 @@ namespace EpgTimer
             //コマンド集からコマンドを登録
             mc.ResetCommandBindings(this, cmdMenu);
 
-            //メニューの作成、ショートカットの登録
+            //予約をたどるショートカットの登録。こちらはコマンドで問題無いが、番組表側と揃えておく。
             this.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, this);
-            //RefreshMenu();
         }
         public void RefreshMenu()
         {

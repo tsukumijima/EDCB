@@ -13,6 +13,8 @@ namespace EpgTimer
     /// </summary>
     public partial class EpgMainView : EpgMainViewBase
     {
+        public override EpgViewState GetViewState() { return new EpgViewState { viewMode = viewMode }; }
+
         public EpgMainView()
         {
             InitializeComponent();
@@ -21,12 +23,6 @@ namespace EpgTimer
             dateView.TimeButtonClick += new RoutedEventHandler(epgDateView_TimeButtonClick);
 
             base.InitCommand();
-        }
-
-        public override void SetViewMode(CustomEpgTabInfo setInfo)
-        {
-            this.viewCustNeedTimeOnly = setInfo.NeedTimeOnlyBasic;
-            base.SetViewMode(setInfo);
         }
 
         /// <summary>表示位置変更</summary>

@@ -16,20 +16,21 @@ namespace EpgTimer
         //一応選択数の上限を設定しておく。
         public uint MaxRestoreNum = 100;
 
-        public ListBox listBox = null;
+        public ListBox lb = null;
         public List<ulong> oldItems = null;
         public bool allSelected = false;
         protected Func<object, ulong> getKey;
 
-        public ListViewSelectedKeeper(ListBox list, bool DoStoringNow = false, Func<object, ulong> _key = null)
+        public ListViewSelectedKeeper(ListBox listBox = null, bool DoStoringNow = false, Func<object, ulong> _key = null)
         {
-            listBox = list;
+            lb = listBox;
             getKey = _key ?? (info => (ulong)info.GetHashCode());
             if (DoStoringNow) StoreListViewSelected();
         }
 
-        public void StoreListViewSelected()
+        public void StoreListViewSelected(ListBox listBox = null)
         {
+            listBox = listBox ?? lb;
             if (listBox != null && listBox.SelectedItem != null)
             {
                 oldItems = listBox.SelectedItems.OfType<object>().Select(data => getKey(data)).ToList();
@@ -37,11 +38,11 @@ namespace EpgTimer
             }
         }
 
-        public void RestoreListViewSelected(ListBox list = null)
+        public void RestoreListViewSelected(ListBox listBox = null)
         {
             try
             {
-                if (list != null) listBox = list;
+                listBox = listBox ?? lb;
                 if (listBox != null && listBox.Items.Count != 0 && oldItems != null && oldItems.Count > 0)
                 {
                     if (this.allSelected == true)

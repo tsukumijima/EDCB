@@ -11,23 +11,27 @@ TextOptions.TextFormattingMode="Display"
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <WrapPanel Name="stackPanel_button" />
-        <TabControl Name="tabControl_main" Grid.Row="1">
-            <TabItem Header="予約一覧" Name="tabItem_reserve">
-                <local:ReserveView x:Name="reserveView" />
-            </TabItem>
-            <TabItem Header="使用予定チューナー" Name="tabItem_tunerReserve">
-                <local:TunerReserveMainView x:Name="tunerReserveView" />
-            </TabItem>
-            <TabItem Header="録画済み一覧" Name="tabItem_recinfo">
-                <local:RecInfoView x:Name="recInfoView" />
-            </TabItem>
-            <TabItem Header="自動予約登録" Name="tabItem_AutoAdd">
-                <local:AutoAddView x:Name="autoAddView" />
-            </TabItem>
-            <TabItem Header="番組表" Name="tabItem_epg">
-                <local:EpgDataView x:Name="epgView" />
-            </TabItem>
-        </TabControl>
+        <Grid Grid.Row="1">
+            <TabControl Name="tabControl_main">
+                <TabItem Header="予約一覧" Name="tabItem_reserve">
+                    <local:ReserveView x:Name="reserveView" />
+                </TabItem>
+                <TabItem Header="使用予定チューナー" Name="tabItem_tunerReserve">
+                    <local:TunerReserveMainView x:Name="tunerReserveView" />
+                </TabItem>
+                <TabItem Header="録画済み一覧" Name="tabItem_recinfo">
+                    <local:RecInfoView x:Name="recInfoView" />
+                </TabItem>
+                <TabItem Header="自動予約登録" Name="tabItem_AutoAdd">
+                    <local:AutoAddView x:Name="autoAddView" />
+                </TabItem>
+                <TabItem Header="番組表" Name="tabItem_epg" />
+            </TabControl>
+            <DockPanel>
+                <TabControl Name="tabEpgDummy" DockPanel.Dock="Top" Visibility="Hidden" />
+                <local:EpgDataView x:Name="epgView" Margin="5,-5,5,5" Visibility="Collapsed" />
+            </DockPanel>
+        </Grid>
         <local:StatusView Grid.Row="2" x:Name="statusBar" Margin="3" />
     </Grid>
 </Window>

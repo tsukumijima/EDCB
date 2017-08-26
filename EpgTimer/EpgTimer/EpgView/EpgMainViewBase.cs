@@ -12,7 +12,6 @@ namespace EpgTimer.EpgView
 {
     public class EpgMainViewBase : EpgViewBase
     {
-        protected bool viewCustNeedTimeOnly = false;
         protected Dictionary<UInt64, ProgramViewItem> programList = new Dictionary<UInt64, ProgramViewItem>();
         protected List<ReserveViewItem> reserveList = new List<ReserveViewItem>();
         protected List<DateTime> timeList = new List<DateTime>();
@@ -40,13 +39,10 @@ namespace EpgTimer.EpgView
 
             //コマンド集からコマンドを登録
             mc.ResetCommandBindings(this, cmdMenu);
-
-            //メニューの作成、ショートカットの登録
-            RefreshMenu();
         }
-        public override void RefreshMenu()
+        protected override void RefreshMenuInfo()
         {
-            base.RefreshMenu();
+            base.RefreshMenuInfo();
             mBinds.ResetInputBindings(this);
             mm.CtxmGenerateContextMenu(cmdMenu, CtxmCode.EpgView, false);
         }
@@ -174,7 +170,7 @@ namespace EpgTimer.EpgView
             {
                 //右クリック表示メニューの作成
                 clickPos = cursorPos;
-                cmdMenu.Tag = setViewInfo.ViewMode;     //Viewの情報を与えておく
+                cmdMenu.Tag = viewMode;     //Viewの情報を与えておく
                 mc.SupportContextMenuLoading(cmdMenu, null);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

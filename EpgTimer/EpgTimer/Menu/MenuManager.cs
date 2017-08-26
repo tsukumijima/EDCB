@@ -547,10 +547,7 @@ namespace EpgTimer
                 ctxm.Name = code.ToString();
                 CtxmConvertToMenuItems(data.Items, ctxm.Items, code, shortcutTextforListType);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
         private void CtxmConvertToMenuItems(List<CtxmItemData> src, ItemCollection dest, CtxmCode code, bool shortcutTextforListType)
         {
@@ -578,7 +575,7 @@ namespace EpgTimer
                         }
                     }
                     menu.CommandParameter = new EpgCmdParam(typeof(MenuItem), code, data.ID);
-                    CtxmConvertToMenuItems(data.Items, menu.Items, code, shortcutTextforListType);
+                    if (data.Items.Count != 0) CtxmConvertToMenuItems(data.Items, menu.Items, code, shortcutTextforListType);
                     item = menu;
                 }
                 item.Tag = data.Command;

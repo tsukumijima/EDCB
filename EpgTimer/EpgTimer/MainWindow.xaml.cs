@@ -241,6 +241,12 @@ namespace EpgTimer
 
                 ResetMainView();
 
+                //番組表タブをタブ切り替えではなく非表示で切り替え、表示用の番組表ストックを維持する
+                this.tabControl_main.SelectionChanged += (sender, e) =>
+                {
+                    epgView.Visibility = tabItem_epg.IsSelected == true ? Visibility.Visible : Visibility.Collapsed;
+                };
+
                 //初期タブ選択
                 switch (Settings.Instance.StartTab)
                 {
@@ -427,6 +433,9 @@ namespace EpgTimer
             }
             EmphasizeButton(SearchWindow.HasHideWindow, "検索");
             EmphasizeButton(InfoSearchWindow.HasHideWindow, "予約情報検索");
+
+            //EPGビューの高さ調整用
+            ViewUtil.TabControlHeaderCopy(tabControl_main, tabEpgDummy);
         }
 
         TabItem TabButtonAdd(string id)
@@ -1309,7 +1318,7 @@ namespace EpgTimer
                         AddReserveEpgWindow.UpdatesInfo();
 
                         StatusManager.StatusNotifyAppend("EPGデータ更新 < ");
-                        GC.Collect();
+                        Dispatcher.BeginInvoke(new Action(() => GC.Collect()), DispatcherPriority.Input);
                     }
                     break;
                 case UpdateNotifyItem.ReserveInfo:
@@ -1554,6 +1563,7 @@ namespace EpgTimer
                         ti.Opacity = 1;
                     }
                 }
+                ViewUtil.TabControlHeaderCopy(tabControl_main, tabEpgDummy);
             }
         }
 

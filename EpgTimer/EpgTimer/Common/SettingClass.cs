@@ -284,7 +284,6 @@ namespace EpgTimer
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
-        public bool EpgTabMoveCheckEnabled { get; set; }
         public double MinHeight { get; set; }
         public double MinimumHeight { get; set; }
         public double ServiceWidth { get; set; }
@@ -356,6 +355,7 @@ namespace EpgTimer
         public bool EpgLoadArcInfo { get; set; }
         public bool EpgNoDisplayOld { get; set; }
         public double EpgNoDisplayOldDays { get; set; }
+        public bool EpgTabMoveCheckEnabled { get; set; }
         public string ResColumnHead { get; set; }
         public ListSortDirection ResSortDirection { get; set; }
         public WindowSettingData WndSettings { get; set; }
@@ -544,7 +544,6 @@ namespace EpgTimer
             
             UseCustomEpgView = false;
             CustomEpgTabList = new List<CustomEpgTabInfo>();
-            EpgTabMoveCheckEnabled = true;
             MinHeight = 2;
             MinimumHeight = 0;
             ServiceWidth = 150;
@@ -603,6 +602,7 @@ namespace EpgTimer
             EpgLoadArcInfo = false;
             EpgNoDisplayOld = false;
             EpgNoDisplayOldDays = 1;
+            EpgTabMoveCheckEnabled = true;
             ResColumnHead = "";
             ResSortDirection = ListSortDirection.Ascending;
             WndSettings = new WindowSettingData();

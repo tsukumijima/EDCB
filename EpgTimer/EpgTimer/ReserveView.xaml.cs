@@ -64,9 +64,6 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_add_manual, EpgCmds.ShowAddDialog);
                 mBinds.SetCommandToButton(button_timeShiftPlay, EpgCmds.Play);
 
-                //メニューの作成、ショートカットの登録
-                //RefreshMenu();
-
                 //コンテキストメニューを開く時の設定
                 listView_reserve.ContextMenu.Opened += new RoutedEventHandler(mc.SupportContextMenuLoading);
             }
