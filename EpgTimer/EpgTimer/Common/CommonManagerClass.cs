@@ -12,6 +12,7 @@ using System.Collections;
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Windows.Interop;
 
 namespace EpgTimer
 {
@@ -1460,6 +1461,12 @@ namespace EpgTimer
                     file.WriteLine(new NotifySrvInfoItem(notifyInfo));
                 }
             }
+        }
+
+        public static void ShowPlugInSetting(string pName, string pFolder, Visual vis)
+        {
+            string dllPath = System.IO.Path.Combine(SettingPath.ModulePath, pFolder ?? "", pName ?? "");
+            CommonUtil.ShowPlugInSetting(dllPath, ((HwndSource)HwndSource.FromVisual(vis)).Handle);
         }
 
         public static List<string> GetBonFileList()

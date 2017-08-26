@@ -473,7 +473,7 @@ namespace EpgTimer.Setting
 
         private void button_recname_Click(object sender, RoutedEventArgs e)
         {
-            ViewUtil.RecNamePlugInSet(comboBox_recname.SelectedItem as string, this);
+            CommonManager.ShowPlugInSetting(comboBox_recname.SelectedItem as string, "RecName", this);
         }
 
         private void drag_drop(object sender, DragEventArgs e, Button add, Button ins)

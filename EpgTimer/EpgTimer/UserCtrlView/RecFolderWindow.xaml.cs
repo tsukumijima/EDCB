@@ -67,13 +67,13 @@ namespace EpgTimer
 
         private void button_write_Click(object sender, RoutedEventArgs e)
         {
-            ViewUtil.WritePlugInSet(comboBox_writePlugIn.SelectedItem as string, this);
+            CommonManager.ShowPlugInSetting(comboBox_writePlugIn.SelectedItem as string, "Write", this);
         }
 
         private void button_recName_Click(object sender, RoutedEventArgs e)
         {
             if (comboBox_recNamePlugIn.SelectedIndex <= 0) return;
-            ViewUtil.RecNamePlugInSet(comboBox_recNamePlugIn.SelectedItem as string, this);
+            CommonManager.ShowPlugInSetting(comboBox_recNamePlugIn.SelectedItem as string, "RecName", this);
         }
     }
 }
