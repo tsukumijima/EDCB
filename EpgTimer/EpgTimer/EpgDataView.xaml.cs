@@ -18,16 +18,17 @@ namespace EpgTimer
         private IEnumerable<EpgTabItem> Tabs { get { return tabControl.Items.OfType<EpgTabItem>(); } }
         private List<CustomEpgTabInfo> tabInfo = new List<CustomEpgTabInfo>();//Settingデータの参照を保持
         CustomEpgTabInfo get_tabInfo(string Uid) { return tabInfo.Find(ti => ti.Uid == Uid); }
+        ContextMenu ctxm = new ContextMenu();//使用時に生成するとClearTabHeader()のタイミングが前後するので準備しておく。
 
         public EpgDataView()
         {
             InitializeComponent();
             base.noStatus = true;
 
-            tabControl.ContextMenu = new ContextMenu();
-            tabControl.ContextMenuOpening += new ContextMenuEventHandler(TabContextMenuOpening);
-            tabControl.ContextMenu.Opened += new RoutedEventHandler(TabContextMenuOpened);
-            tabControl.ContextMenu.Unloaded += new RoutedEventHandler((sender, e) => ClearTabHeader());
+            //コンテキストメニューの設定
+            ctxm.Unloaded += (s, e) => ClearTabHeader();
+            tabControl.MouseRightButtonUp += EpgTabContextMenuOpen;
+            grid_viewMode.PreviewMouseRightButtonUp += EpgTabContextMenuOpen;
 
             //番組表設定画面の設定
             EpgTabItem.grid_tab = this.grid_tab;
@@ -53,7 +54,22 @@ namespace EpgTimer
         public void SaveViewData() { foreach (var tb in Tabs) tb.SaveViewData(); }
 
         //メニューの更新。ストックにもフラグを立てる。
-        public void RefreshMenu() { foreach (var tb in Tabs) tb.UpdateMenu(); }
+        public void RefreshMenu()
+        {
+            TabModeSet();
+            foreach (var tb in Tabs) tb.UpdateMenu();
+        }
+        public void TabModeSet()
+        {
+            bool tabEnable = Settings.Instance.EpgNameTabEnabled == true;
+            bool modEnable = Settings.Instance.EpgViewModeTabEnabled == true;
+            tabControl.Visibility = tabEnable ? Visibility.Visible : Visibility.Collapsed;
+            dummyTab.Visibility = tabEnable ? Visibility.Hidden : Visibility.Collapsed;
+            grid_viewMode.Visibility = modEnable ? Visibility.Visible : Visibility.Collapsed;
+            int m = tabEnable ? 5 : 0;
+            grid_viewMode.Margin = new Thickness(tabEnable ? 0 : -4, 0, -5 - m, 5);
+            grid_tab.Margin = new Thickness(m, -m, m, m);
+        }
 
         /// <summary>予約情報の更新通知</summary>//ストックにもフラグを立てる。
         public void UpdateReserveInfo(bool reload = true) { foreach (var tb in Tabs) tb.UpdateReserveInfo(reload); }
@@ -178,6 +194,9 @@ namespace EpgTimer
                     if (info == null) return;
                 }
 
+                //選択用タブの選択を切り替え。
+                tab_viewMode_Change(info != null ? info.ViewMode : param);
+
                 tab.UpdateContent(info, param);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -218,29 +237,53 @@ namespace EpgTimer
             return false;
         }
 
-        //番組表ヘッダ用のコンテキストメニュー関係
-        private enum edvCmds { Setting, ResetAll, All, /*Delete,*/ DeleteAll, ModeChange, VisibleChange }
-        private void TabContextMenuOpened(object sender, RoutedEventArgs e)
+        //表示切り替えタブ関係
+        private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //チラつき防止関係。なお、ContextMenuOpeningだとチラつかないが、ListViewのと競合する。
-            tabControl.ContextMenu.IsOpen = tabControl.ContextMenu.Visibility == Visibility.Visible;
+            if (ActiveView != null)
+            {
+                tab_viewMode.SelectedIndex = (tabControl.SelectedItem as EpgTabItem).Info.ViewMode;
+            }
         }
-        private void TabContextMenuOpening(object sender, RoutedEventArgs e)
+        private void tab_viewMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (tab_viewMode_Changing == true) return;
+            if (ActiveView != null)
+            {
+                //タブでの切り替えでは、選択番組への移動を行わない
+                epgView_ViewSettingClick(ActiveView, tab_viewMode.SelectedIndex);
+            }
+        }
+        private bool tab_viewMode_Changing = false;
+        private void tab_viewMode_Change(int idx)
         {
             try
             {
-                ContextMenu ctxm = tabControl.ContextMenu;
-                ctxm.Visibility = Visibility.Visible;
+                tab_viewMode_Changing = true;
+                tab_viewMode.SelectedIndex = idx;
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            tab_viewMode_Changing = false;
+        }
+
+        //番組表ヘッダ用のコンテキストメニュー関係
+        private enum edvCmds { Setting, ResetAll, All, /*Delete,*/ DeleteAll, ModeChange, VisibleChange, NameTabChange, NameTabVisible, ViewModeTabVisible, MoveCheckedTab }
+        public void EpgTabContextMenuOpen(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                ClearTabHeader();//連続で表示される場合用
                 ctxm.Items.Clear();
 
                 //ヘッダでのオープンかどうか判定。TabControlに持たせているのでPlacementTargetは使えない。
-                var trg = tabControl.GetPlacementItem() as EpgTabItem ?? new EpgTabItem() { Tag = "(番組表)" };
-                if (trg.Uid == "" && tabControl.Items.Count != 0)
+                var tab = tabControl.GetPlacementItem() as EpgTabItem;
+                if (sender == tabControl && tabControl.Items.Count != 0 && tab == null)
                 {
-                    //番組表が一つもないとき以外は表示しない
-                    ctxm.Visibility = Visibility.Hidden;
+                    //番組表エリアでは番組表が一つもないとき以外は表示しない
                     return;
                 }
+
+                ctxm.IsOpen = true;
 
                 //メニュー追加用
                 MenuItem menu1;
@@ -253,6 +296,17 @@ namespace EpgTimer
                 };
 
                 //操作用メニューの設定
+                //メイン画面用
+                if (this.IsVisible == false)
+                {
+                    tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表の設定...(_O)", "");
+                    return;
+                }
+
+                //番組表画面用
+                bool noTab = tabControl.IsVisible == false;
+                var trg = tab ?? tabControl.SelectedItem as EpgTabItem ?? new EpgTabItem() { Tag = "(番組表)" };
+
                 //ビューモードサブメニュー
                 var menu_vs = new MenuItem { Header = trg.Tag + " の表示モード(_V)", IsEnabled = trg.Uid != "", Uid = trg.Uid };
                 tabMenuAdd(menu_vs, true, EpgCmds.ViewChgSet, "表示設定...(_S)", trg.Uid);
@@ -267,13 +321,28 @@ namespace EpgTimer
 
                 //番組表の操作メニュー
                 var menu_tb = new MenuItem { Header = "番組表の操作(_E)" };
-                menu1 = tabMenuAdd(menu_tb, true, edvCmds.ModeChange, (Settings.Instance.UseCustomEpgView == true ? "デフォルト" : "カスタマイズ") + "表示に切り替え(_M)", "");
-                menu1.ToolTip = "現在の表示 : " + (Settings.Instance.UseCustomEpgView == false ? "デフォルト" : "カスタマイズ") + "表示";
-                menu_tb.Items.Add(new Separator());
-                tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == true) || Settings.Instance.UseCustomEpgView == false, edvCmds.ResetAll, "一時的な変更を全てクリア(_R)", "");
-                tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == false), edvCmds.All, "全て表示(_A)", "");
-                tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == true), edvCmds.DeleteAll, "全て非表示(_H)", "");
+                if (noTab == false)
+                {
+                    menu1 = tabMenuAdd(menu_tb, true, edvCmds.ModeChange, (Settings.Instance.UseCustomEpgView == true ? "デフォルト" : "カスタマイズ") + "表示に切り替え(_M)", "");
+                    menu1.ToolTip = "現在の表示 : " + (Settings.Instance.UseCustomEpgView == false ? "デフォルト" : "カスタマイズ") + "表示";
+                    menu_tb.Items.Add(new Separator());
+                    tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == true) || Settings.Instance.UseCustomEpgView == false, edvCmds.ResetAll, "一時的な変更を全てクリア(_R)", "");
+                    tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == false), edvCmds.All, "全て表示(_A)", "");
+                    tabMenuAdd(menu_tb, tabInfo.Any(item => item.IsVisible == true), edvCmds.DeleteAll, "全て非表示(_H)", "");
+                    menu_tb.Items.Add(new Separator());
+                }
+                menu1 = tabMenuAdd(menu_tb, true, edvCmds.NameTabVisible, "表示項目タブ(_P)", "");
+                menu1.IsChecked = Settings.Instance.EpgNameTabEnabled == true;
+                menu1 = tabMenuAdd(menu_tb, true, edvCmds.ViewModeTabVisible, "表示モード切り替えタブ(_T)", "");
+                menu1.IsChecked = Settings.Instance.EpgViewModeTabEnabled == true;
+                if (noTab == false)
+                {
+                    menu_tb.Items.Add(new Separator());
+                    menu1 = tabMenuAdd(menu_tb, true, edvCmds.MoveCheckedTab, "「表示」に切り替えたタブへ移動する(_C)", "");
+                    menu1.IsChecked = Settings.Instance.EpgTabMoveCheckEnabled == true;
+                }
 
+                //メインメニュー
                 ctxm.Items.Add(menu_vs);
                 ctxm.Items.Add(menu_tb);
                 tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表の設定...(_O)", trg.Uid);
@@ -281,27 +350,38 @@ namespace EpgTimer
                 //tabMenuAdd(ctxm, trg.Uid != "", edvCmds.Delete, trg.Tag + " を非表示(_D)", trg.Uid);
                 ctxm.Items.Add(new Separator());
 
+                //番組表タブの項目追加。
                 if (tabInfo.Count == 0)
                 {
                     ctxm.Items.Add(new MenuItem { Header = "(番組表の設定がありません)", IsEnabled = false });
                 }
-
-                //番組表タブの項目追加。表示されているものにチェックを入れる。
-                tabInfo.ForEach(info =>
+                //番組表項目追加。
+                if (noTab == false)
                 {
-                    menu1 = tabMenuAdd(ctxm, true, edvCmds.VisibleChange, info.TabName, info.Uid);
-                    menu1.IsChecked = info.IsVisible;
-                    if (trg.Uid == info.Uid)
+                    //表示項目タブがある場合は、表示項目タブがあるものにチェックを入れる。
+                    //メニュー実行時は表示項目タブのON/OFFを切り替える
+                    tabInfo.ForEach(info =>
                     {
-                        menu1.Header = new TextBlock() { Text = info.TabName as string, FontWeight = FontWeights.Bold }; ;
-                    }
-                });
-
-                ClearTabHeader();
-                if (trg.Uid != "")
-                {
-                    trg.Header = new TextBlock() { Text = trg.Header as string, Foreground = Brushes.Red };
+                        menu1 = tabMenuAdd(ctxm, true, edvCmds.VisibleChange, info.TabName, info.Uid);
+                        menu1.IsChecked = info.IsVisible;
+                        if (trg.Uid == info.Uid)
+                        {
+                            menu1.Header = new TextBlock() { Text = info.TabName as string, FontWeight = FontWeights.Bold }; ;
+                        }
+                    });
                 }
+                else
+                {
+                    //表示項目タブがない場合は、現在表示されているものにチェックを入れる。
+                    //メニュー実行時は表示する番組表項目を切り替え
+                    foreach (var info in tabInfo.Where(ti => ti.IsVisible == true))
+                    {
+                        menu1 = tabMenuAdd(ctxm, true, edvCmds.NameTabChange, info.TabName, info.Uid);
+                        menu1.IsChecked = trg.Uid == info.Uid;
+                    }
+                }
+
+                trg.Header = new TextBlock() { Text = trg.Header as string, Foreground = Brushes.Red };
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -353,6 +433,21 @@ namespace EpgTimer
                         var info = get_tabInfo(menu.Uid);
                         if (info != null) info.IsVisible = !info.IsVisible;
                         break;
+                    case edvCmds.NameTabChange:
+                        EpgTabItem tab = Tabs.FirstOrDefault(ti => ti.Uid == menu.Uid);
+                        if (tab != null) tab.IsSelected = true;
+                        return;
+                    case edvCmds.NameTabVisible:
+                        Settings.Instance.EpgNameTabEnabled = !Settings.Instance.EpgNameTabEnabled;
+                        TabModeSet();
+                        return;
+                    case edvCmds.ViewModeTabVisible:
+                        Settings.Instance.EpgViewModeTabEnabled = !Settings.Instance.EpgViewModeTabEnabled;
+                        TabModeSet();
+                        return;
+                    case edvCmds.MoveCheckedTab:
+                        Settings.Instance.EpgTabMoveCheckEnabled = !Settings.Instance.EpgTabMoveCheckEnabled;
+                        return;
                 }
 
                 int pos = 0;

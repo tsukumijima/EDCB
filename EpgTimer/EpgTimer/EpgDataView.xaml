@@ -7,14 +7,55 @@
              xmlns:local="clr-namespace:EpgTimer"
              d:DesignHeight="300" d:DesignWidth="300" IsVisibleChanged="UserControl_IsVisibleChanged" SnapsToDevicePixels="True">
     <Grid>
-        <TabControl Name="tabControl">
+        <TabControl Name="tabControl" SelectionChanged="tabControl_SelectionChanged" >
             <TabControl.Resources>
                 <Style TargetType="{x:Type local:EpgTabItem}" BasedOn="{StaticResource {x:Type TabItem}}"/>
             </TabControl.Resources>
         </TabControl>
         <DockPanel>
             <TabControl Name="dummyTab" DockPanel.Dock="Top" Visibility="Hidden" />
-            <Grid Name="grid_tab" Margin="5,-5,5,5"/>
+            <DockPanel>
+                <DockPanel Name="grid_viewMode">
+                    <TextBlock Text="表示モード" DockPanel.Dock="Top" Margin="4,0,0,3" Foreground="DarkGray" >
+                        <TextBlock.LayoutTransform>
+                            <TransformGroup>
+                                <RotateTransform Angle="270" />
+                            </TransformGroup>
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                    <TabControl Name="tab_viewMode" DockPanel.Dock="Top" TabStripPlacement="Left" BorderThickness="0" SelectionChanged="tab_viewMode_SelectionChanged" >
+                        <TabControl.Resources>
+                            <Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}" >
+                                <Setter Property="HeaderTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <TextBlock Margin="-4,5,-6,5" Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabItem}}, Path=DataContext}" >
+                                                <TextBlock.LayoutTransform>
+                                                    <TransformGroup>
+                                                        <RotateTransform Angle="90"/>
+                                                    </TransformGroup>
+                                                </TextBlock.LayoutTransform>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="LayoutTransform">
+                                    <Setter.Value>
+                                        <TransformGroup>
+                                            <RotateTransform Angle="180"/>
+                                        </TransformGroup>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </TabControl.Resources>
+                        <TabItem Uid="0" DataContext="標準" />
+                        <TabItem Uid="1" DataContext="1週間" />
+                        <TabItem Uid="2" DataContext="リスト表示" />
+                    </TabControl>
+                    <Label VerticalAlignment="Stretch"/>
+                </DockPanel>
+                <Grid Name="grid_tab"/>
+            </DockPanel>
         </DockPanel>
     </Grid>
 </local:DataItemViewBase>

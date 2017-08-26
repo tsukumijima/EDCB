@@ -247,6 +247,9 @@ namespace EpgTimer
                     epgView.Visibility = tabItem_epg.IsSelected == true ? Visibility.Visible : Visibility.Collapsed;
                 };
 
+                //番組表タブに番組表設定画面を出すコンテキストメニューを表示する
+                tabItem_epg.MouseRightButtonUp += epgView.EpgTabContextMenuOpen;
+
                 //初期タブ選択
                 switch (Settings.Instance.StartTab)
                 {

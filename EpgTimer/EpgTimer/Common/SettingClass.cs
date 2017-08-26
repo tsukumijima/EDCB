@@ -355,6 +355,8 @@ namespace EpgTimer
         public bool EpgLoadArcInfo { get; set; }
         public bool EpgNoDisplayOld { get; set; }
         public double EpgNoDisplayOldDays { get; set; }
+        public bool EpgNameTabEnabled { get; set; }
+        public bool EpgViewModeTabEnabled { get; set; }
         public bool EpgTabMoveCheckEnabled { get; set; }
         public string ResColumnHead { get; set; }
         public ListSortDirection ResSortDirection { get; set; }
@@ -602,6 +604,8 @@ namespace EpgTimer
             EpgLoadArcInfo = false;
             EpgNoDisplayOld = false;
             EpgNoDisplayOldDays = 1;
+            EpgNameTabEnabled = true;
+            EpgViewModeTabEnabled = false;
             EpgTabMoveCheckEnabled = true;
             ResColumnHead = "";
             ResSortDirection = ListSortDirection.Ascending;

@@ -108,6 +108,8 @@ namespace EpgTimer.Setting
 
                 listBox_tab.Items.AddItems(Settings.Instance.CustomEpgTabList.Select(info => new CustomEpgTabInfoView(info.Clone())));
                 if (listBox_tab.Items.Count > 0) listBox_tab.SelectedIndex = 0;
+                checkBox_EpgNameTabEnabled.IsChecked = Settings.Instance.EpgNameTabEnabled;
+                checkBox_EpgViewModeTabEnabled.IsChecked = Settings.Instance.EpgViewModeTabEnabled;
                 checkBox_EpgTabMoveCheckEnabled.IsChecked = Settings.Instance.EpgTabMoveCheckEnabled;
 
                 XmlLanguage FLanguage = XmlLanguage.GetLanguage("ja-JP");
@@ -347,6 +349,8 @@ namespace EpgTimer.Setting
                 Settings.Instance.UseCustomEpgView = (radioButton_1_cust.IsChecked == true);
                 Settings.Instance.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfoView>().Select(item => item.Info).ToList();
                 Settings.SetCustomEpgTabInfoID();
+                Settings.Instance.EpgNameTabEnabled = checkBox_EpgNameTabEnabled.IsChecked == true;
+                Settings.Instance.EpgViewModeTabEnabled = checkBox_EpgViewModeTabEnabled.IsChecked == true;
                 Settings.Instance.EpgTabMoveCheckEnabled = checkBox_EpgTabMoveCheckEnabled.IsChecked == true;
 
                 var getComboColor1 = new Func<ComboBox, string>(cmb => ((ColorComboItem)(cmb.SelectedItem)).Name);

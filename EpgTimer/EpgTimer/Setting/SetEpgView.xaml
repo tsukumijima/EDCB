@@ -292,6 +292,11 @@
                 <TabItem Header="表示項目" Name="tabEpgTab">
                     <DockPanel Margin="6">
                         <StackPanel DockPanel.Dock="Bottom" >
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0" >
+                                <TextBlock Text="タブを表示する" />
+                                <CheckBox Margin="12,0,0,0" Content="表示項目タブ" Name="checkBox_EpgNameTabEnabled" ToolTip="非表示の時は「番組表」タブの右クリックメニューから表示項目を変更します"/>
+                                <CheckBox Margin="12,0,0,0" Content="表示モード切り替えタブ" Name="checkBox_EpgViewModeTabEnabled" />
+                            </StackPanel>
                             <CheckBox Margin="0,4,0,0" Content="表示項目タブのコンテキストメニューで、「表示」に切り替えたタブへ移動する" Name="checkBox_EpgTabMoveCheckEnabled" />
                         </StackPanel>
                         <GroupBox Margin="0,18,0,0">
@@ -310,8 +315,10 @@
                                     </StackPanel.Resources>
                                     <Button Content="追加" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_add" Click="button_tab_add_Click" />
                                     <Button Content="変更" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_chg" Click="button_tab_chg_Click" />
-                                    <Button Content="削除" Margin="0,4,0,4" HorizontalAlignment="Left" Name="button_tab_del" />
-                                    <Button Content="全削除" Margin="0,0,0,4" HorizontalAlignment="Left" Name="button_tab_del_all" />
+                                    <DockPanel Margin="0,6,0,4" >
+                                        <Button Content="削除" Name="button_tab_del" />
+                                        <Button Content="全削除" Margin="6,0,0,0" Name="button_tab_del_all" />
+                                    </DockPanel>
                                     <DockPanel Margin="0,6,0,4" >
                                         <Button Content="表示" Click="button_tab_Select_Click" />
                                         <Button Content="全表示" Margin="6,0,0,0" Click="button_tab_Select_All_Click" />
