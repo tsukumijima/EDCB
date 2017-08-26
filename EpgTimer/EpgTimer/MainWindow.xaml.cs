@@ -19,8 +19,6 @@ namespace EpgTimer
     {
         private Mutex mutex;
 
-        private TaskTrayClass taskTray = null;
-        private TaskTrayState trayState = null;
         private Dictionary<string, Button> buttonList = new Dictionary<string, Button>();
         private static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
 
@@ -233,10 +231,13 @@ namespace EpgTimer
                     CommonManager.Instance.DB.ReloadEpgData();//これはすぐにNotify来る場合があるので現状維持
                 }
 
-                //タスクトレイの表示
-                taskTray = new TaskTrayClass(this);
-                taskTray.ContextMenuClick += (sender, e) => CommonButtons_Click(sender as string);
-                trayState = new TaskTrayState(taskTray);
+                //タスクトレイの設定
+                TrayManager.Tray.Click += (sender, e) =>
+                {
+                    Show();
+                    WindowState = Settings.Instance.WndSettings[this].LastWindowState;
+                    Activate();
+                };
 
                 ResetMainView();
 
@@ -379,12 +380,15 @@ namespace EpgTimer
 
         private void ResetTaskMenu()
         {
-            taskTray.Visible = Settings.Instance.ShowTray || this.Visibility == Visibility.Hidden;
-            trayState.UpdateInfo();
-            taskTray.SetContextMenu(Settings.Instance.TaskMenuList
-                .Select(s1 => s1.Replace(Settings.TaskMenuSeparator, ""))
-                .Where(s2 => s2 == "" || buttonList.ContainsKey(s2) == true)
-                .Select(id => new Tuple<string, string>(id, id == "" ? "" : buttonList[id].Content as string)));
+            TrayManager.UpdateInfo();
+            TrayManager.Tray.ContextMenuList = Settings.Instance.TaskMenuList.Select(info =>
+            {
+                if (buttonList.ContainsKey(info) == false) return new KeyValuePair<string, EventHandler>(null, null);
+                string id = info;
+                return new KeyValuePair<string, EventHandler>(buttonList[id].Content as string, (sender, e) => CommonButtons_Click(id));
+            }).ToList();
+            TrayManager.Tray.ForceHideBalloonTipSec = Settings.Instance.ForceHideBalloonTipSec;
+            TrayManager.Tray.Visible = Settings.Instance.ShowTray;
         }
 
         const string specific = "PushLike";
@@ -582,7 +586,7 @@ namespace EpgTimer
 
             if (connected == false)
             {
-                trayState.SrvLosted();
+                TrayManager.SrvLosted();
                 return false;
             }
 
@@ -641,7 +645,7 @@ namespace EpgTimer
                             {
                                 if (waitPort == 0 && CommonManager.Instance.NW.OnPolling == false ||
                                     waitPort != 0 && registered == false ||
-                                    trayState.IsSrvLost == true)//EpgTimerNW側の休止復帰も含む
+                                    TrayManager.IsSrvLost == true)//EpgTimerNW側の休止復帰も含む
                                 {
                                     if (ConnectSrv() == true)
                                     {
@@ -655,12 +659,12 @@ namespace EpgTimer
                                 return;
                             }
                         }
-                        trayState.SrvLosted(updateTaskText == false);
+                        TrayManager.SrvLosted(updateTaskText == false);
                     };
                 }
                 if (updateTaskText == true)
                 {
-                    chkTimer.Tick += (sender, e) => trayState.UpdateInfo();
+                    chkTimer.Tick += (sender, e) => TrayManager.UpdateInfo();
                 }
                 chkTimer.Start();
             }
@@ -720,6 +724,7 @@ namespace EpgTimer
                     mutex.ReleaseMutex();
                     mutex.Close();
                 }
+                TrayManager.Tray.Dispose();
             }
         }
 
@@ -767,11 +772,8 @@ namespace EpgTimer
                     win.Visibility = Visibility.Visible;
                 }
                 AttendantWindow.UpdatesPinned();
-
-                taskTray.LastViewState = this.WindowState;
                 Settings.Instance.WndSettings[this].LastWindowState = this.WindowState;
             }
-            taskTray.Visible = Settings.Instance.ShowTray;
         }
 
         private void Window_PreviewDragEnter(object sender, DragEventArgs e)
@@ -1038,7 +1040,7 @@ namespace EpgTimer
             ViewUtil.SingleWindowCheck(typeof(SuspendCheckWindow), true);
 
             suspendMode = suspendMode == 1 ? suspendMode : (byte)2;
-            ErrCode err = trayState.IsSrvLost == true ? ErrCode.CMD_ERR_CONNECT : cmd.SendChkSuspend();
+            ErrCode err = TrayManager.IsSrvLost == true ? ErrCode.CMD_ERR_CONNECT : cmd.SendChkSuspend();
             if (err != ErrCode.CMD_SUCCESS)
             {
                 if (err == ErrCode.CMD_ERR_CONNECT)
@@ -1102,7 +1104,7 @@ namespace EpgTimer
         void UnRegistTCP()
         {
             if (Settings.Instance.NWWaitPort != 0 && needUnRegist == true
-                && CommonManager.Instance.NW.IsConnected == true && trayState.IsSrvLost == false)
+                && CommonManager.Instance.NW.IsConnected == true && TrayManager.IsSrvLost == false)
             {
                 cmd.SendUnRegistTCP(Settings.Instance.NWWaitPort);
             }
@@ -1251,7 +1253,7 @@ namespace EpgTimer
             bool notifyLogWindowUpdate = false;
             var NotifyWork = new Action<string, string>((title, tips) =>
             {
-                taskTray.ShowBalloonTip(title, tips);
+                TrayManager.Tray.ShowBalloonTip(title, tips);
                 CommonManager.AddNotifyLog(status);
                 notifyLogWindowUpdate = true;
             });
@@ -1261,11 +1263,11 @@ namespace EpgTimer
             switch ((UpdateNotifyItem)status.notifyID)
             {
                 case UpdateNotifyItem.SrvStatus:
-                    trayState.UpdateInfo(status.param1);
+                    TrayManager.UpdateInfo(status.param1);
                     break;
                 case UpdateNotifyItem.PreRecStart:
                     NotifyWork("予約録画開始準備", status.param4);
-                    trayState.UpdateInfo();
+                    TrayManager.UpdateInfo();
                     CommonManager.WakeUpHDDWork();
                     break;
                 case UpdateNotifyItem.RecStart:
@@ -1319,7 +1321,7 @@ namespace EpgTimer
                     {
                         CommonManager.Instance.DB.ReloadReserveInfo(true);
                         RefreshAllViewsReserveInfo();
-                        trayState.UpdateInfo();
+                        TrayManager.UpdateInfo();
                         StatusManager.StatusNotifyAppend("予約データ更新 < ");
                     }
                     break;
@@ -1363,7 +1365,7 @@ namespace EpgTimer
                             IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
                             notifyLogWindowUpdate = true;
-                            trayState.UpdateInfo();
+                            TrayManager.UpdateInfo();
                             StatusManager.StatusNotifyAppend("EpgTimerSrv設定変更に伴う画面更新 < ");
                         }
                     }
