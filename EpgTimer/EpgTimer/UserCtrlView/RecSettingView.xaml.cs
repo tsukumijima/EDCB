@@ -351,7 +351,7 @@ namespace EpgTimer
                 setting.SetDefSetting(selectInfo);
                 if (setting.ShowDialog() == true)
                 {
-                    setting.GetSetting(ref selectInfo);
+                    setting.GetSetting(selectInfo);
                     listView_recFolder.Items.Refresh();
                     listView_recFolder.FitColumnWidth();
                 }
@@ -372,9 +372,7 @@ namespace EpgTimer
             var setting = new RecFolderWindow { Owner = CommonUtil.GetTopWindow(this) };
             if (setting.ShowDialog() == true)
             {
-                var setInfo = new RecFileSetInfoView(new RecFileSetInfo());
-                setting.GetSetting(ref setInfo);
-                listView_recFolder.ScrollIntoViewLast(setInfo);
+                listView_recFolder.ScrollIntoViewLast(setting.GetSetting());
                 listView_recFolder.FitColumnWidth();
             }
         }
@@ -396,7 +394,7 @@ namespace EpgTimer
         public RecFileSetInfo Info { get; set; }
         public bool PartialRec { get; set; }
         public string RecFileName { get { return Info.RecFileName; } }
-        public string RecFolder { get { return Info.RecFolder; } }
+        public string RecFolder { get { return String.Compare(Info.RecFolder, "!Default", true) == 0 ? "" : Info.RecFolder; } }
         public string RecNamePlugIn { get { return Info.RecNamePlugIn; } }
         public string WritePlugIn { get { return Info.WritePlugIn; } }
         public string PartialRecYesNo { get { return PartialRec ? "はい" : "いいえ"; } }
