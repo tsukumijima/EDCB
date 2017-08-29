@@ -25,7 +25,8 @@ namespace EpgTimer
 
             if (CommonManager.Instance.IsConnected == true)
             {
-                CommonManager.Instance.DB.ReloadPlugInFile();
+                ErrCode err = CommonManager.Instance.DB.ReloadPlugInFile();
+                CommonManager.CmdErrMsgTypical(err, "PlugIn一覧の取得");
             }
             comboBox_writePlugIn.ItemsSource = CommonManager.Instance.DB.WritePlugInList;
             comboBox_writePlugIn.SelectedItem = "Write_Default.dll";

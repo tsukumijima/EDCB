@@ -33,7 +33,9 @@ namespace EpgTimer.EpgView
                 if (EpgTabInfo.SearchMode == false)
                 {
                     ErrCode err = CommonManager.Instance.DB.ReloadEpgData();
-                    if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得") == false) return false;
+                    if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得", err == ErrCode.CMD_ERR_BUSY ?
+                                                            "EPGデータの読み込みを行える状態ではありません。\r\n(EPGデータ読み込み中など)" :
+                                                            "エラーが発生しました。\r\nEPGデータが読み込まれていない可能性があります。") == false) return false;
                     serviceDic = CommonManager.Instance.DB.ServiceEventList;
                 }
                 else

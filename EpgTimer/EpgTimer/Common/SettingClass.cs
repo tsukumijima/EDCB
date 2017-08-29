@@ -127,20 +127,22 @@ namespace EpgTimer
             }
         }
 
-        public static void UpdateSrvProfileIniNW(List<string> iniList = null)
+        public static ErrCode UpdateSrvProfileIniNW(List<string> iniList = null)
         {
+            var err = ErrCode.CMD_SUCCESS;
             if (CommonManager.Instance.NWMode == true)
             {
-                if (CommonManager.Instance.NW.IsConnected == false) return;
-                ReloadSettingFilesNW(iniList);
+                if (CommonManager.Instance.NW.IsConnected == false) return err;
+                err = ReloadSettingFilesNW(iniList);
             }
 
             ChSet5.Clear();
             Settings.Instance.RecPresetList = null;
             Settings.ReloadOtherOptions();
+            return err;
         }
 
-        public static void ReloadSettingFilesNW(List<string> iniList = null)
+        public static ErrCode ReloadSettingFilesNW(List<string> iniList = null)
         {
             if (iniList == null)
             {
@@ -155,10 +157,11 @@ namespace EpgTimer
                 };
             }
 
+            var datalist = new List<FileData>();
+            ErrCode err = CommonManager.CreateSrvCtrl().SendFileCopy2(iniList, ref datalist);
             try
             {
-                var datalist = new List<FileData>();
-                if (CommonManager.CreateSrvCtrl().SendFileCopy2(iniList, ref datalist) == ErrCode.CMD_SUCCESS)
+                if (err == ErrCode.CMD_SUCCESS)
                 {
                     Directory.CreateDirectory(SettingPath.SettingFolderPath);
                     foreach (var data in datalist.Where(d1 => d1.Size != 0))
@@ -170,11 +173,12 @@ namespace EpgTimer
                                 w.Write(data.Data);
                             }
                         }
-                        catch { }
+                        catch { err = ErrCode.CMD_ERR; }
                     }
                 }
             }
-            catch { }
+            catch { err = ErrCode.CMD_ERR; }
+            return err;
         }
     }
 

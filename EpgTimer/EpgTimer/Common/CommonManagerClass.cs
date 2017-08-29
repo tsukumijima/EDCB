@@ -597,27 +597,10 @@ namespace EpgTimer
         }
 
         /// <summary>良くある通信エラー(CMD_ERR_CONNECT,CMD_ERR_TIMEOUT)をMessageBoxで表示する。</summary>
-        public static bool CmdErrMsgTypical(ErrCode err, string caption = "通信エラー")
+        public static bool CmdErrMsgTypical(ErrCode err, string caption = "通信エラー", string msg_other = null)
         {
             if (err == ErrCode.CMD_SUCCESS) return true;
-
-            string msg;
-            switch (err)
-            {
-                case ErrCode.CMD_ERR_CONNECT:
-                    msg="サーバー または EpgTimerSrv に接続できませんでした。";
-                    break;
-                //case ErrCode.CMD_ERR_BUSY:  //もう表示しないことにしているようだ。
-                //    msg = "データの読み込みを行える状態ではありません。\r\n（EPGデータ読み込み中。など）";
-                //    break;
-                case ErrCode.CMD_ERR_TIMEOUT:
-                    msg = "EpgTimerSrvとの接続にタイムアウトしました。";
-                    break;
-                default:
-                    msg = "通信エラーが発生しました。";
-                    break;
-            }
-            CommonUtil.DispatcherMsgBoxShow(msg, caption);
+            CommonUtil.DispatcherMsgBoxShow(GetErrCodeText(err) ?? msg_other ?? "EpgTimerSrvとの通信中にエラーが発生しました。", caption);
             return false;
         }
 

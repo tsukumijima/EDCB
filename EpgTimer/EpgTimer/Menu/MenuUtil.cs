@@ -281,7 +281,7 @@ namespace EpgTimer
                 MessageBox.Show("録画時間が既に終了しています。\r\n(番組が放映中の場合は録画マージンも確認してください。)");
                 return false;
             }
-            return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendAddReserve, "予約追加", cautionMany);
+            return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendAddReserve, "予約追加", cautionMany, "エラーが発生しました。\r\n終了時間がすでに過ぎている可能性があります。");
         }
 
         public static bool ReserveChangeOnOff(List<ReserveData> itemlist, RecSettingView recSettingView = null, bool cautionMany = true)
@@ -846,7 +846,7 @@ namespace EpgTimer
             return false;
         }
 
-        private static bool ReserveCmdSend<T>(List<T> list, Func<List<T>, ErrCode> cmdSend, string description = "", bool cautionMany = true)
+        private static bool ReserveCmdSend<T>(List<T> list, Func<List<T>, ErrCode> cmdSend, string description = "", bool cautionMany = true, string msg_other = null)
         {
             try
             {
@@ -855,7 +855,7 @@ namespace EpgTimer
                 if (cautionMany == true && CautionManyMessage(list.Count, description) == false) return false;
 
                 ErrCode err = cmdSend(list);
-                return CommonManager.CmdErrMsgTypical(err, description);
+                return CommonManager.CmdErrMsgTypical(err, description, msg_other);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;

@@ -1055,15 +1055,8 @@ namespace EpgTimer
             ErrCode err = TrayManager.IsSrvLost == true ? ErrCode.CMD_ERR_CONNECT : CommonManager.CreateSrvCtrl().SendChkSuspend();
             if (err != ErrCode.CMD_SUCCESS)
             {
-                if (err == ErrCode.CMD_ERR_CONNECT)
-                {
-                    MessageBox.Show("サーバーに接続できませんでした");
-                }
-                else
-                {
-                    MessageBox.Show((suspendMode == 1 ? "スタンバイ" : "休止") +
-                        "に移行できる状態ではありません。\r\n（もうすぐ予約が始まる。または抑制条件のexeが起動している。など）");
-                }
+                MessageBox.Show(CommonManager.GetErrCodeText(err) ?? (suspendMode == 1 ? "スタンバイ" : "休止") 
+                    + "に移行できる状態ではありません。\r\n（もうすぐ予約が始まる。または抑制条件のexeが起動している。など）");
                 return;
             }
 
@@ -1272,6 +1265,8 @@ namespace EpgTimer
 
             System.Diagnostics.Trace.WriteLine((UpdateNotifyItem)status.notifyID);
 
+            var err = ErrCode.CMD_SUCCESS;
+
             switch ((UpdateNotifyItem)status.notifyID)
             {
                 case UpdateNotifyItem.SrvStatus:
@@ -1308,7 +1303,7 @@ namespace EpgTimer
                     {
                         //NWでは重いが、使用している箇所多いので即取得する。
                         //自動取得falseのときはReloadEpgData()ではじかれているので元々読込まれない。
-                        CommonManager.Instance.DB.ReloadEpgData(true);
+                        err = CommonManager.Instance.DB.ReloadEpgData(true);
                         reserveView.UpdateInfo();//ジャンルや番組内容などが更新される
                         if (Settings.Instance.DisplayReserveAutoAddMissing == true)
                         {
@@ -1331,7 +1326,7 @@ namespace EpgTimer
                     }
                     else
                     {
-                        CommonManager.Instance.DB.ReloadReserveInfo(true);
+                        err = CommonManager.Instance.DB.ReloadReserveInfo(true);
                         RefreshAllViewsReserveInfo();
                         TrayManager.UpdateInfo();
                         StatusManager.StatusNotifyAppend("予約データ更新 < ");
@@ -1348,7 +1343,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.AutoAddEpgInfo:
                     {
-                        CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
+                        err = CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
                         autoAddView.epgAutoAddView.UpdateInfo();
 
                         if (Settings.Instance.DisplayReserveAutoAddMissing == true)
@@ -1360,7 +1355,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.AutoAddManualInfo:
                     {
-                        CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
+                        err = CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
                         autoAddView.manualAutoAddView.UpdateInfo();
 
                         if (Settings.Instance.DisplayReserveAutoAddMissing == true)
@@ -1374,7 +1369,7 @@ namespace EpgTimer
                     {
                         if (CommonManager.Instance.NWMode == true || status.param4 != "EpgTimer")
                         {
-                            IniFileHandler.UpdateSrvProfileIniNW();
+                            err = IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
                             notifyLogWindowUpdate = true;
                             TrayManager.UpdateInfo();
@@ -1384,6 +1379,7 @@ namespace EpgTimer
                     break;
             }
 
+            if (err != ErrCode.CMD_SUCCESS) StatusManager.StatusNotifyAppend("情報更新中にエラー発生 < ");
             if (notifyLogWindowUpdate == true) NotifyLogWindow.UpdatesInfo();
         }
 
