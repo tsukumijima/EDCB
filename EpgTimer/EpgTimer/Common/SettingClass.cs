@@ -158,7 +158,7 @@ namespace EpgTimer
             try
             {
                 var datalist = new List<FileData>();
-                if (CommonManager.Instance.CtrlCmd.SendFileCopy2(iniList, ref datalist) == ErrCode.CMD_SUCCESS)
+                if (CommonManager.CreateSrvCtrl().SendFileCopy2(iniList, ref datalist) == ErrCode.CMD_SUCCESS)
                 {
                     Directory.CreateDirectory(SettingPath.SettingFolderPath);
                     foreach (var data in datalist.Where(d1 => d1.Size != 0))

@@ -11,8 +11,6 @@ namespace EpgTimer
 {
     public static class MenuUtil
     {
-        private static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
-
         public static string TrimEpgKeyword(string KeyWord, bool NotToggle = false)//NotToggleはショートカット用
         {
             return TrimKeywordCheckToggled(KeyWord, Settings.Instance.MenuSet.Keyword_Trim, NotToggle);
@@ -283,7 +281,7 @@ namespace EpgTimer
                 MessageBox.Show("録画時間が既に終了しています。\r\n(番組が放映中の場合は録画マージンも確認してください。)");
                 return false;
             }
-            return ReserveCmdSend(list, cmd.SendAddReserve, "予約追加", cautionMany);
+            return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendAddReserve, "予約追加", cautionMany);
         }
 
         public static bool ReserveChangeOnOff(List<ReserveData> itemlist, RecSettingView recSettingView = null, bool cautionMany = true)
@@ -519,7 +517,7 @@ namespace EpgTimer
         public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true)
         {
             if (CheckReserveOnRec(itemlist,"変更") == false) return false;
-            return ReserveCmdSend(itemlist, cmd.SendChgReserve, "予約変更", cautionMany);
+            return ReserveCmdSend(itemlist, CommonManager.CreateSrvCtrl().SendChgReserve, "予約変更", cautionMany);
         }
 
         public static bool ReserveDelete(List<ReserveData> itemlist, bool cautionMany = true)
@@ -528,7 +526,7 @@ namespace EpgTimer
             {
                 if (CheckReserveOnRec(itemlist, "削除") == false) return false;
                 List<uint> list = itemlist.Select(item => item.ReserveID).ToList();
-                return ReserveCmdSend(list, cmd.SendDelReserve, "予約削除", cautionMany);
+                return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelReserve, "予約削除", cautionMany);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;
@@ -755,6 +753,7 @@ namespace EpgTimer
                     }
                 }
 
+                var cmd = CommonManager.CreateSrvCtrl();//これは単なる表記の省略
                 switch (mode)
                 {
                     case 0:
@@ -831,7 +830,7 @@ namespace EpgTimer
             try
             {
                 itemlist.ForEach(item => item.ProtectFlag = (byte)(item.ProtectFlag == 0 ? 1 : 0));
-                return ReserveCmdSend(itemlist, cmd.SendChgProtectRecInfo, "録画情報の変更", cautionMany);
+                return ReserveCmdSend(itemlist, CommonManager.CreateSrvCtrl().SendChgProtectRecInfo, "録画情報の変更", cautionMany);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;
@@ -841,7 +840,7 @@ namespace EpgTimer
             try
             {
                 List<uint> list = itemlist.Select(item => item.ID).ToList();
-                return ReserveCmdSend(list, cmd.SendDelRecInfo, "録画情報の削除", cautionMany);
+                return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelRecInfo, "録画情報の削除", cautionMany);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;

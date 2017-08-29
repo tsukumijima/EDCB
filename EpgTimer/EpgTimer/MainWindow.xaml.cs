@@ -20,7 +20,6 @@ namespace EpgTimer
         private Mutex mutex;
 
         private Dictionary<string, Button> buttonList = new Dictionary<string, Button>();
-        private static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
 
         private MenuBinds mBinds = new MenuBinds();
 
@@ -51,8 +50,6 @@ namespace EpgTimer
             if (CommonManager.Instance.NWMode == true)
             {
                 CommonManager.Instance.DB.SetNoAutoReloadEPG(Settings.Instance.NgAutoEpgLoadNW);
-                cmd.SetSendMode(true);
-                cmd.SetNWSetting(null, 0);
             }
 
             CommonManager.Instance.MM.ReloadWorkData();
@@ -214,7 +211,7 @@ namespace EpgTimer
                     uint execBat = Settings.Instance.ExecBat;
                     pipeServer.StartServer(pipeEventName, pipeName, (c, r) => OutsideCmdCallback(c, r, false, execBat));
 
-                    for (int i = 0; i < 150 && cmd.SendRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id) != ErrCode.CMD_SUCCESS; i++)
+                    for (int i = 0; i < 150 && CommonManager.CreateSrvCtrl().SendRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id) != ErrCode.CMD_SUCCESS; i++)
                     {
                         Thread.Sleep(100);
                     }
@@ -301,7 +298,7 @@ namespace EpgTimer
                     {
                         List<ReserveData> val = new List<ReserveData>();
                         val.Add(iepgFile.AddInfo);
-                        cmd.SendAddReserve(val);
+                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
                     }
                     else
                     {
@@ -316,7 +313,7 @@ namespace EpgTimer
                     {
                         List<ReserveData> val = new List<ReserveData>();
                         val.Add(iepgFile.AddInfo);
-                        cmd.SendAddReserve(val);
+                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
                     }
                     else
                     {
@@ -652,8 +649,8 @@ namespace EpgTimer
                             var status = new NotifySrvInfo();
                             var waitPort = Settings.Instance.NWWaitPort;
                             bool registered = true;
-                            if (waitPort == 0 && cmd.SendGetNotifySrvStatus(ref status) == ErrCode.CMD_SUCCESS ||
-                                waitPort != 0 && cmd.SendIsRegistTCP(waitPort, ref registered)  == ErrCode.CMD_SUCCESS)
+                            if (waitPort == 0 && CommonManager.CreateSrvCtrl().SendGetNotifySrvStatus(ref status) == ErrCode.CMD_SUCCESS ||
+                                waitPort != 0 && CommonManager.CreateSrvCtrl().SendIsRegistTCP(waitPort, ref registered) == ErrCode.CMD_SUCCESS)
                             {
                                 if (waitPort == 0 && CommonManager.Instance.NW.OnPolling == false ||
                                     waitPort != 0 && registered == false ||
@@ -714,6 +711,7 @@ namespace EpgTimer
                 {
                     if (initExe == true)
                     {
+                        var cmd = CommonManager.CreateSrvCtrl();
                         cmd.SetConnectTimeOut(3000);
                         cmd.SendUnRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id);
                     }
@@ -723,6 +721,8 @@ namespace EpgTimer
                     {
                         if (System.ServiceProcess.ServiceController.GetServices().All(sc => string.Compare(sc.ServiceName, "EpgTimer Service", true) != 0) && initExe == true)
                         {
+                            var cmd = CommonManager.CreateSrvCtrl();
+                            cmd.SetConnectTimeOut(3000);
                             cmd.SendClose();
                         }
                     }
@@ -809,7 +809,7 @@ namespace EpgTimer
                     {
                         List<ReserveData> val = new List<ReserveData>();
                         val.Add(iepgFile.AddInfo);
-                        cmd.SendAddReserve(val);
+                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
                     }
                     else
                     {
@@ -824,7 +824,7 @@ namespace EpgTimer
                     {
                         List<ReserveData> val = new List<ReserveData>();
                         val.Add(iepgFile.AddInfo);
-                        cmd.SendAddReserve(val);
+                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
                     }
                     else
                     {
@@ -903,8 +903,8 @@ namespace EpgTimer
                 }
                 else
                 {
-                    cmd.SendReloadSetting();
-                    cmd.SendNotifyProfileUpdate();
+                    CommonManager.CreateSrvCtrl().SendReloadSetting();
+                    CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();
                 }
 
                 if (setting.setEpgView.IsChangeEpgArcLoadSetting == true)
@@ -1026,7 +1026,7 @@ namespace EpgTimer
 
         void EpgCapCmd()
         {
-            if (cmd.SendEpgCapNow() != ErrCode.CMD_SUCCESS)
+            if (CommonManager.CreateSrvCtrl().SendEpgCapNow() != ErrCode.CMD_SUCCESS)
             {
                 MessageBox.Show("EPG取得を行える状態ではありません。\r\n（もうすぐ予約が始まる。EPGデータ読み込み中。など）");
             }
@@ -1038,7 +1038,7 @@ namespace EpgTimer
             {
                 CommonManager.Instance.DB.SetOneTimeReloadEpg();
             }
-            if (cmd.SendReloadEpg() != ErrCode.CMD_SUCCESS)
+            if (CommonManager.CreateSrvCtrl().SendReloadEpg() != ErrCode.CMD_SUCCESS)
             {
                 MessageBox.Show("EPG再読み込みを行える状態ではありません。\r\n（EPGデータ読み込み中。など）");
                 return;
@@ -1052,7 +1052,7 @@ namespace EpgTimer
             ViewUtil.SingleWindowCheck(typeof(SuspendCheckWindow), true);
 
             suspendMode = suspendMode == 1 ? suspendMode : (byte)2;
-            ErrCode err = TrayManager.IsSrvLost == true ? ErrCode.CMD_ERR_CONNECT : cmd.SendChkSuspend();
+            ErrCode err = TrayManager.IsSrvLost == true ? ErrCode.CMD_ERR_CONNECT : CommonManager.CreateSrvCtrl().SendChkSuspend();
             if (err != ErrCode.CMD_SUCCESS)
             {
                 if (err == ErrCode.CMD_ERR_CONNECT)
@@ -1081,14 +1081,14 @@ namespace EpgTimer
             if (CommonManager.Instance.NWMode == true && Settings.Instance.SuspendCloseNW == true)
             {
                 UnRegistTCP();
-                cmd.SendSuspend(cmdVal);
+                CommonManager.CreateSrvCtrl().SendSuspend(cmdVal);
                 CloseCmd();
                 return;
             }
             else
             {
                 SaveData();
-                cmd.SendSuspend(cmdVal);
+                CommonManager.CreateSrvCtrl().SendSuspend(cmdVal);
             }
         }
 
@@ -1118,7 +1118,7 @@ namespace EpgTimer
             if (Settings.Instance.NWWaitPort != 0 && needUnRegist == true
                 && CommonManager.Instance.NW.IsConnected == true && TrayManager.IsSrvLost == false)
             {
-                cmd.SendUnRegistTCP(Settings.Instance.NWWaitPort);
+                CommonManager.CreateSrvCtrl().SendUnRegistTCP(Settings.Instance.NWWaitPort);
             }
             needUnRegist = false;
         }
@@ -1221,7 +1221,7 @@ namespace EpgTimer
                             if (dlg.ShowDialog() == true)
                             {
                                 SaveData();
-                                cmd.SendSuspend(param);
+                                CommonManager.CreateSrvCtrl().SendSuspend(param);
                             }
                         }));
                     }
@@ -1238,7 +1238,7 @@ namespace EpgTimer
                             if (dlg.ShowDialog() == true)
                             {
                                 SaveData();
-                                cmd.SendReboot();
+                                CommonManager.CreateSrvCtrl().SendReboot();
                             }
                         }));
                     }
@@ -1418,7 +1418,7 @@ namespace EpgTimer
                 {
                     if (DB.EpgAutoAddList.Count != 0)
                     {
-                        cmd.SendChgEpgAutoAdd(DB.EpgAutoAddList.Values.ToList());
+                        CommonManager.CreateSrvCtrl().SendChgEpgAutoAdd(DB.EpgAutoAddList.Values.ToList());
                     }
                 }
                 //追加データもクリアしておく。
@@ -1429,7 +1429,7 @@ namespace EpgTimer
                 {
                     if (DB.ManualAutoAddList.Count != 0)
                     {
-                        cmd.SendChgManualAdd(DB.ManualAutoAddList.Values.ToList());
+                        CommonManager.CreateSrvCtrl().SendChgManualAdd(DB.ManualAutoAddList.Values.ToList());
                     }
                 }
 
@@ -1439,7 +1439,7 @@ namespace EpgTimer
                     if (DB.ReserveList.Count != 0)
                     {
                         //予約一覧は一つでも更新をかければ、再構築される。
-                        cmd.SendChgReserve(new List<ReserveData> { DB.ReserveList.Values.First() });
+                        CommonManager.CreateSrvCtrl().SendChgReserve(new List<ReserveData> { DB.ReserveList.Values.First() });
                     }
                     else
                     {

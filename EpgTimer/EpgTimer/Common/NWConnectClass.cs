@@ -14,37 +14,27 @@ namespace EpgTimer
     {
         private Func<uint, byte[], Tuple<ErrCode, byte[], uint>> cmdProc = null;
 
-        private bool connectFlag;
         private TcpListener server = null;
         private TcpClient pollingClient = null;
-
-        private IPAddress connectedIP = null;
-        private UInt32 connectedPort = 0;
-
-        private CtrlCmdUtil cmd = null;
 
         public bool IsConnected
         {
             get
             {
-                return connectFlag;
+                return ConnectedIP != null;
             }
         }
 
         public IPAddress ConnectedIP
         {
-            get
-            {
-                return connectedIP;
-            }
+            get;
+            private set;
         }
 
         public UInt32 ConnectedPort
         {
-            get
-            {
-                return connectedPort;
-            }
+            get;
+            private set;
         }
 
         public bool OnPolling
@@ -53,12 +43,6 @@ namespace EpgTimer
             {
                 return pollingClient != null;
             }
-        }
-
-        public NWConnect(CtrlCmdUtil ctrlCmd)
-        {
-            connectFlag = false;
-            cmd = ctrlCmd;
         }
 
         public static void SendMagicPacket(byte[] physicalAddress)
@@ -86,11 +70,14 @@ namespace EpgTimer
 
         public bool ConnectServer(IPAddress srvIP, UInt32 srvPort, UInt32 waitPort, Func<uint, byte[], Tuple<ErrCode, byte[], uint>> pfnCmdProc)
         {
-            connectFlag = false;
+            ConnectedIP = null;
+            ConnectedPort = 0;
 
             cmdProc = pfnCmdProc;
             StartTCPServer(waitPort);
             pollingClient = null;
+
+            var cmd = new CtrlCmdUtil();
 
             cmd.SetSendMode(true);
 
@@ -105,9 +92,8 @@ namespace EpgTimer
             }
             else
             {
-                connectFlag = true;
-                connectedIP = srvIP;
-                connectedPort = srvPort;
+                ConnectedIP = srvIP;
+                ConnectedPort = srvPort;
                 if (waitPort == 0)
                 {
                     pollingClient = new TcpClient();

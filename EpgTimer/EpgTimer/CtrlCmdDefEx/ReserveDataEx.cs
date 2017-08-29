@@ -75,7 +75,7 @@ namespace EpgTimer
                     if (eventInfo == null && getSrv == true)
                     {
                         eventInfo = new EpgEventInfo();
-                        CommonManager.Instance.CtrlCmd.SendGetPgInfo(Create64PgKey(), ref eventInfo);
+                        CommonManager.CreateSrvCtrl().SendGetPgInfo(Create64PgKey(), ref eventInfo);
                     }
                 }
                 else

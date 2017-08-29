@@ -379,7 +379,7 @@ namespace EpgTimer
                 if (proc == 0)
                 {
                     var list = new List<ReserveData>();
-                    CommonManager.Instance.CtrlCmd.SendEnumReserve(ref list);
+                    CommonManager.CreateSrvCtrl().SendEnumReserve(ref list);
                     var newlist = list.Where(rs => oldset.Contains(rs.ReserveID) == false).ToList();
                     if (newlist.Count == 1)
                     {

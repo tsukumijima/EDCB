@@ -40,7 +40,6 @@ namespace EpgTimer
 
         private RadioBtnSelect recEndModeRadioBtns;
         private List<TunerSelectInfo> tunerList = new List<TunerSelectInfo>();
-        private static CtrlCmdUtil cmd { get { return CommonManager.Instance.CtrlCmd; } }
 
         private bool IsManual = false;
 
@@ -132,7 +131,7 @@ namespace EpgTimer
             Settings.Instance.RecPresetList = list;
             if (CommonManager.Instance.NWMode == false)
             {
-                CommonManager.Instance.CtrlCmd.SendNotifyProfileUpdate();
+                CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();
                 ViewUtil.MainWindow.RefreshAllViewsReserveInfo(MainWindow.UpdateViewMode.ReserveInfoNoTuner);
             }
 

@@ -179,7 +179,7 @@ namespace EpgTimer
                 key.keyDisabledFlag = 0; //無効解除
                 var list = new List<EpgEventInfo>();
 
-                CommonManager.Instance.CtrlCmd.SendSearchPg(CommonUtil.ToList(key), ref list);
+                CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(key), ref list);
 
                 dataList.AddRange(list.ToSearchList(true));
                 return true;

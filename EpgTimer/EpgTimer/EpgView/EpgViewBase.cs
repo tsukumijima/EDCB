@@ -40,7 +40,7 @@ namespace EpgTimer.EpgView
                 {
                     //番組情報の検索
                     var list = new List<EpgEventInfo>();
-                    ErrCode err = CommonManager.Instance.CtrlCmd.SendSearchPg(CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg()), ref list);
+                    ErrCode err = CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg()), ref list);
                     if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得") == false) return false;
 
                     //サービス毎のリストに変換

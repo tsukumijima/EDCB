@@ -48,7 +48,7 @@ namespace EpgTimer
                 {
                     //サーバに保存されたログを使う
                     string notifyLog = "";
-                    CommonManager.Instance.CtrlCmd.SendGetNotifyLog(Math.Max(Settings.Instance.NotifyLogMax, 1), ref notifyLog);
+                    CommonManager.CreateSrvCtrl().SendGetNotifyLog(Math.Max(Settings.Instance.NotifyLogMax, 1), ref notifyLog);
                     dataList.AddRange(notifyLog.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                                                 .Select(text => new NotifySrvInfoItem(text)));
                 }

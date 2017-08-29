@@ -56,13 +56,13 @@ namespace EpgTimer
             if (t == typeof(EpgAutoAddData))
             {
                 var list = new List<EpgAutoAddData>();
-                CommonManager.Instance.CtrlCmd.SendEnumEpgAutoAdd(ref list);
+                CommonManager.CreateSrvCtrl().SendEnumEpgAutoAdd(ref list);
                 return list;
             }
             else if (t == typeof(ManualAutoAddData))
             {
                 var list = new List<ManualAutoAddData>();
-                CommonManager.Instance.CtrlCmd.SendEnumManualAdd(ref list);
+                CommonManager.CreateSrvCtrl().SendEnumManualAdd(ref list);
                 return list;
             }
             return new List<AutoAddData>();

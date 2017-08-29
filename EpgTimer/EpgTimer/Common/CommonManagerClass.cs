@@ -18,7 +18,6 @@ namespace EpgTimer
 {
     class CommonManager
     {
-        public CtrlCmdUtil CtrlCmd { get; private set; }
         public DBManager DB { get; private set; }
         public TVTestCtrlClass TVTestCtrl { get; private set; }
         public bool NWMode { get; set; }
@@ -93,10 +92,9 @@ namespace EpgTimer
 
         public CommonManager()
         {
-            CtrlCmd = new CtrlCmdUtil();
-            DB = new DBManager(CtrlCmd);
-            TVTestCtrl = new TVTestCtrlClass(CtrlCmd);
-            NW = new NWConnect(CtrlCmd);
+            DB = new DBManager();
+            TVTestCtrl = new TVTestCtrlClass();
+            NW = new NWConnect();
             NWMode = false;
             NotifyLogList = new List<NotifySrvInfo>();
             CustContentColorList = new List<Brush>();
@@ -447,6 +445,17 @@ namespace EpgTimer
         }
 
         public bool IsConnected { get { return NWMode == false || NW.IsConnected == true; } }
+
+        public static CtrlCmdUtil CreateSrvCtrl()
+        {
+            var cmd = new CtrlCmdUtil();
+            if (Instance.NWMode)
+            {
+                cmd.SetSendMode(true);
+                cmd.SetNWSetting(Instance.NW.ConnectedIP, Instance.NW.ConnectedPort);
+            }
+            return cmd;
+        }
 
         //ChKeyを16ビットに圧縮し、EpgTimerの起動中保持し続ける。
         private static Dictionary<UInt64, UInt16> chKey64to16Dic = new Dictionary<UInt64, UInt16>();
@@ -1227,7 +1236,7 @@ namespace EpgTimer
             {
                 if (String.IsNullOrWhiteSpace(path) == true) return "";
                 if (Instance.NWMode != true) return path;
-                Instance.CtrlCmd.SendGetRecFileNetworkPath(path, ref nwPath);
+                CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref nwPath);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return nwPath;
@@ -1274,9 +1283,9 @@ namespace EpgTimer
             {
                 //ファイルパスを取得するため開いてすぐ閉じる
                 var info = new NWPlayTimeShiftInfo();
-                if (CtrlCmd.SendNwTimeShiftOpen(data.ReserveID, ref info) == ErrCode.CMD_SUCCESS)
+                if (CreateSrvCtrl().SendNwTimeShiftOpen(data.ReserveID, ref info) == ErrCode.CMD_SUCCESS)
                 {
-                    CtrlCmd.SendNwPlayClose(info.ctrlID);
+                    CreateSrvCtrl().SendNwPlayClose(info.ctrlID);
                     if (info.filePath != "")
                     {
                         FilePlay(info.filePath);
