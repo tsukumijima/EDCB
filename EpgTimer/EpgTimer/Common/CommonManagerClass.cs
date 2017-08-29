@@ -621,6 +621,24 @@ namespace EpgTimer
             return false;
         }
 
+        public static string GetErrCodeText(ErrCode err)
+        {
+            switch (err)
+            {
+                case ErrCode.CMD_NON_SUPPORT:
+                    return "EpgTimerSrvがサポートしていないコマンドです。";
+                case ErrCode.CMD_ERR_CONNECT:
+                    return "EpgTimerSrvに接続できませんでした。";
+                case ErrCode.CMD_ERR_TIMEOUT:
+                    return "EpgTimerSrvとの接続にタイムアウトしました。";
+                case ErrCode.CMD_ERR_BUSY:
+                    //このエラーはコマンドによって解釈が異なる
+                    return null;
+                default:
+                    return null;
+            }
+        }
+
         public static String ConvertTimeText(EpgEventInfo info)
         {
             if (info.StartTimeFlag == 0) return "未定 ～ 未定";

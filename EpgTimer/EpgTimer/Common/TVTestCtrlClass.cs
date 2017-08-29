@@ -113,14 +113,9 @@ namespace EpgTimer
                             break;
                         }
                     }
-                    else if (err == ErrCode.CMD_ERR_CONNECT)
-                    {
-                        MessageBox.Show("サーバーに接続できませんでした");
-                        return false;
-                    }
                     else
                     {
-                        MessageBox.Show("指定サービスを受信できるBonDriverが設定されていません。");
+                        MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "指定サービスを受信できるBonDriverが設定されていません。");
                         return false;
                     }
                 }
@@ -153,14 +148,9 @@ namespace EpgTimer
                 }
                 NWPlayTimeShiftInfo playInfo = new NWPlayTimeShiftInfo();
                 ErrCode err = CommonManager.CreateSrvCtrl().SendNwTimeShiftOpen(reserveID, ref playInfo);
-                if (err == ErrCode.CMD_ERR_CONNECT)
+                if (err != ErrCode.CMD_SUCCESS)
                 {
-                    MessageBox.Show("サーバーに接続できませんでした");
-                    return false;
-                }
-                else if( err != ErrCode.CMD_SUCCESS )
-                {
-                    MessageBox.Show("まだ録画が開始されていません");
+                    MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "まだ録画が開始されていません。");
                     return false;
                 }
 
@@ -224,14 +214,9 @@ namespace EpgTimer
 
                 UInt32 ctrlID = 0;
                 ErrCode err = CommonManager.CreateSrvCtrl().SendNwPlayOpen(filePath, ref ctrlID);
-                if (err == ErrCode.CMD_ERR_CONNECT)
+                if (err != ErrCode.CMD_SUCCESS)
                 {
-                    MessageBox.Show("サーバーに接続できませんでした");
-                    return false;
-                }
-                else if (err != ErrCode.CMD_SUCCESS)
-                {
-                    MessageBox.Show("まだ録画が開始されていません");
+                    MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "まだ録画が開始されていません。");
                     return false;
                 }
 
