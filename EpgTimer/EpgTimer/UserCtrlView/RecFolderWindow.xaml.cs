@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace EpgTimer
 {
@@ -31,6 +32,11 @@ namespace EpgTimer
 
             comboBox_recNamePlugIn.ItemsSource = new[] { "なし" }.Concat(CommonManager.Instance.DB.RecNamePlugInList);
             comboBox_recNamePlugIn.SelectedIndex = 0;
+
+            //フォルダ設定無しの場合の表示
+            textBox_recFolderDef.Text = Settings.Instance.DefRecFolders.FirstOrDefault() ?? SettingPath.GetSettingFolderPath(true);
+            textBox_recFolder.TextChanged += textBox_recFolder_TextChanged;
+            textBox_recFolder_TextChanged(null, null);//ツールチップを設定するため
         }
 
         public void SetDefSetting(RecFileSetInfoView info)
@@ -64,7 +70,8 @@ namespace EpgTimer
 
         private void button_folder_Click(object sender, RoutedEventArgs e)
         {
-            CommonManager.GetFolderNameByDialog(textBox_recFolder, "録画フォルダの選択", true);
+            var textBox = textBox_recFolderDef.IsVisible == true ? textBox_recFolderDef : textBox_recFolder;
+            CommonManager.GetFolderNameByDialog(textBox, "録画フォルダの選択", true);
         }
 
         private void button_write_Click(object sender, RoutedEventArgs e)
@@ -76,6 +83,12 @@ namespace EpgTimer
         {
             if (comboBox_recNamePlugIn.SelectedIndex <= 0) return;
             CommonManager.ShowPlugInSetting(comboBox_recNamePlugIn.SelectedItem as string, "RecName", this);
+        }
+
+        private void textBox_recFolder_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            textBox_recFolderDef.Visibility = textBox_recFolder.Text == "" ? Visibility.Visible : Visibility.Hidden;
+            textBox_recFolder.ToolTip = textBox_recFolderDef.Visibility == Visibility.Visible ? textBox_recFolderDef.ToolTip : null;
         }
     }
 }
