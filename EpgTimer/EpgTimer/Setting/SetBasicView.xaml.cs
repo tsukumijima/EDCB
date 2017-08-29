@@ -33,7 +33,8 @@ namespace EpgTimer.Setting
                 button_setPath.IsEnabled = true;
                 textBox_exe.SetReadOnlyWithEffect(true);
                 button_exe.IsEnabled = true;
-                textBox_cmdBon.SetReadOnlyWithEffect(true);
+                label_cmdline.ToolTip = "EpgTimerNWでは、EpgTimerSrv側の設定値ではなく常にデフォルト値を表示しています。";
+                label_recFolder.ToolTip = "未設定の場合は(EpgTimerSrv側の)「設定関係保存フォルダ」がデフォルトになります";
                 listBox_recFolder.IsEnabled = true;
                 textBox_recFolder.SetReadOnlyWithEffect(true);
                 button_rec_open.IsEnabled = true;
@@ -74,10 +75,9 @@ namespace EpgTimer.Setting
                 textBox_setPath.Text = SettingPath.SettingFolderPath;
                 textBox_exe.Text = SettingPath.EdcbExePath;
 
-                string viewAppIniPath = SettingPath.ModulePath.TrimEnd('\\') + "\\ViewApp.ini";
-                textBox_cmdBon.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", viewAppIniPath);
-                textBox_cmdMin.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", viewAppIniPath);
-                textBox_cmdViewOff.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", viewAppIniPath);
+                textBox_cmdBon.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", SettingPath.ViewAppIniPath);
+                textBox_cmdMin.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", SettingPath.ViewAppIniPath);
+                textBox_cmdViewOff.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", SettingPath.ViewAppIniPath);
 
                 Settings.Instance.DefRecFolders.ForEach(folder => listBox_recFolder.Items.Add(folder));
                 textBox_recInfoFolder.Text = IniFileHandler.GetPrivateProfileFolder("SET", "RecInfoFolder", SettingPath.CommonIniPath);
@@ -172,7 +172,7 @@ namespace EpgTimer.Setting
                 textBox_httpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpAccessControlList", "+127.0.0.1", SettingPath.TimerSrvIniPath);
                 textBox_httpTimeout.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpRequestTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
                 textBox_httpThreads.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpNumThreads", 5, SettingPath.TimerSrvIniPath).ToString();
-                textBox_docrootPath.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpPublicFolder", System.IO.Path.Combine(SettingPath.ModulePath, "HttpPublic"), SettingPath.TimerSrvIniPath);
+                textBox_docrootPath.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpPublicFolder", SettingPath.DefHttpPublicPath, SettingPath.TimerSrvIniPath);
                 checkBox_dlnaServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableDMS", false, SettingPath.TimerSrvIniPath);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -182,28 +182,24 @@ namespace EpgTimer.Setting
         {
             try
             {
-                string setPath = SettingPath.CheckFolder(textBox_setPath.Text);
-                setPath = setPath == "" ? SettingPath.DefSettingFolderPath : setPath;
-                System.IO.Directory.CreateDirectory(setPath);
+                string org_setPath = SettingPath.SettingFolderPath;
+                SettingPath.SettingFolderPath = textBox_setPath.Text;
+                System.IO.Directory.CreateDirectory(SettingPath.SettingFolderPath);
+                IsChangeSettingPath = string.Compare(org_setPath, SettingPath.SettingFolderPath, true) != 0;
 
-                IsChangeSettingPath = string.Compare(setPath, SettingPath.SettingFolderPath, true) != 0;
-                SettingPath.SettingFolderPath = setPath;
+                SettingPath.EdcbExePath = textBox_exe.Text;
 
-                IniFileHandler.WritePrivateProfileString("SET", "RecExePath",
-                    string.Compare(textBox_exe.Text, SettingPath.ModulePath.TrimEnd('\\') + "\\EpgDataCap_Bon.exe", true) == 0 ? null : textBox_exe.Text, SettingPath.CommonIniPath);
-
-                string viewAppIniPath = SettingPath.ModulePath.TrimEnd('\\') + "\\ViewApp.ini";
-                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", viewAppIniPath) != textBox_cmdBon.Text)
+                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", SettingPath.ViewAppIniPath) != textBox_cmdBon.Text)
                 {
-                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Bon", textBox_cmdBon.Text, viewAppIniPath);
+                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Bon", textBox_cmdBon.Text, SettingPath.ViewAppIniPath);
                 }
-                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", viewAppIniPath) != textBox_cmdMin.Text)
+                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", SettingPath.ViewAppIniPath) != textBox_cmdMin.Text)
                 {
-                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Min", textBox_cmdMin.Text, viewAppIniPath);
+                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Min", textBox_cmdMin.Text, SettingPath.ViewAppIniPath);
                 }
-                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", viewAppIniPath) != textBox_cmdViewOff.Text)
+                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", SettingPath.ViewAppIniPath) != textBox_cmdViewOff.Text)
                 {
-                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "ViewOff", textBox_cmdViewOff.Text, viewAppIniPath);
+                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "ViewOff", textBox_cmdViewOff.Text, SettingPath.ViewAppIniPath);
                 }
 
                 List<String> recFolderList = ViewUtil.GetFolderList(listBox_recFolder);
@@ -273,7 +269,7 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "HttpAccessControlList", textBox_httpAcl.Text, "+127.0.0.1", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "HttpRequestTimeoutSec", textBox_httpTimeout.Text, "120", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "HttpNumThreads", textBox_httpThreads.Text, "5", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "HttpPublicFolder", textBox_docrootPath.Text, System.IO.Path.Combine(SettingPath.ModulePath, "HttpPublic"), SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "HttpPublicFolder", textBox_docrootPath.Text, SettingPath.DefHttpPublicPath, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "EnableDMS", checkBox_dlnaServer.IsChecked, false, SettingPath.TimerSrvIniPath);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

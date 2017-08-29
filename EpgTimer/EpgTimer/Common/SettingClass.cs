@@ -42,11 +42,11 @@ namespace EpgTimer
           string lpString,
           string lpFileName);
 
-        /// <summary>書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()</summary>
+        /// <summary>書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()。ただし空のstringはnull。</summary>
         public static uint WritePrivateProfileString(string lpAppName, string lpKeyName, object val, string lpFileName)
         {
             string lpString = val == null ? null : !(val is bool) ? val.ToString() : (bool)val ? "1" : "0";
-            return WritePrivateProfileString(lpAppName, lpKeyName, lpString, lpFileName);
+            return WritePrivateProfileString(lpAppName, lpKeyName, lpString == "" ? null : lpString, lpFileName);
         }
         /// <summary>デフォルト値の時キーを削除する。書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()</summary>
         public static uint WritePrivateProfileString<T>(string lpAppName, string lpKeyName, T val, T defval, string lpFileName)
@@ -147,8 +147,10 @@ namespace EpgTimer
                 iniList = new List<string> {
                     "EpgTimerSrv.ini"
                     ,"Common.ini"
-                    ,"BonCtrl.ini"
                     ,"EpgDataCap_Bon.ini"
+                    ,"BonCtrl.ini"
+                    //,"Bitrate.ini" //未使用
+                    //,"ViewApp.ini" //今となっては使ってる人いるのかよくわからないので除外、EpgTimerSrv側も未実装
                     ,"ChSet5.txt"
                 };
             }
@@ -174,7 +176,6 @@ namespace EpgTimer
             }
             catch { }
         }
-
     }
 
     class SettingPath
@@ -211,13 +212,22 @@ namespace EpgTimer
         {
             get { return IniPath.TrimEnd('\\') + "\\EpgTimerSrv.ini"; }
         }
+        public static string ViewAppIniPath
+        {
+            get { return IniPath.TrimEnd('\\') + "\\ViewApp.ini"; }//NWでは実際には取得不可
+        }
+        public static string DefHttpPublicPath
+        {
+            get { return GetModulePath(true).TrimEnd('\\') + "\\HttpPublic"; }
+        }
+        public static string DefEdcbExePath
+        {
+            get { return GetModulePath(true).TrimEnd('\\') + "\\EpgDataCap_Bon.exe"; }
+        }
         public static string EdcbExePath
         {
-            get
-            {
-                string defRecExe = ModulePath.TrimEnd('\\') + "\\EpgDataCap_Bon.exe";
-                return IniFileHandler.GetPrivateProfileString("SET", "RecExePath", defRecExe, CommonIniPath);
-            }
+            get { return IniFileHandler.GetPrivateProfileString("SET", "RecExePath", DefEdcbExePath, CommonIniPath); }
+            set { IniFileHandler.WritePrivateProfileString("SET", "RecExePath", value == "" || string.Compare(value, DefEdcbExePath, true) == 0 ? null : value, SettingPath.CommonIniPath); }
         }
         public static string EdcbIniPath
         {
@@ -229,34 +239,39 @@ namespace EpgTimer
                 }
                 else
                 {
-                    return IniPath.TrimEnd('\\') + "\\EpgDataCap_Bon.ini";
+                    return IniPath.TrimEnd('\\') + "\\" + Path.GetFileNameWithoutExtension(EdcbExePath) + ".ini";
                 }
             }
+        }
+        private static string GetDefSettingFolderPath(bool isSrv = false)
+        {
+            return GetModulePath(isSrv).TrimEnd('\\') + "\\Setting" + (isSrv == true || CommonManager.Instance.NWMode == false ? "" : "\\EpgTimerNW");
+        }
+        public static string GetSettingFolderPath(bool isSrv = false)
+        {
+            string path;
+            if (isSrv == true || CommonManager.Instance.NWMode == false)
+            {
+                path = IniFileHandler.GetPrivateProfileFolder("SET", "DataSavePath", CommonIniPath);
+            }
+            else
+            {
+                path = CheckFolder(Settings.Instance.SettingFolderPathNW);
+            }
+            path = string.IsNullOrEmpty(path) == true ? GetDefSettingFolderPath(isSrv) : path;
+            return (Path.IsPathRooted(path) ? "" : GetModulePath(isSrv).TrimEnd('\\') + "\\") + path;
         }
         public static string DefSettingFolderPath
         {
-            get { return ModulePath.TrimEnd('\\') + "\\Setting" + (CommonManager.Instance.NWMode == false ? "" : "\\EpgTimerNW"); }
+            get { return GetDefSettingFolderPath(); }
         }
         public static string SettingFolderPath
         {
-            get
-            {
-                string path;
-                if (CommonManager.Instance.NWMode == false)
-                {
-                    path = IniFileHandler.GetPrivateProfileFolder("SET", "DataSavePath", CommonIniPath);
-                }
-                else
-                {
-                    path = CheckFolder(Settings.Instance.SettingFolderPathNW);
-                }
-                path = string.IsNullOrEmpty(path) == true ? DefSettingFolderPath : path;
-                return (Path.IsPathRooted(path) ? "" : ModulePath.TrimEnd('\\') + "\\") + path;
-            }
+            get { return GetSettingFolderPath(); }
             set
             {
                 string path = CheckFolder(value);
-                bool isDefaultPath = string.Compare(path.TrimEnd('\\'), SettingPath.DefSettingFolderPath.TrimEnd('\\'), true) == 0;
+                bool isDefaultPath = path == "" || string.Compare(path.TrimEnd('\\'), SettingPath.DefSettingFolderPath.TrimEnd('\\'), true) == 0;
                 if (CommonManager.Instance.NWMode == false)
                 {
                     IniFileHandler.WritePrivateProfileString("SET", "DataSavePath", isDefaultPath == true ? null : path, SettingPath.CommonIniPath);
@@ -267,9 +282,20 @@ namespace EpgTimer
                 }
             }
         }
+        private static string GetModulePath(bool isSrv = false)
+        {
+            if (isSrv == true && CommonManager.Instance.NWMode == true)
+            {
+                return "(サーバ側アプリフォルダ)";//取得手段なし
+            }
+            else
+            {
+                return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            }
+        }
         public static string ModulePath
         {
-            get { return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location); }
+            get { return GetModulePath(); }
         }
         public static string ModuleName
         {
