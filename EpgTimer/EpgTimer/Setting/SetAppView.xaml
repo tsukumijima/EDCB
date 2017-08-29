@@ -17,7 +17,7 @@
                     <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,6,0,0" Name="checkBox_showTray" />
                     <CheckBox Content="最小化時にタスクトレイに格納する" Margin="18,4,0,0" Name="checkBox_minHide" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_showTray, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
-                <CheckBox Margin="0,6,0,0" Content="バルーンチップでの動作通知を抑制する" Name="checkBox_noBallonTips" />
+                <CheckBox Margin="0,6,0,0" Content="バルーンチップ/トーストでの動作通知を抑制する" Name="checkBox_noBallonTips" />
                 <StackPanel Margin="0,4,12,-2" Orientation="Horizontal" >
                     <Label Content="バルーンチップを強制的に閉じる" ToolTip="0でタイムアウト無し"/>
                     <TextBox Margin="6,0,0,0" Name="textBox_ForceHideBalloonTipSec" Width="62" />
