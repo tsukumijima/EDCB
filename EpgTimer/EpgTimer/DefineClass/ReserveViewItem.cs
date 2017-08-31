@@ -46,6 +46,41 @@ namespace EpgTimer
                 return CommonManager.Instance.CustEpgResColorList[0];
             }
         }
+
+        public virtual Brush FillBrush
+        {
+            get
+            {
+                if (ReserveInfo != null)
+                {
+                    if (ReserveInfo.IsEnabled == false)
+                    {
+                        return CommonManager.Instance.CustEpgResFillColorList[2];
+                    }
+                    if (ReserveInfo.OverlapMode == 2)
+                    {
+                        return CommonManager.Instance.CustEpgResFillColorList[3];
+                    }
+                    if (ReserveInfo.OverlapMode == 1)
+                    {
+                        return CommonManager.Instance.CustEpgResFillColorList[4];
+                    }
+                    if (ReserveInfo.IsAutoAddInvalid == true)
+                    {
+                        return CommonManager.Instance.CustEpgResFillColorList[5];
+                    }
+                    if (ReserveInfo.IsMultiple == true)
+                    {
+                        return CommonManager.Instance.CustEpgResFillColorList[6];
+                    }
+                    if (ReserveInfo.IsManual == true)
+                    {
+                        return CommonManager.Instance.CustEpgResFillColorList[1];
+                    }
+                }
+                return CommonManager.Instance.CustEpgResFillColorList[0];
+            }
+        }
     }
 
     public class TunerReserveViewItem : ReserveViewItem

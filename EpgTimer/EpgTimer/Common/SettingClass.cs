@@ -337,7 +337,8 @@ namespace EpgTimer
         public List<UInt32> EpgResCustColorList { get; set; }
         public List<string> EpgEtcColors { get; set; }
         public List<UInt32> EpgEtcCustColors { get; set; }
-        public bool ReserveRectBackground { get; set; }
+        public int ReserveRectFillOpacity { get; set; }
+        public bool ReserveRectFillWithShadow { get; set; }
         public Int32 ReserveToolTipMode { get; set; }
         public Int32 ReserveEpgInfoOpenMode { get; set; }
         public string TitleColor1 { get; set; }
@@ -1180,7 +1181,8 @@ namespace EpgTimer
             EpgResCustColorList = new List<uint>();
             EpgEtcColors = new List<string>();
             EpgEtcCustColors = new List<uint>();
-            ReserveRectBackground = false;
+            ReserveRectFillOpacity = 0;
+            ReserveRectFillWithShadow = true;
             TitleColor1 = "Black";
             TitleColor2 = "Black";
             TitleCustColor1 = 0xFFFFFFFF;

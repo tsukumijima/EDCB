@@ -146,18 +146,17 @@ namespace EpgTimer.EpgView
             double marginEpg = 1;
             double marginRes = marginEpg + 3;
             popupItemTextArea.Margin = new Thickness(marginEpg, marginEpg - 2, marginEpg + 3, marginEpg);
+            popupItemBorder.Visibility = Visibility.Collapsed;
+            popupItemFillOnly.Visibility = Visibility.Collapsed;
             if (popInfoRes != null)
             {
-                SetReserveBorder(popupItemBorder, popInfoRes);
                 popupItemBorder.Visibility = Visibility.Visible;
-                if (Settings.Instance.ReserveRectBackground == false)
+                if (Settings.Instance.ReserveRectFillWithShadow == false) popupItemFillOnly.Visibility = Visibility.Visible;
+                SetReserveBorderColor(popInfoRes, popupItemBorder, Settings.Instance.ReserveRectFillWithShadow ? null : popupItemFillOnly);
+                if (Settings.Instance.ReserveRectFillOpacity <= 66)
                 {
                     popupItemTextArea.Margin = new Thickness(marginRes, marginRes - 1, marginRes, marginRes);
                 }
-            }
-            else
-            {
-                popupItemBorder.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -191,24 +190,12 @@ namespace EpgTimer.EpgView
             return null;
         }
 
-        private void SetReserveBorder(Rectangle rect, ReserveViewItem info)
+        private void SetReserveBorderColor(ReserveViewItem info, Rectangle rect, Rectangle fillOnlyRect = null)
         {
-            Brush color = info.BorderBrush;
-
-            if (Settings.Instance.ReserveRectBackground == false)
-            {
-                rect.Opacity = 0.5;
-                rect.Effect = new System.Windows.Media.Effects.DropShadowEffect() { BlurRadius = 10 };
-                rect.Fill = Brushes.Transparent;
-                rect.StrokeThickness = 3;
-                rect.Stroke = color;
-            }
-            else
-            {
-                rect.Opacity = 0.3;
-                rect.Effect = new System.Windows.Media.Effects.DropShadowEffect() { BlurRadius = 6 };
-                rect.Fill = color;
-            }
+            rect.Stroke = info.BorderBrush;
+            rect.Effect = new System.Windows.Media.Effects.DropShadowEffect() { BlurRadius = 10 };
+            rect.StrokeThickness = 3;
+            (fillOnlyRect ?? rect).Fill = info.FillBrush;
         }
         public void SetReserveList(List<ReserveViewItem> resList)
         {
@@ -224,14 +211,26 @@ namespace EpgTimer.EpgView
                     rect.Width = info.Width;
                     rect.Height = info.Height;
                     rect.IsHitTestVisible = false;
-
-                    SetReserveBorder(rect, info);
-
                     Canvas.SetLeft(rect, info.LeftPos);
                     Canvas.SetTop(rect, info.TopPos);
                     Canvas.SetZIndex(rect, 10);
                     canvas.Children.Add(rect);
                     rectBorder.Add(rect);
+
+                    var fillOnlyRect = Settings.Instance.ReserveRectFillWithShadow ? null : new Rectangle();
+                    if (fillOnlyRect != null)
+                    {
+                        fillOnlyRect.Width = info.Width;
+                        fillOnlyRect.Height = info.Height;
+                        fillOnlyRect.IsHitTestVisible = false;
+                        Canvas.SetLeft(fillOnlyRect, info.LeftPos);
+                        Canvas.SetTop(fillOnlyRect, info.TopPos);
+                        Canvas.SetZIndex(fillOnlyRect, 9);
+                        canvas.Children.Add(fillOnlyRect);
+                        rectBorder.Add(fillOnlyRect);
+                    }
+
+                    SetReserveBorderColor(info, rect, fillOnlyRect);
                 }
 
                 PopUpWork();

@@ -58,7 +58,8 @@ namespace EpgTimer.Setting
                 checkBox_gradationHeader.IsChecked = Settings.Instance.EpgGradationHeader;
                 checkBox_openInfo.IsChecked = (Settings.Instance.EpgInfoOpenMode != 0);
                 checkBox_displayNotifyChange.IsChecked = Settings.Instance.DisplayNotifyEpgChange;
-                checkBox_reserveBackground.IsChecked = Settings.Instance.ReserveRectBackground;
+                slider_reserveFillOpacity.Value = Math.Min(Math.Max(Settings.Instance.ReserveRectFillOpacity, 0), 100);
+                checkBox_reserveFillWithShadow.IsChecked = Settings.Instance.ReserveRectFillWithShadow;
 
                 int epgArcHour = IniFileHandler.GetPrivateProfileInt("SET", "EpgArchivePeriodHour", 0, SettingPath.TimerSrvIniPath);
                 double epgArcDay = IniFileHandler.GetPrivateProfileDouble("SET", "EpgArchivePeriodDay", 0, SettingPath.TimerSrvIniPath);
@@ -292,7 +293,8 @@ namespace EpgTimer.Setting
                 Settings.Instance.EpgInfoOpenMode = (checkBox_openInfo.IsChecked == true ? 1 : 0);
                 Settings.Instance.MouseScrollAuto = (checkBox_scrollAuto.IsChecked == true);
                 Settings.Instance.DisplayNotifyEpgChange = (checkBox_displayNotifyChange.IsChecked == true);
-                Settings.Instance.ReserveRectBackground = (checkBox_reserveBackground.IsChecked == true);
+                Settings.Instance.ReserveRectFillOpacity = (int)Math.Round(slider_reserveFillOpacity.Value);
+                Settings.Instance.ReserveRectFillWithShadow = checkBox_reserveFillWithShadow.IsChecked == true;
 
                 double epgArcDay = MenuUtil.MyToNumerical(textBox_epgArchivePeriod, Convert.ToDouble, 14, 0, 0);
                 IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodHour", ((int)(epgArcDay * 24)).ToString(), SettingPath.TimerSrvIniPath);

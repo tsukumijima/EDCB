@@ -65,6 +65,7 @@ namespace EpgTimer
             brush.EndPoint = new Point(0, 1);
             brush.GradientStops.Add(new GradientStop(color, 0.0));
             brush.GradientStops.Add(new GradientStop(color2, 1.0));
+            brush.Freeze();
             return brush;
         }
     }

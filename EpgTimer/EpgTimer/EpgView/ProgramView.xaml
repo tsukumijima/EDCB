@@ -15,7 +15,8 @@
                         <DropShadowEffect BlurRadius="12" Opacity="0.5"/>
                     </Border.Effect>
                     <Grid>
-                        <Rectangle x:Name="popupItemBorder" />
+                        <Rectangle x:Name="popupItemBorder" IsHitTestVisible="False"/>
+                        <Rectangle x:Name="popupItemFillOnly" IsHitTestVisible="False"/>
                         <StackPanel x:Name="popupItemTextArea">
                             <Grid>
                                 <TextBlock x:Name="minText" VerticalAlignment="Top" LineStackingStrategy="BlockLineHeight" />
