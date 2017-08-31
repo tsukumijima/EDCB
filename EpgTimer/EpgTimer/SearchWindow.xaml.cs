@@ -33,7 +33,13 @@ namespace EpgTimer
             {
                 buttonID = "検索";
                 base.SetParam(true, checkBox_windowPinned, checkBox_dataReplace);
-                grid_Tabs.Height = new GridLength(Settings.Instance.SearchWndTabsHeight);
+
+                //スプリッタ位置設定。操作不可能な値をセットしないよう努める。
+                if (Settings.Instance.SearchWndTabsHeight > grid_Tabs.Height.Value)
+                {
+                    //操作不可能な値をセットしないよう努める
+                    grid_Tabs.Height = new GridLength(Math.Min(Settings.Instance.SearchWndTabsHeight, Height));
+                }
 
                 //リストビュー関連の設定
                 var list_columns = Resources["ReserveItemViewColumns"] as GridViewColumnList;

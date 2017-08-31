@@ -13,12 +13,13 @@
     </Window.Resources>
     <Grid Name="grid_main">
         <Grid.RowDefinitions>
-            <RowDefinition Height="410" Name="grid_Tabs" />
+            <RowDefinition Height="405" Name="grid_Tabs" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <TabControl Name="tabControl1" TabStripPlacement="Bottom" Margin="0,0,0,3">
+        <TabControl Name="tabControl1" TabStripPlacement="Bottom" Margin="0,0,0,1">
             <TabItem Header="検索条件" Name="tabItem1" >
                 <my:SearchKeyView x:Name="searchKeyView" />
             </TabItem>
@@ -26,8 +27,8 @@
                 <my:RecSettingView x:Name="recSettingView" />
             </TabItem>
         </TabControl>
-        <GridSplitter Grid.Row="0" Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" BorderBrush="DarkGray" Background="DarkGray" />
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,0">
+        <GridSplitter Grid.Row="1" Background="DarkGray" Height="2" HorizontalAlignment="Stretch"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,5,0,0">
             <Button Content="検索" Margin="10,0,0,0" Name="button_search" MinWidth="42" />
             <Button Content="予約" Margin="20,0,0,0" Name="button_add_reserve" MinWidth="42" />
             <Button Content="予約全削除" Margin="6,0,0,0" Name="button_delall_reserve" MinWidth="42" />
@@ -44,12 +45,12 @@
             <Button Content="次へ" Margin="6,0,0,0" Name="button_down_epgAutoAdd" MinWidth="42" />
             <Button Content="閉じる" Margin="30,0,10,0" Name="button_cancel" MinWidth="42" />
         </StackPanel>
-        <ListView Grid.Row="2" Name="listView_result" Margin="10,5,10,5" Style="{StaticResource DataListViewStyle}" >
+        <ListView Grid.Row="3" Name="listView_result" Margin="10,5,10,5" Style="{StaticResource DataListViewStyle}" >
             <ListView.View>
                 <GridView x:Name="gridView_result" />
             </ListView.View>
         </ListView>
-        <DockPanel Grid.Row="3" Margin="10,0,10,5" >
+        <DockPanel Grid.Row="4" Margin="10,0,10,5" >
             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" >
                 <CheckBox Content="このウィンドウにデータを開く" Margin="6,0,0,0" Name="checkBox_dataReplace" />
                 <CheckBox Content="メインウィンドウの前面に表示" Margin="6,0,0,0" Name="checkBox_windowPinned" />

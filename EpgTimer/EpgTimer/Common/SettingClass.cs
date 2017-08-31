@@ -641,7 +641,7 @@ namespace EpgTimer
             ResColumnHead = "";
             ResSortDirection = ListSortDirection.Ascending;
             WndSettings = new WindowSettingData();
-            SearchWndTabsHeight = 410;
+            SearchWndTabsHeight = 0;
             CloseMin = false;
             WakeMin = false;
             ViewButtonShowAsTab = false;
