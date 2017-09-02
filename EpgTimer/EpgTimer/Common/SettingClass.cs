@@ -151,8 +151,8 @@ namespace EpgTimer
                     ,"Common.ini"
                     ,"EpgDataCap_Bon.ini"
                     ,"BonCtrl.ini"
+                    ,"ViewApp.ini" 
                     //,"Bitrate.ini" //未使用
-                    //,"ViewApp.ini" //今となっては使ってる人いるのかよくわからないので除外、EpgTimerSrv側も未実装
                     ,"ChSet5.txt"
                 };
             }
@@ -164,11 +164,17 @@ namespace EpgTimer
                 if (err == ErrCode.CMD_SUCCESS)
                 {
                     Directory.CreateDirectory(SettingPath.SettingFolderPath);
-                    foreach (var data in datalist.Where(d1 => d1.Size != 0))
+                    foreach (var data in datalist)
                     {
                         try
                         {
-                            using (var w = new BinaryWriter(File.Create(Path.Combine(SettingPath.SettingFolderPath, data.Name))))
+                            string path = Path.Combine(SettingPath.SettingFolderPath, data.Name);
+                            if (data.Size == 0)
+                            {
+                                File.Delete(path);
+                                continue;
+                            }
+                            using (var w = new BinaryWriter(File.Create(path)))
                             {
                                 w.Write(data.Data);
                             }
@@ -218,7 +224,7 @@ namespace EpgTimer
         }
         public static string ViewAppIniPath
         {
-            get { return IniPath.TrimEnd('\\') + "\\ViewApp.ini"; }//NWでは実際には取得不可
+            get { return IniPath.TrimEnd('\\') + "\\ViewApp.ini"; }
         }
         public static string DefHttpPublicPath
         {
@@ -290,7 +296,7 @@ namespace EpgTimer
         {
             if (isSrv == true && CommonManager.Instance.NWMode == true)
             {
-                return "(サーバ側アプリフォルダ)";//取得手段なし
+                return IniFileHandler.GetPrivateProfileString("SET", "ModulePath", "(サーバ側アプリフォルダ)", CommonIniPath);
             }
             else
             {

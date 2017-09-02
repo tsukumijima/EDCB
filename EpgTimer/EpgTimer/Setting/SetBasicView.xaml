@@ -17,7 +17,7 @@
                 <Label Content="録画用アプリのexe" HorizontalAlignment="Left" Margin="12,40,0,0" VerticalAlignment="Top" />
                 <TextBox HorizontalAlignment="Left" Margin="157,42,0,0" Name="textBox_exe" VerticalAlignment="Top" Width="414" />
                 <Button Content="開く" HorizontalAlignment="Left" Margin="577,42,0,0" Name="button_exe" VerticalAlignment="Top" Width="44" Click="button_exe_Click" />
-                <Label Content="コマンドライン引数" Name="label_cmdline" HorizontalAlignment="Left" Margin="12,68,0,0" VerticalAlignment="Top" ToolTipService.ShowOnDisabled="True" />
+                <Label Content="コマンドライン引数" HorizontalAlignment="Left" Margin="12,68,0,0" VerticalAlignment="Top" ToolTipService.ShowOnDisabled="True" />
                 <TextBox HorizontalAlignment="Left" Margin="157,70,0,0" Name="textBox_cmdBon" VerticalAlignment="Top" Width="96" />
                 <Label Content="{}{BonDriver}" HorizontalAlignment="Left" Margin="253,68,0,0" VerticalAlignment="Top" IsEnabled="False" />
                 <Label Content="最小化" HorizontalAlignment="Left" Margin="354,68,0,0" VerticalAlignment="Top" />

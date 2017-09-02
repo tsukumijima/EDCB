@@ -33,7 +33,7 @@ namespace EpgTimer.Setting
                 button_setPath.IsEnabled = true;
                 textBox_exe.SetReadOnlyWithEffect(true);
                 button_exe.IsEnabled = true;
-                label_cmdline.ToolTip = "EpgTimerNWでは、EpgTimerSrv側の設定値ではなく常にデフォルト値を表示しています。";
+                textBox_cmdBon.SetReadOnlyWithEffect(true);
                 label_recFolder.ToolTip = "未設定の場合は(EpgTimerSrv側の)「設定関係保存フォルダ」がデフォルトになります";
                 listBox_recFolder.IsEnabled = true;
                 textBox_recFolder.SetReadOnlyWithEffect(true);
