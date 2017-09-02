@@ -1487,7 +1487,7 @@ namespace EpgTimer
 
         public static void ShowPlugInSetting(string pName, string pFolder, Visual vis)
         {
-            string dllPath = System.IO.Path.Combine(SettingPath.ModulePath, pFolder ?? "", pName ?? "");
+            string dllPath = Path.Combine(SettingPath.ModulePath, pFolder ?? "", pName ?? "");
             CommonUtil.ShowPlugInSetting(dllPath, ((HwndSource)HwndSource.FromVisual(vis)).Handle);
         }
 
@@ -1501,7 +1501,7 @@ namespace EpgTimer
                 {
                     foreach (string info in Directory.GetFiles(SettingPath.SettingFolderPath, "*.ChSet4.txt"))
                     {
-                        list.Add(GetBonFileName(System.IO.Path.GetFileName(info)) + ".dll");
+                        list.Add(GetBonFileName(Path.GetFileName(info)) + ".dll");
                     }
                 }
                 else
@@ -1509,7 +1509,7 @@ namespace EpgTimer
                     //EpgTimerが作成したEpgTimerSrv.iniからBonDriverセクションを拾い出す
                     //将来にわたって確実なリストアップではないし、本来ならSendEnumPlugIn()あたりを変更して取得すべきだが、
                     //参考表示なので構わない
-                    using (var reader = (new System.IO.StreamReader(SettingPath.TimerSrvIniPath, Encoding.GetEncoding(932))))
+                    using (var reader = (new StreamReader(SettingPath.TimerSrvIniPath, Encoding.GetEncoding(932))))
                     {
                         while (reader.Peek() >= 0)
                         {
@@ -1518,6 +1518,8 @@ namespace EpgTimer
                             int end = buff.LastIndexOf(".dll]");
                             if (start >= 0 && end >= start + 2)
                             {
+                                int comment = buff.IndexOf(';');
+                                if (comment >= 0 && comment < end) continue;
                                 list.Add(buff.Substring(start + 1, end + 3 - start));
                             }
                         }
