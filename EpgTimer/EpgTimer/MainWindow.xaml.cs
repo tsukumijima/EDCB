@@ -386,6 +386,14 @@ namespace EpgTimer
 
         private void ResetTaskMenu()
         {
+            if (Settings.Instance.ShowTray == false)
+            {
+                TrayManager.Tray.Dispose();
+                TrayManager.Tray.ContextMenuList = null;
+                TrayManager.Tray.IconUri = null;
+                TrayManager.Tray.Text = "";
+                return;
+            }
             TrayManager.UpdateInfo();
             TrayManager.Tray.ContextMenuList = Settings.Instance.TaskMenuList.Select(info =>
             {
@@ -394,7 +402,7 @@ namespace EpgTimer
                 return new KeyValuePair<string, EventHandler>(buttonList[id].Content as string, (sender, e) => CommonButtons_Click(id));
             }).ToList();
             TrayManager.Tray.ForceHideBalloonTipSec = Settings.Instance.ForceHideBalloonTipSec;
-            TrayManager.Tray.Visible = Settings.Instance.ShowTray;
+            TrayManager.Tray.Visible = true;
         }
 
         const string specific = "PushLike";
@@ -1258,7 +1266,10 @@ namespace EpgTimer
             bool notifyLogWindowUpdate = false;
             var NotifyWork = new Action<string, string>((title, tips) =>
             {
-                TrayManager.Tray.ShowBalloonTip(title, tips);
+                if (Settings.Instance.NoBallonTips == false)
+                {
+                    TrayManager.Tray.ShowBalloonTip(title, tips);
+                }
                 CommonManager.AddNotifyLog(status);
                 notifyLogWindowUpdate = true;
             });

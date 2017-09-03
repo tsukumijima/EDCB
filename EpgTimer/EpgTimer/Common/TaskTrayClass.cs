@@ -103,7 +103,7 @@ namespace EpgTimer
                     notifyIcon = new NotifyIcon();
                     notifyIcon.Click += (sender, e) =>
                     {
-                        MouseEventArgs mouseEvent = e as MouseEventArgs;
+                        var mouseEvent = e as MouseEventArgs;
                         if (mouseEvent != null && mouseEvent.Button == MouseButtons.Left)
                         {
                             // 左クリック
@@ -175,13 +175,7 @@ namespace EpgTimer
         public static void UpdateInfo(uint? srvStatus = null, bool updateTray = true)
         {
             if (srvStatus != null) srvState = (uint)srvStatus;
-            if (updateTray == false) return;
-
-            if (Settings.Instance.ShowTray == false)
-            {
-                taskTray.Text = "";
-                return;
-            }
+            if (Settings.Instance.ShowTray == false || updateTray == false) return;
 
             var sortList = CommonManager.Instance.DB.ReserveList.Values
                 .Where(info => info.IsEnabled == true && info.IsOver() == false)
