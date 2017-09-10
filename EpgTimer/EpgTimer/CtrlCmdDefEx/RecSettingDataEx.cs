@@ -36,14 +36,31 @@ namespace EpgTimer
             }
         }
 
+        [System.Xml.Serialization.XmlIgnore]
+        public bool IsMarginDefault { get { return UseMargineFlag == 0; } set { UseMargineFlag = (byte)(value == true ? 0 : 1); } }
+
         //真のマージン値
         public int StartMarginActual
         {
-            get { return UseMargineFlag != 0 ? StartMargine : Settings.Instance.DefStartMargin; }
+            get { return IsMarginDefault ? Settings.Instance.DefStartMargin : StartMargine; }
         }
         public int EndMarginActual
         {
-            get { return UseMargineFlag != 0 ? EndMargine : Settings.Instance.DefEndMargin; }
+            get { return IsMarginDefault ? Settings.Instance.DefEndMargin : EndMargine; }
+        }
+
+        public void SetMargin(bool isDefault, int? start = null, int? end = null, bool isOffset = false)
+        {
+            if (isDefault == false)
+            {
+                //デフォルトマージンだった場合は初期化する
+                StartMargine = StartMarginActual;
+                EndMargine = EndMarginActual;
+
+                if (start != null) StartMargine = (int)start + (isOffset == true ? StartMargine : 0);
+                if (end != null) EndMargine = (int)end + (isOffset == true ? EndMargine : 0);
+            }
+            IsMarginDefault = isDefault;
         }
 
         //指定サービス対象モードの補助
@@ -145,7 +162,7 @@ namespace EpgTimer
             if (src == null || dest == null) return false;
             return src.BatFilePath == dest.BatFilePath
                 && src.ContinueRecFlag == dest.ContinueRecFlag
-                && (src.EndMargine == dest.EndMargine || src.UseMargineFlag == 0)//マージンデフォルト時
+                && (src.EndMargine == dest.EndMargine || src.IsMarginDefault)//マージンデフォルト時
                 && src.PartialRecFlag == dest.PartialRecFlag
                 && src.PartialRecFolder.EqualsTo(dest.PartialRecFolder)
                 && (src.PittariFlag == dest.PittariFlag || IsManual == true)//プログラム予約時
@@ -154,11 +171,11 @@ namespace EpgTimer
                 && src.RecFolderList.EqualsTo(dest.RecFolderList)
                 && (src.RecMode == dest.RecMode || src.RecMode == 5 || dest.RecMode == 5)
                 && (src.ServiceMode == dest.ServiceMode || ((src.ServiceMode | dest.ServiceMode) & 0x0F) == 0)//字幕等データ設定デフォルト時
-                && (src.StartMargine == dest.StartMargine || src.UseMargineFlag == 0)//マージンデフォルト時
+                && (src.StartMargine == dest.StartMargine || src.IsMarginDefault)//マージンデフォルト時
                 && src.SuspendMode == dest.SuspendMode//動作後設定
                 && (src.TuijyuuFlag == dest.TuijyuuFlag || IsManual == true)//プログラム予約時
                 && src.TunerID == dest.TunerID
-                && src.UseMargineFlag == dest.UseMargineFlag;
+                && src.IsMarginDefault == dest.IsMarginDefault;
         }
 
     }

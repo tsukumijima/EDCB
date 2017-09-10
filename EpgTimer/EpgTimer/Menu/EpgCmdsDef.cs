@@ -22,9 +22,8 @@ namespace EpgTimer
         public static RoutedUICommand ChgPittari { get; private set; }
         public static RoutedUICommand ChgTuner { get; private set; }
         public static RoutedUICommand ChgMarginStart { get; private set; }
-        public static RoutedUICommand ChgMarginStartValue { get; private set; }
         public static RoutedUICommand ChgMarginEnd { get; private set; }
-        public static RoutedUICommand ChgMarginEndValue { get; private set; }
+        public static RoutedUICommand ChgMarginValue { get; private set; }
         public static RoutedUICommand ChgKeyEnabled { get; private set; }
         public static RoutedUICommand ChgOnOffKeyEnabled { get; private set; }
         public static RoutedUICommand CopyItem { get; private set; }

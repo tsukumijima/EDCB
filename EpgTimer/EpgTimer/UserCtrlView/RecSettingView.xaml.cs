@@ -210,7 +210,7 @@ namespace EpgTimer
             setInfo.SetSuspendMode(checkBox_suspendDef.IsChecked == true, recEndModeRadioBtns.Value);
             setInfo.RebootFlag = (byte)(checkBox_reboot.IsChecked == true ? 1 : 0);
 
-            setInfo.UseMargineFlag = (byte)(checkBox_margineDef.IsChecked == true ? 0 : 1);
+            setInfo.IsMarginDefault = checkBox_margineDef.IsChecked == true;
             setInfo.StartMargine = GetMargin(textBox_margineStart.Text);
             setInfo.EndMargine = GetMargin(textBox_margineEnd.Text);
 
@@ -284,7 +284,7 @@ namespace EpgTimer
                 checkBox_suspendDef.IsChecked = null;//切り替え時のイベント発生のために必要
                 checkBox_suspendDef.IsChecked = recSetting.SuspendMode == 0;
                 checkBox_margineDef.IsChecked = null;//切り替え時のイベント発生のために必要
-                checkBox_margineDef.IsChecked = recSetting.UseMargineFlag == 0;
+                checkBox_margineDef.IsChecked = recSetting.IsMarginDefault;
                 checkBox_continueRec.IsChecked = (recSetting.ContinueRecFlag == 1);
                 checkBox_partial.IsChecked = (recSetting.PartialRecFlag == 1);
                 comboBox_tuner.SelectedItem = comboBox_tuner.Items.OfType<TunerSelectInfo>().FirstOrDefault(info => info.ID == recSetting.TunerID);
@@ -296,8 +296,8 @@ namespace EpgTimer
         private void checkBox_margineDef_Checked(object sender, RoutedEventArgs e)
         {
             RecSettingData recSet = recSetting.Clone();
-            recSet.UseMargineFlag = (byte)(checkBox_margineDef.IsChecked == true ? 0 : 1);
-            if (recSet.UseMargineFlag == 0 && OnUpdatingView == false)
+            recSet.IsMarginDefault = checkBox_margineDef.IsChecked == true;
+            if (recSet.IsMarginDefault == true && OnUpdatingView == false)
             {
                 recSetting.StartMargine = GetMargin(textBox_margineStart.Text);
                 recSetting.EndMargine = GetMargin(textBox_margineEnd.Text);

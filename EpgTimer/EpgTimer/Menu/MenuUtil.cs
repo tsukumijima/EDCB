@@ -24,24 +24,10 @@ namespace EpgTimer
 
         public static void CopyContent2Clipboard(EpgEventInfo eventInfo, bool NotToggle = false)
         {
-            string text = "";
-
-            if (eventInfo != null)
-            {
-                bool setting = CheckShiftToggled(Settings.Instance.MenuSet.CopyContentBasic, NotToggle);
-                if (setting == true)
-                {
-                    //text = eventInfo.ShortInfo.text_char;
-                    text = CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicOnly);
-                }
-                else
-                {
-                    text = CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.All);
-                }
-
-                text = text.TrimEnd() + "\r\n";
-            }
-
+            bool setting = CheckShiftToggled(Settings.Instance.MenuSet.CopyContentBasic, NotToggle);
+            var mode = setting == true ? EventInfoTextMode.BasicOnly : EventInfoTextMode.All;
+            string text = CommonManager.ConvertProgramText(eventInfo, mode).TrimEnd();
+            if (text != "") text += "\r\n";
             Clipboard.SetDataObject(text, true);
         }
 
@@ -54,38 +40,24 @@ namespace EpgTimer
         public static void CopyContent2Clipboard(RecFileInfo recInfo, bool NotToggle = false)
         {
             string text = "";
-
             if (recInfo != null)
             {
-                bool setting = CheckShiftToggled(Settings.Instance.MenuSet.CopyContentBasic, NotToggle);
-                if (setting == true)
+                text = recInfo.ProgramInfo;
+                if (CheckShiftToggled(Settings.Instance.MenuSet.CopyContentBasic, NotToggle) == true)
                 {
-                    string[] stArrayData = recInfo.ProgramInfo.Replace("\r\n", "\n").Split('\n');
-                    int endI = Math.Min(stArrayData.Length, 3);
-
-                    for (int i = 0; i < endI; i++)
-                    {
-                        text += stArrayData[i] + "\r\n";
-                    }
+                    text = string.Join("\r\n", text.Replace("\r\n", "\n").Split('\n').Take(3));
                 }
-                else
-                {
-                    text = recInfo.ProgramInfo;
-                }
-
                 text = text.TrimEnd() + "\r\n";
             }
-
             Clipboard.SetDataObject(text, true);
         }
 
         public static void SearchTextWeb(string KeyWord, bool NotToggle = false)
         {
-            KeyWord = TrimKeywordCheckToggled(KeyWord, Settings.Instance.MenuSet.SearchTitle_Trim, NotToggle);
-            string txtURI = Settings.Instance.MenuSet.SearchURI + UrlEncode(KeyWord, System.Text.Encoding.UTF8);
-
             try
             {
+                KeyWord = TrimKeywordCheckToggled(KeyWord, Settings.Instance.MenuSet.SearchTitle_Trim, NotToggle);
+                string txtURI = Settings.Instance.MenuSet.SearchURI + UrlEncode(KeyWord, System.Text.Encoding.UTF8);
                 System.Diagnostics.Process.Start(txtURI);
             }
             catch (Exception ex)
@@ -308,103 +280,42 @@ namespace EpgTimer
             return false;
         }
 
-        public static bool ChangeOnPreset(List<RecSettingData> infoList, int presetID)
+        public static void ChangeOnPreset(List<RecSettingData> infoList, int presetID)
         {
-            try
-            {
-                RecSettingData setInfo = Settings.RecPreset(presetID).Data;
-                infoList.ForEach(info => setInfo.CopyTo(info));
-                return true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            RecSettingData setInfo = Settings.RecPreset(presetID).Data;
+            infoList.ForEach(info => setInfo.CopyTo(info));
         }
 
-        public static bool ChangeRecmode(List<RecSettingData> infoList, byte recMode)
+        public static void ChangeRecmode(List<RecSettingData> infoList, byte recMode)
         {
-            try
-            {
-                infoList.ForEach(info => info.RecMode = recMode);
-                return true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            infoList.ForEach(info => { if (info != null) info.RecMode = recMode; });
         }
 
-        public static bool ChangePriority(List<RecSettingData> infoList, byte priority)
+        public static void ChangePriority(List<RecSettingData> infoList, byte priority)
         {
-            try
-            {
-                infoList.ForEach(info => info.Priority = priority);
-                return true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            infoList.ForEach(info => { if (info != null) info.Priority = priority; });
         }
 
-        public static bool ChangeRelay(List<RecSettingData> infoList, byte relay)
+        public static void ChangeRelay(List<RecSettingData> infoList, byte relay)
         {
-            try
-            {
-                infoList.ForEach(info => info.TuijyuuFlag = relay);
-                return true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            infoList.ForEach(info => { if (info != null) info.TuijyuuFlag = relay; });
         }
 
-        public static bool ChangePittari(List<RecSettingData> infoList, byte pittari)
+        public static void ChangePittari(List<RecSettingData> infoList, byte pittari)
         {
-            try
-            {
-                infoList.ForEach(info => info.PittariFlag = pittari);
-                return true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            infoList.ForEach(info => { if (info != null) info.PittariFlag = pittari; });
         }
 
-        public static bool ChangeMargin(List<RecSettingData> infoList, int margin_offset, bool start)
+        public static void ChangeMargin(List<RecSettingData> infoList, bool isDefault, int? start = null, int? end = null, bool isOffset = false)
         {
-            try
-            {
-                if (margin_offset == 0)
-                {
-                    infoList.ForEach(info => info.UseMargineFlag = 0);
-                }
-                else
-                {
-                    infoList.ForEach(info =>
-                    {
-                        if (info.UseMargineFlag == 0)
-                        {
-                            info.StartMargine = info.StartMarginActual;
-                            info.EndMargine = info.EndMarginActual;
-                        }
-
-                        info.UseMargineFlag = 1;
-                        if (start == true)
-                        {
-                            info.StartMargine += margin_offset;
-                        }
-                        else
-                        {
-                            info.EndMargine += margin_offset;
-                        }
-                    });
-                }
-
-                return true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            infoList.ForEach(info => { if (info != null) info.SetMargin(isDefault, start, end, isOffset); });
         }
 
         public static bool ChangeMarginValue(List<RecSettingData> infoList, bool start, UIElement owner = null)
         {
             try
             {
-                infoList[0].UseMargineFlag = 1;
+                infoList[0].SetMargin(false);
 
                 var dlg = new SetRecPresetWindow(owner);
                 dlg.SetSettingMode(start == true ? "開始マージン設定" : "終了マージン設定", start == true ? 0 : 1);
@@ -413,34 +324,16 @@ namespace EpgTimer
                 if (dlg.ShowDialog() == false) return false;
 
                 RecSettingData setData = dlg.DataView.GetRecSetting();
-
-                infoList.ForEach(info =>
-                {
-                    info.UseMargineFlag = 1;
-                    if (start == true)
-                    {
-                        info.StartMargine = setData.StartMargine;
-                    }
-                    else
-                    {
-                        info.EndMargine = setData.EndMargine;
-                    }
-                });
+                ChangeMargin(infoList, false, start ? (int?)setData.StartMargine : null, start ? null : (int?)setData.EndMargine, false);
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;
         }
 
-        public static bool ChangeTuner(List<RecSettingData> infoList, uint tuner)
+        public static void ChangeTuner(List<RecSettingData> infoList, uint tuner)
         {
-            try
-            {
-                infoList.ForEach(info => info.TunerID = tuner);
-                return true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            infoList.ForEach(info => { if (info != null) info.TunerID = tuner; });
         }
 
         public static bool ChangeBulkSet(List<RecSettingData> infoList, UIElement owner = null, bool pgAll = false)
@@ -455,7 +348,6 @@ namespace EpgTimer
                 if (dlg.ShowDialog() == false) return false;
 
                 RecSettingData setData = dlg.DataView.GetRecSetting();
-                
                 infoList.ForEach(info => setData.CopyTo(info));
                 return true;
             }
@@ -474,7 +366,7 @@ namespace EpgTimer
                 if (dlg.ShowDialog() == false) return false;
 
                 EpgSearchKeyInfo setData = dlg.DataView.GetSearchKey();
-                infoList.ForEach(info => info.contentList = setData.contentList.Clone());
+                infoList.ForEach(info => { if (info != null) info.contentList = setData.contentList.Clone(); });
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

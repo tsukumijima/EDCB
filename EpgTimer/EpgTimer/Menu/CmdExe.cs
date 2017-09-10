@@ -100,9 +100,8 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.ChgPittari, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgTuner, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgMarginStart, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
-            cmdList.Add(EpgCmds.ChgMarginStartValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgMarginEnd, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
-            cmdList.Add(EpgCmds.ChgMarginEndValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgMarginValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgKeyEnabled, new cmdOption(mc_ChangeKeyEnabled, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgOnOffKeyEnabled, new cmdOption(mc_ChangeOnOffKeyEnabled, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.CopyItem, new cmdOption(mc_CopyItem, null, cmdExeType.MultiItem));
@@ -397,45 +396,43 @@ namespace EpgTimer
 
             if (e.Command == EpgCmds.ChgOnPreset)
             {
-                return MenuUtil.ChangeOnPreset(infoList, CmdExeUtil.ReadIdData(e, 0, 0xFE));
+                MenuUtil.ChangeOnPreset(infoList, CmdExeUtil.ReadIdData(e, 0, 0xFE));
             }
             else if (e.Command == EpgCmds.ChgRecmode)
             {
-                return MenuUtil.ChangeRecmode(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 5));
+                MenuUtil.ChangeRecmode(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 5));
             }
             else if (e.Command == EpgCmds.ChgPriority)
             {
-                return MenuUtil.ChangePriority(infoList, (byte)CmdExeUtil.ReadIdData(e, 1, 5));
+                MenuUtil.ChangePriority(infoList, (byte)CmdExeUtil.ReadIdData(e, 1, 5));
             }
             else if (e.Command == EpgCmds.ChgRelay)
             {
-                return MenuUtil.ChangeRelay(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 1));
+                MenuUtil.ChangeRelay(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 1));
             }
             else if (e.Command == EpgCmds.ChgPittari)
             {
-                return MenuUtil.ChangePittari(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 1));
+                MenuUtil.ChangePittari(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 1));
             }
             else if (e.Command == EpgCmds.ChgTuner)
             {
-                return MenuUtil.ChangeTuner(infoList, (uint)CmdExeUtil.ReadIdData(e, 0, int.MaxValue - 1));
+                MenuUtil.ChangeTuner(infoList, (uint)CmdExeUtil.ReadIdData(e, 0, int.MaxValue - 1));
             }
             else if (e.Command == EpgCmds.ChgMarginStart)
             {
-                return MenuUtil.ChangeMargin(infoList, CmdExeUtil.ReadIdData(e), true);
-            }
-            else if (e.Command == EpgCmds.ChgMarginStartValue)
-            {
-                return MenuUtil.ChangeMarginValue(infoList, true, this.Owner);
+                int? offset = CmdExeUtil.ReadIdData(e);
+                MenuUtil.ChangeMargin(infoList, offset == 0, offset, null, true);
             }
             else if (e.Command == EpgCmds.ChgMarginEnd)
             {
-                return MenuUtil.ChangeMargin(infoList, CmdExeUtil.ReadIdData(e), false);
+                int? offset = CmdExeUtil.ReadIdData(e);
+                MenuUtil.ChangeMargin(infoList, offset == 0, null, offset, true);
             }
-            else if (e.Command == EpgCmds.ChgMarginEndValue)
+            else if (e.Command == EpgCmds.ChgMarginValue)
             {
-                return MenuUtil.ChangeMarginValue(infoList, false, this.Owner);
+                return MenuUtil.ChangeMarginValue(infoList, CmdExeUtil.ReadIdData(e, 0, 2) == 1, this.Owner);
             }
-            return false;
+            return true;
         }
         public override void SupportContextMenuLoading(object sender, RoutedEventArgs e)
         {
@@ -670,9 +667,8 @@ namespace EpgTimer
             cmdMessage.Add(EpgCmds.ChgPittari, "ぴったり録画設定を変更");
             cmdMessage.Add(EpgCmds.ChgTuner, "チューナー指定を変更");
             cmdMessage.Add(EpgCmds.ChgMarginStart, "録画マージンを変更");
-            cmdMessage.Add(EpgCmds.ChgMarginStartValue, "録画マージンを変更");
             cmdMessage.Add(EpgCmds.ChgMarginEnd, "録画マージンを変更");
-            cmdMessage.Add(EpgCmds.ChgMarginEndValue, "録画マージンを変更");
+            cmdMessage.Add(EpgCmds.ChgMarginValue, "録画マージンを変更");
             cmdMessage.Add(EpgCmds.ChgKeyEnabled, "有効/無効を変更");
             cmdMessage.Add(EpgCmds.ChgOnOffKeyEnabled, "有効/無効切替を実行");
             cmdMessage.Add(EpgCmds.Delete, "削除を実行");

@@ -62,11 +62,11 @@ namespace EpgTimer
                 hours = (span / 3600).ToString("0;0") + ":";
                 minutes = ((span % 3600) / 60).ToString("00;00") + ":";
             }
-            return span.ToString("+;-") + hours + minutes + seconds + (RecSettingInfo.UseMargineFlag != 0 ? " " : "*");
+            return span.ToString("+;-") + hours + minutes + seconds + (RecSettingInfo.IsMarginDefault == true ? "*" : " ");
         }
         protected Double CustomMarginValue(int span)
         {
-            return span + (RecSettingInfo.UseMargineFlag != 0 ? 0.1 : 0);
+            return span + (RecSettingInfo.IsMarginDefault == true ? 0 : 0.1);
         }
 
         protected String preset = null;
@@ -170,7 +170,7 @@ namespace EpgTimer
             }
             view += "録画マージン : 開始 " + RecSettingInfo.StartMarginActual.ToString() +
                                   " 終了 " + RecSettingInfo.EndMarginActual.ToString()
-                     + (RecSettingInfo.UseMargineFlag == 0 ? " (デフォルト)" : "") + "\r\n";
+                     + (RecSettingInfo.IsMarginDefault == true ? " (デフォルト)" : "") + "\r\n";
 
             view += "録画後動作 : "
                 + new string[] { "何もしない", "スタンバイ", "休止", "シャットダウン" }[RecSettingInfo.RecEndModeActual]

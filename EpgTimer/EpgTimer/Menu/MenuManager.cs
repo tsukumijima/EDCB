@@ -102,7 +102,7 @@ namespace EpgTimer
             ////開始マージン
             var cm_ChgMarginStartMenu = new CtxmItemData("開始マージン", EpgCmdsEx.ChgMarginStartMenu);
             cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("デフォルトへ変更", EpgCmds.ChgMarginStart, 0));
-            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("指定値へ変更...", EpgCmds.ChgMarginStartValue));
+            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("指定値へ変更...", EpgCmds.ChgMarginValue, 1));
             cm_ChgMarginStartMenu.Items.Add(new CtxmItemData(cm_Separator));
             new List<int> { -60, -30, -5, -1, 1, 5, 30, 60 }.ForEach(val => cm_ChgMarginStartMenu.Items.Add(
                 new CtxmItemData(string.Format("{0:増やす : ＋0;減らす : －0} 秒", val), EpgCmds.ChgMarginStart, val)));
@@ -111,8 +111,8 @@ namespace EpgTimer
             var cm_ChgMarginEndMenu = new CtxmItemData("終了マージン", cm_ChgMarginStartMenu);
             cm_ChgMarginEndMenu.Command = EpgCmdsEx.ChgMarginEndMenu;
             cm_ChgMarginEndMenu.Items = cm_ChgMarginStartMenu.Items.Clone();
-            cm_ChgMarginEndMenu.Items.ForEach(menu => menu.Command = menu.Command == EpgCmds.ChgMarginStart ? EpgCmds.ChgMarginEnd : menu.Command);
-            cm_ChgMarginEndMenu.Items.ForEach(menu => menu.Command = menu.Command == EpgCmds.ChgMarginStartValue ? EpgCmds.ChgMarginEndValue : menu.Command);
+            cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginStart) menu.Command = EpgCmds.ChgMarginEnd; });
+            cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginValue) menu.ID = 2; });
 
             //予約変更サブメニュー登録
             var cm_ChangeMenu = new CtxmItemData("変更", EpgCmdsEx.ChgMenu);
