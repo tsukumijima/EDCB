@@ -43,8 +43,12 @@ namespace EpgTimer.Setting
                 ViewUtil.ChangeChildren(grid_AppCancelMainInput, false);
                 textBox_process.SetReadOnlyWithEffect(true);
 
-                grid_AppReserve1.IsEnabled = false;
-                grid_App2Del.Foreground = SystemColors.GrayTextBrush;
+                ViewUtil.ChangeChildren(grid_AppReserve1, false);
+                ViewUtil.ChangeChildren(grid_AppReserve2, false);
+                grid_AppReserveIgnore.IsEnabled = true;
+                ViewUtil.ChangeChildren(grid_AppReserveIgnore, false);
+                text_RecInfo2RegExp.SetReadOnlyWithEffect(true);
+                checkBox_autoDel.IsEnabled = false;
                 ViewUtil.ChangeChildren(grid_App2DelMain, false);
                 listBox_ext.IsEnabled = true;
                 textBox_ext.SetReadOnlyWithEffect(true);
@@ -132,6 +136,7 @@ namespace EpgTimer.Setting
                 //2 予約管理情報
                 checkBox_back_priority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BackPriority", 1, SettingPath.TimerSrvIniPath) == 1;
                 checkBox_fixedTunerPriority.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "FixedTunerPriority", 1, SettingPath.TimerSrvIniPath) == 1;
+                text_RecInfo2RegExp.Text = IniFileHandler.GetPrivateProfileString("SET", "RecInfo2RegExp", "", SettingPath.TimerSrvIniPath);
                 checkBox_recInfoFolderOnly.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "RecInfoFolderOnly", 1, SettingPath.TimerSrvIniPath) != 0;
                 checkBox_autoDelRecInfo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "AutoDelRecInfo", false, SettingPath.TimerSrvIniPath);
                 textBox_autoDelRecInfo.Text = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfoNum", 100, SettingPath.TimerSrvIniPath).ToString();
@@ -362,6 +367,7 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "FixedTunerPriority", checkBox_fixedTunerPriority.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolderOnly", checkBox_recInfoFolderOnly.IsChecked == true ? "1" : "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "RecInfo2RegExp", text_RecInfo2RegExp.Text, "", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfo", checkBox_autoDelRecInfo.IsChecked, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfoNum", textBox_autoDelRecInfo.Text, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "RecInfoDelFile", checkBox_recInfoDelFile.IsChecked == true ? "1" : null, SettingPath.CommonIniPath);
@@ -666,16 +672,13 @@ namespace EpgTimer.Setting
         {
             bool chkEnabled = checkBox_autoDel.IsChecked == true;
             bool extEnabled = chkEnabled || checkBox_recInfoDelFile.IsChecked == true && checkBox_applyExtTo.IsChecked == true;
-            listBox_ext.IsEnabled = extEnabled;
-            textBox_ext.IsEnabled = extEnabled;
+            textBox_ext.SetReadOnlyWithEffect(!extEnabled);
             button_ext_def.IsEnabled = extEnabled;
             button_ext_del.IsEnabled = extEnabled;
             button_ext_add.IsEnabled = extEnabled;
-            listBox_chk_folder.IsEnabled = chkEnabled;
-            textBox_chk_folder.IsEnabled = chkEnabled;
+            textBox_chk_folder.SetReadOnlyWithEffect(!chkEnabled);
             button_chk_del.IsEnabled = chkEnabled;
             button_chk_add.IsEnabled = chkEnabled;
-            button_chk_open.IsEnabled = chkEnabled;
         }
         private void SetIsEnabledBlinkPreRec()
         {
