@@ -77,7 +77,7 @@
                     <TextBox Margin="6,0,0,0" Name="textBox_chkTimerInterval" Width="62" />
                     <Label Content="分間隔" />
                 </StackPanel>
-                <CheckBox Content="EpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" Name="checkBox_forceNWMode" ToolTip="このオプションを使用しなくても、実行ファイル名を「EpgTimerNW」から始まる名前にすればNWモードで起動します。&#10;(通常のNWモードの使用方法)" />
+                <CheckBox Content="常にEpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" Name="checkBox_forceNWMode" ToolTipService.ShowDuration="20000" ToolTip="このオプションを使用しなくても、同じフォルダにEpgTimerSrv.exeが存在しないか、&#10;実行ファイル名を「EpgTimerNW」から始まる名前にするとNWモードで起動します。" />
                 <StackPanel Orientation="Horizontal" Margin="0,12,12,0">
                     <Button Content="録画プリセット設定" Margin="0,0,20,0" Name="button_recDef" Click="button_recDef_Click" />
                     <Button Content="検索プリセット設定" Name="button_searchDef" Click="button_searchDef_Click" />

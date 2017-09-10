@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -42,7 +43,8 @@ namespace EpgTimer
 #if DEBUG
             appName += "(debug)";
 #endif
-            CommonManager.Instance.NWMode = appName.StartsWith("EpgTimerNW", StringComparison.OrdinalIgnoreCase);
+            CommonManager.Instance.NWMode = appName.StartsWith("EpgTimerNW", StringComparison.OrdinalIgnoreCase)
+                            || File.Exists(System.IO.Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe")) == false;
 
             Settings.LoadFromXmlFile(CommonManager.Instance.NWMode);
             CommonManager.Instance.NWMode |= Settings.Instance.ForceNWMode;
@@ -140,7 +142,7 @@ namespace EpgTimer
 
             InitializeComponent();
 
-            Title = appName + (Settings.Instance.ForceNWMode == true ? " - NW Mode" : "");
+            Title = appName + (CommonManager.Instance.NWMode == true ? " - NW Mode" : "");
             initExe = true;
 
             try
