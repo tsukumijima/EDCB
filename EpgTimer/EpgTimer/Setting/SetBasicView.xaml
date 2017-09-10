@@ -157,7 +157,10 @@
             <StackPanel Margin="10,10,6,6">
                 <GroupBox Header="ネットワーク">
                     <StackPanel Margin="6,6,6,0">
-                        <CheckBox Content="EpgTimerNWなどからのネットワーク接続を許可する" Name="checkBox_tcpServer" />
+                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Name="grid_tcpServer">
+                            <CheckBox Content="EpgTimerNWなどからのネットワーク接続を許可する" Name="checkBox_tcpServer" />
+                            <CheckBox Content="IPv6" Name="checkBox_tcpIPv6" Margin="18,0,0,0" />
+                        </StackPanel>
                         <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Name="grid_tcpCtrl">
                             <TextBlock Text="ポート" Margin="6,0,6,0" />
                             <TextBox Name="textBox_tcpPort" Width="54" />

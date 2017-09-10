@@ -50,7 +50,7 @@ namespace EpgTimer.Setting
                 checkBox_showEpgCapServiceOnly.IsEnabled = true;
 
                 tab_NW.Foreground = SystemColors.GrayTextBrush;
-                checkBox_tcpServer.IsEnabled = false;
+                ViewUtil.ChangeChildren(grid_tcpServer, false);
                 ViewUtil.ChangeChildren(grid_tcpCtrl, false);
                 textBox_tcpAcl.SetReadOnlyWithEffect(true);
 
@@ -160,6 +160,7 @@ namespace EpgTimer.Setting
 
                 // ネットワーク
                 checkBox_tcpServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableTCPSrv", false, SettingPath.TimerSrvIniPath);
+                checkBox_tcpIPv6.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "TCPIPv6", false, SettingPath.TimerSrvIniPath);
                 textBox_tcpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPPort", 4510, SettingPath.TimerSrvIniPath).ToString();
                 textBox_tcpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "TCPAccessControlList", "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
                 textBox_tcpResTo.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPResponseTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
@@ -259,6 +260,7 @@ namespace EpgTimer.Setting
 
                 // ネットワーク
                 IniFileHandler.WritePrivateProfileString("SET", "EnableTCPSrv", checkBox_tcpServer.IsChecked, false, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("SET", "TCPIPv6", checkBox_tcpIPv6.IsChecked, false, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "TCPPort", textBox_tcpPort.Text, "4510", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "TCPAccessControlList", textBox_tcpAcl.Text, "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("SET", "TCPResponseTimeoutSec", textBox_tcpResTo.Text, "120", SettingPath.TimerSrvIniPath);
