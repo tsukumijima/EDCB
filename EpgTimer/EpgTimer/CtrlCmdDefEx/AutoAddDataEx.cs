@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace EpgTimer
 {
     public abstract class AutoAddData : IRecWorkMainData, IRecSetttingData
     {
         //IRecWorkMainData
+        [XmlIgnore]
         public abstract string DataTitle { get; set; }
+        [XmlIgnore]
         public abstract ulong DataID { get; set; }
         //
+        [XmlIgnore]
         public abstract bool IsEnabled { get; set; }
         public abstract RecSettingData RecSettingInfo { get; }
         public virtual bool IsManual { get { return false; } }
@@ -100,8 +104,11 @@ namespace EpgTimer
 
     public partial class EpgAutoAddData : AutoAddData
     {
+        [XmlIgnore]
         public override string DataTitle { get { return searchInfo.andKey; } set { searchInfo.andKey = value; } }
+        [XmlIgnore]
         public override ulong DataID { get { return dataID; } set { dataID = (uint)value; } }
+        [XmlIgnore]
         public override bool IsEnabled { get { return searchInfo.keyDisabledFlag == 0; } set { searchInfo.keyDisabledFlag = (byte)(value == true ? 0 : 1); } }
         public override RecSettingData RecSettingInfo { get { return recSetting; } }
 
@@ -140,7 +147,10 @@ namespace EpgTimer
 
     public partial class ManualAutoAddData : AutoAddData, IBasicPgInfo
     {
+        [XmlIgnore]
         public override string DataTitle { get { return title; } set { title = value; } }
+        [XmlIgnore]
+        public override ulong DataID { get { return dataID; } set { dataID = (uint)value; } }
         public DateTime PgStartTime { get { return new DateTime(2000, 1, 1).AddSeconds(startTime); } }
         public uint PgDurationSecond { get { return durationSecond; } }
         public UInt64 Create64Key()
@@ -148,7 +158,7 @@ namespace EpgTimer
             return CommonManager.Create64Key(originalNetworkID, transportStreamID, serviceID);
         }
 
-        public override ulong DataID { get { return dataID; } set { dataID = (uint)value; } }
+        [XmlIgnore]
         public override bool IsEnabled { get { return keyDisabledFlag == 0; } set { keyDisabledFlag = (byte)(value == true ? 0 : 1); } }
         public override RecSettingData RecSettingInfo { get { return recSetting; } }
         public override bool IsManual { get { return true; } }

@@ -57,11 +57,6 @@ namespace EpgTimer
                     ChSet5.SaveFile();
                     Settings.ReloadOtherOptions();//NWでは別途iniの更新通知後に実行される。
                 }
-                /*if (setEpgView.IsClearColorSetting == true)
-                {
-                    Settings.Instance.ResetColorSetting();
-                    Settings.Instance.SetColorSetting();
-                }*/
                 CommonManager.Instance.ReloadCustContentColorList();
                 ItemFontCache.Clear();
 

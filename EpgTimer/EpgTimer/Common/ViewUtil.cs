@@ -300,13 +300,6 @@ namespace EpgTimer
             }
         }
 
-        /*/未使用
-        public static void DisableControlChildren(Control ctrl)
-        {
-            ctrl.Foreground = SystemColors.GrayTextBrush;
-            ChangeChildren(ctrl, false);
-        }
-        /*/
         public static void ChangeChildren(UIElement ele, bool enabled)
         {
             foreach (var child in LogicalTreeHelper.GetChildren(ele))

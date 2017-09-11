@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace EpgTimer
 {
@@ -72,11 +73,14 @@ namespace EpgTimer
         List<CheckBox> stackItems_ges1;
         List<CheckBox> stackItems_ges2;
 
-        public SetContextMenuWindow()
+        public SetContextMenuWindow(Visual owner = null, MenuSettingData data = null)
         {
             InitializeComponent();
             try
 	        {
+                this.Owner = CommonUtil.GetTopWindow(owner);
+                if (data != null) info = data.Clone();
+
                 //共通設定画面用の設定
                 Action<StackPanel, StackPanel> CopyStackItem = (src, trg) =>
                 {

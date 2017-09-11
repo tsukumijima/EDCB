@@ -13,8 +13,6 @@ namespace EpgTimer
     }
     public interface IBasicPgInfo : IRecWorkMainData
     {
-        //string PgTitle { get; }
-        //string PgInfo { get; }
         DateTime PgStartTime { get; }
         uint PgDurationSecond { get; }
         UInt64 Create64Key();

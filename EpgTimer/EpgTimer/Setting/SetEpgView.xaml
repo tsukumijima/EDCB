@@ -510,7 +510,7 @@
                 <GroupBox Header="各種設定" Margin="6,6,6,0">
                     <StackPanel Margin="11,6,0,0" >
                         <CheckBox Content="録画済み一覧のダブルクリックで再生を行う" Name="checkBox_playDClick" />
-                        <CheckBox Margin="0,6,0,0" Content="詳細情報のツールチップに番組情報を表示する (表示が重くなる場合あり)" Name="checkBox_recToolTipEpgInfo" ToolTip="表示設定は[予約一覧・共通]タブにあります" />
+                        <CheckBox Margin="0,6,0,0" Content="詳細情報のツールチップに番組情報を表示する (表示が重くなる場合あり)" Name="checkBox_recToolTipEpgInfo" ToolTip="ツールチップ自体の表示の有無の設定は[予約一覧・共通]タブにあります" />
                         <StackPanel Orientation="Horizontal" >
                             <Label Content="リスト表示で省略する" />
                             <CheckBox Content="'年'" Margin="12,0,0,0" Name="checkBox_recNoYear" />
@@ -590,13 +590,13 @@
                                         <CheckBox Content="長さの'秒'" Name="checkBox_resNoDurSecond" ToolTip="たまに'秒'単位の番組も存在します。" />
                                     </WrapPanel>
                                 </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" Name="checkBox_TrimSortTitle" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わった場合などに発生する場合があります" />
+                                <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" Name="checkBox_TrimSortTitle" />
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
                                     <CheckBox Content="深夜時間表示をする 　" Name="checkBox_LaterTimeUse" />
                                     <TextBox Width="40" Name="textBox_LaterTimeHour" />
                                     <Label Content="時まで" />
                                 </StackPanel>
-                                <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" Name="checkBox_keepReserveWindow" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
+                                <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" Name="checkBox_keepReserveWindow" />
                                 <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" Name="checkBox_useLastSearchKey" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
                                 <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
                                     <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" Name="checkBox_saveSearchKeyword" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>

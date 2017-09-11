@@ -23,7 +23,6 @@ namespace EpgTimer.Setting
         private RadioBtnSelect tunerToolTipRadioBtns;
 
         public bool IsChangeEpgArcLoadSetting { get; private set; }
-        //public bool IsClearColorSetting { get; private set; }
 
         public SetEpgView()
         {
@@ -563,29 +562,12 @@ namespace EpgTimer.Setting
 
         private void button_set_cm_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new SetContextMenuWindow();
-            dlg.Owner = CommonUtil.GetTopWindow(this);
-            dlg.info = this.ctxmSetInfo.Clone();
+            var dlg = new SetContextMenuWindow(this, ctxmSetInfo);
             if (dlg.ShowDialog() == true)
             {
                 this.ctxmSetInfo = dlg.info.Clone();
             }
         }
-        /*
-        private void button_color_reset_Click(object sender, RoutedEventArgs e)
-        {
-            if (MessageBoxResult.OK == MessageBox.Show("設定ウィンドウが閉じ、全ての色設定を初期化します。\r\n" + "(色設定以外の設定は保存されます。)", "色設定の初期化", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel))
-            {
-                var setting = CommonUtil.GetTopWindow(this) as SettingWindow;
-                if (setting == null)
-                {
-                    MessageBox.Show("不明な原因により失敗しました。", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                IsClearColorSetting = true;
-                setting.button_OK.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            }
-        }*/
 
         private void button_clearSerchKeywords_Click(object sender, RoutedEventArgs e)
         {

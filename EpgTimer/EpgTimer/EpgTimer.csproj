@@ -502,11 +502,11 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource  Include="Resources\EpgTimer_Bon_Vista_blue_rev2.ico" />
-    <Resource  Include="Resources\TaskIconGray.ico" />
-    <Resource  Include="Resources\TaskIconGreen.ico" />
-    <Resource  Include="Resources\TaskIconOrange.ico" />
-    <Resource  Include="Resources\TaskIconRed.ico" />
+    <Resource Include="Resources\EpgTimer_Bon_Vista_blue_rev2.ico" />
+    <Resource Include="Resources\TaskIconGray.ico" />
+    <Resource Include="Resources\TaskIconGreen.ico" />
+    <Resource Include="Resources\TaskIconOrange.ico" />
+    <Resource Include="Resources\TaskIconRed.ico" />
     <Resource Include="Resources\key.ico" />
     <Resource Include="Resources\key_no.ico" />
     <Resource Include="Resources\drag.cur" />

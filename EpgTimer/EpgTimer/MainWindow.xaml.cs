@@ -20,22 +20,20 @@ namespace EpgTimer
     {
         private Mutex mutex;
 
-        private Dictionary<string, Button> buttonList = new Dictionary<string, Button>();
-
-        private MenuBinds mBinds = new MenuBinds();
-
         private PipeServer pipeServer = null;
         private string pipeName = "\\\\.\\pipe\\EpgTimerGUI_Ctrl_BonPipe_";
         private string pipeEventName = "Global\\EpgTimerGUI_Ctrl_BonConnect_";
 
-        private bool closeFlag = false;
-        private bool initExe = false;
-        private bool? minimizedStarting = false;
-
+        private Dictionary<string, Button> buttonList = new Dictionary<string, Button>();
+        private MenuBinds mBinds = new MenuBinds();
         private DispatcherTimer chkTimer = null;
 
         //にじみ対策用(拡大表示時には十分ではないが無いよりは良い)
         public Matrix DeviceMatrix;
+
+        private bool closeFlag = false;
+        private bool initExe = false;
+        private bool? minimizedStarting = false;
 
         public MainWindow()
         {
@@ -60,7 +58,7 @@ namespace EpgTimer
 
             if (Settings.Instance.NoStyle == 0)
             {
-                if (System.IO.File.Exists(System.Reflection.Assembly.GetEntryAssembly().Location + ".rd.xaml"))
+                if (File.Exists(System.Reflection.Assembly.GetEntryAssembly().Location + ".rd.xaml"))
                 {
                     //ResourceDictionaryを定義したファイルがあるので本体にマージする
                     try
@@ -119,8 +117,8 @@ namespace EpgTimer
                 {
                     if (startExe == false)
                     {
-                        String exePath = System.IO.Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe");
-                        System.Diagnostics.Process process = System.Diagnostics.Process.Start(exePath);
+                        String exePath = Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe");
+                        var process = System.Diagnostics.Process.Start(exePath);
                         startExe = true;
                         //EpgTimerSrvを自分で起動させた場合、後でUpdateNotifyItem.EpgDataが来るので、初期フラグをリセットする。
                         CommonManager.Instance.DB.ResetUpdateNotifyEpg();
@@ -961,33 +959,6 @@ namespace EpgTimer
             ChgReserveWindow.UpdatesInfo();
             InfoSearchWindow.UpdatesInfo();
         }
-        /*
-        public enum UpdateViewMode : uint
-        {
-            None =                  0x00000000,
-            All =                   0x11134002,
-          //SettingData =           0x11134001,//1回しか出てこないので未使用
-          //Connected =             0x11132002,//1回しか出てこないので未使用
-          //EpgData =               0x11012002,//1回しか出てこないので未使用
-            ReserveInfo =           0x11031001,
-            ReserveInfoNoTuner =    0x10031001,
-            ReserveInfoNoAutoAdd =  0x11001001
-        }
-        public void RefreshAllViewsReserveInfo(UpdateViewMode mode = UpdateViewMode.ReserveInfo) { UpdateViews(mode); }
-        public void UpdateViews(UpdateViewMode mode = UpdateViewMode.All)
-        {
-            if (((uint)mode & 0x10000000) != 0) reserveView.UpdateInfo();                       //ViewsResInfo
-            if (((uint)mode & 0x01000000) != 0) tunerReserveView.UpdateInfo();                  //ViewsResInfo
-            if (((uint)mode & 0x00100000) != 0) recInfoView.UpdateInfo();
-            if (((uint)mode & 0x00010000) != 0) autoAddView.epgAutoAddView.UpdateInfo();        //ViewsResInfo
-            if (((uint)mode & 0x00020000) != 0) autoAddView.manualAutoAddView.UpdateInfo();     //ViewsResInfo
-            if (((uint)mode & 0x00001000) != 0) epgView.UpdateReserveData();                    //ViewsResInfo
-            if (((uint)mode & 0x00002000) != 0) epgView.UpdateEpgData();
-            if (((uint)mode & 0x00004000) != 0) epgView.UpdateSetting();
-            if (((uint)mode & 0x00000001) != 0) SearchWindow.UpdatesInfo(true);                 //ViewsResInfo
-            if (((uint)mode & 0x00000002) != 0) SearchWindow.UpdatesInfo();
-        }
-        */
         void StatusbarReset()
         {
             statusBar.ClearText();//一応
@@ -1458,10 +1429,7 @@ namespace EpgTimer
                 }
                 StatusManager.StatusNotifySet("情報の強制更新を実行(F5)");
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
 
         }
 

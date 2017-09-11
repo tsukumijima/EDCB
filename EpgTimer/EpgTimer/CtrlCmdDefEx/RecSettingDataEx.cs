@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace EpgTimer
 {
@@ -23,6 +24,7 @@ namespace EpgTimer
             return refdata.FirstOrDefault(p1 => p1.Data.EqualsSettingTo(this, IsManual));
         }
 
+        [XmlIgnore]
         public List<string> RecFolderViewList
         {
             get
@@ -36,7 +38,7 @@ namespace EpgTimer
             }
         }
 
-        [System.Xml.Serialization.XmlIgnore]
+        [XmlIgnore]
         public bool IsMarginDefault { get { return UseMargineFlag == 0; } set { UseMargineFlag = (byte)(value == true ? 0 : 1); } }
 
         //真のマージン値
@@ -64,16 +66,19 @@ namespace EpgTimer
         }
 
         //指定サービス対象モードの補助
+        [XmlIgnore]
         public bool ServiceModeIsDefault
         {
             get { return (ServiceMode & 0x0Fu) == 0; }
             set { ServiceMode = (ServiceMode & ~0x0Fu) | (value == true ? 0x00u : 0x01u); }
         }
+        [XmlIgnore]
         public bool ServiceCaption
         {
             get { return (ServiceMode & 0x10u) != 0; }
             set { ServiceMode = (ServiceMode & ~0x10u) | (value == true ? 0x10u : 0x00u); }
         }
+        [XmlIgnore]
         public bool ServiceData
         {
             get { return (ServiceMode & 0x20u) != 0; }
@@ -134,29 +139,6 @@ namespace EpgTimer
             dest.TunerID = src.TunerID;
             dest.UseMargineFlag = src.UseMargineFlag;
         }
-        /*
-        public static bool EqualsTo(this IList<RecSettingData> src, IList<RecSettingData> dest) { return CopyObj.EqualsTo(src, dest, EqualsValue); }
-        public static bool EqualsTo(this RecSettingData src, RecSettingData dest) { return CopyObj.EqualsTo(src, dest, EqualsValue); }
-        public static bool EqualsValue(RecSettingData src, RecSettingData dest)
-        {
-            return src.BatFilePath == dest.BatFilePath
-                && src.ContinueRecFlag == dest.ContinueRecFlag
-                && src.EndMargine == dest.EndMargine
-                && src.PartialRecFlag == dest.PartialRecFlag
-                && src.PartialRecFolder.EqualsTo(dest.PartialRecFolder) //RecFileSetInfo
-                && src.PittariFlag == dest.PittariFlag
-                && src.Priority == dest.Priority
-                && src.RebootFlag == dest.RebootFlag
-                && src.RecFolderList.EqualsTo(dest.RecFolderList)       //RecFileSetInfo
-                && src.RecMode == dest.RecMode
-                && src.ServiceMode == dest.ServiceMode
-                && src.StartMargine == dest.StartMargine
-                && src.SuspendMode == dest.SuspendMode
-                && src.TuijyuuFlag == dest.TuijyuuFlag
-                && src.TunerID == dest.TunerID
-                && src.UseMargineFlag == dest.UseMargineFlag;
-        }
-        */
         public static bool EqualsSettingTo(this RecSettingData src, RecSettingData dest, bool IsManual = false)
         {
             if (src == null || dest == null) return false;
