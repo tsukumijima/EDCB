@@ -190,6 +190,8 @@ namespace EpgTimer.Setting
                 checkBox_playDClick.IsChecked = Settings.Instance.PlayDClick;
                 checkBox_recToolTipEpgInfo.IsChecked = (Settings.Instance.RecInfoToolTipMode != 0);
                 checkBox_recinfo_errCritical.IsChecked = Settings.Instance.RecinfoErrCriticalDrops;
+                textBox_RecInfoDropExcept.Text = string.Join(", ", Settings.Instance.RecInfoDropExcept);
+                button_RecInfoDropExceptDefault.Click += (sender, e) => textBox_RecInfoDropExcept.Text = string.Join(", ", Settings.RecInfoDropExceptDefault);
                 checkBox_recNoYear.IsChecked = Settings.Instance.RecInfoNoYear;
                 checkBox_recNoSecond.IsChecked = Settings.Instance.RecInfoNoSecond;
                 checkBox_recNoDurSecond.IsChecked = Settings.Instance.RecInfoNoDurSecond;
@@ -400,6 +402,13 @@ namespace EpgTimer.Setting
                 Settings.Instance.RecInfoDropWrnIgnore = MenuUtil.MyToNumerical(textBox_dropWrnIgnore, Convert.ToInt64, Settings.Instance.RecInfoDropWrnIgnore);
                 Settings.Instance.RecInfoScrambleIgnore = MenuUtil.MyToNumerical(textBox_scrambleIgnore, Convert.ToInt64, Settings.Instance.RecInfoScrambleIgnore);
                 Settings.Instance.RecinfoErrCriticalDrops = (checkBox_recinfo_errCritical.IsChecked == true);
+                List<string> pids = textBox_RecInfoDropExcept.Text.Split(',')
+                    .Where(s => string.IsNullOrWhiteSpace(s) == false).Select(s => s.Trim()).ToList();
+                if (pids.SequenceEqual(Settings.Instance.RecInfoDropExcept) == false)
+                {
+                    Settings.Instance.RecInfoDropExcept = pids;
+                    CommonManager.Instance.DB.ResetRecFileErrInfo();
+                }
                 Settings.Instance.RecInfoNoYear = (checkBox_recNoYear.IsChecked == true);
                 Settings.Instance.RecInfoNoSecond = (checkBox_recNoSecond.IsChecked == true);
                 Settings.Instance.RecInfoNoDurSecond = (checkBox_recNoDurSecond.IsChecked == true);

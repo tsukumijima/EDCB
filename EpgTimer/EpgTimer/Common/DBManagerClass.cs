@@ -298,6 +298,11 @@ namespace EpgTimer
                 delList2.ForEach(key => recFileAppendList.Remove(key));
             }
         }
+        public void ResetRecFileErrInfo()
+        {
+            if (recFileAppendList == null) return;
+            foreach (RecFileInfoAppend data in recFileAppendList.Values) data.SetUpdateNotify();
+        }
 
         public DBManager()
         {

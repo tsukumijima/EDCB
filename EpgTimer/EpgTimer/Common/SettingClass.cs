@@ -443,7 +443,8 @@ namespace EpgTimer
         public long RecInfoDropErrIgnore { get; set; }
         public long RecInfoDropWrnIgnore { get; set; }
         public long RecInfoScrambleIgnore { get; set; }
-        public List<string> RecInfoDropExclude { get; set; }
+        public List<string> RecInfoDropExcept { get; set; }
+        public static readonly List<string> RecInfoDropExceptDefault = new List<string> { "EIT", "NIT", "CAT", "SDT/BAT", "SDTT", "TDT/TOT", "ECM", "EMM" };
         public bool RecInfoNoYear { get; set; }
         public bool RecInfoNoSecond { get; set; }
         public bool RecInfoNoDurSecond { get; set; }
@@ -674,7 +675,7 @@ namespace EpgTimer
             RecInfoDropErrIgnore = 0;
             RecInfoDropWrnIgnore = 0;
             RecInfoScrambleIgnore = 0;
-            RecInfoDropExclude = new List<string>();
+            RecInfoDropExcept = new List<string>();
             RecInfoNoYear = false;
             RecInfoNoSecond = false;
             RecInfoNoDurSecond = false;
@@ -895,9 +896,9 @@ namespace EpgTimer
                     Instance.InfoSearchColumnHead = CommonUtil.NameOf(() => obj.StartTime);
                     Instance.InfoSearchSortDirection = ListSortDirection.Ascending;
                 }
-                if (Instance.RecInfoDropExclude.Count == 0)
+                if (Instance.RecInfoDropExcept.Count == 0)
                 {
-                    Instance.RecInfoDropExclude = new List<string> { "EIT", "NIT", "CAT", "SDT", "SDTT", "TOT", "ECM", "EMM" };
+                    Instance.RecInfoDropExcept = RecInfoDropExceptDefault.ToList();
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

@@ -927,6 +927,7 @@ namespace EpgTimer
                 epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgSetting);
                 SearchWindow.UpdatesInfo(false);
                 InfoSearchWindow.UpdatesInfo();
+                RecInfoDescWindow.UpdatesInfo();
                 NotifyLogWindow.UpdatesInfo();
 
                 ResetMainView();
