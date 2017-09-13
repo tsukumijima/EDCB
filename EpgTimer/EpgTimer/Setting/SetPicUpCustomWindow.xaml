@@ -1,0 +1,59 @@
+﻿<Window x:Class="EpgTimer.SetPicUpCustomWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="記号類除去カスタム設定" SizeToContent="Height" Width="780" WindowStartupLocation="CenterScreen" >
+
+    <StackPanel Margin="6">
+        <StackPanel>
+            <DockPanel>
+                <Label Content="置換リスト‥上の行から順に実行" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,12,4" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                    <Button Margin="12,0,0,0" Name="button_ReplaceClear" Content="クリア" />
+                    <Button Margin="12,0,0,0" Name="button_ReplaceCopy" Content="デフォルト設定をコピー" />
+                </StackPanel>
+            </DockPanel>
+            <TextBox Name="textBox_replaceSet" Height="120" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+        </StackPanel>
+        <StackPanel Margin="0,8,0,0">
+            <DockPanel>
+                <Label Content="タイトル抽出リスト‥置換リスト処理後に上の行から Match するまで順に実行"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,12,4" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                    <Button Margin="12,0,0,0" Name="button_TitleClear" Content="クリア" />
+                    <Button Margin="12,0,0,0" Name="button_TitleCopy" Content="デフォルト設定をコピー" />
+                </StackPanel>
+            </DockPanel>
+            <TextBox Name="textBox_titleSet" Height="120" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+        </StackPanel>
+        <GroupBox Margin="0,12,0,0">
+            <GroupBox.Header>
+                <DockPanel>
+                    <Label Content="適用テスト"/>
+                    <Button Margin="12,0,0,0" Name="button_TestRun" Content="実行" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="button_TestRun_Click" />
+                    <Button Margin="12,0,0,0" Name="button_TestSample" Content="入力サンプル"  VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <Button Margin="12,0,0,0" Name="button_TestClearInput" Content="入力クリア"  VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <Button Margin="12,0,0,0" Name="button_TestClearResult" Content="結果クリア" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                    <Label Margin="12,0,0,0" Content="※1行1データ"/>
+                </DockPanel>
+            </GroupBox.Header>
+            <Grid Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="6" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Label Content="入力" VerticalAlignment="Top"/>
+                <TextBox Grid.Column="1" Name="textbox_TestInput" Height="80" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+                <Label Grid.Row="2" Content="結果" VerticalAlignment="Top"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Name="textbox_TestResult" IsReadOnly="True" Height="80" VerticalScrollBarVisibility="Auto" />
+            </Grid>
+        </GroupBox>
+        <DockPanel HorizontalAlignment="Right" Margin="20,10,24,0">
+            <Button Content="OK" Name="button_ok" MinWidth="75" />
+            <Button Content="キャンセル" Name="button_cancel" Margin="20,0,0,0" IsCancel="True" MinWidth="75"/>
+        </DockPanel>
+    </StackPanel>
+</Window>

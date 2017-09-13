@@ -608,6 +608,10 @@
                                     </WrapPanel>
                                 </StackPanel>
                                 <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" Name="checkBox_TrimSortTitle" />
+                                <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
+                                    <CheckBox Content="記号類の除去にカスタム設定を使用する" Name="checkBox_picUpCustom" ToolTipService.ShowDuration="20000" ToolTip="右クリックメニューや各画面の列の並べ替えに使用している設定を、内部デフォルト設定から変更します。" />
+                                    <Button Margin="12,0,0,0" Content="設定" Name="button_SetPicUpCustom" Click="button_SetPicUpCustom_Click" />
+                                </StackPanel>
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
                                     <CheckBox Content="深夜時間表示をする 　" Name="checkBox_LaterTimeUse" />
                                     <TextBox Width="40" Name="textBox_LaterTimeHour" />

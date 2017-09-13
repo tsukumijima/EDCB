@@ -17,6 +17,7 @@ namespace EpgTimer.Setting
     /// </summary>
     public partial class SetEpgView : UserControl
     {
+        private PicUpTitle picUpTitle;
         private MenuSettingData ctxmSetInfo;
         private RadioBtnSelect epgPopupRadioBtns;
         private RadioBtnSelect tunerPopupRadioBtns;
@@ -213,6 +214,8 @@ namespace EpgTimer.Setting
                 checkBox_resNoSecond.IsChecked = Settings.Instance.ResInfoNoSecond;
                 checkBox_resNoDurSecond.IsChecked = Settings.Instance.ResInfoNoDurSecond;
                 checkBox_TrimSortTitle.IsChecked = Settings.Instance.TrimSortTitle;
+                picUpTitle = Settings.Instance.PicUpTitleWork.Clone();
+                checkBox_picUpCustom.IsChecked = picUpTitle.UseCustom;
 
                 setComboColor1(Settings.Instance.ListDefColor, cmb_ListDefFontColor);
                 setComboColors(Settings.Instance.RecModeFontColors, grid_ReserveRecModeColors);
@@ -426,6 +429,8 @@ namespace EpgTimer.Setting
                 Settings.Instance.ResInfoNoSecond = (checkBox_resNoSecond.IsChecked == true);
                 Settings.Instance.ResInfoNoDurSecond = (checkBox_resNoDurSecond.IsChecked == true);
                 Settings.Instance.TrimSortTitle = (checkBox_TrimSortTitle.IsChecked == true);
+                picUpTitle.UseCustom = checkBox_picUpCustom.IsChecked == true;
+                Settings.Instance.PicUpTitleWork = picUpTitle.Clone();
 
                 Settings.Instance.ListDefColor = getComboColor1(cmb_ListDefFontColor);
                 getComboColors(Settings.Instance.RecModeFontColors, grid_ReserveRecModeColors);
@@ -575,6 +580,15 @@ namespace EpgTimer.Setting
             if (dlg.ShowDialog() == true)
             {
                 this.ctxmSetInfo = dlg.info.Clone();
+            }
+        }
+
+        private void button_SetPicUpCustom_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new SetPicUpCustomWindow(this, picUpTitle);
+            if (dlg.ShowDialog() == true)
+            {
+                picUpTitle = dlg.GetData();
             }
         }
 

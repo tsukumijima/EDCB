@@ -553,6 +553,7 @@ namespace EpgTimer
         public CtxmCode StartTab { get; set; }
         public bool TrimSortTitle { get; set; }
         public bool KeepReserveWindow { get; set; }
+        public PicUpTitle PicUpTitleWork { get; set; }
         [XmlIgnore]
         public bool WakeUpHdd 
         {
@@ -774,6 +775,7 @@ namespace EpgTimer
             StartTab = CtxmCode.ReserveView;
             TrimSortTitle = false;
             KeepReserveWindow = false;
+            PicUpTitleWork = new PicUpTitle();
         }
 
         private static Settings _instance;

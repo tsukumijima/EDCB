@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Controls;
@@ -76,61 +75,33 @@ namespace EpgTimer
             return (Keyboard.Modifiers == ModifierKeys.Shift && NotToggle == false) ? !setting : setting;
         }
 
-        public static string TrimKeyword(string txtKey)
+        private static bool TrimKeywordFatalErr = false;
+        public static string TrimKeyword(string val)
         {
-            if (string.IsNullOrEmpty(txtKey)) return txtKey;
-
-            //
-            // 前後の記号を取り除く
-            //
-            // [二][字]NHKニュース7
-            // ５．１[SS][字]NHK歌謡コンサート「人生の旅路に　この歌を」
-            // 午後のロードショー「私がウォシャウスキー」魅惑のヒロイン特集[字][S][二]
-            // 【Ｍｏｔｈｅｒ’ｓ　Ｄａｙ　Ｓｐｅｃｉａｌ】【映】バンガー・シスターズ
-            string markExp1 =
-                "(" +
-                    "(\\[[^\\]]+\\])+" +
-                    "|" +
-                    "(【[^】]+】)+" +
-                    "|" +
-                    "(［[^］]+］)+" +
-                ")";
-            string[] exp = {
-                                "^((５．１)|(5.1)|" + markExp1 + ")+", // 先頭の記号
-                                "^(([#＃♯][\\d０-９]+)|(第[\\d０-９]+話))", // 先頭にある話数の除去
-                                "^[\\(（][\\d０-９]+[\\)）]\\s*「[^」]+」", // 先頭にある話数の除去
-                                "(([#＃♯][\\d０-９]+)|(第[\\d０-９]+話)).*", // ドラマ等の話数から後ろ全て
-                                "[\\(（][\\d０-９]+[\\)）]\\s*「[^」]+」.*", // ドラマ等の話数から後ろ全て その2
-                                //"「[^」]+」.*", // ドラマ等のサブタイトルから後ろ全て、ちょっと強すぎるかも
-                                "<[^>]+>", // NHK・フジテレビが使う補足
-                                "＜[^＞]+＞", // NHK・フジテレビが使う補足
-                                "[◆▽].*", // タイトルに埋め込まれた番組説明
-                                "[\\[［【\\(（][^\\]］】\\)）]*リマスター[^\\]］】\\)）]*[\\]］】\\)）]",// ときどき見かけるので1
-                                "(((HD)|(ＨＤ)|(ハイビジョン)|(デジタル))リマスター((HD)|(ＨＤ))?版?)|(リマスター((HD)|(ＨＤ)|版)版?)",// 同上、括弧無しは特定パタンのみ
-                                "(（二）|（字幕版）|（吹替版）|" + markExp1 + ")+$" // 末尾の記号
-                                };
-            foreach (string str1 in exp)
+            try
             {
-                txtKey = Regex.Replace(txtKey, str1, string.Empty).Trim();
+                if (TrimKeywordFatalErr == true) return val;
+                return Settings.Instance.PicUpTitleWork.PicUp(val);
             }
-            // 映画のタイトル抽出
-            // TODO:正規表現を設定ファイルで変更可能にする
-            string[] titleExp = {
-                                "^「(?<Title>[^」]+)」",
-                                "((サタ☆シネ)|(シネマズ?)|(シアター)|(プレミア)|(ロードショー)|(ロードSHOW!)|(午後ロード)|(木曜デラックス)|(映画天国))\\s*「(?<Title>[^」]+)」",
-                                "((シネマ)|(キネマ)).*『(?<Title>[^』]+)』"
-                                };
-            foreach (string str1 in titleExp)
+            catch (Exception ex)
             {
-                Match m = Regex.Match(txtKey, str1);
-                if (m.Success == true)
+                string msg = "\r\n\r\nエラーメッセージ :\r\n" + ex.Message;
+                if (Settings.Instance.PicUpTitleWork.UseCustom == true)
                 {
-                    txtKey = m.Groups["Title"].Value;
-                    break;
+                    msg = "記号類の除去でエラーが発生しました。\r\n"
+                            + "カスタム設定の使用を中止し、内部デフォルト設定で実行します。" + msg;
+                    Settings.Instance.PicUpTitleWork.UseCustom = false;
                 }
+                else
+                {
+                    msg = "記号類の除去で致命的なエラーが発生しました。\r\n"
+                            + "記号類の除去を停止します。" + msg;
+                    TrimKeywordFatalErr = true;
+                }
+                string ret = TrimKeyword(val);//メッセージボックスの順序を入れ替える
+                CommonUtil.DispatcherMsgBoxShow(msg, "記号類除去のエラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                return ret;
             }
-
-            return txtKey;
         }
 
         //

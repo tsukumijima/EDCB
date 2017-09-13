@@ -83,6 +83,7 @@
     <Compile Include="AutoAddView.xaml.cs">
       <DependentUpon>AutoAddView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DefineClass\PicUpTitle.cs" />
     <Compile Include="UserCtrlView\BlackoutWindow.xaml.cs">
       <DependentUpon>BlackoutWindow.xaml</DependentUpon>
     </Compile>
@@ -255,6 +256,9 @@
     </Compile>
     <Compile Include="UserCtrlView\PresetEditor.xaml.cs">
       <DependentUpon>PresetEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Setting\SetPicUpCustomWindow.xaml.cs">
+      <DependentUpon>SetPicUpCustomWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="AddManualAutoAddWindow.xaml">
       <SubType>Designer</SubType>
@@ -500,6 +504,10 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <Page Include="Setting\SetPicUpCustomWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\EpgTimer_Bon_Vista_blue_rev2.ico" />
