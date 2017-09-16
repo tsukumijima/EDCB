@@ -19,15 +19,16 @@ namespace EpgTimer
         {
             InitializeComponent();
 
+            //設定ウィンドウについては最低サイズを決めておく。
+            if (Height < 580) Height = 580;
+            if (Width < 780) Width = 780;
+
             base.SetParam(false, new CheckBox());
             this.Pinned = true;
 
             button_cancel.Click += (sender, e) => this.Close();
             SetMode(mode, param);
         }
-
-        //このメソッドとxamlのWindowStartupLocation="CenterOwner"を削除すると、ウィンドウの位置・サイズ保存されるようになるが、とりあえずこのまま。
-        protected override void WriteWindowSaveData() { Settings.Instance.WndSettings.Remove(this); }
 
         public void SetMode(SettingMode mode, object param)
         {

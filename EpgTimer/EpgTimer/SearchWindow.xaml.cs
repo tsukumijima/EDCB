@@ -37,7 +37,6 @@ namespace EpgTimer
                 //スプリッタ位置設定。操作不可能な値をセットしないよう努める。
                 if (Settings.Instance.SearchWndTabsHeight > grid_Tabs.Height.Value)
                 {
-                    //操作不可能な値をセットしないよう努める
                     grid_Tabs.Height = new GridLength(Math.Min(Settings.Instance.SearchWndTabsHeight, Height));
                 }
 
