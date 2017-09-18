@@ -480,7 +480,7 @@ namespace EpgTimer
         public static Grid grid_tab = new Grid { };
         public static Func<string, CustomEpgTabInfo> TabInfoOriginal = s => null;
         public static event Action TabItemsChanged = () => { };
-        public static event ViewSettingClickHandler viewSettingClick = (item, info) => { };
+        public static event Action<EpgViewBase, int> viewSettingClick = (item, info) => { };
 
         //共有データ。eventListは主にEpgTimerNWでの検索絞り込み使用時用。
         EpgViewData viewData = new EpgViewData();

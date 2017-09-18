@@ -6,8 +6,6 @@ using System.Windows.Input;
 
 namespace EpgTimer.EpgView
 {
-    public delegate void ViewSettingClickHandler(EpgViewBase sender, int param);
-
     public class EpgViewData
     {
         //表示形式間で番組表定義と番組リストを共有する
@@ -124,7 +122,7 @@ namespace EpgTimer.EpgView
         }
 
         //表示設定関係
-        public event ViewSettingClickHandler ViewSettingClick = (sender, info) => { };
+        public event Action<EpgViewBase, int> ViewSettingClick = (sender, info) => { };
         protected void ViewSetting(int param) { ViewSettingClick(this, param); }
         protected void mc_ViewChgMode(object sender, ExecutedRoutedEventArgs e)
         {
