@@ -137,14 +137,14 @@ namespace EpgTimer
             
             //ビューモードサブメニュー
             var cm_ViewMenu = new CtxmItemData("表示モード", EpgCmdsEx.ViewMenu);
-            cm_ViewMenu.Items.Add(new CtxmItemData("表示設定...(_S)", EpgCmds.ViewChgSet));
-            cm_ViewMenu.Items.Add(new CtxmItemData("一時的な変更をクリア(_R)", EpgCmds.ViewChgReSet));
-            cm_ViewMenu.Items.Add(new CtxmItemData(cm_Separator));
             for (int i = 0; i <= 2; i++)
             {
                 cm_ViewMenu.Items.Add(new CtxmItemData(CommonManager.ConvertViewModeText(i)
                     + string.Format(" (_{0})", i + 1), EpgCmds.ViewChgMode, i));
             }
+            cm_ViewMenu.Items.Add(new CtxmItemData(cm_Separator));
+            cm_ViewMenu.Items.Add(new CtxmItemData("表示設定...(_S)", EpgCmds.ViewChgSet));
+            cm_ViewMenu.Items.Add(new CtxmItemData("一時的な変更をクリア(_R)", EpgCmds.ViewChgReSet));
 
             //共通メニューの追加用リスト
             var AddAppendMenus = new List<CtxmItemData>();

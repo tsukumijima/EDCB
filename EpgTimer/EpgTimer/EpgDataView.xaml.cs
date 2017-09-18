@@ -309,15 +309,15 @@ namespace EpgTimer
 
                 //ビューモードサブメニュー
                 var menu_vs = new MenuItem { Header = trg.Tag + " の表示モード(_V)", IsEnabled = trg.Uid != "", Uid = trg.Uid };
-                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgSet, "表示設定...(_S)", trg.Uid);
-                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgReSet, "一時的な変更をクリア(_R)", trg.Uid);
-                menu_vs.Items.Add(new Separator());
                 for (int i = 0; i <= 2; i++)
                 {
                     menu1 = tabMenuAdd(menu_vs, true, EpgCmds.ViewChgMode, CommonManager.ConvertViewModeText(i) + string.Format(" (_{0})", i + 1), trg.Uid);
                     menu1.CommandParameter = new EpgCmdParam(null, 0, i);//コマンド自体は、menuの処理メソッドから走らせる。
                     menu1.IsChecked = trg.Uid == "" ? false : i == trg.Info.ViewMode;
                 }
+                menu_vs.Items.Add(new Separator());
+                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgSet, "表示設定...(_S)", trg.Uid);
+                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgReSet, "一時的な変更をクリア(_R)", trg.Uid);
 
                 //番組表の操作メニュー
                 var menu_tb = new MenuItem { Header = "番組表の操作(_E)" };
