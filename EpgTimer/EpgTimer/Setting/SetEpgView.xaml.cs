@@ -114,9 +114,7 @@ namespace EpgTimer.Setting
                 checkBox_EpgTabMoveCheckEnabled.IsChecked = Settings.Instance.EpgTabMoveCheckEnabled;
 
                 XmlLanguage FLanguage = XmlLanguage.GetLanguage("ja-JP");
-                List<string> fontList = Fonts.SystemFontFamilies
-                    .Where(f => f.FamilyNames.ContainsKey(FLanguage) == true)
-                    .Select(f => f.FamilyNames[FLanguage]).ToList();
+                List<string> fontList = Fonts.SystemFontFamilies.Select(f => f.FamilyNames.ContainsKey(FLanguage) == true ? f.FamilyNames[FLanguage] : f.Source).OrderBy(s => s).ToList();
 
                 var setCmboFont = new Action<string, ComboBox>((name, cmb) =>
                 {
