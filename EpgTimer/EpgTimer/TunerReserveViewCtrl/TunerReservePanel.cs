@@ -67,12 +67,14 @@ namespace EpgTimer.TunerReserveViewCtrl
 
                 //サービス名
                 string serviceName = info.Data.StationName + "(" + CommonManager.ConvertNetworkNameText(info.Data.OriginalNetworkID) + ")";
+                serviceName = CommonManager.ReplaceText(serviceName, ReplaceDictionaryTitle);
                 RenderText(textDrawList, serviceName, ItemFontTitle, sizeTitle, innerWidth - indentTitle, innnerHeight, innerLeft + indentTitle, info.TopPos, ref useHeight, info.ServiceColor, noWrap);
                 useHeight += sizeTitle / 3;
                 if (useHeight > info.Height) continue;
 
                 //番組名
-                RenderText(textDrawList, info.Data.Title, ItemFontNormal, sizeNormal, innerWidth - indentNormal, innnerHeight, innerLeft + indentNormal, info.TopPos, ref useHeight, colorNormal);
+                string title = CommonManager.ReplaceText(info.Data.Title, ReplaceDictionaryTitle);
+                RenderText(textDrawList, title, ItemFontNormal, sizeNormal, innerWidth - indentNormal, innnerHeight, innerLeft + indentNormal, info.TopPos, ref useHeight, colorNormal);
 
                 RenderTextHeight = Math.Max(RenderTextHeight, useHeight);
             }

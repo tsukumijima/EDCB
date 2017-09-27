@@ -453,6 +453,14 @@ namespace EpgTimer
             return string.Format("{0} : {1} (0x{1:X4})", Title, 0x000000000000FFFF & id);
         }
 
+        public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal;
+        public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle;
+        public static void ReloadReplaceDictionar()
+        {
+            ReplaceDictionaryNormal = Settings.Instance.EpgReplacePatternDef ? CommonManager.ReplaceUrlDictionary : CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePattern);
+            ReplaceDictionaryTitle = Settings.Instance.EpgReplacePatternTitleDef ? CommonManager.ReplaceUrlDictionary : CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePatternTitle);
+        }
+
         public static Dictionary<char, List<KeyValuePair<string, string>>> CreateReplaceDictionary(string pattern)
         {
             var ret = new Dictionary<char, List<KeyValuePair<string, string>>>();

@@ -40,6 +40,8 @@ namespace EpgTimer.TunerReserveViewCtrl
         {
             try
             {
+                reserveViewPanel.ReplaceDictionaryTitle = Settings.Instance.ApplyReplacePatternTuner ? CommonManager.ReplaceDictionaryTitle : null;
+                PopPanel.ReplaceDictionaryTitle = reserveViewPanel.ReplaceDictionaryTitle;
                 reserveViewPanel.SetBorderStyleFromSettings();
                 canvas.Width = ViewUtil.SnapsToDevicePixelsX(width + reserveViewPanel.WidthMarginRight, 2);//右端のチューナ列の線を描画するため+1。他の+1も同じ。;
                 canvas.Height = ViewUtil.SnapsToDevicePixelsY(height + reserveViewPanel.HeightMarginBottom, 2);

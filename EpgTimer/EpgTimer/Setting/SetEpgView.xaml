@@ -156,10 +156,13 @@
                             <StackPanel Margin="11,0,0,0">
                                 <DockPanel Margin="0,6,0,0">
                                     <Label Content="タイトルの文字列置換リスト（/置換前/置換後/…）" Name="label_replacePatternTitleDef"/>
+                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書を使用" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" ToolTip="表示が遅くなります" Click="checkBox_replacePatternTitleDef_Click" />
+                                    <CheckBox Content="使用予定チューナー画面にも適用" Margin="12,0,0,0" Name="checkBox_ApplyReplacePatternTuner" />
                                 </DockPanel>
                                 <TextBox  Margin="18,0,0,0" Name="textBox_replacePatternTitle" />
                                 <DockPanel Margin="0,6,0,0">
                                     <Label Content="タイトル以外の文字列置換リスト（〃）" Width="{Binding ElementName=label_replacePatternTitleDef,Path=ActualWidth}"/>
+                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書を使用" Margin="12,0,0,0" Name="checkBox_replacePatternDef" ToolTip="表示が遅くなります" Click="checkBox_replacePatternDef_Click" />
                                 </DockPanel>
                                 <TextBox Margin="18,0,0,0"  Name="textBox_replacePattern"  />
                             </StackPanel>

@@ -38,8 +38,8 @@ namespace EpgTimer.EpgView
             base.scroll = scrollViewer;
             base.cnvs = canvas;
 
-            epgViewPanel.ReplaceDictionaryNormal = CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePattern);
-            epgViewPanel.ReplaceDictionaryTitle = CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePatternTitle);
+            epgViewPanel.ReplaceDictionaryNormal = CommonManager.ReplaceDictionaryNormal;
+            epgViewPanel.ReplaceDictionaryTitle = CommonManager.ReplaceDictionaryTitle;
             epgViewPanel.Background = CommonManager.Instance.EpgBackColor;
             epgViewPanel.ExtInfoMode = Settings.Instance.EpgExtInfoTable;
             epgViewPanel.Height = ViewUtil.GetScreenHeightMax();
