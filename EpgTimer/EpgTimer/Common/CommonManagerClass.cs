@@ -65,6 +65,7 @@ namespace EpgTimer
         public static readonly string[] RecModeList;
         public static readonly string[] YesNoList;
         public static readonly string[] PriorityList;
+        public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceUrlDictionary;
 
         static CommonManager()
         {
@@ -380,6 +381,10 @@ namespace EpgTimer
             RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
             YesNoList = new string[] { "しない", "する" };
             PriorityList = new string[] { "1 (低)", "2", "3", "4", "5 (高)" };
+            ReplaceUrlDictionary = CreateReplaceDictionary(",０,0,１,1,２,2,３,3,４,4,５,5,６,6,７,7,８,8,９,9" +
+                ",Ａ,A,Ｂ,B,Ｃ,C,Ｄ,D,Ｅ,E,Ｆ,F,Ｇ,G,Ｈ,H,Ｉ,I,Ｊ,J,Ｋ,K,Ｌ,L,Ｍ,M,Ｎ,N,Ｏ,O,Ｐ,P,Ｑ,Q,Ｒ,R,Ｓ,S,Ｔ,T,Ｕ,U,Ｖ,V,Ｗ,W,Ｘ,X,Ｙ,Y,Ｚ,Z" +
+                ",ａ,a,ｂ,b,ｃ,c,ｄ,d,ｅ,e,ｆ,f,ｇ,g,ｈ,h,ｉ,i,ｊ,j,ｋ,k,ｌ,l,ｍ,m,ｎ,n,ｏ,o,ｐ,p,ｑ,q,ｒ,r,ｓ,s,ｔ,t,ｕ,u,ｖ,v,ｗ,w,ｘ,x,ｙ,y,ｚ,z" +
+                ",！,!,＃,#,＄,$,％,%,＆,&,’,',（,(,）,),～,~,￣,~,＝,=,＠,@,；,;,：,:,？,?,＿,_,＋,+,－,-,＊,*,／,/,．,.,　, ");
         }
 
         public static IEnumerable<ContentKindInfo> ContentKindList
@@ -501,104 +506,7 @@ namespace EpgTimer
 
         public static string AdjustSearchText(string s)
         {
-            return ReplaceUrl(s.ToLower()).Replace("　", " ").Replace("\r\n", "");
-        }
-        public static String ReplaceUrl(String url)
-        {
-            string retText = url;
-
-            retText = retText.Replace("ａ", "a");
-            retText = retText.Replace("ｂ", "b");
-            retText = retText.Replace("ｃ", "c");
-            retText = retText.Replace("ｄ", "d");
-            retText = retText.Replace("ｅ", "e");
-            retText = retText.Replace("ｆ", "f");
-            retText = retText.Replace("ｇ", "g");
-            retText = retText.Replace("ｈ", "h");
-            retText = retText.Replace("ｉ", "i");
-            retText = retText.Replace("ｊ", "j");
-            retText = retText.Replace("ｋ", "k");
-            retText = retText.Replace("ｌ", "l");
-            retText = retText.Replace("ｍ", "m");
-            retText = retText.Replace("ｎ", "n");
-            retText = retText.Replace("ｏ", "o");
-            retText = retText.Replace("ｐ", "p");
-            retText = retText.Replace("ｑ", "q");
-            retText = retText.Replace("ｒ", "r");
-            retText = retText.Replace("ｓ", "s");
-            retText = retText.Replace("ｔ", "t");
-            retText = retText.Replace("ｕ", "u");
-            retText = retText.Replace("ｖ", "v");
-            retText = retText.Replace("ｗ", "w");
-            retText = retText.Replace("ｘ", "x");
-            retText = retText.Replace("ｙ", "y");
-            retText = retText.Replace("ｚ", "z");
-            retText = retText.Replace("Ａ", "A");
-            retText = retText.Replace("Ｂ", "B");
-            retText = retText.Replace("Ｃ", "C");
-            retText = retText.Replace("Ｄ", "D");
-            retText = retText.Replace("Ｅ", "E");
-            retText = retText.Replace("Ｆ", "F");
-            retText = retText.Replace("Ｇ", "G");
-            retText = retText.Replace("Ｈ", "H");
-            retText = retText.Replace("Ｉ", "I");
-            retText = retText.Replace("Ｊ", "J");
-            retText = retText.Replace("Ｋ", "K");
-            retText = retText.Replace("Ｌ", "L");
-            retText = retText.Replace("Ｍ", "M");
-            retText = retText.Replace("Ｎ", "N");
-            retText = retText.Replace("Ｏ", "O");
-            retText = retText.Replace("Ｐ", "P");
-            retText = retText.Replace("Ｑ", "Q");
-            retText = retText.Replace("Ｒ", "R");
-            retText = retText.Replace("Ｓ", "S");
-            retText = retText.Replace("Ｔ", "T");
-            retText = retText.Replace("Ｕ", "U");
-            retText = retText.Replace("Ｖ", "V");
-            retText = retText.Replace("Ｗ", "W");
-            retText = retText.Replace("Ｘ", "X");
-            retText = retText.Replace("Ｙ", "Y");
-            retText = retText.Replace("Ｚ", "Z");
-            retText = retText.Replace("＃", "#");
-            retText = retText.Replace("＄", "$");
-            retText = retText.Replace("％", "%");
-            retText = retText.Replace("＆", "&");
-            retText = retText.Replace("’", "'");
-            retText = retText.Replace("（", "(");
-            retText = retText.Replace("）", ")");
-            retText = retText.Replace("～", "~");
-            retText = retText.Replace("＝", "=");
-            retText = retText.Replace("｜", "|");
-            retText = retText.Replace("＾", "^");
-            retText = retText.Replace("￥", "\\");
-            retText = retText.Replace("＠", "@");
-            retText = retText.Replace("；", ";");
-            retText = retText.Replace("：", ":");
-            retText = retText.Replace("｀", "`");
-            retText = retText.Replace("｛", "{");
-            retText = retText.Replace("｝", "}");
-            retText = retText.Replace("＜", "<");
-            retText = retText.Replace("＞", ">");
-            retText = retText.Replace("？", "?");
-            retText = retText.Replace("！", "!");
-            retText = retText.Replace("＿", "_");
-            retText = retText.Replace("＋", "+");
-            retText = retText.Replace("－", "-");
-            retText = retText.Replace("＊", "*");
-            retText = retText.Replace("／", "/");
-            retText = retText.Replace("．", ".");
-            retText = retText.Replace("０", "0");
-            retText = retText.Replace("１", "1");
-            retText = retText.Replace("２", "2");
-            retText = retText.Replace("３", "3");
-            retText = retText.Replace("４", "4");
-            retText = retText.Replace("５", "5");
-            retText = retText.Replace("６", "6");
-            retText = retText.Replace("７", "7");
-            retText = retText.Replace("８", "8");
-            retText = retText.Replace("９", "9");
-
-            return retText;
+            return ReplaceText(s, ReplaceUrlDictionary).Replace("\r\n", "").ToLower();
         }
 
         /// <summary>良くある通信エラー(CMD_ERR_CONNECT,CMD_ERR_TIMEOUT)をMessageBoxで表示する。</summary>
@@ -1028,50 +936,26 @@ namespace EpgTimer
             String epgText = ConvertProgramText(eventInfo, EventInfoTextMode.All);
             if (epgText == "") epgText = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。";
             String text = epgText;
-            FlowDocument flowDoc = new FlowDocument();
-            Regex regex = new Regex("((http://|https://|ｈｔｔｐ：／／|ｈｔｔｐｓ：／／).*\r\n)");
 
-            if (regex.IsMatch(text) == true)
+            int searchFrom = 0;
+            Paragraph para = new Paragraph();
+            string rtext = ReplaceText(text, ReplaceUrlDictionary);
+            if (rtext.Length == text.Length)
             {
-                try
+                for (Match m = Regex.Match(rtext, @"https?://[0-9A-Za-z!#$%&'()~=@;:?_+\-*/.]+"); m.Success; m = m.NextMatch())
                 {
-                    //Regexのsplitでやるとhttp://だけのも取れたりするので、１つずつ行う
-                    Paragraph para = new Paragraph();
-
-                    do
-                    {
-                        Match matchVal = regex.Match(text);
-                        int index = text.IndexOf(matchVal.Value);
-
-                        para.Inlines.Add(text.Substring(0, index));
-                        text = text.Remove(0, index);
-
-                        Hyperlink h = new Hyperlink(new Run(matchVal.Value.Replace("\r\n", "")));
-                        h.MouseLeftButtonDown += new MouseButtonEventHandler(h_MouseLeftButtonDown);
-                        h.Foreground = Brushes.Blue;
-                        h.Cursor = Cursors.Hand;
-                        String url = ReplaceUrl(matchVal.Value.Replace("\r\n", ""));
-                        h.NavigateUri = new Uri(url);
-                        para.Inlines.Add(h);
-                        para.Inlines.Add("\r\n");
-
-                        text = text.Remove(0, matchVal.Value.Length);
-                    } while (regex.IsMatch(text) == true);
-                    para.Inlines.Add(text);
-
-                    flowDoc.Blocks.Add(para);
-                }
-                catch
-                {
-                    flowDoc = new FlowDocument(new Paragraph(new Run(epgText)));
+                    para.Inlines.Add(text.Substring(searchFrom, m.Index - searchFrom));
+                    Hyperlink h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
+                    h.MouseLeftButtonDown += new MouseButtonEventHandler(h_MouseLeftButtonDown);
+                    h.Foreground = Brushes.Blue;
+                    h.Cursor = Cursors.Hand;
+                    h.NavigateUri = new Uri(m.Value);
+                    para.Inlines.Add(h);
+                    searchFrom = m.Index + m.Length;
                 }
             }
-            else
-            {
-                flowDoc.Blocks.Add(new Paragraph(new Run(epgText)));
-            }
-
-            return flowDoc;
+            para.Inlines.Add(text.Substring(searchFrom));
+            return new FlowDocument(para);
         }
 
         //デフォルト番組表の情報作成
