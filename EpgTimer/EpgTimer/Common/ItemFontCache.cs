@@ -1,55 +1,97 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
 namespace EpgTimer
 {
-    static public class ItemFontCache
+    public static class ItemFontCache
     {
-        private static Dictionary<string, ItemFont> cache = new Dictionary<string, ItemFont>();
-        static public void Clear() { cache.Clear(); }
-        static public ItemFont ItemFont(string familyName, bool isBold)
+        public static void Clear() { cacheFont.Clear(); cacheType.Clear(); }
+
+        private static Dictionary<string, ItemFont> cacheFont = new Dictionary<string, ItemFont>();
+        public static ItemFont ItemFont(string familyName, bool isBold)
         {
             string key = string.Format("{0}::{1}", familyName, isBold);
-            if (cache.ContainsKey(key) == false)
+            if (cacheFont.ContainsKey(key) == false)
             {
-                cache.Add(key, new ItemFont(familyName, isBold));
+                cacheFont.Add(key, new ItemFont(familyName, isBold));
             }
-            return cache[key];
+            return cacheFont[key];
+        }
+
+        private static Dictionary<string, GlyphTypeSet> cacheType = new Dictionary<string, GlyphTypeSet>();
+        public static GlyphTypeSet GetGlyphType(FontFamily fontfamily, bool isBold)
+        {
+            string key = string.Format("{0}::{1}", fontfamily.Source, isBold);
+            if (cacheType.ContainsKey(key) == false)
+            {
+                cacheType.Add(key, new GlyphTypeSet(fontfamily, isBold));
+            }
+            return cacheType[key];
+        }
+        public class GlyphTypeSet
+        {
+            public readonly GlyphTypeface Type = null;
+            public readonly ushort[] indexCache = null;
+            public readonly float[] widthCache = null;
+            public GlyphTypeSet(FontFamily fontfamily, bool isBold)
+            {
+                new Typeface(fontfamily, FontStyles.Normal, isBold ? FontWeights.Bold : FontWeights.Normal, FontStretches.Normal).TryGetGlyphTypeface(out Type);
+                indexCache = Type == null ? null : new ushort[ushort.MaxValue + 1];
+                widthCache = Type == null ? null : new float[ushort.MaxValue + 1];
+            }
         }
     }
     public class ItemFont
     {
-        public readonly GlyphTypeface GlyphType = null;
-        private ushort[] indexCache = new ushort[ushort.MaxValue + 1];
-        private float[] widthCache = new float[ushort.MaxValue + 1];
+        public readonly GlyphTypeface[] GlyphType = null;
+        private readonly ItemFontCache.GlyphTypeSet[] cacheSet = null;
         public ItemFont(string familyName, bool isBold)
         {
-            if ((new Typeface(new FontFamily(familyName),
-                              FontStyles.Normal,
-                              isBold ? FontWeights.Bold : FontWeights.Normal,
-                              FontStretches.Normal)).TryGetGlyphTypeface(out GlyphType) == false)
+            cacheSet = familyName.Split(new[] { ',' })
+                .Select(s => ItemFontCache.GetGlyphType(new FontFamily(s.Trim()), isBold))
+                .Where(t => t.Type != null).Distinct().ToArray();
+            if (cacheSet.Length == 0)
             {
-                (new Typeface(new FontFamily(System.Drawing.SystemFonts.DefaultFont.Name),
-                              FontStyles.Normal,
-                              isBold ? FontWeights.Bold : FontWeights.Normal,
-                              FontStretches.Normal)).TryGetGlyphTypeface(out GlyphType);
+                cacheSet = new[] { ItemFontCache.GetGlyphType(SystemFonts.MessageFontFamily, isBold) };
             }
+            GlyphType = cacheSet.Select(t => t.Type).ToArray();
         }
-        public ushort GlyphIndex(ushort code)
+        public double GlyphWidth(string line, ref int n, out ushort glyphIndex, out int fontIndex)
         {
-            var glyphIndex = indexCache[code];
-            if (glyphIndex == 0)
+            int key = line[n];
+            for (fontIndex = 0; fontIndex < cacheSet.Length; fontIndex++)
             {
-                GlyphType.CharacterToGlyphMap.TryGetValue(code, out glyphIndex);
-                indexCache[code] = glyphIndex;
-                widthCache[glyphIndex] = (float)GlyphType.AdvanceWidths[glyphIndex];
+                glyphIndex = cacheSet[fontIndex].indexCache[key];
+                if (glyphIndex != 0) return cacheSet[fontIndex].widthCache[glyphIndex];
             }
-            return glyphIndex;
-        }
-        public double GlyphWidth(ushort glyphIndex)
-        {
-            return widthCache[glyphIndex];
+
+            if (char.IsSurrogatePair(line, n))
+            {
+                key = char.ConvertToUtf32(line, n++);
+            }
+            else if (char.IsSurrogate((char)key))
+            {
+                key = 0;
+            }
+
+            glyphIndex = 0;
+            for (fontIndex = 0; fontIndex < cacheSet.Length; fontIndex++)
+            {
+                if (GlyphType[fontIndex].CharacterToGlyphMap.TryGetValue(key, out glyphIndex) == true) break;
+            }
+            if (fontIndex == cacheSet.Length) fontIndex = 0;
+
+            double glyphWidth;
+            GlyphType[fontIndex].AdvanceWidths.TryGetValue(glyphIndex, out glyphWidth);
+            if (key < cacheSet[fontIndex].indexCache.Length)
+            {
+                cacheSet[fontIndex].indexCache[key] = glyphIndex;
+                cacheSet[fontIndex].widthCache[glyphIndex] = (float)glyphWidth;
+            }
+
+            return (float)glyphWidth;
         }
     }
 }

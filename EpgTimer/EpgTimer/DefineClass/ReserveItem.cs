@@ -129,23 +129,27 @@ namespace EpgTimer
             return view;
         }
 
+        static String[] wiewString = { "", "", "無", "予+", "予+", "無+", "録*", "視*", "無*" };
         public override String Status
         {
             get
             {
-                String[] wiewString = { "", "無", "予+", "無+", "録*", "無*" };
                 int index = 0;
                 if (ReserveInfo != null)
                 {
                     if (ReserveInfo.IsOnAir() == true)
                     {
-                        index = 2;
+                        index = 3;
                     }
                     if (ReserveInfo.IsOnRec() == true)//マージンがあるので、IsOnAir==trueとは限らない
                     {
-                        index = 4;
+                        index = 6;
                     }
                     if (ReserveInfo.IsEnabled == false) //無効の判定
+                    {
+                        index += 2;
+                    }
+                    else if (ReserveInfo.IsWatchMode == true) //視聴中の判定
                     {
                         index += 1;
                     }
@@ -161,14 +165,14 @@ namespace EpgTimer
                 {
                     if (ReserveInfo.IsOnRec() == true)
                     {
-                        return CommonManager.Instance.StatRecForeColor;
+                        return CommonManager.Instance.ResStatusColor[ReserveInfo.IsWatchMode ? 3 : 1];
                     }
                     if (ReserveInfo.IsOnAir() == true)
                     {
-                        return CommonManager.Instance.StatOnAirForeColor;
+                        return CommonManager.Instance.ResStatusColor[2];
                     }
                 }
-                return CommonManager.Instance.StatResForeColor;
+                return CommonManager.Instance.ResStatusColor[0];
             }
         }
     }

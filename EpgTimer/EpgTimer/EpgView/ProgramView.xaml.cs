@@ -21,8 +21,8 @@ namespace EpgTimer.EpgView
         protected override bool PopOnOver { get { return Settings.Instance.EpgPopupMode != 1; } }
         protected override bool PopOnClick { get { return Settings.Instance.EpgPopupMode != 0; } }
         protected override FrameworkElement Popup { get { return popupItem; } }
-        protected override double PopWidth { get { return (Settings.Instance.ServiceWidth + 1) * Settings.Instance.EpgPopupWidth; } }
-        protected override double PopHeightOffset { get { return 0.5; } }
+        protected override ViewPanel PopPanel { get { return popupItemPanel; } }
+        protected override double PopWidth { get { return Settings.Instance.ServiceWidth * Settings.Instance.EpgPopupWidth + PopPanel.WidthMarginRight; } }
 
         private List<ReserveViewItem> reserveList = null;
         private List<Rectangle> rectBorder = new List<Rectangle>();
@@ -38,9 +38,17 @@ namespace EpgTimer.EpgView
             base.scroll = scrollViewer;
             base.cnvs = canvas;
 
+            epgViewPanel.ReplaceDictionaryNormal = CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePattern);
+            epgViewPanel.ReplaceDictionaryTitle = CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePatternTitle);
             epgViewPanel.Background = CommonManager.Instance.EpgBackColor;
+            epgViewPanel.ExtInfoMode = Settings.Instance.EpgExtInfoTable;
             epgViewPanel.Height = ViewUtil.GetScreenHeightMax();
             epgViewPanel.Width = ViewUtil.GetScreenWidthMax();
+            epgViewPanel.SetBorderStyleFromSettings();
+
+            popupItemPanel.ReplaceDictionaryNormal = epgViewPanel.ReplaceDictionaryNormal;
+            popupItemPanel.ReplaceDictionaryTitle = epgViewPanel.ReplaceDictionaryTitle;
+            Canvas.SetLeft(popupItemPanel, 0);
         }
 
         public override void ClearInfo()
@@ -89,63 +97,10 @@ namespace EpgTimer.EpgView
         }
         protected override void SetPopup(PanelItem item)
         {
-            var viewInfo = (ProgramViewItem)item;
-            EpgEventInfo epgInfo = viewInfo.EventInfo;
+            //この番組だけのEpgViewPanelをつくる
+            PopPanel.ExtInfoMode = Settings.Instance.EpgExtInfoPopup;
+            SetPopPanel(item);
 
-            popupItem.BorderBrush = viewInfo.BorderBrush;
-            popupItem.Background = viewInfo.ContentColor;
-
-            double sizeMin = Settings.Instance.FontSizeTitle - 1;
-            double sizeTitle = Settings.Instance.FontSizeTitle;
-            double sizeNormal = Settings.Instance.FontSize;
-            double indentTitle = sizeMin * 1.7;
-            double indentNormal = Settings.Instance.EpgTitleIndent ? indentTitle : 3;
-            var fontNormal = new FontFamily(Settings.Instance.FontName);
-            var fontTitle = new FontFamily(Settings.Instance.FontNameTitle);
-            FontWeight titleWeight = Settings.Instance.FontBoldTitle == true ? FontWeights.Bold : FontWeights.Normal;
-
-            minText.Text = (epgInfo.StartTimeFlag == 0 ? "未定" : epgInfo.start_time.Minute.ToString("d02"));
-            minText.FontFamily = fontTitle;
-            minText.FontSize = sizeMin;
-            minText.FontWeight = titleWeight;
-            minText.Foreground = CommonManager.Instance.CustTitle1Color;
-            //minText.Margin = new Thickness(0, 0, 0, 0);
-            minText.LineHeight = sizeMin + 2;
-
-            if (epgInfo.ShortInfo != null)
-            {
-                //必ず文字単位で折り返すためにZWSPを挿入 (\\w を使うと記号の間にZWSPが入らない)
-                titleText.Text = System.Text.RegularExpressions.Regex.Replace(epgInfo.ShortInfo.event_name.TrimEnd('\r', '\n'), ".", "$0\u200b");
-                titleText.FontFamily = fontTitle;
-                titleText.FontSize = sizeTitle;
-                titleText.FontWeight = titleWeight;
-                titleText.Foreground = CommonManager.Instance.CustTitle1Color;
-                titleText.Margin = new Thickness(indentTitle, 0, 0, sizeTitle / 3);
-                titleText.LineHeight = sizeTitle + 2;
-
-                string iTxt = epgInfo.ShortInfo.text_char.TrimEnd('\r','\n');
-                if (Settings.Instance.EpgExtInfoPopup == true && epgInfo.ExtInfo != null)
-                {
-                    iTxt += "\r\n" + epgInfo.ExtInfo.text_char.TrimEnd('\r', '\n');
-                }
-                infoText.Text = System.Text.RegularExpressions.Regex.Replace(iTxt, ".", "$0\u200b");
-                infoText.FontFamily = fontNormal;
-                infoText.FontSize = sizeNormal;
-                //infoText.FontWeight = FontWeights.Normal;
-                infoText.Foreground = CommonManager.Instance.CustTitle2Color;
-                infoText.Margin = new Thickness(indentNormal, 0, 0, 0);
-                infoText.LineHeight = sizeNormal + 2;
-            }
-            else
-            {
-                titleText.Text = null;
-                infoText.Text = null;
-            }
-
-            //予約枠の表示
-            double marginEpg = 1;
-            double marginRes = marginEpg + 3;
-            popupItemTextArea.Margin = new Thickness(marginEpg, marginEpg - 2, marginEpg + 3, marginEpg);
             popupItemBorder.Visibility = Visibility.Collapsed;
             popupItemFillOnly.Visibility = Visibility.Collapsed;
             if (popInfoRes != null)
@@ -153,10 +108,6 @@ namespace EpgTimer.EpgView
                 popupItemBorder.Visibility = Visibility.Visible;
                 if (Settings.Instance.ReserveRectFillWithShadow == false) popupItemFillOnly.Visibility = Visibility.Visible;
                 SetReserveBorderColor(popInfoRes, popupItemBorder, Settings.Instance.ReserveRectFillWithShadow ? null : popupItemFillOnly);
-                if (Settings.Instance.ReserveRectFillOpacity <= 66)
-                {
-                    popupItemTextArea.Margin = new Thickness(marginRes, marginRes - 1, marginRes, marginRes);
-                }
             }
         }
 
@@ -169,7 +120,7 @@ namespace EpgTimer.EpgView
             var info = toolInfo as ProgramViewItem;
             if (info.TitleDrawErr == false && Settings.Instance.EpgToolTipNoViewOnly == true) return;
 
-            Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(CommonManager.ConvertProgramText(info.EventInfo,
+            Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(CommonManager.ConvertProgramText(info.Data,
                 Settings.Instance.EpgExtInfoTooltip == true ? EventInfoTextMode.All : EventInfoTextMode.BasicText));
         }
 
@@ -195,7 +146,7 @@ namespace EpgTimer.EpgView
             rect.Stroke = info.BorderBrush;
             rect.Effect = new System.Windows.Media.Effects.DropShadowEffect() { BlurRadius = 10 };
             rect.StrokeThickness = 3;
-            (fillOnlyRect ?? rect).Fill = info.FillBrush;
+            (fillOnlyRect ?? rect).Fill = info.BackColor;
         }
         public void SetReserveList(List<ReserveViewItem> resList)
         {
@@ -239,36 +190,43 @@ namespace EpgTimer.EpgView
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        public void SetProgramList(List<ProgramViewItem> programList, double width, double height)
+        public Rect SetProgramList(List<ProgramViewItem> programList, double width, double height)
         {
-            SetProgramList(CommonUtil.ToList(new PanelItem<List<ProgramViewItem>>(programList) { Width = width }), height);
+            return SetProgramList(CommonUtil.ToList(new PanelItem<List<ProgramViewItem>>(programList) { Width = width }), height);
         }
-        public void SetProgramList(List<PanelItem<List<ProgramViewItem>>> programGroupList, double height)
+        public Rect SetProgramList(List<PanelItem<List<ProgramViewItem>>> programGroupList, double height)
         {
             try
             {
                 ClearEpgViewPanel();
 
-                double totalWidth = 1;//枠線の調整用、多分あんまり良くないやり方
+                //枠線の調整用
+                double totalWidth = 0;
+                height = ViewUtil.SnapsToDevicePixelsY(height + epgViewPanel.HeightMarginBottom, 2);
                 foreach (var programList in programGroupList)
                 {
                     var item = new EpgViewPanel();
+                    item.ReplaceDictionaryNormal = epgViewPanel.ReplaceDictionaryNormal;
+                    item.ReplaceDictionaryTitle = epgViewPanel.ReplaceDictionaryTitle;
                     item.Background = epgViewPanel.Background;
-                    item.Height = Math.Ceiling(height + 1);
+                    item.SetBorderStyleFromSettings();
+                    item.Height = height;
                     item.Width = programList.Width;
                     Canvas.SetLeft(item, totalWidth);
+                    item.ExtInfoMode = epgViewPanel.ExtInfoMode;
                     item.Items = programList.Data;
                     item.InvalidateVisual();
                     canvas.Children.Add(item);
                     totalWidth += programList.Width;
                 }
-                canvas.Height = Math.Ceiling(height + 1);
-                canvas.Width = Math.Max(totalWidth, ViewUtil.GetScreenWidthMax());
-                canvas.Margin = new Thickness(0, 0, Math.Min(0, totalWidth - ViewUtil.GetScreenWidthMax()), 0);
-                epgViewPanel.Height = Math.Max(canvas.Height, ViewUtil.GetScreenHeightMax());
-                epgViewPanel.Width = canvas.Width;
+
+                canvas.Width = ViewUtil.SnapsToDevicePixelsX(totalWidth + epgViewPanel.WidthMarginRight, 2);
+                canvas.Height = height;
+                epgViewPanel.Width = Math.Max(canvas.Width, ViewUtil.SnapsToDevicePixelsX(ViewUtil.GetScreenWidthMax()));
+                epgViewPanel.Height = Math.Max(canvas.Height, ViewUtil.SnapsToDevicePixelsY(ViewUtil.GetScreenHeightMax()));
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            return new Rect(0, 0, canvas.Width, canvas.Height);
         }
     }
 }

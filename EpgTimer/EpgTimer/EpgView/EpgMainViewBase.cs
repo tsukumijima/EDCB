@@ -34,7 +34,7 @@ namespace EpgTimer.EpgView
             mc.SetFuncGetEpgEventList(() => 
             {
                 ProgramViewItem hitItem = programView.GetProgramViewData(clickPos);
-                return hitItem != null && hitItem.EventInfo != null ? CommonUtil.ToList(hitItem.EventInfo) : new List<EpgEventInfo>();
+                return hitItem != null && hitItem.Data != null ? CommonUtil.ToList(hitItem.Data) : new List<EpgEventInfo>();
             });
 
             //コマンド集からコマンドを登録
@@ -85,7 +85,7 @@ namespace EpgTimer.EpgView
                 var timeSet = new HashSet<DateTime>();
                 foreach (ProgramViewItem item in programList.Values)
                 {
-                    ViewUtil.AddTimeList(timeSet, GetViewTime(item.EventInfo.start_time), item.EventInfo.PgDurationSecond);
+                    ViewUtil.AddTimeList(timeSet, GetViewTime(item.Data.start_time), item.Data.PgDurationSecond);
                 }
                 timeList.AddRange(timeSet.OrderBy(time => time));
             }
@@ -93,7 +93,7 @@ namespace EpgTimer.EpgView
             //縦位置を設定
             foreach (ProgramViewItem item in programList.Values)
             {
-                ViewUtil.SetItemVerticalPos(timeList, item, GetViewTime(item.EventInfo.start_time), item.EventInfo.durationSec, Settings.Instance.MinHeight, viewCustNeedTimeOnly);
+                ViewUtil.SetItemVerticalPos(timeList, item, GetViewTime(item.Data.start_time), item.Data.durationSec, Settings.Instance.MinHeight, viewCustNeedTimeOnly);
             }
 
             //最低表示行数を適用。また、最低表示高さを確保して、位置も調整する。
@@ -188,17 +188,17 @@ namespace EpgTimer.EpgView
             if (programList.Count == 0) return null;
 
             var list = programList.Values.OrderBy(item => (int)(item.LeftPos / Settings.Instance.ServiceWidth) * 1e6 + item.TopPos + item.Width / Settings.Instance.ServiceWidth / 100).ToList();
-            int idx = list.FindIndex(item => item.EventInfo.CurrentPgUID() == id);
+            int idx = list.FindIndex(item => item.Data.CurrentPgUID() == id);
             idx = ViewUtil.GetNextIdx(ItemIdx, idx, list.Count, direction);
             if (move == true) programView.ScrollToFindItem(list[idx], style);
             if (move == true) ItemIdx = idx;
-            return list[idx] == null ? null : list[idx].EventInfo;
+            return list[idx] == null ? null : list[idx].Data;
         }
 
         public override void MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             if (target == null) return;
-            int idx = reserveList.FindIndex(item => item.ReserveInfo.ReserveID == target.ReserveID);
+            int idx = reserveList.FindIndex(item => item.Data.ReserveID == target.ReserveID);
             if (idx != -1) programView.ScrollToFindItem(reserveList[idx], style);
             ItemIdx = idx;
         }
@@ -220,7 +220,7 @@ namespace EpgTimer.EpgView
             {
                 int idx = timeList.BinarySearch(GetViewTime(DateTime.UtcNow.AddHours(9)));
                 double pos = ((idx < 0 ? ~idx : idx) - 1) * 60 * Settings.Instance.MinHeight - 120;
-                programView.scrollViewer.ScrollToVerticalOffset(Math.Max(0, Math.Ceiling(pos)));
+                programView.scrollViewer.ScrollToVerticalOffset(Math.Max(0, pos));
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

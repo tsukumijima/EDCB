@@ -10,86 +10,159 @@ using System.Windows.Threading;
 
 namespace EpgTimer
 {
-    public class PanelBase : Panel
+    public class ViewPanel : Panel
     {
-        public PanelBase()
+        public IEnumerable<PanelItem> Items { get; set; }
+        public PanelItem Item { get { return Items == null ? null : Items.FirstOrDefault(); } set { Items = CommonUtil.ToList(value); } }
+        public bool ExtInfoMode { get; set; }
+        public bool PopUpMode { get; set; }
+
+        public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal { get; set; }
+        public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle { get; set; }
+
+        public double RenderTextHeight { get; protected set; }
+        public virtual double GetRenderTextHeight(double? refHeight = null)
         {
-            this.VisualTextRenderingMode = TextRenderingMode.ClearType;
-            this.VisualTextHintingMode = TextHintingMode.Fixed;
-            this.UseLayoutRounding = true;
+            if (refHeight != null && Items != null) foreach (var item in Items) item.Height = (double)refHeight;
+            m = ViewUtil.DeviceMatrix;
+            CreateDrawTextList();
+            return RenderTextHeight;
         }
 
-        protected virtual bool RenderText(List<TextDrawItem> textDrawList, String text, ItemFont itemFont, double fontSize, double maxWidth, double maxHeight, double x, double y, ref double useHeight, Brush fontColor, bool nowrap = false)
+        protected void RenderText(List<Tuple<Brush, GlyphRun>> textDrawList, String text, ItemFont itemFont, double fontSize, double maxWidth, double maxHeight, double x, double y, ref double useHeight, Brush fontColor, bool nowrap = false)
         {
-            //にじみ対策関連
-            double mx = ViewUtil.MainWindow.DeviceMatrix.M11;
-            double my = ViewUtil.MainWindow.DeviceMatrix.M22;
+            double lineHeight = 1 + fontSize * 1.1;
+            y -= lineHeight - fontSize;
 
-            x = Math.Ceiling((x + 2) * mx) / mx;
-            y -= 2;
-            useHeight = 0;
-            double lineHeight = 2 + fontSize;
+            //案外多い。Nullは入ってこないはずだが、ついでなのでチェック
+            if (string.IsNullOrEmpty(text) == true)
+            {
+                useHeight += lineHeight;
+                return;
+            }
 
-            string[] lines = text.Replace("\r", "").Split('\n');
-            foreach (string line in lines)
+            foreach (string line in text.Replace("\r", "").Split('\n'))
             {
                 useHeight += lineHeight;
                 var glyphIndexes = new List<ushort>();
                 var advanceWidths = new List<double>();
                 double totalWidth = 0;
+                double originWidth = 0;
+                int currentType = 0;
 
-                foreach (char c in line)
+                var AddGlyphRun = new Action<double>(uHeight =>
+                {
+                    if (glyphIndexes.Count == 0) return;
+                    var origin = new Point(Math.Round((x + originWidth) * m.M11) / m.M11 - selfLeft, Math.Round((y + uHeight) * m.M22) / m.M22 - selfTop);
+                    textDrawList.Add(new Tuple<Brush, GlyphRun>(fontColor,
+                        new GlyphRun(itemFont.GlyphType[currentType], 0, false, fontSize, glyphIndexes, origin, advanceWidths, null, null, null, null, null, null)));
+                });
+
+                for (int n = 0; n < line.Length; n++)
                 {
                     //この辞書検索が負荷の大部分を占めているのでテーブルルックアップする
-                    //ushort glyphIndex = itemFont.GlyphType.CharacterToGlyphMap[c];
-                    //double width = itemFont.GlyphType.AdvanceWidths[glyphIndex] * fontSize;
-                    ushort glyphIndex = itemFont.GlyphIndex(c);
-                    double width = itemFont.GlyphWidth(glyphIndex) * fontSize;
+                    ushort glyphIndex;
+                    int glyphType;
+                    double width = itemFont.GlyphWidth(line, ref n, out glyphIndex, out glyphType) * fontSize;
 
                     if (totalWidth + width > maxWidth)
                     {
-                        if (glyphIndexes.Count > 0)
-                        {
-                            var origin = new Point(x, Math.Ceiling((y + useHeight) * my) / my);
-                            var glyphRun = new GlyphRun(itemFont.GlyphType, 0, false, fontSize,
-                                glyphIndexes, origin, advanceWidths, null, null, null, null, null, null);
-                            textDrawList.Add(new TextDrawItem { FontColor = fontColor, Text = glyphRun });
-                        }
-                        if (nowrap == true) return true;//改行しない場合は終り
-                        if (useHeight > maxHeight) return false;//次の行無理
+                        AddGlyphRun(useHeight);
+                        if (useHeight > maxHeight) return;//次の行無理
+                        if (nowrap == true) return;//改行しない場合は終り
 
                         //次の行へ
                         useHeight += lineHeight;
                         glyphIndexes = new List<ushort>();
                         advanceWidths = new List<double>();
-                        totalWidth = 0;
+                        originWidth = totalWidth = 0;
                     }
-
+                    else if (glyphType != currentType)
+                    {
+                        //フォントが変わった
+                        AddGlyphRun(useHeight);
+                        glyphIndexes = new List<ushort>();
+                        advanceWidths = new List<double>();
+                        originWidth = totalWidth;
+                    }
+                    currentType = glyphType;
                     glyphIndexes.Add(glyphIndex);
                     advanceWidths.Add(width);
                     totalWidth += width;
                 }
-                if (glyphIndexes.Count > 0)
+                AddGlyphRun(useHeight);
+                if (useHeight > maxHeight) return;//次の行無理
+            }
+        }
+
+        protected virtual Rect BorderRect(PanelItem info)
+        {
+            return new Rect(info.LeftPos - selfLeft, info.TopPos - selfTop, info.Width + borderThickness.Right, Math.Max(info.Height + borderThickness.Bottom, 1));
+        }
+        protected virtual Rect ContentRect(PanelItem info)
+        {
+            return new Rect(info.LeftPos - selfLeft + borderMargin.Left, info.TopPos - selfTop + borderMargin.Top, info.Width - borderMargin.Width, info.Height - borderMargin.Height);
+        }
+
+        protected Thickness borderThickness;
+        protected Rect borderMargin;
+        protected Rect txtMargin;
+        public virtual void SetBorderStyleFromSettings() { }
+        public void SetBorderStyle(double borderLeft, double borderTop, Thickness textPadding)
+        {
+            borderThickness.Left = borderLeft <= 1 ? Math.Max(0, borderLeft) : (borderLeft + 1) / 2;
+            borderThickness.Top = borderTop <= 1 ? Math.Max(0, borderTop) : (borderTop + 1) / 2;
+            borderThickness.Right = Math.Min(1, borderThickness.Left);//右へのはみ出し分
+            borderThickness.Bottom = Math.Min(1, Math.Min(1, borderThickness.Top));//下へのはみ出し分
+            borderMargin = new Rect(borderThickness.Left, borderThickness.Top, borderThickness.Left + Math.Max(0, borderThickness.Left - 1), borderThickness.Top + Math.Max(0, borderThickness.Top - 1));
+            txtMargin = new Rect(borderMargin.Left + textPadding.Left, borderMargin.Top + textPadding.Top, borderMargin.Width + textPadding.Left + textPadding.Right, borderMargin.Height + textPadding.Top + textPadding.Bottom);
+        }
+        public virtual double WidthMarginRight { get { return borderThickness.Right; } }
+        public virtual double HeightMarginBottom { get { return borderThickness.Bottom; } }
+
+        protected virtual List<List<Tuple<Brush, GlyphRun>>> CreateDrawTextList()
+        {
+            RenderTextHeight = 0;
+            if (Items == null) return null;
+
+            var textDrawLists = new List<List<Tuple<Brush, GlyphRun>>>();
+            CreateDrawTextListMain(textDrawLists);
+            RenderTextHeight += txtMargin.Height - txtMargin.Top;
+            return textDrawLists;
+        }
+        protected virtual void CreateDrawTextListMain(List<List<Tuple<Brush, GlyphRun>>> textDrawLists) { }
+
+        protected double selfLeft = 0;
+        protected double selfTop = 0;
+        protected Matrix m;
+        protected override void OnRender(DrawingContext dc)
+        {
+            //右クリックメニュー用の背景描画もあるので必ず実行させる
+            dc.DrawRectangle(Background, null, new Rect(RenderSize));
+
+            selfLeft = Canvas.GetLeft(this);
+            selfTop = Canvas.GetTop(this);
+            if (double.IsNaN(selfLeft) == true) selfLeft = 0;
+            if (double.IsNaN(selfTop) == true) selfTop = 0;
+            m = ViewUtil.DeviceMatrix;
+
+            List<List<Tuple<Brush, GlyphRun>>> textDrawLists = CreateDrawTextList();
+            if (textDrawLists == null) return;
+
+            int i = 0;
+            foreach (PanelItem info in Items)
+            {
+                dc.DrawRectangle(info.BorderBrush, null, BorderRect(info));
+                if (info.Height > 1)
                 {
-                    var origin = new Point(x, Math.Ceiling((y + useHeight) * my) / my);
-                    var glyphRun = new GlyphRun(itemFont.GlyphType, 0, false, fontSize,
-                        glyphIndexes, origin, advanceWidths, null, null, null, null, null, null);
-                    textDrawList.Add(new TextDrawItem { FontColor = fontColor, Text = glyphRun });
+                    var textArea = ContentRect(info);
+                    dc.DrawRectangle(info.BackColor, null, textArea);
+                    dc.PushClip(new RectangleGeometry(textArea));
+                    textDrawLists[i++].ForEach(item => dc.DrawGlyphRun(item.Item1, item.Item2));
+                    dc.Pop();
                 }
             }
-            return true;
         }
-        protected void DrawTextDrawList(DrawingContext dc, List<TextDrawItem> textDrawList, Rect clipArea)
-        {
-            dc.PushClip(new RectangleGeometry(clipArea));
-            textDrawList.ForEach(info => dc.DrawGlyphRun(info.FontColor, info.Text));
-            dc.Pop();
-        }
-    }
-    public class TextDrawItem
-    {
-        public Brush FontColor;
-        public GlyphRun Text;
     }
     
     public class PanelViewBase : UserControl
@@ -116,9 +189,9 @@ namespace EpgTimer
         protected virtual bool PopOnClick { get { return false; } }
         protected virtual PanelItem GetPopupItem(Point cursorPos, bool onClick) { return null; }
         protected virtual FrameworkElement Popup { get { return new FrameworkElement(); } }
+        protected virtual ViewPanel PopPanel { get { return new ViewPanel(); } }
         protected PanelItem lastPopInfo = null;
         protected virtual double PopWidth { get { return 150; } }
-        protected virtual double PopHeightOffset { get { return 0; } }
         protected ScrollViewer scroll;
         protected Canvas cnvs;
 
@@ -203,17 +276,15 @@ namespace EpgTimer
             Popup.Width = Math.Max(popInfo.Width, PopWidth);
             if (popInfo.TopPos < scroll.ContentVerticalOffset)
             {
-                Popup.MinHeight = Math.Max(0, popInfo.TopPos + popInfo.Height + PopHeightOffset - scroll.ContentVerticalOffset);
+                Popup.MinHeight = Math.Max(0, popInfo.TopPos + popInfo.Height - scroll.ContentVerticalOffset);
             }
             else
             {
-                Popup.MinHeight = Math.Max(0, Math.Min(scroll.ContentVerticalOffset + scroll.ViewportHeight - popInfo.TopPos, popInfo.Height + PopHeightOffset));
+                Popup.MinHeight = Math.Max(0, Math.Min(scroll.ContentVerticalOffset + scroll.ViewportHeight - popInfo.TopPos - PopPanel.HeightMarginBottom, popInfo.Height));
             }
 
             SetPopup(popInfo);
         }
-        protected virtual void SetPopup(PanelItem popInfo) { }
-
         // PopUp が画面内に収まるように調整する
         protected void UpdatePopupPosition(PanelItem popInfo)
         {
@@ -230,14 +301,32 @@ namespace EpgTimer
             double top = popInfo.TopPos - Math.Max(0, offsetV);
             // 上にはみ出てる場合はscrollエリアの上端から表示する
             Canvas.SetTop(Popup, Math.Max(top, scroll.ContentVerticalOffset));
+
+            UpdatePopupReDraw();
         }
+        protected virtual void SetPopup(PanelItem popInfo) { }
+        protected virtual void SetPopPanel(PanelItem popInfo)
+        {
+            PopPanel.PopUpMode = true;
+            PopPanel.SetBorderStyleFromSettings();
+            PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.DataObj) as PanelItem;
+            PopPanel.Item.Width = PopWidth - PopPanel.WidthMarginRight;
+            PopPanel.Item.Height = Math.Max(PopPanel.GetRenderTextHeight(9999), Popup.MinHeight);
+            Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;
+            UpdatePopupReDraw();
+        }
+        protected virtual void UpdatePopupReDraw()
+        {
+            if (PopPanel.Item == null) return;
+            PopPanel.Item.LeftPos = Canvas.GetLeft(Popup);
+            PopPanel.Item.TopPos = Canvas.GetTop(Popup);
+            PopPanel.InvalidateVisual();
+        }
+
         // PopUp の ActualWidth と ActualHeight を取得するために SizeChanged イベントを捕捉する
         protected virtual void popupItem_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (lastPopInfo != null)
-            {
-                UpdatePopupPosition(lastPopInfo);
-            }
+            if (lastPopInfo != null) UpdatePopupPosition(lastPopInfo);
         }
 
         protected virtual void TooltipClear()
@@ -292,8 +381,8 @@ namespace EpgTimer
         {
             Tooltip.Width = toolInfo.Width;
             Tooltip.Height = toolInfo.Height;
-            Canvas.SetLeft(Tooltip, Math.Floor(toolInfo.LeftPos));
-            Canvas.SetTop(Tooltip, Math.Floor(toolInfo.TopPos));
+            Canvas.SetLeft(Tooltip, toolInfo.LeftPos);
+            Canvas.SetTop(Tooltip, toolInfo.TopPos);
 
             Tooltip.ToolTip = null;
             SetTooltip(toolInfo);
@@ -338,12 +427,9 @@ namespace EpgTimer
 
         protected virtual void scrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            if (ScrollChanged != null)
-            {
-                scroll.ScrollToHorizontalOffset(Math.Floor(scroll.HorizontalOffset));
-                scroll.ScrollToVerticalOffset(Math.Floor(scroll.VerticalOffset));
-                ScrollChanged(this, e);
-            }
+            scroll.ScrollToHorizontalOffset(ViewUtil.SnapsToDevicePixelsX(scroll.HorizontalOffset));
+            scroll.ScrollToVerticalOffset(ViewUtil.SnapsToDevicePixelsY(scroll.VerticalOffset));
+            if (ScrollChanged != null) ScrollChanged(this, e);
         }
 
         public void view_ScrollChanged(ScrollViewer main_scroll, ScrollViewer v_scroll, ScrollViewer h_scroll)
@@ -379,8 +465,8 @@ namespace EpgTimer
                     if (OffsetH < 0) OffsetH = 0;
                     if (OffsetV < 0) OffsetV = 0;
 
-                    scroll.ScrollToHorizontalOffset(Math.Floor(OffsetH));
-                    scroll.ScrollToVerticalOffset(Math.Floor(OffsetV));
+                    scroll.ScrollToHorizontalOffset(OffsetH);
+                    scroll.ScrollToVerticalOffset(OffsetV);
                 }
                 else
                 {
@@ -523,7 +609,7 @@ namespace EpgTimer
                 {
                     var rect = new Rectangle();
 
-                    rect.Stroke = target_item is IViewPanelItem ? (target_item as IViewPanelItem).BorderBrush : Brushes.RoyalBlue;
+                    rect.Stroke = target_item.BorderBrush;
                     rect.StrokeThickness = 3;
                     rect.Opacity = 2;
                     rect.Fill = Brushes.Transparent;

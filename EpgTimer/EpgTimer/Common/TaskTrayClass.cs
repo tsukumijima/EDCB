@@ -191,11 +191,10 @@ namespace EpgTimer
             }
             else
             {
-                int infoCount = 1;
                 if (sortList[0].IsOnRec() == true)
                 {
+                    sortList = sortList.FindAll(info => info.IsOnRec());
                     infoText += "録画中:";
-                    infoCount = sortList.Count(info => info.IsOnRec());
                 }
                 else
                 {
@@ -203,23 +202,27 @@ namespace EpgTimer
                     isOnPreRec = sortList[0].OnTime(PreRecTime) >= 0;
                     if (isOnPreRec == true) //録画準備中
                     {
+                        sortList = sortList.FindAll(info => info.OnTime(PreRecTime) >= 0);//あまり意味無い
                         infoText += "録画準備中:";
-                        infoCount = sortList.Count(info => info.OnTime(PreRecTime) >= 0);//あまり意味無い
                     }
                     else if (Settings.Instance.UpdateTaskText == true && sortList[0].OnTime(PreRecTime.AddMinutes(30)) >= 0) //30分以内に録画準備に入るもの
                     {
+                        sortList = sortList.FindAll(info => info.OnTime(PreRecTime.AddMinutes(30)) >= 0);
                         infoText += "まもなく録画:";
-                        infoCount = sortList.Count(info => info.OnTime(PreRecTime.AddMinutes(30)) >= 0);
                     }
                     else
                     {
+                        sortList = sortList.Take(1).ToList(); 
                         infoText += "次の予約:";
                     }
                 }
 
-                infoText += sortList[0].StationName + " " + new ReserveItem(sortList[0]).StartTimeShort + " " + sortList[0].Title;
-                string endText = (infoCount <= 1 ? "" : "\r\n他" + (infoCount - 1).ToString());
+                //FindAll()が順次検索、OrderBy()は安定ソートなのでこれでOK
+                ReserveData first = sortList.OrderBy(info => info.IsWatchMode).First();
+                infoText += first.StationName + " " + new ReserveItem(first).StartTimeShort + " " + first.Title;
+                string endText = (sortList.Count() <= 1 ? "" : "\r\n他" + (sortList.Count() - 1).ToString());
                 infoText = CommonUtil.LimitLenString(infoText, 63 - endText.Length) + endText;
+                if (first.IsWatchMode == true) infoText = infoText.Replace("録画", "視聴");
             }
 
             taskTray.Text = infoText;

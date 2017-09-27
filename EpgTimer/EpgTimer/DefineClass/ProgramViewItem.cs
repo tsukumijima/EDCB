@@ -14,27 +14,27 @@ namespace EpgTimer
         public double LeftPos { get; set; }
         public double TopPos { get; set; }
 
-        public bool TitleDrawErr { get; set; }
-
         public bool IsPicked(Point cursorPos)
         {
             return LeftPos <= cursorPos.X && cursorPos.X < LeftPos + Width &&
                     TopPos <= cursorPos.Y && cursorPos.Y < TopPos + Height;
         }
+
+        public PanelItem(object info) { DataObj = info; }
+        public PanelItem(object info, bool x) { DataObj = info; }
+        public object DataObj { get; protected set; }
+        public bool TitleDrawErr { get; set; }
+        public virtual Brush BackColor { get { return null; } }
+        public virtual Brush BorderBrush { get { return null; } }
     }
 
     public class PanelItem<T> : PanelItem
     {
-        public T Data { get; protected set; }
-        public PanelItem(T info) : base() { Data = info; }
+        public T Data { get { return (T)DataObj; } }
+        public PanelItem(T info) : base(info) { }
     }
 
-    public interface IViewPanelItem
-    {
-        Brush BorderBrush { get; }
-    }
-
-    public static class ViewPanelItemEx
+    public static class PanelItemEx
     {
         public static List<T> GetHitDataList<T>(this IEnumerable<PanelItem<T>> list, Point cursorPos)
         {
@@ -44,31 +44,17 @@ namespace EpgTimer
         {
             return list.Where(info => info != null).Select(info => info.Data).ToList();
         }
-        public static IEnumerable<PanelItem<T>> GetNearDataList<T>(this IEnumerable<PanelItem<T>> list, Point cursorPos)
+        public static IEnumerable<T> GetNearDataList<T>(this IEnumerable<T> list, Point cursorPos) where T : PanelItem
         {
             return list.Where(info => info != null).OrderBy(info => Math.Abs(info.LeftPos + info.Width / 2 - cursorPos.X) + Math.Abs(info.TopPos + info.Height / 2 - cursorPos.Y));
         }
     }
 
-    public class ProgramViewItem : PanelItem<EpgEventInfo>, IViewPanelItem
+    public class ProgramViewItem : PanelItem<EpgEventInfo>
     {
         public ProgramViewItem(EpgEventInfo info) : base(info) { }
-        public EpgEventInfo EventInfo { get { return Data; } protected set { Data = value; } }
-
-        public Brush ContentColor
-        {
-            get
-            {
-                return ViewUtil.EpgDataContentBrush(EventInfo);
-            }
-        }
-        public Brush BorderBrush
-        {
-            get
-            {
-                return CommonManager.Instance.EpgBorderColor;
-            }
-        }
+        public override Brush BackColor { get { return ViewUtil.EpgDataContentBrush(Data); } }
+        public override Brush BorderBrush { get { return CommonManager.Instance.EpgBorderColor; } }
     }
 
 }

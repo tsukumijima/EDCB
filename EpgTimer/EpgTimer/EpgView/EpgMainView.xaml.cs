@@ -46,7 +46,7 @@ namespace EpgTimer
                     {
                         if (time <= timeList[i])
                         {
-                            epgProgramView.scrollViewer.ScrollToVerticalOffset(Math.Ceiling(i * 60 * Settings.Instance.MinHeight));
+                            epgProgramView.scrollViewer.ScrollToVerticalOffset(i * 60 * Settings.Instance.MinHeight);
                             break;
                         }
                     }
@@ -220,7 +220,7 @@ namespace EpgTimer
                 //縦位置の設定
                 if (viewCustNeedTimeOnly == false && programList.Count != 0)
                 {
-                    ViewUtil.AddTimeList(timeList, programList.Values.Min(item => item.EventInfo.start_time), 0);
+                    ViewUtil.AddTimeList(timeList, programList.Values.Min(item => item.Data.start_time), 0);
                 }
                 SetProgramViewItemVertical();
 

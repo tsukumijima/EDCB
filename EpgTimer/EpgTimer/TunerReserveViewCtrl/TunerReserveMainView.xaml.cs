@@ -135,7 +135,7 @@ namespace EpgTimer
                         //列を拡げて表示する処置
                         foreach (ReserveViewItem addedItem in tunerAddList)
                         {
-                            ReserveData addedInfo = addedItem.ReserveInfo;
+                            ReserveData addedInfo = addedItem.Data;
 
                             if (MenuUtil.CulcOverlapLength(resInfo.StartTimeActual, resInfo.DurationActual, addedInfo.StartTimeActual, addedInfo.DurationActual) > 0)
                             {
@@ -171,7 +171,7 @@ namespace EpgTimer
 
                 reserveList.ForEach(item =>
                 {
-                    ViewUtil.SetItemVerticalPos(timeList, item, item.ReserveInfo.StartTimeActual, item.ReserveInfo.DurationActual, Settings.Instance.TunerMinHeight, true);
+                    ViewUtil.SetItemVerticalPos(timeList, item, item.Data.StartTimeActual, item.Data.DurationActual, Settings.Instance.TunerMinHeight, true);
 
                     //ごく小さいマージンの表示を抑制する。
                     item.TopPos = Math.Round(item.TopPos);
@@ -209,7 +209,7 @@ namespace EpgTimer
 
         public override void MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            int idx = reserveList.FindIndex(item => item.ReserveInfo.ReserveID == id);
+            int idx = reserveList.FindIndex(item => item.Data.ReserveID == id);
             if (idx != -1) tunerReserveView.ScrollToFindItem(reserveList[idx], style);
             ItemIdx = idx;
         }

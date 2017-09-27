@@ -7,124 +7,61 @@ using System.Windows.Media;
 
 namespace EpgTimer.EpgView
 {
-    class EpgViewPanel : PanelBase
+    class EpgViewPanel : ViewPanel
     {
-        public List<ProgramViewItem> Items { get; set; }
-
-        protected List<List<TextDrawItem>> CreateDrawTextList(double offset)
+        public override void SetBorderStyleFromSettings()
         {
-            if (Items == null) return null;
-
-            var textDrawLists = new List<List<TextDrawItem>>(Items.Count);
-
-            try
-            {
-                var ItemFontNormal = ItemFontCache.ItemFont(Settings.Instance.FontName, false);
-                var ItemFontTitle = ItemFontCache.ItemFont(Settings.Instance.FontNameTitle, Settings.Instance.FontBoldTitle);
-                if (ItemFontNormal.GlyphType == null || ItemFontTitle.GlyphType == null)
-                {
-                    return null;
-                }
-
-                double sizeMin = Settings.Instance.FontSizeTitle - 1;
-                double sizeTitle = Settings.Instance.FontSizeTitle;
-                double sizeNormal = Settings.Instance.FontSize;
-                double indentTitle = sizeMin * 1.7;
-                double indentNormal = Settings.Instance.EpgTitleIndent ? indentTitle : 3;
-                Brush colorTitle = CommonManager.Instance.CustTitle1Color;
-                Brush colorNormal = CommonManager.Instance.CustTitle2Color;
-
-                foreach (ProgramViewItem info in Items)
-                {
-                    var textDrawList = new List<TextDrawItem>();
-                    textDrawLists.Add(textDrawList);
-
-                    if (info.Height > 2)
-                    {
-                        if (info.Height < sizeTitle + 3)
-                        {
-                            //高さ足りない
-                            info.TitleDrawErr = true;
-                        }
-
-                        double totalHeight = 0;
-                        double useHeight = 0;
-                        double leftPos = info.LeftPos - offset;
-
-                        //分
-                        string min = (info.EventInfo.StartTimeFlag == 0 ? "未定 " : info.EventInfo.start_time.Minute.ToString("d02"));
-                        if (RenderText(textDrawList, min, ItemFontTitle, sizeMin, info.Width - 4, info.Height + 10, leftPos, info.TopPos, ref useHeight, colorTitle) == false)
-                        {
-                            info.TitleDrawErr = true;
-                            continue;
-                        }
-
-                        //番組情報
-                        if (info.EventInfo.ShortInfo != null)
-                        {
-                            //タイトル
-                            if (info.EventInfo.ShortInfo.event_name.Length > 0)
-                            {
-                                if (RenderText(textDrawList, info.EventInfo.ShortInfo.event_name, ItemFontTitle, sizeTitle, info.Width - 6 - indentTitle, info.Height - 3 - totalHeight, leftPos + indentTitle, info.TopPos + totalHeight, ref useHeight, colorTitle) == false)
-                                {
-                                    info.TitleDrawErr = true;
-                                    continue;
-                                }
-                                totalHeight += useHeight + sizeTitle / 3;
-                            }
-                            //説明
-                            if (info.EventInfo.ShortInfo.text_char.Length > 0)
-                            {
-                                if (RenderText(textDrawList, info.EventInfo.ShortInfo.text_char, ItemFontNormal, sizeNormal, info.Width - 6 - indentNormal, info.Height - 7 - totalHeight, leftPos + indentNormal, info.TopPos + totalHeight, ref useHeight, colorNormal) == false)
-                                {
-                                    continue;
-                                }
-                                totalHeight += useHeight + sizeNormal;
-                            }
-
-                            //詳細
-                            if (Settings.Instance.EpgExtInfoTable == true && info.EventInfo.ExtInfo != null && info.EventInfo.ExtInfo.text_char.Length > 0)
-                            {
-                                if (RenderText(textDrawList, info.EventInfo.ExtInfo.text_char, ItemFontNormal, sizeNormal, info.Width - 6 - indentNormal, info.Height - 7 - totalHeight, leftPos + indentNormal, info.TopPos + totalHeight, ref useHeight, colorNormal) == false)
-                                {
-                                    continue;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-
-            return textDrawLists;
+            SetBorderStyle(Settings.Instance.EpgBorderLeftSize, Settings.Instance.EpgBorderTopSize, new Thickness(3, 0, 3, Settings.Instance.FontSize / 1.7));
         }
 
-        protected override void OnRender(DrawingContext dc)
+        protected override void CreateDrawTextListMain(List<List<Tuple<Brush, GlyphRun>>> textDrawLists)
         {
-            try
+            var ItemFontNormal = ItemFontCache.ItemFont(Settings.Instance.FontName, false);
+            var ItemFontTitle = ItemFontCache.ItemFont(Settings.Instance.FontNameTitle, Settings.Instance.FontBoldTitle);
+
+            double sizeMin = Settings.Instance.FontSizeTitle - 1;
+            double sizeTitle = Settings.Instance.FontSizeTitle;
+            double sizeNormal = Settings.Instance.FontSize;
+            double indentTitle = sizeMin * 1.7;
+            double indentNormal = Settings.Instance.EpgTitleIndent ? indentTitle : 0;
+            Brush colorTitle = CommonManager.Instance.CustTitle1Color;
+            Brush colorNormal = CommonManager.Instance.CustTitle2Color;
+
+            foreach (ProgramViewItem info in Items)
             {
-                dc.DrawRectangle(Background, null, new Rect(RenderSize));
+                var textDrawList = new List<Tuple<Brush, GlyphRun>>();
+                textDrawLists.Add(textDrawList);
 
-                double offset = Canvas.GetLeft(this);
-                List<List<TextDrawItem>> textDrawLists = CreateDrawTextList(offset);
-                if (Items == null || textDrawLists == null || Items.Count < textDrawLists.Count)
+                double useHeight = txtMargin.Top;
+                double innerLeft = info.LeftPos + txtMargin.Left;
+                double innerWidth = info.Width - txtMargin.Width;
+                double innerHeight = info.Height - txtMargin.Height + txtMargin.Top;
+
+                //分
+                string min = (info.Data.StartTimeFlag == 0 ? "未定 " : info.Data.start_time.Minute.ToString("d02"));
+                RenderText(textDrawList, min, ItemFontTitle, sizeMin, innerWidth, innerHeight, innerLeft, info.TopPos, ref useHeight, colorTitle);
+                info.TitleDrawErr = useHeight > info.Height;
+                useHeight = txtMargin.Top;//タイトルは同じ行なのでリセット
+
+                //番組情報
+                if (info.Data.ShortInfo != null)
                 {
-                    return;
+                    //タイトル
+                    string title = CommonManager.ReplaceText(info.Data.ShortInfo.event_name, ReplaceDictionaryTitle);
+                    RenderText(textDrawList, title, ItemFontTitle, sizeTitle, innerWidth - indentTitle, innerHeight, innerLeft + indentTitle, info.TopPos, ref useHeight, colorTitle);
+                    info.TitleDrawErr |= useHeight > info.Height;
+                    useHeight += sizeTitle / 3;
+                    if (useHeight > info.Height) continue;
+
+                    //説明
+                    string detail = info.Data.ShortInfo.text_char.TrimEnd('\r', '\n');
+                    detail += ExtInfoMode == false || info.Data.ExtInfo == null ? "" : "\r\n\r\n" + info.Data.ExtInfo.text_char.TrimEnd('\r', '\n');
+                    detail = CommonManager.ReplaceText(detail, ReplaceDictionaryNormal);
+                    RenderText(textDrawList, detail, ItemFontNormal, sizeNormal, innerWidth - indentNormal, innerHeight, innerLeft + indentNormal, info.TopPos, ref useHeight, colorNormal);
                 }
 
-                for (int i = 0; i < textDrawLists.Count; i++)
-                {
-                    ProgramViewItem info = Items[i];
-                    dc.DrawRectangle(info.BorderBrush, null, new Rect(info.LeftPos - offset, info.TopPos, info.Width + 1, Math.Max(info.Height + 0.5, 1)));
-                    if (info.Height > 1)
-                    {
-                        var textArea = new Rect(info.LeftPos - offset + 1, info.TopPos + 0.5, info.Width - 1, info.Height - 0.5);
-                        dc.DrawRectangle(info.ContentColor, null, textArea);
-                        DrawTextDrawList(dc, textDrawLists[i], textArea);
-                    }
-                }
+                RenderTextHeight = Math.Max(RenderTextHeight, useHeight);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
     }
 }

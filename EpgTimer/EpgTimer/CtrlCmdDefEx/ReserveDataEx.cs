@@ -38,6 +38,7 @@ namespace EpgTimer
         public bool IsAutoAdded { get { return Comment != ""; } }
 
         public bool IsEnabled { get { return RecSetting.RecMode != 5; } }
+        public bool IsWatchMode { get { return RecSetting.RecMode == 4; } }
 
         public bool IsOnRec(DateTime? time = null) { return OnTime(time) == 0; }
         public override bool IsOnAir(DateTime? time = null) { return base.OnTime(time) == 0; }

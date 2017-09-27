@@ -59,7 +59,7 @@ namespace EpgTimer
             get
             {
                 if  (ViewItem is ReserveItem)               return ((ReserveItem)ViewItem).StatusColor;
-                else                                        return CommonManager.Instance.StatResForeColor;
+                else                                        return CommonManager.Instance.ResStatusColor[0];
             }
         }
         public String EventName

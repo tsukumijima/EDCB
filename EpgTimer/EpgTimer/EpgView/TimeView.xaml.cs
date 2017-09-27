@@ -31,7 +31,7 @@ namespace EpgTimer.EpgView
             {
                 stackPanel_time.Children.Clear();
                 bool? use28 = Settings.Instance.LaterTimeUse == true ? null : (bool?)false;
-                double h3L = (12 + 3) * 3 * ViewUtil.MainWindow.DeviceMatrix.M22;
+                double h3L = (12 + 3) * 3;
                 double h6L = h3L * 2;
 
                 foreach (DateTime time1 in timeList)

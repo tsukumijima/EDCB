@@ -9,12 +9,7 @@ namespace EpgTimer
         public virtual object DataObj { get { return null; } }
         public virtual TextBlock ToolTipView
         {
-            get
-            {
-                if (Settings.Instance.NoToolTip == true) return null;
-                //
-                return ToolTipViewAlways;
-            }
+            get { return Settings.Instance.NoToolTip == true ? null : ToolTipViewAlways; }
         }
         public virtual TextBlock ToolTipViewAlways
         {
@@ -25,29 +20,12 @@ namespace EpgTimer
         public virtual int NowJumpingTable { set; get; }
         public virtual Brush ForeColor
         {
-            get
-            {
-                //番組表へジャンプ時の強調表示
-                switch (NowJumpingTable)
-                {
-                    case 1: return Brushes.Red;
-                    case 2: return CommonManager.Instance.ListDefForeColor;
-                }
-                return CommonManager.Instance.ListDefForeColor;
-            }
+            //番組表へジャンプ時の強調表示
+            get { return NowJumpingTable == 1 ? Brushes.Red : CommonManager.Instance.ListDefForeColor; }
         }
         public virtual Brush BackColor
         {
-            get
-            {
-                //番組表へジャンプ時の強調表示
-                switch (NowJumpingTable)
-                {
-                    case 1: return CommonManager.Instance.ResDefBackColor;
-                    case 2: return Brushes.Red;
-                }
-                return CommonManager.Instance.ResDefBackColor;
-            }
+            get { return NowJumpingTable == 2 ? Brushes.Red : CommonManager.Instance.ResBackColor[0]; }
         }
         public virtual Brush BorderBrush { get { return null; } }
     }

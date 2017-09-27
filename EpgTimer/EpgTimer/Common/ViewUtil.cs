@@ -17,6 +17,26 @@ namespace EpgTimer
     public static class ViewUtil
     {
         public static MainWindow MainWindow { get { return (MainWindow)Application.Current.MainWindow; } }
+        public static Matrix DeviceMatrix
+        { 
+            get
+            {
+                var mw = MainWindow;//主にデザイン画面のエラー対策
+                return mw == null ? new Matrix() : PresentationSource.FromVisual(mw).CompositionTarget.TransformToDevice;
+            } 
+        }
+        public static double SnapsToDevicePixelsX(double x, int mode = 0)
+        {
+            return SnapsToDevicePixels(x, DeviceMatrix.M11, mode);
+        }
+        public static double SnapsToDevicePixelsY(double y, int mode = 0)
+        {
+            return SnapsToDevicePixels(y, DeviceMatrix.M22, mode);
+        }
+        public static double SnapsToDevicePixels(double v, double m, int mode = 0)
+        {
+            return (mode == 0 ? Math.Floor : mode == 1 ? Math.Round : (Func<double, double>)Math.Ceiling)(v * m) / m;
+        }
 
         public static Brush EpgDataContentBrush(EpgEventInfo EventInfo)
         {
@@ -60,26 +80,26 @@ namespace EpgTimer
             {
                 if (ReserveData.IsEnabled == false)
                 {
-                    return CommonManager.Instance.ResNoBackColor;
+                    return CommonManager.Instance.ResBackColor[1];
                 }
                 if (ReserveData.OverlapMode == 2)
                 {
-                    return CommonManager.Instance.ResErrBackColor;
+                    return CommonManager.Instance.ResBackColor[2];
                 }
                 if (ReserveData.OverlapMode == 1)
                 {
-                    return CommonManager.Instance.ResWarBackColor;
+                    return CommonManager.Instance.ResBackColor[3];
                 }
                 if (ReserveData.IsAutoAddInvalid == true)
                 {
-                    return CommonManager.Instance.ResAutoAddMissingBackColor;
+                    return CommonManager.Instance.ResBackColor[4];
                 }
                 if (ReserveData.IsMultiple == true)
                 {
-                    return CommonManager.Instance.ResMultipleBackColor;
+                    return CommonManager.Instance.ResBackColor[5];
                 }
             }
-            return CommonManager.Instance.ResDefBackColor;
+            return CommonManager.Instance.ResBackColor[0];
         }
 
         public static void SetSpecificChgAppearance(Control obj)
@@ -255,12 +275,12 @@ namespace EpgTimer
             jmpPos = new Point(-1, -1);
             if (reslist.Any() == false) return null;
 
-            List<ReserveViewItem> list = reslist.OrderBy(d => d.ReserveInfo.StartTimeActual).ToList();
+            List<ReserveViewItem> list = reslist.OrderBy(d => d.Data.StartTimeActual).ToList();
             ReserveViewItem viewItem = null;
-            int idx = id == 0 ? -1 : list.FindIndex(item => item.ReserveInfo.ReserveID == id);
+            int idx = id == 0 ? -1 : list.FindIndex(item => item.Data.ReserveID == id);
             if (idx == -1 && pos.X >= 0)
             {
-                viewItem = list.GetNearDataList(pos).First() as ReserveViewItem;
+                viewItem = list.GetNearDataList(pos).First();
                 idx = list.IndexOf(viewItem);
             }
             else
@@ -270,7 +290,7 @@ namespace EpgTimer
             }
             if (move == true) view.ScrollToFindItem(viewItem, style);
             if (move == true) itemIdx = idx;
-            return viewItem == null ? null : viewItem.ReserveInfo;
+            return viewItem == null ? null : viewItem.Data;
         }
         public static void OnKyeMoveNextReserve(object sender, KeyEventArgs e, DataItemViewBase view)
         {

@@ -7,26 +7,20 @@
              xmlns:local="clr-namespace:EpgTimer"
              xmlns:my="clr-namespace:EpgTimer.EpgView">
 
-        <ScrollViewer Name="scrollViewer" HorizontalScrollBarVisibility="Visible" ScrollChanged="scrollViewer_ScrollChanged" PreviewMouseWheel="scrollViewer_PreviewMouseWheel">
-            <Canvas Name="canvas" HorizontalAlignment="Left" VerticalAlignment="Top" MouseMove="canvas_MouseMove" MouseLeftButtonDown="canvas_MouseLeftButtonDown" MouseLeftButtonUp="canvas_MouseLeftButtonUp" MouseRightButtonDown="canvas_MouseRightButtonDown" MouseLeave="canvas_MouseLeave" >
-                <my:EpgViewPanel x:Name="epgViewPanel"/>
-                <Border x:Name="popupItem" BorderThickness="1" IsHitTestVisible="False" Canvas.ZIndex="20" SizeChanged="popupItem_SizeChanged">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="12" Opacity="0.5"/>
-                    </Border.Effect>
-                    <Grid>
-                        <Rectangle x:Name="popupItemBorder" IsHitTestVisible="False"/>
-                        <Rectangle x:Name="popupItemFillOnly" IsHitTestVisible="False"/>
-                        <StackPanel x:Name="popupItemTextArea">
-                            <Grid>
-                                <TextBlock x:Name="minText" VerticalAlignment="Top" LineStackingStrategy="BlockLineHeight" />
-                                <TextBlock x:Name="titleText" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" />
-                            </Grid>
-                            <TextBlock x:Name="infoText" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-            </Canvas>
-        </ScrollViewer>            
+    <ScrollViewer Name="scrollViewer" HorizontalScrollBarVisibility="Visible" ScrollChanged="scrollViewer_ScrollChanged" PreviewMouseWheel="scrollViewer_PreviewMouseWheel">
+        <Canvas Name="canvas" HorizontalAlignment="Left" VerticalAlignment="Top" MouseMove="canvas_MouseMove" MouseLeftButtonDown="canvas_MouseLeftButtonDown" MouseLeftButtonUp="canvas_MouseLeftButtonUp" MouseRightButtonDown="canvas_MouseRightButtonDown" MouseLeave="canvas_MouseLeave" >
+            <my:EpgViewPanel x:Name="epgViewPanel"/>
+            <Grid IsHitTestVisible="False" Canvas.ZIndex="20" Visibility="{Binding ElementName=popupItem, Path=Visibility, UpdateSourceTrigger=PropertyChanged}">
+                <Grid.Effect>
+                    <DropShadowEffect BlurRadius="12" Opacity="0.5"/>
+                </Grid.Effect>
+                <my:EpgViewPanel x:Name="popupItemPanel" />
+            </Grid>
+            <Grid x:Name="popupItem" IsHitTestVisible="False" Canvas.ZIndex="21" SizeChanged="popupItem_SizeChanged" >
+                <Rectangle x:Name="popupItemBorder" />
+                <Rectangle x:Name="popupItemFillOnly" />
+            </Grid>
+        </Canvas>
+    </ScrollViewer>
 
 </local:PanelViewBase>

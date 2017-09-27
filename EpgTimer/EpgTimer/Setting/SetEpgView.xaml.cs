@@ -41,6 +41,8 @@ namespace EpgTimer.Setting
                 textBox_minHeight.Text = Settings.Instance.MinHeight.ToString();
                 textBox_dragScroll.Text = Settings.Instance.DragScroll.ToString();
                 textBox_minimumHeight.Text = Settings.Instance.MinimumHeight.ToString();
+                textBox_borderLeftSize.Text = Settings.Instance.EpgBorderLeftSize.ToString();
+                textBox_borderTopSize.Text = Settings.Instance.EpgBorderTopSize.ToString();
                 checkBox_epg_popup.IsChecked = Settings.Instance.EpgPopup;
                 epgPopupRadioBtns = new RadioBtnSelect(radioButton_epg_popup_onOver, radioButton_epg_popup_onClick, radioButton_epg_popup_resOnly);
                 epgPopupRadioBtns.Value = Settings.Instance.EpgPopupMode;
@@ -68,6 +70,12 @@ namespace EpgTimer.Setting
                 checkBox_epgNoLoadArcInfo.IsChecked = !Settings.Instance.EpgLoadArcInfo;
                 checkBox_epgNoDisplayOld.IsChecked = Settings.Instance.EpgNoDisplayOld;
                 textBox_epgNoDisplayOldDays.Text = Settings.Instance.EpgNoDisplayOldDays.ToString();
+                checkBox_EpgChangeBorderWatch.IsChecked = Settings.Instance.EpgChangeBorderWatch;
+                checkbox_EpgChangeBorderWatch_Click(null, null);
+                checkBox_EpgChangeBorderOnRec.IsChecked = Settings.Instance.EpgChangeBorderOnRec;
+
+                textBox_replacePattern.Text = Settings.Instance.EpgReplacePattern;
+                textBox_replacePatternTitle.Text = Settings.Instance.EpgReplacePatternTitle;
 
                 textBox_tuner_mouse_scroll.Text = Settings.Instance.TunerScrollSize.ToString();
                 textBox_tuner_width.Text = Settings.Instance.TunerWidth.ToString();
@@ -86,7 +94,11 @@ namespace EpgTimer.Setting
                 textBox_tunerToolTipWait.Text = Settings.Instance.TunerToolTipViewWait.ToString();
                 checkBox_tunerSingleOpen.IsChecked = Settings.Instance.TunerInfoSingleClick;
                 checkBox_tunerEpgInfoOpenMode.IsChecked = (Settings.Instance.TunerEpgInfoOpenMode != 0);
+                checkBox_TunerChangeBorderWatch.IsChecked = Settings.Instance.TunerChangeBorderWatch;
+                checkbox_TunerChangeBorderWatch_Click(null, null);
                 checkBox_tuner_scrollAuto.IsChecked = Settings.Instance.TunerMouseScrollAuto;
+                textBox_tunerBorderLeftSize.Text = Settings.Instance.TunerBorderLeftSize.ToString();
+                textBox_tunerBorderTopSize.Text = Settings.Instance.TunerBorderTopSize.ToString();
                 checkBox_tuner_service_nowrap.IsChecked = Settings.Instance.TunerServiceNoWrap;
                 checkBox_tunerColorModeUse.IsChecked = Settings.Instance.TunerColorModeUse;
                 comboBox_tunerFontColorService.IsEnabled = !Settings.Instance.TunerColorModeUse;
@@ -119,8 +131,7 @@ namespace EpgTimer.Setting
                 var setCmboFont = new Action<string, ComboBox>((name, cmb) =>
                 {
                     cmb.ItemsSource = fontList;
-                    cmb.SelectedItem = name;
-                    if (cmb.SelectedItem == null) cmb.SelectedIndex = 0;
+                    cmb.Text = name;
                 });
                 setCmboFont(Settings.Instance.FontNameTitle, comboBox_fontTitle);
                 setCmboFont(Settings.Instance.FontName, comboBox_font);
@@ -278,6 +289,8 @@ namespace EpgTimer.Setting
                 Settings.Instance.ServiceWidth = MenuUtil.MyToNumerical(textBox_service_width, Convert.ToDouble, double.MaxValue, 16, 150);//小さいと描画で落ちる
                 Settings.Instance.MinHeight = MenuUtil.MyToNumerical(textBox_minHeight, Convert.ToDouble, double.MaxValue, 0.1, 2);
                 Settings.Instance.MinimumHeight = MenuUtil.MyToNumerical(textBox_minimumHeight, Convert.ToDouble, double.MaxValue, 0, 0);
+                Settings.Instance.EpgBorderLeftSize = Convert.ToDouble(textBox_borderLeftSize.Text);
+                Settings.Instance.EpgBorderTopSize = Convert.ToDouble(textBox_borderTopSize.Text);
                 Settings.Instance.DragScroll = MenuUtil.MyToNumerical(textBox_dragScroll, Convert.ToDouble, 1.5);
                 Settings.Instance.EpgTitleIndent = (checkBox_title_indent.IsChecked == true);
                 Settings.Instance.EpgToolTip = (checkBox_descToolTip.IsChecked == true);
@@ -305,6 +318,11 @@ namespace EpgTimer.Setting
                 Settings.Instance.EpgLoadArcInfo = (checkBox_epgNoLoadArcInfo.IsChecked == false);
                 Settings.Instance.EpgNoDisplayOld = (checkBox_epgNoDisplayOld.IsChecked == true);
                 Settings.Instance.EpgNoDisplayOldDays = MenuUtil.MyToNumerical(textBox_epgNoDisplayOldDays, Convert.ToDouble, double.MaxValue, double.MinValue, 1);
+                Settings.Instance.EpgChangeBorderWatch = checkBox_EpgChangeBorderWatch.IsChecked == true;
+                Settings.Instance.EpgChangeBorderOnRec = checkBox_EpgChangeBorderOnRec.IsChecked == true;
+
+                Settings.Instance.EpgReplacePattern = textBox_replacePattern.Text;
+                Settings.Instance.EpgReplacePatternTitle = textBox_replacePatternTitle.Text;
 
                 Settings.Instance.TunerScrollSize = MenuUtil.MyToNumerical(textBox_tuner_mouse_scroll, Convert.ToDouble, 240);
                 Settings.Instance.TunerWidth = MenuUtil.MyToNumerical(textBox_tuner_width, Convert.ToDouble, double.MaxValue, 16, 150);//小さいと描画で落ちる
@@ -312,6 +330,8 @@ namespace EpgTimer.Setting
                 Settings.Instance.TunerMinimumLine = MenuUtil.MyToNumerical(textBox_tunerMinLineHeight, Convert.ToDouble, double.MaxValue, 0, 0);
                 Settings.Instance.TunerDragScroll = MenuUtil.MyToNumerical(textBox_tunerDdragScroll, Convert.ToDouble, 1.5);
                 Settings.Instance.TunerMouseScrollAuto = (checkBox_tuner_scrollAuto.IsChecked == true);
+                Settings.Instance.TunerBorderLeftSize = Convert.ToDouble(textBox_tunerBorderLeftSize.Text);
+                Settings.Instance.TunerBorderTopSize = Convert.ToDouble(textBox_tunerBorderTopSize.Text);
                 Settings.Instance.TunerServiceNoWrap = (checkBox_tuner_service_nowrap.IsChecked == true);
                 Settings.Instance.TunerTitleIndent = (checkBox_tuner_title_indent.IsChecked == true);
                 Settings.Instance.TunerToolTip = (checkBox_tunerDescToolTip.IsChecked == true);
@@ -323,30 +343,19 @@ namespace EpgTimer.Setting
                 Settings.Instance.TunerPopupWidth = MenuUtil.MyToNumerical(textBox_tuner_popup_Width, Convert.ToDouble, double.MaxValue, 0, 1);
                 Settings.Instance.TunerInfoSingleClick = (checkBox_tunerSingleOpen.IsChecked == true);
                 Settings.Instance.TunerEpgInfoOpenMode = (checkBox_tunerEpgInfoOpenMode.IsChecked == true ? 1 : 0);
+                Settings.Instance.TunerChangeBorderWatch = checkBox_TunerChangeBorderWatch.IsChecked == true;
                 Settings.Instance.TunerColorModeUse = (checkBox_tunerColorModeUse.IsChecked == true);
                 Settings.Instance.TunerDisplayOffReserve = (checkBox_tuner_display_offres.IsChecked == true);
 
-                if (comboBox_font.SelectedItem != null)
-                {
-                    Settings.Instance.FontName = comboBox_font.SelectedItem as string;
-                }
+                Settings.Instance.FontName = comboBox_font.Text;
                 Settings.Instance.FontSize = MenuUtil.MyToNumerical(textBox_fontSize, Convert.ToDouble, 72, 1, 12);
-                if (comboBox_fontTitle.SelectedItem != null)
-                {
-                    Settings.Instance.FontNameTitle = comboBox_fontTitle.SelectedItem as string;
-                }
+                Settings.Instance.FontNameTitle = comboBox_fontTitle.Text;
                 Settings.Instance.FontSizeTitle = MenuUtil.MyToNumerical(textBox_fontSizeTitle, Convert.ToDouble, 72, 1, 12);
                 Settings.Instance.FontBoldTitle = (checkBox_fontBoldTitle.IsChecked == true);
 
-                if (comboBox_fontTuner.SelectedItem != null)
-                {
-                    Settings.Instance.TunerFontName = comboBox_fontTuner.SelectedItem as string;
-                }
+                Settings.Instance.TunerFontName = comboBox_fontTuner.Text;
                 Settings.Instance.TunerFontSize = MenuUtil.MyToNumerical(textBox_fontTunerSize, Convert.ToDouble, 72, 1, 12);
-                if (comboBox_fontTunerService.SelectedItem != null)
-                {
-                    Settings.Instance.TunerFontNameService = comboBox_fontTunerService.SelectedItem as string;
-                }
+                Settings.Instance.TunerFontNameService = comboBox_fontTunerService.Text;
                 Settings.Instance.TunerFontSizeService = MenuUtil.MyToNumerical(textBox_fontTunerSizeService, Convert.ToDouble, 72, 1, 12);
                 Settings.Instance.TunerFontBoldService = (checkBox_fontTunerBoldService.IsChecked == true);
 
@@ -594,6 +603,17 @@ namespace EpgTimer.Setting
         {
             Settings.Instance.AndKeyList = new List<string>();
             Settings.Instance.NotKeyList = new List<string>();
+        }
+
+        private void checkbox_EpgChangeBorderWatch_Click(object sender, RoutedEventArgs e)
+        {
+            label_EpgReserve.Content = checkBox_EpgChangeBorderWatch.IsChecked == true ? "通常(録画)" : "通常(EPG)";
+            label_EpgReserve2.Content = checkBox_EpgChangeBorderWatch.IsChecked == true ? "通常(視聴)" : "通常(プログラム)";
+        }
+        private void checkbox_TunerChangeBorderWatch_Click(object sender, RoutedEventArgs e)
+        {
+            label_TunerReserve.Content = checkBox_TunerChangeBorderWatch.IsChecked == true ? "予約枠(録画)" : "予約枠(EPG)";
+            label_TunerReserve2.Content = checkBox_TunerChangeBorderWatch.IsChecked == true ? "予約枠(視聴)" : "予約枠(プログラム)";
         }
     }
 

@@ -28,9 +28,6 @@ namespace EpgTimer
         private MenuBinds mBinds = new MenuBinds();
         private DispatcherTimer chkTimer = null;
 
-        //にじみ対策用(拡大表示時には十分ではないが無いよりは良い)
-        public Matrix DeviceMatrix;
-
         private bool closeFlag = false;
         private bool initExe = false;
         private bool? minimizedStarting = false;
@@ -689,7 +686,6 @@ namespace EpgTimer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            this.DeviceMatrix = PresentationSource.FromVisual(Application.Current.MainWindow).CompositionTarget.TransformToDevice;
             if (CommonManager.Instance.NWMode == true && CommonManager.Instance.NW.IsConnected == false)
             {
                 if (Settings.Instance.WakeReconnectNW == false && this.minimizedStarting == false)

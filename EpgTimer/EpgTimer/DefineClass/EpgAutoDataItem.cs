@@ -138,7 +138,7 @@ namespace EpgTimer
                 if (NowJumpingTable != 0 || Data == null || Data.IsEnabled == true) return base.BackColor;
                 //
                 //無効の場合
-                return CommonManager.Instance.ResNoBackColor;
+                return CommonManager.Instance.ResBackColor[1];
             }
         }
     }

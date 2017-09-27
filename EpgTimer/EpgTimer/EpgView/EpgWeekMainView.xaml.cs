@@ -113,13 +113,13 @@ namespace EpgTimer
                 });
 
                 //日付リスト構築
-                dayList.AddRange(programList.Values.Select(d => GetViewDay(d.EventInfo.start_time)).Distinct().OrderBy(day => day));
+                dayList.AddRange(programList.Values.Select(d => GetViewDay(d.Data.start_time)).Distinct().OrderBy(day => day));
 
                 //横位置の設定
                 foreach (ProgramViewItem item in programList.Values)
                 {
                     item.Width = Settings.Instance.ServiceWidth;
-                    item.LeftPos = item.Width * dayList.BinarySearch(GetViewDay(item.EventInfo.start_time));
+                    item.LeftPos = item.Width * dayList.BinarySearch(GetViewDay(item.Data.start_time));
                 }
 
                 //縦位置の設定

@@ -287,35 +287,23 @@ namespace EpgTimer
         {
             get
             {
-                String[] wiewString = { "", "予", "無", "放", "予+", "無+", "録*", "無*", "--" };
-                int index = 0;
                 if (EventInfo != null)
                 {
-                    if (EventInfo.IsOnAir() == true)
-                    {
-                        index = 3;
-                    }
-                    else if (EventInfo.IsOver() == true)
-                    {
-                        index = 8;
-                    }
                     if (IsReserved == true)
                     {
-                        if (ReserveInfo.IsOnRec() == true)//マージンがあるので、IsOnAir==trueとは限らない
-                        {
-                            index = 5;
-                        }
-                        if (ReserveInfo.IsEnabled == false) //無効の判定
-                        {
-                            index += 2;
-                        }
-                        else
-                        {
-                            index += 1;
-                        }
+                        string ret = new ReserveItem(ReserveInfo).Status;
+                        return ret == "" ? "予" : ret;
+                    }
+                    if (EventInfo.IsOver() == true)
+                    {
+                        return "--";
+                    }
+                    if (EventInfo.IsOnAir() == true)
+                    {
+                        return "放";
                     }
                 }
-                return wiewString[index];
+                return "";
             }
         }
         public virtual Brush StatusColor
@@ -326,17 +314,14 @@ namespace EpgTimer
                 {
                     if (IsReserved == true)
                     {
-                        if (ReserveInfo.IsOnRec() == true)
-                        {
-                            return CommonManager.Instance.StatRecForeColor;
-                        }
+                        return new ReserveItem(ReserveInfo).StatusColor;
                     }
                     if (EventInfo.IsOnAir() == true)
                     {
-                        return CommonManager.Instance.StatOnAirForeColor;
+                        return CommonManager.Instance.ResStatusColor[2];
                     }
                 }
-                return CommonManager.Instance.StatResForeColor;
+                return CommonManager.Instance.ResStatusColor[0];
             }
         }
         public override Brush ForeColor

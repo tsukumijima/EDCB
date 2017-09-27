@@ -178,16 +178,16 @@ namespace EpgTimer
                     if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
                         || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
                     {
-                        return CommonManager.Instance.RecEndErrBackColor;
+                        return CommonManager.Instance.RecEndBackColor[1];
                     }
                     if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
                         || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
                         || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
                     {
-                        return CommonManager.Instance.RecEndWarBackColor;
+                        return CommonManager.Instance.RecEndBackColor[2];
                     }
                 }
-                return CommonManager.Instance.RecEndDefBackColor;
+                return CommonManager.Instance.RecEndBackColor[0];
             }
         }
         public override String ConvertInfoText(object param = null)

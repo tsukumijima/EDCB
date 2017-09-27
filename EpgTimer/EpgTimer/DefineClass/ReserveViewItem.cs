@@ -7,78 +7,86 @@ using System.Windows.Media;
 
 namespace EpgTimer
 {
-    public class ReserveViewItem : PanelItem<ReserveData>, IViewPanelItem
+    public class ReserveViewItem : PanelItem<ReserveData>
     {
         public ReserveViewItem(ReserveData info) : base(info) { }
-        public ReserveData ReserveInfo { get { return Data; } protected set { Data = value; } }
 
-        public virtual Brush BorderBrush
+        public override Brush BackColor
         {
             get
             {
-                if (ReserveInfo != null)
+                if (Data != null)
                 {
-                    if (ReserveInfo.IsEnabled == false)
-                    {
-                        return CommonManager.Instance.CustEpgResColorList[2];
-                    }
-                    if (ReserveInfo.OverlapMode == 2)
-                    {
-                        return CommonManager.Instance.CustEpgResColorList[3];
-                    }
-                    if (ReserveInfo.OverlapMode == 1)
-                    {
-                        return CommonManager.Instance.CustEpgResColorList[4];
-                    }
-                    if (ReserveInfo.IsAutoAddInvalid == true)
-                    {
-                        return CommonManager.Instance.CustEpgResColorList[5];
-                    }
-                    if (ReserveInfo.IsMultiple == true)
-                    {
-                        return CommonManager.Instance.CustEpgResColorList[6];
-                    }
-                    if (ReserveInfo.IsManual == true)
-                    {
-                        return CommonManager.Instance.CustEpgResColorList[1];
-                    }
-                }
-                return CommonManager.Instance.CustEpgResColorList[0];
-            }
-        }
-
-        public virtual Brush FillBrush
-        {
-            get
-            {
-                if (ReserveInfo != null)
-                {
-                    if (ReserveInfo.IsEnabled == false)
+                    if (Data.IsEnabled == false)
                     {
                         return CommonManager.Instance.CustEpgResFillColorList[2];
                     }
-                    if (ReserveInfo.OverlapMode == 2)
+                    if (Data.OverlapMode == 2)
                     {
                         return CommonManager.Instance.CustEpgResFillColorList[3];
                     }
-                    if (ReserveInfo.OverlapMode == 1)
+                    if (Settings.Instance.EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
+                    {
+                        return CommonManager.Instance.CustEpgResFillColorList[Data.IsWatchMode ? 8 : 7];
+                    }
+                    if (Data.OverlapMode == 1)
                     {
                         return CommonManager.Instance.CustEpgResFillColorList[4];
                     }
-                    if (ReserveInfo.IsAutoAddInvalid == true)
+                    if (Data.IsAutoAddInvalid == true)
                     {
                         return CommonManager.Instance.CustEpgResFillColorList[5];
                     }
-                    if (ReserveInfo.IsMultiple == true)
+                    if (Data.IsMultiple == true)
                     {
                         return CommonManager.Instance.CustEpgResFillColorList[6];
                     }
-                    if (ReserveInfo.IsManual == true)
+                    if (Settings.Instance.EpgChangeBorderWatch == false && Data.IsManual == true ||
+                            Settings.Instance.EpgChangeBorderWatch == true && Data.IsWatchMode == true)
                     {
                         return CommonManager.Instance.CustEpgResFillColorList[1];
                     }
                 }
                 return CommonManager.Instance.CustEpgResFillColorList[0];
+            }
+        }
+        public override Brush BorderBrush
+        {
+            get
+            {
+                if (Data != null)
+                {
+                    if (Data.IsEnabled == false)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[2];
+                    }
+                    if (Data.OverlapMode == 2)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[3];
+                    }
+                    if (Settings.Instance.EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[Data.IsWatchMode ? 8 : 7];
+                    }
+                    if (Data.OverlapMode == 1)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[4];
+                    }
+                    if (Data.IsAutoAddInvalid == true)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[5];
+                    }
+                    if (Data.IsMultiple == true)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[6];
+                    }
+                    if (Settings.Instance.EpgChangeBorderWatch == false && Data.IsManual == true ||
+                            Settings.Instance.EpgChangeBorderWatch == true && Data.IsWatchMode == true)
+                    {
+                        return CommonManager.Instance.CustEpgResColorList[1];
+                    }
+                }
+                return CommonManager.Instance.CustEpgResColorList[0];
             }
         }
     }
@@ -87,66 +95,63 @@ namespace EpgTimer
     {
         public TunerReserveViewItem(ReserveData info) : base(info) { }
 
+        public override Brush BackColor { get { return ViewUtil.ReserveErrBrush(Data); } }
         public override Brush BorderBrush
         {
             get
             {
-                if (ReserveInfo != null)
+                if (Data != null)
                 {
-                    if (ReserveInfo.IsOnRec() == true)
+                    if (Data.IsOnRec() == true)
                     {
-                        return CommonManager.Instance.StatRecForeColor;
+                        return CommonManager.Instance.TunerResBorderColor[Data.IsWatchMode ? 4 : 3];
                     }
-                    if (ReserveInfo.IsEnabled == false)
+                    if (Data.IsEnabled == false)
                     {
-                        return CommonManager.Instance.TunerReserveOffBorderColor;
+                        return CommonManager.Instance.TunerResBorderColor[2];
                     }
-                    if (ReserveInfo.IsManual == true)
+                    if (Settings.Instance.TunerChangeBorderWatch == false && Data.IsManual == true ||
+                            Settings.Instance.TunerChangeBorderWatch == true && Data.IsWatchMode == true)
                     {
-                        return CommonManager.Instance.TunerReserveProBorderColor;
+                        return CommonManager.Instance.TunerResBorderColor[1];
                     }
                 }
-                return CommonManager.Instance.TunerReserveBorderColor;
+                return CommonManager.Instance.TunerResBorderColor[0];
             }
         }
-        public Brush ForeColorPri
+        public Brush ServiceColor
         {
             get
             {
-                if (ReserveInfo == null) return Brushes.Black;
-
-                return CommonManager.Instance.CustTunerServiceColorPri[ReserveInfo.RecSetting.Priority - 1];
-            }
-        }
-        public Brush BackColor
-        {
-            get
-            {
-                return ViewUtil.ReserveErrBrush(ReserveInfo);
+                if (Data != null && Settings.Instance.TunerColorModeUse == true)
+                {
+                    return CommonManager.Instance.CustTunerServiceColorPri[Data.RecSetting.Priority - 1];
+                }
+                return CommonManager.Instance.CustTunerServiceColor;
             }
         }
         public String Status
         {
             get
             {
-                if (ReserveInfo != null)
+                if (Data != null)
                 {
-                    if (ReserveInfo.IsOnRec() == true)
+                    if (Data.IsOnRec() == true)
                     {
-                        if (ReserveInfo.IsEnabled == false || ReserveInfo.OverlapMode == 2)
+                        if (Data.IsEnabled == false || Data.OverlapMode == 2)
                         {
                             return "放送中*";
                         }
-                        if (ReserveInfo.OverlapMode == 1)
+                        string RecStr = Data.IsWatchMode == true ? "視聴中*" : "録画中*";
+                        if (Data.OverlapMode == 1)
                         {
-                            return "一部のみ録画中*";
+                            return "一部のみ" + RecStr;
                         }
-                        return "録画中*";
+                        return RecStr;
                     }
                 }
                 return "";
             }
         }
     }
-
 }

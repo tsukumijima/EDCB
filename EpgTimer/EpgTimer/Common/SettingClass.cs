@@ -365,6 +365,8 @@ namespace EpgTimer
         public bool TunerMouseScrollAuto { get; set; }
         public double TunerWidth { get; set; }
         public bool TunerServiceNoWrap { get; set; }
+        public double TunerBorderLeftSize { get; set; }
+        public double TunerBorderTopSize { get; set; }
         public bool TunerTitleIndent { get; set; }
         public bool TunerToolTip { get; set; }
         public int TunerToolTipViewWait { get; set; }
@@ -372,12 +374,17 @@ namespace EpgTimer
         public int TunerPopupMode { get; set; }
         public bool TunerPopupRecinfo { get; set; }
         public double TunerPopupWidth { get; set; }
+        public bool TunerChangeBorderWatch { get; set; }
         public bool TunerInfoSingleClick { get; set; }
         public bool TunerColorModeUse { get; set; }
         public bool TunerDisplayOffReserve { get; set; }
         public Int32 TunerToolTipMode { get; set; }
         public Int32 TunerEpgInfoOpenMode { get; set; }
+        public double EpgBorderLeftSize { get; set; }
+        public double EpgBorderTopSize { get; set; }
         public bool EpgTitleIndent { get; set; }
+        public string EpgReplacePattern { get; set; }
+        public string EpgReplacePatternTitle { get; set; }
         public bool EpgToolTip { get; set; }
         public bool EpgToolTipNoViewOnly { get; set; }
         public int EpgToolTipViewWait { get; set; }
@@ -392,6 +399,8 @@ namespace EpgTimer
         public bool EpgLoadArcInfo { get; set; }
         public bool EpgNoDisplayOld { get; set; }
         public double EpgNoDisplayOldDays { get; set; }
+        public bool EpgChangeBorderWatch { get; set; }
+        public bool EpgChangeBorderOnRec { get; set; }
         public bool EpgNameTabEnabled { get; set; }
         public bool EpgViewModeTabEnabled { get; set; }
         public bool EpgTabMoveCheckEnabled { get; set; }
@@ -616,6 +625,8 @@ namespace EpgTimer
             TunerMouseScrollAuto = false;
             TunerWidth = 150;
             TunerServiceNoWrap = true;
+            TunerBorderLeftSize = 1;
+            TunerBorderTopSize = 1;
             TunerTitleIndent = true;
             TunerToolTip = false;
             TunerToolTipViewWait = 1500;
@@ -624,11 +635,16 @@ namespace EpgTimer
             TunerPopupRecinfo = false;
             TunerInfoSingleClick = false;
             TunerPopupWidth = 1;
+            TunerChangeBorderWatch = false;
             TunerColorModeUse = false;
             TunerDisplayOffReserve = false;
             TunerToolTipMode = 0;
             TunerEpgInfoOpenMode = 0;
+            EpgBorderLeftSize = 1;
+            EpgBorderTopSize = 0.5;
             EpgTitleIndent = true;
+            EpgReplacePattern = "";
+            EpgReplacePatternTitle = "";
             EpgToolTip = false;
             EpgToolTipNoViewOnly = true;
             EpgToolTipViewWait = 1500;
@@ -643,6 +659,8 @@ namespace EpgTimer
             EpgLoadArcInfo = false;
             EpgNoDisplayOld = false;
             EpgNoDisplayOldDays = 1;
+            EpgChangeBorderWatch = false;
+            EpgChangeBorderOnRec = false;
             EpgNameTabEnabled = true;
             EpgViewModeTabEnabled = false;
             EpgTabMoveCheckEnabled = true;
@@ -1249,7 +1267,7 @@ namespace EpgTimer
             _FillList(ContentCustColorList, 0xFFFFFFFF, num);
 
             //番組表の予約枠色
-            num = 7;
+            num = 9;
             if (EpgResColorList.Count < num)
             {
                 var defColors = new string[]{
@@ -1260,6 +1278,8 @@ namespace EpgTimer
                         ,"Yellow"           //一部実行
                         ,"Blue"             //自動予約登録不明
                         ,"Purple"           //重複EPG予約
+                        ,"Lime"             //録画中
+                        ,"Lime"             //視聴中
                     };
                 _FillList(EpgResColorList, defColors);
             }
@@ -1288,7 +1308,7 @@ namespace EpgTimer
             _FillList(EpgEtcCustColors, 0xFFFFFFFF, num);
 
             //チューナー画面各色、保存名はServiceColorsだが他も含む。
-            num = 2 + 5 + 10;//固定色2+優先度色5+追加の画面色
+            num = 2 + 5 + 12;//固定色2+優先度色5+追加の画面色
             if (TunerServiceColors.Count < num)
             {
                 var defColors = Enumerable.Repeat("Black", 7)
@@ -1303,6 +1323,8 @@ namespace EpgTimer
                         ,"LightSlateGray"   //チューナー名枠色
                         ,"LightGray"        //予約枠色(プログラム予約)
                         ,"Black"            //予約枠色(無効)
+                        ,"OrangeRed"        //予約枠色(録画中)
+                        ,"OrangeRed"        //予約枠色(視聴中)
                     });
                 _FillList(TunerServiceColors, defColors);
             }
@@ -1343,13 +1365,14 @@ namespace EpgTimer
             _FillList(ResBackCustColors, 0xFFFFFFFF, num);
 
             //予約状態列文字色
-            num = 3;
+            num = 4;
             if (StatColors.Count < num)
             {
                 var defColors = new List<string>{
                         "Blue"      //予約中
                         ,"OrangeRed"//録画中
                         ,"LimeGreen"//放送中
+                        ,"OrangeRed"//視聴中
                     };
                 _FillList(StatColors, defColors);
             }
