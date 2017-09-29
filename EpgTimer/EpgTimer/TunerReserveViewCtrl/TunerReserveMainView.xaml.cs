@@ -120,7 +120,6 @@ namespace EpgTimer
                 tunerReserveList.ForEach(info =>
                 {
                     double tunerWidth = tunerWidthSingle;
-
                     var tunerAddList = new List<ReserveViewItem>();
 
                     foreach (ReserveData resInfo in info.reserveList.Where(id => resDic.ContainsKey(id) == true).Select(id => resDic[id]))
@@ -133,26 +132,30 @@ namespace EpgTimer
                         newItem.LeftPos = leftPos;
 
                         //列を拡げて表示する処置
-                        foreach (ReserveViewItem addedItem in tunerAddList)
+                        bool addRow = false;
+                        List<ReserveViewItem> overLapList = tunerAddList.FindAll(item => MenuUtil.CulcOverlapLength(resInfo.StartTimeActual, resInfo.DurationActual, item.Data.StartTimeActual, item.Data.DurationActual) > 0);
+                        if (overLapList.Count != 0)
                         {
-                            ReserveData addedInfo = addedItem.Data;
-
-                            if (MenuUtil.CulcOverlapLength(resInfo.StartTimeActual, resInfo.DurationActual, addedInfo.StartTimeActual, addedInfo.DurationActual) > 0)
+                            ulong sKey = resInfo.Create64Key();
+                            List<ReserveViewItem> sameSidList = overLapList.FindAll(item => sKey == item.Data.Create64Key());
+                            addRow = sameSidList.Count == 0;
+                            if (addRow == false)
                             {
-                                if (newItem.LeftPos <= addedItem.LeftPos)
+                                int samePgCount = sameSidList.Count(item => item.Data.IsSamePg(resInfo));
+                                List<double> posListDif = overLapList.Except(sameSidList).Select(item => item.LeftPos).ToList();
+                                List<double> posList = sameSidList.Select(item => item.LeftPos).Distinct().Except(posListDif).OrderBy(pos => pos).ToList();
+                                addRow = posList.Count <= samePgCount;
+                                if (addRow == false)
                                 {
-                                    if (resInfo.Create64Key() == addedInfo.Create64Key())
-                                    {
-                                        newItem.LeftPos = addedItem.LeftPos;
-                                    }
-                                    else
-                                    {
-                                        newItem.LeftPos = addedItem.LeftPos + tunerWidthSingle;
-                                        if (newItem.LeftPos - leftPos >= tunerWidth)
-                                        {
-                                            tunerWidth += tunerWidthSingle;
-                                        }
-                                    }
+                                    newItem.LeftPos = posList[samePgCount];
+                                }
+                            }
+                            if (addRow == true)
+                            {
+                                newItem.LeftPos = overLapList.Max(item => item.LeftPos) + tunerWidthSingle;
+                                if (newItem.LeftPos - leftPos >= tunerWidth)
+                                {
+                                    tunerWidth += tunerWidthSingle;
                                 }
                             }
                         }
