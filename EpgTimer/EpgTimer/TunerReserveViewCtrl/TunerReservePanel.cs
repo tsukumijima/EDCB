@@ -11,7 +11,7 @@ namespace EpgTimer.TunerReserveViewCtrl
     {
         public override void SetBorderStyleFromSettings()
         {
-            SetBorderStyle(Settings.Instance.TunerBorderLeftSize, Settings.Instance.TunerBorderTopSize, new Thickness(2, 0, 4, Settings.Instance.TunerFontSize / 1.7));
+            SetBorderStyle(Settings.Instance.TunerBorderLeftSize, Settings.Instance.TunerBorderTopSize, new Thickness(2, 0, 2, Settings.Instance.TunerFontSize * 0.8));
         }
 
         protected override void CreateDrawTextListMain(List<List<Tuple<Brush, GlyphRun>>> textDrawLists)
@@ -19,8 +19,8 @@ namespace EpgTimer.TunerReserveViewCtrl
             var ItemFontNormal = ItemFontCache.ItemFont(Settings.Instance.TunerFontName, false);
             var ItemFontTitle = ItemFontCache.ItemFont(Settings.Instance.TunerFontNameService, Settings.Instance.TunerFontBoldService);
 
-            double sizeMin = Settings.Instance.TunerFontSize;
             double sizeTitle = Settings.Instance.TunerFontSizeService;
+            double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, Settings.Instance.TunerFontSize));
             double sizeNormal = Settings.Instance.TunerFontSize;
             double indentTitle = ExtInfoMode == true ? 0 : sizeMin * 1.7;
             double indentNormal = Settings.Instance.TunerTitleIndent ? indentTitle : 0;
@@ -33,50 +33,42 @@ namespace EpgTimer.TunerReserveViewCtrl
 
             foreach (TunerReserveViewItem info in Items)
             {
-                var resItem = new ReserveItem(info.Data);
                 var textDrawList = new List<Tuple<Brush, GlyphRun>>();
                 textDrawLists.Add(textDrawList);
-
-                double useHeight = txtMargin.Top;
-                double innerLeft = info.LeftPos + txtMargin.Left;
-                double innerWidth = info.Width - txtMargin.Width;
-                double innnerHeight = info.Height - txtMargin.Height + txtMargin.Top;
+                Rect drawRect = TextRenderRect(info);
+                double useHeight = 0;
 
                 //追加情報の表示
                 if (ExtInfoMode == true)
                 {
+                    var resItem = new ReserveItem(info.Data);
                     string text = info.Status;
-                    if (text != "")
-                    {
-                        RenderText(textDrawList, text, ItemFontNormal, sizeNormal, innerWidth, innnerHeight, innerLeft, info.TopPos, ref useHeight, resItem.StatusColor);
-                        useHeight += sizeNormal / 5;
-                    }
+                    if (text != "") useHeight = sizeNormal / 5 + RenderText(textDrawList, text, ItemFontNormal, sizeNormal, drawRect, 0, 0, resItem.StatusColor);
 
                     text = resItem.StartTimeShort;
                     text += "\r\n" + "優先度 : " + resItem.Priority;
                     text += "\r\n" + "録画モード : " + resItem.RecMode;
-                    RenderText(textDrawList, text, ItemFontNormal, sizeNormal, innerWidth, innnerHeight, innerLeft, info.TopPos, ref useHeight, info.ServiceColor);
-                    useHeight += sizeNormal / 2;
+                    useHeight += sizeNormal / 2 + RenderText(textDrawList, text, ItemFontNormal, sizeNormal, drawRect, 0, useHeight, info.ServiceColor);
                 }
                 else
                 {
                     //分のみ
-                    RenderText(textDrawList, info.Data.StartTime.Minute.ToString("d02"), ItemFontNormal, sizeMin, innerWidth, innnerHeight, innerLeft, info.TopPos, ref useHeight, info.ServiceColor);
-                    useHeight = txtMargin.Top;//タイトルは同じ行なのでリセット
+                    RenderText(textDrawList, info.Data.StartTime.Minute.ToString("d02"), ItemFontNormal, sizeMin, drawRect, 0, 0, info.ServiceColor);
                 }
 
                 //サービス名
                 string serviceName = info.Data.StationName + "(" + CommonManager.ConvertNetworkNameText(info.Data.OriginalNetworkID) + ")";
                 serviceName = CommonManager.ReplaceText(serviceName, ReplaceDictionaryTitle);
-                RenderText(textDrawList, serviceName, ItemFontTitle, sizeTitle, innerWidth - indentTitle, innnerHeight, innerLeft + indentTitle, info.TopPos, ref useHeight, info.ServiceColor, noWrap);
-                useHeight += sizeTitle / 3;
-                if (useHeight > info.Height) continue;
+                useHeight += sizeTitle / 3 + RenderText(textDrawList, serviceName, ItemFontTitle, sizeTitle, drawRect, indentTitle, useHeight, info.ServiceColor, noWrap);
 
                 //番組名
-                string title = CommonManager.ReplaceText(info.Data.Title, ReplaceDictionaryTitle);
-                RenderText(textDrawList, title, ItemFontNormal, sizeNormal, innerWidth - indentNormal, innnerHeight, innerLeft + indentNormal, info.TopPos, ref useHeight, colorNormal);
+                if (useHeight < drawRect.Height)
+                {
+                    string title = CommonManager.ReplaceText(info.Data.Title.TrimEnd(), ReplaceDictionaryTitle);
+                    if (title != "") useHeight += sizeNormal / 3 + RenderText(textDrawList, title, ItemFontNormal, sizeNormal, drawRect, indentNormal, useHeight, colorNormal);
+                }
 
-                RenderTextHeight = Math.Max(RenderTextHeight, useHeight);
+                SaveMaxRenderHeight(useHeight);
             }
         }
     }

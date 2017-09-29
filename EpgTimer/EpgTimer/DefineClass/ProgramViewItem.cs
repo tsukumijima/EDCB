@@ -21,7 +21,6 @@ namespace EpgTimer
         }
 
         public PanelItem(object info) { DataObj = info; }
-        public PanelItem(object info, bool x) { DataObj = info; }
         public object DataObj { get; protected set; }
         public bool TitleDrawErr { get; set; }
         public virtual Brush BackColor { get { return null; } }

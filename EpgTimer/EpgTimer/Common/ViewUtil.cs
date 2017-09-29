@@ -164,10 +164,10 @@ namespace EpgTimer
 
         //最低表示高さ
         public const double PanelMinimumHeight = 2;
-        public static void ModifierMinimumLine(IEnumerable<PanelItem> list, double minimumLine, double fontHeight)
+        public static double CulcLineHeight(double fontHeight) { return 1 + fontHeight * 1.1; }
+        public static void ModifierMinimumLine(IEnumerable<PanelItem> list, double minimumLine, double fontHeight, double lineWidth)
         {
-            //list.Sort((x, y) => Math.Sign(x.LeftPos - y.LeftPos) * 2 + Math.Sign(x.TopPos - y.TopPos));
-            double minimum = Math.Max((fontHeight + 2) * minimumLine, PanelMinimumHeight);
+            double minimum = Math.Max(CulcLineHeight(fontHeight) * minimumLine + lineWidth * (minimumLine == 0 ? 0 : 1), PanelMinimumHeight);
             double lastLeft = double.MinValue;
             double lastBottom = 0;
             foreach (PanelItem item in list.OrderBy(item => item.LeftPos * 1e6 + item.TopPos))

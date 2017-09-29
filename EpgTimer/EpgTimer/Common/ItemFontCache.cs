@@ -71,7 +71,7 @@ namespace EpgTimer
             {
                 key = char.ConvertToUtf32(line, n++);
             }
-            else if (char.IsSurrogate((char)key))
+            else if (char.IsSurrogate((char)key))//このif節無くても平気なような？
             {
                 key = 0;
             }

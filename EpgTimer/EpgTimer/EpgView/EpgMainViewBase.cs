@@ -97,7 +97,7 @@ namespace EpgTimer.EpgView
             }
 
             //最低表示行数を適用。また、最低表示高さを確保して、位置も調整する。
-            ViewUtil.ModifierMinimumLine(programList.Values, Settings.Instance.MinimumHeight, Settings.Instance.FontSizeTitle);
+            ViewUtil.ModifierMinimumLine(programList.Values, Settings.Instance.MinimumHeight, Settings.Instance.FontSizeTitle, Settings.Instance.EpgBorderTopSize);
 
             //必要時間リストの修正。番組長の関係や、最低表示行数の適用で下に溢れた分を追加する。
             ViewUtil.AdjustTimeList(programList.Values, timeList, Settings.Instance.MinHeight);

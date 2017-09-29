@@ -20,40 +20,39 @@ namespace EpgTimer
         public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal { get; set; }
         public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle { get; set; }
 
-        public double RenderTextHeight { get; protected set; }
-        public virtual double GetRenderTextHeight(double? refHeight = null)
+        public double MaxRenderHeight { get; protected set; }
+        protected void SaveMaxRenderHeight(double val) { MaxRenderHeight = Math.Max(MaxRenderHeight, val); }
+        public virtual double GetMaxRenderTextHeight(double? refHeight = null)
         {
             if (refHeight != null && Items != null) foreach (var item in Items) item.Height = (double)refHeight;
             m = ViewUtil.DeviceMatrix;
             CreateDrawTextList();
-            return RenderTextHeight;
+            return MaxRenderHeight;
         }
 
-        protected void RenderText(List<Tuple<Brush, GlyphRun>> textDrawList, String text, ItemFont itemFont, double fontSize, double maxWidth, double maxHeight, double x, double y, ref double useHeight, Brush fontColor, bool nowrap = false)
+        protected double RenderText(List<Tuple<Brush, GlyphRun>> textDrawList, String text, ItemFont itemFont, double fontSize, Rect drawRect, double marginLeft, double margintTop, Brush fontColor, bool nowrap = false)
         {
-            double lineHeight = 1 + fontSize * 1.1;
-            y -= lineHeight - fontSize;
-
-            //案外多い。Nullは入ってこないはずだが、ついでなのでチェック
-            if (string.IsNullOrEmpty(text) == true)
-            {
-                useHeight += lineHeight;
-                return;
-            }
+            double lineHeight = ViewUtil.CulcLineHeight(fontSize);
+            double x0 = drawRect.Left + marginLeft;
+            double xMax = drawRect.Right;
+            double y0 = drawRect.Top + margintTop - (lineHeight - fontSize);//行間オフセット
+            double yMax = nowrap == true ? y0 : drawRect.Bottom;
+            double y = y0;
+            var getRenderHeight = new Func<double>(() => y - y0);
 
             foreach (string line in text.Replace("\r", "").Split('\n'))
             {
-                useHeight += lineHeight;
                 var glyphIndexes = new List<ushort>();
                 var advanceWidths = new List<double>();
-                double totalWidth = 0;
-                double originWidth = 0;
                 int currentType = 0;
+                double x = x0;
+                double x1 = x0;//currentTypeの書き出しx座標
+                y += lineHeight;
 
-                var AddGlyphRun = new Action<double>(uHeight =>
+                var AddGlyphRun = new Action(() =>
                 {
                     if (glyphIndexes.Count == 0) return;
-                    var origin = new Point(Math.Round((x + originWidth) * m.M11) / m.M11 - selfLeft, Math.Round((y + uHeight) * m.M22) / m.M22 - selfTop);
+                    var origin = new Point(Math.Round(x1 * m.M11) / m.M11 - selfLeft, Math.Round(y * m.M22) / m.M22 - selfTop);
                     textDrawList.Add(new Tuple<Brush, GlyphRun>(fontColor,
                         new GlyphRun(itemFont.GlyphType[currentType], 0, false, fontSize, glyphIndexes, origin, advanceWidths, null, null, null, null, null, null)));
                 });
@@ -65,43 +64,47 @@ namespace EpgTimer
                     int glyphType;
                     double width = itemFont.GlyphWidth(line, ref n, out glyphIndex, out glyphType) * fontSize;
 
-                    if (totalWidth + width > maxWidth)
+                    if (x + width > xMax)
                     {
-                        AddGlyphRun(useHeight);
-                        if (useHeight > maxHeight) return;//次の行無理
-                        if (nowrap == true) return;//改行しない場合は終り
+                        AddGlyphRun();
+                        if (y >= yMax) return getRenderHeight();//次の行無理
 
                         //次の行へ
-                        useHeight += lineHeight;
                         glyphIndexes = new List<ushort>();
                         advanceWidths = new List<double>();
-                        originWidth = totalWidth = 0;
+                        x = x1 = x0;
+                        y += lineHeight;
                     }
                     else if (glyphType != currentType)
                     {
                         //フォントが変わった
-                        AddGlyphRun(useHeight);
+                        AddGlyphRun();
                         glyphIndexes = new List<ushort>();
                         advanceWidths = new List<double>();
-                        originWidth = totalWidth;
+                        x1 = x;
                     }
                     currentType = glyphType;
                     glyphIndexes.Add(glyphIndex);
                     advanceWidths.Add(width);
-                    totalWidth += width;
+                    x += width;
                 }
-                AddGlyphRun(useHeight);
-                if (useHeight > maxHeight) return;//次の行無理
+                AddGlyphRun();
+                if (y >= yMax) return getRenderHeight();//次の行無理
             }
+            return getRenderHeight();
         }
 
         protected virtual Rect BorderRect(PanelItem info)
         {
-            return new Rect(info.LeftPos - selfLeft, info.TopPos - selfTop, info.Width + borderThickness.Right, Math.Max(info.Height + borderThickness.Bottom, 1));
+            return new Rect(info.LeftPos - selfLeft, info.TopPos - selfTop, info.Width + borderThickness.Right, info.Height + borderThickness.Bottom);
         }
         protected virtual Rect ContentRect(PanelItem info)
         {
-            return new Rect(info.LeftPos - selfLeft + borderMargin.Left, info.TopPos - selfTop + borderMargin.Top, info.Width - borderMargin.Width, info.Height - borderMargin.Height);
+            return new Rect(info.LeftPos - selfLeft + borderMargin.Left, info.TopPos - selfTop + borderMargin.Top, Math.Max(0, info.Width - borderMargin.Width), Math.Max(0, info.Height - borderMargin.Height));
+        }
+        protected virtual Rect TextRenderRect(PanelItem info)
+        {
+            return new Rect(info.LeftPos + txtMargin.Left, info.TopPos + txtMargin.Top, Math.Max(0, info.Width - txtMargin.Width), Math.Max(0, info.Height - txtMargin.Height));
         }
 
         protected Thickness borderThickness;
@@ -113,7 +116,7 @@ namespace EpgTimer
             borderThickness.Left = borderLeft <= 1 ? Math.Max(0, borderLeft) : (borderLeft + 1) / 2;
             borderThickness.Top = borderTop <= 1 ? Math.Max(0, borderTop) : (borderTop + 1) / 2;
             borderThickness.Right = Math.Min(1, borderThickness.Left);//右へのはみ出し分
-            borderThickness.Bottom = Math.Min(1, Math.Min(1, borderThickness.Top));//下へのはみ出し分
+            borderThickness.Bottom = Math.Min(1, borderThickness.Top);//下へのはみ出し分
             borderMargin = new Rect(borderThickness.Left, borderThickness.Top, borderThickness.Left + Math.Max(0, borderThickness.Left - 1), borderThickness.Top + Math.Max(0, borderThickness.Top - 1));
             txtMargin = new Rect(borderMargin.Left + textPadding.Left, borderMargin.Top + textPadding.Top, borderMargin.Width + textPadding.Left + textPadding.Right, borderMargin.Height + textPadding.Top + textPadding.Bottom);
         }
@@ -122,12 +125,12 @@ namespace EpgTimer
 
         protected virtual List<List<Tuple<Brush, GlyphRun>>> CreateDrawTextList()
         {
-            RenderTextHeight = 0;
+            MaxRenderHeight = 0;
             if (Items == null) return null;
 
             var textDrawLists = new List<List<Tuple<Brush, GlyphRun>>>();
             CreateDrawTextListMain(textDrawLists);
-            RenderTextHeight += txtMargin.Height - txtMargin.Top;
+            MaxRenderHeight += txtMargin.Top + borderMargin.Height - borderMargin.Top;
             return textDrawLists;
         }
         protected virtual void CreateDrawTextListMain(List<List<Tuple<Brush, GlyphRun>>> textDrawLists) { }
@@ -153,14 +156,11 @@ namespace EpgTimer
             foreach (PanelItem info in Items)
             {
                 dc.DrawRectangle(info.BorderBrush, null, BorderRect(info));
-                if (info.Height > 1)
-                {
-                    var textArea = ContentRect(info);
-                    dc.DrawRectangle(info.BackColor, null, textArea);
-                    dc.PushClip(new RectangleGeometry(textArea));
-                    textDrawLists[i++].ForEach(item => dc.DrawGlyphRun(item.Item1, item.Item2));
-                    dc.Pop();
-                }
+                Rect contentRect = ContentRect(info);
+                dc.DrawRectangle(info.BackColor, null, contentRect);
+                dc.PushClip(new RectangleGeometry(contentRect));
+                textDrawLists[i++].ForEach(item => dc.DrawGlyphRun(item.Item1, item.Item2));
+                dc.Pop();
             }
         }
     }
@@ -311,7 +311,7 @@ namespace EpgTimer
             PopPanel.SetBorderStyleFromSettings();
             PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.DataObj) as PanelItem;
             PopPanel.Item.Width = PopWidth - PopPanel.WidthMarginRight;
-            PopPanel.Item.Height = Math.Max(PopPanel.GetRenderTextHeight(9999), Popup.MinHeight);
+            PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderTextHeight(9999), Popup.MinHeight);
             Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;
             UpdatePopupReDraw();
         }

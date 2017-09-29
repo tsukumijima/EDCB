@@ -179,7 +179,7 @@ namespace EpgTimer
                 });
 
                 //最低表示行数を適用。また、最低表示高さを確保して、位置も調整する。
-                ViewUtil.ModifierMinimumLine(reserveList, Settings.Instance.TunerMinimumLine, Settings.Instance.TunerFontSizeService);
+                ViewUtil.ModifierMinimumLine(reserveList, Settings.Instance.TunerMinimumLine, Settings.Instance.TunerFontSizeService, Settings.Instance.TunerBorderTopSize);
 
                 //必要時間リストの修正。最低表示行数の適用で下に溢れた分を追加する。
                 ViewUtil.AdjustTimeList(reserveList, timeList, Settings.Instance.TunerMinHeight);
