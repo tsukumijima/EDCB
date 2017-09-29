@@ -275,10 +275,10 @@ namespace EpgTimer.Setting
                 button_srvSetting.Click += (sender,e) => CommonManager.OpenSrvSetting();
 
                 string StartUpPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                button_shortCut.Content = (File.Exists(System.IO.Path.Combine(StartUpPath, SettingPath.ModuleName + ".lnk"))
-                                                ? "削除" : "作成");
-                button_shortCutSrv.Content = (File.Exists(System.IO.Path.Combine(StartUpPath, "EpgTimerSrv.lnk"))
-                                                ? "削除" : "作成");
+                button_shortCut.Tag = Path.Combine(StartUpPath, SettingPath.ModuleName + ".lnk");
+                button_shortCut.Content = File.Exists(button_shortCut.Tag as string) ? "削除" : "作成";
+                button_shortCutSrv.Tag = Path.Combine(StartUpPath, "EpgTimerSrv.lnk");
+                button_shortCutSrv.Content = File.Exists(button_shortCutSrv.Tag as string) ? "削除" : "作成";
 
                 checkBox_srvSaveNotifyLog.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "SaveNotifyLog", 0, SettingPath.TimerSrvIniPath) != 0;
                 checkBox_AutoSaveNotifyLog.IsChecked = Settings.Instance.AutoSaveNotifyLog == 1;
@@ -606,37 +606,28 @@ namespace EpgTimer.Setting
 
         private void button_shortCut_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), SettingPath.ModuleName + ".lnk");
-                if (File.Exists(shortcutPath))
-                {
-                    File.Delete(shortcutPath);
-                    button_shortCut.Content = "作成";
-                }
-                else
-                {
-                    CreateShortCut(shortcutPath, Assembly.GetEntryAssembly().Location, "");
-                    button_shortCut.Content = "削除";
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            button_shortCutClick(button_shortCut, Assembly.GetEntryAssembly().Location);
         }
 
         private void button_shortCutSrv_Click(object sender, RoutedEventArgs e)
         {
+            button_shortCutClick(button_shortCutSrv, Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"));
+        }
+
+        private void button_shortCutClick(Button btn, string scLinkPath)
+        {
             try
             {
-                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "EpgTimerSrv.lnk");
+                string shortcutPath = btn.Tag as string;
                 if (File.Exists(shortcutPath))
                 {
                     File.Delete(shortcutPath);
-                    button_shortCutSrv.Content = "作成";
+                    btn.Content = "作成";
                 }
                 else
                 {
-                    CreateShortCut(shortcutPath, Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"), "");
-                    button_shortCutSrv.Content = "削除";
+                    CreateShortCut(shortcutPath, scLinkPath, "");
+                    btn.Content = "削除";
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
