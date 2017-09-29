@@ -537,7 +537,7 @@ namespace EpgTimer
                 }
             });
 
-            if (Settings.Instance.WoLWait == true || Settings.Instance.WoLWaitRecconect == true)
+            if (Settings.Instance.WoLWaitRecconect == true)
             {
                 try { NWConnect.SendMagicPacket(ConnectWindow.ConvertTextMacAddress(Settings.Instance.NWMacAdd)); }
                 catch { }
@@ -557,21 +557,14 @@ namespace EpgTimer
                 connectTimer.Start();
             }
 
-            if (Settings.Instance.WoLWait != true)
-            {
-                StatusManager.StatusNotifySet("EpgTimerSrvへ接続中...", interval);
-            }
-
+            StatusManager.StatusNotifySet("EpgTimerSrvへ接続中...", interval);
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 try
                 {
-                    if (Settings.Instance.WoLWait == true ||
-                            ConnectSrv() == false && Settings.Instance.WoLWaitRecconect == true)
+                    if (ConnectSrv() == false && Settings.Instance.WoLWaitRecconect == true)
                     {
-                        string msg1 = showDialog == true ? "" : "起動時自動";
-                        string msg2 = Settings.Instance.WoLWaitRecconect == true ? "再" : "";
-                        string msg = string.Format(msg1 + msg2 + "接続待機中({0}秒間)...", Settings.Instance.WoLWaitSecond);
+                        string msg = string.Format("{0}再接続待機中({1}秒間)...", showDialog == true ? "" : "起動時自動", Settings.Instance.WoLWaitSecond);
                         StatusManager.StatusNotifySet(msg, interval);
                         return;
                     }

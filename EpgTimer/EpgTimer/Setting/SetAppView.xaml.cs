@@ -289,7 +289,6 @@ namespace EpgTimer.Setting
                 textBox_cautionManyChange.Text = Settings.Instance.CautionManyNum.ToString();
                 textBox_upDateTaskText.IsChecked = Settings.Instance.UpdateTaskText;
                 checkBox_wakeReconnect.IsChecked = Settings.Instance.WakeReconnectNW;
-                checkBox_WoLWait.IsChecked = Settings.Instance.WoLWait;
                 checkBox_WoLWaitRecconect.IsChecked = Settings.Instance.WoLWaitRecconect;
                 textBox_WoLWaitSecond.Text = Settings.Instance.WoLWaitSecond.ToString();
                 checkBox_suspendClose.IsChecked = Settings.Instance.SuspendCloseNW;
@@ -433,7 +432,6 @@ namespace EpgTimer.Setting
                 Settings.Instance.CautionManyChange = checkBox_cautionManyChange.IsChecked != false;
                 Settings.Instance.CautionManyNum = MenuUtil.MyToNumerical(textBox_cautionManyChange, Convert.ToInt32, Settings.Instance.CautionManyNum);
                 Settings.Instance.WakeReconnectNW = checkBox_wakeReconnect.IsChecked == true;
-                Settings.Instance.WoLWait = checkBox_WoLWait.IsChecked == true;
                 Settings.Instance.WoLWaitRecconect = checkBox_WoLWaitRecconect.IsChecked == true;
                 Settings.Instance.WoLWaitSecond = MenuUtil.MyToNumerical(textBox_WoLWaitSecond, Convert.ToDouble, 3600, 1, Settings.Instance.WoLWaitSecond);
                 Settings.Instance.SuspendCloseNW = checkBox_suspendClose.IsChecked == true;
@@ -593,15 +591,6 @@ namespace EpgTimer.Setting
         private void listBox_service_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ReLoadStation();
-        }
-
-        private void checkBox_WoLWaitRecconect_Checked(object sender, RoutedEventArgs e)
-        {
-            checkBox_WoLWait.IsChecked = false;
-        }
-        private void checkBox_WoLWait_Checked(object sender, RoutedEventArgs e)
-        {
-            checkBox_WoLWaitRecconect.IsChecked = false;
         }
 
         private void button_shortCut_Click(object sender, RoutedEventArgs e)
