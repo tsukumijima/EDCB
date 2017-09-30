@@ -241,7 +241,7 @@ namespace EpgTimer.EpgView
 
                 nowLine.X1 = 0;
                 nowLine.Y1 = posY;
-                nowLine.X2 = programView.canvas.Width;
+                nowLine.X2 = programView.epgViewPanel.Width;
                 nowLine.Y2 = posY;
 
                 nowViewTimer.Interval = TimeSpan.FromSeconds(60 - nowTime.Second);
