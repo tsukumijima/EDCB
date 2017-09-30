@@ -36,7 +36,7 @@ namespace EpgTimer.EpgView
 
                 //分
                 string min = info.Data.StartTimeFlag == 0 ? "？" : info.Data.start_time.Minute.ToString("d02");
-                double useHeight = RenderText(textDrawList, min, ItemFontTitle, sizeMin, drawRect, 0, 0, colorTitle);
+                double useHeight = sizeNormal / 3 + RenderText(textDrawList, min, ItemFontTitle, sizeMin, drawRect, 0, 0, colorTitle);
                 
                 //番組情報
                 if (info.Data.ShortInfo != null)

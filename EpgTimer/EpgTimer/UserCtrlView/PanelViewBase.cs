@@ -22,7 +22,7 @@ namespace EpgTimer
 
         public double MaxRenderHeight { get; protected set; }
         protected void SaveMaxRenderHeight(double val) { MaxRenderHeight = Math.Max(MaxRenderHeight, val); }
-        public virtual double GetMaxRenderTextHeight(double? refHeight = null)
+        public virtual double GetMaxRenderHeight(double? refHeight = null)
         {
             if (refHeight != null && Items != null) foreach (var item in Items) item.Height = (double)refHeight;
             m = ViewUtil.DeviceMatrix;
@@ -311,7 +311,7 @@ namespace EpgTimer
             PopPanel.SetBorderStyleFromSettings();
             PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.DataObj) as PanelItem;
             PopPanel.Item.Width = PopWidth - PopPanel.WidthMarginRight;
-            PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderTextHeight(9999), Popup.MinHeight);
+            PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderHeight(9999), Popup.MinHeight);
             Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;
             UpdatePopupReDraw();
         }

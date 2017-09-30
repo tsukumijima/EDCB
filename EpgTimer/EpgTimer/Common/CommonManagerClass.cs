@@ -455,7 +455,7 @@ namespace EpgTimer
 
         public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal;
         public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle;
-        public static void ReloadReplaceDictionar()
+        public static void ReloadReplaceDictionary()
         {
             ReplaceDictionaryNormal = Settings.Instance.EpgReplacePatternDef ? CommonManager.ReplaceUrlDictionary : CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePattern);
             ReplaceDictionaryTitle = Settings.Instance.EpgReplacePatternTitleDef ? CommonManager.ReplaceUrlDictionary : CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePatternTitle);

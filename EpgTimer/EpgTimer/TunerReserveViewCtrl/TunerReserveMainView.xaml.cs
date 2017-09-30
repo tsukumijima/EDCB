@@ -132,25 +132,25 @@ namespace EpgTimer
                         newItem.LeftPos = leftPos;
 
                         //列を拡げて表示する処置
-                        bool addRow = false;
+                        bool addPos = false;
                         List<ReserveViewItem> overLapList = tunerAddList.FindAll(item => MenuUtil.CulcOverlapLength(resInfo.StartTimeActual, resInfo.DurationActual, item.Data.StartTimeActual, item.Data.DurationActual) > 0);
                         if (overLapList.Count != 0)
                         {
                             ulong sKey = resInfo.Create64Key();
                             List<ReserveViewItem> sameSidList = overLapList.FindAll(item => sKey == item.Data.Create64Key());
-                            addRow = sameSidList.Count == 0;
-                            if (addRow == false)
+                            addPos = sameSidList.Count == 0;
+                            if (addPos == false)
                             {
                                 int samePgCount = sameSidList.Count(item => item.Data.IsSamePg(resInfo));
                                 List<double> posListDif = overLapList.Except(sameSidList).Select(item => item.LeftPos).ToList();
                                 List<double> posList = sameSidList.Select(item => item.LeftPos).Distinct().Except(posListDif).OrderBy(pos => pos).ToList();
-                                addRow = posList.Count <= samePgCount;
-                                if (addRow == false)
+                                addPos = posList.Count <= samePgCount;
+                                if (addPos == false)
                                 {
                                     newItem.LeftPos = posList[samePgCount];
                                 }
                             }
-                            if (addRow == true)
+                            if (addPos == true)
                             {
                                 newItem.LeftPos = overLapList.Max(item => item.LeftPos) + tunerWidthSingle;
                                 if (newItem.LeftPos - leftPos >= tunerWidth)

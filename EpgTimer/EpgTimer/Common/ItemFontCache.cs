@@ -71,7 +71,7 @@ namespace EpgTimer
             {
                 key = char.ConvertToUtf32(line, n++);
             }
-            else if (char.IsSurrogate((char)key))//このif節無くても平気なような？
+            else if (char.IsSurrogate((char)key))//不完全なサロゲートペアの混入対策
             {
                 key = 0;
             }
