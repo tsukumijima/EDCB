@@ -195,7 +195,7 @@ namespace EpgTimer
             if (list.Any() == true && timeList.Count > 0)
             {
                 double bottom = list.Max(info => info.TopPos + info.Height);
-                AddTimeList(timeList, timeList.Last().AddHours(1), timeList.First().AddMinutes(bottom / MinutesHeight));
+                AddTimeList(timeList, timeList.Last().AddHours(1), timeList.Last().AddHours(1 + bottom / 60 / MinutesHeight - timeList.Count));
             }
         }
 
