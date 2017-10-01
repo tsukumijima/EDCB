@@ -1,129 +1,79 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
-namespace EpgTimer
+namespace EpgTimer.Setting
 {
     /// <summary>
     /// ColorSetWindow.xaml の相互作用ロジック
     /// </summary>
     public partial class ColorSetWindow : Window
     {
-        public ColorSetWindow()
+        public ColorSetWindow(Color color, Visual owner = null)
         {
             InitializeComponent();
 
-            slider_R.Value = 0xFF;
-            slider_G.Value = 0xFF;
-            slider_B.Value = 0xFF;
-            slider_A.Value = 0xFF;
-            textBox_R.Text = "255";
-            textBox_G.Text = "255";
-            textBox_B.Text = "255";
-            textBox_A.Text = "255";
+            List<ColorComboItem> colorReference = typeof(Brushes).GetProperties().Select(p => new ColorComboItem(p.Name, (Brush)p.GetValue(null, null))).ToList();
+            comboBox_color.ItemsSource = colorReference;
+            comboBox_color.SelectionChanged += (sender, e) => button_Set_Click(null, null);
 
-            rectangle_color.Fill = new SolidColorBrush();
-            ChgColor();
+            button_OK.Click += (sender, e) => DialogResult = true;
+            button_cancel.Click += (sender, e) => DialogResult = false;
+            slider_R.ValueChanged += (sender, e) => SetColor(GetColor());
+            slider_G.ValueChanged += (sender, e) => SetColor(GetColor());
+            slider_B.ValueChanged += (sender, e) => SetColor(GetColor());
+            slider_A.ValueChanged += (sender, e) => SetColor(GetColor());
+            textBox_R.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_R);
+            textBox_G.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_G);
+            textBox_B.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_B);
+            textBox_A.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_A);
+
+            this.Owner = CommonUtil.GetTopWindow(owner);
+            SetColor(color);
         }
 
+        private void textBoxTextChanged(object sender, Slider slider)
+        {
+            byte val;
+            if (byte.TryParse((sender as TextBox).Text, out val) == true) slider.Value = val;
+        }
+        private void button_Set_Click(object sender, RoutedEventArgs e)
+        {
+            if (comboBox_color.SelectedIndex < 0) return;
+            SetColor((Color)comboBox_color.SelectedValue);
+        }
+
+        bool selectionChanging = false;
         public void SetColor(Color argb)
         {
-            slider_R.Value = argb.R;
-            slider_G.Value = argb.G;
-            slider_B.Value = argb.B;
-            slider_A.Value = argb.A;
-            textBox_R.Text = argb.R.ToString();
-            textBox_G.Text = argb.G.ToString();
-            textBox_B.Text = argb.B.ToString();
-            textBox_A.Text = argb.A.ToString();
-            ChgColor();
-        }
-
-        public void GetColor(ref Color argb)
-        {
-            argb.R = (byte)slider_R.Value;
-            argb.G = (byte)slider_G.Value;
-            argb.B = (byte)slider_B.Value;
-            argb.A = (byte)slider_A.Value;
-        }
-
-        private void ChgColor()
-        {
-            if (rectangle_color.Fill != null)
+            if (selectionChanging == true) return;
+            selectionChanging = true;
+            try
             {
-                ((SolidColorBrush)rectangle_color.Fill).Color = Color.FromArgb((byte)slider_A.Value, (byte)slider_R.Value, (byte)slider_G.Value, (byte)slider_B.Value);
+                textBox_R.Text = argb.R.ToString();
+                textBox_G.Text = argb.G.ToString();
+                textBox_B.Text = argb.B.ToString();
+                textBox_A.Text = argb.A.ToString();
+
+                rectangle_color.Fill = new SolidColorBrush(argb);
+                SelectNearColor(comboBox_color, argb);
+                label_Status.Text = ColorDef.ColorDiff((Color)comboBox_color.SelectedValue, argb) < 1 ? "現在の色" : "近い色";
             }
+            finally { selectionChanging = false; }
+        }
+        public Color GetColor()
+        {
+            return Color.FromArgb((byte)slider_A.Value, (byte)slider_R.Value, (byte)slider_G.Value, (byte)slider_B.Value);
         }
 
-        private void slider_R_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        public static void SelectNearColor(ComboBox cmbo, Color c)
         {
-            textBox_R.Text = ((byte)slider_R.Value).ToString();
-            ChgColor();
-        }
-
-        private void slider_G_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            textBox_G.Text = ((byte)slider_G.Value).ToString();
-            ChgColor();
-        }
-
-        private void slider_B_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            textBox_B.Text = ((byte)slider_B.Value).ToString();
-            ChgColor();
-        }
-
-        private void slider_A_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            textBox_A.Text = ((byte)slider_A.Value).ToString();
-            ChgColor();
-        }
-
-        private void textBox_R_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            byte val;
-            slider_R.Value = byte.TryParse(textBox_R.Text, out val) ? val : 255;
-            ChgColor();
-        }
-
-        private void textBox_G_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            byte val;
-            slider_G.Value = byte.TryParse(textBox_G.Text, out val) ? val : 255;
-            ChgColor();
-        }
-
-        private void textBox_B_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            byte val;
-            slider_B.Value = byte.TryParse(textBox_B.Text, out val) ? val : 255;
-            ChgColor();
-        }
-
-        private void textBox_A_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            byte val;
-            slider_A.Value = byte.TryParse(textBox_A.Text, out val) ? val : 255;
-            ChgColor();
-        }
-
-        private void button_OK_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
-
-        private void button_cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
+            var items = cmbo.Items.OfType<ColorComboItem>().Where(item => item.Value is SolidColorBrush).ToList();
+            if (items.Count == 0) return;
+            cmbo.SelectedItem = items[ColorDef.SelectNearColor(items.Select(item => (item.Value as SolidColorBrush).Color), c)];
         }
     }
 }

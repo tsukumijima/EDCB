@@ -68,5 +68,16 @@ namespace EpgTimer
             brush.Freeze();
             return brush;
         }
+
+        //単純なRGB差。本当はlabとかいろいろあるけど今はこれで構わない
+        public static double ColorDiff(Color c1, Color c2)
+        {
+            return Math.Abs(c1.A - c2.A) / 256.0 + Math.Abs(c1.R - c2.R) + Math.Abs(c1.G - c2.G) + Math.Abs(c1.B - c2.B);
+        }
+        public static int SelectNearColor(IEnumerable<Color> list, Color c)
+        {
+            var diffs = list.Select(c1 => ColorDiff(c1, c)).ToList();
+            return diffs.IndexOf(diffs.Min());
+        }
     }
 }

@@ -13,24 +13,6 @@
                 </Canvas>
             </VisualBrush.Visual>
         </VisualBrush>
-        <Style x:Key="colorCombo" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Type ComboBox}}">
-            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=SelectedItem.ToolTipText}"/>
-            <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
-            <Setter Property="Height" Value="24"/>
-            <Setter Property="Width" Value="120"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="ComboBox.ItemTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Label BorderBrush="Black" BorderThickness="1" Background="{Binding Path=Value}" Width="20" Height="15" />
-                            <TextBlock Text="{Binding Path=Name}" Margin="5,0,0,0" />
-                        </StackPanel>
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <Style x:Key="colorButton" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
             <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
@@ -39,6 +21,7 @@
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
             <EventSetter Event="Click" Handler="button_Color_Click"/>
+            <EventSetter Event="MouseRightButtonUp" Handler="button_MouseRightButtonUp"/>
         </Style>
         <!-- 例えば<Grid Resources="{StaticResource cusColorSetPanel}">などとして使えるがデザイン時に反映されないので保留
         <ResourceDictionary x:Key="cusColorSetPanel" >

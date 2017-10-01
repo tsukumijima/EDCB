@@ -30,5 +30,23 @@
     <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
-
+    <Style x:Key="colorCombo" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Type ComboBox}}">
+        <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=SelectedItem.ToolTipText}"/>
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Width" Value="120"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="SelectedValuePath" Value="Value.Color"/>
+        <Setter Property="ComboBox.ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Label BorderBrush="Black" BorderThickness="1" Background="{Binding Path=Value}" Width="20" Height="15" />
+                        <TextBlock Text="{Binding Path=Name}" Margin="5,0,0,0" />
+                    </StackPanel>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

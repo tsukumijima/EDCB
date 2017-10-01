@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Markup;
@@ -573,14 +574,10 @@ namespace EpgTimer.Setting
 
         private void button_Color_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new ColorSetWindow();
-            dlg.Owner = CommonUtil.GetTopWindow(this);
-            Color item = ((SolidColorBrush)((Button)sender).Background).Color;
-            dlg.SetColor(item);
+            var dlg = new ColorSetWindow(((SolidColorBrush)((Button)sender).Background).Color, this);
             if (dlg.ShowDialog() == true)
             {
-                dlg.GetColor(ref item);
-                ((SolidColorBrush)((Button)sender).Background).Color = item;
+                ((Button)sender).Background = new SolidColorBrush(dlg.GetColor());
             }
         }
 
@@ -630,6 +627,43 @@ namespace EpgTimer.Setting
             checkBox_replacePatternDef.IsEnabled = !(bool)checkBox_ShareEpgReplacePatternTitle.IsChecked;
             textBox_replacePattern.SetReadOnlyWithEffect(checkBox_ShareEpgReplacePatternTitle.IsChecked == true);
         }
+
+        private void button_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var btn = sender as Button;
+            btn.ContextMenu = new ContextMenu();
+            var menuCustom1 = new MenuItem { Header = "カスタム色をコンボボックスの選択色で有効化" };
+            var menuCustom2 = new MenuItem { Header = "カスタム色をコンボボックスの選択色で有効化(透過度保持)" };
+            var menuReset = new MenuItem { Header = "カスタム色をリセット" };
+            var menuSelect = new MenuItem { Header = "コンボボックスから現在のカスタム色に近い色を選択" };
+            btn.ContextMenu.Items.Add(menuCustom1);
+            btn.ContextMenu.Items.Add(menuCustom2);
+            btn.ContextMenu.Items.Add(menuReset);
+            btn.ContextMenu.Items.Add(menuSelect);
+
+            var pnl = btn.Parent as Panel;
+            var cmb = pnl == null ? null : pnl.Children.OfType<ComboBox>().FirstOrDefault(item => item.Tag as string == btn.Tag as string);
+
+            menuCustom1.IsEnabled = cmb != null && cmb.SelectedItem != null && cmb.SelectedIndex != cmb.Items.Count - 1;
+            menuCustom2.IsEnabled = menuCustom1.IsEnabled;
+            menuReset.IsEnabled = true;
+            menuReset.Click += (sender2, e2) => btn.Background = new SolidColorBrush(Colors.White);
+            menuSelect.IsEnabled = cmb != null;
+
+            if (cmb == null) return;
+
+            var SetColor = new Action<bool>(keepA =>
+            {
+                var cmbColor = (Color)cmb.SelectedValue;
+                var bgColor = (SolidColorBrush)btn.Background;
+                if (keepA) cmbColor.A = bgColor.Color.A;
+                bgColor.Color = cmbColor;
+                cmb.SelectedIndex = cmb.Items.Count - 1;
+            });
+            menuCustom1.Click += (sender2, e2) => SetColor(false);
+            menuCustom2.Click += (sender2, e2) => SetColor(true);
+            menuSelect.Click += (sender2, e2) => ColorSetWindow.SelectNearColor(cmb, ((SolidColorBrush)btn.Background).Color);
+        }
     }
 
     public class ColorComboItem
@@ -645,6 +679,7 @@ namespace EpgTimer.Setting
                 return Name + (solid == null ? "" : string.Format(":#{0:X8}", ColorDef.ToUInt(solid.Color)));
             }
         }
+        public override string ToString() { return Name; }
     }
 
     public class CustomEpgTabInfoView : SelectableItem
