@@ -155,16 +155,17 @@
                         <GroupBox Header="表示設定(続き)" Margin="6,6,6,0" >
                             <StackPanel Margin="11,0,0,0">
                                 <DockPanel Margin="0,6,0,0">
-                                    <Label Content="タイトルの文字列置換リスト（/置換前/置換後/…）" Name="label_replacePatternTitleDef"/>
-                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書を使用" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" ToolTip="表示が遅くなります" Click="checkBox_replacePatternTitleDef_Click" />
+                                    <Label Content="タイトルの文字列置換リスト（/置換前/置換後/…）" Name="label_replacePatternTitleDef" ToolTip="先頭の文字が区切り記号になります。例えば(,置換前,置換後,…)でも可。"/>
+                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" ToolTipService.ShowDuration="20000" ToolTip="追加で内蔵辞書を適用します。ただしその分表示が遅くなります。&#10;同一のキーはテキストボックスの置換を優先します。" />
                                     <CheckBox Content="使用予定チューナー画面にも適用" Margin="12,0,0,0" Name="checkBox_ApplyReplacePatternTuner" />
                                 </DockPanel>
-                                <TextBox  Margin="18,0,0,0" Name="textBox_replacePatternTitle" />
+                                <TextBox Margin="18,0,0,0" Height="85" Name="textBox_replacePatternTitle" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
                                 <DockPanel Margin="0,6,0,0">
                                     <Label Content="タイトル以外の文字列置換リスト（〃）" Width="{Binding ElementName=label_replacePatternTitleDef,Path=ActualWidth}"/>
-                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書を使用" Margin="12,0,0,0" Name="checkBox_replacePatternDef" ToolTip="表示が遅くなります" Click="checkBox_replacePatternDef_Click" />
+                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternDef" ToolTipService.ShowDuration="20000" ToolTip="{Binding ElementName=checkBox_replacePatternTitleDef,Path=ToolTip}" />
+                                    <CheckBox Content="タイトルの置換リストを使用" Margin="12,0,0,0" Name="checkBox_ShareEpgReplacePatternTitle" Click="checkBox_ShareEpgReplacePatternTitle_Click" />
                                 </DockPanel>
-                                <TextBox Margin="18,0,0,0"  Name="textBox_replacePattern"  />
+                                <TextBox Margin="18,0,0,0" Height="85" Name="textBox_replacePattern" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
                             </StackPanel>
                         </GroupBox>
                     </StackPanel>

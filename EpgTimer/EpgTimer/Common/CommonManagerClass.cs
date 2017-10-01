@@ -457,8 +457,26 @@ namespace EpgTimer
         public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle;
         public static void ReloadReplaceDictionary()
         {
-            ReplaceDictionaryNormal = Settings.Instance.EpgReplacePatternDef ? CommonManager.ReplaceUrlDictionary : CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePattern);
-            ReplaceDictionaryTitle = Settings.Instance.EpgReplacePatternTitleDef ? CommonManager.ReplaceUrlDictionary : CommonManager.CreateReplaceDictionary(Settings.Instance.EpgReplacePatternTitle);
+            ReplaceDictionaryTitle = CreateReplaceDictionary(Settings.Instance.EpgReplacePatternTitle, Settings.Instance.EpgReplacePatternTitleDef);
+            ReplaceDictionaryNormal = Settings.Instance.ShareEpgReplacePatternTitle == true ? ReplaceDictionaryTitle :
+                                     CreateReplaceDictionary(Settings.Instance.EpgReplacePattern, Settings.Instance.EpgReplacePatternDef);
+        }
+        private static Dictionary<char, List<KeyValuePair<string, string>>> CreateReplaceDictionary(string pattern, bool useDefDic)
+        {
+            var ret = CommonManager.CreateReplaceDictionary(pattern);
+            if (useDefDic == true) MergeReplaceDictionary(ret, CommonManager.ReplaceUrlDictionary);
+            return ret.Count != 0 ? ret : null;
+        }
+        private static void MergeReplaceDictionary(Dictionary<char, List<KeyValuePair<string, string>>> primary, Dictionary<char, List<KeyValuePair<string, string>>> secondary)
+        {
+            foreach (var item in secondary)
+            {
+                List<KeyValuePair<string, string>> bucket;
+                primary.TryGetValue(item.Key, out bucket);
+                primary[item.Key] = bucket == null ? item.Value.ToList() :
+                                    bucket.Concat(item.Value).GroupBy(kvp => kvp.Key) //同一キーはprimary優先
+                                          .Select(gr => gr.First()).OrderByDescending(kvp => kvp.Key.Length).ToList();
+            }
         }
 
         public static Dictionary<char, List<KeyValuePair<string, string>>> CreateReplaceDictionary(string pattern)
@@ -486,7 +504,7 @@ namespace EpgTimer
                     bucket.Value.Sort((a, b) => b.Key.Length - a.Key.Length);
                 }
             }
-            return ret.Count == 0 ? null : ret;
+            return ret;
         }
 
         public static string ReplaceText(string text, Dictionary<char, List<KeyValuePair<string, string>>> replaceDictionary)

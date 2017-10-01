@@ -78,9 +78,9 @@ namespace EpgTimer.Setting
                 textBox_replacePatternTitle.Text = Settings.Instance.EpgReplacePatternTitle;
                 checkBox_replacePatternDef.IsChecked = Settings.Instance.EpgReplacePatternDef;
                 checkBox_replacePatternTitleDef.IsChecked = Settings.Instance.EpgReplacePatternTitleDef;
-                checkBox_replacePatternDef_Click(null, null);
-                checkBox_replacePatternTitleDef_Click(null, null);
                 checkBox_ApplyReplacePatternTuner.IsChecked = Settings.Instance.ApplyReplacePatternTuner;
+                checkBox_ShareEpgReplacePatternTitle.IsChecked = Settings.Instance.ShareEpgReplacePatternTitle;
+                checkBox_ShareEpgReplacePatternTitle_Click(null, null);
 
                 textBox_tuner_mouse_scroll.Text = Settings.Instance.TunerScrollSize.ToString();
                 textBox_tuner_width.Text = Settings.Instance.TunerWidth.ToString();
@@ -331,6 +331,7 @@ namespace EpgTimer.Setting
                 Settings.Instance.EpgReplacePatternDef = checkBox_replacePatternDef.IsChecked == true;
                 Settings.Instance.EpgReplacePatternTitleDef = checkBox_replacePatternTitleDef.IsChecked == true;
                 Settings.Instance.ApplyReplacePatternTuner = checkBox_ApplyReplacePatternTuner.IsChecked == true;
+                Settings.Instance.ShareEpgReplacePatternTitle = checkBox_ShareEpgReplacePatternTitle.IsChecked == true;
 
                 Settings.Instance.TunerScrollSize = MenuUtil.MyToNumerical(textBox_tuner_mouse_scroll, Convert.ToDouble, 240);
                 Settings.Instance.TunerWidth = MenuUtil.MyToNumerical(textBox_tuner_width, Convert.ToDouble, double.MaxValue, 16, 150);//小さいと描画で落ちる
@@ -624,13 +625,10 @@ namespace EpgTimer.Setting
             label_TunerReserve2.Content = checkBox_TunerChangeBorderWatch.IsChecked == true ? "予約枠(視聴)" : "予約枠(プログラム)";
         }
 
-        private void checkBox_replacePatternTitleDef_Click(object sender, RoutedEventArgs e)
+        private void checkBox_ShareEpgReplacePatternTitle_Click(object sender, RoutedEventArgs e)
         {
-            textBox_replacePatternTitle.SetReadOnlyWithEffect(checkBox_replacePatternTitleDef.IsChecked == true);
-        }
-        private void checkBox_replacePatternDef_Click(object sender, RoutedEventArgs e)
-        {
-            textBox_replacePattern.SetReadOnlyWithEffect(checkBox_replacePatternDef.IsChecked == true);
+            checkBox_replacePatternDef.IsEnabled = !(bool)checkBox_ShareEpgReplacePatternTitle.IsChecked;
+            textBox_replacePattern.SetReadOnlyWithEffect(checkBox_ShareEpgReplacePatternTitle.IsChecked == true);
         }
     }
 

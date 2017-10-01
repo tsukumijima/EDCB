@@ -388,6 +388,7 @@ namespace EpgTimer
         public bool EpgReplacePatternDef { get; set; }
         public bool EpgReplacePatternTitleDef { get; set; }
         public bool ApplyReplacePatternTuner { get; set; }
+        public bool ShareEpgReplacePatternTitle { get; set; }
         public bool EpgToolTip { get; set; }
         public bool EpgToolTipNoViewOnly { get; set; }
         public int EpgToolTipViewWait { get; set; }
@@ -650,6 +651,7 @@ namespace EpgTimer
             EpgReplacePatternDef = false;
             EpgReplacePatternTitleDef = false;
             ApplyReplacePatternTuner = false;
+            ShareEpgReplacePatternTitle = false;
             EpgToolTip = false;
             EpgToolTipNoViewOnly = true;
             EpgToolTipViewWait = 1500;
