@@ -631,26 +631,18 @@ namespace EpgTimer.Setting
         private void button_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             var btn = sender as Button;
-            btn.ContextMenu = new ContextMenu();
             var menuCustom1 = new MenuItem { Header = "カスタム色をコンボボックスの選択色で有効化" };
             var menuCustom2 = new MenuItem { Header = "カスタム色をコンボボックスの選択色で有効化(透過度保持)" };
             var menuReset = new MenuItem { Header = "カスタム色をリセット" };
             var menuSelect = new MenuItem { Header = "コンボボックスから現在のカスタム色に近い色を選択" };
-            btn.ContextMenu.Items.Add(menuCustom1);
-            btn.ContextMenu.Items.Add(menuCustom2);
-            btn.ContextMenu.Items.Add(menuReset);
-            btn.ContextMenu.Items.Add(menuSelect);
 
             var pnl = btn.Parent as Panel;
             var cmb = pnl == null ? null : pnl.Children.OfType<ComboBox>().FirstOrDefault(item => item.Tag as string == btn.Tag as string);
+            if (cmb == null) return; //無いはずだけど保険
 
-            menuCustom1.IsEnabled = cmb != null && cmb.SelectedItem != null && cmb.SelectedIndex != cmb.Items.Count - 1;
+            menuCustom1.IsEnabled = cmb.SelectedItem != null && cmb.SelectedIndex != cmb.Items.Count - 1;
             menuCustom2.IsEnabled = menuCustom1.IsEnabled;
-            menuReset.IsEnabled = true;
             menuReset.Click += (sender2, e2) => btn.Background = new SolidColorBrush(Colors.White);
-            menuSelect.IsEnabled = cmb != null;
-
-            if (cmb == null) return;
 
             var SetColor = new Action<bool>(keepA =>
             {
@@ -663,6 +655,13 @@ namespace EpgTimer.Setting
             menuCustom1.Click += (sender2, e2) => SetColor(false);
             menuCustom2.Click += (sender2, e2) => SetColor(true);
             menuSelect.Click += (sender2, e2) => ColorSetWindow.SelectNearColor(cmb, ((SolidColorBrush)btn.Background).Color);
+            
+            ContextMenu ctxm = new ContextMenu();
+            ctxm.Items.Add(menuCustom1);
+            ctxm.Items.Add(menuCustom2);
+            ctxm.Items.Add(menuReset);
+            ctxm.Items.Add(menuSelect);
+            ctxm.IsOpen = true;
         }
     }
 
