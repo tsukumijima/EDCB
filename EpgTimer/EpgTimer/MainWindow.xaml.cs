@@ -29,7 +29,6 @@ namespace EpgTimer
         private DispatcherTimer chkTimer = null;
 
         private bool closeFlag = false;
-        private bool initExe = false;
         private bool? minimizedStarting = false;
 
         public MainWindow()
@@ -88,10 +87,7 @@ namespace EpgTimer
                 CheckCmdLine();
 
                 mutex.Close();
-                mutex = null;
-
-                CloseCmd();
-                return;
+                Environment.Exit(0);
             }
 
             if (CommonManager.Instance.NWMode == false)
@@ -113,9 +109,9 @@ namespace EpgTimer
                         catch
                         {
                             MessageBox.Show("EpgTimerSrv.exeの起動ができませんでした");
-                            closeFlag = true;
-                            Close();
-                            return;
+                            mutex.ReleaseMutex();
+                            mutex.Close();
+                            Environment.Exit(0);
                         }
                         //EpgTimerSrvを自分で起動させた場合、後でUpdateNotifyItem.EpgDataが来るので、初期フラグをリセットする。
                         CommonManager.Instance.DB.ResetUpdateNotifyEpg();
@@ -127,7 +123,6 @@ namespace EpgTimer
             InitializeComponent();
 
             Title = appName + (CommonManager.Instance.NWMode == true ? " - NW Mode" : "");
-            initExe = true;
 
             try
             {
@@ -688,24 +683,18 @@ namespace EpgTimer
             else
             {
                 AttendantWindow.CloseWindows();
+                SaveData();
 
-                if (initExe == true)
-                {
-                    SaveData();
-                }
                 if (CommonManager.Instance.NWMode == false)
                 {
-                    if (initExe == true)
+                    var cmd = CommonManager.CreateSrvCtrl();
+                    cmd.SetConnectTimeOut(3000);
+                    cmd.SendUnRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id);
+                    //実際にEpgTimerSrvを終了するかどうかは(現在は)EpgTimerSrvの判断で決まる
+                    //このフラグはEpgTimerと原作のサービスモードのEpgTimerSrvを混用するなど特殊な状況を想定したもの
+                    if (Settings.Instance.NoSendClose == 0)
                     {
-                        var cmd = CommonManager.CreateSrvCtrl();
-                        cmd.SetConnectTimeOut(3000);
-                        cmd.SendUnRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id);
-                        //実際にEpgTimerSrvを終了するかどうかは(現在は)EpgTimerSrvの判断で決まる
-                        //このフラグはEpgTimerと原作のサービスモードのEpgTimerSrvを混用するなど特殊な状況を想定したもの
-                        if (Settings.Instance.NoSendClose == 0)
-                        {
-                            cmd.SendClose();
-                        }
+                        cmd.SendClose();
                     }
                     pipeServer.StopServer();
                 }
@@ -713,11 +702,8 @@ namespace EpgTimer
                 {
                     UnRegistTCP();
                 }
-                if (mutex != null)
-                {
-                    mutex.ReleaseMutex();
-                    mutex.Close();
-                }
+                mutex.ReleaseMutex();
+                mutex.Close();
                 TrayManager.Tray.Dispose();
             }
         }
