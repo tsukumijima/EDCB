@@ -534,6 +534,7 @@ namespace EpgTimer
         public bool MinHide { get; set; }
         public bool MouseScrollAuto { get; set; }
         public int NoStyle { get; set; }
+        public int NoSendClose { get; set; }
         public bool CautionManyChange { get; set; }
         public int CautionManyNum { get; set; }
         public bool CautionOnRecChange { get; set; }
@@ -768,6 +769,7 @@ namespace EpgTimer
             MinHide = true;
             MouseScrollAuto = false;
             NoStyle = 0;
+            NoSendClose = 0;
             CautionManyChange = true;
             CautionManyNum = 10;
             CautionOnRecChange = true;
