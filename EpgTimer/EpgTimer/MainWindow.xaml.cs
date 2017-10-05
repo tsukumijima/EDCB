@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -53,6 +54,17 @@ namespace EpgTimer
             CommonManager.ReloadReplaceDictionary();
             Settings.ReloadOtherOptions();
 
+            if (CheckCmdLine() && Settings.Instance.ExitAfterProcessingArgs)
+            {
+                Environment.Exit(0);
+            }
+            mutex = new Mutex(false, "Global\\EpgTimer_Bon" + (CommonManager.Instance.NWMode ? appName.Substring(8).ToUpperInvariant() : "2"));
+            if (!mutex.WaitOne(0, false))
+            {
+                mutex.Close();
+                Environment.Exit(0);
+            }
+
             if (Settings.Instance.NoStyle == 0)
             {
                 if (File.Exists(System.Reflection.Assembly.GetEntryAssembly().Location + ".rd.xaml"))
@@ -80,15 +92,6 @@ namespace EpgTimer
 
             // レイアウト用のスタイルをロード
             App.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Style/UiLayoutStyles.xaml") });
-
-            mutex = new Mutex(false, CommonManager.Instance.NWMode ? "Global\\EpgTimer_BonNW_" + appName.ToUpper() : "Global\\EpgTimer_Bon2");
-            if (!mutex.WaitOne(0, false))
-            {
-                CheckCmdLine();
-
-                mutex.Close();
-                Environment.Exit(0);
-            }
 
             if (CommonManager.Instance.NWMode == false)
             {
@@ -196,12 +199,7 @@ namespace EpgTimer
                     {
                         Thread.Sleep(100);
                     }
-                }
 
-                CheckCmdLine();
-
-                if (CommonManager.Instance.NWMode == false)
-                {
                     //予約一覧の表示に使用したりするのであらかじめ読込んでおく(暫定処置)
                     CommonManager.Instance.DB.ReloadReserveInfo(true);
                     CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
@@ -262,48 +260,53 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        private void CheckCmdLine()
+        private static bool CheckCmdLine()
         {
-            foreach (string arg in Environment.GetCommandLineArgs())
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length <= 1)
             {
-                String ext = System.IO.Path.GetExtension(arg);
-                if (string.Compare(ext, ".exe", true) == 0)
+                //引数なし
+                return false;
+            }
+            var cmd = new CtrlCmdUtil();
+            if (CommonManager.Instance.NWMode)
+            {
+                cmd.SetSendMode(true);
+                bool connected = false;
+                try
                 {
-                    //何もしない
+                    //IPv4の名前解決を優先する
+                    foreach (var address in System.Net.Dns.GetHostAddresses(Settings.Instance.NWServerIP).OrderBy(a => a.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork))
+                    {
+                        cmd.SetNWSetting(address, Settings.Instance.NWServerPort);
+                        byte[] binData;
+                        if (cmd.SendFileCopy("ChSet5.txt", out binData) == ErrCode.CMD_SUCCESS)
+                        {
+                            connected = ChSet5.Load(new System.IO.StreamReader(new System.IO.MemoryStream(binData), Encoding.GetEncoding(932)));
+                            break;
+                        }
+                    }
                 }
-                else if (string.Compare(ext, ".tvpid", true) == 0 || string.Compare(ext, ".tvpio", true) == 0)
+                catch { }
+                if (connected == false)
                 {
-                    //iEPG追加
-                    IEPGFileClass iepgFile = new IEPGFileClass();
-                    if (iepgFile.LoadTVPIDFile(arg) == true)
-                    {
-                        List<ReserveData> val = new List<ReserveData>();
-                        val.Add(iepgFile.AddInfo);
-                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
-                    }
-                    else
-                    {
-                        MessageBox.Show("解析に失敗しました。デジタル用Version 2のiEPGの必要があります。");
-                    }
-                }
-                else if (string.Compare(ext, ".tvpi", true) == 0)
-                {
-                    //iEPG追加
-                    IEPGFileClass iepgFile = new IEPGFileClass();
-                    if (iepgFile.LoadTVPIFile(arg) == true)
-                    {
-                        List<ReserveData> val = new List<ReserveData>();
-                        val.Add(iepgFile.AddInfo);
-                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
-                    }
-                    else
-                    {
-                        MessageBox.Show("解析に失敗しました。放送局名がサービスに関連づけされていない可能性があります。");
-                    }
+                    MessageBox.Show("EpgTimerSrvとの接続に失敗しました。EpgTimerNWの接続設定を確認してください。");
+                    return true;
                 }
             }
+            else
+            {
+                byte[] binData;
+                if (cmd.SendFileCopy("ChSet5.txt", out binData) != ErrCode.CMD_SUCCESS ||
+                    ChSet5.Load(new System.IO.StreamReader(new System.IO.MemoryStream(binData), Encoding.GetEncoding(932))) == false)
+                {
+                    MessageBox.Show("EpgTimerSrvとの接続に失敗しました。");
+                    return true;
+                }
+            }
+            SendAddReserveFromArgs(cmd, args.Skip(1));
+            return true;
         }
-
         private void ResetMainView()
         {
             RefreshMenu();          //右クリックメニューの更新
@@ -764,41 +767,78 @@ namespace EpgTimer
         private void Window_PreviewDrop(object sender, DragEventArgs e)
         {
             string[] filePath = e.Data.GetData(DataFormats.FileDrop, true) as string[];
-            if (filePath == null) return;
+            SendAddReserveFromArgs(CommonManager.CreateSrvCtrl(), filePath);
+        }
 
-            foreach (string path in filePath)
+        private static void SendAddReserveFromArgs(CtrlCmdUtil cmd, IEnumerable<string> args)
+        {
+            var addList = new List<ReserveData>();
+            foreach (string arg in args)
             {
-                String ext = System.IO.Path.GetExtension(path);
-                if (string.Compare(ext, ".tvpid", true) == 0 || string.Compare(ext, ".tvpio", true) == 0)
+                ReserveData info = null;
+                if (arg.EndsWith(".tvpid", StringComparison.OrdinalIgnoreCase) || arg.EndsWith(".tvpio", StringComparison.OrdinalIgnoreCase))
                 {
                     //iEPG追加
-                    IEPGFileClass iepgFile = new IEPGFileClass();
-                    if (iepgFile.LoadTVPIDFile(path) == true)
-                    {
-                        List<ReserveData> val = new List<ReserveData>();
-                        val.Add(iepgFile.AddInfo);
-                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
-                    }
-                    else
+                    info = IEPGFileClass.TryLoadTVPID(arg, ChSet5.ChList);
+                    if (info == null)
                     {
                         MessageBox.Show("解析に失敗しました。デジタル用Version 2のiEPGの必要があります。");
+                        return;
                     }
                 }
-                else if (string.Compare(ext, ".tvpi", true) == 0)
+                else if (arg.EndsWith(".tvpi", StringComparison.OrdinalIgnoreCase))
                 {
                     //iEPG追加
-                    IEPGFileClass iepgFile = new IEPGFileClass();
-                    if (iepgFile.LoadTVPIFile(path) == true)
-                    {
-                        List<ReserveData> val = new List<ReserveData>();
-                        val.Add(iepgFile.AddInfo);
-                        CommonManager.CreateSrvCtrl().SendAddReserve(val);
-                    }
-                    else
+                    info = IEPGFileClass.TryLoadTVPI(arg, ChSet5.ChList, Settings.Instance.IEpgStationList);
+                    if (info == null)
                     {
                         MessageBox.Show("解析に失敗しました。放送局名がサービスに関連づけされていない可能性があります。");
+                        return;
                     }
                 }
+                if (info != null)
+                {
+                    ulong pgID = CommonManager.Create64PgKey(info.OriginalNetworkID, info.TransportStreamID, info.ServiceID, info.EventID);
+                    var pgInfo = new EpgEventInfo();
+                    if (info.EventID != 0xFFFF && cmd.SendGetPgInfo(pgID, ref pgInfo) == ErrCode.CMD_SUCCESS)
+                    {
+                        //番組情報が見つかったので更新しておく
+                        if (pgInfo.ShortInfo != null)
+                        {
+                            info.Title = pgInfo.ShortInfo.event_name;
+                        }
+                        if (pgInfo.StartTimeFlag != 0)
+                        {
+                            info.StartTime = pgInfo.start_time;
+                            info.StartTimeEpg = pgInfo.start_time;
+                        }
+                        if (pgInfo.DurationFlag != 0)
+                        {
+                            info.DurationSecond = pgInfo.durationSec;
+                        }
+                    }
+                    info.RecSetting = Settings.Instance.RecPresetList[0].Data.Clone();
+                    addList.Add(info);
+                }
+            }
+            if (addList.Count > 0)
+            {
+                var list = new List<ReserveData>();
+                if (cmd.SendEnumReserve(ref list) == ErrCode.CMD_SUCCESS)
+                {
+                    //重複除去
+                    addList = addList.Where(a => list.All(b =>
+                        a.OriginalNetworkID != b.OriginalNetworkID ||
+                        a.TransportStreamID != b.TransportStreamID ||
+                        a.ServiceID != b.ServiceID ||
+                        a.EventID != b.EventID ||
+                        a.EventID == 0xFFFF && (a.StartTime != b.StartTime || a.DurationSecond != b.DurationSecond))).ToList();
+                    if (addList.Count == 0 || cmd.SendAddReserve(addList) == ErrCode.CMD_SUCCESS)
+                    {
+                        return;
+                    }
+                }
+                MessageBox.Show("予約追加に失敗しました。");
             }
         }
 

@@ -56,6 +56,7 @@
                     <TextBox Margin="6,0,0,0" Name="textBox_cautionManyChange" Width="62" />
                     <Label Content="以上" />
                 </StackPanel>
+                <CheckBox Margin="0,6,12,0" Content="引数つきで起動したとき(iEPG予約追加など)はすぐに終了する" Name="checkBox_exitAfterProcessingArgs" />
                 <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" />
                 <StackPanel Orientation="Horizontal" Margin="0,6,12,0" Name="stackPanel_WoLWait" IsEnabled="False">
                     <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" Name="checkBox_WoLWaitRecconect" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="WoL→接続(→待機→再接続)&#10;最初にマジックパケットを投げてから接続処理を行います。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
@@ -387,11 +388,12 @@
                     <RowDefinition Height="120" />
                     <RowDefinition Height="4" />
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="4" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Margin="0,0,0,12" Grid.ColumnSpan="5" Text="iEPG Version 1用の設定です。Version 2では必要ありません" Foreground="Red" />
                 <TextBlock Grid.Row="1" Text="サービス一覧" />
-                <ListView Grid.Row="3" Grid.RowSpan="4" Name="listBox_service" SelectionChanged="listBox_service_SelectionChanged" Style="{StaticResource ServiceListViewStyle}" SelectionMode="Single">
+                <ListView Grid.Row="3" Grid.RowSpan="5" Name="listBox_service" SelectionChanged="listBox_service_SelectionChanged" Style="{StaticResource ServiceListViewStyle}" SelectionMode="Single">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
@@ -407,6 +409,7 @@
                 <TextBox Grid.Row="5" Grid.Column="2" Name="textBox_station" />
                 <Button Grid.Row="3" Grid.Column="4" Content="削除" Name="button_del" Click="button_del_iepg_Click" VerticalAlignment="Bottom"/>
                 <Button Grid.Row="5" Grid.Column="4" Content="追加" Name="button_add" Click="button_add_iepg_Click" />
+                <TextBlock Grid.Row="7" Grid.Column="2" VerticalAlignment="Top" Text="iEPG放送局名は.tvpiファイルのstation:項目と比較されます。&#10;全半角と大小文字は区別しません。" TextWrapping="Wrap" />
             </Grid>
         </TabItem>
     </TabControl>

@@ -288,6 +288,7 @@ namespace EpgTimer.Setting
                 checkBox_cautionManyChange.IsChecked = Settings.Instance.CautionManyChange;
                 textBox_cautionManyChange.Text = Settings.Instance.CautionManyNum.ToString();
                 textBox_upDateTaskText.IsChecked = Settings.Instance.UpdateTaskText;
+                checkBox_exitAfterProcessingArgs.IsChecked = Settings.Instance.ExitAfterProcessingArgs;
                 checkBox_wakeReconnect.IsChecked = Settings.Instance.WakeReconnectNW;
                 checkBox_WoLWaitRecconect.IsChecked = Settings.Instance.WoLWaitRecconect;
                 textBox_WoLWaitSecond.Text = Settings.Instance.WoLWaitSecond.ToString();
@@ -431,6 +432,7 @@ namespace EpgTimer.Setting
 
                 Settings.Instance.CautionManyChange = checkBox_cautionManyChange.IsChecked != false;
                 Settings.Instance.CautionManyNum = MenuUtil.MyToNumerical(textBox_cautionManyChange, Convert.ToInt32, Settings.Instance.CautionManyNum);
+                Settings.Instance.ExitAfterProcessingArgs = (bool)checkBox_exitAfterProcessingArgs.IsChecked; 
                 Settings.Instance.WakeReconnectNW = checkBox_wakeReconnect.IsChecked == true;
                 Settings.Instance.WoLWaitRecconect = checkBox_WoLWaitRecconect.IsChecked == true;
                 Settings.Instance.WoLWaitSecond = MenuUtil.MyToNumerical(textBox_WoLWaitSecond, Convert.ToDouble, 3600, 1, Settings.Instance.WoLWaitSecond);

@@ -335,6 +335,7 @@ namespace EpgTimer
         public int ForceHideBalloonTipSec { get; set; }
         public bool PlayDClick { get; set; }
         public bool ShowEpgCapServiceOnly { get; set; }
+        public bool ExitAfterProcessingArgs { get; set; }
         public bool RecinfoErrCriticalDrops { get; set; }
         public double DragScroll { get; set; }
         public List<string> ContentColorList { get; set; }
@@ -613,6 +614,7 @@ namespace EpgTimer
             ForceHideBalloonTipSec = 0;
             PlayDClick = false;
             ShowEpgCapServiceOnly = false;
+            ExitAfterProcessingArgs = false;
             RecinfoErrCriticalDrops = false;
             DragScroll = 1.5;
             ReserveToolTipMode = 0;
