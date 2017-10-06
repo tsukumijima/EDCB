@@ -50,8 +50,9 @@ namespace EpgTimer
             mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
             RefreshMenu();
 
-            //録画プリセット変更時の対応
-            recSettingView.SelectedPresetChanged += SetRecSettingTabHeader;
+            //録画設定タブ関係の設定
+            recSettingView.SelectedPresetChanged += SetReserveTabHeader;
+            reserveTabHeader.MouseRightButtonUp += recSettingView.OpenPresetSelectMenuOnMouseEvent;
 
             tabControl.SelectedIndex = epgInfoOpenMode == 1 ? 0 : 1;
             if (KeepWin == true)
@@ -122,7 +123,7 @@ namespace EpgTimer
                 recSettingView.SetDefSetting(list[0].RecSetting);
             }
 
-            SetRecSettingTabHeader(recSetChange);
+            SetReserveTabHeader(recSetChange);
         }
         private List<ReserveData> GetReserveList()
         {
@@ -130,9 +131,9 @@ namespace EpgTimer
             return CommonManager.Instance.DB.ReserveList.Values.Where(data => data.CurrentPgUID() == id).ToList();
         }
 
-        public void SetRecSettingTabHeader(bool SimpleChanged = true)
+        public void SetReserveTabHeader(bool SimpleChanged = true)
         {
-            tabItem_reserve.Header = tabStr + recSettingView.GetRecSettingHeaderString(SimpleChanged);
+            reserveTabHeader.Text = tabStr + recSettingView.GetRecSettingHeaderString(SimpleChanged);
         }
 
         //proc 0:追加、1:変更、2:削除

@@ -59,8 +59,9 @@ namespace EpgTimer
             mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
             RefreshMenu();
 
-            //録画プリセット変更時の対応
-            recSettingView.SelectedPresetChanged += SetRecSettingTabHeader;
+            //録画設定タブ関係の設定
+            recSettingView.SelectedPresetChanged += SetReserveTabHeader;
+            reserveTabHeader.MouseRightButtonUp += recSettingView.OpenPresetSelectMenuOnMouseEvent;
 
             //その他設定
             //深夜時間関係は、comboBoxの表示だけ変更する手もあるが、
@@ -102,9 +103,9 @@ namespace EpgTimer
             CheckMultiReserve();
         }
 
-        public void SetRecSettingTabHeader(bool SimpleChanged = true)
+        public void SetReserveTabHeader(bool SimpleChanged = true)
         {
-            tabItem_reserve.Header = "予約" + recSettingView.GetRecSettingHeaderString(SimpleChanged);
+            reserveTabHeader.Text = "予約" + recSettingView.GetRecSettingHeaderString(SimpleChanged);
         }
 
         private void SetAddMode(AddMode mode)
@@ -195,7 +196,7 @@ namespace EpgTimer
             CheckMultiReserve();
             UpdateErrStatus();
             UpdateViewSelection(0);
-            SetRecSettingTabHeader(false);
+            SetReserveTabHeader(false);
         }
         private void UpdateErrStatus()
         {
@@ -386,7 +387,7 @@ namespace EpgTimer
                         ChangeData(newlist[0]);
                     }
                 }
-                SetRecSettingTabHeader(false);
+                SetReserveTabHeader(false);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -405,7 +406,7 @@ namespace EpgTimer
             }
 
             SetAddMode(AddMode.Re_Add);
-            SetRecSettingTabHeader(false);
+            SetReserveTabHeader(false);
         }
 
         //一応大丈夫だが、クリックのたびに実行されないようにしておく。

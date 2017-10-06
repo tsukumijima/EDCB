@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -134,6 +135,7 @@ namespace EpgTimer
                 CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();
                 ViewUtil.MainWindow.RefreshAllViewsReserveInfo(MainWindow.UpdateViewMode.ReserveInfoNoTuner);
             }
+            SetCustomPresetDisplayName();
 
             if (mode == PresetEdit.Set)
             {
@@ -176,9 +178,17 @@ namespace EpgTimer
             //"登録時"を追加する。既存があれば追加前に削除する。検索ダイアログの上下ボタンの移動用のコード。
             comboBox_preSet.Items.Remove(preEdit.FindPreset(RecPresetItem.CustomID));
             comboBox_preSet.Items.Add(new RecPresetItem("登録時", RecPresetItem.CustomID, recSetting.Clone()));
+            SetCustomPresetDisplayName();
 
             //該当するものがあれば選択、無ければ"登録時"。
             preEdit.ChangeSelect(MatchPresetOrDefault(recSetting), PresetSelectMode.InitLoad);
+        }
+        public void SetCustomPresetDisplayName()
+        {
+            if (preEdit.Items.Any() == false) return;
+            var cust = preEdit.Items.Last();
+            var chkItem = MatchPresetOrDefault(cust.Data);
+            cust.DisplayName = (chkItem == null || chkItem == cust) ? "登録時" : string.Format("登録時({0})", chkItem.DisplayName);
         }
 
         public RecSettingData GetRecSetting()
@@ -384,6 +394,19 @@ namespace EpgTimer
                 preset_str = string.Format(" - {0}", this.SelectedPreset(!SimpleChanged).ToString());
             }
             return preset_str;
+        }
+
+        public ContextMenu CreatePresetSlelectMenu()
+        {
+            SelectedPreset_Changed(false);//状態の確定
+            RecSettingData setting = GetRecSetting();
+            bool chk = false;
+            return preEdit.CreateSlelectMenu(item => !chk && (chk = setting.EqualsSettingTo(item.Data, IsManual)));
+        }
+        public void OpenPresetSelectMenuOnMouseEvent(object sender, MouseButtonEventArgs e)
+        {
+            if (Settings.Instance.DisplayPresetOnSearch == false) return;
+            CreatePresetSlelectMenu().IsOpen = true;
         }
     }
 

@@ -110,8 +110,9 @@ namespace EpgTimer
                 searchKeyView.KeyUp += (sender, e) => { if (e.Key == Key.Enter)button_search_Click(null, null); };
                 listView_result.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, DataListView);
 
-                //録画プリセット変更時の対応
+                //録画設定タブ関係の設定
                 recSettingView.SelectedPresetChanged += SetRecSettingTabHeader;
+                recSettingTabHeader.MouseRightButtonUp += recSettingView.OpenPresetSelectMenuOnMouseEvent;
 
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
@@ -165,7 +166,7 @@ namespace EpgTimer
         }
         public void SetRecSettingTabHeader(bool SimpleChanged = true)
         {
-            tabItem2.Header = "録画設定" + recSettingView.GetRecSettingHeaderString(SimpleChanged);
+            recSettingTabHeader.Text = "録画設定" + recSettingView.GetRecSettingHeaderString(SimpleChanged);
         }
 
         private void button_search_Click(object sender, ExecutedRoutedEventArgs e)

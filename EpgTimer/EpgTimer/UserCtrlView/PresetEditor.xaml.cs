@@ -137,5 +137,25 @@ namespace EpgTimer
             comboBox_preSet.Items.AddItems(setList.Concat(keepList));
             PresetEdited(PresetEdit.Set);
         }
+
+        public ContextMenu CreateSlelectMenu(Func<S, bool> isMenuChecked = null, Func<S, bool> isMenuEnabled = null, RoutedEventHandler clicked = null)
+        {
+            var ctxm = new ContextMenu();
+            int i = 0;
+            foreach (var item in Items)
+            {
+                var menu = new MenuItem() { Header = item.CloneObj() as S, Tag = i++ };
+                menu.Click += clicked ?? SelectMenuClicked;
+                if (isMenuChecked != null) menu.IsChecked = isMenuChecked(menu.Header as S);
+                if (isMenuEnabled != null) menu.IsEnabled = isMenuEnabled(menu.Header as S);
+                ctxm.Items.Add(menu);
+            }
+            return ctxm;
+        }
+        private void SelectMenuClicked(object sender, RoutedEventArgs e)
+        {
+            comboBox_preSet.SelectedIndex = -1;
+            comboBox_preSet.SelectedIndex = Math.Min((int)(sender as MenuItem).Tag, comboBox_preSet.Items.Count - 1);
+        }
     }
 }

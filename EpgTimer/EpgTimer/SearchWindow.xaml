@@ -23,7 +23,10 @@
             <TabItem Header="検索条件" Name="tabItem1" >
                 <my:SearchKeyView x:Name="searchKeyView" />
             </TabItem>
-            <TabItem Header="録画設定" Name="tabItem2">
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock Text="録画設定" Name="recSettingTabHeader" Margin="-8,-3" Padding="8,3"/>
+                </TabItem.Header>
                 <my:RecSettingView x:Name="recSettingView" />
             </TabItem>
         </TabControl>
