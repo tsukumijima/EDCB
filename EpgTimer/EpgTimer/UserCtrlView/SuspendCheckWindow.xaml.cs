@@ -10,7 +10,8 @@ namespace EpgTimer
     /// </summary>
     public partial class SuspendCheckWindow : Window
     {
-        public SuspendCheckWindow()
+        /// <summary>表示モード mode 0:再起動、1:スタンバイ、2:休止、3:シャットダウン</summary>
+        public SuspendCheckWindow(UInt32 mode = 0)
         {
             InitializeComponent();
 
@@ -32,12 +33,8 @@ namespace EpgTimer
             button_work_now.Click += (sender, e) => DialogResult = true;
             button_cancel.Click += (sender, e) => DialogResult = false;
             button_cancel.Focus();//スペースキーも効く
-        }
 
-        /// <summary>メッセージを変更。0:再起動、1:スタンバイ、2:休止、3:シャットダウン</summary>
-        public void SetMode(UInt32 mode)
-        {
-            var msg = new string[] { "再起動", "スタンバイに移行", "休止に移行", "シャットダウン"};
+            var msg = new[] { "再起動", "スタンバイに移行", "休止に移行", "シャットダウン" };
             label_msg.Content = (CommonManager.Instance.NWMode == false ? "" : "録画サーバを")
                                 + (mode > 3 ? " ？？ " : msg[mode])
                                 + (CommonManager.Instance.NWMode == false ? "します。" : "させます。");

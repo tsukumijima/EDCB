@@ -701,9 +701,9 @@ namespace EpgTimer
                     }
                     pipeServer.StopServer();
                 }
-                else
+                else if (Settings.Instance.NWWaitPort != 0 && CommonManager.Instance.NW.IsConnected == true && TrayManager.IsSrvLost == false)
                 {
-                    UnRegistTCP();
+                    CommonManager.CreateSrvCtrl().SendUnRegistTCP(Settings.Instance.NWWaitPort);
                 }
                 mutex.ReleaseMutex();
                 mutex.Close();
@@ -1044,27 +1044,18 @@ namespace EpgTimer
 
             if (Settings.Instance.SuspendChk == 1)
             {
-                var dlg = new SuspendCheckWindow();
-                dlg.SetMode(suspendMode);
-                if (dlg.ShowDialog() != true)
-                {
-                    return;
-                }
+                if (new SuspendCheckWindow(suspendMode).ShowDialog() != true) return;
             }
 
-            var cmdVal = (ushort)(0xFF00 | suspendMode);
             if (CommonManager.Instance.NWMode == true && Settings.Instance.SuspendCloseNW == true)
             {
-                UnRegistTCP();
-                CommonManager.CreateSrvCtrl().SendSuspend(cmdVal);
                 CloseCmd();
-                return;
             }
             else
             {
                 SaveData();
-                CommonManager.CreateSrvCtrl().SendSuspend(cmdVal);
             }
+            CommonManager.CreateSrvCtrl().SendSuspend((ushort)(0xFF00 | suspendMode));
         }
 
         void CustumCmd(int id)
@@ -1085,17 +1076,6 @@ namespace EpgTimer
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
-        }
-
-        private bool needUnRegist = true;
-        void UnRegistTCP()
-        {
-            if (Settings.Instance.NWWaitPort != 0 && needUnRegist == true
-                && CommonManager.Instance.NW.IsConnected == true && TrayManager.IsSrvLost == false)
-            {
-                CommonManager.CreateSrvCtrl().SendUnRegistTCP(Settings.Instance.NWWaitPort);
-            }
-            needUnRegist = false;
         }
 
         void NwTVEndCmd()
@@ -1191,9 +1171,7 @@ namespace EpgTimer
                                 }
                             }
 
-                            var dlg = new SuspendCheckWindow();
-                            dlg.SetMode(param & 0x00FFu);
-                            if (dlg.ShowDialog() == true)
+                            if (new SuspendCheckWindow(param & 0x00FFu).ShowDialog() == true)
                             {
                                 SaveData();
                                 CommonManager.CreateSrvCtrl().SendSuspend(param);
@@ -1208,9 +1186,7 @@ namespace EpgTimer
 
                         Dispatcher.BeginInvoke(new Action(() =>
                         {
-                            var dlg = new SuspendCheckWindow();
-                            dlg.SetMode(0);
-                            if (dlg.ShowDialog() == true)
+                            if (new SuspendCheckWindow(0).ShowDialog() == true)
                             {
                                 SaveData();
                                 CommonManager.CreateSrvCtrl().SendReboot();
