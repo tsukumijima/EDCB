@@ -100,24 +100,24 @@
                                 <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_week, Converter={StaticResource invert}}">
                                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4" >
                                         <ComboBox Margin="0,0,4,0" Name="comboBox_time_sw" Width="44" />
-                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_sh" Width="44" />
-                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_sm" Width="44" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_sh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_sm" Width="44" IsEditable="True" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="48,0,0,0" >
                                         <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_time_dash" />
                                         <ComboBox Margin="0,0,4,0" Name="comboBox_time_ew" Width="44" />
-                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_eh" Width="44" />
-                                        <ComboBox Margin="0,0,8,0" Name="comboBox_time_em" Width="44" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_eh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,8,0" Name="comboBox_time_em" Width="44" IsEditable="True" />
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_week, Converter={StaticResource convert}}">
                                     <StackPanel Name="stack_data_week" KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal" Margin="0,0,0,4" />
-                                    <StackPanel Orientation="Horizontal" >
-                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_sh" Width="44" />
-                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_sm" Width="44" />
+                                    <StackPanel Orientation="Horizontal" Name="panel_data_week_times">
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_sh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_sm" Width="44" IsEditable="True" />
                                         <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_week_dash" />
-                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_eh" Width="44" />
-                                        <ComboBox Margin="0,0,8,0" Name="comboBox_week_em" Width="44" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_eh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,8,0" Name="comboBox_week_em" Width="44" IsEditable="True" />
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>

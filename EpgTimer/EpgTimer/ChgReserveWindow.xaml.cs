@@ -73,11 +73,14 @@ namespace EpgTimer
             comboBox_em.ItemsSource = Enumerable.Range(0, 60);
             comboBox_ss.ItemsSource = Enumerable.Range(0, 60);
             comboBox_es.ItemsSource = Enumerable.Range(0, 60);
+            ViewUtil.Set_ComboBox_LostFocus_SelectItemUInt(stack_start);
+            ViewUtil.Set_ComboBox_LostFocus_SelectItemUInt(stack_end);
 
             if (info == null)
             {
                 info = new ReserveData();
-                info.StartTime = DateTime.UtcNow.AddHours(9).AddMinutes(1);
+                var sTime = DateTime.UtcNow.AddHours(9).AddMinutes(5);
+                info.StartTime = sTime.AddSeconds(-sTime.Second);
                 info.StartTimeEpg = info.StartTime;
                 info.DurationSecond = 1800;
                 info.EventID = 0xFFFF;

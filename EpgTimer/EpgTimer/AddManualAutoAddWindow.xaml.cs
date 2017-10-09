@@ -70,6 +70,7 @@ namespace EpgTimer
                 comboBox_endMM.SelectedIndex = 0;
                 comboBox_endSS.ItemsSource = Enumerable.Range(0, 60);
                 comboBox_endSS.SelectedIndex = 0;
+                ViewUtil.Set_ComboBox_LostFocus_SelectItemUInt(panel_times);
 
                 comboBox_service.ItemsSource = ChSet5.ChListSelected;
                 comboBox_service.SelectedIndex = 0;

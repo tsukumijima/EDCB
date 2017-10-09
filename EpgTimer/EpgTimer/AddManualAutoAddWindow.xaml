@@ -18,15 +18,15 @@
                 <Label Content="サービス　"  Margin="18,0,0,0" />
                 <ComboBox Name="comboBox_service" Width="200" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Name="panel_times">
                 <Label Content="録画時間" Width="76" />
-                <ComboBox Name="comboBox_startHH" Width="44" />
-                <ComboBox Name="comboBox_startMM" Width="44" Margin="3,0" />
-                <ComboBox Name="comboBox_startSS" Width="44" />
+                <ComboBox Name="comboBox_startHH" Width="44" IsEditable="True" />
+                <ComboBox Name="comboBox_startMM" Width="44" Margin="3,0" IsEditable="True" />
+                <ComboBox Name="comboBox_startSS" Width="44" IsEditable="True" />
                 <Label Content="　～　" />
-                <ComboBox Name="comboBox_endHH" Width="44" />
-                <ComboBox Name="comboBox_endMM" Width="44" Margin="3,0" />
-                <ComboBox Name="comboBox_endSS" Width="44" />
+                <ComboBox Name="comboBox_endHH" Width="44" IsEditable="True" />
+                <ComboBox Name="comboBox_endMM" Width="44" Margin="3,0" IsEditable="True" />
+                <ComboBox Name="comboBox_endSS" Width="44" IsEditable="True" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                 <Label Content="録画曜日" Width="76" />

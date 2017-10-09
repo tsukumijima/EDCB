@@ -525,6 +525,27 @@ namespace EpgTimer
             });
         }
 
+        public static void Set_ComboBox_LostFocus_SelectItemUInt(Panel panel)
+        {
+            Set_ComboBox_LostFocus_SelectItemUInt(panel.Children.OfType<ComboBox>().ToArray());
+        }
+        public static void Set_ComboBox_LostFocus_SelectItemUInt(params ComboBox[] radioButtonList)
+        {
+            foreach (var cmb in radioButtonList)
+            {
+                cmb.LostFocus += ComboBox_LostFocus_SelectUIntItem;
+                cmb.LostKeyboardFocus += ComboBox_LostFocus_SelectUIntItem;
+            }
+        }
+        private static void ComboBox_LostFocus_SelectUIntItem(object sender, RoutedEventArgs e)
+        {
+            var box = sender as ComboBox;
+            uint val;
+            uint.TryParse(box.Text, out val);
+            box.Text = val.ToString();
+            if (box.SelectedItem == null) box.SelectedIndex = 0;
+        }
+
         ///<summary>同じアイテムがあってもスクロールするようにしたもの(ItemSource使用時無効)</summary>
         //ScrollIntoView()は同じアイテムが複数あると上手く動作しないので、ダミーを使って無理矢理移動させる。
         //同じ理由でSelectedItemも正しく動作しないので、スクロール位置はindexで取るようにする。

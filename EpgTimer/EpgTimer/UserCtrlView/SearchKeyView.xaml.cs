@@ -55,6 +55,8 @@ namespace EpgTimer
             comboBox_week_eh.SelectedIndex = 23;
             comboBox_week_em.ItemsSource = Enumerable.Range(0, 60);
             comboBox_week_em.SelectedIndex = 59;
+            ViewUtil.Set_ComboBox_LostFocus_SelectItemUInt(comboBox_time_sh, comboBox_time_sm, comboBox_time_eh, comboBox_time_em);
+            ViewUtil.Set_ComboBox_LostFocus_SelectItemUInt(panel_data_week_times);
 
             new BoxExchangeEdit.BoxExchangeEditor(null, listView_service, true);
             SelectableItem.Set_CheckBox_PreviewChanged(listView_service);

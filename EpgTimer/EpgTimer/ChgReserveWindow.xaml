@@ -53,16 +53,16 @@
                         <Label Content="開始日時" Grid.Row="2" Margin="0,0,6,0" />
                         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Name="stack_start">
                             <DatePicker Height="24" Name="datePicker_start" VerticalAlignment="Center" Width="115" Margin="0,0,3,0" SelectedDateFormat="Short" />
-                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_sh" Width="44" />
-                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_sm" Width="44" />
-                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_ss" Width="44" />
+                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_sh" Width="44" IsEditable="True" />
+                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_sm" Width="44" IsEditable="True" />
+                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_ss" Width="44" IsEditable="True" />
                         </StackPanel>
                         <Label Content="終了日時" Grid.Row="2" Grid.Column="3" Margin="18,0,6,0" />
                         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="4" Name="stack_end">
                             <DatePicker Height="25" Name="datePicker_end" VerticalAlignment="Center" Width="115" Margin="0,0,3,0" />
-                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_eh" Width="44" />
-                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_em" Width="44" />
-                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_es" Width="44" />
+                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_eh" Width="44" IsEditable="True" />
+                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_em" Width="44" IsEditable="True" />
+                            <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_es" Width="44" IsEditable="True" />
                         </StackPanel>
                     </Grid>
                     <local:RecSettingView x:Name="recSettingView" Grid.Row="1"/>
