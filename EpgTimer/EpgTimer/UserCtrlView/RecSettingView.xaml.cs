@@ -130,6 +130,7 @@ namespace EpgTimer
         private void PresetEdited(List<RecPresetItem> list, PresetEdit mode)
         {
             Settings.Instance.RecPresetList = list;
+            SettingWindow.UpdatesInfo();
             if (CommonManager.Instance.NWMode == false)
             {
                 CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();

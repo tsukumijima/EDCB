@@ -77,10 +77,10 @@
                                 <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
                                     <CheckBox Content="番組内容のポップアップ表示" Margin="0,6,0,0" Name="checkBox_epg_popup" />
                                     <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_epg_popup, UpdateSourceTrigger=PropertyChanged}" >
-                                        <WrapPanel>
-                                            <RadioButton Content="マウスオーバー" Margin="0,6,12,0" Name="radioButton_epg_popup_onOver" />
-                                            <RadioButton Content="クリックしたとき" Margin="0,6,12,0" Name="radioButton_epg_popup_onClick" />
-                                            <RadioButton Content="予約のみマウスオーバーで、他はクリックしたとき" Margin="0,6,12,0" Name="radioButton_epg_popup_resOnly" />
+                                        <WrapPanel Name="panel_epgPopup">
+                                            <RadioButton Content="マウスオーバー" Margin="0,6,12,0" />
+                                            <RadioButton Content="クリックしたとき" Margin="0,6,12,0" />
+                                            <RadioButton Content="予約のみマウスオーバーで、他はクリックしたとき" Margin="0,6,12,0" />
                                         </WrapPanel>
                                         <WrapPanel>
                                             <Label Content="ポップアップの幅　サービスの幅 ×" />
@@ -425,9 +425,9 @@
                                 <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
                                     <CheckBox Content="予約のポップアップ表示" Margin="0,6,0,0" Name="checkBox_tuner_popup" />
                                     <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_tuner_popup, UpdateSourceTrigger=PropertyChanged}" >
-                                        <WrapPanel>
-                                            <RadioButton Content="マウスオーバー" Margin="0,6,12,0" Name="radioButton_tuner_popup_onOver" />
-                                            <RadioButton Content="クリックしたとき" Margin="0,6,12,0" Name="radioButton_tuner_popup_onClick" />
+                                        <WrapPanel Name="panel_tunerPopup">
+                                            <RadioButton Content="マウスオーバー" Margin="0,6,12,0" />
+                                            <RadioButton Content="クリックしたとき" Margin="0,6,12,0" />
                                         </WrapPanel>
                                         <CheckBox Content="ポップアップに優先度と録画モードを表示する" Margin="0,6,0,0" Name="checkBox_tuner_popup_recInfo" />
                                         <WrapPanel>
@@ -438,9 +438,9 @@
                                     </StackPanel>
                                     <CheckBox Content="詳細をツールチップ表示する" Margin="0,6,0,0" Name="checkBox_tunerDescToolTip" />
                                     <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_tunerDescToolTip, UpdateSourceTrigger=PropertyChanged}" >
-                                        <WrapPanel>
-                                            <RadioButton Margin="0,6,12,0" Content="予約情報" Name="radioButton_tunerToolTipTunerInfo" />
-                                            <RadioButton Margin="0,6,12,0" Content="番組情報" Name="radioButton_tunerToolTipEpgInfo" />
+                                        <WrapPanel Name="panel_tunerTooltip">
+                                            <RadioButton Margin="0,6,12,0" Content="予約情報" />
+                                            <RadioButton Margin="0,6,12,0" Content="番組情報" />
                                         </WrapPanel>
                                         <WrapPanel>
                                             <Label Content="ツールチップを表示するまでの時間(ミリ秒) " />

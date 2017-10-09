@@ -500,17 +500,14 @@ namespace EpgTimer
             return isAdd;
         }
 
-        public static KeyEventHandler KeyDown_Escape_Close()
+        public static void KeyDown_Escape_Close(object sender, KeyEventArgs e)
         {
-            return new KeyEventHandler((sender, e) =>
+            if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Escape)
             {
-                if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Escape)
-                {
-                    e.Handled = true;
-                    var win = CommonUtil.GetTopWindow(sender as Visual);
-                    if (win != null) win.Close();
-                }
-            });
+                e.Handled = true;
+                var win = CommonUtil.GetTopWindow(sender as Visual);
+                if (win != null) win.Close();
+            }
         }
 
         public static KeyEventHandler KeyDown_Enter(Button btn)

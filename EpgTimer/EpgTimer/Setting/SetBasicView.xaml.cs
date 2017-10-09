@@ -22,8 +22,6 @@ namespace EpgTimer.Setting
         {
             InitializeComponent();
 
-            IsChangeSettingPath = false;
-
             if (CommonManager.Instance.NWMode == true)
             {
                 ViewUtil.ChangeChildren(grid_folder, false);
@@ -64,234 +62,9 @@ namespace EpgTimer.Setting
                 checkBox_dlnaServer.IsEnabled = false;
             }
 
-            listBox_Button_Set();
+            checkbox_OpenFolderWithFileDialog.Click += (sender, e) =>
+                Settings.Instance.OpenFolderWithFileDialog = checkbox_OpenFolderWithFileDialog.IsChecked == true;
 
-            try
-            {
-                checkbox_OpenFolderWithFileDialog.IsChecked = Settings.Instance.OpenFolderWithFileDialog;
-                checkbox_OpenFolderWithFileDialog.Click += (sender, e) =>
-                    Settings.Instance.OpenFolderWithFileDialog = checkbox_OpenFolderWithFileDialog.IsChecked == true;
-
-                textBox_setPath.Text = SettingPath.SettingFolderPath;
-                textBox_exe.Text = SettingPath.EdcbExePath;
-
-                textBox_cmdBon.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", SettingPath.ViewAppIniPath);
-                textBox_cmdMin.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", SettingPath.ViewAppIniPath);
-                textBox_cmdViewOff.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", SettingPath.ViewAppIniPath);
-
-                Settings.Instance.DefRecFolders.ForEach(folder => listBox_recFolder.Items.Add(folder));
-                textBox_recInfoFolder.Text = IniFileHandler.GetPrivateProfileFolder("SET", "RecInfoFolder", SettingPath.CommonIniPath);
-
-                var tunerInfo = new List<KeyValuePair<Int32, TunerInfo>>();
-                foreach (string fileName in CommonManager.GetBonFileList())
-                {
-                    var item = new TunerInfo(fileName);
-                    item.TunerNum = IniFileHandler.GetPrivateProfileInt(item.BonDriver, "Count", 0, SettingPath.TimerSrvIniPath).ToString();
-                    bool isEpgCap = (IniFileHandler.GetPrivateProfileInt(item.BonDriver, "GetEpg", 1, SettingPath.TimerSrvIniPath) != 0);
-                    item.EPGNum = IniFileHandler.GetPrivateProfileInt(item.BonDriver, "EPGCount", 0, SettingPath.TimerSrvIniPath).ToString();
-                    item.EPGNum = (isEpgCap == true && item.EPGNumInt == 0) ? "すべて" : item.EPGNum;
-                    int priority = IniFileHandler.GetPrivateProfileInt(item.BonDriver, "Priority", 0xFFFF, SettingPath.TimerSrvIniPath);
-                    tunerInfo.Add(new KeyValuePair<int, TunerInfo>(priority, item));
-                }
-                foreach (var item in tunerInfo.ToLookup(info => info.Key, info => info.Value).OrderBy(item => item.Key))
-                {
-                    listBox_bon.Items.AddItems(item);
-                }
-                if (listBox_bon.Items.Count > 0)
-                {
-                    listBox_bon.SelectedIndex = 0;
-                }
-
-                combo_bon_num.ItemsSource = Enumerable.Range(0, 100);
-                combo_bon_epgnum.Items.Add("すべて");
-                combo_bon_epgnum.Items.AddItems(Enumerable.Range(0, 100));
-
-                comboBox_wday.ItemsSource = new string[] { "毎日" }.Concat(CommonManager.DayOfWeekArray);
-                comboBox_wday.SelectedIndex = 0;
-                comboBox_HH.ItemsSource = Enumerable.Range(0, 24);
-                comboBox_HH.SelectedIndex = 0;
-                comboBox_MM.ItemsSource = Enumerable.Range(0, 60);
-                comboBox_MM.SelectedIndex = 0;
-
-                listView_service.ItemsSource = ChSet5.ChListSorted.Select(info => new ServiceViewItem(info) { IsSelected = info.EpgCapFlag }).ToList();
-
-                checkBox_bs.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "BSBasicOnly", 1, SettingPath.CommonIniPath) == 1;
-                checkBox_cs1.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS1BasicOnly", 1, SettingPath.CommonIniPath) == 1;
-                checkBox_cs2.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS2BasicOnly", 1, SettingPath.CommonIniPath) == 1;
-                checkBox_cs3.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "CS3BasicOnly", 0, SettingPath.CommonIniPath) == 1;
-                textBox_EpgCapTimeOut.Text = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapTimeOut", 10, SettingPath.BonCtrlIniPath).ToString();
-                checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileBool("EPGCAP", "EpgCapSaveTimeOut", false, SettingPath.BonCtrlIniPath);
-                checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileInt("SET", "TimeSync", 0, SettingPath.TimerSrvIniPath) == 1;
-                checkBox_showEpgCapServiceOnly.IsChecked = Settings.Instance.ShowEpgCapServiceOnly;
-
-                int capCount = IniFileHandler.GetPrivateProfileInt("EPG_CAP", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
-                if (capCount == int.MaxValue)
-                {
-                    var item = new EpgCaptime();
-                    item.IsSelected = true;
-                    item.Time = "23:00";
-                    item.BSBasicOnly = checkBox_bs.IsChecked == true;
-                    item.CS1BasicOnly = checkBox_cs1.IsChecked == true;
-                    item.CS2BasicOnly = checkBox_cs2.IsChecked == true;
-                    item.CS3BasicOnly = checkBox_cs3.IsChecked == true;
-                    timeList.Add(item);
-                }
-                else
-                {
-                    for (int i = 0; i < capCount; i++)
-                    {
-                        var item = new EpgCaptime();
-                        item.Time = IniFileHandler.GetPrivateProfileString("EPG_CAP", i.ToString(), "", SettingPath.TimerSrvIniPath);
-                        item.IsSelected = IniFileHandler.GetPrivateProfileInt("EPG_CAP", i.ToString() + "Select", 0, SettingPath.TimerSrvIniPath) == 1;
-
-                        // 取得種別(bit0(LSB)=BS,bit1=CS1,bit2=CS2,bit3=CS3)。負値のときは共通設定に従う
-                        int flags = IniFileHandler.GetPrivateProfileInt("EPG_CAP", i.ToString() + "BasicOnlyFlags", -1, SettingPath.TimerSrvIniPath);
-                        item.BSBasicOnly = flags >= 0 ? (flags & 1) != 0 : checkBox_bs.IsChecked == true;
-                        item.CS1BasicOnly = flags >= 0 ? (flags & 2) != 0 : checkBox_cs1.IsChecked == true;
-                        item.CS2BasicOnly = flags >= 0 ? (flags & 4) != 0 : checkBox_cs2.IsChecked == true;
-                        item.CS3BasicOnly = flags >= 0 ? (flags & 8) != 0 : checkBox_cs3.IsChecked == true;
-                        timeList.Add(item);
-                    }
-                }
-                listView_time.ItemsSource = timeList;
-
-                textBox_ngCapMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTime", 20, SettingPath.TimerSrvIniPath).ToString();
-                textBox_ngTunerMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTunerTime", 20, SettingPath.TimerSrvIniPath).ToString();
-
-                // ネットワーク
-                checkBox_tcpServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableTCPSrv", false, SettingPath.TimerSrvIniPath);
-                checkBox_tcpIPv6.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "TCPIPv6", false, SettingPath.TimerSrvIniPath);
-                textBox_tcpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPPort", 4510, SettingPath.TimerSrvIniPath).ToString();
-                textBox_tcpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "TCPAccessControlList", "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
-                textBox_tcpResTo.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPResponseTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
-
-                int enableHttpSrv = IniFileHandler.GetPrivateProfileInt("SET", "EnableHttpSrv", 0, SettingPath.TimerSrvIniPath);
-                checkBox_httpServer.IsChecked = enableHttpSrv != 0;
-                checkBox_httpLog.IsChecked = enableHttpSrv == 2;
-
-                textBox_httpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpPort", 5510, SettingPath.TimerSrvIniPath).ToString();
-                textBox_httpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpAccessControlList", "+127.0.0.1", SettingPath.TimerSrvIniPath);
-                textBox_httpTimeout.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpRequestTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
-                textBox_httpThreads.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpNumThreads", 5, SettingPath.TimerSrvIniPath).ToString();
-                textBox_docrootPath.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpPublicFolder", SettingPath.DefHttpPublicPath, SettingPath.TimerSrvIniPath);
-                checkBox_dlnaServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableDMS", false, SettingPath.TimerSrvIniPath);
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-        }
-
-        public void SaveSetting()
-        {
-            try
-            {
-                string org_setPath = SettingPath.SettingFolderPath;
-                SettingPath.SettingFolderPath = textBox_setPath.Text;
-                System.IO.Directory.CreateDirectory(SettingPath.SettingFolderPath);
-                IsChangeSettingPath = string.Compare(org_setPath, SettingPath.SettingFolderPath, true) != 0;
-
-                SettingPath.EdcbExePath = textBox_exe.Text;
-
-                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", SettingPath.ViewAppIniPath) != textBox_cmdBon.Text)
-                {
-                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Bon", textBox_cmdBon.Text, SettingPath.ViewAppIniPath);
-                }
-                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", SettingPath.ViewAppIniPath) != textBox_cmdMin.Text)
-                {
-                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Min", textBox_cmdMin.Text, SettingPath.ViewAppIniPath);
-                }
-                if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", SettingPath.ViewAppIniPath) != textBox_cmdViewOff.Text)
-                {
-                    IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "ViewOff", textBox_cmdViewOff.Text, SettingPath.ViewAppIniPath);
-                }
-
-                List<String> recFolderList = ViewUtil.GetFolderList(listBox_recFolder);
-                int recFolderCount = recFolderList.Count == 1 &&
-                    string.Compare(recFolderList[0], SettingPath.SettingFolderPath, true) == 0 ? 0 : recFolderList.Count;
-                IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount.ToString(), SettingPath.CommonIniPath);
-                IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
-                for (int i = 0; i < recFolderCount; i++)
-                {
-                    IniFileHandler.WritePrivateProfileString("SET", "RecFolderPath" + i.ToString(), recFolderList[i], SettingPath.CommonIniPath);
-                }
-
-                var recInfoFolder = SettingPath.CheckFolder(textBox_recInfoFolder.Text);
-                IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolder", recInfoFolder, "", SettingPath.CommonIniPath);
-
-                for (int i = 0; i < listBox_bon.Items.Count; i++)
-                {
-                    var info = listBox_bon.Items[i] as TunerInfo;
-                    IniFileHandler.WritePrivateProfileString(info.BonDriver, "Count", info.TunerNumInt.ToString(), SettingPath.TimerSrvIniPath);
-                    IniFileHandler.WritePrivateProfileString(info.BonDriver, "GetEpg", info.EPGNum == "0" ? "0" : "1", SettingPath.TimerSrvIniPath);
-                    IniFileHandler.WritePrivateProfileString(info.BonDriver, "EPGCount", info.EPGNumInt >= info.TunerNumInt ? "0" : info.EPGNumInt.ToString(), SettingPath.TimerSrvIniPath);
-                    IniFileHandler.WritePrivateProfileString(info.BonDriver, "Priority", i.ToString(), SettingPath.TimerSrvIniPath);
-                }
-
-                IniFileHandler.WritePrivateProfileString("SET", "BSBasicOnly", checkBox_bs.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "CS1BasicOnly", checkBox_cs1.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "CS2BasicOnly", checkBox_cs2.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "CS3BasicOnly", checkBox_cs3.IsChecked == true ? "1" : "0", SettingPath.CommonIniPath);
-                IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapTimeOut", textBox_EpgCapTimeOut.Text, SettingPath.BonCtrlIniPath);
-                IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapSaveTimeOut", checkBox_EpgCapSaveTimeOut.IsChecked == true ? "1" : "0", SettingPath.BonCtrlIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked, SettingPath.TimerSrvIniPath);
-                Settings.Instance.ShowEpgCapServiceOnly = (bool)checkBox_showEpgCapServiceOnly.IsChecked;
-
-                foreach (ServiceViewItem info in listView_service.ItemsSource)
-                {
-                    if (ChSet5.ChList.ContainsKey(info.Key) == true)//変更中に更新される場合があるため
-                    {
-                        ChSet5.ChList[info.Key].EpgCapFlag = info.IsSelected;
-                    }
-                }
-
-                IniFileHandler.WritePrivateProfileString("EPG_CAP", "Count", timeList.Count.ToString(), SettingPath.TimerSrvIniPath);
-                IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath);
-                IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath, "", "Select");
-                IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath, "", "BasicOnlyFlags");
-                for (int i = 0; i < timeList.Count; i++)
-                {
-                    var item = timeList[i] as EpgCaptime;
-                    IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString(), item.Time, SettingPath.TimerSrvIniPath);
-                    IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString() + "Select", item.IsSelected == true ? "1" : "0", SettingPath.TimerSrvIniPath);
-                    int flags = (item.BSBasicOnly ? 1 : 0) | (item.CS1BasicOnly ? 2 : 0) | (item.CS2BasicOnly ? 4 : 0) | (item.CS3BasicOnly ? 8 : 0);
-                    IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString() + "BasicOnlyFlags", flags.ToString(), SettingPath.TimerSrvIniPath);
-                }
-
-                IniFileHandler.WritePrivateProfileString("SET", "NGEpgCapTime", textBox_ngCapMin.Text, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "NGEpgCapTunerTime", textBox_ngTunerMin.Text, SettingPath.TimerSrvIniPath);
-
-                // ネットワーク
-                IniFileHandler.WritePrivateProfileString("SET", "EnableTCPSrv", checkBox_tcpServer.IsChecked, false, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TCPIPv6", checkBox_tcpIPv6.IsChecked, false, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TCPPort", textBox_tcpPort.Text, "4510", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TCPAccessControlList", textBox_tcpAcl.Text, "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "TCPResponseTimeoutSec", textBox_tcpResTo.Text, "120", SettingPath.TimerSrvIniPath);
-
-                var enableHttpSrv = checkBox_httpServer.IsChecked != true ? null : checkBox_httpLog.IsChecked != true ? "1" : "2";
-                IniFileHandler.WritePrivateProfileString("SET", "EnableHttpSrv", enableHttpSrv, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "HttpPort", textBox_httpPort.Text, "5510", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "HttpAccessControlList", textBox_httpAcl.Text, "+127.0.0.1", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "HttpRequestTimeoutSec", textBox_httpTimeout.Text, "120", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "HttpNumThreads", textBox_httpThreads.Text, "5", SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "HttpPublicFolder", textBox_docrootPath.Text, SettingPath.DefHttpPublicPath, SettingPath.TimerSrvIniPath);
-                IniFileHandler.WritePrivateProfileString("SET", "EnableDMS", checkBox_dlnaServer.IsChecked, false, SettingPath.TimerSrvIniPath);
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-        }
-
-        private void button_setPath_Click(object sender, RoutedEventArgs e)
-        {
-            CommonManager.GetFolderNameByDialog(textBox_setPath, "設定関係保存フォルダの選択");
-        }
-        private void button_exe_Click(object sender, RoutedEventArgs e)
-        {
-            CommonManager.GetFileNameByDialog(textBox_exe, false, "", ".exe", true);
-        }
-        private void button_recInfoFolder_Click(object sender, RoutedEventArgs e)
-        {
-            CommonManager.GetFolderNameByDialog(textBox_recInfoFolder, "録画情報保存フォルダの選択", true);
-        }
-
-        private void listBox_Button_Set()
-        {
             //エスケープキャンセルだけは常に有効にする。
             var bxr = new BoxExchangeEditor(null, this.listBox_recFolder, true);
             var bxb = new BoxExchangeEditor(null, this.listBox_bon, true);
@@ -327,9 +100,221 @@ namespace EpgTimer.Setting
                 button_downTime.Click += new RoutedEventHandler(bxt.button_Down_Click);
                 button_delTime.Click += new RoutedEventHandler(bxt.button_Delete_Click);
                 SelectableItem.Set_CheckBox_PreviewChanged(listView_time);
-
                 SelectableItem.Set_CheckBox_PreviewChanged(listView_service);
             }
+
+            combo_bon_num.ItemsSource = Enumerable.Range(0, 100);
+            combo_bon_epgnum.Items.Add("すべて");
+            combo_bon_epgnum.Items.AddItems(Enumerable.Range(0, 100));
+
+            comboBox_wday.ItemsSource = new[] { "毎日" }.Concat(CommonManager.DayOfWeekArray);
+            comboBox_wday.SelectedIndex = 0;
+            comboBox_HH.ItemsSource = Enumerable.Range(0, 24);
+            comboBox_HH.SelectedIndex = 0;
+            comboBox_MM.ItemsSource = Enumerable.Range(0, 60);
+            comboBox_MM.SelectedIndex = 0;
+        }
+
+        public void LoadSetting()
+        {
+            IsChangeSettingPath = false;
+
+            checkbox_OpenFolderWithFileDialog.IsChecked = Settings.Instance.OpenFolderWithFileDialog;
+            textBox_setPath.Text = SettingPath.SettingFolderPath;
+            textBox_exe.Text = SettingPath.EdcbExePath;
+            textBox_cmdBon.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", SettingPath.ViewAppIniPath);
+            textBox_cmdMin.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", SettingPath.ViewAppIniPath);
+            textBox_cmdViewOff.Text = IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", SettingPath.ViewAppIniPath);
+
+            listBox_recFolder.Items.Clear();
+            Settings.Instance.DefRecFolders.ForEach(folder => listBox_recFolder.Items.Add(folder));
+            textBox_recInfoFolder.Text = IniFileHandler.GetPrivateProfileFolder("SET", "RecInfoFolder", SettingPath.CommonIniPath);
+
+            listBox_bon.Items.Clear();
+            listBox_bon.Items.AddItems(CommonManager.GetBonFileList().Select(fileName =>
+            {
+                var item = new TunerInfo(fileName);
+                item.TunerNum = IniFileHandler.GetPrivateProfileInt(item.BonDriver, "Count", 0, SettingPath.TimerSrvIniPath).ToString();
+                bool isEpgCap = IniFileHandler.GetPrivateProfileBool(item.BonDriver, "GetEpg", true, SettingPath.TimerSrvIniPath);
+                int epgNum = IniFileHandler.GetPrivateProfileInt(item.BonDriver, "EPGCount", 0, SettingPath.TimerSrvIniPath);
+                item.EPGNum = (isEpgCap == true && epgNum == 0) ? "すべて" : epgNum.ToString();
+                item.Priority = IniFileHandler.GetPrivateProfileInt(item.BonDriver, "Priority", 0xFFFF, SettingPath.TimerSrvIniPath);
+                return item;
+            }).OrderBy(item => item.Priority));
+            listBox_bon.SelectedIndex = 0;
+
+            listView_service.ItemsSource = ChSet5.ChListSorted.Select(info => new ServiceViewItem(info) { IsSelected = info.EpgCapFlag }).ToList();
+
+            checkBox_bs.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "BSBasicOnly", true, SettingPath.CommonIniPath);
+            checkBox_cs1.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CS1BasicOnly", true, SettingPath.CommonIniPath);
+            checkBox_cs2.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CS2BasicOnly", true, SettingPath.CommonIniPath);
+            checkBox_cs3.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CS3BasicOnly", false, SettingPath.CommonIniPath);
+            textBox_EpgCapTimeOut.Text = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapTimeOut", 10, SettingPath.BonCtrlIniPath).ToString();
+            checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileBool("EPGCAP", "EpgCapSaveTimeOut", false, SettingPath.BonCtrlIniPath);
+            checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "TimeSync", false, SettingPath.TimerSrvIniPath);
+            checkBox_showEpgCapServiceOnly.IsChecked = Settings.Instance.ShowEpgCapServiceOnly;
+
+            listView_time.ItemsSource = null;
+            timeList.Clear();
+            int capCount = IniFileHandler.GetPrivateProfileInt("EPG_CAP", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
+            if (capCount == int.MaxValue)
+            {
+                var item = new EpgCaptime();
+                item.IsSelected = true;
+                item.Time = "23:00";
+                item.BSBasicOnly = (bool)checkBox_bs.IsChecked;
+                item.CS1BasicOnly = (bool)checkBox_cs1.IsChecked;
+                item.CS2BasicOnly = (bool)checkBox_cs2.IsChecked;
+                item.CS3BasicOnly = (bool)checkBox_cs3.IsChecked;
+                timeList.Add(item);
+            }
+            else
+            {
+                for (int i = 0; i < capCount; i++)
+                {
+                    var item = new EpgCaptime();
+                    item.Time = IniFileHandler.GetPrivateProfileString("EPG_CAP", i.ToString(), "", SettingPath.TimerSrvIniPath);
+                    item.IsSelected = IniFileHandler.GetPrivateProfileBool("EPG_CAP", i.ToString() + "Select", false, SettingPath.TimerSrvIniPath);
+
+                    // 取得種別(bit0(LSB)=BS,bit1=CS1,bit2=CS2,bit3=CS3)。負値のときは共通設定に従う
+                    int flags = IniFileHandler.GetPrivateProfileInt("EPG_CAP", i.ToString() + "BasicOnlyFlags", -1, SettingPath.TimerSrvIniPath);
+                    item.BSBasicOnly = flags >= 0 ? (flags & 1) != 0 : (bool)checkBox_bs.IsChecked;
+                    item.CS1BasicOnly = flags >= 0 ? (flags & 2) != 0 : (bool)checkBox_cs1.IsChecked;
+                    item.CS2BasicOnly = flags >= 0 ? (flags & 4) != 0 : (bool)checkBox_cs2.IsChecked;
+                    item.CS3BasicOnly = flags >= 0 ? (flags & 8) != 0 : (bool)checkBox_cs3.IsChecked;
+                    timeList.Add(item);
+                }
+            }
+            listView_time.ItemsSource = timeList;
+
+            textBox_ngCapMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTime", 20, SettingPath.TimerSrvIniPath).ToString();
+            textBox_ngTunerMin.Text = IniFileHandler.GetPrivateProfileInt("SET", "NGEpgCapTunerTime", 20, SettingPath.TimerSrvIniPath).ToString();
+
+            // ネットワーク
+            checkBox_tcpServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableTCPSrv", false, SettingPath.TimerSrvIniPath);
+            checkBox_tcpIPv6.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "TCPIPv6", false, SettingPath.TimerSrvIniPath);
+            textBox_tcpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPPort", 4510, SettingPath.TimerSrvIniPath).ToString();
+            textBox_tcpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "TCPAccessControlList", "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
+            textBox_tcpResTo.Text = IniFileHandler.GetPrivateProfileInt("SET", "TCPResponseTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
+
+            int enableHttpSrv = IniFileHandler.GetPrivateProfileInt("SET", "EnableHttpSrv", 0, SettingPath.TimerSrvIniPath);
+            checkBox_httpServer.IsChecked = enableHttpSrv != 0;
+            checkBox_httpLog.IsChecked = enableHttpSrv == 2;
+
+            textBox_httpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpPort", 5510, SettingPath.TimerSrvIniPath).ToString();
+            textBox_httpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpAccessControlList", "+127.0.0.1", SettingPath.TimerSrvIniPath);
+            textBox_httpTimeout.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpRequestTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
+            textBox_httpThreads.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpNumThreads", 5, SettingPath.TimerSrvIniPath).ToString();
+            textBox_docrootPath.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpPublicFolder", SettingPath.DefHttpPublicPath, SettingPath.TimerSrvIniPath);
+            checkBox_dlnaServer.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "EnableDMS", false, SettingPath.TimerSrvIniPath);
+        }
+
+        public void SaveSetting()
+        {
+            string org_setPath = SettingPath.SettingFolderPath;
+            SettingPath.SettingFolderPath = textBox_setPath.Text;
+            System.IO.Directory.CreateDirectory(SettingPath.SettingFolderPath);
+            IsChangeSettingPath = string.Compare(org_setPath, SettingPath.SettingFolderPath, true) != 0;
+
+            SettingPath.EdcbExePath = textBox_exe.Text;
+
+            //同じ値の時は書き込まない
+            if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Bon", "-d", SettingPath.ViewAppIniPath) != textBox_cmdBon.Text)
+            {
+                IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Bon", textBox_cmdBon.Text, SettingPath.ViewAppIniPath);
+            }
+            if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "Min", "-min", SettingPath.ViewAppIniPath) != textBox_cmdMin.Text)
+            {
+                IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "Min", textBox_cmdMin.Text, SettingPath.ViewAppIniPath);
+            }
+            if (IniFileHandler.GetPrivateProfileString("APP_CMD_OPT", "ViewOff", "-noview", SettingPath.ViewAppIniPath) != textBox_cmdViewOff.Text)
+            {
+                IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "ViewOff", textBox_cmdViewOff.Text, SettingPath.ViewAppIniPath);
+            }
+
+            List<String> recFolderList = ViewUtil.GetFolderList(listBox_recFolder);
+            int recFolderCount = recFolderList.Count == 1 &&
+                string.Compare(recFolderList[0], SettingPath.SettingFolderPath, true) == 0 ? 0 : recFolderList.Count;
+            IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
+            IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
+            for (int i = 0; i < recFolderCount; i++)
+            {
+                IniFileHandler.WritePrivateProfileString("SET", "RecFolderPath" + i.ToString(), recFolderList[i], SettingPath.CommonIniPath);
+            }
+
+            var recInfoFolder = SettingPath.CheckFolder(textBox_recInfoFolder.Text);
+            IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolder", recInfoFolder, "", SettingPath.CommonIniPath);
+
+            for (int i = 0; i < listBox_bon.Items.Count; i++)
+            {
+                var info = listBox_bon.Items[i] as TunerInfo;
+                IniFileHandler.WritePrivateProfileString(info.BonDriver, "Count", info.TunerNumInt, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString(info.BonDriver, "GetEpg", info.EPGNum != "0", SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString(info.BonDriver, "EPGCount", info.EPGNumInt >= info.TunerNumInt ? 0 : info.EPGNumInt, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString(info.BonDriver, "Priority", i, SettingPath.TimerSrvIniPath);
+            }
+
+            IniFileHandler.WritePrivateProfileString("SET", "BSBasicOnly", checkBox_bs.IsChecked, SettingPath.CommonIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "CS1BasicOnly", checkBox_cs1.IsChecked, SettingPath.CommonIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "CS2BasicOnly", checkBox_cs2.IsChecked, SettingPath.CommonIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "CS3BasicOnly", checkBox_cs3.IsChecked, SettingPath.CommonIniPath);
+            IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapTimeOut", textBox_EpgCapTimeOut.Text, SettingPath.BonCtrlIniPath);
+            IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapSaveTimeOut", checkBox_EpgCapSaveTimeOut.IsChecked, SettingPath.BonCtrlIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked, SettingPath.TimerSrvIniPath);
+            Settings.Instance.ShowEpgCapServiceOnly = (bool)checkBox_showEpgCapServiceOnly.IsChecked;
+
+            foreach (ServiceViewItem info in listView_service.ItemsSource)
+            {
+                if (ChSet5.ChList.ContainsKey(info.Key) == true)//変更中に更新される場合があるため
+                {
+                    ChSet5.ChList[info.Key].EpgCapFlag = info.IsSelected;
+                }
+            }
+
+            IniFileHandler.WritePrivateProfileString("EPG_CAP", "Count", timeList.Count.ToString(), SettingPath.TimerSrvIniPath);
+            IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath);
+            IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath, "", "Select");
+            IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath, "", "BasicOnlyFlags");
+            for (int i = 0; i < timeList.Count; i++)
+            {
+                var item = timeList[i] as EpgCaptime;
+                IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString(), item.Time, SettingPath.TimerSrvIniPath);
+                IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString() + "Select", item.IsSelected, SettingPath.TimerSrvIniPath);
+                int flags = (item.BSBasicOnly ? 1 : 0) | (item.CS1BasicOnly ? 2 : 0) | (item.CS2BasicOnly ? 4 : 0) | (item.CS3BasicOnly ? 8 : 0);
+                IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString() + "BasicOnlyFlags", flags, SettingPath.TimerSrvIniPath);
+            }
+
+            IniFileHandler.WritePrivateProfileString("SET", "NGEpgCapTime", textBox_ngCapMin.Text, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "NGEpgCapTunerTime", textBox_ngTunerMin.Text, SettingPath.TimerSrvIniPath);
+
+            // ネットワーク
+            IniFileHandler.WritePrivateProfileString("SET", "EnableTCPSrv", checkBox_tcpServer.IsChecked, false, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "TCPIPv6", checkBox_tcpIPv6.IsChecked, false, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "TCPPort", textBox_tcpPort.Text, "4510", SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "TCPAccessControlList", textBox_tcpAcl.Text, "+127.0.0.1,+192.168.0.0/16", SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "TCPResponseTimeoutSec", textBox_tcpResTo.Text, "120", SettingPath.TimerSrvIniPath);
+
+            var enableHttpSrv = checkBox_httpServer.IsChecked != true ? null : checkBox_httpLog.IsChecked != true ? "1" : "2";
+            IniFileHandler.WritePrivateProfileString("SET", "EnableHttpSrv", enableHttpSrv, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "HttpPort", textBox_httpPort.Text, "5510", SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "HttpAccessControlList", textBox_httpAcl.Text, "+127.0.0.1", SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "HttpRequestTimeoutSec", textBox_httpTimeout.Text, "120", SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "HttpNumThreads", textBox_httpThreads.Text, "5", SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "HttpPublicFolder", textBox_docrootPath.Text, SettingPath.DefHttpPublicPath, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "EnableDMS", checkBox_dlnaServer.IsChecked, false, SettingPath.TimerSrvIniPath);
+        }
+
+        private void button_setPath_Click(object sender, RoutedEventArgs e)
+        {
+            CommonManager.GetFolderNameByDialog(textBox_setPath, "設定関係保存フォルダの選択");
+        }
+        private void button_exe_Click(object sender, RoutedEventArgs e)
+        {
+            CommonManager.GetFileNameByDialog(textBox_exe, false, "", ".exe", true);
+        }
+        private void button_recInfoFolder_Click(object sender, RoutedEventArgs e)
+        {
+            CommonManager.GetFolderNameByDialog(textBox_recInfoFolder, "録画情報保存フォルダの選択", true);
         }
 
         private void button_rec_open_Click(object sender, RoutedEventArgs e)
@@ -372,10 +357,10 @@ namespace EpgTimer.Setting
                     var item = new EpgCaptime();
                     item.IsSelected = true;
                     item.Time = time;
-                    item.BSBasicOnly = checkBox_bs.IsChecked == true;
-                    item.CS1BasicOnly = checkBox_cs1.IsChecked == true;
-                    item.CS2BasicOnly = checkBox_cs2.IsChecked == true;
-                    item.CS3BasicOnly = checkBox_cs3.IsChecked == true;
+                    item.BSBasicOnly = (bool)checkBox_bs.IsChecked;
+                    item.CS1BasicOnly = (bool)checkBox_cs1.IsChecked;
+                    item.CS2BasicOnly = (bool)checkBox_cs2.IsChecked;
+                    item.CS3BasicOnly = (bool)checkBox_cs3.IsChecked;
                     timeList.Add(item);
                     listView_time.ScrollIntoViewLast();
                 }
@@ -395,9 +380,10 @@ namespace EpgTimer.Setting
         public TunerInfo(string bon) { BonDriver = bon; }
         public String BonDriver { get; set; }
         public String TunerNum { get; set; }
-        public String EPGNum { get; set; }
         public UInt32 TunerNumInt { get { return ToUInt(TunerNum); } }
+        public String EPGNum { get; set; }
         public UInt32 EPGNumInt { get { return ToUInt(EPGNum); } }
+        public int Priority { get; set; }
         public override string ToString() { return BonDriver; }
         private UInt32 ToUInt(string s)
         {

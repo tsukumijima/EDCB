@@ -24,7 +24,9 @@
             </TabItem>
         </TabControl>
         <DockPanel Grid.Row="1" Margin="30,10,30,6" HorizontalAlignment="Right" >
-            <Button Content="OK" Margin="0,0,20,0" Name="button_OK" MinWidth="75" Click="button_OK_Click" />
+            <Button Content="再読込" Margin="0,0,20,0" Name="button_Reload" MinWidth="75"/>
+            <Button Content="適用" Margin="0,0,20,0" Name="button_Apply" MinWidth="75"/>
+            <Button Content="OK" Margin="0,0,20,0" Name="button_OK" MinWidth="75" ToolTip="適用して閉じる"/>
             <Button Content="キャンセル" Name="button_cancel" MinWidth="75" IsCancel="True" />
         </DockPanel>
     </Grid>

@@ -9,9 +9,13 @@ namespace EpgTimer
     {
         public List<RadioButton> Items { get; private set; }
 
-        public RadioBtnSelect(params RadioButton[] radioButtonList) 
+        public RadioBtnSelect(params RadioButton[] radioButtonList)
         {
             Items = radioButtonList.ToList();
+        }
+        public RadioBtnSelect(Panel radioButtonPanel)
+        {
+            Items = radioButtonPanel.Children.OfType<RadioButton>().ToList();
         }
 
         /// <summary>未選択は-1。</summary>

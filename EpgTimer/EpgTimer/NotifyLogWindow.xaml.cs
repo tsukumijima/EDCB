@@ -22,7 +22,7 @@ namespace EpgTimer
             {
                 base.SetParam(false, checkBox_windowPinned);
 
-                this.KeyDown += ViewUtil.KeyDown_Escape_Close();
+                this.KeyDown += ViewUtil.KeyDown_Escape_Close;
                 this.KeyDown += ViewUtil.KeyDown_Enter(this.button_reload);
                 this.textBox_logMax.Text = Settings.Instance.NotifyLogMax.ToString();
                 this.button_reload.Click += (sender, e) => ReloadInfoData();

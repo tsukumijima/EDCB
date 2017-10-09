@@ -90,11 +90,11 @@
                 </Grid.RowDefinitions>
                 <StackPanel Name="grid_AppRecEnd">
                     <Label Content="録画、EPG取得終了後のデフォルト動作" />
-                    <WrapPanel Margin="16,0,0,0" >
-                        <RadioButton Content="何もしない" Margin="0,0,12,6" Name="radioButton_none" />
-                        <RadioButton Content="スタンバイ" Margin="0,0,12,6" Name="radioButton_standby" />
-                        <RadioButton Content="休止" Margin="0,0,12,6" Name="radioButton_suspend" />
-                        <RadioButton Content="シャットダウン" Margin="0,0,12,6" Name="radioButton_shutdown" />
+                    <WrapPanel Margin="16,0,0,0" Name="panel_recEndMode">
+                        <RadioButton Content="何もしない" Margin="0,0,12,6" />
+                        <RadioButton Content="スタンバイ" Margin="0,0,12,6" />
+                        <RadioButton Content="休止" Margin="0,0,12,6" />
+                        <RadioButton Content="シャットダウン" Margin="0,0,12,6" />
                         <CheckBox Content="復帰後再起動する" Margin="12,0,12,6" Name="checkBox_reboot" />
                     </WrapPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
@@ -237,9 +237,9 @@
                     <CheckBox Content="ファイル名の禁則文字の変換対象から「\」を除外する" Name="checkBox_noChkYen" />
                     <StackPanel Orientation="Horizontal" Name="grid_delReserve">
                         <Label Content="録画中の予約削除を" />
-                        <RadioButton Content="削除のみ" Margin="12,0,0,0" Name="radioButton_delReserveDel" />
-                        <RadioButton Content="録画済みに追加" Margin="12,0,0,0" Name="radioButton_delReserveEnd" />
-                        <RadioButton Content="キャンセルとして録画済みに追加" Margin="12,0,0,0" Name="radioButton_delReserveCancel" />
+                        <RadioButton Content="削除のみ" Margin="12,0,0,0" />
+                        <RadioButton Content="録画済みに追加" Margin="12,0,0,0" />
+                        <RadioButton Content="キャンセルとして録画済みに追加" Margin="12,0,0,0" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" >
                         <CheckBox  Content="録画中または開始直前の予約を変更・削除するとき警告する" Name="checkBox_cautionOnRecChange"/>

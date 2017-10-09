@@ -12,6 +12,19 @@ namespace EpgTimer
     /// </summary>
     public partial class SettingWindow : AttendantWindow
     {
+        public static void UpdatesInfo()
+        {
+            foreach (var win in Application.Current.Windows.OfType<SettingWindow>())
+            {
+                win.SetReload(true);
+            }
+        }
+        private void SetReload(bool reload)
+        {
+            button_Reload.Content = "再読込" + (reload == false ? "" : "*");
+            button_Reload.ToolTip = reload == false ? null : "他の操作により設定が変更されています";
+        }
+
         public enum SettingMode { Default, EpgSetting }
         public SettingMode Mode { get; private set; }
 
@@ -26,8 +39,26 @@ namespace EpgTimer
             base.SetParam(false, new CheckBox());
             this.Pinned = true;
 
+            button_Reload.Click += (sender, e) => LoadSetting();
+            button_Apply.Click += (sender, e) => Apply();
+            button_OK.Click += (sender, e) => { this.Close(); Apply(); };
             button_cancel.Click += (sender, e) => this.Close();
+
+            LoadSetting();
             SetMode(mode, param);
+        }
+
+        public void LoadSetting()
+        {
+            try
+            {
+                setBasicView.LoadSetting();
+                setAppView.LoadSetting();
+                setEpgView.LoadSetting();
+                setOtherAppView.LoadSetting();
+                SetReload(false);
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         public void SetMode(SettingMode mode, object param)
@@ -44,7 +75,7 @@ namespace EpgTimer
             }
         }
 
-        private void button_OK_Click(object sender, RoutedEventArgs e)
+        private void Apply()
         {
             try
             {
@@ -52,6 +83,9 @@ namespace EpgTimer
                 setAppView.SaveSetting();
                 setEpgView.SaveSetting();
                 setOtherAppView.SaveSetting();
+
+                SettingWindow.UpdatesInfo();//基本的に一つしか使わないが一応通知
+                SetReload(false);
 
                 if (CommonManager.Instance.NWMode == false)
                 {
@@ -62,7 +96,6 @@ namespace EpgTimer
                 CommonManager.ReloadReplaceDictionary();
                 ItemFontCache.Clear();
 
-                this.Close();
                 ViewUtil.MainWindow.SaveData();
                 ViewUtil.MainWindow.RefreshSetting(this);
             }
@@ -70,7 +103,6 @@ namespace EpgTimer
             {
                 MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
                 MessageBox.Show("不正な入力値によるエラーのため、一部設定のみ更新されました。");
-                this.Close();
             }
         }
     }

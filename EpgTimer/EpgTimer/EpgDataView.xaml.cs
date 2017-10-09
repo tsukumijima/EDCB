@@ -180,6 +180,7 @@ namespace EpgTimer
                         tabInfo[info.ID] = info;
                         Settings.Instance.CustomEpgTabList[info.ID] = info;
                         Settings.SaveToXmlFile();
+                        SettingWindow.UpdatesInfo();
                     }
 
                     if (info.IsVisible == false)
@@ -395,6 +396,7 @@ namespace EpgTimer
             try
             {
                 string selectID = null;
+                List<bool> infoBack = tabInfo.Select(info => info.IsVisible).ToList();
                 var menu = sender as MenuItem;
 
                 if (menu.Tag is RoutedUICommand)
@@ -416,6 +418,7 @@ namespace EpgTimer
                         return;
                     case edvCmds.ModeChange:
                         Settings.Instance.UseCustomEpgView = !Settings.Instance.UseCustomEpgView;
+                        SettingWindow.UpdatesInfo();
                         this.UpdateSetting(true);
                         return;
                     case edvCmds.All:
@@ -439,15 +442,27 @@ namespace EpgTimer
                         return;
                     case edvCmds.NameTabVisible:
                         Settings.Instance.EpgNameTabEnabled = !Settings.Instance.EpgNameTabEnabled;
+                        SettingWindow.UpdatesInfo();
                         TabModeSet();
                         return;
                     case edvCmds.ViewModeTabVisible:
                         Settings.Instance.EpgViewModeTabEnabled = !Settings.Instance.EpgViewModeTabEnabled;
+                        SettingWindow.UpdatesInfo();
                         TabModeSet();
                         return;
                     case edvCmds.MoveCheckedTab:
                         Settings.Instance.EpgTabMoveCheckEnabled = !Settings.Instance.EpgTabMoveCheckEnabled;
+                        SettingWindow.UpdatesInfo();
                         return;
+                }
+
+                if (Settings.Instance.UseCustomEpgView == true)
+                {
+                    List<bool> infoNew = tabInfo.Select(info => info.IsVisible).ToList();
+                    if (infoBack.Count != infoNew.Count || infoBack.Zip(infoNew, (v1, v2) => v1 ^ v2).Any(v => v) == true)
+                    {
+                        SettingWindow.UpdatesInfo();
+                    }
                 }
 
                 int pos = 0;

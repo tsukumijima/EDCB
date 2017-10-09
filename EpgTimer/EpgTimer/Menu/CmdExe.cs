@@ -384,6 +384,7 @@ namespace EpgTimer
             {
                 Settings.Instance.MenuSet = dlg.info.Clone();
                 Settings.SaveToXmlFile();//メニュー設定の保存
+                SettingWindow.UpdatesInfo();
                 mainWindow.RefreshMenu();
             }
         }

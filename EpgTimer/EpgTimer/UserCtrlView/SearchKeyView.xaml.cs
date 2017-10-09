@@ -93,6 +93,7 @@ namespace EpgTimer
                 (list, mode) =>
                 {
                     Settings.Instance.SearchPresetList = list;
+                    SettingWindow.UpdatesInfo();
                     if (comboBox_preSet.SelectedItem == null)
                     {
                         preEdit.ChangeSelect(preEdit.FindPreset(PresetItem.CustomID), null, true);

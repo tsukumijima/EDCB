@@ -606,6 +606,7 @@ namespace EpgTimer
             ChgReserveWindow.UpdatesInfo();
             RecInfoDescWindow.UpdatesInfo();
             NotifyLogWindow.UpdatesInfo();
+            SettingWindow.UpdatesInfo();
             return true;
         }
 
@@ -889,7 +890,7 @@ namespace EpgTimer
 
         public void OpenSettingDialog(SettingWindow.SettingMode mode = SettingWindow.SettingMode.Default, object param = null)
         {
-            //複数ダイアログの禁止(タスクアイコンからの起動対策)
+            //複数ダイアログの禁止
             if (ViewUtil.SingleWindowCheck(typeof(SettingWindow)) != 0)
             {
                 Application.Current.Windows.OfType<SettingWindow>().First().SetMode(mode, param);
@@ -1085,7 +1086,7 @@ namespace EpgTimer
 
         void OpenNotifyLogDialog()
         {
-            //複数ダイアログの禁止(タスクアイコンからの起動対策)
+            //複数ダイアログの禁止
             if (ViewUtil.SingleWindowCheck(typeof(NotifyLogWindow)) != 0) return;
 
             new NotifyLogWindow().Show();
@@ -1213,7 +1214,7 @@ namespace EpgTimer
 
         void NotifyStatus(NotifySrvInfo status)
         {
-            bool notifyLogWindowUpdate = false;
+            bool notifyLogWindowUpdate = false;//WakeUpHDDWork()などのメッセージを一応フォローしておく
             var NotifyWork = new Action<string, string>((title, tips) =>
             {
                 if (Settings.Instance.NoBallonTips == false)
@@ -1333,6 +1334,7 @@ namespace EpgTimer
                             err = IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
                             notifyLogWindowUpdate = true;
+                            SettingWindow.UpdatesInfo();
                             TrayManager.UpdateInfo();
                             StatusManager.StatusNotifyAppend("EpgTimerSrv設定変更に伴う画面更新 < ");
                         }
