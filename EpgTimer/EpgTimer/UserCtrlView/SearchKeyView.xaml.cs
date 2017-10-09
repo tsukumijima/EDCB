@@ -55,7 +55,6 @@ namespace EpgTimer
             comboBox_week_eh.SelectedIndex = 23;
             comboBox_week_em.ItemsSource = Enumerable.Range(0, 60);
             comboBox_week_em.SelectedIndex = 59;
-            radioButton_time.IsChecked = true;
 
             new BoxExchangeEdit.BoxExchangeEditor(null, listView_service, true);
             SelectableItem.Set_CheckBox_PreviewChanged(listView_service);
@@ -79,8 +78,9 @@ namespace EpgTimer
             listBox_date.Tag = "(全期間)";
             CheckListBox(listBox_date);
 
+            byte idx = 0;
             chbxWeekList = CommonManager.DayOfWeekArray.Select(wd =>
-                new CheckBox { Content = wd, Margin = new Thickness(0, 0, 5, 0) }).ToList();
+                new CheckBox { Content = wd, Margin = new Thickness(0, 0, 5, 0), Tag = idx++ }).ToList();
             chbxWeekList.ForEach(chbx => stack_data_week.Children.Add(chbx));
 
             grid_PresetEdit.Children.Clear();
@@ -264,7 +264,6 @@ namespace EpgTimer
                 case 0:
                     ViewUtil.SetSpecificChgAppearance(listBox_content);
                     listBox_content.Focus();
-                    if (listBox_content.Items.Count != 0) listBox_content.SelectedIndex = 0;
                     break;
             }
             stackPanel_PresetEdit.Visibility = chgMode == int.MaxValue ? Visibility.Collapsed : Visibility.Visible;
@@ -306,97 +305,54 @@ namespace EpgTimer
         {
             serviceList.ForEach(info => info.IsSelected = info.ServiceInfo.IsVideo);
         }
+        private void SelectService(Func<ChSet5Item, bool> predicate)
+        {
+            serviceList.FindAll(info => predicate(info.ServiceInfo)).ForEach(info => info.IsSelected = true);
+        }
         private void button_bs_on_Click(object sender, RoutedEventArgs e)
         {
-            serviceList.ForEach(info =>
-            {
-                if (info.ServiceInfo.IsBS == true && info.ServiceInfo.IsVideo == true)
-                {
-                    info.IsSelected = true;
-                }
-            });
+            SelectService(item => item.IsBS == true && item.IsVideo == true);
         }
         private void button_cs_on_Click(object sender, RoutedEventArgs e)
         {
-            serviceList.ForEach(info =>
-            {
-                if (info.ServiceInfo.IsCS == true && info.ServiceInfo.IsVideo == true)
-                {
-                    info.IsSelected = true;
-                }
-            });
+            SelectService(item => item.IsCS == true && item.IsVideo == true);
         }
         private void button_dttv_on_Click(object sender, RoutedEventArgs e)
         {
-            serviceList.ForEach(info =>
-            {
-                if (info.ServiceInfo.IsDttv == true && info.ServiceInfo.IsVideo == true)
-                {
-                    info.IsSelected = true;
-                }
-            });
+            SelectService(item => item.IsDttv == true && item.IsVideo == true);
         }
         private void button_1seg_on_Click(object sender, RoutedEventArgs e)
         {
-            serviceList.ForEach(info =>
-            {
-                if (info.ServiceInfo.IsDttv == true && info.ServiceInfo.PartialFlag == true)
-                {
-                    info.IsSelected = true;
-                }
-            });
-        }
-        private void button_other_on_Click(object sender, RoutedEventArgs e)
-        {
-            serviceList.ForEach(info =>
-            {
-                if (info.ServiceInfo.IsOther == true)
-                {
-                    info.IsSelected = true;
-                }
-            });
+            SelectService(item => item.IsDttv == true && item.PartialFlag == true);
         }
 
         private void button_date_add_Click(object sender, RoutedEventArgs e)
         {
-            var addItems = new List<object>();
-            if (radioButton_time.IsChecked == true)
+            if (radioButton_week.IsChecked == false)
             {
                 var info = new EpgSearchDateInfo();
-                info.startDayOfWeek = (byte)Math.Min(Math.Max(comboBox_time_sw.SelectedIndex, 0), 6);
-                info.startHour = (ushort)Math.Min(Math.Max(comboBox_time_sh.SelectedIndex, 0), 23);
-                info.startMin = (ushort)Math.Min(Math.Max(comboBox_time_sm.SelectedIndex, 0), 59);
-                info.endDayOfWeek = (byte)Math.Min(Math.Max(comboBox_time_ew.SelectedIndex, 0), 6);
-                info.endHour = (ushort)Math.Min(Math.Max(comboBox_time_eh.SelectedIndex, 0), 23);
-                info.endMin = (ushort)Math.Min(Math.Max(comboBox_time_em.SelectedIndex, 0), 59);
-                addItems.Add(new DateItem(info));
+                info.startDayOfWeek = (byte)comboBox_time_sw.SelectedIndex;
+                info.startHour = (ushort)comboBox_time_sh.SelectedIndex;
+                info.startMin = (ushort)comboBox_time_sm.SelectedIndex;
+                info.endDayOfWeek = (byte)comboBox_time_ew.SelectedIndex;
+                info.endHour = (ushort)comboBox_time_eh.SelectedIndex;
+                info.endMin = (ushort)comboBox_time_em.SelectedIndex;
+                listBox_date.ScrollIntoViewLast(new DateItem(info));
             }
             else
             {
-                int startHour = Math.Min(Math.Max(comboBox_week_sh.SelectedIndex, 0), comboBox_week_sh.Items.Count - 1);
-                int startMin = Math.Min(Math.Max(comboBox_week_sm.SelectedIndex, 0), 59);
-                int endHour = Math.Min(Math.Max(comboBox_week_eh.SelectedIndex, 0), comboBox_week_eh.Items.Count - 1);
-                int endMin = Math.Min(Math.Max(comboBox_week_em.SelectedIndex, 0), 59);
-
-                for (byte day = 0; day < 7; day++)
+                listBox_date.ScrollIntoViewLast(chbxWeekList.Where(box => box.IsChecked == true).Select(box =>
                 {
-                    if (chbxWeekList[day].IsChecked != true) continue;
-                    //
                     var info = new EpgSearchDateInfo();
-                    info.startDayOfWeek = day;
-                    info.startHour = (ushort)startHour;
-                    info.startMin = (ushort)startMin;
-                    info.endDayOfWeek = info.startDayOfWeek;
-                    info.endHour = (ushort)endHour;
-                    info.endMin = (ushort)endMin;
+                    info.startDayOfWeek = info.endDayOfWeek = (byte)box.Tag;
+                    info.startHour = (ushort)comboBox_week_sh.SelectedIndex;
+                    info.startMin = (ushort)comboBox_week_sm.SelectedIndex;
+                    info.endHour = (ushort)comboBox_week_eh.SelectedIndex;
+                    info.endMin = (ushort)comboBox_week_em.SelectedIndex;
                     info.RegulateData();
-                    addItems.Add(new DateItem(info));
-                }
+                    return new DateItem(info);
+                }));
             }
-            listBox_date.Items.AddItems(addItems);
-            listBox_date.UnselectAll();
-            listBox_date.SelectedItemsAdd(addItems);
-            listBox_date.ScrollIntoViewIndex(int.MaxValue);
             CheckListBox(listBox_date);
         }
 
