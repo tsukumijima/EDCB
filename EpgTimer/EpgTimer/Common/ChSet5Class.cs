@@ -8,6 +8,7 @@ namespace EpgTimer
 {
     static class ChSet5
     {
+        private static List<ChSet5Item> chListOrderByIndex = null;
         private static Dictionary<UInt64, ChSet5Item> chList = null;
         public static Dictionary<UInt64, ChSet5Item> ChList
         {
@@ -17,7 +18,7 @@ namespace EpgTimer
                 return chList ?? new Dictionary<UInt64, ChSet5Item>();
             }
         }
-        public static void Clear() { chList = null; }
+        public static void Clear() { chList = null; chListOrderByIndex = null; }
 
         public static IEnumerable<ChSet5Item> ChListSelected
         {
@@ -29,8 +30,12 @@ namespace EpgTimer
         }
         private static IEnumerable<ChSet5Item> GetSortedChList(bool ignoreEpgCap = true)
         {
+            if (chListOrderByIndex == null) LoadFile();
+            IEnumerable<ChSet5Item> ret = chListOrderByIndex.Where(item => ignoreEpgCap || item.EpgCapFlag);
+            if (Settings.Instance.SortServiceList == false) return ret;
+
             //ネットワーク種別優先かつ限定受信を分離したID順ソート。可能なら地上波はリモコンID優先にする。
-            return ChList.Values.Where(item => (ignoreEpgCap || item.EpgCapFlag)).OrderBy(item => (
+            return ret.OrderBy(item => (
                 (ulong)(item.IsDttv ? 0 : item.IsBS ? 1 : item.IsCS ? 2 : 3) << 60 |
                 (ulong)(item.IsDttv && item.PartialFlag ? 1 : 0) << 56 |
                 (ulong)(item.IsDttv ? (item.RemoconID + 255) % 256 : 0) << 48 |
@@ -98,9 +103,9 @@ namespace EpgTimer
             try
             {
                 chList = new Dictionary<UInt64, ChSet5Item>();
-                while (reader.Peek() >= 0)
+                chListOrderByIndex = new List<ChSet5Item>();
+                for (string buff = reader.ReadLine(); buff != null; buff = reader.ReadLine())
                 {
-                    string buff = reader.ReadLine();
                     if (buff.IndexOf(";") == 0)
                     {
                         //コメント行
@@ -121,9 +126,15 @@ namespace EpgTimer
                             item.EpgCapFlag = Convert.ToInt32(list[7]) != 0;
                             item.SearchFlag = Convert.ToInt32(list[8]) != 0;
                         }
-                        finally
+                        catch
                         {
-                            chList.Add(item.Key, item);
+                            //不正
+                            continue;
+                        }
+                        if (chList.ContainsKey(item.Key) == false)
+                        {
+                            chList[item.Key] = item;
+                            chListOrderByIndex.Add(item);
                         }
                     }
                 }

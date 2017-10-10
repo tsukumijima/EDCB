@@ -46,6 +46,7 @@ namespace EpgTimer.Setting
                 grid_ServiceOptions.IsEnabled = true;
                 ViewUtil.ChangeChildren(grid_ServiceOptions, false);
                 checkBox_showEpgCapServiceOnly.IsEnabled = true;
+                checkBox_SortServiceList.IsEnabled = true;
 
                 tab_NW.Foreground = SystemColors.GrayTextBrush;
                 ViewUtil.ChangeChildren(grid_tcpServer, false);
@@ -153,6 +154,7 @@ namespace EpgTimer.Setting
             checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileBool("EPGCAP", "EpgCapSaveTimeOut", false, SettingPath.BonCtrlIniPath);
             checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "TimeSync", false, SettingPath.TimerSrvIniPath);
             checkBox_showEpgCapServiceOnly.IsChecked = Settings.Instance.ShowEpgCapServiceOnly;
+            checkBox_SortServiceList.IsChecked = Settings.Instance.SortServiceList;
 
             listView_time.ItemsSource = null;
             timeList.Clear();
@@ -262,6 +264,7 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapSaveTimeOut", checkBox_EpgCapSaveTimeOut.IsChecked, SettingPath.BonCtrlIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked, SettingPath.TimerSrvIniPath);
             Settings.Instance.ShowEpgCapServiceOnly = (bool)checkBox_showEpgCapServiceOnly.IsChecked;
+            Settings.Instance.SortServiceList = (bool)checkBox_SortServiceList.IsChecked;
 
             foreach (ServiceViewItem info in listView_service.ItemsSource)
             {
