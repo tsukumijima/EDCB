@@ -812,7 +812,11 @@ namespace EpgTimer
             get
             {
                 if (_instance == null)
+                {
                     _instance = new Settings();
+                    //色設定関係
+                    _instance.SetColorSetting();
+                }
                 return _instance;
             }
             set { _instance = value; }
