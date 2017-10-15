@@ -175,6 +175,7 @@ namespace EpgTimer
         {
             log.Clear();
             log.AddRange(box.Items.OfType<string>().Take(30));
+            SettingWindow.UpdatesInfo("検索/キーワード予約ダイアログの検索語履歴変更/クリア");
         }
 
         public EpgSearchKeyInfo GetSearchKey()

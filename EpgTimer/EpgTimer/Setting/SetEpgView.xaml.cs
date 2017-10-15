@@ -17,6 +17,7 @@ namespace EpgTimer.Setting
     /// </summary>
     public partial class SetEpgView : UserControl
     {
+        private bool isSearchKeyClear = false;
         private PicUpTitle picUpTitle;
         private MenuSettingData ctxmSetInfo;
         private RadioBtnSelect epgPopupRadioBtns;
@@ -261,6 +262,7 @@ namespace EpgTimer.Setting
             checkBox_keepReserveWindow.IsChecked = Settings.Instance.KeepReserveWindow;
             checkBox_useLastSearchKey.IsChecked = Settings.Instance.UseLastSearchKey;
             checkBox_saveSearchKeyword.IsChecked = Settings.Instance.SaveSearchKeyword;
+            isSearchKeyClear = false;
             button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
             checkBox_displayPresetOnSearch.IsChecked = Settings.Instance.DisplayPresetOnSearch;
             checkBox_toolTips.IsChecked = !Settings.Instance.NoToolTip;
@@ -367,7 +369,7 @@ namespace EpgTimer.Setting
 
             Settings.Instance.UseCustomEpgView = (bool)radioButton_1_cust.IsChecked;
             Settings.Instance.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfoView>().Select(item => item.Info).ToList();
-            Settings.SetCustomEpgTabInfoID();
+            Settings.Instance.SetCustomEpgTabInfoID();
             Settings.Instance.EpgNameTabEnabled = (bool)checkBox_EpgNameTabEnabled.IsChecked;
             Settings.Instance.EpgViewModeTabEnabled = (bool)checkBox_EpgViewModeTabEnabled.IsChecked;
             Settings.Instance.EpgTabMoveCheckEnabled = (bool)checkBox_EpgTabMoveCheckEnabled.IsChecked;
@@ -462,6 +464,8 @@ namespace EpgTimer.Setting
             Settings.Instance.UseLastSearchKey = (bool)checkBox_useLastSearchKey.IsChecked;
             if (Settings.Instance.UseLastSearchKey == false) Settings.Instance.DefSearchKey = new EpgSearchKeyInfo();
             Settings.Instance.SaveSearchKeyword = (bool)checkBox_saveSearchKeyword.IsChecked;
+            if (isSearchKeyClear == true) Settings.Instance.AndKeyList = new List<string>();
+            if (isSearchKeyClear == true) Settings.Instance.NotKeyList = new List<string>();
             Settings.Instance.DisplayPresetOnSearch = (bool)checkBox_displayPresetOnSearch.IsChecked;
             Settings.Instance.NoStyle = checkBox_NotNoStyle.IsChecked == true ? 0 : 1;
             Settings.Instance.NoToolTip = !(bool)checkBox_toolTips.IsChecked;
@@ -598,8 +602,7 @@ namespace EpgTimer.Setting
 
         private void button_clearSerchKeywords_Click(object sender, RoutedEventArgs e)
         {
-            Settings.Instance.AndKeyList = new List<string>();
-            Settings.Instance.NotKeyList = new List<string>();
+            isSearchKeyClear = true;
         }
 
         private void checkbox_EpgChangeBorderWatch_Click(object sender, RoutedEventArgs e)

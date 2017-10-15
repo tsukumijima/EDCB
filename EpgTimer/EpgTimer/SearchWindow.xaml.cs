@@ -172,7 +172,11 @@ namespace EpgTimer
         private void button_search_Click(object sender, ExecutedRoutedEventArgs e)
         {
             SearchPg(true);
-            if (Settings.Instance.UseLastSearchKey == true) Settings.Instance.DefSearchKey = GetSearchKey();
+            if (Settings.Instance.UseLastSearchKey == true)
+            {
+                Settings.Instance.DefSearchKey = GetSearchKey();
+                SettingWindow.UpdatesInfo("検索/キーワード予約ダイアログの前回検索条件変更");
+            }
             StatusManager.StatusNotifySet(true, "検索を実行");
         }
         private void SearchPg(bool addSearchLog = false)
