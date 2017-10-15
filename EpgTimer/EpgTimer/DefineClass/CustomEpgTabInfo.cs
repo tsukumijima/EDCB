@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace EpgTimer
 {
-    public class CustomEpgTabInfo : ICloneObj
+    public class CustomEpgTabInfo : IDeepCloneObj
     {
         public CustomEpgTabInfo()
         {
@@ -42,22 +42,22 @@ namespace EpgTimer
 
         public EpgSearchKeyInfo GetSearchKeyReloadEpg()
         {
-            EpgSearchKeyInfo key = SearchKey.Clone();
+            EpgSearchKeyInfo key = SearchKey.DeepClone();
             key.serviceList = ViewServiceList.Select(id => (long)id).ToList();
             if (SearchGenreNoSyncView == false)
             {
-                key.contentList = ViewContentList.Clone();
+                key.contentList = ViewContentList.DeepClone();
                 key.notContetFlag = (byte)(ViewNotContentFlag == true ? 1 : 0);
             }
             return key;
         }
 
-        public object CloneObj()
+        public object DeepCloneObj()
         {
             var other = (CustomEpgTabInfo)MemberwiseClone();
             other.ViewServiceList = ViewServiceList.ToList();
-            other.ViewContentList = ViewContentList.Clone();
-            other.SearchKey = SearchKey.Clone();
+            other.ViewContentList = ViewContentList.DeepClone();
+            other.SearchKey = SearchKey.DeepClone();
             return other;
         }
 

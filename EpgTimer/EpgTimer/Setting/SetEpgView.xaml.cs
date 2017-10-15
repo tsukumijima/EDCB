@@ -146,7 +146,7 @@ namespace EpgTimer.Setting
             radioButton_1_cust.IsChecked = Settings.Instance.UseCustomEpgView;
 
             listBox_tab.Items.Clear();
-            listBox_tab.Items.AddItems(Settings.Instance.CustomEpgTabList.Select(info => new CustomEpgTabInfoView(info.Clone())));
+            listBox_tab.Items.AddItems(Settings.Instance.CustomEpgTabList.Select(info => new CustomEpgTabInfoView(info.DeepClone())));
             listBox_tab.SelectedIndex = 0;
             checkBox_EpgNameTabEnabled.IsChecked = Settings.Instance.EpgNameTabEnabled;
             checkBox_EpgViewModeTabEnabled.IsChecked = Settings.Instance.EpgViewModeTabEnabled;
@@ -236,14 +236,14 @@ namespace EpgTimer.Setting
             setButtonColors(Settings.Instance.RecEndCustColors, grid_RecInfoBackColors);
 
             //予約一覧・共通画面
-            this.ctxmSetInfo = Settings.Instance.MenuSet.Clone();
+            this.ctxmSetInfo = Settings.Instance.MenuSet.DeepClone();
             checkBox_displayAutoAddMissing.IsChecked = Settings.Instance.DisplayReserveAutoAddMissing;
             checkBox_displayMultiple.IsChecked = Settings.Instance.DisplayReserveMultiple;
             checkBox_resNoYear.IsChecked = Settings.Instance.ResInfoNoYear;
             checkBox_resNoSecond.IsChecked = Settings.Instance.ResInfoNoSecond;
             checkBox_resNoDurSecond.IsChecked = Settings.Instance.ResInfoNoDurSecond;
             checkBox_TrimSortTitle.IsChecked = Settings.Instance.TrimSortTitle;
-            picUpTitle = Settings.Instance.PicUpTitleWork.Clone();
+            picUpTitle = Settings.Instance.PicUpTitleWork.DeepClone();
             checkBox_picUpCustom.IsChecked = picUpTitle.UseCustom;
 
             setComboColor1(Settings.Instance.ListDefColor, cmb_ListDefFontColor);
@@ -369,7 +369,7 @@ namespace EpgTimer.Setting
 
             Settings.Instance.UseCustomEpgView = (bool)radioButton_1_cust.IsChecked;
             Settings.Instance.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfoView>().Select(item => item.Info).ToList();
-            Settings.Instance.SetCustomEpgTabInfoID();
+            Settings.SetCustomEpgTabInfoID();
             Settings.Instance.EpgNameTabEnabled = (bool)checkBox_EpgNameTabEnabled.IsChecked;
             Settings.Instance.EpgViewModeTabEnabled = (bool)checkBox_EpgViewModeTabEnabled.IsChecked;
             Settings.Instance.EpgTabMoveCheckEnabled = (bool)checkBox_EpgTabMoveCheckEnabled.IsChecked;
@@ -437,7 +437,7 @@ namespace EpgTimer.Setting
             Settings.Instance.RecInfoExtraDataCacheKeepConnect = (bool)checkBox_CacheKeepConnect.IsChecked;
 
             //予約一覧画面
-            Settings.Instance.MenuSet = this.ctxmSetInfo.Clone();
+            Settings.Instance.MenuSet = this.ctxmSetInfo.DeepClone();
             Settings.Instance.DisplayReserveAutoAddMissing = (bool)checkBox_displayAutoAddMissing.IsChecked;
             Settings.Instance.DisplayReserveMultiple = (bool)checkBox_displayMultiple.IsChecked;
             Settings.Instance.ResInfoNoYear = (bool)checkBox_resNoYear.IsChecked;
@@ -445,7 +445,7 @@ namespace EpgTimer.Setting
             Settings.Instance.ResInfoNoDurSecond = (bool)checkBox_resNoDurSecond.IsChecked;
             Settings.Instance.TrimSortTitle = (bool)checkBox_TrimSortTitle.IsChecked;
             picUpTitle.UseCustom = (bool)checkBox_picUpCustom.IsChecked;
-            Settings.Instance.PicUpTitleWork = picUpTitle.Clone();
+            Settings.Instance.PicUpTitleWork = picUpTitle.DeepClone();
 
             Settings.Instance.ListDefColor = getComboColor1(cmb_ListDefFontColor);
             getComboColors(Settings.Instance.RecModeFontColors, grid_ReserveRecModeColors);
@@ -528,7 +528,7 @@ namespace EpgTimer.Setting
         {
             if (listBox_tab.SelectedItem != null)
             {
-                button_tab_copyAdd(listBox_tab.SelectedItems.OfType<CustomEpgTabInfoView>().Select(item => item.Info).Clone());
+                button_tab_copyAdd(listBox_tab.SelectedItems.OfType<CustomEpgTabInfoView>().Select(item => item.Info).DeepClone());
             }
         }
         private void button_tab_defaultCopy_Click(object sender, RoutedEventArgs e)
@@ -587,7 +587,7 @@ namespace EpgTimer.Setting
             var dlg = new SetContextMenuWindow(this, ctxmSetInfo);
             if (dlg.ShowDialog() == true)
             {
-                this.ctxmSetInfo = dlg.info.Clone();
+                this.ctxmSetInfo = dlg.info.DeepClone();
             }
         }
 

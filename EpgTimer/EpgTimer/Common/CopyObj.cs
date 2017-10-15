@@ -4,24 +4,24 @@ using System.Linq;
 
 namespace EpgTimer
 {
-    public interface ICloneObj
+    public interface IDeepCloneObj
     {
-        object CloneObj();
+        object DeepCloneObj();
     }
     public static class CopyObj
     {
-        public static T Clone<T>(this T src) where T : ICloneObj
+        public static T DeepClone<T>(this T src) where T : IDeepCloneObj
         {
-            return (T)src.CloneObj();
+            return (T)src.DeepCloneObj();
         }
         //IDeepCloneを持っているクラスに拡張メソッド追加。
-        public static List<T> Clone<T>(this IEnumerable<T> src) where T : ICloneObj
+        public static List<T> DeepClone<T>(this IEnumerable<T> src) where T : IDeepCloneObj
         {
-            return src == null ? null : src.Select(a => a.Clone()).ToList();
+            return src == null ? null : src.Select(a => a.DeepClone()).ToList();
         }
-        //List<T>などがClone<T>(this T src)と混同されてしまうので
-        public static List<T> Clone<T>(this List<T> src) where T : ICloneObj { return Clone(src as IEnumerable<T>); }
-        public static List<T> Clone<T>(this T[] src) where T : ICloneObj { return Clone(src as IEnumerable<T>); }
+        //List<T>などがDeepClone<T>(this T src)と混同されてしまうので
+        public static List<T> DeepClone<T>(this List<T> src) where T : IDeepCloneObj { return DeepClone(src as IEnumerable<T>); }
+        public static List<T> DeepClone<T>(this T[] src) where T : IDeepCloneObj { return DeepClone(src as IEnumerable<T>); }
 
         /*
         //static CopyData(src,dest)を用意して、拡張メソッドを追加するため用。

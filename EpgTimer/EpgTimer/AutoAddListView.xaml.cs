@@ -39,7 +39,7 @@ namespace EpgTimer
             public override ulong GetID(object data) { return (data as S).Data.DataID; }
             public override bool SaveChange(Dictionary<ulong, ulong> changeIDTable)
             {
-                var newList = View.lstCtrl.dataList.AutoAddInfoList().Clone();
+                var newList = View.lstCtrl.dataList.AutoAddInfoList().DeepClone();
                 newList.ForEach(item => item.DataID = changeIDTable[item.DataID]);
 
                 bool ret = MenuUtil.AutoAddChange(newList, false, false, false, false);
@@ -139,7 +139,7 @@ namespace EpgTimer
 
             return lstCtrl.ReloadInfoData(dataList =>
             {
-                dataList.AddRange(AutoAddData.GetDBManagerList(typeof(T)).Select(info => (S)Activator.CreateInstance(typeof(S), info.CloneObj())));
+                dataList.AddRange(AutoAddData.GetDBManagerList(typeof(T)).Select(info => (S)Activator.CreateInstance(typeof(S), info.DeepCloneObj())));
                 dragMover.NotSaved = false;
                 return true;
             });

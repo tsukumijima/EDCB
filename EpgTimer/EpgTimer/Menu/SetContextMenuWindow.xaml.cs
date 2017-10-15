@@ -79,7 +79,7 @@ namespace EpgTimer
             try
 	        {
                 this.Owner = CommonUtil.GetTopWindow(owner);
-                if (data != null) info = data.Clone();
+                if (data != null) info = data.DeepClone();
 
                 //共通設定画面用の設定
                 Action<StackPanel, StackPanel> CopyStackItem = (src, trg) =>
@@ -182,7 +182,7 @@ namespace EpgTimer
                 checkBox_IsManualMenuCode_Checked(null, null);
 
                 defaultMenu = mm.GetDefaultCtxmSettingForEditor();
-                editMenu = info.ManualMenuItems.Clone();
+                editMenu = info.ManualMenuItems.DeepClone();
                 editMenu.ForEach(m => m.Items = m.Items.FindAll(i => defaultMenu.FindData(m.ctxmCode).Items.Contains(i)));
 
                 for (int i = 0; i < SettingTable.Count; i++)
@@ -234,7 +234,7 @@ namespace EpgTimer
                 }
 
                 info.IsManualAssign = IsManualChkBox.Where(c => c.IsChecked == true).Select(c => (CtxmCode)c.Tag).ToList();
-                info.ManualMenuItems = editMenu.Clone();
+                info.ManualMenuItems = editMenu.DeepClone();
 
                 DialogResult = true;
                 return;

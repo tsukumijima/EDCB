@@ -21,7 +21,7 @@ namespace EpgTimer
             {
                 var nowSet = new NWPresetItem(DefPresetStr, Settings.Instance.NWServerIP, Settings.Instance.NWServerPort, Settings.Instance.NWWaitPort, Settings.Instance.NWMacAdd);
                 cmb_preset.Items.Add(nowSet);
-                Settings.Instance.NWPreset.ForEach(item => cmb_preset.Items.Add(item.Clone()));
+                Settings.Instance.NWPreset.ForEach(item => cmb_preset.Items.Add(item.DeepClone()));
                 cmb_preset.SelectedIndex = FindCmbPresetItem(nowSet, true);
                 this.KeyDown += ViewUtil.KeyDown_Escape_Close;
                 cmb_preset.KeyDown += ViewUtil.KeyDown_Enter(btn_reload);

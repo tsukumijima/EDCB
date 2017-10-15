@@ -51,7 +51,7 @@ namespace EpgTimer
         }
 
         public IEnumerable<S> Items { get { return comboBox_preSet.Items.OfType<S>(); } }
-        public List<S> PresetList { get { return Items.Where(item => item.IsCustom == false).Clone().FixUp(); } }
+        public List<S> PresetList { get { return Items.Where(item => item.IsCustom == false).DeepClone().FixUp(); } }
 
         public S FindPreset(Int32 presetID)
         {
@@ -144,7 +144,7 @@ namespace EpgTimer
             int i = 0;
             foreach (var item in Items)
             {
-                var menu = new MenuItem() { Header = item.Clone(), Tag = i++ };
+                var menu = new MenuItem() { Header = item.DeepClone(), Tag = i++ };
                 menu.Click += clicked ?? SelectMenuClicked;
                 if (isMenuChecked != null) menu.IsChecked = isMenuChecked(menu.Header as S);
                 if (isMenuEnabled != null) menu.IsEnabled = isMenuEnabled(menu.Header as S);

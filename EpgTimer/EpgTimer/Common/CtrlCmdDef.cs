@@ -58,7 +58,7 @@ namespace EpgTimer
     }
 
     /// <summary>録画フォルダ情報</summary>
-    public class RecFileSetInfo : ICtrlCmdReadWrite, ICloneObj
+    public class RecFileSetInfo : ICtrlCmdReadWrite, IDeepCloneObj
     {
         /// <summary>録画フォルダ</summary>
         public string RecFolder;
@@ -95,11 +95,11 @@ namespace EpgTimer
             r.Read(ref RecFileName);
             r.End();
         }
-        public object CloneObj() { return MemberwiseClone(); }
+        public object DeepCloneObj() { return MemberwiseClone(); }
     }
 
     /// <summary>録画設定情報</summary>
-    public partial class RecSettingData : ICtrlCmdReadWrite, ICloneObj
+    public partial class RecSettingData : ICtrlCmdReadWrite, IDeepCloneObj
     {
         /// <summary>録画モード</summary>
         public byte RecMode;
@@ -202,17 +202,17 @@ namespace EpgTimer
             }
             r.End();
         }
-        public object CloneObj()
+        public object DeepCloneObj()
         {
             var other = (RecSettingData)MemberwiseClone();
-            other.PartialRecFolder = PartialRecFolder.Clone();   //RecFileSetInfo
-            other.RecFolderList = RecFolderList.Clone();         //RecFileSetInfo
+            other.PartialRecFolder = PartialRecFolder.DeepClone();   //RecFileSetInfo
+            other.RecFolderList = RecFolderList.DeepClone();         //RecFileSetInfo
             return other;
         }
     }
 
     /// <summary>登録予約情報</summary>
-    public partial class ReserveData : ICtrlCmdReadWrite, ICloneObj
+    public partial class ReserveData : ICtrlCmdReadWrite, IDeepCloneObj
     {
         /// <summary>番組名</summary>
         public string Title;
@@ -325,16 +325,16 @@ namespace EpgTimer
             }
             r.End();
         }
-        public object CloneObj()
+        public object DeepCloneObj()
         {
             var other = (ReserveData)MemberwiseClone();
-            other.RecSetting = RecSetting.Clone();               //RecSettingData
+            other.RecSetting = RecSetting.DeepClone();               //RecSettingData
             other.RecFileNameList = RecFileNameList.ToList();
             return other;
         }
     }
 
-    public partial class RecFileInfo : ICtrlCmdReadWrite, ICloneObj
+    public partial class RecFileInfo : ICtrlCmdReadWrite, IDeepCloneObj
     {
         /// <summary>ID</summary>
         public uint ID;
@@ -446,7 +446,7 @@ namespace EpgTimer
             }
             r.End();
         }
-        public object CloneObj() { return MemberwiseClone(); }
+        public object DeepCloneObj() { return MemberwiseClone(); }
     }
 
     public class TunerReserveInfo : ICtrlCmdReadWrite
@@ -536,7 +536,7 @@ namespace EpgTimer
     }
 
     /// <summary>EPGジャンルデータ</summary>
-    public partial class EpgContentData : ICtrlCmdReadWrite, ICloneObj
+    public partial class EpgContentData : ICtrlCmdReadWrite, IDeepCloneObj
     {
         public byte content_nibble_level_1;
         public byte content_nibble_level_2;
@@ -569,7 +569,7 @@ namespace EpgTimer
             r.Read(ref user_nibble_2);
             r.End();
         }
-        public object CloneObj() { return MemberwiseClone(); }
+        public object DeepCloneObj() { return MemberwiseClone(); }
     }
 
     /// <summary>EPGジャンル情報</summary>
@@ -1025,7 +1025,7 @@ namespace EpgTimer
         }
     }
 
-    public class EpgSearchDateInfo : ICtrlCmdReadWrite, ICloneObj
+    public class EpgSearchDateInfo : ICtrlCmdReadWrite, IDeepCloneObj
     {
         public byte startDayOfWeek;
         public ushort startHour;
@@ -1066,11 +1066,11 @@ namespace EpgTimer
             r.Read(ref endMin);
             r.End();
         }
-        public object CloneObj() { return MemberwiseClone(); }
+        public object DeepCloneObj() { return MemberwiseClone(); }
     }
 
     /// <summary>検索条件</summary>
-    public class EpgSearchKeyInfo : ICtrlCmdReadWrite, ICloneObj
+    public class EpgSearchKeyInfo : ICtrlCmdReadWrite, IDeepCloneObj
     {
         public string andKey;
         public string notKey;
@@ -1217,11 +1217,11 @@ namespace EpgTimer
             //旧CS仮対応コード(+0x70)の処置
             EpgContentData.FixNibble(contentList);
         }
-        public object CloneObj()
+        public object DeepCloneObj()
         {
             var other = (EpgSearchKeyInfo)MemberwiseClone();
-            other.contentList = contentList.Clone();
-            other.dateList = dateList.Clone();
+            other.contentList = contentList.DeepClone();
+            other.dateList = dateList.DeepClone();
             other.serviceList = serviceList.ToList();
             other.videoList = videoList.ToList();
             other.audioList = audioList.ToList();
@@ -1230,7 +1230,7 @@ namespace EpgTimer
     }
 
     /// <summary>自動予約登録情報</summary>
-    public partial class EpgAutoAddData : ICtrlCmdReadWrite, ICloneObj
+    public partial class EpgAutoAddData : ICtrlCmdReadWrite, IDeepCloneObj
     {
         public uint dataID;
         /// <summary>検索キー</summary>
@@ -1272,16 +1272,16 @@ namespace EpgTimer
             }
             r.End();
         }
-        public override object CloneObj()
+        public override object DeepCloneObj()
         {
             var other = (EpgAutoAddData)MemberwiseClone();
-            other.recSetting = recSetting.Clone();       //RecSettingData
-            other.searchInfo = searchInfo.Clone();       //EpgSearchKeyInfo
+            other.recSetting = recSetting.DeepClone();       //RecSettingData
+            other.searchInfo = searchInfo.DeepClone();       //EpgSearchKeyInfo
             return other;
         }
     }
 
-    public partial class ManualAutoAddData : ICtrlCmdReadWrite, ICloneObj
+    public partial class ManualAutoAddData : ICtrlCmdReadWrite, IDeepCloneObj
     {
         public uint dataID;
         /// <summary>対象曜日</summary>
@@ -1365,10 +1365,10 @@ namespace EpgTimer
                 title = title.Substring(11);
             }
         }
-        public override object CloneObj()
+        public override object DeepCloneObj()
         {
             var other = (ManualAutoAddData)MemberwiseClone();
-            other.recSetting = recSetting.Clone();       //RecSettingData
+            other.recSetting = recSetting.DeepClone();       //RecSettingData
             return other;
         }
     }

@@ -143,7 +143,7 @@ namespace EpgTimer
         }
         protected override void mc_CopyItem(object sender, ExecutedRoutedEventArgs e)
         {
-            var list = dataList.Clone();
+            var list = dataList.DeepClone();
             list.ForEach(rs => rs.Comment = "");
             IsCommandExecuted = MenuUtil.ReserveAdd(list);
         }
@@ -177,11 +177,11 @@ namespace EpgTimer
                 resData = CtrlCmdDefEx.ConvertEpgToReserveData(eventList[0]);
                 if (dataList.Count != 0)
                 {
-                    resData.RecSetting = dataList[0].RecSetting.Clone();
+                    resData.RecSetting = dataList[0].RecSetting.DeepClone();
                 }
                 else
                 {
-                    resData.RecSetting = Settings.Instance.RecPresetList[0].Data.Clone();
+                    resData.RecSetting = Settings.Instance.RecPresetList[0].Data.DeepClone();
                 }
                 eventRefData = eventList[0];
             }

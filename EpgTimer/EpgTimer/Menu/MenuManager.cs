@@ -110,7 +110,7 @@ namespace EpgTimer
             ////終了マージン、複製してコマンドだけ差し替える。
             var cm_ChgMarginEndMenu = new CtxmItemData("終了マージン", cm_ChgMarginStartMenu);
             cm_ChgMarginEndMenu.Command = EpgCmdsEx.ChgMarginEndMenu;
-            cm_ChgMarginEndMenu.Items = cm_ChgMarginStartMenu.Items.Clone();
+            cm_ChgMarginEndMenu.Items = cm_ChgMarginStartMenu.Items.DeepClone();
             cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginStart) menu.Command = EpgCmds.ChgMarginEnd; });
             cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginValue) menu.ID = 2; });
 
@@ -172,8 +172,8 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("番組名でキーワード予約作成...", EpgCmds.ToAutoadd));
             ctmd.Items.Add(new CtxmItemData("追っかけ再生", EpgCmds.Play));
             ctmd.Items.Add(new CtxmItemData("録画フォルダを開く", EpgCmdsEx.OpenFolderMenu));
-            ctmd.Items.AddRange(AddAppendMenus.Clone());
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddAppendMenus.DeepClone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:使用予定チューナー
             ctmd = DefCtxmData[CtxmCode.TunerReserveView];
@@ -188,8 +188,8 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("番組名でキーワード予約作成...", EpgCmds.ToAutoadd));
             ctmd.Items.Add(new CtxmItemData("追っかけ再生", EpgCmds.Play));
             ctmd.Items.Add(new CtxmItemData("録画フォルダを開く", EpgCmdsEx.OpenFolderMenu));
-            ctmd.Items.AddRange(AddAppendMenus.Clone());
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddAppendMenus.DeepClone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:録画済み一覧
             ctmd = DefCtxmData[CtxmCode.RecInfoView];
@@ -201,8 +201,8 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("番組名でキーワード予約作成...", EpgCmds.ToAutoadd));
             ctmd.Items.Add(new CtxmItemData("再生", EpgCmds.Play));
             ctmd.Items.Add(new CtxmItemData("録画フォルダを開く", EpgCmds.OpenFolder));//他の画面と違う
-            ctmd.Items.AddRange(AddAppendMenus.Clone());
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddAppendMenus.DeepClone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:キーワード自動予約登録
             ctmd = DefCtxmData[CtxmCode.EpgAutoAddView];
@@ -223,7 +223,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("Andキーワードをネットで検索", EpgCmds.SearchTitle));
             ctmd.Items.Add(new CtxmItemData("Notキーワードをコピー", EpgCmds.CopyNotKey));
             ctmd.Items.Add(new CtxmItemData("Notキーワードに貼り付け", EpgCmds.SetNotKey));
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:プログラム自動予約登録
             ctmd = DefCtxmData[CtxmCode.ManualAutoAddView];
@@ -243,7 +243,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("番組名をコピー", EpgCmds.CopyTitle));
             ctmd.Items.Add(new CtxmItemData("番組名で予約情報検索", EpgCmds.InfoSearchTitle));
             ctmd.Items.Add(new CtxmItemData("番組名をネットで検索", EpgCmds.SearchTitle));
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:番組表
             ctmd = DefCtxmData[CtxmCode.EpgView];
@@ -259,10 +259,10 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("番組名でキーワード予約作成...", EpgCmds.ToAutoadd));
             ctmd.Items.Add(new CtxmItemData("追っかけ再生", EpgCmds.Play));
             ctmd.Items.Add(new CtxmItemData("録画フォルダを開く", EpgCmdsEx.OpenFolderMenu));
-            ctmd.Items.AddRange(AddAppendMenus.Clone());
+            ctmd.Items.AddRange(AddAppendMenus.DeepClone());
             ctmd.Items.Add(new CtxmItemData(cm_Separator));
             ctmd.Items.Add(new CtxmItemData("表示モード(_V)", cm_ViewMenu));
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:検索ダイアログ、キーワード予約ダイアログ
             ctmd = DefCtxmData[CtxmCode.SearchWindow];
@@ -279,8 +279,8 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("番組名で再検索(別ウィンドウ)", EpgCmds.ReSearch2));
             ctmd.Items.Add(new CtxmItemData("追っかけ再生", EpgCmds.Play));
             ctmd.Items.Add(new CtxmItemData("録画フォルダを開く", EpgCmdsEx.OpenFolderMenu));
-            ctmd.Items.AddRange(AddAppendMenus.Clone());
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddAppendMenus.DeepClone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:予約情報検索(デフォルト・複数選択)
             ctmd = DefCtxmData[CtxmCode.InfoSearchWindow];
@@ -294,7 +294,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData(cm_Separator));
             ctmd.Items.Add(new CtxmItemData("番組名/ANDキーワードをコピー", EpgCmds.CopyTitle));
             ctmd.Items.Add(new CtxmItemData("番組名/ANDキーワードをネットで検索", EpgCmds.SearchTitle));
-            ctmd.Items.AddRange(AddMenuSetting.Clone());
+            ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 
             //メニューアイテム:予約情報検索(個別選択の追加メニュー)
             AddInfoSearchMenu = new CtxmData(CtxmCode.InfoSearchWindow);
@@ -341,7 +341,7 @@ namespace EpgTimer
             {
                 foreach (var chgMenu in ctxm.Items.Where(item => item.Command == EpgCmdsEx.ChgMenu))
                 {
-                    chgMenu.Items = WorkCtxmData[CtxmCode.EditChgMenu].Items.Clone();
+                    chgMenu.Items = WorkCtxmData[CtxmCode.EditChgMenu].Items.DeepClone();
                 }
             }
         }
@@ -357,7 +357,7 @@ namespace EpgTimer
                 if (ctxmEdited == null)
                 {
                     //編集サブメニューの場合は、初期無効アイテムを削除したデフォルトセッティングを返す。
-                    return code != CtxmCode.EditChgMenu ? ctxmDef.Clone() : GetDefaultChgSubMenuCtxmData();
+                    return code != CtxmCode.EditChgMenu ? ctxmDef.DeepClone() : GetDefaultChgSubMenuCtxmData();
                 }
 
                 ctxmEdited.Items.ForEach(setMenuString =>
@@ -365,7 +365,7 @@ namespace EpgTimer
                     CtxmItemData item1 = ctxmDef.Items.Find(item => item.Header == setMenuString);
                     if (item1 != null)
                     {
-                        ctxm.Items.Add(item1.Clone());
+                        ctxm.Items.Add(item1.DeepClone());
                     }
                 });
             }
@@ -375,7 +375,7 @@ namespace EpgTimer
                 {
                     if (MC.WorkCmdOptions[item1.Command].IsMenuEnabled == true)
                     {
-                        ctxm.Items.Add(item1.Clone());
+                        ctxm.Items.Add(item1.DeepClone());
                     }
                 });
             }
@@ -467,14 +467,14 @@ namespace EpgTimer
                 //初期無効データは入れない
                 if (MC.DefCmdOptions[item.Command].IsMenuEnabled == true)
                 {
-                    set.Items.Add(item.Clone());
+                    set.Items.Add(item.DeepClone());
                 }
             });
             return set;
         }
         private MenuSettingData GetWorkMenuSettingData()
         {
-            var set = Settings.Instance.MenuSet.Clone();
+            var set = Settings.Instance.MenuSet.DeepClone();
             set.EasyMenuItems = MC.GetWorkEasyMenuSetting();
 
             foreach (CtxmCode code in Enum.GetValues(typeof(CtxmCode)))
@@ -522,7 +522,7 @@ namespace EpgTimer
 
         public void CtxmGenerateContextMenuInfoSearch(ContextMenu ctxm, CtxmCode code)
         {
-            CtxmData data = WorkCtxmData[code].Clone();
+            CtxmData data = WorkCtxmData[code].DeepClone();
             if (code != CtxmCode.InfoSearchWindow)
             {
                 //他画面用の簡易検索メニューを削除

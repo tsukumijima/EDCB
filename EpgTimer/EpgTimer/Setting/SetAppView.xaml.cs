@@ -173,8 +173,8 @@ namespace EpgTimer.Setting
             checkBox_showTray.IsChecked = Settings.Instance.ShowTray;
             checkBox_minHide.IsChecked = Settings.Instance.MinHide;
 
-            recPresetList = Settings.Instance.RecPresetList.Clone();
-            searchPresetList = Settings.Instance.SearchPresetList.Clone();
+            recPresetList = Settings.Instance.RecPresetList.DeepClone();
+            searchPresetList = Settings.Instance.SearchPresetList.DeepClone();
 
             checkBox_noBallonTips.IsChecked = Settings.Instance.NoBallonTips;
             textBox_ForceHideBalloonTipSec.Text = Settings.Instance.ForceHideBalloonTipSec.ToString();
@@ -341,8 +341,8 @@ namespace EpgTimer.Setting
             Settings.Instance.ShowTray = (bool)checkBox_showTray.IsChecked;
             Settings.Instance.MinHide = (bool)checkBox_minHide.IsChecked;
 
-            Settings.Instance.RecPresetList = recPresetList.Clone();
-            Settings.Instance.SearchPresetList = searchPresetList.Clone();
+            Settings.Instance.RecPresetList = recPresetList.DeepClone();
+            Settings.Instance.SearchPresetList = searchPresetList.DeepClone();
 
             Settings.Instance.NoBallonTips = (bool)checkBox_noBallonTips.IsChecked;
             Settings.Instance.ForceHideBalloonTipSec = MenuUtil.MyToNumerical(textBox_ForceHideBalloonTipSec, Convert.ToInt32, 255, 0, Settings.Instance.ForceHideBalloonTipSec);

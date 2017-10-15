@@ -84,7 +84,7 @@ namespace EpgTimer
                 info.StartTimeEpg = info.StartTime;
                 info.DurationSecond = 1800;
                 info.EventID = 0xFFFF;
-                info.RecSetting = Settings.Instance.RecPresetList[0].Data.Clone();
+                info.RecSetting = Settings.Instance.RecPresetList[0].Data.DeepClone();
                 reserveInfo = info;
             }
             selectedTab = epgInfoOpenMode == 1 ? 0 : 1;
@@ -176,7 +176,7 @@ namespace EpgTimer
             if (reserveInfo != info)
             {
                 addMode = AddMode.Change;
-                reserveInfo = info.Clone();
+                reserveInfo = info.DeepClone();
             }
             recSettingView.SetViewMode(!reserveInfo.IsManual);
             recSettingView.SetDefSetting(reserveInfo.RecSetting);
@@ -324,7 +324,7 @@ namespace EpgTimer
             {
                 if (CheckReserveChange(e, proc) == false) return;
 
-                var resInfo = reserveInfo.Clone();
+                var resInfo = reserveInfo.DeepClone();
 
                 if (resModeProgram == true)
                 {

@@ -65,8 +65,8 @@ namespace EpgTimer
         /// <param name="setInfo"></param>
         public void SetSetting(CustomEpgTabInfo setInfo)
         {
-            info = setInfo.Clone();
-            searchKey = setInfo.SearchKey.Clone();
+            info = setInfo.DeepClone();
+            searchKey = setInfo.SearchKey.DeepClone();
 
             textBox_tabName.Text = setInfo.TabName;
             checkBox_isVisible.IsChecked = setInfo.IsVisible;
@@ -101,14 +101,14 @@ namespace EpgTimer
             info.SearchMode = (checkBox_searchMode.IsChecked == true);
             info.SearchGenreNoSyncView = (checkBox_searchServiceFromView.IsChecked == true);
             info.FilterEnded = (checkBox_filterEnded.IsChecked == true);
-            info.SearchKey = searchKey.Clone();
+            info.SearchKey = searchKey.DeepClone();
             info.SearchKey.serviceList.Clear();//不要なので削除
 
             info.ViewServiceList = listBox_serviceView.Items.OfType<ServiceViewItem>().Select(item => item.Key).ToList();
-            info.ViewContentList = listBox_jyanruView.Items.OfType<ContentKindInfo>().Select(item => item.Data).Clone();
+            info.ViewContentList = listBox_jyanruView.Items.OfType<ContentKindInfo>().Select(item => item.Data).DeepClone();
             info.ViewNotContentFlag = checkBox_notContent.IsChecked == true;
 
-            return info.Clone();
+            return info.DeepClone();
         }
 
         //サービス選択関係は他でも使用するので

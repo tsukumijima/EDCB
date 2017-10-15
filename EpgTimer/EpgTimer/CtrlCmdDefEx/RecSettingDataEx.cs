@@ -24,7 +24,7 @@ namespace EpgTimer
         public RecPresetItem LookUpPreset(bool IsManual = false, bool CopyData = false)
         {
             RecPresetItem preset = LookUpPreset(Settings.Instance.RecPresetList, IsManual);
-            return preset == null ? new RecPresetItem("登録時", RecPresetItem.CustomID, CopyData == true ? this.Clone() : null) : preset;
+            return preset == null ? new RecPresetItem("登録時", RecPresetItem.CustomID, CopyData == true ? this.DeepClone() : null) : preset;
         }
         public RecPresetItem LookUpPreset(IEnumerable<RecPresetItem> refdata, bool IsManual = false)
         {

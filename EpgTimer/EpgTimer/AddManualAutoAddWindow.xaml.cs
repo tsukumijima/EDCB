@@ -134,7 +134,7 @@ namespace EpgTimer
         {
             if (data == null) return false;
 
-            data = data.Clone();
+            data = data.DeepClone();
             dataID = data.dataID;
 
             //深夜時間帯の処理

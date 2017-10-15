@@ -72,12 +72,12 @@ namespace EpgTimer
         public virtual void SetPresetList(IEnumerable<S> srclist)
         {
             listBox_preset.Items.Clear();
-            listBox_preset.Items.AddItems(srclist.Clone());
+            listBox_preset.Items.AddItems(srclist.DeepClone());
             listBox_preset.SelectedIndex = 0;
         }
         public virtual List<S> GetPresetList()
         {
-            return listBox_preset.Items.OfType<S>().Clone().FixUp();
+            return listBox_preset.Items.OfType<S>().DeepClone().FixUp();
         }
 
         PresetItem currentItem = null;

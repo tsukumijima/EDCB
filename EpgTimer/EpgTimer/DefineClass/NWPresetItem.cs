@@ -2,7 +2,7 @@
 
 namespace EpgTimer
 {
-    public class NWPresetItem : ICloneObj
+    public class NWPresetItem : IDeepCloneObj
     {
         public string Name { get; set; }
         public string NWServerIP { get; set; }
@@ -26,6 +26,6 @@ namespace EpgTimer
                 && NWServerIP == item.NWServerIP && NWServerPort == item.NWServerPort
                 && NWWaitPort == item.NWWaitPort && NWMacAdd == item.NWMacAdd;
         }
-        public object CloneObj() { return MemberwiseClone(); }
+        public object DeepCloneObj() { return MemberwiseClone(); }
     }
 }

@@ -9,9 +9,9 @@ using System.Reflection;
 namespace EpgTimer
 {
     //設定画面用
-    public class MenuSettingData : ICloneObj
+    public class MenuSettingData : IDeepCloneObj
     {
-        public class CmdSaveData : ICloneObj
+        public class CmdSaveData : IDeepCloneObj
         {
             public string Name { get; set; }
             public string TypeName { get; set; }
@@ -21,7 +21,7 @@ namespace EpgTimer
             public List<ShortCutData> ShortCuts { get; set; }
 
             public CmdSaveData() { ShortCuts = new List<ShortCutData>(); }
-            public object CloneObj()
+            public object DeepCloneObj()
             {
                 var other = (CmdSaveData)MemberwiseClone();
                 other.ShortCuts = ShortCuts.ToList();
@@ -156,17 +156,17 @@ namespace EpgTimer
             EasyMenuItems = new List<CmdSaveData>();
             ManualMenuItems = new List<CtxmSetting>();
         }
-        public object CloneObj()
+        public object DeepCloneObj()
         {
             var other = (MenuSettingData)MemberwiseClone();
             other.IsManualAssign = IsManualAssign.ToList();
-            other.EasyMenuItems = EasyMenuItems.Clone();
-            other.ManualMenuItems = ManualMenuItems.Clone();
+            other.EasyMenuItems = EasyMenuItems.DeepClone();
+            other.ManualMenuItems = ManualMenuItems.DeepClone();
             return other;
         }
     }
 
-    public class CtxmSetting : ICloneObj
+    public class CtxmSetting : IDeepCloneObj
     {
         public CtxmCode ctxmCode { set; get; }
         public List<string> Items { set; get; }
@@ -178,7 +178,7 @@ namespace EpgTimer
             ctxmCode = data.ctxmCode;
             Items = data.Items.Select(item => item.Header).ToList();
         }
-        public object CloneObj()
+        public object DeepCloneObj()
         {
             var other = (CtxmSetting)MemberwiseClone();
             other.Items = Items.ToList();

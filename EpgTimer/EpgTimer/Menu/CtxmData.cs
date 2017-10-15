@@ -22,33 +22,33 @@ namespace EpgTimer
         EtcWindow       //ショートカットメニューがないダイアログなど用のダミー
     }
 
-    public class CtxmData : ICloneObj
+    public class CtxmData : IDeepCloneObj
     {
         public CtxmCode ctxmCode { set; get; }
         public List<CtxmItemData> Items { set; get; }
-        public object CloneObj() { return new CtxmData(ctxmCode, Items); }
+        public object DeepCloneObj() { return new CtxmData(ctxmCode, Items); }
 
         public CtxmData(CtxmCode code, List<CtxmItemData> items = null)
         {
             ctxmCode = code;
-            Items = items.Clone() ?? new List<CtxmItemData>();
+            Items = items.DeepClone() ?? new List<CtxmItemData>();
         }
     }
 
-    public class CtxmItemData : ICloneObj
+    public class CtxmItemData : IDeepCloneObj
     {
         public string Header { set; get; }
         public int ID { set; get; }
         public ICommand Command { set; get; }
         public List<CtxmItemData> Items { set; get; }
-        public object CloneObj() { return new CtxmItemData(this); }
+        public object DeepCloneObj() { return new CtxmItemData(this); }
 
         public CtxmItemData(string header, ICommand icmd, int id = 0, List<CtxmItemData> items = null)
         {
             Header = header;
             ID = id;
             Command = icmd;
-            Items = items.Clone() ?? new List<CtxmItemData>();
+            Items = items.DeepClone() ?? new List<CtxmItemData>();
         }
         public CtxmItemData(CtxmItemData data) : this(data.Header, data.Command, data.ID, data.Items) { }
         //デフォルト定義用、ヘッダ以外コピー

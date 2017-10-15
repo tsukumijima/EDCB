@@ -5,13 +5,13 @@ using System.Text.RegularExpressions;
 
 namespace EpgTimer
 {
-    public class PicUpTitle : ICloneObj
+    public class PicUpTitle : IDeepCloneObj
     {
         public bool UseCustom { get; set; }
         public List<string> ReplaceSet { get; private set; }
         public List<string> TitleSet { get; private set; }
 
-        public object CloneObj()
+        public object DeepCloneObj()
         {
             var other = (PicUpTitle)MemberwiseClone();
             other.ReplaceSet = ReplaceSet.ToList();

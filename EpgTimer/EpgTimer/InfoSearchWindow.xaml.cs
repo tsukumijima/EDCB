@@ -283,9 +283,9 @@ namespace EpgTimer
             if (MenuUtil.CautionManyMessage(dataList.Count, "変更の確認") == false)
             { return; }
 
-            MenuUtil.ReserveChangeOnOff(dataList.OfType<ReserveData>().Clone(), null, false);
-            MenuUtil.RecinfoChgProtect(dataList.OfType<RecFileInfo>().Clone(), false);
-            MenuUtil.AutoAddChangeOnOffKeyEnabled(dataList.OfType<AutoAddData>().Clone(), false);
+            MenuUtil.ReserveChangeOnOff(dataList.OfType<ReserveData>().DeepClone(), null, false);
+            MenuUtil.RecinfoChgProtect(dataList.OfType<RecFileInfo>().DeepClone(), false);
+            MenuUtil.AutoAddChangeOnOffKeyEnabled(dataList.OfType<AutoAddData>().DeepClone(), false);
 
             StatusManager.StatusNotifySet(true, mc.GetCmdMessageFormat("状態切替を実行", dataList.Count));
         }

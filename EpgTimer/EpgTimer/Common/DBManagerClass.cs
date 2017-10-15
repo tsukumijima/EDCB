@@ -97,7 +97,7 @@ namespace EpgTimer
                 List<EpgAutoAddData> srcList = EpgAutoAddList.Values.Where(data => dict.ContainsKey(data.dataID) == false).ToList();
                 if (srcList.Count != 0)
                 {
-                    List<EpgSearchKeyInfo> keyList = srcList.RecSearchKeyList().Clone();
+                    List<EpgSearchKeyInfo> keyList = srcList.RecSearchKeyList().DeepClone();
                     keyList.ForEach(key => key.keyDisabledFlag = 0); //無効解除
 
                     try

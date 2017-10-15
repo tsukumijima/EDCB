@@ -172,9 +172,9 @@ namespace EpgTimer
         }
         protected virtual void CopyDataList()
         {
-            if (typeof(T).GetInterface(typeof(ICloneObj).Name) != null)
+            if (typeof(T).GetInterface(typeof(IDeepCloneObj).Name) != null)
             {
-                dataList = dataList.Select(data => (T)(data as ICloneObj).CloneObj()).ToList();
+                dataList = dataList.Select(data => (T)(data as IDeepCloneObj).DeepCloneObj()).ToList();
             }
         }
         protected cmdOption GetCmdParam(ICommand icmd)
@@ -384,7 +384,7 @@ namespace EpgTimer
             var dlg = new SetContextMenuWindow(Owner, Settings.Instance.MenuSet);
             if (dlg.ShowDialog() == true)
             {
-                Settings.Instance.MenuSet = dlg.info.Clone();
+                Settings.Instance.MenuSet = dlg.info.DeepClone();
                 Settings.SaveToXmlFile();//メニュー設定の保存
                 SettingWindow.UpdatesInfo("右クリックメニューの変更");
                 mainWindow.RefreshMenu();

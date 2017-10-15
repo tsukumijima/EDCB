@@ -254,7 +254,7 @@ namespace EpgTimer
         public static void ChangeOnPreset(IEnumerable<IRecSetttingData> dataList, int presetID)
         {
             RecSettingData setData = Settings.RecPreset(presetID).Data;
-            foreach (var data in dataList) data.RecSettingInfo = setData.Clone();
+            foreach (var data in dataList) data.RecSettingInfo = setData.DeepClone();
         }
 
         public static void ChangeRecmode(List<RecSettingData> infoList, byte recMode)
@@ -319,7 +319,7 @@ namespace EpgTimer
                 if (dlg.ShowDialog() == false) return false;
 
                 RecSettingData setData = dlg.DataView.GetRecSetting();
-                foreach (var data in dataList) data.RecSettingInfo = setData.Clone();
+                foreach (var data in dataList) data.RecSettingInfo = setData.DeepClone();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -337,7 +337,7 @@ namespace EpgTimer
                 if (dlg.ShowDialog() == false) return false;
 
                 EpgSearchKeyInfo setData = dlg.DataView.GetSearchKey();
-                infoList.ForEach(info => { if (info != null) info.contentList = setData.contentList.Clone(); });
+                infoList.ForEach(info => { if (info != null) info.contentList = setData.contentList.DeepClone(); });
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -510,8 +510,8 @@ namespace EpgTimer
                 {
                     if (syncDict.ContainsKey(resinfo.ReserveID) == false)
                     {
-                        ReserveData rdata = resinfo.Clone();//変更かけるのでコピーする
-                        rdata.RecSetting = data.RecSettingInfo.Clone();
+                        ReserveData rdata = resinfo.DeepClone();//変更かけるのでコピーする
+                        rdata.RecSetting = data.RecSettingInfo.DeepClone();
                         //無効は保持する
                         if (resinfo.RecSetting.RecMode == 5)
                         {
@@ -648,7 +648,7 @@ namespace EpgTimer
             if (changeID == true)
             {
                 //並べ替えの影響回避(変更以外では生データがそのままくるので。この位置でないとダメ。)
-                list = list.Clone();
+                list = list.DeepClone();
             }
 
             //並べ替えしなかった
@@ -828,7 +828,7 @@ namespace EpgTimer
         }
         public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
         {
-            key = key ?? Settings.Instance.SearchPresetList[0].Data.Clone();
+            key = key ?? Settings.Instance.SearchPresetList[0].Data.DeepClone();
             key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
             key.regExpFlag = 0;
             key.serviceList.Clear();
@@ -846,7 +846,7 @@ namespace EpgTimer
                     {
                         kindList = kindList.GroupBy(info => info.CategoryKey).Select(gr => new EpgContentData(gr.Key));
                     }
-                    key.contentList = kindList.Clone();
+                    key.contentList = kindList.DeepClone();
                 }
             }
             return key;

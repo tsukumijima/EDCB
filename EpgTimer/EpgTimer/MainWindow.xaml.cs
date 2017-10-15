@@ -819,7 +819,7 @@ namespace EpgTimer
                             info.DurationSecond = pgInfo.durationSec;
                         }
                     }
-                    info.RecSetting = Settings.Instance.RecPresetList[0].Data.Clone();
+                    info.RecSetting = Settings.Instance.RecPresetList[0].Data.DeepClone();
                     addList.Add(info);
                 }
             }

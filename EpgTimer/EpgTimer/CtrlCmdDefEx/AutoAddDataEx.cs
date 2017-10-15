@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 namespace EpgTimer
 {
-    public abstract class AutoAddData : IRecWorkMainData, IRecSetttingData, ICloneObj
+    public abstract class AutoAddData : IRecWorkMainData, IRecSetttingData, IDeepCloneObj
     {
         //IRecWorkMainData
         [XmlIgnore]
@@ -72,7 +72,7 @@ namespace EpgTimer
             return new List<AutoAddData>();
         }
 
-        public virtual object CloneObj() { return null; }
+        public virtual object DeepCloneObj() { return null; }
 
         //AppendData 関係。ID(元データ)に対して一意の情報なので、データ自体はDB側。
         protected virtual AutoAddDataAppend Append { get { return new AutoAddDataAppend(); } }

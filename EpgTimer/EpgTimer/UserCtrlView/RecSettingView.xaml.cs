@@ -64,7 +64,7 @@ namespace EpgTimer
                     preEdit.button_del.ToolTip = preEdit.button_add.ToolTip;
                 }
 
-                recSetting = Settings.Instance.RecPresetList[0].Data.Clone();
+                recSetting = Settings.Instance.RecPresetList[0].Data.DeepClone();
 
                 comboBox_recMode.ItemsSource = CommonManager.RecModeList;
                 comboBox_tuijyu.ItemsSource = CommonManager.YesNoList;
@@ -99,7 +99,7 @@ namespace EpgTimer
 
         public void SetData(object data) { SetDefSetting(data as RecSettingData); }
         public object GetData() { return GetRecSetting(); }
-        public IEnumerable<PresetItem> DefPresetList() { return Settings.Instance.RecPresetList.Clone(); }
+        public IEnumerable<PresetItem> DefPresetList() { return Settings.Instance.RecPresetList.DeepClone(); }
 
         public void SetViewMode(bool epgMode)
         {
@@ -151,7 +151,7 @@ namespace EpgTimer
             {
                 if (code != PresetSelectMode.InitLoad)
                 {
-                    recSetting = item.Data.Clone();
+                    recSetting = item.Data.DeepClone();
                 }
                 UpdateView();
             }
@@ -174,11 +174,11 @@ namespace EpgTimer
 
         public void SetDefSetting(RecSettingData set)
         {
-            recSetting = set.Clone();
+            recSetting = set.DeepClone();
 
             //"登録時"を追加する。既存があれば追加前に削除する。検索ダイアログの上下ボタンの移動用のコード。
             comboBox_preSet.Items.Remove(preEdit.FindPreset(RecPresetItem.CustomID));
-            comboBox_preSet.Items.Add(new RecPresetItem("登録時", RecPresetItem.CustomID, recSetting.Clone()));
+            comboBox_preSet.Items.Add(new RecPresetItem("登録時", RecPresetItem.CustomID, recSetting.DeepClone()));
             SetCustomPresetDisplayName();
 
             //該当するものがあれば選択、無ければ"登録時"。
@@ -196,7 +196,7 @@ namespace EpgTimer
         {
             if (initLoad == false)
             {
-                return recSetting.Clone();
+                return recSetting.DeepClone();
             }
 
             var setInfo = new RecSettingData();
@@ -284,11 +284,11 @@ namespace EpgTimer
                 listView_recFolder.Items.Clear();
                 foreach (RecFileSetInfo info in recSetting.RecFolderList)
                 {
-                    listView_recFolder.Items.Add(new RecFileSetInfoView(info.Clone(), false));
+                    listView_recFolder.Items.Add(new RecFileSetInfoView(info.DeepClone(), false));
                 }
                 foreach (RecFileSetInfo info in recSetting.PartialRecFolder)
                 {
-                    listView_recFolder.Items.Add(new RecFileSetInfoView(info.Clone(), true));
+                    listView_recFolder.Items.Add(new RecFileSetInfoView(info.DeepClone(), true));
                 }
                 listView_recFolder.FitColumnWidth();
 
@@ -306,7 +306,7 @@ namespace EpgTimer
 
         private void checkBox_margineDef_Checked(object sender, RoutedEventArgs e)
         {
-            RecSettingData recSet = recSetting.Clone();
+            RecSettingData recSet = recSetting.DeepClone();
             recSet.IsMarginDefault = checkBox_margineDef.IsChecked == true;
             if (recSet.IsMarginDefault == true && OnUpdatingView == false)
             {
@@ -319,7 +319,7 @@ namespace EpgTimer
 
         private void checkBox_serviceMode_Checked(object sender, RoutedEventArgs e)
         {
-            RecSettingData recSet = recSetting.Clone();
+            RecSettingData recSet = recSetting.DeepClone();
             recSet.ServiceModeIsDefault = checkBox_serviceMode.IsChecked == true;
             if (recSet.ServiceModeIsDefault == true && OnUpdatingView == false)
             {
@@ -332,7 +332,7 @@ namespace EpgTimer
 
         private void checkBox_suspendDef_Checked(object sender, RoutedEventArgs e)
         {
-            RecSettingData recSet = recSetting.Clone();
+            RecSettingData recSet = recSetting.DeepClone();
             recSet.SetSuspendMode(checkBox_suspendDef.IsChecked == true, recEndMode);
             if (recSet.SuspendMode == 0 && OnUpdatingView == false)
             {
@@ -374,7 +374,7 @@ namespace EpgTimer
         private void button_recFolderCopy_Click(object sender, RoutedEventArgs e)
         {
             if (listView_recFolder.SelectedItem == null) return;
-            var items = listView_recFolder.SelectedItems.OfType<RecFileSetInfoView>().Select(item => new RecFileSetInfoView(item.Info.Clone(), item.PartialRec));
+            var items = listView_recFolder.SelectedItems.OfType<RecFileSetInfoView>().Select(item => new RecFileSetInfoView(item.Info.DeepClone(), item.PartialRec));
             listView_recFolder.ScrollIntoViewLast(items);
         }
         private void button_recFolderAdd_Click(object sender, RoutedEventArgs e)

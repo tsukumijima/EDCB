@@ -504,7 +504,7 @@ namespace EpgTimer
             get { return viewData.EpgTabInfo; }
             private set
             {
-                viewData.EpgTabInfo = value.Clone();
+                viewData.EpgTabInfo = value.DeepClone();
                 CustomEpgTabInfo org = TabInfoOriginal(value.Uid);
                 org = org ?? value;
                 base.Header = org.TabName;

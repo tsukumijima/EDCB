@@ -5,14 +5,14 @@ using System.Xml.Serialization;
 
 namespace EpgTimer
 {
-    public class PresetItem : ICloneObj
+    public class PresetItem : IDeepCloneObj
     {
         public PresetItem() { }
         public PresetItem(string name, Int32 id, object data = null) { DisplayName = name; ID = id; Data = data; }
         public string DisplayName { get; set; }
         public Int32 ID { get; set; }
         public virtual object Data { get; set; }
-        public virtual object CloneObj() { return null; }
+        public virtual object DeepCloneObj() { return null; }
         public override string ToString() { return string.IsNullOrWhiteSpace(DisplayName) ? "(プリセット)" : DisplayName; }
         public virtual object Reset() { DisplayName = "デフォルト"; ID = 0; Data = null; return this; }
 
@@ -36,17 +36,17 @@ namespace EpgTimer
         }
     }
 
-    public class PresetItemT<T> : PresetItem where T : class, ICloneObj, new()
+    public class PresetItemT<T> : PresetItem where T : class, IDeepCloneObj, new()
     {
         public PresetItemT() { }
         public PresetItemT(string name, Int32 id, T data = null) : base(name, id, data) { }
         [XmlIgnore]
         public new virtual T Data { get { return base.Data as T; } set { base.Data = value; } }
         public override object Reset() { base.Reset(); Data = new T(); return this; }
-        public override object CloneObj()
+        public override object DeepCloneObj()
         {
             var other = (PresetItem)MemberwiseClone();
-            if (Data != null) other.Data = Data.CloneObj();//nullのときはnull。
+            if (Data != null) other.Data = Data.DeepCloneObj();//nullのときはnull。
             return other;
         }
     }

@@ -109,7 +109,7 @@ namespace EpgTimer
 
         public void SetData(object data) { SetSearchKey(data as EpgSearchKeyInfo); }
         public object GetData() { return GetSearchKey(); }
-        public IEnumerable<PresetItem> DefPresetList() { return Settings.Instance.SearchPresetList.Clone(); }
+        public IEnumerable<PresetItem> DefPresetList() { return Settings.Instance.SearchPresetList.DeepClone(); }
 
         protected virtual void ComboBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -190,7 +190,7 @@ namespace EpgTimer
                 key.titleOnlyFlag = checkBox_titleOnly.IsChecked == true ? 1 : 0;
                 key.caseFlag = (byte)(checkBox_case.IsChecked == true ? 1 : 0);
                 key.keyDisabledFlag = (byte)(checkBox_keyDisabled.IsChecked == true ? 1 : 0);
-                key.contentList = listBox_content.Items.OfType<ContentKindInfo>().Select(info => info.Data).Clone();
+                key.contentList = listBox_content.Items.OfType<ContentKindInfo>().Select(info => info.Data).DeepClone();
                 key.notContetFlag = (byte)(checkBox_notContent.IsChecked == true ? 1 : 0);
                 key.serviceList = serviceList.Where(info => info.IsSelected == true).Select(info => (Int64)info.Key).ToList();
                 key.dateList = listBox_date.Items.OfType<DateItem>().Select(info => info.DateInfo).ToList();
@@ -209,7 +209,7 @@ namespace EpgTimer
         {
             //"登録時"を追加する。既存があれば追加前に削除する。検索ダイアログの上下ボタンの移動用のコード。
             comboBox_preSet.Items.Remove(preEdit.FindPreset(SearchPresetItem.CustomID));
-            comboBox_preSet.Items.Add(new SearchPresetItem("登録時", SearchPresetItem.CustomID, key.Clone()));
+            comboBox_preSet.Items.Add(new SearchPresetItem("登録時", SearchPresetItem.CustomID, key.DeepClone()));
             loadingSetting = true;
             comboBox_preSet.SelectedIndex = comboBox_preSet.Items.Count - 1;
         }
