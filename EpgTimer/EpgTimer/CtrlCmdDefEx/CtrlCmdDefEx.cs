@@ -110,68 +110,6 @@ namespace EpgTimer
     static class CtrlCmdDefEx
     {
         //CopyObj.csのジェネリックを使って定義している。
-        public static List<EpgSearchKeyInfo> Clone(this IEnumerable<EpgSearchKeyInfo> src) { return CopyObj.Clone(src, CopyData); }
-        public static EpgSearchKeyInfo Clone(this EpgSearchKeyInfo src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this EpgSearchKeyInfo src, EpgSearchKeyInfo dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(EpgSearchKeyInfo src, EpgSearchKeyInfo dest)
-        {
-            dest.aimaiFlag = src.aimaiFlag;
-            dest.andKey = src.andKey;
-            dest.audioList = src.audioList.ToList();
-            dest.contentList = src.contentList.Clone(); //EpgContentData
-            dest.dateList = src.dateList.Clone();       //EpgSearchDateInfo
-            dest.freeCAFlag = src.freeCAFlag;
-            dest.notContetFlag = src.notContetFlag;
-            dest.notDateFlag = src.notDateFlag;
-            dest.notKey = src.notKey;
-            dest.regExpFlag = src.regExpFlag;
-            dest.serviceList = src.serviceList.ToList();
-            dest.titleOnlyFlag = src.titleOnlyFlag;
-            dest.videoList = src.videoList.ToList();
-            dest.chkRecEnd = src.chkRecEnd;
-            dest.chkRecDay = src.chkRecDay;
-            dest.chkRecNoService = src.chkRecNoService;
-            dest.chkDurationMin = src.chkDurationMin;
-            dest.chkDurationMax = src.chkDurationMax;
-            dest.caseFlag = src.caseFlag;
-            dest.keyDisabledFlag = src.keyDisabledFlag;
-        }
-
-        public static List<EpgContentData> Clone(this IEnumerable<EpgContentData> src) { return CopyObj.Clone(src, CopyData); }
-        public static EpgContentData Clone(this EpgContentData src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this EpgContentData src, EpgContentData dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(EpgContentData src, EpgContentData dest)
-        {
-            dest.content_nibble_level_1 = src.content_nibble_level_1;
-            dest.content_nibble_level_2 = src.content_nibble_level_2;
-            dest.user_nibble_1 = src.user_nibble_1;
-            dest.user_nibble_2 = src.user_nibble_2;
-        }
-
-        public static List<EpgSearchDateInfo> Clone(this IEnumerable<EpgSearchDateInfo> src) { return CopyObj.Clone(src, CopyData); }
-        public static EpgSearchDateInfo Clone(this EpgSearchDateInfo src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this EpgSearchDateInfo src, EpgSearchDateInfo dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(EpgSearchDateInfo src, EpgSearchDateInfo dest)
-        {
-            dest.endDayOfWeek = src.endDayOfWeek;
-            dest.endHour = src.endHour;
-            dest.endMin = src.endMin;
-            dest.startDayOfWeek = src.startDayOfWeek;
-            dest.startHour = src.startHour;
-            dest.startMin = src.startMin;
-        }
-
-        public static List<RecFileSetInfo> Clone(this IEnumerable<RecFileSetInfo> src) { return CopyObj.Clone(src, CopyData); }
-        public static RecFileSetInfo Clone(this RecFileSetInfo src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this RecFileSetInfo src, RecFileSetInfo dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(RecFileSetInfo src, RecFileSetInfo dest)
-        {
-            dest.RecFileName = src.RecFileName;
-            dest.RecFolder = src.RecFolder;
-            dest.RecNamePlugIn = src.RecNamePlugIn;
-            dest.WritePlugIn = src.WritePlugIn;
-        }
-
         public static bool EqualsTo(this IList<RecFileSetInfo> src, IList<RecFileSetInfo> dest) { return CopyObj.EqualsTo(src, dest, EqualsValue); }
         public static bool EqualsTo(this RecFileSetInfo src, RecFileSetInfo dest) { return CopyObj.EqualsTo(src, dest, EqualsValue); }
         public static bool EqualsValue(RecFileSetInfo src, RecFileSetInfo dest)
@@ -211,7 +149,6 @@ namespace EpgTimer
 
             return true;
         }
-
 
         public static void RegulateData(this EpgSearchDateInfo info)
         {

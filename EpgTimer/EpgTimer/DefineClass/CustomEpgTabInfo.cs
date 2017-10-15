@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace EpgTimer
 {
-    public class CustomEpgTabInfo
+    public class CustomEpgTabInfo : ICloneObj
     {
         public CustomEpgTabInfo()
         {
@@ -52,35 +52,18 @@ namespace EpgTimer
             return key;
         }
 
-        public static List<CustomEpgTabInfo> Clone(IEnumerable<CustomEpgTabInfo> src) { return CopyObj.Clone(src, CopyData); }
-        public CustomEpgTabInfo Clone() { return CopyObj.Clone(this, CopyData); }
-        public void CopyTo(CustomEpgTabInfo dest) { CopyObj.CopyTo(this, dest, CopyData); }
-        protected static void CopyData(CustomEpgTabInfo src, CustomEpgTabInfo dest)
+        public object CloneObj()
         {
-            dest.TabName = src.TabName;
-            dest.ViewMode = src.ViewMode;
-            dest.NeedTimeOnlyBasic = src.NeedTimeOnlyBasic;
-            dest.NeedTimeOnlyWeek = src.NeedTimeOnlyWeek;
-            dest.StartTimeWeek = src.StartTimeWeek;
-            dest.ViewServiceList = src.ViewServiceList.ToList();
-            dest.ViewContentList = src.ViewContentList.Clone();
-            dest.ViewNotContentFlag = src.ViewNotContentFlag;
-            dest.SearchMode = src.SearchMode;
-            dest.SearchGenreNoSyncView = src.SearchGenreNoSyncView;
-            dest.FilterEnded = src.FilterEnded;
-            dest.SearchKey = src.SearchKey.Clone();
-            dest.ID = src.ID;
-            dest.IsVisible = src.IsVisible;
+            var other = (CustomEpgTabInfo)MemberwiseClone();
+            other.ViewServiceList = ViewServiceList.ToList();
+            other.ViewContentList = ViewContentList.Clone();
+            other.SearchKey = SearchKey.Clone();
+            return other;
         }
 
         public override string ToString()
         {
             return TabName;
         }
-    }
-
-    public static class CustomEpgTabInfoEx
-    {
-        public static List<CustomEpgTabInfo> Clone(this IEnumerable<CustomEpgTabInfo> src) { return CustomEpgTabInfo.Clone(src); }
     }
 }

@@ -4,8 +4,26 @@ using System.Linq;
 
 namespace EpgTimer
 {
+    public interface ICloneObj
+    {
+        object CloneObj();
+    }
     public static class CopyObj
     {
+        public static T Clone<T>(this T src) where T : ICloneObj
+        {
+            return (T)src.CloneObj();
+        }
+        //IDeepCloneを持っているクラスに拡張メソッド追加。
+        public static List<T> Clone<T>(this IEnumerable<T> src) where T : ICloneObj
+        {
+            return src == null ? null : src.Select(a => a.Clone()).ToList();
+        }
+        //List<T>などがClone<T>(this T src)と混同されてしまうので
+        public static List<T> Clone<T>(this List<T> src) where T : ICloneObj { return Clone(src as IEnumerable<T>); }
+        public static List<T> Clone<T>(this T[] src) where T : ICloneObj { return Clone(src as IEnumerable<T>); }
+
+        /*
         //static CopyData(src,dest)を用意して、拡張メソッドを追加するため用。
         //public static List<クラス名> Clone(this IEnumerable<クラス名> src) { return CopyObj.Clone(src, CopyData); }
         //public static クラス名 Clone(this クラス名 src) { return CopyObj.Clone(src, CopyData); }
@@ -28,6 +46,7 @@ namespace EpgTimer
             if (src == null || dest == null) return;
             CopyData(src, dest);
         }
+        */
 
         //static EqualsValue(src,dest)を用意して、拡張メソッドを追加するため用。
         //public static bool EqualsTo(this IList<クラス名> src,  IList<RecSettingData> dest) { return CopyObj.EqualsTo(src, dest, EqualsValue); }

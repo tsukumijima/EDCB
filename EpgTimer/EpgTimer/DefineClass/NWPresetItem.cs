@@ -2,7 +2,7 @@
 
 namespace EpgTimer
 {
-    public class NWPresetItem
+    public class NWPresetItem : ICloneObj
     {
         public string Name { get; set; }
         public string NWServerIP { get; set; }
@@ -26,14 +26,6 @@ namespace EpgTimer
                 && NWServerIP == item.NWServerIP && NWServerPort == item.NWServerPort
                 && NWWaitPort == item.NWWaitPort && NWMacAdd == item.NWMacAdd;
         }
-        public NWPresetItem Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(NWPresetItem src, NWPresetItem dest)
-        {
-            dest.Name = src.Name;
-            dest.NWServerIP = src.NWServerIP;
-            dest.NWServerPort = src.NWServerPort;
-            dest.NWWaitPort = src.NWWaitPort;
-            dest.NWMacAdd = src.NWMacAdd;
-        }
+        public object CloneObj() { return MemberwiseClone(); }
     }
 }

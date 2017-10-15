@@ -8,8 +8,15 @@ namespace EpgTimer
 {
     public interface IRecSetttingData
     {
-        RecSettingData RecSettingInfo { get; }
+        RecSettingData RecSettingInfo { get; set; }
         bool IsManual { get; }
+    }
+    public static class RecSettingDataEx
+    {
+        public static List<RecSettingData> RecSettingList(this IEnumerable<IRecSetttingData> list)
+        {
+            return list.Where(item => item != null).Select(item => item.RecSettingInfo).ToList();
+        }
     }
 
     public partial class RecSettingData
@@ -21,7 +28,27 @@ namespace EpgTimer
         }
         public RecPresetItem LookUpPreset(IEnumerable<RecPresetItem> refdata, bool IsManual = false)
         {
-            return refdata.FirstOrDefault(p1 => p1.Data.EqualsSettingTo(this, IsManual));
+            return refdata.FirstOrDefault(p1 => EqualsSettingTo(p1.Data, IsManual));
+        }
+        public bool EqualsSettingTo(RecSettingData other, bool IsManual = false)
+        {
+            return other != null
+                && BatFilePath == other.BatFilePath
+                && ContinueRecFlag == other.ContinueRecFlag
+                && (EndMargine == other.EndMargine || IsMarginDefault)//マージンデフォルト時
+                && PartialRecFlag == other.PartialRecFlag
+                && PartialRecFolder.EqualsTo(other.PartialRecFolder)
+                && (PittariFlag == other.PittariFlag || IsManual == true)//プログラム予約時
+                && Priority == other.Priority
+                && (RebootFlag == other.RebootFlag || SuspendMode == 0)//動作後設定デフォルト時
+                && RecFolderList.EqualsTo(other.RecFolderList)
+                && (RecMode == other.RecMode || RecMode == 5 || other.RecMode == 5)
+                && (ServiceMode == other.ServiceMode || ((ServiceMode | other.ServiceMode) & 0x0F) == 0)//字幕等データ設定デフォルト時
+                && (StartMargine == other.StartMargine || IsMarginDefault)//マージンデフォルト時
+                && SuspendMode == other.SuspendMode//動作後設定
+                && (TuijyuuFlag == other.TuijyuuFlag || IsManual == true)//プログラム予約時
+                && TunerID == other.TunerID
+                && IsMarginDefault == other.IsMarginDefault;
         }
 
         [XmlIgnore]
@@ -108,57 +135,5 @@ namespace EpgTimer
         {
             get { return SuspendMode != 0 ? RebootFlag : (byte)IniFileHandler.GetPrivateProfileInt("SET", "Reboot", 0, SettingPath.TimerSrvIniPath); }
         }
-    }
-
-    public static class RecSettingDataEx
-    {
-        public static List<RecSettingData> RecSettingList(this IEnumerable<IRecSetttingData> list)
-        {
-            return list.Where(item => item != null).Select(item => item.RecSettingInfo).ToList();
-        }
-
-        public static List<RecSettingData> Clone(this IEnumerable<RecSettingData> src) { return CopyObj.Clone(src, CopyData); }
-        public static RecSettingData Clone(this RecSettingData src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this RecSettingData src, RecSettingData dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(RecSettingData src, RecSettingData dest)
-        {
-            dest.BatFilePath = src.BatFilePath;
-            dest.ContinueRecFlag = src.ContinueRecFlag;
-            dest.EndMargine = src.EndMargine;
-            dest.PartialRecFlag = src.PartialRecFlag;
-            dest.PartialRecFolder = src.PartialRecFolder.Clone();   //RecFileSetInfo
-            dest.PittariFlag = src.PittariFlag;
-            dest.Priority = src.Priority;
-            dest.RebootFlag = src.RebootFlag;
-            dest.RecFolderList = src.RecFolderList.Clone();         //RecFileSetInfo
-            dest.RecMode = src.RecMode;
-            dest.ServiceMode = src.ServiceMode;
-            dest.StartMargine = src.StartMargine;
-            dest.SuspendMode = src.SuspendMode;
-            dest.TuijyuuFlag = src.TuijyuuFlag;
-            dest.TunerID = src.TunerID;
-            dest.UseMargineFlag = src.UseMargineFlag;
-        }
-        public static bool EqualsSettingTo(this RecSettingData src, RecSettingData dest, bool IsManual = false)
-        {
-            if (src == null || dest == null) return false;
-            return src.BatFilePath == dest.BatFilePath
-                && src.ContinueRecFlag == dest.ContinueRecFlag
-                && (src.EndMargine == dest.EndMargine || src.IsMarginDefault)//マージンデフォルト時
-                && src.PartialRecFlag == dest.PartialRecFlag
-                && src.PartialRecFolder.EqualsTo(dest.PartialRecFolder)
-                && (src.PittariFlag == dest.PittariFlag || IsManual == true)//プログラム予約時
-                && src.Priority == dest.Priority
-                && (src.RebootFlag == dest.RebootFlag || src.SuspendMode == 0)//動作後設定デフォルト時
-                && src.RecFolderList.EqualsTo(dest.RecFolderList)
-                && (src.RecMode == dest.RecMode || src.RecMode == 5 || dest.RecMode == 5)
-                && (src.ServiceMode == dest.ServiceMode || ((src.ServiceMode | dest.ServiceMode) & 0x0F) == 0)//字幕等データ設定デフォルト時
-                && (src.StartMargine == dest.StartMargine || src.IsMarginDefault)//マージンデフォルト時
-                && src.SuspendMode == dest.SuspendMode//動作後設定
-                && (src.TuijyuuFlag == dest.TuijyuuFlag || IsManual == true)//プログラム予約時
-                && src.TunerID == dest.TunerID
-                && src.IsMarginDefault == dest.IsMarginDefault;
-        }
-
     }
 }

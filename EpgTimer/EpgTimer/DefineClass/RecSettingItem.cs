@@ -7,7 +7,7 @@ namespace EpgTimer
 {
     public class RecSettingItem : DataListItemBase, IRecSetttingData
     {
-        public virtual RecSettingData RecSettingInfo { get { return null; } }
+        public virtual RecSettingData RecSettingInfo { get { return null; } set { } }
         public virtual void Reset() { preset = null; }
         public virtual bool IsManual { get { return false; } }
 

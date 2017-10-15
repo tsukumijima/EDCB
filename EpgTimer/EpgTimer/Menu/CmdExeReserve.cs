@@ -28,12 +28,8 @@ namespace EpgTimer
         protected List<EpgEventInfo> eventListEx = new List<EpgEventInfo>();//reserveData(dataList)とかぶらないもの
         protected List<EpgEventInfo> eventListAdd { get { return IsMultiReserve == true ? eventList : eventListEx; } }
 
-        public CmdExeReserve(UIElement owner)
-            : base(owner)
-        {
-            _copyItemData = ReserveDataEx.CopyTo;
-        }
-        protected override void SetData(bool IsAllData = false  )
+        public CmdExeReserve(UIElement owner) : base(owner) { }
+        protected override void SetData(bool IsAllData = false)
         {
             base.SetData(IsAllData);
             if (HasList == true)//SearchItemリストがある場合
@@ -142,7 +138,7 @@ namespace EpgTimer
         protected override void mc_ChgBulkRecSet(object sender, ExecutedRoutedEventArgs e)
         {
             var mList = dataList.FindAll(info => info.IsEpgReserve == false);
-            if (MenuUtil.ChangeBulkSet(dataList.RecSettingList(), this.Owner, mList.Count == dataList.Count) == false) return;
+            if (MenuUtil.ChangeBulkSet(dataList, this.Owner, mList.Count == dataList.Count) == false) return;
             IsCommandExecuted = MenuUtil.ReserveChange(dataList);
         }
         protected override void mc_CopyItem(object sender, ExecutedRoutedEventArgs e)

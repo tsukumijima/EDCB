@@ -251,10 +251,10 @@ namespace EpgTimer
             return false;
         }
 
-        public static void ChangeOnPreset(List<RecSettingData> infoList, int presetID)
+        public static void ChangeOnPreset(IEnumerable<IRecSetttingData> dataList, int presetID)
         {
-            RecSettingData setInfo = Settings.RecPreset(presetID).Data;
-            infoList.ForEach(info => setInfo.CopyTo(info));
+            RecSettingData setData = Settings.RecPreset(presetID).Data;
+            foreach (var data in dataList) data.RecSettingInfo = setData.Clone();
         }
 
         public static void ChangeRecmode(List<RecSettingData> infoList, byte recMode)
@@ -307,19 +307,19 @@ namespace EpgTimer
             infoList.ForEach(info => { if (info != null) info.TunerID = tuner; });
         }
 
-        public static bool ChangeBulkSet(List<RecSettingData> infoList, UIElement owner = null, bool pgAll = false)
+        public static bool ChangeBulkSet(IEnumerable<IRecSetttingData> dataList, UIElement owner = null, bool pgAll = false)
         {
             try
             {
                 var dlg = new SetRecPresetWindow(owner);
                 dlg.SetSettingMode("まとめて録画設定を変更");
                 dlg.DataView.SetViewMode(pgAll != true);
-                dlg.DataView.SetDefSetting(infoList[0]);
+                dlg.DataView.SetDefSetting(dataList.First().RecSettingInfo);
 
                 if (dlg.ShowDialog() == false) return false;
 
                 RecSettingData setData = dlg.DataView.GetRecSetting();
-                infoList.ForEach(info => setData.CopyTo(info));
+                foreach (var data in dataList) data.RecSettingInfo = setData.Clone();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -647,8 +647,8 @@ namespace EpgTimer
 
             if (changeID == true)
             {
-                //並べ替えの影響回避のため。
-                list = list.Select(item => (T)item.CloneObj()).ToList();
+                //並べ替えの影響回避(変更以外では生データがそのままくるので。この位置でないとダメ。)
+                list = list.Clone();
             }
 
             //並べ替えしなかった

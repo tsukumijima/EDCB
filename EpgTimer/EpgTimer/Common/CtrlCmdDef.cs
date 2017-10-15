@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace EpgTimer
 {
@@ -57,7 +58,7 @@ namespace EpgTimer
     }
 
     /// <summary>録画フォルダ情報</summary>
-    public class RecFileSetInfo : ICtrlCmdReadWrite
+    public class RecFileSetInfo : ICtrlCmdReadWrite, ICloneObj
     {
         /// <summary>録画フォルダ</summary>
         public string RecFolder;
@@ -94,10 +95,11 @@ namespace EpgTimer
             r.Read(ref RecFileName);
             r.End();
         }
+        public object CloneObj() { return MemberwiseClone(); }
     }
 
     /// <summary>録画設定情報</summary>
-    public partial class RecSettingData : ICtrlCmdReadWrite
+    public partial class RecSettingData : ICtrlCmdReadWrite, ICloneObj
     {
         /// <summary>録画モード</summary>
         public byte RecMode;
@@ -200,10 +202,17 @@ namespace EpgTimer
             }
             r.End();
         }
+        public object CloneObj()
+        {
+            var other = (RecSettingData)MemberwiseClone();
+            other.PartialRecFolder = PartialRecFolder.Clone();   //RecFileSetInfo
+            other.RecFolderList = RecFolderList.Clone();         //RecFileSetInfo
+            return other;
+        }
     }
 
     /// <summary>登録予約情報</summary>
-    public partial class ReserveData : ICtrlCmdReadWrite
+    public partial class ReserveData : ICtrlCmdReadWrite, ICloneObj
     {
         /// <summary>番組名</summary>
         public string Title;
@@ -316,9 +325,16 @@ namespace EpgTimer
             }
             r.End();
         }
+        public object CloneObj()
+        {
+            var other = (ReserveData)MemberwiseClone();
+            other.RecSetting = RecSetting.Clone();               //RecSettingData
+            other.RecFileNameList = RecFileNameList.ToList();
+            return other;
+        }
     }
 
-    public partial class RecFileInfo : ICtrlCmdReadWrite
+    public partial class RecFileInfo : ICtrlCmdReadWrite, ICloneObj
     {
         /// <summary>ID</summary>
         public uint ID;
@@ -430,6 +446,7 @@ namespace EpgTimer
             }
             r.End();
         }
+        public object CloneObj() { return MemberwiseClone(); }
     }
 
     public class TunerReserveInfo : ICtrlCmdReadWrite
@@ -519,7 +536,7 @@ namespace EpgTimer
     }
 
     /// <summary>EPGジャンルデータ</summary>
-    public partial class EpgContentData : ICtrlCmdReadWrite
+    public partial class EpgContentData : ICtrlCmdReadWrite, ICloneObj
     {
         public byte content_nibble_level_1;
         public byte content_nibble_level_2;
@@ -552,6 +569,7 @@ namespace EpgTimer
             r.Read(ref user_nibble_2);
             r.End();
         }
+        public object CloneObj() { return MemberwiseClone(); }
     }
 
     /// <summary>EPGジャンル情報</summary>
@@ -798,7 +816,7 @@ namespace EpgTimer
 
         /// <summary>EpgTimer内のみ有効/過去番組情報</summary>
         public bool PastDataFlag;
-        
+
         public EpgEventInfo()
         {
             original_network_id = 0;
@@ -1007,7 +1025,7 @@ namespace EpgTimer
         }
     }
 
-    public class EpgSearchDateInfo : ICtrlCmdReadWrite
+    public class EpgSearchDateInfo : ICtrlCmdReadWrite, ICloneObj
     {
         public byte startDayOfWeek;
         public ushort startHour;
@@ -1048,10 +1066,11 @@ namespace EpgTimer
             r.Read(ref endMin);
             r.End();
         }
+        public object CloneObj() { return MemberwiseClone(); }
     }
 
     /// <summary>検索条件</summary>
-    public class EpgSearchKeyInfo : ICtrlCmdReadWrite
+    public class EpgSearchKeyInfo : ICtrlCmdReadWrite, ICloneObj
     {
         public string andKey;
         public string notKey;
@@ -1198,10 +1217,20 @@ namespace EpgTimer
             //旧CS仮対応コード(+0x70)の処置
             EpgContentData.FixNibble(contentList);
         }
+        public object CloneObj()
+        {
+            var other = (EpgSearchKeyInfo)MemberwiseClone();
+            other.contentList = contentList.Clone();
+            other.dateList = dateList.Clone();
+            other.serviceList = serviceList.ToList();
+            other.videoList = videoList.ToList();
+            other.audioList = audioList.ToList();
+            return other;
+        }
     }
 
     /// <summary>自動予約登録情報</summary>
-    public partial class EpgAutoAddData : ICtrlCmdReadWrite
+    public partial class EpgAutoAddData : ICtrlCmdReadWrite, ICloneObj
     {
         public uint dataID;
         /// <summary>検索キー</summary>
@@ -1243,9 +1272,16 @@ namespace EpgTimer
             }
             r.End();
         }
+        public override object CloneObj()
+        {
+            var other = (EpgAutoAddData)MemberwiseClone();
+            other.recSetting = recSetting.Clone();       //RecSettingData
+            other.searchInfo = searchInfo.Clone();       //EpgSearchKeyInfo
+            return other;
+        }
     }
 
-    public partial class ManualAutoAddData : ICtrlCmdReadWrite
+    public partial class ManualAutoAddData : ICtrlCmdReadWrite, ICloneObj
     {
         public uint dataID;
         /// <summary>対象曜日</summary>
@@ -1328,6 +1364,12 @@ namespace EpgTimer
                 byte.TryParse(title.Substring(8, 2), System.Globalization.NumberStyles.AllowHexSpecifier, null, out dayOfWeekFlag);
                 title = title.Substring(11);
             }
+        }
+        public override object CloneObj()
+        {
+            var other = (ManualAutoAddData)MemberwiseClone();
+            other.recSetting = recSetting.Clone();       //RecSettingData
+            return other;
         }
     }
 

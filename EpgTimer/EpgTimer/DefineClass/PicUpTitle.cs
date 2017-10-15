@@ -5,18 +5,18 @@ using System.Text.RegularExpressions;
 
 namespace EpgTimer
 {
-    public class PicUpTitle
+    public class PicUpTitle : ICloneObj
     {
         public bool UseCustom { get; set; }
         public List<string> ReplaceSet { get; private set; }
         public List<string> TitleSet { get; private set; }
 
-        public PicUpTitle Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(PicUpTitle src, PicUpTitle dest)
+        public object CloneObj()
         {
-            dest.UseCustom = src.UseCustom;
-            dest.ReplaceSet = src.ReplaceSet.ToList();
-            dest.TitleSet = src.TitleSet.ToList();
+            var other = (PicUpTitle)MemberwiseClone();
+            other.ReplaceSet = ReplaceSet.ToList();
+            other.TitleSet = TitleSet.ToList();
+            return other;
         }
 
         public PicUpTitle()

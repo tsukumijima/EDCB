@@ -16,7 +16,7 @@ namespace EpgTimer
         {
             return CommonManager.Create64PgKey(OriginalNetworkID, TransportStreamID, ServiceID, EventID);
         }
-        public RecSettingData RecSettingInfo { get { return RecSetting; } }
+        public RecSettingData RecSettingInfo { get { return RecSetting; } set { RecSetting = value; } }
         public bool IsManual { get { return IsEpgReserve == false; } }
 
         public ReserveMode ReserveMode
@@ -155,28 +155,6 @@ namespace EpgTimer
             }
 
             return ret;
-        }
-
-        public static List<ReserveData> Clone(this IEnumerable<ReserveData> src) { return CopyObj.Clone(src, CopyData); }
-        public static ReserveData Clone(this ReserveData src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this ReserveData src, ReserveData dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(ReserveData src, ReserveData dest)
-        {
-            dest.Comment = src.Comment;
-            dest.DurationSecond = src.DurationSecond;
-            dest.EventID = src.EventID;
-            dest.OriginalNetworkID = src.OriginalNetworkID;
-            dest.OverlapMode = src.OverlapMode;
-            dest.RecFileNameList = src.RecFileNameList.ToList();
-            dest.RecSetting = src.RecSetting.Clone();               //RecSettingData
-            dest.ReserveID = src.ReserveID;
-            dest.ReserveStatus = src.ReserveStatus;
-            dest.ServiceID = src.ServiceID;
-            dest.StartTime = src.StartTime;
-            dest.StartTimeEpg = src.StartTimeEpg;
-            dest.StationName = src.StationName;
-            dest.Title = src.Title;
-            dest.TransportStreamID = src.TransportStreamID;
         }
     }
 

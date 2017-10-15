@@ -101,31 +101,6 @@ namespace EpgTimer
         {
             return list.Any(info => info == null ? false : info.ProtectFlag == 0);
         }
-
-        public static List<RecFileInfo> Clone(this IEnumerable<RecFileInfo> src) { return CopyObj.Clone(src, CopyData); }
-        public static RecFileInfo Clone(this RecFileInfo src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this RecFileInfo src, RecFileInfo dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(RecFileInfo src, RecFileInfo dest)
-        {
-            dest.Comment = src.Comment;
-            dest.Drops = src.Drops;
-            dest.DurationSecond = src.DurationSecond;
-            dest._ErrInfo = src._ErrInfo;
-            dest.EventID = src.EventID;
-            dest.ID = src.ID;
-            dest.OriginalNetworkID = src.OriginalNetworkID;
-            dest._ProgramInfo = src._ProgramInfo;
-            dest.ProtectFlag = src.ProtectFlag;
-            dest.RecFilePath = src.RecFilePath;
-            dest.RecStatus = src.RecStatus;
-            dest.Scrambles = src.Scrambles;
-            dest.ServiceID = src.ServiceID;
-            dest.ServiceName = src.ServiceName;
-            dest.StartTime = src.StartTime;
-            dest.StartTimeEpg = src.StartTimeEpg;
-            dest.Title = src.Title;
-            dest.TransportStreamID = src.TransportStreamID;
-        }
     }
 
     public class RecFileInfoAppend

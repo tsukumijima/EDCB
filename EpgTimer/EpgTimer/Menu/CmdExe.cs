@@ -68,7 +68,6 @@ namespace EpgTimer
         protected Func<bool, IEnumerable<object>> _getDataList = null;
         protected Func<bool, object> _selectSingleData = null;
         protected Action _releaseSelectedData = null;
-        protected Action<T, T> _copyItemData = null;
 
         //型チェックが効きにくいが‥
         public override void SetFuncGetDataList(Func<bool, IEnumerable<object>> f) { _getDataList = f; }
@@ -173,7 +172,10 @@ namespace EpgTimer
         }
         protected virtual void CopyDataList()
         {
-            if (_copyItemData != null) dataList = CopyObj.Clone(dataList, _copyItemData);
+            if (typeof(T).GetInterface(typeof(ICloneObj).Name) != null)
+            {
+                dataList = dataList.Select(data => (T)(data as ICloneObj).CloneObj()).ToList();
+            }
         }
         protected cmdOption GetCmdParam(ICommand icmd)
         {
@@ -394,7 +396,7 @@ namespace EpgTimer
 
             if (e.Command == EpgCmds.ChgOnPreset)
             {
-                MenuUtil.ChangeOnPreset(infoList, CmdExeUtil.ReadIdData(e, 0, 0xFE));
+                MenuUtil.ChangeOnPreset(dataList.OfType<IRecSetttingData>(), CmdExeUtil.ReadIdData(e, 0, 0xFE));
             }
             else if (e.Command == EpgCmds.ChgRecmode)
             {

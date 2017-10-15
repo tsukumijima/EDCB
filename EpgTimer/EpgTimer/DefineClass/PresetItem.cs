@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 
 namespace EpgTimer
 {
-    public class PresetItem
+    public class PresetItem : ICloneObj
     {
         public PresetItem() { }
         public PresetItem(string name, Int32 id, object data = null) { DisplayName = name; ID = id; Data = data; }
@@ -16,12 +16,6 @@ namespace EpgTimer
         public override string ToString() { return string.IsNullOrWhiteSpace(DisplayName) ? "(プリセット)" : DisplayName; }
         public virtual object Reset() { DisplayName = "デフォルト"; ID = 0; Data = null; return this; }
 
-        protected static void CopyData(PresetItem src, PresetItem dest)
-        {
-            dest.DisplayName = src.DisplayName;
-            dest.ID = src.ID;
-        }
-
         public const Int32 CustomID = -1;
         public const Int32 LastID = -2;
         public virtual bool IsCustom { get { return ID < 0; } }
@@ -29,11 +23,6 @@ namespace EpgTimer
 
     static class PresetItemEx
     {
-        public static List<S> Clone<S>(this IEnumerable<S> src) where S : PresetItem
-        {
-            return src.Select(data => data.CloneObj()).Cast<S>().ToList();
-        }
-
         static public void FixID<S>(this IEnumerable<S> list) where S : PresetItem
         {
             int i = 0;
@@ -47,41 +36,31 @@ namespace EpgTimer
         }
     }
 
-    public class PresetItemT<T> : PresetItem where T : class, new()
+    public class PresetItemT<T> : PresetItem where T : class, ICloneObj, new()
     {
         public PresetItemT() { }
         public PresetItemT(string name, Int32 id, T data = null) : base(name, id, data) { }
         [XmlIgnore]
         public new virtual T Data { get { return base.Data as T; } set { base.Data = value; } }
         public override object Reset() { base.Reset(); Data = new T(); return this; }
+        public override object CloneObj()
+        {
+            var other = (PresetItem)MemberwiseClone();
+            if (Data != null) other.Data = Data.CloneObj();//nullのときはnull。
+            return other;
+        }
     }
 
     public class SearchPresetItem : PresetItemT<EpgSearchKeyInfo>
     {
         public SearchPresetItem() { }
         public SearchPresetItem(string name, Int32 id, EpgSearchKeyInfo data = null) : base(name, id, data) { }
-
-        public override object CloneObj() { return this.Clone(); }
-        public SearchPresetItem Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(SearchPresetItem src, SearchPresetItem dest)
-        {
-            PresetItem.CopyData(src, dest);
-            dest.Data = src.Data.Clone();//nullのときはnullが返る。
-        }
     }
 
     public class RecPresetItem : PresetItemT<RecSettingData>
     {
         public RecPresetItem() { }
         public RecPresetItem(string name, Int32 id, RecSettingData data = null) : base(name, id, data) { }
-
-        public override object CloneObj() { return this.Clone(); }
-        public RecPresetItem Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(RecPresetItem src, RecPresetItem dest)
-        {
-            PresetItem.CopyData(src, dest);
-            dest.Data = src.Data.Clone();//nullのときはnullが返る。
-        }
 
         protected void LoadPresetData()
         {

@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 namespace EpgTimer
 {
-    public abstract class AutoAddData : IRecWorkMainData, IRecSetttingData
+    public abstract class AutoAddData : IRecWorkMainData, IRecSetttingData, ICloneObj
     {
         //IRecWorkMainData
         [XmlIgnore]
@@ -16,7 +16,7 @@ namespace EpgTimer
         //
         [XmlIgnore]
         public abstract bool IsEnabled { get; set; }
-        public abstract RecSettingData RecSettingInfo { get; }
+        public abstract RecSettingData RecSettingInfo { get; set; }
         public virtual bool IsManual { get { return false; } }
 
         /*
@@ -96,10 +96,6 @@ namespace EpgTimer
         {
             return IsEnabled == null ? mlist.ToList() : mlist.Where(data => data.IsEnabled == IsEnabled).ToList();
         }
-        public static List<AutoAddData> Clone(this IEnumerable<AutoAddData> src)
-        {
-            return src.Select(data => data.CloneObj()).Cast<AutoAddData>().ToList();
-        }
     }
 
     public partial class EpgAutoAddData : AutoAddData
@@ -110,15 +106,13 @@ namespace EpgTimer
         public override ulong DataID { get { return dataID; } set { dataID = (uint)value; } }
         [XmlIgnore]
         public override bool IsEnabled { get { return searchInfo.keyDisabledFlag == 0; } set { searchInfo.keyDisabledFlag = (byte)(value == true ? 0 : 1); } }
-        public override RecSettingData RecSettingInfo { get { return recSetting; } }
+        public override RecSettingData RecSettingInfo { get { return recSetting; } set { recSetting = value; } }
 
         public override bool CheckPgHit(IAutoAddTargetData data)
         {
             if (data == null) return false;
             return this.GetSearchList().Any(info => info.EventInfo.CurrentPgUID() == data.CurrentPgUID());
         }
-
-        public override object CloneObj() { return EpgAutoAddDataEx.Clone(this); }
 
         //EpgAutoAddDataAppend 追加分
         protected override AutoAddDataAppend Append { get { return CommonManager.Instance.DB.GetEpgAutoAddDataAppend(this); } }
@@ -128,17 +122,6 @@ namespace EpgTimer
 
     public static class EpgAutoAddDataEx
     {
-        public static List<EpgAutoAddData> Clone(this IEnumerable<EpgAutoAddData> src) { return CopyObj.Clone(src, CopyData); }
-        public static EpgAutoAddData Clone(this EpgAutoAddData src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this EpgAutoAddData src, EpgAutoAddData dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(EpgAutoAddData src, EpgAutoAddData dest)
-        {
-            dest.addCount = src.addCount;
-            dest.dataID = src.dataID;
-            dest.recSetting = src.recSetting.Clone();       //RecSettingData
-            dest.searchInfo = src.searchInfo.Clone();       //EpgSearchKeyInfo
-        }
-
         public static List<EpgSearchKeyInfo> RecSearchKeyList(this IEnumerable<EpgAutoAddData> list)
         {
             return list.Where(item => item != null).Select(item => item.searchInfo).ToList();
@@ -160,7 +143,7 @@ namespace EpgTimer
 
         [XmlIgnore]
         public override bool IsEnabled { get { return keyDisabledFlag == 0; } set { keyDisabledFlag = (byte)(value == true ? 0 : 1); } }
-        public override RecSettingData RecSettingInfo { get { return recSetting; } }
+        public override RecSettingData RecSettingInfo { get { return recSetting; } set { recSetting = value; } }
         public override bool IsManual { get { return true; } }
         public override bool CheckPgHit(IAutoAddTargetData data)
         {
@@ -192,31 +175,9 @@ namespace EpgTimer
             }
         }
 
-        public override object CloneObj() { return ManualAutoAddDataEx.Clone(this); }
-
         //AutoAddDataAppend
         protected override AutoAddDataAppend Append { get { return CommonManager.Instance.DB.GetManualAutoAddDataAppend(this); } }
         public override uint SearchCount { get { return (uint)CommonUtil.NumBits(dayOfWeekFlag); } }
-    }
-    public static class ManualAutoAddDataEx
-    {
-        public static List<ManualAutoAddData> Clone(this IEnumerable<ManualAutoAddData> src) { return CopyObj.Clone(src, CopyData); }
-        public static ManualAutoAddData Clone(this ManualAutoAddData src) { return CopyObj.Clone(src, CopyData); }
-        public static void CopyTo(this ManualAutoAddData src, ManualAutoAddData dest) { CopyObj.CopyTo(src, dest, CopyData); }
-        private static void CopyData(ManualAutoAddData src, ManualAutoAddData dest)
-        {
-            dest.dataID = src.dataID;
-            dest.dayOfWeekFlag = src.dayOfWeekFlag;
-            dest.durationSecond = src.durationSecond;
-            dest.originalNetworkID = src.originalNetworkID;
-            dest.recSetting = src.recSetting.Clone();       //RecSettingData
-            dest.serviceID = src.serviceID;
-            dest.startTime = src.startTime;
-            dest.stationName = src.stationName;
-            dest.title = src.title;
-            dest.transportStreamID = src.transportStreamID;
-            dest.keyDisabledFlag = src.keyDisabledFlag;
-        }
     }
 
     public class AutoAddDataAppend

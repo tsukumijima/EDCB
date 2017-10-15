@@ -22,70 +22,36 @@ namespace EpgTimer
         EtcWindow       //ショートカットメニューがないダイアログなど用のダミー
     }
 
-    public class CtxmData
+    public class CtxmData : ICloneObj
     {
         public CtxmCode ctxmCode { set; get; }
         public List<CtxmItemData> Items { set; get; }
+        public object CloneObj() { return new CtxmData(ctxmCode, Items); }
 
-        public CtxmData() { Items = new List<CtxmItemData>(); }
-//        public CtxmData(CtxmData data) { CopyData(data, this); }
-
-            //デフォルト定義用
-        public CtxmData(CtxmCode code, List<CtxmItemData> data = null)
+        public CtxmData(CtxmCode code, List<CtxmItemData> items = null)
         {
-            ctxmCode= code;
-            Items = new List<CtxmItemData>();
-            if (data != null) Items.AddRange(data);
-        }
-
-        public CtxmData Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(CtxmData src, CtxmData dest)
-        {
-            dest.ctxmCode = src.ctxmCode;
-            dest.Items = src.Items.Clone();
+            ctxmCode = code;
+            Items = items.Clone() ?? new List<CtxmItemData>();
         }
     }
 
-    public class CtxmItemData
+    public class CtxmItemData : ICloneObj
     {
         public string Header { set; get; }
         public int ID { set; get; }
         public ICommand Command { set; get; }
         public List<CtxmItemData> Items { set; get; }
+        public object CloneObj() { return new CtxmItemData(this); }
 
-        public CtxmItemData() { Items = new List<CtxmItemData>(); }
-        public CtxmItemData(CtxmItemData data) { CopyData(data, this); }
-
-        //デフォルト定義用
-        public CtxmItemData(string header, ICommand icmd = null, int id = 0)
+        public CtxmItemData(string header, ICommand icmd, int id = 0, List<CtxmItemData> items = null)
         {
             Header = header;
             ID = id;
             Command = icmd;
-            Items = new List<CtxmItemData>();
+            Items = items.Clone() ?? new List<CtxmItemData>();
         }
-
+        public CtxmItemData(CtxmItemData data) : this(data.Header, data.Command, data.ID, data.Items) { }
         //デフォルト定義用、ヘッダ以外コピー
-        public CtxmItemData(string header, CtxmItemData reference)
-        {
-            CopyData(reference, this); 
-            Header = header;
-        }
-
-        public static List<CtxmItemData> Clone(IEnumerable<CtxmItemData> src) { return CopyObj.Clone(src, CopyData); }
-        public CtxmItemData Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(CtxmItemData src, CtxmItemData dest)
-        {
-            dest.Header = src.Header;
-            dest.ID = src.ID;
-            dest.Command = src.Command;
-            dest.Items = src.Items.Clone();
-        }
+        public CtxmItemData(string header, CtxmItemData refdata) : this(refdata) { Header = header; }
     }
-
-    public static class CtxmItemDataEx
-    {
-        public static List<CtxmItemData> Clone(this IEnumerable<CtxmItemData> src) { return CtxmItemData.Clone(src); }
-    }
-
 }

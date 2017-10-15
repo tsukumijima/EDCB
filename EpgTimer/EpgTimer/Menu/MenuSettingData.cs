@@ -9,14 +9,9 @@ using System.Reflection;
 namespace EpgTimer
 {
     //設定画面用
-    public static class MenuSettingDataEx
+    public class MenuSettingData : ICloneObj
     {
-        public static List<MenuSettingData> Clone(this IEnumerable<MenuSettingData> src) { return MenuSettingData.Clone(src); }
-        public static List<MenuSettingData.CmdSaveData> Clone(this IEnumerable<MenuSettingData.CmdSaveData> src) { return MenuSettingData.CmdSaveData.Clone(src); }
-    }
-    public class MenuSettingData
-    {
-        public class CmdSaveData
+        public class CmdSaveData : ICloneObj
         {
             public string Name { get; set; }
             public string TypeName { get; set; }
@@ -26,16 +21,11 @@ namespace EpgTimer
             public List<ShortCutData> ShortCuts { get; set; }
 
             public CmdSaveData() { ShortCuts = new List<ShortCutData>(); }
-            public static List<CmdSaveData> Clone(IEnumerable<CmdSaveData> src) { return CopyObj.Clone(src, CopyData); }
-            public CmdSaveData Clone() { return CopyObj.Clone(this, CopyData); }
-            protected static void CopyData(CmdSaveData src, CmdSaveData dest)
+            public object CloneObj()
             {
-                dest.Name = src.Name;
-                dest.TypeName = src.TypeName;
-                dest.IsMenuEnabled = src.IsMenuEnabled;
-                dest.IsGestureEnabled = src.IsGestureEnabled;
-                dest.IsGesNeedMenu = src.IsGesNeedMenu;
-                dest.ShortCuts = src.ShortCuts.ToList();
+                var other = (CmdSaveData)MemberwiseClone();
+                other.ShortCuts = ShortCuts.ToList();
+                return other;
             }
 
             public CmdSaveData(ICommand cmd, bool isMenuE, bool isGestureE, bool isGesNeedMenu, InputGestureCollection igc)
@@ -111,10 +101,7 @@ namespace EpgTimer
                     //エラーの場合があり得る
                     return new KeyGesture(skey, mKey); 
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-                }
+                catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
                 return null;
             }
         }
@@ -169,65 +156,38 @@ namespace EpgTimer
             EasyMenuItems = new List<CmdSaveData>();
             ManualMenuItems = new List<CtxmSetting>();
         }
-        public static List<MenuSettingData> Clone(IEnumerable<MenuSettingData> src) { return CopyObj.Clone(src, CopyData); }
-        public MenuSettingData Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(MenuSettingData src, MenuSettingData dest)
+        public object CloneObj()
         {
-            dest.IsManualAssign = src.IsManualAssign.ToList();
-            dest.NoMessageKeyGesture = src.NoMessageKeyGesture;
-            dest.NoMessageDeleteAll = src.NoMessageDeleteAll;
-            dest.NoMessageDelete2 = src.NoMessageDelete2;
-            dest.NoMessageAdjustRes = src.NoMessageAdjustRes;
-            dest.SetJunreToAutoAdd = src.SetJunreToAutoAdd;
-            dest.SetJunreContentToAutoAdd = src.SetJunreContentToAutoAdd;
-            dest.CancelAutoAddOff = src.CancelAutoAddOff;
-            dest.AutoAddFazySearch = src.AutoAddFazySearch;
-            dest.AutoAddSearchToolTip = src.AutoAddSearchToolTip;
-            dest.AutoAddSearchSkipSubMenu = src.AutoAddSearchSkipSubMenu;
-            dest.ReserveSearchToolTip = src.ReserveSearchToolTip;
-            dest.OpenParentFolder = src.OpenParentFolder;
-            dest.Keyword_Trim = src.Keyword_Trim;
-            dest.CopyTitle_Trim = src.CopyTitle_Trim;
-            dest.CopyContentBasic = src.CopyContentBasic;
-            dest.InfoSearchTitle_Trim = src.InfoSearchTitle_Trim;
-            dest.SearchTitle_Trim = src.SearchTitle_Trim;
-            dest.SearchURI = src.SearchURI;
-            dest.NoMessageNotKEY = src.NoMessageNotKEY;
-            dest.EasyMenuItems = src.EasyMenuItems.Clone();
-            dest.ManualMenuItems = src.ManualMenuItems.Clone();
+            var other = (MenuSettingData)MemberwiseClone();
+            other.IsManualAssign = IsManualAssign.ToList();
+            other.EasyMenuItems = EasyMenuItems.Clone();
+            other.ManualMenuItems = ManualMenuItems.Clone();
+            return other;
         }
     }
 
-    public class CtxmSetting
+    public class CtxmSetting : ICloneObj
     {
         public CtxmCode ctxmCode { set; get; }
         public List<string> Items { set; get; }
 
         public CtxmSetting() { Items = new List<string>(); }
-        public CtxmSetting(CtxmSetting data) { CopyData(data, this); }
-
         //デフォルト内部データ → デフォルトセーブデータ用
         public CtxmSetting(CtxmData data)
         {
-            if (data == null) return;
-            //
             ctxmCode = data.ctxmCode;
-            Items = new List<string>();
-            data.Items.ForEach(item => Items.Add(item.Header));
+            Items = data.Items.Select(item => item.Header).ToList();
         }
-
-        public static List<CtxmSetting> Clone(IEnumerable<CtxmSetting> src) { return CopyObj.Clone(src, CopyData); }
-        public CtxmSetting Clone() { return CopyObj.Clone(this, CopyData); }
-        protected static void CopyData(CtxmSetting src, CtxmSetting dest)
+        public object CloneObj()
         {
-            dest.ctxmCode = src.ctxmCode;
-            dest.Items = src.Items.ToList();
+            var other = (CtxmSetting)MemberwiseClone();
+            other.Items = Items.ToList();
+            return other;
         }
     }
 
     public static class CtxmSettingEx
     {
-        public static List<CtxmSetting> Clone(this IEnumerable<CtxmSetting> src) { return CtxmSetting.Clone(src); }
         public static CtxmSetting FindData(this List<CtxmSetting> list, CtxmCode code)
         { return list.Find(data => data.ctxmCode == code); }
     }

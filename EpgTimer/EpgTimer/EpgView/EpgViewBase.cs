@@ -15,7 +15,7 @@ namespace EpgTimer.EpgView
             EpgTabInfo = new CustomEpgTabInfo();
             ClearEventList();
         }
-        public CustomEpgTabInfo EpgTabInfo { get; private set; }
+        public CustomEpgTabInfo EpgTabInfo { get; set; }
         private bool rloadEpgDataFlg;
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
         public void ClearEventList() { ServiceEventList = new List<EpgServiceEventInfo>(); rloadEpgDataFlg = true; }

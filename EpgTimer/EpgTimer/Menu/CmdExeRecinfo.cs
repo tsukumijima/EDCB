@@ -9,11 +9,7 @@ namespace EpgTimer
 {
     public class CmdExeRecinfo : CmdExe<RecFileInfo>
     {
-        public CmdExeRecinfo(UIElement owner)
-            : base(owner)
-        {
-            _copyItemData = RecFileInfoEx.CopyTo;
-        }
+        public CmdExeRecinfo(UIElement owner) : base(owner) { }
         protected override void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e)
         {
             IsCommandExecuted = true == MenuUtil.OpenRecInfoDialog(dataList[0]);
