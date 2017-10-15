@@ -274,7 +274,7 @@ namespace EpgTimer.Setting
                 }
             }
 
-            IniFileHandler.WritePrivateProfileString("EPG_CAP", "Count", timeList.Count.ToString(), SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("EPG_CAP", "Count", timeList.Count, SettingPath.TimerSrvIniPath);
             IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath);
             IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath, "", "Select");
             IniFileHandler.DeletePrivateProfileNumberKeys("EPG_CAP", SettingPath.TimerSrvIniPath, "", "BasicOnlyFlags");

@@ -573,19 +573,19 @@ namespace EpgTimer
         public bool WakeUpHdd 
         {
             get { return IniFileHandler.GetPrivateProfileInt("SET", "WakeUpHdd", 0, SettingPath.TimerSrvIniPath) == 1; }
-            set { IniFileHandler.WritePrivateProfileString("SET", "WakeUpHdd", value == true ? "1" : "0", SettingPath.TimerSrvIniPath); }
+            set { IniFileHandler.WritePrivateProfileString("SET", "WakeUpHdd", value, SettingPath.TimerSrvIniPath); }
         }
         [XmlIgnore]
         public Int32 NoWakeUpHddMin
         {
             get { return IniFileHandler.GetPrivateProfileInt("SET", "NoWakeUpHddMin", 30, SettingPath.TimerSrvIniPath); }
-            set { IniFileHandler.WritePrivateProfileString("SET", "NoWakeUpHddMin", value.ToString(), SettingPath.TimerSrvIniPath); }
+            set { IniFileHandler.WritePrivateProfileString("SET", "NoWakeUpHddMin", value, SettingPath.TimerSrvIniPath); }
         }
         [XmlIgnore]
         public Int32 WakeUpHddOverlapNum
         {
             get { return IniFileHandler.GetPrivateProfileInt("SET", "WakeUpHddOverlapNum", 0, SettingPath.TimerSrvIniPath); }
-            set { IniFileHandler.WritePrivateProfileString("SET", "WakeUpHddOverlapNum", value.ToString(), SettingPath.TimerSrvIniPath); }
+            set { IniFileHandler.WritePrivateProfileString("SET", "WakeUpHddOverlapNum", value, SettingPath.TimerSrvIniPath); }
         }
         [XmlIgnore]
         public Int32 RecAppWakeTime

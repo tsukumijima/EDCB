@@ -128,11 +128,11 @@ namespace EpgTimer
             string defName = "REC_DEF" + IDS;
 
             IniFileHandler.WritePrivateProfileString(defName, "SetName", DisplayName, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "RecMode", Data.RecMode.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "Priority", Data.Priority.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "TuijyuuFlag", Data.TuijyuuFlag.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "ServiceMode", Data.ServiceMode.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "PittariFlag", Data.PittariFlag.ToString(), SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "RecMode", Data.RecMode, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "Priority", Data.Priority, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "TuijyuuFlag", Data.TuijyuuFlag, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "ServiceMode", Data.ServiceMode, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "PittariFlag", Data.PittariFlag, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "BatFilePath", Data.BatFilePath, SettingPath.TimerSrvIniPath);
 
             var WriteRecFileSetInfo = new Action<string, List<RecFileSetInfo>>((appName, folderList) =>
@@ -148,14 +148,14 @@ namespace EpgTimer
             WriteRecFileSetInfo("REC_DEF_FOLDER" + IDS, Data.RecFolderList);
             WriteRecFileSetInfo("REC_DEF_FOLDER_1SEG" + IDS, Data.PartialRecFolder);
 
-            IniFileHandler.WritePrivateProfileString(defName, "SuspendMode", Data.SuspendMode.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "RebootFlag", Data.RebootFlag.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "UseMargineFlag", Data.UseMargineFlag.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "StartMargine", Data.StartMargine.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "EndMargine", Data.EndMargine.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "ContinueRec", Data.ContinueRecFlag.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "PartialRec", Data.PartialRecFlag.ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "TunerID", Data.TunerID.ToString(), SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "SuspendMode", Data.SuspendMode, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "RebootFlag", Data.RebootFlag, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "UseMargineFlag", Data.UseMargineFlag, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "StartMargine", Data.StartMargine, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "EndMargine", Data.EndMargine, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "ContinueRec", Data.ContinueRecFlag, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "PartialRec", Data.PartialRecFlag, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "TunerID", Data.TunerID, SettingPath.TimerSrvIniPath);
         }
 
         static public void SavePresetList(List<RecPresetItem> list)

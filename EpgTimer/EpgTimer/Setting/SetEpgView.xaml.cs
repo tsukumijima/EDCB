@@ -314,8 +314,8 @@ namespace EpgTimer.Setting
             Settings.Instance.ReserveRectFillWithShadow = (bool)checkBox_reserveFillWithShadow.IsChecked;
 
             double epgArcDay = MenuUtil.MyToNumerical(textBox_epgArchivePeriod, Convert.ToDouble, 14, 0, 0);
-            IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodHour", ((int)(epgArcDay * 24)).ToString(), SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodDay", epgArcDay.ToString(), SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodHour", (int)(epgArcDay * 24), SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodDay", epgArcDay, SettingPath.TimerSrvIniPath);
             IsChangeEpgArcLoadSetting = Settings.Instance.EpgLoadArcInfo != !(bool)checkBox_epgNoLoadArcInfo.IsChecked;
             Settings.Instance.EpgLoadArcInfo = !(bool)checkBox_epgNoLoadArcInfo.IsChecked;
             Settings.Instance.EpgNoDisplayOld = (bool)checkBox_epgNoDisplayOld.IsChecked;
