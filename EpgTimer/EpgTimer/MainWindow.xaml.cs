@@ -47,6 +47,7 @@ namespace EpgTimer
             if (CommonManager.Instance.NWMode == true)
             {
                 CommonManager.Instance.DB.SetNoAutoReloadEPG(Settings.Instance.NgAutoEpgLoadNW);
+                IniFileHandler.ReadOnly = true;
             }
 
             CommonManager.Instance.MM.ReloadWorkData();

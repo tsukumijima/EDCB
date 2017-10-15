@@ -15,6 +15,8 @@ namespace EpgTimer
 {
     class IniFileHandler
     {
+        public static bool ReadOnly { get; set; }
+
         [DllImport("KERNEL32.DLL", CharSet = CharSet.Unicode)]
         public static extern uint
           GetPrivateProfileString(string lpAppName,
@@ -36,7 +38,7 @@ namespace EpgTimer
           string lpKeyName, int nDefault, string lpFileName);
 
         [DllImport("KERNEL32.DLL", CharSet = CharSet.Unicode)]
-        public static extern uint WritePrivateProfileString(
+        private static extern uint WritePrivateProfileString(
           string lpAppName,
           string lpKeyName,
           string lpString,
@@ -45,6 +47,7 @@ namespace EpgTimer
         /// <summary>書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()。ただし空のstringはnull。</summary>
         public static uint WritePrivateProfileString(string lpAppName, string lpKeyName, object val, string lpFileName)
         {
+            if (ReadOnly == true) return 0;
             string lpString = val == null ? null : !(val is bool) ? val.ToString() : (bool)val ? "1" : "0";
             return WritePrivateProfileString(lpAppName, lpKeyName, lpString == "" ? null : lpString, lpFileName);
         }
@@ -110,7 +113,8 @@ namespace EpgTimer
         /// <summary>INIファイルから連番のキー/セクションを削除する。lpAppNameにnullを指定すると連番セクションを削除する。</summary>
         public static void DeletePrivateProfileNumberKeys(string lpAppName, string lpFileName, string BaseFront = "", string BaseRear = "", bool deleteBaseName = false)
         {
-            string numExp = string.IsNullOrEmpty(BaseFront + BaseRear) == false && deleteBaseName  == true ? "*" : "+";
+            if (ReadOnly == true) return;
+            string numExp = string.IsNullOrEmpty(BaseFront + BaseRear) == false && deleteBaseName == true ? "*" : "+";
             foreach (string key in IniFileHandler.GetPrivateProfileKeys(lpAppName, lpFileName))
             {
                 if (Regex.Match(key, "^" + BaseFront + "\\d" + numExp + BaseRear + "$").Success == true)
