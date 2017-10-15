@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,17 +13,22 @@ namespace EpgTimer
     /// </summary>
     public partial class SettingWindow : AttendantWindow
     {
-        public static void UpdatesInfo()
+        private HashSet<string> msgSet = new HashSet<string>();
+
+        public static void UpdatesInfo(string msg = null)
         {
             foreach (var win in Application.Current.Windows.OfType<SettingWindow>())
             {
-                win.SetReload(true);
+                win.SetReload(true, msg);
             }
         }
-        private void SetReload(bool reload)
+        private void SetReload(bool reload, string msg = null)
         {
+            if (string.IsNullOrWhiteSpace(msg) == false) msgSet.Add(msg);
+            if (reload == false) msgSet.Clear();
             button_Reload.Content = "再読込" + (reload == false ? "" : "*");
-            button_Reload.ToolTip = reload == false ? null : "他の操作により設定が変更されています";
+            button_Reload.ToolTip = reload == false ? null :
+                ("他の操作により設定が変更されています" + (msgSet.Count == 0 ? null : "\r\n *" + string.Join("\r\n *", msgSet)));
         }
 
         public enum SettingMode { Default, EpgSetting }
@@ -84,7 +90,7 @@ namespace EpgTimer
                 setEpgView.SaveSetting();
                 setOtherAppView.SaveSetting();
 
-                SettingWindow.UpdatesInfo();//基本的に一つしか使わないが一応通知
+                SettingWindow.UpdatesInfo("別画面/PCでの設定更新");//基本的に一つしか使わないが一応通知
                 SetReload(false);
 
                 if (CommonManager.Instance.NWMode == false)

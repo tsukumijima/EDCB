@@ -606,7 +606,7 @@ namespace EpgTimer
             ChgReserveWindow.UpdatesInfo();
             RecInfoDescWindow.UpdatesInfo();
             NotifyLogWindow.UpdatesInfo();
-            SettingWindow.UpdatesInfo();
+            SettingWindow.UpdatesInfo("再接続に伴う設定更新");
             return true;
         }
 
@@ -1334,7 +1334,7 @@ namespace EpgTimer
                             err = IniFileHandler.UpdateSrvProfileIniNW();
                             RefreshAllViewsReserveInfo();
                             notifyLogWindowUpdate = true;
-                            SettingWindow.UpdatesInfo();
+                            SettingWindow.UpdatesInfo("別画面/PCでの設定更新");
                             TrayManager.UpdateInfo();
                             StatusManager.StatusNotifyAppend("EpgTimerSrv設定変更に伴う画面更新 < ");
                         }

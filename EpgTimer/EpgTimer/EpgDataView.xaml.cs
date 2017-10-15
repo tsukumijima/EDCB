@@ -180,7 +180,7 @@ namespace EpgTimer
                         tabInfo[info.ID] = info;
                         Settings.Instance.CustomEpgTabList[info.ID] = info;
                         Settings.SaveToXmlFile();
-                        SettingWindow.UpdatesInfo();
+                        SettingWindow.UpdatesInfo("番組表関連の変更");
                     }
 
                     if (info.IsVisible == false)
@@ -418,7 +418,7 @@ namespace EpgTimer
                         return;
                     case edvCmds.ModeChange:
                         Settings.Instance.UseCustomEpgView = !Settings.Instance.UseCustomEpgView;
-                        SettingWindow.UpdatesInfo();
+                        SettingWindow.UpdatesInfo("番組表関連の変更");
                         this.UpdateSetting(true);
                         return;
                     case edvCmds.All:
@@ -442,17 +442,17 @@ namespace EpgTimer
                         return;
                     case edvCmds.NameTabVisible:
                         Settings.Instance.EpgNameTabEnabled = !Settings.Instance.EpgNameTabEnabled;
-                        SettingWindow.UpdatesInfo();
+                        SettingWindow.UpdatesInfo("番組表関連の変更");
                         TabModeSet();
                         return;
                     case edvCmds.ViewModeTabVisible:
                         Settings.Instance.EpgViewModeTabEnabled = !Settings.Instance.EpgViewModeTabEnabled;
-                        SettingWindow.UpdatesInfo();
+                        SettingWindow.UpdatesInfo("番組表関連の変更");
                         TabModeSet();
                         return;
                     case edvCmds.MoveCheckedTab:
                         Settings.Instance.EpgTabMoveCheckEnabled = !Settings.Instance.EpgTabMoveCheckEnabled;
-                        SettingWindow.UpdatesInfo();
+                        SettingWindow.UpdatesInfo("番組表関連の変更");
                         return;
                 }
 
@@ -461,7 +461,7 @@ namespace EpgTimer
                     List<bool> infoNew = tabInfo.Select(info => info.IsVisible).ToList();
                     if (infoBack.Count != infoNew.Count || infoBack.Zip(infoNew, (v1, v2) => v1 ^ v2).Any(v => v) == true)
                     {
-                        SettingWindow.UpdatesInfo();
+                        SettingWindow.UpdatesInfo("番組表関連の変更");
                     }
                 }
 
