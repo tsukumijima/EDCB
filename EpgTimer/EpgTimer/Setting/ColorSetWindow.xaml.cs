@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Media;
 
 namespace EpgTimer.Setting
@@ -12,61 +10,44 @@ namespace EpgTimer.Setting
     /// </summary>
     public partial class ColorSetWindow : Window
     {
+        public static readonly DependencyProperty AProperty = DependencyProperty.Register("A", typeof(byte), typeof(ColorSetWindow), new PropertyMetadata(Colors.White.A, PropertyChanged));
+        public static readonly DependencyProperty RProperty = DependencyProperty.Register("R", typeof(byte), typeof(ColorSetWindow), new PropertyMetadata(Colors.White.R, PropertyChanged));
+        public static readonly DependencyProperty GProperty = DependencyProperty.Register("G", typeof(byte), typeof(ColorSetWindow), new PropertyMetadata(Colors.White.G, PropertyChanged));
+        public static readonly DependencyProperty BProperty = DependencyProperty.Register("B", typeof(byte), typeof(ColorSetWindow), new PropertyMetadata(Colors.White.B, PropertyChanged));
+        public byte A { get { return (byte)GetValue(AProperty); } set { SetValue(AProperty, value); } }
+        public byte R { get { return (byte)GetValue(RProperty); } set { SetValue(RProperty, value); } }
+        public byte G { get { return (byte)GetValue(GProperty); } set { SetValue(GProperty, value); } }
+        public byte B { get { return (byte)GetValue(BProperty); } set { SetValue(BProperty, value); } }
+        public Color GetColor() { return Color.FromArgb(A, R, G, B); }
+        public void SetColor(Color c) { A = c.A; R = c.R; G = c.G; B = c.B; }
+
         public ColorSetWindow(Color color, Visual owner = null)
         {
             InitializeComponent();
 
-            List<ColorComboItem> colorReference = typeof(Brushes).GetProperties().Select(p => new ColorComboItem(p.Name, (Brush)p.GetValue(null, null))).ToList();
-            comboBox_color.ItemsSource = colorReference;
-            comboBox_color.SelectionChanged += (sender, e) => button_Set_Click(null, null);
-
+            DataContext = this;
+            comboBox_color.ItemsSource = typeof(Brushes).GetProperties().Select(p => new ColorComboItem(p.Name, (Brush)p.GetValue(null, null)));
+            comboBox_color.SelectedIndex = 0;
             button_OK.Click += (sender, e) => DialogResult = true;
             button_cancel.Click += (sender, e) => DialogResult = false;
-            slider_R.ValueChanged += (sender, e) => SetColor(GetColor());
-            slider_G.ValueChanged += (sender, e) => SetColor(GetColor());
-            slider_B.ValueChanged += (sender, e) => SetColor(GetColor());
-            slider_A.ValueChanged += (sender, e) => SetColor(GetColor());
-            textBox_R.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_R);
-            textBox_G.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_G);
-            textBox_B.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_B);
-            textBox_A.TextChanged += (sender, e) => textBoxTextChanged(sender, slider_A);
 
             this.Owner = CommonUtil.GetTopWindow(owner);
             SetColor(color);
         }
 
-        private void textBoxTextChanged(object sender, Slider slider)
+        private static void PropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            byte val;
-            if (byte.TryParse((sender as TextBox).Text, out val) == true) slider.Value = val;
+            var win = (ColorSetWindow)sender;
+            Color c = win.GetColor();
+            win.rectangle_color.Fill = new SolidColorBrush(c);
+            win.comboBox_color.SelectionChanged -= win.SelectedColor_Changed;
+            try { SelectNearColor(win.comboBox_color, c); }
+            finally { win.comboBox_color.SelectionChanged += win.SelectedColor_Changed; }
+            win.label_Status.Text = ColorDef.ColorDiff((Color)win.comboBox_color.SelectedValue, c) < 1 ? "現在の色" : "近い色";
         }
-        private void button_Set_Click(object sender, RoutedEventArgs e)
+        private void SelectedColor_Changed(object sender, RoutedEventArgs e)
         {
-            if (comboBox_color.SelectedIndex < 0) return;
-            SetColor((Color)comboBox_color.SelectedValue);
-        }
-
-        bool selectionChanging = false;
-        public void SetColor(Color argb)
-        {
-            if (selectionChanging == true) return;
-            selectionChanging = true;
-            try
-            {
-                textBox_R.Text = argb.R.ToString();
-                textBox_G.Text = argb.G.ToString();
-                textBox_B.Text = argb.B.ToString();
-                textBox_A.Text = argb.A.ToString();
-
-                rectangle_color.Fill = new SolidColorBrush(argb);
-                SelectNearColor(comboBox_color, argb);
-                label_Status.Text = ColorDef.ColorDiff((Color)comboBox_color.SelectedValue, argb) < 1 ? "現在の色" : "近い色";
-            }
-            finally { selectionChanging = false; }
-        }
-        public Color GetColor()
-        {
-            return Color.FromArgb((byte)slider_A.Value, (byte)slider_R.Value, (byte)slider_G.Value, (byte)slider_B.Value);
+            if (comboBox_color.SelectedValue != null) SetColor((Color)comboBox_color.SelectedValue);
         }
 
         public static void SelectNearColor(ComboBox cmbo, Color c)

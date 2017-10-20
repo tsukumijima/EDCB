@@ -5,20 +5,20 @@
 
     <Grid>
         <TextBlock Name="label_Status" Text="現在の色" HorizontalAlignment="Left" Margin="222,11,0,0" VerticalAlignment="Top" Width="58" />
-        <Button Content="セット" HorizontalAlignment="Left" Margin="286,5,0,0" Name="button_Set" VerticalAlignment="Top" Width="50" Click="button_Set_Click" />
-        <ComboBox Margin="222,31,0,0" Name="comboBox_color" Style="{StaticResource colorCombo}" Width="114" />
-        <Label Content="R" Height="28" HorizontalAlignment="Left" Margin="12,6,0,0" VerticalAlignment="Top" />
-        <TextBox HorizontalAlignment="Left" Margin="36,8,0,0" Name="textBox_R" VerticalAlignment="Top" Width="39" />
-        <Slider Height="23" HorizontalAlignment="Left" Margin="93,8,0,0" Name="slider_R" VerticalAlignment="Top" Width="114"  Minimum="0" Maximum="255" SmallChange="1" />
-        <Label Content="G" Height="28" HorizontalAlignment="Left" Margin="12,32,0,0" VerticalAlignment="Top" />
-        <TextBox HorizontalAlignment="Left" Margin="36,34,0,0" Name="textBox_G" VerticalAlignment="Top" Width="39" />
-        <Slider Height="23" HorizontalAlignment="Left" Margin="93,34,0,0" Maximum="255" Minimum="0" Name="slider_G" VerticalAlignment="Top" Width="114" SmallChange="1" />
-        <Label Content="B" Height="28" HorizontalAlignment="Left" Margin="12,58,0,0" VerticalAlignment="Top" />
-        <TextBox HorizontalAlignment="Left" Margin="36,60,0,0" Name="textBox_B" VerticalAlignment="Top" Width="39" />
-        <Slider Height="23" HorizontalAlignment="Left" Margin="93,60,0,0" Maximum="255" Minimum="0" Name="slider_B" VerticalAlignment="Top" Width="114" SmallChange="1" />
-        <Label Content="A" Height="28" HorizontalAlignment="Left" Margin="12,84,0,0" VerticalAlignment="Top" />
-        <TextBox HorizontalAlignment="Left" Margin="36,86,0,0" Name="textBox_A" VerticalAlignment="Top" Width="39" />
-        <Slider Height="23" HorizontalAlignment="Left" Margin="93,86,0,0" Maximum="255" Minimum="0" Name="slider_A" VerticalAlignment="Top" Width="114" SmallChange="1" />
+        <Button Content="セット" HorizontalAlignment="Left" Margin="286,5,0,0" Name="button_Set" VerticalAlignment="Top" Width="50" Click="SelectedColor_Changed" />
+        <ComboBox Margin="222,31,0,0" Name="comboBox_color" Style="{StaticResource colorCombo}" Width="114" SelectionChanged="SelectedColor_Changed" />
+        <Label Content="R" HorizontalAlignment="Left" Margin="12,6,0,0" VerticalAlignment="Top" />
+        <TextBox Height="21" HorizontalAlignment="Left" Margin="36,8,0,0" Text="{Binding R, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="39" />
+        <Slider Height="23" HorizontalAlignment="Left" Margin="93,8,0,0" Maximum="255" SmallChange="1" Value="{Binding R}" VerticalAlignment="Top" Width="114" />
+        <Label Content="G" HorizontalAlignment="Left" Margin="12,32,0,0" VerticalAlignment="Top" />
+        <TextBox Height="21" HorizontalAlignment="Left" Margin="36,34,0,0" Text="{Binding G, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="39" />
+        <Slider Height="23" HorizontalAlignment="Left" Margin="93,34,0,0" Maximum="255" SmallChange="1" Value="{Binding G}" VerticalAlignment="Top" Width="114" />
+        <Label Content="B" HorizontalAlignment="Left" Margin="12,58,0,0" VerticalAlignment="Top" />
+        <TextBox Height="21" HorizontalAlignment="Left" Margin="36,60,0,0" Text="{Binding B, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="39" />
+        <Slider Height="23" HorizontalAlignment="Left" Margin="93,60,0,0" Maximum="255" SmallChange="1" Value="{Binding B}" VerticalAlignment="Top" Width="114" />
+        <Label Content="A" HorizontalAlignment="Left" Margin="12,84,0,0" VerticalAlignment="Top" />
+        <TextBox Height="21" HorizontalAlignment="Left" Margin="36,86,0,0" Text="{Binding A, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="39" />
+        <Slider Height="23" HorizontalAlignment="Left" Margin="93,86,0,0" Maximum="255" SmallChange="1" Value="{Binding A}" VerticalAlignment="Top" Width="114" />
         <Grid Height="49" Width="114" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="222,58,0,0" >
             <Rectangle Name="rectangle_color" Stroke="Black" ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=Fill}" />
             <TextBlock Margin="1" Padding="2" Text="カスタム色" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="9" Background="#C0FFFFFF" IsHitTestVisible="False" />
