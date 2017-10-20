@@ -234,15 +234,7 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("APP_CMD_OPT", "ViewOff", textBox_cmdViewOff.Text, SettingPath.ViewAppIniPath);
             }
 
-            List<String> recFolderList = ViewUtil.GetFolderList(listBox_recFolder);
-            int recFolderCount = recFolderList.Count == 1 &&
-                string.Compare(recFolderList[0], SettingPath.SettingFolderPath, true) == 0 ? 0 : recFolderList.Count;
-            IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
-            IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
-            for (int i = 0; i < recFolderCount; i++)
-            {
-                IniFileHandler.WritePrivateProfileString("SET", "RecFolderPath" + i.ToString(), recFolderList[i], SettingPath.CommonIniPath);
-            }
+            Settings.Instance.DefRecFolders = ViewUtil.GetFolderList(listBox_recFolder);
 
             var recInfoFolder = SettingPath.CheckFolder(textBox_recInfoFolder.Text);
             IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolder", recInfoFolder, "", SettingPath.CommonIniPath);

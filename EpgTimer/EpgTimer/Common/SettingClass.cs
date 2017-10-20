@@ -141,8 +141,7 @@ namespace EpgTimer
             }
 
             ChSet5.Clear();
-            Settings.Instance.RecPresetList = null;
-            Settings.ReloadOtherOptions();
+            Settings.Instance.ReloadOtherOptions();
             return err;
         }
 
@@ -438,24 +437,6 @@ namespace EpgTimer
         public bool UseLastSearchKey { get; set; }
         public List<SearchPresetItem> SearchPresetList { get; set; }
         public bool SetWithoutSearchKeyWord { get; set; }
-        private List<RecPresetItem> recPresetList = null;
-        [XmlIgnore]
-        public List<RecPresetItem> RecPresetList
-        {
-            get
-            {
-                if (recPresetList == null)
-                {
-                    recPresetList = RecPresetItem.LoadPresetList();
-                }
-                return recPresetList;
-            }
-            set
-            { 
-                recPresetList = value;
-                RecPresetItem.SavePresetList(recPresetList);
-            }
-        }
         public Int32 RecInfoToolTipMode { get; set; }
         public string RecInfoColumnHead { get; set; }
         public ListSortDirection RecInfoSortDirection { get; set; }
@@ -596,6 +577,73 @@ namespace EpgTimer
         {
             get { return IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath); }
             set { IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", value, SettingPath.TimerSrvIniPath); }
+        }
+        //デフォルトマージン
+        [XmlIgnore]
+        public int DefStartMargin { get; set; }
+        [XmlIgnore]
+        public int DefEndMargin { get; set; }
+
+        private List<RecPresetItem> recPresetList = null;
+        [XmlIgnore]
+        public List<RecPresetItem> RecPresetList
+        {
+            get
+            {
+                if (recPresetList == null) recPresetList = RecPresetItem.LoadPresetList();
+                return recPresetList;
+            }
+            set
+            {
+                recPresetList = value;
+                RecPresetItem.SavePresetList(recPresetList);
+            }
+        }
+
+        private List<string> defRecFolders = null;
+        [XmlIgnore]
+        public List<string> DefRecFolders
+        {
+            get
+            {
+                if (defRecFolders == null)
+                {
+                    defRecFolders = new List<string>();
+                    int num = IniFileHandler.GetPrivateProfileInt("SET", "RecFolderNum", 0, SettingPath.CommonIniPath);
+                    if (num <= 0) defRecFolders.Add("");
+
+                    for (int i = 0; i < num; i++)
+                    {
+                        defRecFolders.Add(IniFileHandler.GetPrivateProfileFolder("SET", "RecFolderPath" + i.ToString(), SettingPath.CommonIniPath));
+                    }
+
+                    if (defRecFolders[0] == "") defRecFolders[0] = SettingPath.SettingFolderPath;
+                    defRecFolders = defRecFolders.Except(new[] { "" }).ToList();
+                }
+                return defRecFolders;
+            }
+            set
+            {
+                defRecFolders = value;
+                if (defRecFolders == null) return;
+
+                int recFolderCount = defRecFolders.Count == 1 && string.Compare(defRecFolders[0], SettingPath.SettingFolderPath, true) == 0 ? 0 : defRecFolders.Count;
+                IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
+                IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
+                
+                for (int i = 0; i < recFolderCount; i++)
+                {
+                    IniFileHandler.WritePrivateProfileString("SET", "RecFolderPath" + i.ToString(), defRecFolders[i], SettingPath.CommonIniPath);
+                }
+            }
+        }
+
+        public void ReloadOtherOptions()
+        {
+            DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
+            DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
+            RecPresetList = null;
+            DefRecFolders = null;
         }
 
         public Settings()
@@ -812,6 +860,60 @@ namespace EpgTimer
             PicUpTitleWork = new PicUpTitle();
         }
 
+        public Settings DeepCloneStaticSettings()
+        {
+            //[XmlIgnore]絡みは何らかの形でフォローが入る
+            var xs = new XmlSerializer(typeof(Settings));
+            var ms = new MemoryStream();
+            xs.Serialize(ms, this);
+            ms.Seek(0, SeekOrigin.Begin);
+            var other = (Settings)xs.Deserialize(ms);
+            other.DefStartMargin = DefStartMargin;
+            other.DefEndMargin = DefEndMargin;
+            other.recPresetList = recPresetList.DeepClone();
+            other.defRecFolders = defRecFolders == null ? null : defRecFolders.ToList();
+            return other;
+        }
+        public void ShallowCopyDynamicSettingsTo(Settings dest)
+        {
+            //設定画面と関係なくその場で動的に更新されるプロパティ
+            dest.ResColumnHead = ResColumnHead;
+            dest.ResSortDirection = ResSortDirection;
+            dest.WndSettings = WndSettings;
+            dest.SearchWndTabsHeight = SearchWndTabsHeight;
+            dest.RecInfoColumnHead = RecInfoColumnHead;
+            dest.RecInfoSortDirection = RecInfoSortDirection;
+            dest.OpenFolderWithFileDialog = OpenFolderWithFileDialog;
+            dest.NWServerIP = NWServerIP;
+            dest.NWServerPort = NWServerPort;
+            dest.NWWaitPort = NWWaitPort;
+            dest.NWMacAdd = NWMacAdd;
+            dest.NWPreset = NWPreset;
+            dest.ReserveListColumn = ReserveListColumn;
+            dest.RecInfoListColumn = RecInfoListColumn;
+            dest.AutoAddEpgColumn = AutoAddEpgColumn;
+            dest.AutoAddManualColumn = AutoAddManualColumn;
+            dest.EpgListColumn = EpgListColumn;
+            dest.EpgListColumnHead = EpgListColumnHead;
+            dest.EpgListSortDirection = EpgListSortDirection;
+            dest.SearchWndColumn = SearchWndColumn;
+            dest.SearchColumnHead = SearchColumnHead;
+            dest.SearchSortDirection = SearchSortDirection;
+            dest.InfoSearchWndColumn = InfoSearchWndColumn;
+            dest.InfoSearchColumnHead = InfoSearchColumnHead;
+            dest.InfoSearchSortDirection = InfoSearchSortDirection;
+            dest.InfoSearchLastWord = InfoSearchLastWord;
+            dest.InfoSearchTitleOnly = InfoSearchTitleOnly;
+            dest.InfoSearchReserveInfo = InfoSearchReserveInfo;
+            dest.InfoSearchRecInfo = InfoSearchRecInfo;
+            dest.InfoSearchEpgAutoAddInfo = InfoSearchEpgAutoAddInfo;
+            dest.InfoSearchManualAutoAddInfo = InfoSearchManualAutoAddInfo;
+            dest.InfoSearchItemTooltip = InfoSearchItemTooltip;
+            dest.NotifyLogMax = NotifyLogMax;
+            dest.NotifyLogEpgTimer = NotifyLogEpgTimer;
+            dest.TryEpgSetting = TryEpgSetting;
+        }
+
         private static Settings _instance;
         public static Settings Instance
         {
@@ -860,7 +962,7 @@ namespace EpgTimer
                 // タイミング合わせにくいので、メニュー系のデータチェックは
                 // MenuManager側のワークデータ作成時に実行する。
 
-                SetCustomEpgTabInfoID();
+                Instance.SetCustomEpgTabInfoID();
                 Instance.SearchPresetList.FixUp();
 
                 //互換用コード。検索プリセット対応。DefSearchKeyの吸収があるので旧CS仮対応コードより前。
@@ -985,53 +1087,16 @@ namespace EpgTimer
             return (info == null ? null : info.GetValue(this, null));
         }
 
-        public static RecPresetItem RecPreset(Int32 presetID)
+        public RecPresetItem RecPreset(Int32 presetID)
         {
             return Instance.RecPresetList[Math.Max(0, Math.Min(presetID, Instance.RecPresetList.Count - 1))];
         }
 
-        public static void ReloadOtherOptions()
+        public void SetCustomEpgTabInfoID()
         {
-            Instance.DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
-            Instance.DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
-            Instance.defRecfolders = null;
-        }
-
-        //デフォルトマージン
-        [XmlIgnore]
-        public int DefStartMargin { get; private set; }
-        [XmlIgnore]
-        public int DefEndMargin { get; private set; }
-
-        List<string> defRecfolders = null;
-        [XmlIgnore]
-        public List<string> DefRecFolders
-        {
-            get
+            for (int i = 0; i < CustomEpgTabList.Count; i++)
             {
-                if (defRecfolders == null)
-                {
-                    defRecfolders = new List<string>();
-                    int num = IniFileHandler.GetPrivateProfileInt("SET", "RecFolderNum", 0, SettingPath.CommonIniPath);
-                    if (num <= 0) defRecfolders.Add("");
-
-                    for (int i = 0; i < num; i++)
-                    {
-                        defRecfolders.Add(IniFileHandler.GetPrivateProfileFolder("SET", "RecFolderPath" + i.ToString(), SettingPath.CommonIniPath));
-                    }
-
-                    if (defRecfolders[0] == "") defRecfolders[0] = SettingPath.SettingFolderPath;
-                    defRecfolders = defRecfolders.Except(new[] { "" }).ToList();
-                }
-                return defRecfolders;
-            }
-        }
-
-        public static void SetCustomEpgTabInfoID()
-        {
-            for (int i = 0; i < Instance.CustomEpgTabList.Count; i++)
-            {
-                Instance.CustomEpgTabList[i].ID = i;
+                CustomEpgTabList[i].ID = i;
             }
         }
 

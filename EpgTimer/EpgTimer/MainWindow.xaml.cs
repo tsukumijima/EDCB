@@ -53,7 +53,7 @@ namespace EpgTimer
             CommonManager.Instance.MM.ReloadWorkData();
             CommonManager.Instance.ReloadCustContentColorList();
             CommonManager.ReloadReplaceDictionary();
-            Settings.ReloadOtherOptions();
+            Settings.Instance.ReloadOtherOptions();
 
             if (CheckCmdLine() && Settings.Instance.ExitAfterProcessingArgs)
             {

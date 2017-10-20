@@ -176,7 +176,7 @@ namespace EpgTimer
                 else
                 {
                     //簡易予約やプリセット予約
-                    setInfo = Settings.RecPreset(presetID).Data;
+                    setInfo = Settings.Instance.RecPreset(presetID).Data;
                 }
 
                 var list = new List<ReserveData>();
@@ -253,7 +253,7 @@ namespace EpgTimer
 
         public static void ChangeOnPreset(IEnumerable<IRecSetttingData> dataList, int presetID)
         {
-            RecSettingData setData = Settings.RecPreset(presetID).Data;
+            RecSettingData setData = Settings.Instance.RecPreset(presetID).Data;
             foreach (var data in dataList) data.RecSettingInfo = setData.DeepClone();
         }
 

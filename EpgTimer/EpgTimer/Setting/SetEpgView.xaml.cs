@@ -369,7 +369,7 @@ namespace EpgTimer.Setting
 
             Settings.Instance.UseCustomEpgView = (bool)radioButton_1_cust.IsChecked;
             Settings.Instance.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfoView>().Select(item => item.Info).ToList();
-            Settings.SetCustomEpgTabInfoID();
+            Settings.Instance.SetCustomEpgTabInfoID();
             Settings.Instance.EpgNameTabEnabled = (bool)checkBox_EpgNameTabEnabled.IsChecked;
             Settings.Instance.EpgViewModeTabEnabled = (bool)checkBox_EpgViewModeTabEnabled.IsChecked;
             Settings.Instance.EpgTabMoveCheckEnabled = (bool)checkBox_EpgTabMoveCheckEnabled.IsChecked;
