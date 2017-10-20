@@ -94,7 +94,6 @@ namespace EpgTimer.Setting
                 button_bon_down.Click += new RoutedEventHandler(bxb.button_Down_Click);
 
                 //EPG取得関係
-                bxt.TargetItemsSource = timeList;
                 bxt.AllowDragDrop();
                 bxt.AllowKeyAction();
                 button_upTime.Click += new RoutedEventHandler(bxt.button_Up_Click);

@@ -22,7 +22,6 @@ namespace EpgTimer
         private static Cursor OnDragCursor;
         private Control Owner;
         private ListBox listBox;
-        private IList dataList;
         private BoxExchangeEditor bx;
 
         public ListBoxDragMoverView()
@@ -50,13 +49,12 @@ namespace EpgTimer
             public virtual void ItemMoved() { }//アイテム動かなくてもステータス変更の場合がある
         }
         private LVDMHelper hlp;
-        public void SetData(Control ow, ListBox listbox, IList list, LVDMHelper helper, MenuBinds mbinds = null)
+        public void SetData(Control ow, ListBox listbox, LVDMHelper helper, MenuBinds mbinds = null)
         {
             try
             {
                 Owner = ow;
                 listBox = listbox;
-                dataList = list ?? listbox.Items;
                 hlp = helper;
                 MenuBinds mBinds = mbinds ?? new MenuBinds();
 
@@ -67,7 +65,7 @@ namespace EpgTimer
                 listbox.ItemContainerStyle.Setters.Add(new EventSetter(Mouse.MouseEnterEvent, new MouseEventHandler(listBoxItem_MouseEnter)));
 
                 //移動などのアクションはBoxExchangeEditorのものをそのまま使用する。
-                bx = new BoxExchangeEditor { TargetBox = listBox, TargetItemsSource = dataList };
+                bx = new BoxExchangeEditor { TargetBox = listBox};
 
                 this.Owner.CommandBindings.Add(new CommandBinding(EpgCmds.TopItem, (sender, e) => ItemsAction(() => bx.button_Top_Click(null, null))));
                 this.Owner.CommandBindings.Add(new CommandBinding(EpgCmds.UpItem, (sender, e) => ItemsAction(() => bx.button_Up_Click(null, null))));
@@ -114,11 +112,11 @@ namespace EpgTimer
 
         public void ItemsAction(Action func)
         {
-            var oldList = this.dataList.Cast<object>().ToList();//ここはリストの複製が必要
+            var oldList = this.listBox.Items.Cast<object>().ToList();//ここはリストの複製が必要
 
             func();
 
-            if (oldList.SequenceEqual(this.dataList.Cast<object>()) == false)
+            if (oldList.SequenceEqual(this.listBox.Items.Cast<object>()) == false)
             {
                 this.NotSaved = true;
                 hlp.ItemMoved();
@@ -179,14 +177,14 @@ namespace EpgTimer
         }
         public Dictionary<ulong, ulong> GetChangeIDTable()
         {
-            List<ulong> dataIdList = this.dataList.OfType<object>().Select(item => hlp.GetID(item)).ToList();
+            List<ulong> dataIdList = this.listBox.Items.OfType<object>().Select(item => hlp.GetID(item)).ToList();
             dataIdList.Sort();//存在する(再利用可能な)IDリストを若い順(元の順)に並べたもの。
 
             //並び替えテーブル
             var changeIDTable = new Dictionary<ulong, ulong>();
-            for (int i = 0; i < this.dataList.Count; i++)
+            for (int i = 0; i < this.listBox.Items.Count; i++)
             {
-                changeIDTable.Add(hlp.GetID(this.dataList[i]), dataIdList[i]);
+                changeIDTable.Add(hlp.GetID(this.listBox.Items[i]), dataIdList[i]);
             }
             return changeIDTable;
         }
@@ -240,7 +238,7 @@ namespace EpgTimer
                     object dropTo = GetDragItemData(this.cursorObj);
                     if (dropTo != null)
                     {
-                        ItemsAction(() => bx.bxMoveItemsDrop(bx.TargetBox, dropTo, bx.TargetItemsSource));
+                        ItemsAction(() => bx.bxMoveItemsDrop(bx.TargetBox, dropTo));
                         e.Handled = true;
                     }
                 }
@@ -335,7 +333,7 @@ namespace EpgTimer
                 }
             }
 
-            back_ListItem = this.dataList.IndexOf(item.Content);
+            back_ListItem = this.listBox.Items.IndexOf(item.Content);
 
             item.BorderBrush = Brushes.OrangeRed;
             Thickness border = item.BorderThickness;

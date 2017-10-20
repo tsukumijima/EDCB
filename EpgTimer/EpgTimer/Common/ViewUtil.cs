@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -581,7 +582,9 @@ namespace EpgTimer
         public static void ScrollIntoViewLast(this ListBox box, IEnumerable<object> addItems)
         {
             addItems = (addItems ?? new List<object>()).Where(item => item != null).ToList();
-            box.Items.AddItems(addItems);
+            var boxItems = box.ItemsSource as IList ?? box.Items;
+            foreach (var item in addItems) boxItems.Add(item);
+            if (addItems.Any() == true && box.ItemsSource is IList) box.Items.Refresh();
             box.SelectedIndex = box.Items.Count - 1;
             box.ScrollIntoView(box.SelectedItem);
             box.SelectedItemsAdd(addItems);

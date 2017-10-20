@@ -14,7 +14,7 @@ namespace EpgTimer.BoxExchangeEdit
     class BoxExchangeEditor
     {
         //ListBox同士でアイテムを交換する。
-        //・ItemsSource使用中のTargetBoxでも動かせるが、ItemsSourceのメリットは全く享受出来ない。
+        //・ItemsSource使用中のTargetBoxでもItemsSourceがIListなら動かせるが、ItemsSourceのメリットは全く享受出来ない。
         //・重複処理が必要な場合はそれなりに準備が必要。文字列の重複処理がうまく出来ないのはListBoxと同様。
 
         public BoxExchangeEditor() { }
@@ -30,7 +30,6 @@ namespace EpgTimer.BoxExchangeEdit
 
         public ListBox SourceBox { set; get; }
         public ListBox TargetBox { set; get; }
-        public IList TargetItemsSource { set; get; }
 
         public bool DuplicationAllAllowed { private set; get; }//項目の重複を全て許可
         public IEnumerable<object> DuplicationSpecific { private set; get; }//特定の項目のみ重複を許可
@@ -155,102 +154,102 @@ namespace EpgTimer.BoxExchangeEdit
         /// <summary>全アイテム追加</summary>
         public void button_AddAll_Click(object sender, RoutedEventArgs e)
         {
-            bxAddItemsAll(SourceBox, TargetBox, TargetItemsSource);
+            bxAddItemsAll(SourceBox, TargetBox);
         }
         /// <summary>全アイテムリセット</summary>
         public void button_Reset_Click(object sender, RoutedEventArgs e)
         {
-            bxResetItems(SourceBox, TargetBox, TargetItemsSource);
+            bxResetItems(SourceBox, TargetBox);
         }
 
         /// <summary>選択アイテム追加</summary>
         public void button_Add_Click(object sender, RoutedEventArgs e)
         {
-            bxAddItems(SourceBox, TargetBox, false, TargetItemsSource);
+            bxAddItems(SourceBox, TargetBox, false);
         }
         /// <summary>選択アイテム挿入</summary>
         public void button_Insert_Click(object sender, RoutedEventArgs e)
         {
-            bxAddItems(SourceBox, TargetBox, true, TargetItemsSource);
+            bxAddItems(SourceBox, TargetBox, true);
         }
 
         /// <summary>選択アイテム削除</summary>
         public void button_Delete_Click(object sender, RoutedEventArgs e)
         {
-            bxDeleteItems(TargetBox, TargetItemsSource);
+            bxDeleteItems(TargetBox);
         }
         /// <summary>アイテム全削除</summary>
         public void button_DeleteAll_Click(object sender, RoutedEventArgs e)
         {
-            bxDeleteItemsAll(TargetBox, TargetItemsSource);
+            bxDeleteItemsAll(TargetBox);
         }
 
         /// <summary>1つ上に移動</summary>
         public void button_Up_Click(object sender, RoutedEventArgs e)
         {
-            bxMoveItems(TargetBox, -1, TargetItemsSource);
+            bxMoveItems(TargetBox, -1);
         }
         /// <summary>1つ下に移動</summary>
         public void button_Down_Click(object sender, RoutedEventArgs e)
         {
-            bxMoveItems(TargetBox, 1, TargetItemsSource);
+            bxMoveItems(TargetBox, 1);
         }
 
         /// <summary>一番上に移動</summary>
         public void button_Top_Click(object sender, RoutedEventArgs e)
         {
-            bxMoveItemsTopBottom(TargetBox, -1, TargetItemsSource);
+            bxMoveItemsTopBottom(TargetBox, -1);
         }
         /// <summary>一番下に移動</summary>
         public void button_Bottom_Click(object sender, RoutedEventArgs e)
         {
-            bxMoveItemsTopBottom(TargetBox, 1, TargetItemsSource);
+            bxMoveItemsTopBottom(TargetBox, 1);
         }
         /// <summary>一番上または下に移動</summary>
-        public bool bxMoveItemsTopBottom(ListBox target, int direction, IList trgItemsSource = null)
+        public bool bxMoveItemsTopBottom(ListBox target, int direction)
         {
             if (target == null) return false;
             //
-            return bxMoveItemsDrop(target, direction < 0 ? target.Items.Cast<object>().FirstOrDefault() : null, trgItemsSource);
+            return bxMoveItemsDrop(target, direction < 0 ? target.Items.Cast<object>().FirstOrDefault() : null);
         }
 
         /// <summary>全アイテム追加</summary>
-        public bool bxAddItemsAll(ListBox src, ListBox target, IList trgItemsSource = null)
+        public bool bxAddItemsAll(ListBox src, ListBox target)
         {
             if (src == null || target == null) return false;
 
             if (src.SelectionMode != SelectionMode.Single) src.SelectAll();
-            return bxAddItems(src.Items, target, false, trgItemsSource);
+            return bxAddItems(src.Items, target, false);
         }
         /// <summary>全アイテムリセット</summary>
-        public bool bxResetItems(ListBox src, ListBox target, IList trgItemsSource = null)
+        public bool bxResetItems(ListBox src, ListBox target)
         {
             if (src == null || target == null) return false;
 
-            var trgItems = trgItemsSource ?? target.Items;
-            SourceBox.UnselectAll();
+            var trgItems = target.ItemsSource as IList ?? target.Items;
+            src.UnselectAll();
             trgItems.Clear();
-            trgItems.AddItemsAx(SourceBox.Items);
-            TargetBoxItemsRefresh(target, trgItemsSource);
+            trgItems.AddItemsAx(src.Items);
+            TargetBoxItemsRefresh(target);
 
             return true;
         }
 
         /// <summary>選択アイテム追加・挿入</summary>
-        public bool bxAddItems(ListBox src, ListBox target, bool IsInsert = false, IList trgItemsSource = null)
+        public bool bxAddItems(ListBox src, ListBox target, bool IsInsert = false)
         {
             if (src == null) return false;
             //
-            return bxAddItems(src.SelectedItemsList(true), target, IsInsert, trgItemsSource);
+            return bxAddItems(src.SelectedItemsList(true), target, IsInsert);
         }
         /// <summary>選択アイテム追加・挿入</summary>
-        public bool bxAddItems(IEnumerable srcList, ListBox target, bool IsInsert = false, IList trgItemsSource = null)
+        public bool bxAddItems(IEnumerable srcList, ListBox target, bool IsInsert = false)
         {
             try
             {
                 if (srcList == null || srcList.Cast<object>().Any() != true || target == null) return false;
 
-                var trgItems = trgItemsSource ?? target.Items;
+                var trgItems = target.ItemsSource as IList ?? target.Items;
                 var addList = srcList.Cast<object>()
                     .Where(item => IsEnableDuplicate(item) == true || bxContains(trgItems, item) == false)
                     .Select(item => IsEnableDuplicate(item) == true ? ItemDuplicate(item) : item).ToList();
@@ -266,7 +265,7 @@ namespace EpgTimer.BoxExchangeEdit
                 }
 
                 target.UnselectAll();
-                TargetBoxItemsRefresh(target, trgItemsSource);
+                TargetBoxItemsRefresh(target);
                 target.SelectedItemsAdd(addList);
                 if (target.SelectedIndex >= 0) target.ScrollIntoViewIndex(scrollTo);
             }
@@ -290,19 +289,19 @@ namespace EpgTimer.BoxExchangeEdit
         }
 
         /// <summary>選択アイテム削除</summary>
-        public bool bxDeleteItems(ListBox box, IList boxItemsSource = null)
+        public bool bxDeleteItems(ListBox box)
         {
             try
             {
                 if (box == null || box.SelectedIndex < 0) return false;
 
-                var boxItems = boxItemsSource ?? box.Items;
+                var boxItems = box.ItemsSource as IList ?? box.Items;
                 int newSelectedIndex = -1;
                 while (box.SelectedIndex >= 0)
                 {
                     newSelectedIndex = box.SelectedIndex;
                     boxItems.RemoveAt(newSelectedIndex);
-                    TargetBoxItemsRefresh(box, boxItemsSource);
+                    TargetBoxItemsRefresh(box);
                 }
 
                 if (box.Items.Count != 0)
@@ -315,25 +314,25 @@ namespace EpgTimer.BoxExchangeEdit
             return true;
         }
         /// <summary>アイテム全削除</summary>
-        public bool bxDeleteItemsAll(ListBox box, IList boxItemsSource = null)
+        public bool bxDeleteItemsAll(ListBox box)
         {
             if (box == null) return false;
             //
-            var boxItems = boxItemsSource ?? box.Items;
+            var boxItems = box.ItemsSource as IList ?? box.Items;
             boxItems.Clear();
-            TargetBoxItemsRefresh(box, boxItemsSource);
+            TargetBoxItemsRefresh(box);
 
             return true;
         }
 
         /// <summary>アイテムを上下に一つ移動</summary>
-        public bool bxMoveItems(ListBox box, int direction, IList boxItemsSource = null)
+        public bool bxMoveItems(ListBox box, int direction)
         {
             try
             {
                 if (box == null || box.SelectedIndex < 0) return false;
 
-                var boxItems = boxItemsSource ?? box.Items;
+                var boxItems = box.ItemsSource as IList ?? box.Items;
                 var selected = box.SelectedItemsList();//連続移動の視点固定のため順番保持
                 int iCount = boxItems.Count;//固定
                 var r = direction >= 0 ? (Func<int, int>)(i => iCount - 1 - i) : (i => i);
@@ -350,7 +349,7 @@ namespace EpgTimer.BoxExchangeEdit
                 }
 
                 box.UnselectAll();
-                TargetBoxItemsRefresh(box, boxItemsSource);
+                TargetBoxItemsRefresh(box);
                 box.SelectedItemsAdd(selected);
                 box.ScrollIntoView(direction < 0 ? selected[0] : selected.Last());
             }
@@ -362,16 +361,16 @@ namespace EpgTimer.BoxExchangeEdit
         public void targetBox_PreviewDrop_fromSelf(object sender, DragEventArgs e)
         {
             var hitItem = GetDragHitItem(sender, e);
-            bxMoveItemsDrop(TargetBox, hitItem == null ? null : hitItem.Content, TargetItemsSource);
+            bxMoveItemsDrop(TargetBox, hitItem == null ? null : hitItem.Content);
         }
         /// <summary>アイテムをボックス内にドロップ</summary>
-        public bool bxMoveItemsDrop(ListBox box, object dropTo, IList boxItemsSource = null)
+        public bool bxMoveItemsDrop(ListBox box, object dropTo)
         {
             try
             {
                 if (box == null || box.SelectedIndex < 0) return false;
 
-                var boxItems = boxItemsSource ?? box.Items;
+                var boxItems = box.ItemsSource as IList ?? box.Items;
 
                 //選択の上と下でドロップ位置を調整する。
                 int idx_dropTo = boxItems.IndexOf(dropTo);
@@ -386,16 +385,16 @@ namespace EpgTimer.BoxExchangeEdit
                 boxItems.InsertItemsAx(insertIdx, selected);
                 box.SelectedItemsAdd(selected);
 
-                TargetBoxItemsRefresh(box, boxItemsSource);
+                TargetBoxItemsRefresh(box);
                 box.ScrollIntoViewIndex(insertItem == null ? int.MaxValue : box.SelectedIndex);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return true;
         }
 
-        private void TargetBoxItemsRefresh(ListBox box, object itmsSource = null)
+        private void TargetBoxItemsRefresh(ListBox box)
         {
-            if (back_font != null || itmsSource != null)
+            if (back_font != null || box.ItemsSource is IList)
             {
                 box.Items.Refresh();
                 back_font = null;
@@ -559,7 +558,7 @@ namespace EpgTimer.BoxExchangeEdit
 
         public void targetBox_PreviewDrop_fromSourceBox(object sender, DragEventArgs e)
         {
-            bxAddItems(SourceBox, TargetBox, GetDragHitItem(sender, e) != null, TargetItemsSource);
+            bxAddItems(SourceBox, TargetBox, GetDragHitItem(sender, e) != null);
         }
         public static ListBoxItem GetDragHitItem(object sender, DragEventArgs e)
         {

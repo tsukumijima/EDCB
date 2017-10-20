@@ -93,7 +93,7 @@ namespace EpgTimer
                 lstCtrl.SetSelectionChangedEventHandler((sender, e) => this.UpdateStatus(1));
 
                 //ドラッグ移動関係
-                this.dragMover.SetData(this, listView_key, lstCtrl.dataList, new lvDragData(this));
+                this.dragMover.SetData(this, listView_key, new lvDragData(this));
 
                 //最初にコマンド集の初期化
                 //mc = (R)Activator.CreateInstance(typeof(R), this);
