@@ -12,7 +12,7 @@ namespace EpgTimer
         {
             ServiceInfo = info;
         }
-        public ChSet5Item ServiceInfo { get; set; }
+        public readonly ChSet5Item ServiceInfo;
         public UInt64 Key
         { 
             get { return ServiceInfo.Key; }

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
+             xmlns:local="clr-namespace:EpgTimer" d:DataContext="{d:DesignInstance local:Settings}"
              d:DesignHeight="500" d:DesignWidth="780">
     <UserControl.Resources>
         <VisualBrush x:Key="HatchBrush" TileMode="Tile" Viewbox="0,0,10,10" ViewboxUnits="Absolute" Viewport="0,0,6,6" ViewportUnits="Absolute">
@@ -14,7 +15,7 @@
             </VisualBrush.Visual>
         </VisualBrush>
         <Style x:Key="colorButton" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Background}"/>
+            <Setter Property="ToolTip" Value="{Binding Background, RelativeSource={RelativeSource Self}}"/>
             <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
             <Setter Property="Height" Value="24"/>
             <Setter Property="Width" Value="58"/>
@@ -38,17 +39,17 @@
                         <GroupBox Header="フォント" Margin="6,6,6,0" >
                             <StackPanel Orientation="Horizontal">
                                 <Grid>
-                                    <Label Content="タイトル" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
-                                    <Label Content="フォント" Height="28" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Name="comboBox_fontTitle" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="カンマ区切りで英字フォント+日本語フォントのようなフォントフォールバックの指定が出来ます。&#10;　(例)Times New Roman, MS UI Gothic"/>
-                                    <Label Content="サイズ" Height="28" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" Name="textBox_fontSizeTitle" VerticalAlignment="Top" Width="39" />
-                                    <CheckBox Content="太字" Height="16" HorizontalAlignment="Left" Margin="471,11,0,0" Name="checkBox_fontBoldTitle" VerticalAlignment="Top" />
-                                    <Label Content="タイトル以外" Height="28" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
-                                    <Label Content="フォント" Height="28" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Name="comboBox_font" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ElementName=comboBox_fontTitle, Path=ToolTip}" />
-                                    <Label Content="サイズ" Height="28" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" Name="textBox_fontSize" VerticalAlignment="Top" Width="39" />
+                                    <Label Content="タイトル" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
+                                    <Label Content="フォント" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Name="comboBox_fontTitle" Text="{Binding FontNameTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="カンマ区切りで英字フォント+日本語フォントのようなフォントフォールバックの指定が出来ます。&#10;　(例)Times New Roman, MS UI Gothic"/>
+                                    <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeTitle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <CheckBox Content="太字" HorizontalAlignment="Left" Margin="471,11,0,0" IsChecked="{Binding FontBoldTitle}" VerticalAlignment="Top" />
+                                    <Label Content="タイトル以外" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
+                                    <Label Content="フォント" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding FontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
+                                    <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
                                 <Grid>
                                     <ComboBox Style="{StaticResource colorCombo}" Margin="12,6,0,0" Width="96" Name="comboBox_colorTitle1" Tag="0" />
@@ -60,23 +61,23 @@
                         </GroupBox>
                         <GroupBox Header="表示設定" Margin="6,6,6,0" >
                             <Grid>
-                                <Label Content="マウススクロールサイズ" Height="28" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Name="textBox_mouse_scroll" VerticalAlignment="Top" Width="55" />
-                                <CheckBox Content="自動" Height="16" HorizontalAlignment="Left" Margin="226,11,0,0" Name="checkBox_scrollAuto" VerticalAlignment="Top" />
-                                <Label Content="サービス１つの幅" Height="28" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Name="textBox_service_width" VerticalAlignment="Top" Width="55" />
-                                <Label Content="1分あたりの高さ" Height="28" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Name="textBox_minHeight" VerticalAlignment="Top" Width="55" />
-                                <Label Content="ドラッグスクロール倍率" Height="28" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Name="textBox_dragScroll" VerticalAlignment="Top" Width="55" />
-                                <Label Content="最低表示行数" Height="28" HorizontalAlignment="Left" Margin="551,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Name="textBox_minimumHeight" VerticalAlignment="Top" Width="55" />
-                                <Label Content="枠線の幅" Height="28" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Name="textBox_borderLeftSize" VerticalAlignment="Top" Width="33" ToolTip="横(サービス区切り)"/>
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Name="textBox_borderTopSize" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
+                                <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding ScrollSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding MouseScrollAuto}" VerticalAlignment="Top" />
+                                <Label Content="サービス１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding ServiceWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding MinHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Text="{Binding DragScroll, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Text="{Binding MinimumHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="枠線の幅" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding EpgBorderLeftSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(サービス区切り)"/>
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding EpgBorderTopSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
                                 <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
-                                    <CheckBox Content="番組内容のポップアップ表示" Margin="0,6,0,0" Name="checkBox_epg_popup" />
-                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_epg_popup, UpdateSourceTrigger=PropertyChanged}" >
+                                    <CheckBox Content="番組内容のポップアップ表示" Margin="0,6,0,0" IsChecked="{Binding EpgPopup}"/>
+                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding EpgPopup}" >
                                         <WrapPanel Name="panel_epgPopup">
                                             <RadioButton Content="マウスオーバー" Margin="0,6,12,0" />
                                             <RadioButton Content="クリックしたとき" Margin="0,6,12,0" />
@@ -84,49 +85,49 @@
                                         </WrapPanel>
                                         <WrapPanel>
                                             <Label Content="ポップアップの幅　サービスの幅 ×" />
-                                            <TextBox Width="55" Name="textBox_epg_popup_Width" />
+                                            <TextBox Width="55" Text="{Binding EpgPopupWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
                                             <Label Content="倍" />
                                         </WrapPanel>
                                     </StackPanel>
-                                    <CheckBox Content="詳細をツールチップ表示する" Margin="0,6,0,0" Name="checkBox_descToolTip" />
-                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_descToolTip, UpdateSourceTrigger=PropertyChanged}" >
-                                        <CheckBox Content="番組名を表示しきれない物のみ表示する" Margin="0,6,0,0" Name="checkBox_toolTip_noView_only" />
+                                    <CheckBox Content="詳細をツールチップ表示する" Margin="0,6,0,0" IsChecked="{Binding EpgToolTip}"/>
+                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding EpgToolTip}" >
+                                        <CheckBox Content="番組名を表示しきれない物のみ表示する" Margin="0,6,0,0" IsChecked="{Binding EpgToolTipNoViewOnly}" />
                                         <WrapPanel>
                                             <Label Content="ツールチップを表示するまでの時間(ミリ秒) " />
-                                            <TextBox Width="55" Name="textBox_toolTipWait" />
+                                            <TextBox Width="55" Text="{Binding EpgToolTipViewWait, UpdateSourceTrigger=PropertyChanged}" />
                                         </WrapPanel>
                                     </StackPanel>
                                     <Label Content="番組内容を詳しく表示する" Margin="0,0,0,-4"/>
                                     <WrapPanel Margin="20,0,0,0" >
-                                        <CheckBox Content="番組表" Margin="0,6,12,0" Name="checkBox_epg_ExtInfo_table" />
-                                        <CheckBox Content="ポップアップ" Margin="0,6,12,0" Name="checkBox_epg_ExtInfo_popup" />
-                                        <CheckBox Content="ツールチップ" Margin="0,6,12,0" Name="checkBox_epg_ExtInfo_tooltip" />
+                                        <CheckBox Content="番組表" Margin="0,6,12,0" IsChecked="{Binding EpgExtInfoTable}" />
+                                        <CheckBox Content="ポップアップ" Margin="0,6,12,0" IsChecked="{Binding EpgExtInfoPopup}" />
+                                        <CheckBox Content="ツールチップ" Margin="0,6,12,0" IsChecked="{Binding EpgExtInfoTooltip}" />
                                     </WrapPanel>
                                 </StackPanel>
                                 <StackPanel Margin="327,64,0,0" >
-                                    <CheckBox Content="シングルクリックで予約ダイアログを開く" Margin="0,6,0,0" Name="checkBox_singleOpen" />
-                                    <CheckBox Content="番組詳細タブを選択した状態で予約ダイアログを開く" Margin="0,6,0,0" Name="checkBox_openInfo" />
-                                    <CheckBox Content="番組名と番組内容の表示位置をあわせる" Margin="0,6,0,0" Name="checkBox_title_indent" />
-                                    <CheckBox Content="番組表の切り替え時にも強調表示をする" Margin="0,6,0,0" Name="checkBox_displayNotifyChange" />
+                                    <CheckBox Content="シングルクリックで予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding EpgInfoSingleClick}" />
+                                    <CheckBox Content="番組詳細タブを選択した状態で予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding EpgInfoOpenMode}" />
+                                    <CheckBox Content="番組名と番組内容の表示位置をあわせる" Margin="0,6,0,0" IsChecked="{Binding EpgTitleIndent}" />
+                                    <CheckBox Content="番組表の切り替え時にも強調表示をする" Margin="0,6,0,0" IsChecked="{Binding DisplayNotifyEpgChange}" />
                                     <GroupBox Header="過去の番組情報" Margin="0,6,0,0" >
                                         <StackPanel>
                                             <StackPanel Name="stackPanel_epgArchivePeriod" Orientation="Horizontal" >
-                                                <Label Content="EPG取得後も" Name="label_epgArchivePeriod1" />
+                                                <Label Content="EPG取得後も" />
                                                 <TextBox Name="textBox_epgArchivePeriod" Width="55" />
                                                 <Label Content="日前まで保存する　( 最大14日 )" />
                                             </StackPanel>
-                                            <CheckBox Content="過去の番組情報を表示しない" Name="checkBox_epgNoLoadArcInfo" Margin="0,2,0,2" ToolTipService.ShowDuration="60000" ToolTip="過去の番組情報を読み込まないようにします。&#10;・過去の番組情報を読み込んでいると、番組データの不整合のため表示が乱れる場合があります。&#10;・検索による絞り込みを使用している場合は、元々過去の番組情報は読み込まれていません。" />
+                                            <CheckBox Content="過去の番組情報を表示しない" IsChecked="{Binding EpgLoadArcInfo, Converter={StaticResource invert}}" Margin="0,2,0,2" ToolTipService.ShowDuration="60000" ToolTip="過去の番組情報を読み込まないようにします。&#10;・過去の番組情報を読み込んでいると、番組データの不整合のため表示が乱れる場合があります。&#10;・検索による絞り込みを使用している場合は、元々過去の番組情報は読み込まれていません。" />
                                             <StackPanel Orientation="Horizontal" ToolTip="前2つのオプションとは関係なく、強制的に表示を制限します。" >
-                                                <CheckBox Content="番組表の表示を" Name="checkBox_epgNoDisplayOld" />
-                                                <TextBox Name="textBox_epgNoDisplayOldDays" Width="55" Margin="6,0,0,0"/>
+                                                <CheckBox Content="番組表の表示を" IsChecked="{Binding EpgNoDisplayOld}" />
+                                                <TextBox Text="{Binding EpgNoDisplayOldDays, UpdateSourceTrigger=PropertyChanged}" Width="55" Margin="6,0,0,0"/>
                                                 <Label Content="日前までに制限する"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>
                                     <WrapPanel>
                                         <Label Content="グラデーション表示を行う" />
-                                        <CheckBox Content="番組" Margin="12,0,0,0" Name="checkBox_gradation" />
-                                        <CheckBox Content="サービス・時刻軸" Margin="12,0,0,0" Name="checkBox_gradationHeader" />
+                                        <CheckBox Content="番組" Margin="12,0,0,0" IsChecked="{Binding EpgGradation}" />
+                                        <CheckBox Content="サービス・時刻軸" Margin="12,0,0,0" IsChecked="{Binding EpgGradationHeader}" />
                                     </WrapPanel>
                                 </StackPanel>
                             </Grid>
@@ -134,26 +135,33 @@
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="基本2">
-                    <StackPanel>
-                        <GroupBox Header="表示設定(続き)" Margin="6,6,6,0" >
-                            <StackPanel Margin="11,0,0,0">
-                                <DockPanel Margin="0,6,0,0">
-                                    <Label Content="タイトルの文字列置換リスト（/置換前/置換後/…）" Name="label_replacePatternTitleDef" ToolTip="先頭の文字が区切り記号になります。例えば(,置換前,置換後,…)でも可。"/>
-                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" ToolTipService.ShowDuration="20000" ToolTip="追加で内蔵辞書を適用します。ただしその分表示が遅くなります。&#10;同一のキーはテキストボックスの置換を優先します。" />
-                                    <CheckBox Content="使用予定チューナー画面にも適用" Margin="12,0,0,0" Name="checkBox_ApplyReplacePatternTuner" />
-                                </DockPanel>
-                                <TextBox Margin="18,0,0,0" Height="85" Name="textBox_replacePatternTitle" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
-                                <DockPanel Margin="0,6,0,0">
-                                    <Label Content="タイトル以外の文字列置換リスト（〃）" Width="{Binding ElementName=label_replacePatternTitleDef,Path=ActualWidth}"/>
-                                    <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternDef" ToolTipService.ShowDuration="20000" ToolTip="{Binding ElementName=checkBox_replacePatternTitleDef,Path=ToolTip}" />
-                                    <CheckBox Content="タイトルの置換リストを使用" Margin="12,0,0,0" Name="checkBox_ShareEpgReplacePatternTitle" Click="checkBox_ShareEpgReplacePatternTitle_Click" />
-                                </DockPanel>
-                                <TextBox Margin="18,0,0,0" Height="85" Name="textBox_replacePattern" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </GroupBox>
-                    </StackPanel>
-                </TabItem>
-                <TabItem Header="色1">
+                    <GroupBox Header="表示設定(続き)" Margin="6,6,6,0" >
+                        <Grid >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <DockPanel Grid.ColumnSpan="2" Margin="0,6,0,0">
+                                <Label Content="タイトルの文字列置換リスト（/置換前/置換後/…）" Name="label_replacePatternTitleDef" ToolTip="先頭の文字が区切り記号になります。例えば(,置換前,置換後,…)でも可。"/>
+                                <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" IsChecked="{Binding EpgReplacePatternTitleDef}" ToolTipService.ShowDuration="20000" ToolTip="追加で内蔵辞書を適用します。ただしその分表示が遅くなります。&#10;同一のキーはテキストボックスの置換を優先します。" />
+                                <CheckBox Content="使用予定チューナー画面にも適用" Margin="12,0,0,0" IsChecked="{Binding ApplyReplacePatternTuner}" />
+                            </DockPanel>
+                            <TextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" Name="textBox_ReplacePatternTitle" Text="{Binding EpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
+                            <DockPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,6,0,0">
+                                <Label Content="タイトル以外の文字列置換リスト（〃）" Width="{Binding ActualWidth, ElementName=label_replacePatternTitleDef}"/>
+                                <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" IsEnabled="{Binding ShareEpgReplacePatternTitle, Converter={StaticResource invert}}" IsChecked="{Binding EpgReplacePatternDef}" ToolTipService.ShowDuration="20000" ToolTipService.ShowOnDisabled="True" ToolTip="{Binding ToolTip, ElementName=checkBox_replacePatternTitleDef}" />
+                                <CheckBox Content="タイトルの置換リストを使用" Margin="12,0,0,0" IsChecked="{Binding ShareEpgReplacePatternTitle}"/>
+                            </DockPanel>
+                            <local:TextBoxWithReadOnlyEffect Grid.Row="3" Grid.Column="1" VerticalAlignment="Stretch" x:Name="textBox_ReplacePattern" Text="{Binding EpgReplacePattern}" IsReadOnly="{Binding ShareEpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
+                        </Grid>
+                    </GroupBox>
+                </TabItem>                <TabItem Header="色1">
                     <TabItem.Resources>
                         <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
@@ -161,22 +169,22 @@
                     <StackPanel>
                         <GroupBox Header="ジャンル別背景色" Margin="6,6,6,0" >
                             <Grid x:Name="grid_EpgColors" >
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="614,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="ニュース／報道" Height="24" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
-                                <Label Content="スポーツ" Height="28" HorizontalAlignment="Left" Margin="390,23,0,0" VerticalAlignment="Top" />
-                                <Label Content="情報／ワイドショー" Height="28" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
-                                <Label Content="ドラマ" Height="28" HorizontalAlignment="Left" Margin="390,53,0,0" VerticalAlignment="Top" />
-                                <Label Content="音楽" Height="28" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
-                                <Label Content="バラエティ" Height="28" HorizontalAlignment="Left" Margin="390,83,0,0" VerticalAlignment="Top" />
-                                <Label Content="映画" Height="28" HorizontalAlignment="Left" Margin="12,113,0,0" VerticalAlignment="Top" />
-                                <Label Content="アニメ／特撮" Height="28" HorizontalAlignment="Left" Margin="390,113,0,0" VerticalAlignment="Top" />
-                                <Label Content="ドキュメンタリー／教養" Height="28" HorizontalAlignment="Left" Margin="12,143,0,0" VerticalAlignment="Top" />
-                                <Label Content="劇場／公演" Height="28" HorizontalAlignment="Left" Margin="390,143,0,0" VerticalAlignment="Top" />
-                                <Label Content="趣味／教育" Height="28" HorizontalAlignment="Left" Margin="12,173,0,0" VerticalAlignment="Top" />
-                                <Label Content="福祉" Height="28" HorizontalAlignment="Left" Margin="390,173,0,0" VerticalAlignment="Top" />
-                                <Label Content="その他" Height="28" HorizontalAlignment="Left" Margin="12,203,0,0" VerticalAlignment="Top" />
-                                <Label Content="なし" Height="28" HorizontalAlignment="Left" Margin="390,203,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="614,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="ニュース／報道" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
+                                <Label Content="スポーツ" HorizontalAlignment="Left" Margin="390,23,0,0" VerticalAlignment="Top" />
+                                <Label Content="情報／ワイドショー" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
+                                <Label Content="ドラマ" HorizontalAlignment="Left" Margin="390,53,0,0" VerticalAlignment="Top" />
+                                <Label Content="音楽" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
+                                <Label Content="バラエティ" HorizontalAlignment="Left" Margin="390,83,0,0" VerticalAlignment="Top" />
+                                <Label Content="映画" HorizontalAlignment="Left" Margin="12,113,0,0" VerticalAlignment="Top" />
+                                <Label Content="アニメ／特撮" HorizontalAlignment="Left" Margin="390,113,0,0" VerticalAlignment="Top" />
+                                <Label Content="ドキュメンタリー／教養" HorizontalAlignment="Left" Margin="12,143,0,0" VerticalAlignment="Top" />
+                                <Label Content="劇場／公演" HorizontalAlignment="Left" Margin="390,143,0,0" VerticalAlignment="Top" />
+                                <Label Content="趣味／教育" HorizontalAlignment="Left" Margin="12,173,0,0" VerticalAlignment="Top" />
+                                <Label Content="福祉" HorizontalAlignment="Left" Margin="390,173,0,0" VerticalAlignment="Top" />
+                                <Label Content="その他" HorizontalAlignment="Left" Margin="12,203,0,0" VerticalAlignment="Top" />
+                                <Label Content="なし" HorizontalAlignment="Left" Margin="390,203,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,27,0,0" Tag="0" />
                                 <ComboBox Margin="488,27,0,0" Tag="1" />
                                 <ComboBox Margin="166,57,0,0" Tag="2" />
@@ -209,12 +217,12 @@
                         </GroupBox>
                         <GroupBox Header="時刻表示色設定" Margin="6,6,6,0" >
                             <Grid x:Name="grid_EpgTimeColors">
-                                <Label Content="00～05時" Height="24" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="06～11時" Height="28" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="12～17時" Height="28" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="18～23時" Height="28" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="時刻表示文字" Height="24" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
-                                <Label Content="時刻表示枠" Height="24" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="00～05時" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="06～11時" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="12～17時" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="18～23時" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="時刻表示文字" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="時刻表示枠" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,4,0,0" Tag="0" />
                                 <ComboBox Margin="488,4,0,0" Tag="1" />
                                 <ComboBox Margin="166,34,0,0" Tag="2" />
@@ -239,14 +247,14 @@
                     <StackPanel>
                         <GroupBox Header="その他色設定" Margin="6,6,6,0" >
                             <Grid x:Name="grid_EpgEtcColors">
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="614,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="番組表背景" Height="24" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
-                                <Label Content="番組枠" Height="24" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
-                                <Label Content="1週間モード日付枠" Height="24" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
-                                <Label Content="サービス文字" Height="24" HorizontalAlignment="Left" Margin="390,23,0,0" VerticalAlignment="Top" />
-                                <Label Content="サービス背景" Height="24" HorizontalAlignment="Left" Margin="390,53,0,0" VerticalAlignment="Top" />
-                                <Label Content="サービス枠" Height="24" HorizontalAlignment="Left" Margin="390,83,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="614,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="番組表背景" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
+                                <Label Content="番組枠" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
+                                <Label Content="1週間モード日付枠" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
+                                <Label Content="サービス文字" HorizontalAlignment="Left" Margin="390,23,0,0" VerticalAlignment="Top" />
+                                <Label Content="サービス背景" HorizontalAlignment="Left" Margin="390,53,0,0" VerticalAlignment="Top" />
+                                <Label Content="サービス枠" HorizontalAlignment="Left" Margin="390,83,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,27,0,0" Tag="5" />
                                 <ComboBox Margin="166,57,0,0" Tag="6" />
                                 <ComboBox Margin="166,87,0,0" Tag="11" />
@@ -265,24 +273,24 @@
                             <GroupBox.Header>
                                 <DockPanel>
                                     <TextBlock Text="予約枠"/>
-                                    <CheckBox Margin="20,0,0,0" Content="視聴予約に対して予約枠の色を変更する" Name="checkBox_EpgChangeBorderWatch" Click="checkbox_EpgChangeBorderWatch_Click" ToolTip="未チェック時はプログラム予約に対して色を変更します"/>
-                                    <CheckBox Margin="20,0,0,0" Content="録画中に予約枠の色を変更する" Name="checkBox_EpgChangeBorderOnRec" Click="checkbox_EpgChangeBorderWatch_Click" />
+                                    <CheckBox Margin="20,0,0,0" Content="視聴予約に対して予約枠の色を変更する" Name="checkBox_EpgChangeBorderWatch" IsChecked="{Binding EpgChangeBorderWatch}" Click="checkbox_EpgChangeBorderWatch_Click" ToolTip="未チェック時はプログラム予約に対して色を変更します"/>
+                                    <CheckBox Margin="20,0,0,0" Content="録画中に予約枠の色を変更する" IsChecked="{Binding EpgChangeBorderOnRec}" />
                                 </DockPanel>
                             </GroupBox.Header>
                             <Grid x:Name="grid_EpgColorsReserve" >
-                                <Label Name="label_EpgReserve" Content="通常(EPG)" Height="28" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                <Label Name="label_EpgReserve2" Content="通常(プログラム)" Height="28" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="録画中" Height="28" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" IsEnabled="{Binding ElementName=checkBox_EpgChangeBorderOnRec, Path=IsChecked}"/>
-                                <Label Content="視聴中" Height="28" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" IsEnabled="{Binding ElementName=checkBox_EpgChangeBorderOnRec, Path=IsChecked}"/>
-                                <Label Content="無効" Height="28" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
-                                <Label Content="チューナー不足" Height="28" HorizontalAlignment="Left" Margin="12,90,0,0" VerticalAlignment="Top" />
-                                <Label Content="一部実行" Height="28" HorizontalAlignment="Left" Margin="390,90,0,0" VerticalAlignment="Top" />
-                                <Label Content="自動予約登録不明※" Height="28" HorizontalAlignment="Left" Margin="12,120,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
-                                <Label Content="重複EPG予約※" Height="28" HorizontalAlignment="Left" Margin="390,120,0,0" VerticalAlignment="Top" />
+                                <Label Name="label_EpgReserve" Content="通常(EPG)" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                <Label Name="label_EpgReserve2" Content="通常(プログラム)" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="録画中" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
+                                <Label Content="視聴中" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
+                                <Label Content="無効" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="チューナー不足" HorizontalAlignment="Left" Margin="12,90,0,0" VerticalAlignment="Top" />
+                                <Label Content="一部実行" HorizontalAlignment="Left" Margin="390,90,0,0" VerticalAlignment="Top" />
+                                <Label Content="自動予約登録不明※" HorizontalAlignment="Left" Margin="12,120,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
+                                <Label Content="重複EPG予約※" HorizontalAlignment="Left" Margin="390,120,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,4,0,0" Tag="0" />
                                 <ComboBox Margin="488,4,0,0" Tag="1" />
-                                <ComboBox Margin="166,34,0,0" Tag="7" IsEnabled="{Binding ElementName=checkBox_EpgChangeBorderOnRec, Path=IsChecked}"/>
-                                <ComboBox Margin="488,34,0,0" Tag="8" IsEnabled="{Binding ElementName=checkBox_EpgChangeBorderOnRec, Path=IsChecked}"/>
+                                <ComboBox Margin="166,34,0,0" Tag="7" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
+                                <ComboBox Margin="488,34,0,0" Tag="8" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
                                 <ComboBox Margin="166,64,0,0" Tag="2" />
                                 <ComboBox Margin="166,94,0,0" Tag="3" />
                                 <ComboBox Margin="488,94,0,0" Tag="4" />
@@ -290,8 +298,8 @@
                                 <ComboBox Margin="488,124,0,0" Tag="6" />
                                 <Button Margin="292,4,0,0" Tag="0" />
                                 <Button Margin="614,4,0,0" Tag="1" />
-                                <Button Margin="292,34,0,0" Tag="7" IsEnabled="{Binding ElementName=checkBox_EpgChangeBorderOnRec, Path=IsChecked}"/>
-                                <Button Margin="614,34,0,0" Tag="8" IsEnabled="{Binding ElementName=checkBox_EpgChangeBorderOnRec, Path=IsChecked}"/>
+                                <Button Margin="292,34,0,0" Tag="7" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
+                                <Button Margin="614,34,0,0" Tag="8" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
                                 <Button Margin="292,64,0,0" Tag="2" />
                                 <Button Margin="292,94,0,0" Tag="3" />
                                 <Button Margin="614,94,0,0" Tag="4" />
@@ -299,8 +307,8 @@
                                 <Button Margin="614,124,0,0" Tag="6" />
                                 <DockPanel HorizontalAlignment="Left" Margin="12,184,0,0" VerticalAlignment="Top">
                                     <Label Content="塗りつぶしで表示 (不透明度)" />
-                                    <Slider VerticalAlignment="Center" Margin="10,0" AutoToolTipPlacement="TopLeft" LargeChange="10" Maximum="100" Minimum="0" Name="slider_reserveFillOpacity" SmallChange="1" Width="145" />
-                                    <CheckBox Content="影付きで塗りつぶす" Name="checkBox_reserveFillWithShadow"/>
+                                    <Slider VerticalAlignment="Center" Margin="10,0" Value="{Binding ReserveRectFillOpacity}" AutoToolTipPlacement="TopLeft" LargeChange="10" Maximum="100" Name="slider_reserveFillOpacity" SmallChange="1" Width="145" />
+                                    <CheckBox Content="影付きで塗りつぶす" IsChecked="{Binding ReserveRectFillWithShadow}"/>
                                 </DockPanel>
                                 <Label Content="※「自動予約登録不明」 及び 「重複EPG予約」 はオプション使用時のみ" Margin="12,154,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
                             </Grid>
@@ -312,19 +320,19 @@
                         <StackPanel DockPanel.Dock="Bottom" >
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0" >
                                 <TextBlock Text="タブを表示する" />
-                                <CheckBox Margin="12,0,0,0" Content="表示項目タブ" Name="checkBox_EpgNameTabEnabled" ToolTip="非表示の時は「番組表」タブの右クリックメニューから表示項目を変更します"/>
-                                <CheckBox Margin="12,0,0,0" Content="表示モード切り替えタブ" Name="checkBox_EpgViewModeTabEnabled" />
+                                <CheckBox Margin="12,0,0,0" Content="表示項目タブ" IsChecked="{Binding EpgNameTabEnabled}" ToolTip="非表示の時は「番組表」タブの右クリックメニューから表示項目を変更します"/>
+                                <CheckBox Margin="12,0,0,0" Content="表示モード切り替えタブ" IsChecked="{Binding EpgViewModeTabEnabled}" />
                             </StackPanel>
-                            <CheckBox Margin="0,4,0,0" Content="表示項目タブのコンテキストメニューで、「表示」に切り替えたタブへ移動する" Name="checkBox_EpgTabMoveCheckEnabled" />
+                            <CheckBox Margin="0,4,0,0" Content="表示項目タブのコンテキストメニューで、「表示」に切り替えたタブへ移動する" IsChecked="{Binding EpgTabMoveCheckEnabled}"/>
                         </StackPanel>
                         <GroupBox Margin="0,18,0,0">
                             <GroupBox.Header>
                                 <StackPanel Margin="2,-18,0,0" >
-                                    <RadioButton Content="デフォルト表示" Name="radioButton_1_def" />
-                                    <RadioButton Content="カスタマイズ表示" Name="radioButton_1_cust" Margin="0,4,0,0" />
+                                    <RadioButton Content="デフォルト表示" IsChecked="{Binding UseCustomEpgView, Converter={StaticResource invert}}"/>
+                                    <RadioButton Content="カスタマイズ表示" Margin="0,4,0,0" IsChecked="{Binding UseCustomEpgView}" />
                                 </StackPanel>
                             </GroupBox.Header>
-                            <DockPanel Margin="6" IsEnabled="{Binding Path=IsChecked, ElementName=radioButton_1_cust, UpdateSourceTrigger=PropertyChanged}">
+                            <DockPanel Margin="6" IsEnabled="{Binding UseCustomEpgView}">
                                 <StackPanel DockPanel.Dock="Right" Margin="12,0,0,0">
                                     <StackPanel.Resources>
                                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -362,14 +370,14 @@
                                             <GridViewColumn>
                                                 <GridViewColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" />
+                                                        <CheckBox IsChecked="{Binding IsSelectedViewCmd}" />
                                                     </DataTemplate>
                                                 </GridViewColumn.CellTemplate>
                                             </GridViewColumn>
-                                            <GridViewColumn Header="タブ名" DisplayMemberBinding="{Binding Path=TabName}" />
-                                            <GridViewColumn Header="表示モード" DisplayMemberBinding="{Binding Path=ViewMode}" />
-                                            <GridViewColumn Header="検索絞り込み" DisplayMemberBinding="{Binding Path=SearchMode}" />
-                                            <GridViewColumn Header="表示ジャンル等" DisplayMemberBinding="{Binding Path=ContentMode}" />
+                                            <GridViewColumn Header="タブ名" DisplayMemberBinding="{Binding TabName}" />
+                                            <GridViewColumn Header="表示モード" DisplayMemberBinding="{Binding ViewMode}" />
+                                            <GridViewColumn Header="検索絞り込み" DisplayMemberBinding="{Binding SearchMode}" />
+                                            <GridViewColumn Header="表示ジャンル等" DisplayMemberBinding="{Binding ContentMode}" />
                                         </GridView>
                                     </ListView.View>
                                 </ListView>
@@ -386,75 +394,75 @@
                         <GroupBox Header="フォント" Margin="6,6,6,0" >
                             <StackPanel Orientation="Horizontal">
                                 <Grid>
-                                    <Label Content="サービス" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
-                                    <Label Content="フォント" Height="28" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Name="comboBox_fontTunerService" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ElementName=comboBox_fontTitle, Path=ToolTip}" />
-                                    <Label Content="サイズ" Height="28" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" Name="textBox_fontTunerSizeService" VerticalAlignment="Top" Width="39" />
-                                    <CheckBox Content="太字" Height="16" HorizontalAlignment="Left" Margin="471,11,0,0" Name="checkBox_fontTunerBoldService" VerticalAlignment="Top" />
-                                    <Label Content="サービス以外" Height="28" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
-                                    <Label Content="フォント" Height="28" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Name="comboBox_fontTuner" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ElementName=comboBox_fontTitle, Path=ToolTip}" />
-                                    <Label Content="サイズ" Height="28" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" Name="textBox_fontTunerSize" VerticalAlignment="Top" Width="39" />
+                                    <Label Content="サービス" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
+                                    <Label Content="フォント" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Text="{Binding TunerFontNameService}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
+                                    <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSizeService, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <CheckBox Content="太字" HorizontalAlignment="Left" Margin="471,11,0,0" IsChecked="{Binding TunerFontBoldService}" VerticalAlignment="Top" />
+                                    <Label Content="サービス以外" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
+                                    <Label Content="フォント" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding TunerFontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
+                                    <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
                                 <Grid x:Name="grid_TunerFontColor">
-                                    <ComboBox Style="{StaticResource colorCombo}" Margin="12,6,0,0" Width="96" Name="comboBox_tunerFontColorService" Tag="0" />
+                                    <ComboBox Style="{StaticResource colorCombo}" Margin="12,6,0,0" Width="96" Name="comboBox_tunerFontColorService" Tag="0" IsEnabled="{Binding TunerColorModeUse, Converter={StaticResource invert}}"/>
                                     <ComboBox Style="{StaticResource colorCombo}" Margin="12,36,0,0" Width="96" Tag="1"/>
-                                    <Button Style="{StaticResource colorButton}" Margin="116,6,0,0" Name="button_tunerFontCustColorService" Tag="0" />
+                                    <Button Style="{StaticResource colorButton}" Margin="116,6,0,0" Name="button_tunerFontCustColorService" Tag="0" IsEnabled="{Binding TunerColorModeUse, Converter={StaticResource invert}}"/>
                                     <Button Style="{StaticResource colorButton}" Margin="116,36,0,0" Tag="1" />
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
                         <GroupBox Header="表示設定" Margin="6,6,6,0">
                             <Grid>
-                                <Label Content="マウススクロールサイズ" Height="28" HorizontalAlignment="Left" Margin="11,6,0,0" Name="label47" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Name="textBox_tuner_mouse_scroll" VerticalAlignment="Top" Width="55" />
-                                <CheckBox Content="自動" Height="16" HorizontalAlignment="Left" Margin="226,11,0,0" Name="checkBox_tuner_scrollAuto" VerticalAlignment="Top" />
-                                <Label Content="チューナー１つの幅" Height="28" HorizontalAlignment="Left" Margin="11,36,0,0" Name="label48" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Name="textBox_tuner_width" VerticalAlignment="Top" Width="55" />
-                                <Label Content="1分あたりの高さ" Height="28" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Name="textBox_tuner_minHeight" VerticalAlignment="Top" Width="55" />
-                                <Label Content="最低表示行数" Height="28" HorizontalAlignment="Left" Margin="551,6,0,0" Name="label39" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Name="textBox_tunerMinLineHeight" VerticalAlignment="Top" Width="55" />
-                                <Label Content="ドラッグスクロール倍率" Height="28" HorizontalAlignment="Left" Margin="327,36,0,0" Name="label38" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Name="textBox_tunerDdragScroll" VerticalAlignment="Top" Width="55" />
-                                <Label Content="枠線の幅" Height="28" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Name="textBox_tunerBorderLeftSize" VerticalAlignment="Top" Width="33" ToolTip="横(チューナー区切り)"/>
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Name="textBox_tunerBorderTopSize" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
+                                <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" Name="label47" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding TunerScrollSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding TunerMouseScrollAuto}" VerticalAlignment="Top" />
+                                <Label Content="チューナー１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" Name="label48" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding TunerWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding TunerMinHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" Name="label39" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Text="{Binding TunerMinimumLine, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" Name="label38" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Text="{Binding TunerDragScroll, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <Label Content="枠線の幅" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding TunerBorderLeftSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(チューナー区切り)"/>
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding TunerBorderTopSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
                                 <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
-                                    <CheckBox Content="予約のポップアップ表示" Margin="0,6,0,0" Name="checkBox_tuner_popup" />
-                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_tuner_popup, UpdateSourceTrigger=PropertyChanged}" >
+                                    <CheckBox Content="予約のポップアップ表示" Margin="0,6,0,0" IsChecked="{Binding TunerPopup}"/>
+                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding TunerPopup}" >
                                         <WrapPanel Name="panel_tunerPopup">
                                             <RadioButton Content="マウスオーバー" Margin="0,6,12,0" />
                                             <RadioButton Content="クリックしたとき" Margin="0,6,12,0" />
                                         </WrapPanel>
-                                        <CheckBox Content="ポップアップに優先度と録画モードを表示する" Margin="0,6,0,0" Name="checkBox_tuner_popup_recInfo" />
+                                        <CheckBox Content="ポップアップに優先度と録画モードを表示する" Margin="0,6,0,0" IsChecked="{Binding TunerPopupRecinfo}" />
                                         <WrapPanel>
                                             <Label Content="ポップアップの幅　チューナーの幅 ×" />
-                                            <TextBox Width="55" Name="textBox_tuner_popup_Width" />
+                                            <TextBox Width="55" Text="{Binding TunerPopupWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
                                             <Label Content="倍" />
                                         </WrapPanel>
                                     </StackPanel>
-                                    <CheckBox Content="詳細をツールチップ表示する" Margin="0,6,0,0" Name="checkBox_tunerDescToolTip" />
-                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_tunerDescToolTip, UpdateSourceTrigger=PropertyChanged}" >
+                                    <CheckBox Content="詳細をツールチップ表示する" Margin="0,6,0,0" IsChecked="{Binding TunerToolTip}"/>
+                                    <StackPanel Margin="20,0,0,0" IsEnabled="{Binding TunerToolTip}" >
                                         <WrapPanel Name="panel_tunerTooltip">
                                             <RadioButton Margin="0,6,12,0" Content="予約情報" />
                                             <RadioButton Margin="0,6,12,0" Content="番組情報" />
                                         </WrapPanel>
                                         <WrapPanel>
                                             <Label Content="ツールチップを表示するまでの時間(ミリ秒) " />
-                                            <TextBox Width="55" Name="textBox_tunerToolTipWait" />
+                                            <TextBox Width="55" Text="{Binding TunerToolTipViewWait, UpdateSourceTrigger=PropertyChanged}" />
                                         </WrapPanel>
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Margin="327,64,0,0" >
-                                    <CheckBox Content="シングルクリックで予約ダイアログを開く" Margin="0,6,0,0" Name="checkBox_tunerSingleOpen" />
-                                    <CheckBox Content="番組詳細タブを選択した状態で予約ダイアログを開く" Margin="0,6,0,0" Name="checkBox_tunerEpgInfoOpenMode" />
-                                    <CheckBox Content="サービス名と番組名の表示位置をあわせる" Margin="0,6,0,0" Name="checkBox_tuner_title_indent" />
-                                    <CheckBox Content="サービス名を改行しない" Margin="0,6,0,0" Name="checkBox_tuner_service_nowrap" ToolTip="ポップアップ時は無効です(常に改行されます)"/>
-                                    <CheckBox Content="サービスのフォント色を優先度で変える('色'タブの設定)" Margin="0,6,0,0" Name="checkBox_tunerColorModeUse" ToolTip="チェックされていない場合はこの画面の設定色が使われます。" Click="checkBox_tunerColorModeUse_Click" />
-                                    <CheckBox Content="無効の予約も表示する" Margin="0,6,0,0" Name="checkBox_tuner_display_offres" />
+                                    <CheckBox Content="シングルクリックで予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding TunerInfoSingleClick}" />
+                                    <CheckBox Content="番組詳細タブを選択した状態で予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding TunerEpgInfoOpenMode}" />
+                                    <CheckBox Content="サービス名と番組名の表示位置をあわせる" Margin="0,6,0,0" IsChecked="{Binding TunerTitleIndent}" />
+                                    <CheckBox Content="サービス名を改行しない" Margin="0,6,0,0" IsChecked="{Binding TunerServiceNoWrap}" ToolTip="ポップアップ時は無効です(常に改行されます)"/>
+                                    <CheckBox Content="サービスのフォント色を優先度で変える('色'タブの設定)" Margin="0,6,0,0" IsChecked="{Binding TunerColorModeUse}" ToolTip="チェックされていない場合はこの画面の設定色が使われます。" />
+                                    <CheckBox Content="無効の予約も表示する" Margin="0,6,0,0" IsChecked="{Binding TunerDisplayOffReserve}" />
                                 </StackPanel>
                             </Grid>
                         </GroupBox>
@@ -470,12 +478,12 @@
                             <Grid x:Name="grid_TunerColors" >
                                 <TextBlock Text="※" HorizontalAlignment="Left" Margin="385,27,0,0" VerticalAlignment="Top" />
                                 <TextBlock Text="[基本]タブの「サービスのフォント色を優先度で変える」チェック時のみ有効" HorizontalAlignment="Left" Margin="403,27,0,0" VerticalAlignment="Top" TextWrapping="Wrap" Width="256" />
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="優先度 5(高い)" Height="28" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
-                                <Label Content="優先度 4" Height="28" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
-                                <Label Content="優先度 3" Height="28" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
-                                <Label Content="優先度 2" Height="28" HorizontalAlignment="Left" Margin="12,113,0,0" VerticalAlignment="Top" />
-                                <Label Content="優先度 1 (低い)" Height="28" HorizontalAlignment="Left" Margin="12,143,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="優先度 5(高い)" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
+                                <Label Content="優先度 4" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
+                                <Label Content="優先度 3" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
+                                <Label Content="優先度 2" HorizontalAlignment="Left" Margin="12,113,0,0" VerticalAlignment="Top" />
+                                <Label Content="優先度 1 (低い)" HorizontalAlignment="Left" Margin="12,143,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,27,0,0" Tag="6" />
                                 <ComboBox Margin="166,57,0,0" Tag="5" />
                                 <ComboBox Margin="166,87,0,0" Tag="4" />
@@ -492,23 +500,23 @@
                             <GroupBox.Header>
                                 <DockPanel>
                                     <TextBlock Text="その他色設定"/>
-                                    <CheckBox Margin="20,0,0,0"  Content="視聴予約に対して予約枠の色を変更する" Name="checkBox_TunerChangeBorderWatch" Click="checkbox_TunerChangeBorderWatch_Click" ToolTip="{Binding ElementName=checkBox_EpgChangeBorderWatch, Path=ToolTip}"/>
+                                    <CheckBox Margin="20,0,0,0"  Content="視聴予約に対して予約枠の色を変更する" Name="checkBox_TunerChangeBorderWatch" Click="checkbox_TunerChangeBorderWatch_Click" IsChecked="{Binding TunerChangeBorderWatch}" ToolTip="{Binding ToolTip, ElementName=checkBox_EpgChangeBorderWatch}"/>
                                 </DockPanel>
                             </GroupBox.Header>
                             <Grid x:Name="grid_TunerEtcColors">
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="614,-28,0,0" VerticalAlignment="Top" />
-                                <Label Name="label_TunerReserve" Content="予約枠(EPG)" Height="24" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                <Label Name="label_TunerReserve2" Content="予約枠(プログラム)" Height="24" HorizontalAlignment="Left" Margin="370,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="予約枠(録画中)" Height="24" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="予約枠(視聴中)" Height="24" HorizontalAlignment="Left" Margin="370,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="予約枠(無効)" Height="24" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
-                                <Label Content="予約表示エリア背景" Height="24" HorizontalAlignment="Left" Margin="370,60,0,0" VerticalAlignment="Top" />
-                                <Label Content="時刻表示文字" Height="24" HorizontalAlignment="Left" Margin="12,90,0,0" VerticalAlignment="Top" />
-                                <Label Content="時刻表示背景" Height="24" HorizontalAlignment="Left" Margin="12,120,0,0" VerticalAlignment="Top" />
-                                <Label Content="時刻表示枠" Height="24" HorizontalAlignment="Left" Margin="12,150,0,0" VerticalAlignment="Top" />
-                                <Label Content="チューナー文字" Height="24" HorizontalAlignment="Left" Margin="390,90,0,0" VerticalAlignment="Top" />
-                                <Label Content="チューナー背景" Height="24" HorizontalAlignment="Left" Margin="390,120,0,0" VerticalAlignment="Top" />
-                                <Label Content="チューナー枠" Height="24" HorizontalAlignment="Left" Margin="390,150,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="614,-28,0,0" VerticalAlignment="Top" />
+                                <Label Name="label_TunerReserve" Content="予約枠(EPG)" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                <Label Name="label_TunerReserve2" Content="予約枠(プログラム)" HorizontalAlignment="Left" Margin="370,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="予約枠(録画中)" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="予約枠(視聴中)" HorizontalAlignment="Left" Margin="370,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="予約枠(無効)" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="予約表示エリア背景" HorizontalAlignment="Left" Margin="370,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="時刻表示文字" HorizontalAlignment="Left" Margin="12,90,0,0" VerticalAlignment="Top" />
+                                <Label Content="時刻表示背景" HorizontalAlignment="Left" Margin="12,120,0,0" VerticalAlignment="Top" />
+                                <Label Content="時刻表示枠" HorizontalAlignment="Left" Margin="12,150,0,0" VerticalAlignment="Top" />
+                                <Label Content="チューナー文字" HorizontalAlignment="Left" Margin="390,90,0,0" VerticalAlignment="Top" />
+                                <Label Content="チューナー背景" HorizontalAlignment="Left" Margin="390,120,0,0" VerticalAlignment="Top" />
+                                <Label Content="チューナー枠" HorizontalAlignment="Left" Margin="390,150,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,4,0,0" Tag="8" />
                                 <ComboBox Margin="488,4,0,0" Tag="15" />
                                 <ComboBox Margin="166,34,0,0" Tag="17" />
@@ -543,40 +551,40 @@
             <StackPanel>
                 <GroupBox Header="各種設定" Margin="6,6,6,0">
                     <StackPanel Margin="11,6,0,0" >
-                        <CheckBox Content="録画済み一覧のダブルクリックで再生を行う" Name="checkBox_playDClick" />
-                        <CheckBox Margin="0,6,0,0" Content="詳細情報のツールチップに番組情報を表示する (表示が重くなる場合あり)" Name="checkBox_recToolTipEpgInfo" ToolTip="ツールチップ自体の表示の有無の設定は[予約一覧・共通]タブにあります" />
+                        <CheckBox Content="録画済み一覧のダブルクリックで再生を行う" IsChecked="{Binding PlayDClick}" />
+                        <CheckBox Margin="0,6,0,0" Content="詳細情報のツールチップに番組情報を表示する (表示が重くなる場合あり)" IsChecked="{Binding RecInfoToolTipMode}" ToolTip="ツールチップ自体の表示の有無の設定は[予約一覧・共通]タブにあります" />
                         <StackPanel Orientation="Horizontal" >
                             <Label Content="リスト表示で省略する" />
-                            <CheckBox Content="'年'" Margin="12,0,0,0" Name="checkBox_recNoYear" />
-                            <CheckBox Content="'秒'" Margin="12,0,0,0" Name="checkBox_recNoSecond" />
-                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0"  Name="checkBox_recNoDurSecond" />
+                            <CheckBox Content="'年'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoYear}" />
+                            <CheckBox Content="'秒'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoSecond}" />
+                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0"  IsChecked="{Binding RecInfoNoDurSecond}" />
                         </StackPanel >
                         <StackPanel Orientation="Horizontal" >
                             <Label Content="番組情報・エラーログのキャッシュ" ToolTip="起動中、取得したテキストデータを保持します。(キャッシュしない場合、必要時に毎回EpgTimerSrvから取得します。)" />
-                            <CheckBox Content="する　（" Margin="12,0,0,0" Name="checkBox_ChacheOn" />
-                            <CheckBox Content="不要データを削除する　" Margin="12,0,0,0" Name="checkBox_CacheOptimize" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_ChacheOn, UpdateSourceTrigger=PropertyChanged}"/>
-                            <CheckBox Content="再接続時も保持する　）" Margin="12,0,0,0" Name="checkBox_CacheKeepConnect"  IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_ChacheOn, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="する　（" Margin="12,0,0,0" IsChecked="{Binding RecInfoExtraDataCache}" />
+                            <CheckBox Content="不要データを削除する　" Margin="12,0,0,0" IsChecked="{Binding RecInfoExtraDataCacheOptimize}" IsEnabled="{Binding RecInfoExtraDataCache}"/>
+                            <CheckBox Content="再接続時も保持する　）" Margin="12,0,0,0" Name="checkBox_CacheKeepConnect" IsChecked="{Binding RecInfoExtraDataCacheKeepConnect}" IsEnabled="{Binding RecInfoExtraDataCache}"/>
                         </StackPanel >
                         <GroupBox Header="ドロップ・スクランブル未解除" Margin="0,6,0,6">
                             <Grid Margin="6,6,6,0">
                                 <DockPanel>
                                     <StackPanel>
                                         <DockPanel Margin="0,0,0,2">
-                                            <TextBox DockPanel.Dock="Right" Name="textBox_dropErrIgnore" Width="62" />
+                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoDropErrIgnore, UpdateSourceTrigger=PropertyChanged}" />
                                             <Label Content="ドロップをエラー扱いしない閾値" />
                                         </DockPanel>
                                         <DockPanel Margin="0,0,0,2">
-                                            <TextBox DockPanel.Dock="Right" Name="textBox_dropWrnIgnore" Width="62" />
+                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoDropWrnIgnore, UpdateSourceTrigger=PropertyChanged}" />
                                             <Label Content="ドロップを警告扱いしない閾値" />
                                         </DockPanel>
                                         <DockPanel Margin="0,0,0,2">
-                                            <TextBox DockPanel.Dock="Right" Name="textBox_scrambleIgnore" Width="62" />
+                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoScrambleIgnore, UpdateSourceTrigger=PropertyChanged}" />
                                             <Label Content="スクランブル未解除を警告扱いしない閾値 " />
                                         </DockPanel>
                                         <Label Content="※それぞれ-1指定で、ドロップなどを全て無視。" Margin="12,0,0,0" />
                                     </StackPanel>
                                     <DockPanel Margin="22,12,0,0" >
-                                        <CheckBox Margin="0,0,0,0" DockPanel.Dock="Top" Content="警告、エラー表示に次のPIDを使用しない" Name="checkBox_recinfo_errCritical" />
+                                        <CheckBox Margin="0,0,0,0" DockPanel.Dock="Top" Content="警告、エラー表示に次のPIDを使用しない" IsChecked="{Binding RecinfoErrCriticalDrops}" />
                                         <TextBlock Margin="14,0,0,4" DockPanel.Dock="Top" Text="(*Drop(映像・音声)、*Scramble(映像・音声) カラムの数値を使用する)" />
                                         <DockPanel VerticalAlignment="Stretch">
                                             <StackPanel>
@@ -597,10 +605,10 @@
                         <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
                     </GroupBox.Resources>
                     <Grid x:Name="grid_RecInfoBackColors">
-                        <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
-                        <Label Content="デフォルト" Height="28" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
-                        <Label Content="エラー" Height="28" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
-                        <Label Content="警告" Height="28" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
+                        <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
+                        <Label Content="デフォルト" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
+                        <Label Content="エラー" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
+                        <Label Content="警告" HorizontalAlignment="Left" Margin="12,83,0,0" VerticalAlignment="Top" />
                         <ComboBox Margin="166,27,0,0" Tag="0" />
                         <ComboBox Margin="166,57,0,0" Tag="1" />
                         <ComboBox Margin="166,87,0,0" Tag="2" />
@@ -626,56 +634,56 @@
                                 <RowDefinition Height="auto" />
                             </Grid.RowDefinitions>
                             <WrapPanel Orientation="Vertical">
-                                <CheckBox Margin="0,6,12,0" Content="自動予約登録(キーワード/プログラム予約)を見失った予約を強調表示する" Name="checkBox_displayAutoAddMissing" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わったときなどに発生する場合があります" />
-                                <CheckBox Margin="0,6,12,0" Content="重複しているEPG予約を強調表示する" Name="checkBox_displayMultiple" ToolTip="プログラム予約は対象外です" />
+                                <CheckBox Margin="0,6,12,0" Content="自動予約登録(キーワード/プログラム予約)を見失った予約を強調表示する" IsChecked="{Binding DisplayReserveAutoAddMissing}" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わったときなどに発生する場合があります" />
+                                <CheckBox Margin="0,6,12,0" Content="重複しているEPG予約を強調表示する" IsChecked="{Binding DisplayReserveMultiple}" ToolTip="プログラム予約は対象外です" />
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
                                     <Label Content="番組表などへジャンプしたときの強調表示の継続時間 " />
-                                    <TextBox Width="40" Name="textBox_DisplayJumpTime" />
+                                    <TextBox Width="40" Text="{Binding DisplayNotifyJumpTime, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
                                     <Label Content="秒" />
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,0" >
                                     <Label Content="リスト表示で省略する(録画済み一覧以外)" />
                                     <WrapPanel Margin="14,-2,0,0" >
-                                        <CheckBox Content="'年' 　" Name="checkBox_resNoYear" />
-                                        <CheckBox Content="'秒' 　" Name="checkBox_resNoSecond" ToolTip="たまに'秒'単位の番組も存在します。" />
-                                        <CheckBox Content="長さの'秒'" Name="checkBox_resNoDurSecond" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                        <CheckBox Content="'年' 　" IsChecked="{Binding ResInfoNoYear}" />
+                                        <CheckBox Content="'秒' 　" IsChecked="{Binding ResInfoNoSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                        <CheckBox Content="長さの'秒'" IsChecked="{Binding ResInfoNoDurSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
                                     </WrapPanel>
                                 </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" Name="checkBox_TrimSortTitle" />
+                                <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" IsChecked="{Binding TrimSortTitle}" />
                                 <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
-                                    <CheckBox Content="記号類の除去にカスタム設定を使用する" Name="checkBox_picUpCustom" ToolTipService.ShowDuration="20000" ToolTip="右クリックメニューや各画面の列の並べ替えに使用している設定を、内部デフォルト設定から変更します。" />
-                                    <Button Margin="12,0,0,0" Content="設定" Name="button_SetPicUpCustom" Click="button_SetPicUpCustom_Click" />
+                                    <CheckBox Content="記号類の除去にカスタム設定を使用する" Name="checkBox_picUpCustom" IsChecked="{Binding UseCustom}" ToolTipService.ShowDuration="20000" ToolTip="右クリックメニューや各画面の列の並べ替えに使用している設定を、内部デフォルト設定から変更します。" />
+                                    <Button Margin="12,0,0,0" Content="設定" Click="button_SetPicUpCustom_Click" />
                                 </StackPanel>
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
-                                    <CheckBox Content="深夜時間表示をする 　" Name="checkBox_LaterTimeUse" />
+                                    <CheckBox Content="深夜時間表示をする 　" IsChecked="{Binding LaterTimeUse}" />
                                     <TextBox Width="40" Name="textBox_LaterTimeHour" />
                                     <Label Content="時まで" />
                                 </StackPanel>
-                                <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" Name="checkBox_keepReserveWindow" />
-                                <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" Name="checkBox_useLastSearchKey" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
+                                <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" IsChecked="{Binding KeepReserveWindow}" />
+                                <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" IsChecked="{Binding UseLastSearchKey}" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
                                 <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
-                                    <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" Name="checkBox_saveSearchKeyword" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>
+                                    <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" IsChecked="{Binding SaveSearchKeyword}" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>
                                     <Button Content="履歴クリア" Margin="6,0,0,0" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
                                 </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="録画設定タブ、予約タブにプリセットを表示する" Name="checkBox_displayPresetOnSearch" ToolTipService.ShowDuration="20000" ToolTip="検索/キーワードダイアログ、予約登録/変更ダイアログが対象です。&#10;またこのオプションが有効のときは、タブにプリセット選択用の右クリックメニューが表示されます。"/>
+                                <CheckBox Margin="0,6,12,0" Content="録画設定タブ、予約タブにプリセットを表示する" IsChecked="{Binding DisplayPresetOnSearch}" ToolTipService.ShowDuration="20000" ToolTip="検索/キーワードダイアログ、予約登録/変更ダイアログが対象です。&#10;またこのオプションが有効のときは、タブにプリセット選択用の右クリックメニューが表示されます。"/>
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
-                                    <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " Name="checkBox_toolTips" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
-                                    <TextBox Name="textBox_ToolTipsWidth" Width="44" />
+                                    <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " IsChecked="{Binding NoToolTip, Converter={StaticResource invert}}" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
+                                    <TextBox Text="{Binding ToolTipWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" Width="44" />
                                 </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧など)" Name="checkBox_reserveToolTipEpgInfo"  ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
+                                <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧など)" IsChecked="{Binding ReserveToolTipMode}" ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
                                 <StackPanel Margin="0,0,12,0" >
                                     <Label Content="番組詳細タブを選択した状態で予約ダイアログを開く" ToolTip="番組表、使用予定チューナー画面はそれぞれの設定タブを参照" />
                                     <WrapPanel Margin="14,-2,0,0" >
-                                        <CheckBox Content="予約一覧 　" Name="checkBox_reserveEpgInfoOpenMode" />
-                                        <CheckBox Content="自動予約登録・検索関連ダイアログなど" Name="checkBox_searchEpgInfoOpenMode" ToolTipService.ShowDuration="20000" ToolTip="対象となるのは、次の画面。&#10;キーワード予約一覧、プログラム予約一覧、&#10;検索/キーワード予約ダイアログ、予約情報検索ダイアログ" />
+                                        <CheckBox Content="予約一覧 　" IsChecked="{Binding ReserveEpgInfoOpenMode}" />
+                                        <CheckBox Content="自動予約登録・検索関連ダイアログなど" IsChecked="{Binding SearchEpgInfoOpenMode}" ToolTipService.ShowDuration="20000" ToolTip="対象となるのは、次の画面。&#10;キーワード予約一覧、プログラム予約一覧、&#10;検索/キーワード予約ダイアログ、予約情報検索ダイアログ" />
                                     </WrapPanel>
                                 </StackPanel>
                                 <StackPanel Margin="0,4,12,0" >
-                                    <CheckBox Content="ステータス表示をする" Name="checkBox_displayStatus" />
-                                    <CheckBox Margin="14,4,0,0" Content="主要操作の操作結果を表示をする" Name="checkBox_displayStatusNotify" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_displayStatus, UpdateSourceTrigger=PropertyChanged}" />
+                                    <CheckBox Content="ステータス表示をする" IsChecked="{Binding DisplayStatus}" />
+                                    <CheckBox Margin="14,4,0,0" Content="主要操作の操作結果を表示をする" IsChecked="{Binding DisplayStatusNotify}" IsEnabled="{Binding DisplayStatus}" />
                                 </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="テーマを適用する(要再起動)" Name="checkBox_NotNoStyle" />
-                                <Button Margin="0,12,12,6" Content="右クリックメニューの設定" HorizontalAlignment="Left" Name="button_set_cm" Click="button_set_cm_Click" />
+                                <CheckBox Margin="0,6,12,0" Content="テーマを適用する(要再起動)" Name="checkBox_NotNoStyle" IsChecked="{Binding NoStyle, Converter={StaticResource invert}}" />
+                                <Button Margin="0,12,12,6" Content="右クリックメニューの設定" HorizontalAlignment="Left" Click="button_set_cm_Click" />
                             </WrapPanel>
                             <DockPanel Grid.Row="1" Margin="0,6,0,0" >
                                 <GroupBox DockPanel.Dock="Top" Header="初期表示画面" >
@@ -686,11 +694,11 @@
                                 </GroupBox>
                                 <GroupBox Header="各画面のボタン列を表示する" Margin="6,0,0,0" >
                                     <WrapPanel Margin="6,6,0,0">
-                                        <CheckBox Content="予約一覧　 " Name="checkBox_IsVisibleReserveView" />
-                                        <CheckBox Content="録画済み一覧　 " Name="checkBox_IsVisibleRecInfoView" />
+                                        <CheckBox Content="予約一覧　 " IsChecked="{Binding IsVisibleReserveView}" />
+                                        <CheckBox Content="録画済み一覧　 " IsChecked="{Binding IsVisibleRecInfoView}" />
                                         <StackPanel Orientation="Horizontal">
-                                            <CheckBox Content="自動予約登録（　" Name="checkBox_IsVisibleAutoAddView" />
-                                            <CheckBox Content="「並び替え」のみ表示　）" Name="checkBox_IsVisibleAutoAddViewMoveOnly" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_IsVisibleAutoAddView, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <CheckBox Content="自動予約登録（　" IsChecked="{Binding IsVisibleAutoAddView}" />
+                                            <CheckBox Content="「並び替え」のみ表示　）" IsChecked="{Binding IsVisibleAutoAddViewMoveOnly}" IsEnabled="{Binding IsVisibleAutoAddView}"/>
                                         </StackPanel>
                                     </WrapPanel>
                                 </GroupBox>
@@ -706,23 +714,23 @@
                     <StackPanel>
                         <GroupBox Header="各画面共通デフォルト文字色" Margin="6,6,6,0" >
                             <Grid>
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="カスタム色" Height="28" HorizontalAlignment="Left" Margin="614,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="デフォルト" Height="28" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="614,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="デフォルト" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,27,0,0" Name="cmb_ListDefFontColor" />
                                 <Button Margin="292,27,0,0" Name="btn_ListDefFontColor" />
                             </Grid>
                         </GroupBox>
                         <GroupBox Header="録画モード別文字色" Margin="6,6,6,0" >
                             <Grid x:Name="grid_ReserveRecModeColors">
-                                <Label Content="全サービス" Height="28" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="全サービス" Height="28" HorizontalAlignment="Left" Margin="390,-3,0,0" VerticalAlignment="Top" />
-                                <Label Content="(デコード処理無し)" Height="28" HorizontalAlignment="Left" Margin="390,11,0,0" VerticalAlignment="Top" />
-                                <Label Content="指定サービス" Height="28" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
-                                <Label Content="指定サービス" Height="28" HorizontalAlignment="Left" Margin="390,27,0,0" VerticalAlignment="Top" />
-                                <Label Content="(デコード処理無し)" Height="28" HorizontalAlignment="Left" Margin="390,41,0,0" VerticalAlignment="Top" />
-                                <Label Content="視聴" Height="28" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
-                                <Label Content="無効" Height="28" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
+                                <Label Content="全サービス" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="全サービス" HorizontalAlignment="Left" Margin="390,-3,0,0" VerticalAlignment="Top" />
+                                <Label Content="(デコード処理無し)" HorizontalAlignment="Left" Margin="390,11,0,0" VerticalAlignment="Top" />
+                                <Label Content="指定サービス" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
+                                <Label Content="指定サービス" HorizontalAlignment="Left" Margin="390,27,0,0" VerticalAlignment="Top" />
+                                <Label Content="(デコード処理無し)" HorizontalAlignment="Left" Margin="390,41,0,0" VerticalAlignment="Top" />
+                                <Label Content="視聴" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
+                                <Label Content="無効" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
                                 <ComboBox Margin="166,4,0,0" Tag="0" />
                                 <ComboBox Margin="488,4,0,0" Tag="2" />
                                 <ComboBox Margin="166,34,0,0" Tag="1" />
@@ -739,12 +747,12 @@
                         </GroupBox>
                         <GroupBox Margin="6,6,6,0" Header="予約エラー等背景色   ※マークはオプション使用時のみ">
                             <Grid x:Name="grid_ReserveBackColors">
-                                <Label Content="通常" Height="28" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="無効" Height="28" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="チューナー不足" Height="28" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="一部実行" Height="28" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="自動予約登録不明※" Height="28" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
-                                <Label Content="重複EPG予約※" Height="28" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="通常" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="無効" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="チューナー不足" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="一部実行" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="自動予約登録不明※"  HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
+                                <Label Content="重複EPG予約※" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,4,0,0" Tag="0" />
                                 <ComboBox Margin="488,4,0,0" Tag="1" />
                                 <ComboBox Margin="166,34,0,0" Tag="2" />
@@ -761,10 +769,10 @@
                         </GroupBox>
                         <GroupBox Header="状態表示列文字色" Margin="6,6,6,0" VerticalAlignment="Top" >
                             <Grid x:Name="grid_StatColors">
-                                <Label Content="予約中" Height="28" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="放送中" Height="28" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="録画中" Height="28" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="視聴中" Height="28" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="予約中" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="放送中" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="録画中" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="視聴中" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,4,0,0" Tag="0" />
                                 <ComboBox Margin="488,4,0,0" Tag="2" />
                                 <ComboBox Margin="166,34,0,0" Tag="1" />

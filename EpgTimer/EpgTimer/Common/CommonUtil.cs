@@ -5,6 +5,8 @@ using System.Windows.Threading;
 using System.Runtime.InteropServices;
 using System.Linq.Expressions;
 using System.Windows.Media;
+using System.IO;
+using System.Reflection;
 
 namespace EpgTimer
 {
@@ -52,6 +54,27 @@ namespace EpgTimer
             return (int)(IdleTicks / 1000);
         }
 
+        /// <summary>ショートカットの作成</summary>
+        /// <remarks>WSHを使用して、ショートカット(lnkファイル)を作成します。(遅延バインディング)</remarks>
+        /// <param name="path">出力先のファイル名(*.lnk)</param>
+        /// <param name="targetPath">対象のアセンブリ(*.exe)</param>
+        /// <param name="description">説明</param>
+        public static void CreateShortCut(String path, String targetPath, String description)
+        {
+            // WSHオブジェクトを作成し、CreateShortcutメソッドを実行する
+            Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+            object shell = Activator.CreateInstance(shellType);
+            object shortCut = shellType.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] { path });
+
+            Type shortcutType = shell.GetType();
+            // TargetPathプロパティをセットする
+            shortcutType.InvokeMember("TargetPath", BindingFlags.SetProperty, null, shortCut, new object[] { targetPath });
+            shortcutType.InvokeMember("WorkingDirectory", BindingFlags.SetProperty, null, shortCut, new object[] { Path.GetDirectoryName(targetPath) });
+            // Descriptionプロパティをセットする
+            shortcutType.InvokeMember("Description", BindingFlags.SetProperty, null, shortCut, new object[] { description });
+            // Saveメソッドを実行する
+            shortcutType.InvokeMember("Save", BindingFlags.InvokeMethod, null, shortCut, null);
+        }
 
         [DllImport("kernel32", CharSet = CharSet.Unicode)]
         static extern IntPtr LoadLibrary(string lpFileName);

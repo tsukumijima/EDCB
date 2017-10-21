@@ -12,6 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
             <local:BoolInverter x:Key="invert" />
             <local:BoolConverter x:Key="convert" />
+            <local:ValueChecker x:Key="vcheck" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -4,19 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
+             xmlns:local="clr-namespace:EpgTimer" d:DataContext="{d:DesignInstance local:Settings}"
              d:DesignHeight="500" d:DesignWidth="780">
 
     <TabControl Name="tabControl1">
         <TabItem Header="基本" Name="tabItem1">
         <StackPanel>
-            <CheckBox Content="フォルダ選択にOpenFileDialogを使用する" Margin="12,12,0,0" Name="checkbox_OpenFolderWithFileDialog" VerticalAlignment="Top" ToolTip="若干分かりにくいですが、FolderBrowserDialogで初期フォルダまでスクロールしない場合はこちらの方が便利かもしれません" />                
+                <CheckBox Content="フォルダ選択にOpenFileDialogを使用する" Margin="12,12,0,0" Name="checkbox_OpenFolderWithFileDialog" IsChecked="{Binding OpenFolderWithFileDialog}" VerticalAlignment="Top" ToolTip="若干分かりにくいですが、FolderBrowserDialogで初期フォルダまでスクロールしない場合はこちらの方が便利かもしれません" />                
             <Grid Name="grid_folder">
                 <Label Content="設定関係保存フォルダ" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label1" VerticalAlignment="Top" />
                 <TextBox HorizontalAlignment="Left" Margin="157,14,0,0" Name="textBox_setPath" VerticalAlignment="Top" Width="414" />
-                <Button Content="開く" HorizontalAlignment="Left" Margin="577,14,0,0" Name="button_setPath" VerticalAlignment="Top" Width="44" Click="button_setPath_Click" />
+                <Button Content="開く" HorizontalAlignment="Left" Margin="577,14,0,0" Name="button_setPath" VerticalAlignment="Top" Width="44" />
                 <Label Content="録画用アプリのexe" HorizontalAlignment="Left" Margin="12,40,0,0" VerticalAlignment="Top" />
                 <TextBox HorizontalAlignment="Left" Margin="157,42,0,0" Name="textBox_exe" VerticalAlignment="Top" Width="414" />
-                <Button Content="開く" HorizontalAlignment="Left" Margin="577,42,0,0" Name="button_exe" VerticalAlignment="Top" Width="44" Click="button_exe_Click" />
+                <Button Content="開く" HorizontalAlignment="Left" Margin="577,42,0,0" Name="button_exe" VerticalAlignment="Top" Width="44" />
                 <Label Content="コマンドライン引数" HorizontalAlignment="Left" Margin="12,68,0,0" VerticalAlignment="Top" ToolTipService.ShowOnDisabled="True" />
                 <TextBox HorizontalAlignment="Left" Margin="157,70,0,0" Name="textBox_cmdBon" VerticalAlignment="Top" Width="96" />
                 <Label Content="{}{BonDriver}" HorizontalAlignment="Left" Margin="253,68,0,0" VerticalAlignment="Top" IsEnabled="False" />
@@ -30,11 +31,11 @@
                 <Button Content="↓" HorizontalAlignment="Left" Margin="577,145,0,0" Name="button_rec_down" VerticalAlignment="Top" Width="44" />
                 <Button Content="削除" HorizontalAlignment="Left" Margin="577,169,0,0" Name="button_rec_del" VerticalAlignment="Top" Width="44" />
                 <TextBox HorizontalAlignment="Left" Margin="32,193,0,0" Name="textBox_recFolder" VerticalAlignment="Top" Width="489" />
-                <Button Content="開く" Margin="527,193,0,0" Name="button_rec_open" VerticalAlignment="Top" HorizontalAlignment="Left" Width="44" Click="button_rec_open_Click" />
+                <Button Content="開く" Margin="527,193,0,0" Name="button_rec_open" VerticalAlignment="Top" HorizontalAlignment="Left" Width="44" />
                 <Button Content="追加" Margin="577,193,0,0" Name="button_rec_add" VerticalAlignment="Top" HorizontalAlignment="Left" Width="44" />
                 <Label Content="録画情報保存フォルダ" Height="28" HorizontalAlignment="Left" Margin="12,220,0,0" VerticalAlignment="Top" />
                 <TextBox HorizontalAlignment="Left" Margin="157,222,0,0" Name="textBox_recInfoFolder" VerticalAlignment="Top" Width="414" />
-                <Button Content="開く" HorizontalAlignment="Left" Margin="577,222,0,0" Name="button_recInfoFolder" VerticalAlignment="Top" Width="44" Click="button_recInfoFolder_Click" />
+                <Button Content="開く" HorizontalAlignment="Left" Margin="577,222,0,0" Name="button_recInfoFolder" VerticalAlignment="Top" Width="44" />
                 <Label Content="※ 未指定時は録画ファイルと同じ場所に保存します。" HorizontalAlignment="Left" Margin="157,241,0,0" VerticalAlignment="Top" />
                 <Label Margin="12,270,0,0" Content="BonDriver (EpgDataCap_Bonでチャンネルスキャンを完了したものが表示されます)" HorizontalAlignment="Left" VerticalAlignment="Top" />
                 <ListBox Height="100" HorizontalAlignment="Left" Margin="32,296,0,0" Name="listBox_bon" VerticalAlignment="Top" Width="272" SelectionMode="Extended" />
@@ -43,12 +44,12 @@
                 <StackPanel HorizontalAlignment="Left" Margin="309,346,0,0" VerticalAlignment="Top" Width="312">
                     <DockPanel>
                         <Button Content="↑" Name="button_bon_up" Width="44" />
-                        <ComboBox DockPanel.Dock="Right" Name="combo_bon_num" Width="70" Text="{Binding Path=TunerNum}" DataContext="{Binding ElementName=listBox_bon, Path=SelectedItem}"/>
+                        <ComboBox DockPanel.Dock="Right" Name="combo_bon_num" Width="70" Text="{Binding TunerNum}" DataContext="{Binding SelectedItem, ElementName=listBox_bon}"/>
                         <Label Content="チューナー数" HorizontalAlignment="Right" />
                     </DockPanel>
                     <DockPanel>
                         <Button Content="↓" Name="button_bon_down" Width="44" />
-                        <ComboBox DockPanel.Dock="Right" Name="combo_bon_epgnum" Width="70" Text="{Binding Path=EPGNum}" DataContext="{Binding ElementName=listBox_bon, Path=SelectedItem}"/>
+                        <ComboBox DockPanel.Dock="Right" Name="combo_bon_epgnum" Width="70" Text="{Binding EPGNum}" DataContext="{Binding SelectedItem, ElementName=listBox_bon}"/>
                         <Label Content="EPG取得に使用する数" HorizontalAlignment="Right" />
                     </DockPanel>
                 </StackPanel>
@@ -75,15 +76,15 @@
                             <GridViewColumn>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" IsEnabled="{Binding Path=IsEnabled}"/>
+                                        <CheckBox IsChecked="{Binding IsSelectedViewCmd}" IsEnabled="{Binding IsEnabled}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
-                            <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
-                            <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
-                            <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
-                            <GridViewColumn Header="サービスタイプ" DisplayMemberBinding="{Binding Path=ServiceType}" />
+                            <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding NetworkName}" />
+                            <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding ServiceName}" />
+                            <GridViewColumn Header="映像" DisplayMemberBinding="{Binding IsVideo}" />
+                            <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding IsPartial}" />
+                            <GridViewColumn Header="サービスタイプ" DisplayMemberBinding="{Binding ServiceType}" />
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -110,8 +111,8 @@
                     </DockPanel>
                     <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="0,4,0,0"  Name="checkBox_EpgCapSaveTimeOut"/>
                     <CheckBox Content="EPG取得時に放送波時間でPC時計を同期する" Margin="0,4,0,0" Name="checkBox_timeSync" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="EpgTimerSrv.exeにシステム時刻の変更特権が与えられているか、&#10;EpgTimerAdminProxy.exeがシステム時刻の変更特権を与えられて起動している必要があります。"/>
-                    <CheckBox Content="EPG取得対象サービスのみ表示する" Margin="0,4,0,0" Name="checkBox_showEpgCapServiceOnly" />
-                    <CheckBox Content="リストボックスなどでIDでソートする" Margin="0,4,0,0" Name="checkBox_SortServiceList"/>
+                    <CheckBox Content="EPG取得対象サービスのみ表示する" Margin="0,4,0,0" Name="checkBox_showEpgCapServiceOnly" IsChecked="{Binding ShowEpgCapServiceOnly}"/>
+                    <CheckBox Content="リストボックスなどでIDでソートする" Margin="0,4,0,0" Name="checkBox_SortServiceList" IsChecked="{Binding SortServiceList}"/>
                 </StackPanel>
                 <TextBlock Grid.Row="2" Text="EPG取得開始時間" Margin="0,12,0,4" />
                 <ListView Grid.Row="3" Name="listView_time">
@@ -120,13 +121,13 @@
                             <GridViewColumn>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" IsEnabled="{Binding Path=IsEnabled}"/>
+                                        <CheckBox IsChecked="{Binding IsSelectedViewCmd}" IsEnabled="{Binding IsEnabled}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="開始時間" DisplayMemberBinding="{Binding Path=ViewTime}" />
-                            <GridViewColumn Header="曜日" DisplayMemberBinding="{Binding Path=WeekDay}" />
-                            <GridViewColumn Header="種別(BS,CS1,2,3)" DisplayMemberBinding="{Binding Path=ViewBasicOnly}" />
+                            <GridViewColumn Header="開始時間" DisplayMemberBinding="{Binding ViewTime}" />
+                            <GridViewColumn Header="曜日" DisplayMemberBinding="{Binding WeekDay}" />
+                            <GridViewColumn Header="種別(BS,CS1,2,3)" DisplayMemberBinding="{Binding ViewBasicOnly}" />
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -144,7 +145,7 @@
                         <Button Content="削除" Margin="6,0,0,0" Name="button_delTime" MinWidth="42" HorizontalAlignment="Left" />
                     </StackPanel>
                     <DockPanel Margin="0,12,0,0">
-                        <TextBlock Text="実行抑制条件" Width="{Binding Path=ActualWidth, ElementName=label_time_tuner, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="実行抑制条件" Width="{Binding ActualWidth, ElementName=label_time_tuner}" />
                         <TextBox Margin="6,0,6,0" Name="textBox_ngCapMin" Width="42" />
                         <TextBlock Text="分以内に予約がある場合、実行しない (0で録画時も実行)" />
                     </DockPanel>
@@ -189,7 +190,7 @@
                         </StackPanel>
                         <DockPanel Margin="0,6,0,0" Name="grid_httpfolder" >
                             <TextBlock Text="公開フォルダ" Margin="6,0,6,0"/>
-                            <Button Name="button_docrootPath" Content="開く" Margin="6,0,0,0" DockPanel.Dock="Right" Width="44" Click="button_docrootPath_Click" />
+                            <Button Name="button_docrootPath" Content="開く" Margin="6,0,0,0" DockPanel.Dock="Right" Width="44" />
                             <TextBox Name="textBox_docrootPath" />
                         </DockPanel>
                         <CheckBox Name="checkBox_httpLog" Content="ログを保存する" Margin="0,6,0,0" />

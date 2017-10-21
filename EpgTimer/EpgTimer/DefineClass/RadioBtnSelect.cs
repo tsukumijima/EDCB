@@ -13,9 +13,10 @@ namespace EpgTimer
         {
             Items = radioButtonList.ToList();
         }
-        public RadioBtnSelect(Panel radioButtonPanel)
+        public RadioBtnSelect(Panel radioButtonPanel, int selectedValue = -1)
         {
             Items = radioButtonPanel.Children.OfType<RadioButton>().ToList();
+            if (selectedValue >= 0) Value = selectedValue;
         }
 
         /// <summary>未選択は-1。</summary>

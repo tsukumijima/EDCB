@@ -321,17 +321,37 @@ namespace EpgTimer
             }
         }
 
-        public static void ChangeChildren(UIElement ele, bool enabled)
+        //無効だけどテキストは選択出来るような感じ
+        public static void SetReadOnlyWithEffect(this TextBox obj, bool val) { SetReadOnlyWithEffectObj(obj, val); }
+        public static void SetReadOnlyWithEffect(this ComboBox obj, bool val) { SetReadOnlyWithEffectObj(obj, val); }
+        private static void SetReadOnlyWithEffectObj(DependencyObject obj, bool val)
         {
-            foreach (var child in LogicalTreeHelper.GetChildren(ele))
+            obj.SetValue(Control.IsEnabledProperty, true);
+            obj.SetValue(TextBox.IsReadOnlyProperty, val);//ComboBox.IsReadOnlyPropertyと同じもの
+            SetDisabledEffect(obj, val);
+        }
+        public static void SetDisabledEffect(DependencyObject obj, bool val)
+        {
+            if (val == true)
             {
-                if (child is UIElement)
-                {
-                    (child as UIElement).IsEnabled = enabled;
-                }
+                //SystemColors.ControlBrushとは少し違うらしい
+                obj.SetValue(Control.BackgroundProperty, new SolidColorBrush(ColorDef.FromUInt(0xFFF4F4F4)));
+                obj.SetValue(Control.ForegroundProperty, SystemColors.GrayTextBrush);
+            }
+            else
+            {
+                obj.ClearValue(Control.BackgroundProperty);
+                obj.ClearValue(Control.ForegroundProperty);
             }
         }
-
+        public static void SetIsEnabledChildren(UIElement ele, bool isEnabled)
+        {
+            ele.IsEnabled = true;
+            foreach (var child in LogicalTreeHelper.GetChildren(ele).OfType<UIElement>())
+            {
+                child.IsEnabled = isEnabled;
+            }
+        }
         /*/未使用
         public static DependencyObject SearchParentWpfTree(DependencyObject obj, Type t_trg, Type t_cut = null)
         {
@@ -486,6 +506,15 @@ namespace EpgTimer
                 //
                 txtBox.Text = lstBox.SelectedItem.ToString();
             });
+        }
+
+        public static RoutedEventHandler OpenFolderNameDialog(TextBox box, string Description = "", bool checkNWPath = false)
+        {
+            return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath);
+        }
+        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false)
+        {
+            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath);
         }
 
         public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, bool noCase = true)
@@ -653,23 +682,6 @@ namespace EpgTimer
             }
         }
 
-        //無効だけどテキストは選択出来るような感じ
-        public static void SetReadOnlyWithEffect(this TextBox txtBox, bool val)
-        {
-            txtBox.IsReadOnly = val;
-            txtBox.IsEnabled = true;
-            if (val == true)
-            {
-                txtBox.Background = SystemColors.ControlBrush;//nullではないみたい;
-                txtBox.Foreground = SystemColors.GrayTextBrush;
-            }
-            else
-            {
-                txtBox.ClearValue(TextBox.BackgroundProperty);
-                txtBox.ClearValue(TextBox.ForegroundProperty);
-            }
-        }
-
         public static void AdjustWindowPosition(Window win)
         {
             foreach (var sc in System.Windows.Forms.Screen.AllScreens)
@@ -706,6 +718,18 @@ namespace EpgTimer
         {
             trg.Items.Clear();
             foreach (var tb in src.Items.OfType<TabItem>()) trg.Items.Add(new TabItem { Header = tb.Header as string ?? tb.Tag as string });
+        }
+    }
+
+    public class TextBoxWithReadOnlyEffect : TextBox
+    {
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == TextBox.IsReadOnlyProperty)
+            {
+                ViewUtil.SetDisabledEffect(this, IsReadOnly);
+            }
         }
     }
 }

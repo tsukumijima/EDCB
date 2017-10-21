@@ -921,6 +921,10 @@ namespace EpgTimer
                 {
                     CommonManager.Instance.DB.ReloadEpgData(true);
                 }
+                if (setting.setEpgView.IsChangeRecInfoDropExcept == true)
+                {
+                    CommonManager.Instance.DB.ResetRecFileErrInfo();
+                }
 
                 reserveView.UpdateInfo();
                 tunerReserveView.UpdateInfo();

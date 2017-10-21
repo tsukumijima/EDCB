@@ -46,7 +46,7 @@ namespace EpgTimer
             this.Pinned = true;
 
             button_Reload.Click += (sender, e) => LoadSetting();
-            button_Apply.Click += (sender, e) => Apply();
+            button_Apply.Click += (sender, e) => { Apply(); LoadSetting(); };
             button_OK.Click += (sender, e) => { this.Close(); Apply(); };
             button_cancel.Click += (sender, e) => this.Close();
 
@@ -58,6 +58,7 @@ namespace EpgTimer
         {
             try
             {
+                DataContext = Settings.Instance.DeepCloneStaticSettings();
                 setBasicView.LoadSetting();
                 setAppView.LoadSetting();
                 setEpgView.LoadSetting();
@@ -90,13 +91,13 @@ namespace EpgTimer
                 setEpgView.SaveSetting();
                 setOtherAppView.SaveSetting();
 
+                Settings.Instance.ShallowCopyDynamicSettingsTo((Settings)DataContext);
+                Settings.Instance = (Settings)DataContext;
                 SettingWindow.UpdatesInfo("別画面/PCでの設定更新");//基本的に一つしか使わないが一応通知
-                SetReload(false);
 
                 if (CommonManager.Instance.NWMode == false)
                 {
                     ChSet5.SaveFile();
-                    Settings.Instance.ReloadOtherOptions();//NWでは別途iniの更新通知後に実行される。
                 }
                 CommonManager.Instance.ReloadCustContentColorList();
                 CommonManager.ReloadReplaceDictionary();

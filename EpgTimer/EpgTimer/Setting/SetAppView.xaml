@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
+             xmlns:local="clr-namespace:EpgTimer" d:DataContext="{d:DesignInstance local:Settings}"
              d:DesignHeight="500" d:DesignWidth="780">
 
     <TabControl Name="tabControl1">
@@ -11,39 +12,39 @@
             <WrapPanel Orientation="Vertical" Margin="6">
                 <StackPanel Margin="0,6,12,0">
                     <StackPanel Orientation="Horizontal" >
-                        <CheckBox Content="最小化で起動する" Name="checkBox_minWake" />
-                        <CheckBox Content="×ボタンで最小化する" Margin="12,0,0,0" Name="checkBox_closeMin" />
+                        <CheckBox Content="最小化で起動する" IsChecked="{Binding WakeMin}" />
+                        <CheckBox Content="×ボタンで最小化する" Margin="12,0,0,0" IsChecked="{Binding CloseMin}" />
                     </StackPanel>
-                    <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,6,0,0" Name="checkBox_showTray" />
-                    <CheckBox Content="最小化時にタスクトレイに格納する" Margin="18,4,0,0" Name="checkBox_minHide" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_showTray, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,6,0,0" IsChecked="{Binding ShowTray}" />
+                    <CheckBox Content="最小化時にタスクトレイに格納する" Margin="18,4,0,0" IsChecked="{Binding MinHide}" IsEnabled="{Binding ShowTray}" />
                 </StackPanel>
-                <CheckBox Margin="0,6,0,0" Content="バルーンチップ/トーストでの動作通知を抑制する" Name="checkBox_noBallonTips" />
+                <CheckBox Margin="0,6,0,0" Content="バルーンチップ/トーストでの動作通知を抑制する" IsChecked="{Binding NoBallonTips}" />
                 <StackPanel Margin="0,4,12,-2" Orientation="Horizontal" >
                     <Label Content="バルーンチップを強制的に閉じる" ToolTip="0でタイムアウト無し"/>
-                    <TextBox Margin="6,0,0,0" Name="textBox_ForceHideBalloonTipSec" Width="62" />
+                    <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ForceHideBalloonTipSec, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='255,0'}"/>
                     <Label Content="秒後" />
                 </StackPanel>
                 <StackPanel Margin="0,6,12,0" Name="grid_srvResident">
                     <CheckBox Content="EpgTimerSrvを常駐させる" Name="checkBox_srvResident" />
-                    <CheckBox Content="タスクトレイアイコンを表示する" Margin="18,4,0,0" Name="checkBox_srvShowTray" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox Content="タスクトレイアイコンを表示する" Margin="18,4,0,0" Name="checkBox_srvShowTray" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvResident}" />
                     <CheckBox Content="開始準備で点滅させる" Margin="36,4,0,0" Name="checkBox_blinkPreRec" />
-                    <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_srvResident, UpdateSourceTrigger=PropertyChanged}" />
+                    <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvResident}" />
                 </StackPanel>
                 <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTipService.ShowOnDisabled="True" ToolTip="※設定項目は、この設定画面と重複します。"/>
                 <StackPanel Margin="0,4,12,0" >
                     <Label Content="スタートアップにショートカットを作成する" />
                     <StackPanel Margin="18,-4,0,0" Orientation="Horizontal">
                         <Label Content="EpgTimerSrv" Name="label_shortCutSrv" />
-                        <Button Margin="6,0,0,0" Content="作成" Name="button_shortCutSrv" Click="button_shortCutSrv_Click" />
+                        <Button Margin="6,0,0,0" Content="作成" Name="button_shortCutSrv" />
                         <Label Margin="20,0,0,0" Content="EpgTimer" />
-                        <Button Margin="6,0,0,0" Content="作成" Name="button_shortCut" Click="button_shortCut_Click" />
+                        <Button Margin="6,0,0,0" Content="作成" Name="button_shortCut" />
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Margin="0,6,12,0" >
                     <Label Content="情報通知ログをファイルに保存する" />
                     <StackPanel Margin="18,-2,0,0" Orientation="Horizontal">
                         <CheckBox Content="EpgTimerSrv側" Name="checkBox_srvSaveNotifyLog" ToolTipService.ShowOnDisabled="True" ToolTip="また、チェック時は情報通知ダイアログでEpgTimerSrv側のログを表示します。"/>
-                        <CheckBox Margin="18,0,0,0" Content="EpgTimer側" Name="checkBox_AutoSaveNotifyLog" />
+                        <CheckBox Margin="18,0,0,0" Content="EpgTimer側" IsChecked="{Binding AutoSaveNotifyLog}" />
                     </StackPanel>
                 </StackPanel>
                 <CheckBox Margin="0,6,0,0" Content="デバッグ出力をファイルに保存する" Name="checkBox_srvSaveDebugLog" />
@@ -52,29 +53,29 @@
                     <TextBox Name="textBox_tsExt" Width="62" />
                 </StackPanel>
                 <StackPanel Margin="0,4,12,-2" Orientation="Horizontal" >
-                    <CheckBox Content="多数の項目を処理するとき警告する" Name="checkBox_cautionManyChange" />
-                    <TextBox Margin="6,0,0,0" Name="textBox_cautionManyChange" Width="62" />
+                    <CheckBox Content="多数の項目を処理するとき警告する" IsChecked="{Binding CautionManyChange}" />
+                    <TextBox Margin="6,0,0,0" Width="62" Text="{Binding CautionManyNum, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,1'}"/>
                     <Label Content="以上" />
                 </StackPanel>
-                <CheckBox Margin="0,6,12,0" Content="引数つきで起動したとき(iEPG予約追加など)はすぐに終了する" Name="checkBox_exitAfterProcessingArgs" />
-                <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" />
+                <CheckBox Margin="0,6,12,0" Content="引数つきで起動したとき(iEPG予約追加など)はすぐに終了する" IsChecked="{Binding ExitAfterProcessingArgs}" />
+                <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" IsChecked="{Binding WakeReconnectNW}" />
                 <StackPanel Orientation="Horizontal" Margin="0,6,12,0" Name="stackPanel_WoLWait" IsEnabled="False">
-                    <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" Name="checkBox_WoLWaitRecconect" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="WoL→接続(→待機→再接続)&#10;最初にマジックパケットを投げてから接続処理を行います。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
-                    <TextBox Margin="6,0,0,0" Name="textBox_WoLWaitSecond" Width="62" />
+                    <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" IsChecked="{Binding WoLWaitRecconect}" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="WoL→接続(→待機→再接続)&#10;最初にマジックパケットを投げてから接続処理を行います。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
+                    <TextBox Margin="6,0,0,0" Width="62" Text="{Binding WoLWaitSecond, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='3600,1'}"/>
                     <Label Content="秒後" />
                 </StackPanel>
-                <CheckBox Content="休止／スタンバイ移行時にEpgTimerNWを終了する" Margin="0,6,0,0" Name="checkBox_suspendClose" IsEnabled="False" />
-                <CheckBox Content="EPGデータを自動的に読み込まない" Margin="0,6,0,0" Name="checkBox_ngAutoEpgLoad" IsEnabled="False" />
+                <CheckBox Content="休止／スタンバイ移行時にEpgTimerNWを終了する" Margin="0,6,0,0" Name="checkBox_suspendClose" IsEnabled="False" IsChecked="{Binding SuspendCloseNW}" />
+                <CheckBox Content="EPGデータを自動的に読み込まない" Margin="0,6,0,0" Name="checkBox_ngAutoEpgLoad" IsEnabled="False" IsChecked="{Binding NgAutoEpgLoadNW}" />
                 <StackPanel Orientation="Horizontal" Margin="0,6,12,0" >
                     <StackPanel>
-                        <CheckBox Content="EpgTimerSrvとの接続維持を試みる" Name="checkBox_keepTCPConnect" IsEnabled="False" ToolTipService.ShowOnDisabled="True" ToolTip="EpgTimerNW使用時、EpgTimerSrv側の再起動時などに接続維持を試みます" />
-                        <CheckBox Content="タスクトレイアイコンのツールチップを更新する" Margin="0,6,0,0" Name="textBox_upDateTaskText" ToolTip="EpgTimerNWで「EpgTimerSrvとの接続維持を試みる」使用時以外はほとんど効果ありません" />
+                        <CheckBox Content="EpgTimerSrvとの接続維持を試みる" Name="checkBox_keepTCPConnect" IsEnabled="False" IsChecked="{Binding ChkSrvRegistTCP}" ToolTipService.ShowOnDisabled="True" ToolTip="EpgTimerNW使用時、EpgTimerSrv側の再起動時などに接続維持を試みます" />
+                        <CheckBox Content="タスクトレイアイコンのツールチップを更新する" Margin="0,6,0,0" IsChecked="{Binding UpdateTaskText}" ToolTip="EpgTimerNWで「EpgTimerSrvとの接続維持を試みる」使用時以外はほとんど効果ありません" />
                     </StackPanel>
                     <Border Height="28" Width="10" Margin="6,0,0,0" BorderBrush="Gray" BorderThickness="0,1,1,1" />
-                    <TextBox Margin="6,0,0,0" Name="textBox_chkTimerInterval" Width="62" />
+                    <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ChkSrvRegistInterval, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='10080,1'}"/>
                     <Label Content="分間隔" />
                 </StackPanel>
-                <CheckBox Content="常にEpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" Name="checkBox_forceNWMode" ToolTipService.ShowDuration="20000" ToolTip="このオプションを使用しなくても、同じフォルダにEpgTimerSrv.exeが存在しないか、&#10;実行ファイル名を「EpgTimerNW」から始まる名前にするとNWモードで起動します。" />
+                <CheckBox Content="常にEpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" IsChecked="{Binding ForceNWMode}" ToolTipService.ShowDuration="20000" ToolTip="このオプションを使用しなくても、同じフォルダにEpgTimerSrv.exeが存在しないか、&#10;実行ファイル名を「EpgTimerNW」から始まる名前にするとNWモードで起動します。" />
                 <StackPanel Orientation="Horizontal" Margin="0,12,12,0">
                     <Button Content="録画プリセット設定" Margin="0,0,20,0" Name="button_recDef" Click="button_recDef_Click" />
                     <Button Content="検索プリセット設定" Name="button_searchDef" Click="button_searchDef_Click" />
@@ -109,7 +110,7 @@
                             <Label Content="指定プロセスが起動している場合(前方一致)"/>
                             <DockPanel Margin="0,0,0,4" Name="grid_AppCancelMainInput">
                                 <Button DockPanel.Dock="Right" Content="追加" Name="button_process_add" />
-                                <Button DockPanel.Dock="Right" Margin="4,0,4,0"  Content="開く" Name="button_process_open" Click="button_process_open_Click" />
+                                <Button DockPanel.Dock="Right" Margin="4,0,4,0"  Content="開く" Name="button_process_open"/>
                                 <TextBox Name="textBox_process" />
                             </DockPanel>
                             <DockPanel Margin="0,0,0,4">
@@ -134,9 +135,9 @@
                 <StackPanel Grid.Row="2" Name="grid_AppRec">
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="録画マージンのデフォルト　　　開始(秒)" />
-                        <TextBox Name="textBox_megine_start" Width="42" />
+                        <TextBox Width="42" Text="{Binding DefStartMargin}"/>
                         <Label Content="終了(秒)" Margin="24,0,0,0" />
-                        <TextBox Name="textBox_margine_end" Width="42" />
+                        <TextBox Width="42" Text="{Binding DefEndMargin}"/>
                     </StackPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="録画用アプリ" />
@@ -189,7 +190,7 @@
                             <TextBox Name="textBox_autoDelRecInfo" Width="62" Margin="5,0,0,0" />
                         </StackPanel>
                         <CheckBox Margin="0,0,0,4" Content="録画済み一覧から削除するときに録画ファイルも削除する" Name="checkBox_recInfoDelFile" Click="checkBox_autoDel_Click" ToolTipService.ShowOnDisabled="True" ToolTip="自動削除時(「録画結果を自動的に削除する」チェック時)にも適用されます" />
-                        <CheckBox Margin="20,0,0,4" Content="同時に削除するファイルの拡張子は削除設定に従う" Name="checkBox_applyExtTo" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_recInfoDelFile}" Click="checkBox_autoDel_Click" />
+                        <CheckBox Margin="20,0,0,4" Content="同時に削除するファイルの拡張子は削除設定に従う" Name="checkBox_applyExtTo" IsEnabled="{Binding IsChecked, ElementName=checkBox_recInfoDelFile}" Click="checkBox_autoDel_Click" />
                     </StackPanel>
                 </DockPanel>
                 <GroupBox Name="grid_App2Del" Margin="0,4,0,6" Grid.Row="1">
@@ -221,7 +222,7 @@
                         <Label Content="削除対象フォルダ" Grid.Column="4" Grid.ColumnSpan="3" />
                         <ListBox Name="listBox_chk_folder" Grid.Row="1" Grid.Column="4" SelectionMode="Extended" />
                         <DockPanel Grid.Row="3" Grid.Column="4" Name="grid_App2DelChkFolderText">
-                            <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="開く" Name="button_chk_open" Click="button_chk_open_Click"/>
+                            <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="開く" Name="button_chk_open"/>
                             <TextBox Name="textBox_chk_folder" HorizontalAlignment="Stretch" />
                         </DockPanel>
                         <Button Content="削除" Grid.Row="1" Grid.Column="6" Name="button_chk_del" VerticalAlignment="Bottom" />
@@ -231,7 +232,7 @@
                 <StackPanel Grid.Row="2">
                     <StackPanel Margin="0,0,0,2" Orientation="Horizontal" Name="grid_recname">
                         <CheckBox Content="録画時のファイル名にPlugInを使用する" Name="checkBox_recname" />
-                        <ComboBox Height="{Binding ElementName=button_recname,Path=ActualHeight}" Margin="12,0,0,0" Name="comboBox_recname" Width="160" />
+                        <ComboBox Height="{Binding ActualHeight, ElementName=button_recname}" Margin="12,0,0,0" Name="comboBox_recname" Width="160" />
                         <Button Content="設定" Margin="12,0,0,0" Name="button_recname" Click="button_recname_Click" />
                     </StackPanel>
                     <CheckBox Content="ファイル名の禁則文字の変換対象から「\」を除外する" Name="checkBox_noChkYen" />
@@ -242,136 +243,136 @@
                         <RadioButton Content="キャンセルとして録画済みに追加" Margin="12,0,0,0" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" >
-                        <CheckBox  Content="録画中または開始直前の予約を変更・削除するとき警告する" Name="checkBox_cautionOnRecChange"/>
-                        <TextBox Margin="12,0,0,0" Name="textBox_cautionOnRecMarginMin" Width="62" />
+                        <CheckBox  Content="録画中または開始直前の予約を変更・削除するとき警告する" IsChecked="{Binding CautionOnRecChange}"/>
+                        <TextBox Margin="12,0,0,0" Width="62" Text="{Binding CautionOnRecMarginMin, UpdateSourceTrigger=PropertyChanged}"/>
                         <Label Content="分以内" />
                     </StackPanel >
                     <StackPanel Margin="0,0,0,2" Orientation="Horizontal" >
                         <Label Content="自動予約登録の変更・削除に合わせて予約を変更・削除する"  ToolTipService.ShowDuration="600000" ToolTip="個別予約は対象外です。また、他の有効な自動予約登録の対象になっている予約は連動削除されません。&#10;＊右クリックメニューの「予約を自動登録に合わせる」「予約ごと削除」では、検索された予約は全て変更・削除されます。&#10;＊自動予約登録から外れた予約は、[各画面の設定][予約一覧・共通]のオプションで強調表示することができます。" />
-                        <CheckBox Margin="12,0,0,0" Content="変更時" Name="checkBox_SyncResAutoAddChange" />
-                        <CheckBox Margin="12,0,0,0" Content="削除時" Name="checkBox_SyncResAutoAddDelete" />
+                        <CheckBox Margin="12,0,0,0" Content="変更時" Name="checkBox_SyncResAutoAddChange" IsChecked="{Binding SyncResAutoAddChange}"/>
+                        <CheckBox Margin="12,0,0,0" Content="削除時" IsChecked="{Binding SyncResAutoAddDelete}"/>
                     </StackPanel>
-                    <CheckBox Margin="18,-2,0,6" Content="変更時、予約を一度削除してから再登録する (無効の予約を除く)" Name="checkBox_SyncResAutoAddChgNewRes" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_SyncResAutoAddChange, UpdateSourceTrigger=PropertyChanged}" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="600000" ToolTip="キーワード予約無効時や検索条件変更時など、対象外となった予約が削除されるので注意が必要です。&#10;また、「録画中または開始直前の予約を変更・削除するとき警告する」が有効の場合はその設定時間、&#10;それ以外の場合は録画開始1分以内の予約は削除せず、通常の変更のみを試みます。" />
+                    <CheckBox Margin="18,-2,0,6" Content="変更時、予約を一度削除してから再登録する (無効の予約を除く)" IsChecked="{Binding SyncResAutoAddChgNewRes}" IsEnabled="{Binding IsChecked, ElementName=checkBox_SyncResAutoAddChange}" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="600000" ToolTip="キーワード予約無効時や検索条件変更時など、対象外となった予約が削除されるので注意が必要です。&#10;また、「録画中または開始直前の予約を変更・削除するとき警告する」が有効の場合はその設定時間、&#10;それ以外の場合は録画開始1分以内の予約は削除せず、通常の変更のみを試みます。" />
                 </StackPanel>
             </Grid>
         </TabItem>
-            <TabItem Header="ボタン表示">
-                <Grid Margin="12" >
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="50*" />
-                        <RowDefinition Height="50*" />
-                    </Grid.RowDefinitions>
-                    <GroupBox Header="上部表示ボタン">
-                        <Grid Margin="6">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto" />
-                                <RowDefinition Height="6" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="24" />
-                                <ColumnDefinition Width="3*" />
-                            </Grid.ColumnDefinitions>
-                            <Label Content="表示ボタン"/>
-                            <Button Content="初期化" Name="button_btnIni" MinWidth="47" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="button_btnIni_Click" />
-                            <ListBox Grid.Row="2" Name="listBox_viewBtn" VerticalAlignment="Stretch" SelectionMode="Extended" />
-                            <StackPanel Grid.Row="2" Grid.Column="2" MinWidth="47">
-                                <Button Content="↑" Name="button_btnUp" />
-                                <Button Content="追加" Margin="0,8,0,0" Name="button_btnAdd" />
-                                <Button Content="挿入" Margin="0,4,0,0" Name="button_btnIns" />
-                                <Button Content="削除" Margin="0,4,0,0" Name="button_btnDel" />
-                                <Button Content="↓" Margin="0,8,0,0" Name="button_btnDown" />
-                            </StackPanel>
-                            <Label Grid.Column="4" Content="項目"/>
-                            <ListBox Grid.Row="2" Grid.Column="4" Name="listBox_itemBtn" VerticalAlignment="Stretch" SelectionMode="Extended" />
-                            <StackPanel  Grid.Row="2" Grid.Column="6">
-                                <CheckBox Content="タブの位置に表示" Name="checkBox_showAsTab" VerticalAlignment="Top" />
-                                <CheckBox Content="スタンバイ、休止ボタンでもカウントダウンを表示" Margin="0,6,0,0" Name="checkBox_suspendChk" />
-                                <DockPanel Margin="0,6,0,0" >
-                                    <TextBox Margin="14,0,0,0" Name="textBox_suspendChkTime" Width="42" />
-                                    <Label Content="秒間" Margin="6,0,0,0" />
-                                </DockPanel>
-                                <DockPanel Margin="0,6,0,0">
-                                    <TextBlock Text="※" Margin="14,0,0,0" VerticalAlignment="Top" />
-                                    <TextBlock Text="{}" Margin="6,0,0,0" Name="textblockTimer" TextWrapping="Wrap" />
-                                </DockPanel>
-                            </StackPanel>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="タスクアイコン 右クリック表示項目" Grid.Row="1">
-                        <Grid Margin="6">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto" />
-                                <RowDefinition Height="6" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="24" />
-                                <ColumnDefinition Width="3*" />
-                            </Grid.ColumnDefinitions>
-                            <Label Content="表示ボタン"/>
-                            <Button Content="初期化" Name="button_taskIni" MinWidth="47" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="button_taskIni_Click" />
-                            <ListBox Grid.Row="2" Name="listBox_viewTask" VerticalAlignment="Stretch" SelectionMode="Extended" />
-                            <StackPanel Grid.Row="2" Grid.Column="2"  MinWidth="47">
-                                <Button Content="↑" Name="button_taskUp" />
-                                <Button Content="追加" Margin="0,8,0,0" Name="button_taskAdd" />
-                                <Button Content="挿入" Margin="0,4,0,0" Name="button_taskIns" />
-                                <Button Content="削除" Margin="0,4,0,0" Name="button_taskDel" />
-                                <Button Content="↓" Margin="0,8,0,0" Name="button_taskDown" />
-                            </StackPanel>
-                            <Label Grid.Column="4" Content="項目"/>
-                            <ListBox Grid.Row="2" Grid.Column="4" Name="listBox_itemTask" VerticalAlignment="Stretch" SelectionMode="Extended" />
-                        </Grid>
-                    </GroupBox>
-                </Grid>
-            </TabItem>
-            <TabItem Header="カスタムボタン">
-                <StackPanel Margin="12,6,12,0">
-                    <GroupBox Header="カスタム1" Height="135" Margin="0,6,0,0" >
-                        <Grid>
-                            <Label Content="表示名" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
-                            <Label Content="実行exe" Height="28" HorizontalAlignment="Left" Margin="6,40,0,0" VerticalAlignment="Top" />
-                            <Label Content="コマンドラインオプション" Height="28" HorizontalAlignment="Left" Margin="6,74,0,0" VerticalAlignment="Top" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="88,8,0,0" Name="textBox_name1" VerticalAlignment="Top" Width="149" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="88,42,0,0" Name="textBox_exe1" VerticalAlignment="Top" Width="467" />
-                            <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="561,42,0,0" Name="button_exe1" VerticalAlignment="Top" Width="47" Click="button_exe_Click" DataContext="{Binding ElementName=textBox_exe1}"/>
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="166,76,0,0" Name="textBox_opt1" VerticalAlignment="Top" Width="389" />
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="カスタム2" Height="135" Margin="0,6,0,0" >
-                        <Grid>
-                            <Label Content="表示名" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
-                            <Label Content="実行exe" Height="28" HorizontalAlignment="Left" Margin="6,40,0,0" VerticalAlignment="Top" />
-                            <Label Content="コマンドラインオプション" Height="28" HorizontalAlignment="Left" Margin="6,74,0,0" VerticalAlignment="Top" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="88,8,0,0" Name="textBox_name2" VerticalAlignment="Top" Width="149" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="88,42,0,0" Name="textBox_exe2" VerticalAlignment="Top" Width="467" />
-                            <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="561,42,0,0" Name="button_exe2" VerticalAlignment="Top" Width="47" Click="button_exe_Click" DataContext="{Binding ElementName=textBox_exe2}" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="166,76,0,0" Name="textBox_opt2" VerticalAlignment="Top" Width="389" />
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="カスタム3" Height="135" Margin="0,6,0,0" >
-                        <Grid >
-                            <Label Content="表示名" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
-                            <Label Content="実行exe" Height="28" HorizontalAlignment="Left" Margin="6,40,0,0" VerticalAlignment="Top" />
-                            <Label Content="コマンドラインオプション" Height="28" HorizontalAlignment="Left" Margin="6,74,0,0" VerticalAlignment="Top" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="88,8,0,0" Name="textBox_name3" VerticalAlignment="Top" Width="149" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="88,42,0,0" Name="textBox_exe3" VerticalAlignment="Top" Width="467" />
-                            <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="561,42,0,0" Name="button_exe3" VerticalAlignment="Top" Width="47" Click="button_exe_Click" DataContext="{Binding ElementName=textBox_exe3}" />
-                            <TextBox Height="24" HorizontalAlignment="Left" Margin="166,76,0,0" Name="textBox_opt3" VerticalAlignment="Top" Width="389" />
-                        </Grid>
-                    </GroupBox>
-                </StackPanel>
-            </TabItem>
+        <TabItem Header="ボタン表示">
+            <Grid Margin="12" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50*" />
+                    <RowDefinition Height="50*" />
+                </Grid.RowDefinitions>
+                <GroupBox Header="上部表示ボタン">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="3*" />
+                        </Grid.ColumnDefinitions>
+                        <Label Content="表示ボタン"/>
+                        <Button Content="初期化" Name="button_btnIni" MinWidth="47" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="button_btnIni_Click" />
+                        <ListBox Grid.Row="2" Name="listBox_viewBtn" VerticalAlignment="Stretch" SelectionMode="Extended" />
+                        <StackPanel Grid.Row="2" Grid.Column="2" MinWidth="47">
+                            <Button Content="↑" Name="button_btnUp" />
+                            <Button Content="追加" Margin="0,8,0,0" Name="button_btnAdd" />
+                            <Button Content="挿入" Margin="0,4,0,0" Name="button_btnIns" />
+                            <Button Content="削除" Margin="0,4,0,0" Name="button_btnDel" />
+                            <Button Content="↓" Margin="0,8,0,0" Name="button_btnDown" />
+                        </StackPanel>
+                        <Label Grid.Column="4" Content="項目"/>
+                        <ListBox Grid.Row="2" Grid.Column="4" Name="listBox_itemBtn" VerticalAlignment="Stretch" SelectionMode="Extended" />
+                        <StackPanel  Grid.Row="2" Grid.Column="6">
+                            <CheckBox Content="タブの位置に表示" VerticalAlignment="Top" IsChecked="{Binding ViewButtonShowAsTab}"/>
+                            <CheckBox Content="スタンバイ、休止ボタンでもカウントダウンを表示" Margin="0,6,0,0" IsChecked="{Binding SuspendChk}"/>
+                            <DockPanel Margin="0,6,0,0" >
+                                <TextBox Margin="14,0,0,0" Width="42" Text="{Binding SuspendChkTime, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Label Content="秒間" Margin="6,0,0,0" />
+                            </DockPanel>
+                            <DockPanel Margin="0,6,0,0">
+                                <TextBlock Text="※" Margin="14,0,0,0" VerticalAlignment="Top" />
+                                <TextBlock Text="{}" Margin="6,0,0,0" Name="textblockTimer" TextWrapping="Wrap" />
+                            </DockPanel>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="タスクアイコン 右クリック表示項目" Grid.Row="1">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="3*" />
+                        </Grid.ColumnDefinitions>
+                        <Label Content="表示ボタン"/>
+                        <Button Content="初期化" Name="button_taskIni" MinWidth="47" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="button_taskIni_Click" />
+                        <ListBox Grid.Row="2" Name="listBox_viewTask" VerticalAlignment="Stretch" SelectionMode="Extended" />
+                        <StackPanel Grid.Row="2" Grid.Column="2"  MinWidth="47">
+                            <Button Content="↑" Name="button_taskUp" />
+                            <Button Content="追加" Margin="0,8,0,0" Name="button_taskAdd" />
+                            <Button Content="挿入" Margin="0,4,0,0" Name="button_taskIns" />
+                            <Button Content="削除" Margin="0,4,0,0" Name="button_taskDel" />
+                            <Button Content="↓" Margin="0,8,0,0" Name="button_taskDown" />
+                        </StackPanel>
+                        <Label Grid.Column="4" Content="項目"/>
+                        <ListBox Grid.Row="2" Grid.Column="4" Name="listBox_itemTask" VerticalAlignment="Stretch" SelectionMode="Extended" />
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </TabItem>
+        <TabItem Header="カスタムボタン">
+            <StackPanel Margin="12,6,12,0">
+                <GroupBox Header="カスタム1" Height="135" Margin="0,6,0,0" >
+                    <Grid>
+                        <Label Content="表示名" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
+                        <Label Content="実行exe" Height="28" HorizontalAlignment="Left" Margin="6,40,0,0" VerticalAlignment="Top" />
+                        <Label Content="コマンドラインオプション" Height="28" HorizontalAlignment="Left" Margin="6,74,0,0" VerticalAlignment="Top" />
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="88,8,0,0" VerticalAlignment="Top" Width="149" Text="{Binding Cust1BtnName}"/>
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="88,42,0,0" Name="textBox_exe1" VerticalAlignment="Top" Width="467" Text="{Binding Cust1BtnCmd}"/>
+                        <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="561,42,0,0" Name="button_exe1" VerticalAlignment="Top" Width="47"/>
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="166,76,0,0" VerticalAlignment="Top" Width="389" Text="{Binding Cust1BtnCmdOpt}"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="カスタム2" Height="135" Margin="0,6,0,0" >
+                    <Grid>
+                        <Label Content="表示名" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
+                        <Label Content="実行exe" Height="28" HorizontalAlignment="Left" Margin="6,40,0,0" VerticalAlignment="Top" />
+                        <Label Content="コマンドラインオプション" Height="28" HorizontalAlignment="Left" Margin="6,74,0,0" VerticalAlignment="Top" />
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="88,8,0,0" VerticalAlignment="Top" Width="149" Text="{Binding Cust2BtnName}"/>
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="88,42,0,0" Name="textBox_exe2" VerticalAlignment="Top" Width="467" Text="{Binding Cust2BtnCmd}"/>
+                        <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="561,42,0,0" Name="button_exe2" VerticalAlignment="Top" Width="47" />
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="166,76,0,0" VerticalAlignment="Top" Width="389" Text="{Binding Cust2BtnCmdOpt}"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="カスタム3" Height="135" Margin="0,6,0,0" >
+                    <Grid >
+                        <Label Content="表示名" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
+                        <Label Content="実行exe" Height="28" HorizontalAlignment="Left" Margin="6,40,0,0" VerticalAlignment="Top" />
+                        <Label Content="コマンドラインオプション" Height="28" HorizontalAlignment="Left" Margin="6,74,0,0" VerticalAlignment="Top" />
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="88,8,0,0" VerticalAlignment="Top" Width="149" Text="{Binding Cust3BtnName}"/>
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="88,42,0,0" Name="textBox_exe3" VerticalAlignment="Top" Width="467" Text="{Binding Cust3BtnCmd}"/>
+                        <Button Content="開く" Height="23" HorizontalAlignment="Left" Margin="561,42,0,0" Name="button_exe3" VerticalAlignment="Top" Width="47"/>
+                        <TextBox Height="24" HorizontalAlignment="Left" Margin="166,76,0,0" VerticalAlignment="Top" Width="389" Text="{Binding Cust3BtnCmdOpt}"/>
+                    </Grid>
+                </GroupBox>
+            </StackPanel>
+        </TabItem>
         <TabItem Header="iEPG Ver.1" Name="tabItem6">
             <Grid Margin="10,10,6,6">
                 <Grid.ColumnDefinitions>
@@ -396,11 +397,11 @@
                 <ListView Grid.Row="3" Grid.RowSpan="5" Name="listBox_service" SelectionChanged="listBox_service_SelectionChanged" Style="{StaticResource ServiceListViewStyle}" SelectionMode="Single">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
-                            <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
-                            <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
-                            <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
-                            <GridViewColumn Header="サービスタイプ" DisplayMemberBinding="{Binding Path=ServiceType}" />
+                            <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding NetworkName}" />
+                            <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding ServiceName}" />
+                            <GridViewColumn Header="映像" DisplayMemberBinding="{Binding IsVideo}" />
+                            <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding IsPartial}" />
+                            <GridViewColumn Header="サービスタイプ" DisplayMemberBinding="{Binding ServiceType}" />
                         </GridView>
                     </ListView.View>
                 </ListView>
