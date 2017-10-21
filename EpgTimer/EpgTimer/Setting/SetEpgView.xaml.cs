@@ -117,6 +117,8 @@ namespace EpgTimer.Setting
 
         public void LoadSetting()
         {
+            checkBox_FontBoldReplacePattern_Click(null, null);
+            checkBox_ReplacePatternEditFontShare_Click(null, null);
             checkbox_EpgChangeBorderWatch_Click(null, null);
             checkbox_TunerChangeBorderWatch_Click(null, null);
 
@@ -302,6 +304,21 @@ namespace EpgTimer.Setting
         {
             settings.AndKeyList = new List<string>();
             settings.NotKeyList = new List<string>();
+        }
+
+        private void checkBox_ReplacePatternEditFontShare_Click(object sender, RoutedEventArgs e)
+        {
+            bool isChange = settings.ReplacePatternEditFontShare;
+            string path = isChange ? "Text" : CommonUtil.NameOf(() => settings.FontReplacePatternEdit);
+            comboBox_FontReplacePatternEdit.SetBinding(ComboBox.TextProperty, path);
+            comboBox_FontReplacePatternEdit.SetReadOnlyWithEffect(isChange);
+            comboBox_FontReplacePatternEdit.DataContext = isChange ? comboBox_fontTitle : this.DataContext;
+        }
+        private void checkBox_FontBoldReplacePattern_Click(object sender, RoutedEventArgs e)
+        {
+            var fw = settings.FontBoldReplacePattern == true ? FontWeights.Bold : FontWeights.Normal;
+            textBox_ReplacePatternTitle.FontWeight = fw;
+            textBox_ReplacePattern.FontWeight = fw;
         }
 
         private void checkbox_EpgChangeBorderWatch_Click(object sender, RoutedEventArgs e)

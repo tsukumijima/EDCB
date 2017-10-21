@@ -146,19 +146,35 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="auto" />
                                 <RowDefinition Height="*" />
+                                <RowDefinition Height="auto" />
                             </Grid.RowDefinitions>
                             <DockPanel Grid.ColumnSpan="2" Margin="0,6,0,0">
                                 <Label Content="タイトルの文字列置換リスト（/置換前/置換後/…）" Name="label_replacePatternTitleDef" ToolTip="先頭の文字が区切り記号になります。例えば(,置換前,置換後,…)でも可。"/>
                                 <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" IsChecked="{Binding EpgReplacePatternTitleDef}" ToolTipService.ShowDuration="20000" ToolTip="追加で内蔵辞書を適用します。ただしその分表示が遅くなります。&#10;同一のキーはテキストボックスの置換を優先します。" />
                                 <CheckBox Content="使用予定チューナー画面にも適用" Margin="12,0,0,0" IsChecked="{Binding ApplyReplacePatternTuner}" />
                             </DockPanel>
-                            <TextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" Name="textBox_ReplacePatternTitle" Text="{Binding EpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
+                            <TextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" Name="textBox_ReplacePatternTitle" Text="{Binding EpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="{Binding Text, ElementName=comboBox_FontReplacePatternEdit}" FontSize="{Binding Text, ElementName=textBox_FontSizeReplacePatternEdit}" />
                             <DockPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,6,0,0">
                                 <Label Content="タイトル以外の文字列置換リスト（〃）" Width="{Binding ActualWidth, ElementName=label_replacePatternTitleDef}"/>
                                 <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" IsEnabled="{Binding ShareEpgReplacePatternTitle, Converter={StaticResource invert}}" IsChecked="{Binding EpgReplacePatternDef}" ToolTipService.ShowDuration="20000" ToolTipService.ShowOnDisabled="True" ToolTip="{Binding ToolTip, ElementName=checkBox_replacePatternTitleDef}" />
                                 <CheckBox Content="タイトルの置換リストを使用" Margin="12,0,0,0" IsChecked="{Binding ShareEpgReplacePatternTitle}"/>
                             </DockPanel>
-                            <local:TextBoxWithReadOnlyEffect Grid.Row="3" Grid.Column="1" VerticalAlignment="Stretch" x:Name="textBox_ReplacePattern" Text="{Binding EpgReplacePattern}" IsReadOnly="{Binding ShareEpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" />
+                            <local:TextBoxWithReadOnlyEffect Grid.Row="3" Grid.Column="1" VerticalAlignment="Stretch" x:Name="textBox_ReplacePattern" Text="{Binding EpgReplacePattern}" IsReadOnly="{Binding ShareEpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="{Binding Text, ElementName=comboBox_FontReplacePatternEdit}" FontSize="{Binding Text, ElementName=textBox_FontSizeReplacePatternEdit}" />
+                            <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,6,0,0">
+                                <DockPanel>
+                                    <Label Content="編集欄の表示フォント" Name="label_FontReplacePattern"/>
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="12,0,0,0">
+                                        <Label Content="サイズ" />
+                                        <TextBox Name="textBox_FontSizeReplacePatternEdit" Width="39" Text="{Binding FontSizeReplacePattern, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                        <CheckBox Content="太字" Margin="6,0,0,0" Click="checkBox_FontBoldReplacePattern_Click" IsChecked="{Binding FontBoldReplacePattern}"/>
+                                    </StackPanel>
+                                    <ComboBox Margin="6,0,0,0" Name="comboBox_FontReplacePatternEdit" IsEditable="True" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}"/>
+                                </DockPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Width="{Binding ActualWidth, ElementName=label_FontReplacePattern}" />
+                                    <CheckBox Margin="6,4,0,0" Name="checkBox_ReplacePatternEditFontShare" IsChecked="{Binding ReplacePatternEditFontShare}" Content="番組表タイトルのフォントで表示" Click="checkBox_ReplacePatternEditFontShare_Click" />
+                                </StackPanel>
+                            </StackPanel>
                         </Grid>
                     </GroupBox>
                 </TabItem>                <TabItem Header="色1">

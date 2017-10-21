@@ -394,6 +394,10 @@ namespace EpgTimer
         public bool EpgReplacePatternTitleDef { get; set; }
         public bool ApplyReplacePatternTuner { get; set; }
         public bool ShareEpgReplacePatternTitle { get; set; }
+        public string FontReplacePatternEdit { get; set; }
+        public double FontSizeReplacePattern { get; set; }
+        public bool FontBoldReplacePattern { get; set; }
+        public bool ReplacePatternEditFontShare { get; set; }
         public bool EpgToolTip { get; set; }
         public bool EpgToolTipNoViewOnly { get; set; }
         public int EpgToolTipViewWait { get; set; }
@@ -709,6 +713,10 @@ namespace EpgTimer
             EpgReplacePatternTitleDef = false;
             ApplyReplacePatternTuner = false;
             ShareEpgReplacePatternTitle = false;
+            FontReplacePatternEdit = "";
+            FontSizeReplacePattern = 12;
+            FontBoldReplacePattern = false;
+            ReplacePatternEditFontShare = false;
             EpgToolTip = false;
             EpgToolTipNoViewOnly = true;
             EpgToolTipViewWait = 1500;
