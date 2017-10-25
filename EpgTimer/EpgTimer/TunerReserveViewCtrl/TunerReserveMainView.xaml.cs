@@ -114,57 +114,32 @@ namespace EpgTimer
                 //チューナ不足と無効予約はアイテムがなければ非表示
                 tunerReserveList.RemoveAll(item => item.tunerID == 0xFFFFFFFF && item.reserveList.Count == 0);
 
-                double tunerWidthSingle = Settings.Instance.TunerWidth;
+                double singleWidth = Settings.Instance.TunerWidth;
                 double leftPos = 0;
                 var resDic = CommonManager.Instance.DB.ReserveList;
                 tunerReserveList.ForEach(info =>
                 {
-                    double tunerWidth = tunerWidthSingle;
-                    var tunerAddList = new List<ReserveViewItem>();
-
-                    foreach (ReserveData resInfo in info.reserveList.Where(id => resDic.ContainsKey(id) == true).Select(id => resDic[id]))
+                    var cols = new List<List<ReserveViewItem>>();
+                    foreach (ReserveData resInfo in info.reserveList.Where(id => resDic.ContainsKey(id) == true).Select(id => resDic[id]).OrderBy(res => res.Create64Key()))//.ThenBy(res => res.StartTimeActual))
                     {
-                        var newItem = new TunerReserveViewItem(resInfo);
+                        var newItem = new TunerReserveViewItem(resInfo) { Width = singleWidth };
                         reserveList.Add(newItem);
 
-                        //横位置の設定
-                        newItem.Width = tunerWidthSingle;
-                        newItem.LeftPos = leftPos;
-
-                        //列を拡げて表示する処置
-                        bool addPos = false;
-                        List<ReserveViewItem> overLapList = tunerAddList.FindAll(item => MenuUtil.CulcOverlapLength(resInfo.StartTimeActual, resInfo.DurationActual, item.Data.StartTimeActual, item.Data.DurationActual) > 0);
-                        if (overLapList.Count != 0)
+                        //横位置の設定・列を拡げて表示する処置
+                        var addCol = cols.FindIndex(col => col.All(item =>
+                            MenuUtil.CulcOverlapLength(resInfo.StartTime, resInfo.DurationSecond, item.Data.StartTime, item.Data.DurationSecond) <= 0));
+                        if (addCol < 0)
                         {
-                            ulong sKey = resInfo.Create64Key();
-                            List<ReserveViewItem> sameSidList = overLapList.FindAll(item => sKey == item.Data.Create64Key());
-                            addPos = sameSidList.Count == 0;
-                            if (addPos == false)
-                            {
-                                int samePgCount = sameSidList.Count(item => item.Data.IsSamePg(resInfo));
-                                List<double> posListDif = overLapList.Except(sameSidList).Select(item => item.LeftPos).ToList();
-                                List<double> posList = sameSidList.Select(item => item.LeftPos).Distinct().Except(posListDif).OrderBy(pos => pos).ToList();
-                                addPos = posList.Count <= samePgCount;
-                                if (addPos == false)
-                                {
-                                    newItem.LeftPos = posList[samePgCount];
-                                }
-                            }
-                            if (addPos == true)
-                            {
-                                newItem.LeftPos = overLapList.Max(item => item.LeftPos) + tunerWidthSingle;
-                                if (newItem.LeftPos - leftPos >= tunerWidth)
-                                {
-                                    tunerWidth += tunerWidthSingle;
-                                }
-                            }
+                            addCol = cols.Count;
+                            cols.Add(new List<ReserveViewItem>());
                         }
-                        tunerAddList.Add(newItem);
+                        cols[addCol].Add(newItem);
+                        newItem.LeftPos = leftPos + addCol * singleWidth;
 
                         //マージン込みの時間でリストを構築
                         ViewUtil.AddTimeList(timeSet, resInfo.StartTimeActual, resInfo.DurationActual);
                     }
-
+                    double tunerWidth = singleWidth * Math.Max(1, cols.Count);
                     tunerList.Add(new PanelItem<TunerReserveInfo>(info) { Width = tunerWidth });
                     leftPos += tunerWidth;
                 });
