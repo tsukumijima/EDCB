@@ -450,7 +450,7 @@ namespace EpgTimer
         }
         private static String ConvertEpgIDString(String Title, UInt64 id)
         {
-            return string.Format("{0} : {1} (0x{1:X4})", Title, 0x000000000000FFFF & id);
+            return string.Format("{0} : {1} (0x{1:X4})", Title, (UInt16)id);
         }
 
         public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal;
