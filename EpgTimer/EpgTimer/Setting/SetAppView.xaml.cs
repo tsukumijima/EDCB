@@ -236,6 +236,7 @@ namespace EpgTimer.Setting
             checkBox_appView.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecView", true, SettingPath.TimerSrvIniPath);
             checkBox_appDrop.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "DropLog", true, SettingPath.TimerSrvIniPath);
             checkBox_addPgInfo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "PgInfoLog", true, SettingPath.TimerSrvIniPath);
+            checkBox_PgInfoLogAsUtf8.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "PgInfoLogAsUtf8", false, SettingPath.TimerSrvIniPath);
             checkBox_appNW.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecNW", false, SettingPath.TimerSrvIniPath);
             checkBox_appKeepDisk.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "KeepDisk", true, SettingPath.TimerSrvIniPath);
             checkBox_appOverWrite.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecOverWrite", false, SettingPath.TimerSrvIniPath);
@@ -341,6 +342,7 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "RecView", checkBox_appView.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "DropLog", checkBox_appDrop.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "PgInfoLog", checkBox_addPgInfo.IsChecked, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "PgInfoLogAsUtf8", checkBox_PgInfoLogAsUtf8.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecNW", checkBox_appNW.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "KeepDisk", checkBox_appKeepDisk.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecOverWrite", checkBox_appOverWrite.IsChecked, SettingPath.TimerSrvIniPath);
