@@ -30,7 +30,7 @@ namespace EpgTimer
         }
         private static IEnumerable<ChSet5Item> GetSortedChList(bool ignoreEpgCap = true)
         {
-            if (chListOrderByIndex == null) LoadFile();
+            if (chListOrderByIndex == null && LoadFile() == false) return new List<ChSet5Item>();
             IEnumerable<ChSet5Item> ret = chListOrderByIndex.Where(item => ignoreEpgCap || item.EpgCapFlag);
             if (Settings.Instance.SortServiceList == false) return ret;
 
