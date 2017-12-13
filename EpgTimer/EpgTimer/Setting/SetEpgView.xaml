@@ -24,12 +24,12 @@
             <EventSetter Event="Click" Handler="button_Color_Click"/>
             <EventSetter Event="MouseRightButtonUp" Handler="button_MouseRightButtonUp"/>
         </Style>
-        <!-- 例えば<Grid Resources="{StaticResource cusColorSetPanel}">などとして使えるがデザイン時に反映されないので保留
-        <ResourceDictionary x:Key="cusColorSetPanel" >
-            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
-            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
-        </ResourceDictionary>
-        -->
+        <Style x:Key="colorGrid">
+            <Style.Resources>
+                <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
+                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
+            </Style.Resources>
+        </Style>
     </UserControl.Resources>
     <TabControl>
         <TabItem Header="番組表" Name="tabEpg">
@@ -51,11 +51,11 @@
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
-                                <Grid>
-                                    <ComboBox Style="{StaticResource colorCombo}" Margin="12,6,0,0" Width="96" Name="comboBox_colorTitle1" Tag="0" />
-                                    <ComboBox Style="{StaticResource colorCombo}" Margin="12,36,0,0" Width="96" Name="comboBox_colorTitle2" Tag="1" />
-                                    <Button Style="{StaticResource colorButton}" Margin="116,6,0,0" Name="button_colorTitle1" Tag="0" />
-                                    <Button Style="{StaticResource colorButton}" Margin="116,36,0,0" Name="button_colorTitle2" Tag="1" />
+                                <Grid Style="{StaticResource colorGrid}">
+                                    <ComboBox Margin="12,6,0,0" Width="96" Name="comboBox_colorTitle1" Tag="0" />
+                                    <ComboBox Margin="12,36,0,0" Width="96" Name="comboBox_colorTitle2" Tag="1" />
+                                    <Button Margin="116,6,0,0" Name="button_colorTitle1" Tag="0" />
+                                    <Button Margin="116,36,0,0" Name="button_colorTitle2" Tag="1" />
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
@@ -177,12 +177,9 @@
                             </StackPanel>
                         </Grid>
                     </GroupBox>
-                </TabItem>                <TabItem Header="色1">
-                    <TabItem.Resources>
-                        <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
-                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
-                    </TabItem.Resources>
-                    <StackPanel>
+                </TabItem>
+                <TabItem Header="色1">
+                    <StackPanel Style="{StaticResource colorGrid}">
                         <GroupBox Header="ジャンル別背景色" Margin="6,6,6,0" >
                             <Grid x:Name="grid_EpgColors" >
                                 <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
@@ -256,11 +253,7 @@
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="色2">
-                    <TabItem.Resources>
-                        <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
-                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
-                    </TabItem.Resources>
-                    <StackPanel>
+                    <StackPanel Style="{StaticResource colorGrid}">
                         <GroupBox Header="その他色設定" Margin="6,6,6,0" >
                             <Grid x:Name="grid_EpgEtcColors">
                                 <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
@@ -422,11 +415,11 @@
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
-                                <Grid x:Name="grid_TunerFontColor">
-                                    <ComboBox Style="{StaticResource colorCombo}" Margin="12,6,0,0" Width="96" Name="comboBox_tunerFontColorService" Tag="0" IsEnabled="{Binding TunerColorModeUse, Converter={StaticResource invert}}"/>
-                                    <ComboBox Style="{StaticResource colorCombo}" Margin="12,36,0,0" Width="96" Tag="1"/>
-                                    <Button Style="{StaticResource colorButton}" Margin="116,6,0,0" Name="button_tunerFontCustColorService" Tag="0" IsEnabled="{Binding TunerColorModeUse, Converter={StaticResource invert}}"/>
-                                    <Button Style="{StaticResource colorButton}" Margin="116,36,0,0" Tag="1" />
+                                <Grid x:Name="grid_TunerFontColor" Style="{StaticResource colorGrid}">
+                                    <ComboBox Margin="12,6,0,0" Width="96" Name="comboBox_tunerFontColorService" Tag="0" IsEnabled="{Binding TunerColorModeUse, Converter={StaticResource invert}}"/>
+                                    <ComboBox Margin="12,36,0,0" Width="96" Tag="1"/>
+                                    <Button Margin="116,6,0,0" Name="button_tunerFontCustColorService" Tag="0" IsEnabled="{Binding TunerColorModeUse, Converter={StaticResource invert}}"/>
+                                    <Button Margin="116,36,0,0" Tag="1" />
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
@@ -485,11 +478,7 @@
                     </StackPanel>
                 </TabItem>
                 <TabItem Header="色">
-                    <TabItem.Resources>
-                        <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
-                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
-                    </TabItem.Resources>
-                    <StackPanel>
+                    <StackPanel Style="{StaticResource colorGrid}">
                         <GroupBox Header="優先度別サービス色設定" Margin="6,6,6,0" VerticalAlignment="Top" >
                             <Grid x:Name="grid_TunerColors" >
                                 <TextBlock Text="※" HorizontalAlignment="Left" Margin="385,27,0,0" VerticalAlignment="Top" />
@@ -616,11 +605,7 @@
                     </StackPanel>
                 </GroupBox>
                 <GroupBox Header="背景色" Margin="6,6,6,0" >
-                    <GroupBox.Resources>
-                        <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
-                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
-                    </GroupBox.Resources>
-                    <Grid x:Name="grid_RecInfoBackColors">
+                    <Grid x:Name="grid_RecInfoBackColors" Style="{StaticResource colorGrid}">
                         <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
                         <Label Content="デフォルト" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
                         <Label Content="エラー" HorizontalAlignment="Left" Margin="12,53,0,0" VerticalAlignment="Top" />
@@ -723,11 +708,7 @@
                     </GroupBox>
                 </TabItem>
                 <TabItem Header="色" >
-                    <TabItem.Resources>
-                        <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource colorCombo}" />
-                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource colorButton}" />
-                    </TabItem.Resources>
-                    <StackPanel>
+                    <StackPanel Style="{StaticResource colorGrid}">
                         <GroupBox Header="各画面共通デフォルト文字色" Margin="6,6,6,0" >
                             <Grid>
                                 <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
