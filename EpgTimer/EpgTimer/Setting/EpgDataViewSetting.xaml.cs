@@ -32,13 +32,15 @@ namespace EpgTimer
                 var selectedList = ChSet5.ChListSelected.Select(info => servieceList[info.Key]).ToList();
                 listBox_serviceDttv.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsDttv == true);
                 listBox_serviceBS.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsBS == true);
-                listBox_serviceCS.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsCS == true);
+                listBox_serviceCS.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsCS1 == true || info.ServiceInfo.IsCS2 == true);
+                listBox_serviceCS3.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsCS3 == true);
                 listBox_serviceOther.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsOther == true);
                 listBox_serviceAll.ItemsSource = selectedList;
 
                 if (listBox_serviceDttv.Items.Count == 0) tab_serviceDttv.Visibility = Visibility.Collapsed;
                 if (listBox_serviceBS.Items.Count == 0) tab_serviceBS.Visibility = Visibility.Collapsed;
                 if (listBox_serviceCS.Items.Count == 0) tab_serviceCS.Visibility = Visibility.Collapsed;
+                if (listBox_serviceCS3.Items.Count == 0) tab_serviceCS3.Visibility = Visibility.Collapsed;
                 if (listBox_serviceOther.Items.Count == 0) tab_serviceOther.Visibility = Visibility.Collapsed;
                 
                 listBox_jyanru.ItemsSource = CommonManager.ContentKindList;

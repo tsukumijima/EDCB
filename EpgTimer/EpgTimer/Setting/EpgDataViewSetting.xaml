@@ -126,6 +126,16 @@
                                         </ListView.View>
                                     </ListView>
                                 </TabItem>
+                                <TabItem Header="CS3" Name="tab_serviceCS3">
+                                    <ListView  Name="listBox_serviceCS3" >
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
+                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
+                                </TabItem>
                                 <TabItem Header="その他" Name="tab_serviceOther" >
                                     <ListView Name="listBox_serviceOther" >
                                         <ListView.View>

@@ -193,6 +193,7 @@
                                 <Button Name="button_dttv_on" Click="button_dttv_on_Click" Content="+地デジ映像" Margin="0,0,0,4" />
                                 <Button Name="button_bs_on" Click="button_bs_on_Click" Content="+BS映像" Margin="0,0,0,4" />
                                 <Button Name="button_cs_on" Click="button_cs_on_Click" Content="+CS映像" Margin="0,0,0,4" />
+                                <Button Name="button_cs3_on" Click="button_cs3_on_Click" Content="+CS3映像" Margin="0,0,0,4" />
                                 <Button Name="button_1seg_on" Click="button_1seg_on_Click" Content="+ワンセグ" />
                             </StackPanel>
                         </Grid>
