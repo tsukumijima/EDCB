@@ -37,16 +37,14 @@ namespace EpgTimer
                 listBox_serviceOther.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsOther == true);
                 listBox_serviceAll.ItemsSource = selectedList;
 
-                if (listBox_serviceDttv.Items.Count == 0) tab_serviceDttv.Visibility = Visibility.Collapsed;
-                if (listBox_serviceBS.Items.Count == 0) tab_serviceBS.Visibility = Visibility.Collapsed;
-                if (listBox_serviceCS.Items.Count == 0) tab_serviceCS.Visibility = Visibility.Collapsed;
-                if (listBox_serviceCS3.Items.Count == 0) tab_serviceCS3.Visibility = Visibility.Collapsed;
-                if (listBox_serviceOther.Items.Count == 0) tab_serviceOther.Visibility = Visibility.Collapsed;
-                
+                foreach (TabItem tab in tab_ServiceList.Items)
+                {
+                    tab.Visibility = ((ListView)tab.Content).Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+                }
+
                 listBox_jyanru.ItemsSource = CommonManager.ContentKindList;
 
-                viewModeRadioBtns = new RadioBtnSelect(radioButton_rate, radioButton_week, radioButton_list);
-                viewModeRadioBtns.Value = 0;
+                viewModeRadioBtns = new RadioBtnSelect(PanelDisplaySet);
 
                 listBox_Button_Set();
                 listBox_serviceView_ContextMenu_Set();
