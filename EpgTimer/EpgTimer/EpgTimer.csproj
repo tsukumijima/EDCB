@@ -259,6 +259,9 @@
     <Compile Include="Setting\SetPicUpCustomWindow.xaml.cs">
       <DependentUpon>SetPicUpCustomWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserCtrlView\ListSearchView.xaml.cs">
+      <DependentUpon>ListSearchView.xaml</DependentUpon>
+    </Compile>
     <Page Include="AddManualAutoAddWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -504,6 +507,10 @@
     </None>
     <AppDesigner Include="Properties\" />
     <Page Include="Setting\SetPicUpCustomWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UserCtrlView\ListSearchView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

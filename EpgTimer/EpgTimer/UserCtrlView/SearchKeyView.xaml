@@ -135,7 +135,10 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock Text="サービス絞り込み"  Margin="0,0,0,2" />
+                            <DockPanel Margin="0,0,90,2" >
+                                <TextBlock Text="サービス絞り込み" />
+                                <my:ListSearchView x:Name="searchService" Margin="12,0,0,0" TargetListBox="{Binding ElementName=listView_service}" />
+                            </DockPanel>
                             <ListView Grid.Row="1" Name="listView_service" Margin="0,0,90,6" Style="{StaticResource ServiceListViewStyle}" >
                                 <ListView.View>
                                     <GridView>

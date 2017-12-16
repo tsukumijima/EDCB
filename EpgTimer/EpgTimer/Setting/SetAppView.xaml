@@ -400,7 +400,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
-                    <RowDefinition Height="4" />
+                    <RowDefinition Height="2" />
                     <RowDefinition Height="120" />
                     <RowDefinition Height="4" />
                     <RowDefinition Height="auto" />
@@ -408,7 +408,10 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Margin="0,0,0,12" Grid.ColumnSpan="5" Text="iEPG Version 1用の設定です。Version 2では必要ありません" Foreground="Red" />
-                <TextBlock Grid.Row="1" Text="サービス一覧" />
+                <DockPanel Grid.Row="1">
+                    <TextBlock Text="サービス一覧" />
+                    <local:ListSearchView x:Name="searchService" MinWidth="250" HorizontalAlignment="Right" TargetListBox="{Binding ElementName=listBox_service}" />
+                </DockPanel>
                 <ListView Grid.Row="3" Grid.RowSpan="5" Name="listBox_service" SelectionChanged="listBox_service_SelectionChanged" Style="{StaticResource ServiceListViewStyle}" SelectionMode="Single">
                     <ListView.View>
                         <GridView>

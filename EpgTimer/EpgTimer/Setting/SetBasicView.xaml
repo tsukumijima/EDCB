@@ -69,7 +69,10 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="120" />
                 </Grid.RowDefinitions>
-                <TextBlock Text="EPG取得対象サービス" Margin="0,0,0,4" />
+                <DockPanel Margin="0,0,0,2" Grid.ColumnSpan="2" Name="ServiceListHeader">
+                    <TextBlock Text="EPG取得対象サービス" />
+                    <local:ListSearchView x:Name="searchService" MinWidth="250" HorizontalAlignment="Right" TargetListBox="{Binding ElementName=listView_service}" />
+                </DockPanel>
                 <ListView Grid.Row="1" Grid.ColumnSpan="2" Name="listView_service" Style="{StaticResource ServiceListViewStyle}" >
                     <ListView.View>
                         <GridView>

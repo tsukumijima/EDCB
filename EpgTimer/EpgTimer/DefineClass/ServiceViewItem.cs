@@ -53,5 +53,6 @@ namespace EpgTimer
                 CommonManager.Convert64KeyString(ServiceInfo.Key) + "\r\n" +
                 "PartialReception : " + (ServiceInfo.PartialFlag == true ? "ワンセグ" : "-") + " (0x" + (ServiceInfo.PartialFlag ? 1 : 0).ToString("X2") + ")";
         }
+        public override string ToString() { return ServiceName; }
     }
 }

@@ -40,6 +40,7 @@ namespace EpgTimer.Setting
                 listBox_bon.IsEnabled = true;
 
                 ViewUtil.SetIsEnabledChildren(grid_epg, false);
+                ServiceListHeader.IsEnabled = true;
                 listView_service.IsEnabled = true;
                 listView_time.IsEnabled = true;
                 ViewUtil.SetIsEnabledChildren(grid_ServiceOptions, false);

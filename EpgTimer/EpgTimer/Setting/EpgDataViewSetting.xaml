@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
+             xmlns:my="clr-namespace:EpgTimer"
              d:DesignHeight="500" d:DesignWidth="650">
     <UserControl.Resources>
         <!-- デザイン時用。これが無いと、このビューを組み込んだコントロールでデザイナがエラーになる。 -->
@@ -51,7 +52,9 @@
                         <Grid Margin="6">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />
-                                <RowDefinition Height="6" />
+                                <RowDefinition Height="0" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="2" />
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="6" />
                                 <RowDefinition Height="100" />
@@ -64,7 +67,8 @@
                                 <ColumnDefinition Width="7*" />
                             </Grid.ColumnDefinitions>
                             <Label Grid.ColumnSpan="3" Content="表示サービス (同一TSでSIDを逆順にすると結合)" />
-                            <ListView  Grid.Row="2" Name="listBox_serviceView" VerticalAlignment="Stretch" SelectionChanged="listBox_serviceView_SelectionChanged" >
+                            <my:ListSearchView x:Name="searchService" Grid.Row="2" TargetListBox="{Binding ElementName=listBox_serviceView}" />
+                            <ListView Grid.Row="4" Name="listBox_serviceView" VerticalAlignment="Stretch" SelectionChanged="listBox_serviceView_SelectionChanged" >
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
@@ -74,7 +78,7 @@
                                     </GridView>
                                 </ListView.View>
                             </ListView>
-                            <StackPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource stackButtons}">
+                            <StackPanel Grid.Row="4" Grid.Column="2" Style="{StaticResource stackButtons}">
                                 <Button Content="全追加" HorizontalAlignment="Left" Margin="0,0,0,4" Name="button_service_addAll" />
                                 <Button Content="映像のみ全追加" Margin="0,0,0,4" Name="button_service_addVideo" Click="button_service_addVideo_Click" />
                                 <DockPanel Margin="0,0,0,4" >
@@ -93,7 +97,8 @@
                                 </DockPanel>
                             </StackPanel>
                             <Label Grid.Column="4" Content="サービス一覧" />
-                            <TabControl Grid.Row="2" Grid.Column="4" Name="tab_ServiceList" >
+                            <my:ListSearchView x:Name="searchServiceList" Grid.Row="2" Grid.Column="4" TargetListBox="{Binding SelectedItem.Content, ElementName=tab_ServiceList}"/>
+                            <TabControl Grid.Row="4" Grid.Column="4" Name="tab_ServiceList" >
                                 <TabControl.Resources>
                                     <Style TargetType="ListView">
                                         <EventSetter Event="SelectionChanged" Handler="listBox_service_SelectionChanged"/>
@@ -163,8 +168,8 @@
                                     </ListView>
                                 </TabItem>
                             </TabControl>
-                            <TextBox Grid.Row="4" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
-                            <TextBox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView2" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                            <TextBox Grid.Row="6" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                            <TextBox Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="3" IsReadOnly="True" VerticalAlignment="Stretch" Name="textBox_serviceView2" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                         </Grid>
                     </TabItem>
                     <TabItem Header="表示ジャンル" >
