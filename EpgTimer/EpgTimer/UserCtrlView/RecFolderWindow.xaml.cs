@@ -38,6 +38,8 @@ namespace EpgTimer
             textBox_recFolderDef.Text = Settings.Instance.DefRecFolders.FirstOrDefault() ?? SettingPath.GetSettingFolderPath(true);
             textBox_recFolder.TextChanged += textBox_recFolder_TextChanged;
             textBox_recFolder_TextChanged(null, null);//ツールチップを設定するため
+
+            button_folder.Click += ViewUtil.OpenFolderNameDialog(textBox_recFolder, "録画フォルダの選択",true, textBox_recFolderDef.Text);
         }
 
         public void SetDefSetting(RecFileSetInfoView info)
@@ -67,12 +69,6 @@ namespace EpgTimer
             }
             info.PartialRec = chkbox_partial.IsChecked == true;
             return info;
-        }
-
-        private void button_folder_Click(object sender, RoutedEventArgs e)
-        {
-            var textBox = textBox_recFolderDef.IsVisible == true ? textBox_recFolderDef : textBox_recFolder;
-            CommonManager.GetFolderNameByDialog(textBox, "録画フォルダの選択", true);
         }
 
         private void button_write_Click(object sender, RoutedEventArgs e)

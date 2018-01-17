@@ -1017,9 +1017,9 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false)
+        public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false, string defaultPath = "")
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFolderNameByDialog(path, Description));
+            GetPathByDialog(txtBox, checkNWPath, path => GetFolderNameByDialog(path, Description), defaultPath);
         }
         public static string GetFolderNameByDialog(string InitialPath = "", string Description = "")
         {
@@ -1053,9 +1053,9 @@ namespace EpgTimer
             return null;
         }
 
-        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false)
+        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "")
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt));
+            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt), defaultPath);
         }
         public static string GetFileNameByDialog(string InitialPath = "", bool isNameOnly = false, string Title = "", string DefaultExt = "")
         {
@@ -1100,9 +1100,9 @@ namespace EpgTimer
         }
 
         //ネットワークパス対応のパス設定
-        private static void GetPathByDialog(TextBox tbox, bool checkNWPath, Func<string, string> funcGetPathDialog)
+        private static void GetPathByDialog(TextBox tbox, bool checkNWPath, Func<string, string> funcGetPathDialog, string defaultPath = "")
         {
-            string path = SettingPath.CheckFolder(tbox.Text);
+            string path = SettingPath.CheckFolder(string.IsNullOrEmpty(tbox.Text) ? defaultPath : tbox.Text);
 
             string base_src = "";
             string base_nw = "";

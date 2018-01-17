@@ -508,13 +508,13 @@ namespace EpgTimer
             });
         }
 
-        public static RoutedEventHandler OpenFolderNameDialog(TextBox box, string Description = "", bool checkNWPath = false)
+        public static RoutedEventHandler OpenFolderNameDialog(TextBox box, string Description = "", bool checkNWPath = false, string defaultPath = "")
         {
-            return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath);
+            return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath, defaultPath);
         }
-        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false)
+        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "")
         {
-            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath);
+            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath);
         }
 
         public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, bool noCase = true)
