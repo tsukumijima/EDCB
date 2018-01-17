@@ -93,6 +93,8 @@ namespace EpgTimer
                 bx.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_recFolderChg);
                 bx.targetBoxAllowDoubleClick(bx.TargetBox, (sender, e) => button_recFolderChg.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
                 button_recFolderDel.Click += new RoutedEventHandler(bx.button_Delete_Click);
+
+                button_bat.Click += ViewUtil.OpenFileNameDialog(textBox_bat, false, "", ".bat", true);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -341,11 +343,6 @@ namespace EpgTimer
             }
             recEndModeRadioBtns.Value = recSet.RecEndModeActual;
             checkBox_reboot.IsChecked = recSet.RebootFlagActual == 1;
-        }
-
-        private void button_bat_Click(object sender, RoutedEventArgs e)
-        {
-            CommonManager.GetFileNameByDialog(textBox_bat, false, "", ".bat", true);
         }
 
         private void button_recFolderChg_Click(object sender, RoutedEventArgs e)

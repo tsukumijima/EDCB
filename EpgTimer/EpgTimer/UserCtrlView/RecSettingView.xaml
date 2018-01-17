@@ -75,7 +75,7 @@
                     <CheckBox Content="復帰後再起動する" Height="16" HorizontalAlignment="Left" Margin="540,265,0,0" Name="checkBox_reboot" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
                     <Label Content="録画後実行bat" Height="28" HorizontalAlignment="Left" Margin="6,289,0,0" Name="label16" VerticalAlignment="Top" />
                     <TextBox Height="24" Margin="110,291,60,0" Name="textBox_bat" VerticalAlignment="Top" />
-                    <Button Content="開く" Height="23" HorizontalAlignment="Right " Margin="0,291,11,0" Name="button_bat" VerticalAlignment="Top" Width="44" Click="button_bat_Click" />
+                    <Button Content="開く" Height="23" HorizontalAlignment="Right " Margin="0,291,11,0" Name="button_bat" VerticalAlignment="Top" Width="44" />
                 </Grid>
             </Grid>
         </Border>
