@@ -126,6 +126,7 @@
     <Compile Include="ConnectWindow.xaml.cs">
       <DependentUpon>ConnectWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DefineClass\KernelObjectSecurity.cs" />
     <Compile Include="DefineClass\ListColumnInfo.cs" />
     <Compile Include="EpgView\EpgMainViewBase.cs" />
     <Compile Include="EpgView\EpgViewBase.cs" />
