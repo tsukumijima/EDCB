@@ -714,6 +714,16 @@ namespace EpgTimer
             };
         }
 
+        public static StackPanel ServiceHeaderToToolTip(StackPanel panel)
+        {
+            var tip = new StackPanel();
+            foreach(TextBlock tb in panel.Children)
+            {
+                tip.Children.Add(GetPanelTextBlock(tb.Text));
+            }
+            return tip;
+        }
+
         public static void TabControlHeaderCopy(TabControl src, TabControl trg)
         {
             trg.Items.Clear();

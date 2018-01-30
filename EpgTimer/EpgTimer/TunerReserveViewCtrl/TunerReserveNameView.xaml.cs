@@ -39,6 +39,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                 text.Foreground = CommonManager.Instance.TunerNameFontColor;
                 tuner1.Children.Add(text);
 
+                tuner1.ToolTip = Settings.Instance.TunerNameTooltip != true ? null : ViewUtil.ServiceHeaderToToolTip(tuner1)                    ;
                 stackPanel_tuner.Children.Add(tuner1);
             }
         }

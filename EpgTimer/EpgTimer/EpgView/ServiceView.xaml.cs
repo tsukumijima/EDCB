@@ -49,6 +49,7 @@ namespace EpgTimer.EpgView
                 text.Foreground = CommonManager.Instance.EpgServiceFontColor;
                 service1.Children.Add(text);
 
+                service1.ToolTip = Settings.Instance.EpgServiceNameTooltip != true ? null : ViewUtil.ServiceHeaderToToolTip(service1);
                 stackPanel_service.Children.Add(service1);
             }
         }

@@ -369,6 +369,7 @@ namespace EpgTimer
         public double TunerScrollSize { get; set; }
         public bool TunerMouseScrollAuto { get; set; }
         public double TunerWidth { get; set; }
+        public bool TunerNameTooltip { get; set; }
         public bool TunerServiceNoWrap { get; set; }
         public double TunerBorderLeftSize { get; set; }
         public double TunerBorderTopSize { get; set; }
@@ -385,6 +386,7 @@ namespace EpgTimer
         public bool TunerDisplayOffReserve { get; set; }
         public Int32 TunerToolTipMode { get; set; }
         public Int32 TunerEpgInfoOpenMode { get; set; }
+        public bool EpgServiceNameTooltip { get; set; }
         public double EpgBorderLeftSize { get; set; }
         public double EpgBorderTopSize { get; set; }
         public bool EpgTitleIndent { get; set; }
@@ -688,6 +690,7 @@ namespace EpgTimer
             TunerScrollSize = 240;
             TunerMouseScrollAuto = false;
             TunerWidth = 150;
+            TunerNameTooltip = false;
             TunerServiceNoWrap = true;
             TunerBorderLeftSize = 1;
             TunerBorderTopSize = 1;
@@ -704,6 +707,7 @@ namespace EpgTimer
             TunerDisplayOffReserve = false;
             TunerToolTipMode = 0;
             TunerEpgInfoOpenMode = 0;
+            EpgServiceNameTooltip = false;
             EpgBorderLeftSize = 1;
             EpgBorderTopSize = 0.5;
             EpgTitleIndent = true;

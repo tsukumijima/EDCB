@@ -66,6 +66,7 @@
                                 <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding MouseScrollAuto}" VerticalAlignment="Top" />
                                 <Label Content="サービス１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding ServiceWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                <CheckBox Content="ツールチップ" HorizontalAlignment="Left" Margin="226,41,0,0" IsChecked="{Binding EpgServiceNameTooltip}" VerticalAlignment="Top" ToolTip="サービス名をツールチップに表示します"/>
                                 <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding MinHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
@@ -425,16 +426,17 @@
                         </GroupBox>
                         <GroupBox Header="表示設定" Margin="6,6,6,0">
                             <Grid>
-                                <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" Name="label47" VerticalAlignment="Top" />
+                                <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding TunerScrollSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
                                 <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding TunerMouseScrollAuto}" VerticalAlignment="Top" />
-                                <Label Content="チューナー１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" Name="label48" VerticalAlignment="Top" />
+                                <Label Content="チューナー１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding TunerWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                <CheckBox Content="ツールチップ" HorizontalAlignment="Left" Margin="226,41,0,0" IsChecked="{Binding TunerNameTooltip}" VerticalAlignment="Top" ToolTip="チューナー名をツールチップに表示します"/>
                                 <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding TunerMinHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
-                                <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" Name="label39" VerticalAlignment="Top" />
+                                <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Text="{Binding TunerMinimumLine, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="55" />
-                                <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" Name="label38" VerticalAlignment="Top" />
+                                <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Text="{Binding TunerDragScroll, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="枠線の幅" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding TunerBorderLeftSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(チューナー区切り)"/>
