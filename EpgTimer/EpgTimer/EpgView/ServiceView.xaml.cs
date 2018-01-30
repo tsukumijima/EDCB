@@ -44,7 +44,7 @@ namespace EpgTimer.EpgView
                 text.Foreground = CommonManager.Instance.EpgServiceFontColor;
                 service1.Children.Add(text);
 
-                text = ViewUtil.GetPanelTextBlock(info.remote_control_key_id != 0 ? info.remote_control_key_id.ToString() : info.network_name + " " + info.SID.ToString());
+                text = ViewUtil.GetPanelTextBlock(info.remote_control_key_id != 0 ? info.remote_control_key_id.ToString() : info.network_name + " " + (info.SID & (ChSet5.IsCS(info.ONID) == true ? 0x03FF : 0xFFFF)).ToString());
                 text.Margin = new Thickness(1, 0, 1, 2);
                 text.Foreground = CommonManager.Instance.EpgServiceFontColor;
                 service1.Children.Add(text);
