@@ -197,9 +197,10 @@
                             <Label Content="同一番組無効登録の判定で無視する文字列" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="キーワード予約の「同一番組名の録画結果があれば無効で登録する」の、&#10;比較の際に削除する文字列を正規表現で指定する。&#10;例 : \[[再無生]\]　→　[再]と[無]と[生]を無視"/>
                             <TextBox Name="text_RecInfo2RegExp"/>
                         </DockPanel>
-                        <CheckBox Margin="0,0,0,4" Content="録画情報保存フォルダ指定時は録画ファイルと同じ場所を参照しない" Name="checkBox_recInfoFolderOnly" />
+                        <CheckBox Margin="0,0,0,4" Content="キーワード予約をプログラム予約化したとき、予約が再び追加されないようにする" Name="checkBox_CommentAutoAdd" />
                     </StackPanel>
                     <StackPanel Name="grid_AppReserve2">
+                        <CheckBox Margin="0,0,0,4" Content="録画情報保存フォルダ指定時は録画ファイルと同じ場所を参照しない" Name="checkBox_recInfoFolderOnly" />
                         <StackPanel Margin="0,0,0,4" Orientation="Horizontal" Name="stackPanel_autoDelRecInfo" >
                             <CheckBox Content="録画結果を自動的に削除する  保持件数" Name="checkBox_autoDelRecInfo" />
                             <TextBox Name="textBox_autoDelRecInfo" Width="62" Margin="5,0,0,0" />

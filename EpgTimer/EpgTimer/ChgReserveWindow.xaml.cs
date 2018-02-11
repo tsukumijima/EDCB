@@ -338,7 +338,7 @@ namespace EpgTimer
                     if (resInfo.EventID != 0xFFFF || reserveInfo.IsSamePg(resInfo) == false)
                     {
                         resInfo.EventID = 0xFFFF;
-                        resInfo.Comment = "";
+                        resInfo.ReleaseAutoAdd();
                     }
                 }
                 else
@@ -349,12 +349,12 @@ namespace EpgTimer
                         //基本的にAddReserveEpgWindowと同じ処理内容
                         if (MenuUtil.CheckReservable(CommonUtil.ToList(eventInfoNow)) == null) return;
                         eventInfoNow.ConvertToReserveData(ref resInfo);
-                        resInfo.Comment = "";
+                        resInfo.ReleaseAutoAdd();
                     }
                 }
-                if (proc != 1 || checkBox_releaseAutoAdd.IsChecked == true)
+                if (checkBox_releaseAutoAdd.IsChecked == true)
                 {
-                    resInfo.Comment = "";
+                    resInfo.ReleaseAutoAdd();
                 }
 
                 resInfo.RecSetting = recSettingView.GetRecSetting();

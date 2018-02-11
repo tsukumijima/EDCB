@@ -364,7 +364,7 @@ namespace EpgTimer
                     return true;
                 }
 
-                list.ForEach(item => item.Comment = "");
+                list.ForEach(item => item.ReleaseAutoAdd());
                 return ReserveChange(list);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
