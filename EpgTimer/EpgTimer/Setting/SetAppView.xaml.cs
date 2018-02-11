@@ -141,8 +141,6 @@ namespace EpgTimer.Setting
 
                 textBox_ext.KeyDown += ViewUtil.KeyDown_Enter(button_ext_add);
                 textBox_chk_folder.KeyDown += ViewUtil.KeyDown_Enter(button_chk_add);
-
-                checkBox_autoDel_Click(null, null);
             }
 
             //3 ボタン表示 ボタン表示画面の上下ボタンのみ他と同じものを使用する。
@@ -292,6 +290,8 @@ namespace EpgTimer.Setting
             checkBox_noChkYen.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "NoChkYen", false, SettingPath.TimerSrvIniPath);
             delReserveModeRadioBtns = new RadioBtnSelect(grid_delReserve);
             delReserveModeRadioBtns.Value = IniFileHandler.GetPrivateProfileInt("SET", "DelReserveMode", 2, SettingPath.TimerSrvIniPath);
+
+            checkBox_autoDel_Click(null, null);
 
             //3 ボタン表示
             listBox_viewBtn.Items.Clear();
