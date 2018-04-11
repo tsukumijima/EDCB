@@ -8,7 +8,6 @@ using System.Windows.Documents;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Collections;
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -65,7 +64,7 @@ namespace EpgTimer
         public static readonly string[] RecModeList;
         public static readonly string[] YesNoList;
         public static readonly string[] PriorityList;
-        public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceUrlDictionary;
+        public static readonly Dictionary<char, List<KeyValuePair<string, string>>> ReplaceUrlDictionary;
 
         static CommonManager()
         {
@@ -463,8 +462,8 @@ namespace EpgTimer
         }
         private static Dictionary<char, List<KeyValuePair<string, string>>> CreateReplaceDictionary(string pattern, bool useDefDic)
         {
-            var ret = CommonManager.CreateReplaceDictionary(pattern);
-            if (useDefDic == true) MergeReplaceDictionary(ret, CommonManager.ReplaceUrlDictionary);
+            var ret = CreateReplaceDictionary(pattern);
+            if (useDefDic == true) MergeReplaceDictionary(ret, ReplaceUrlDictionary);
             return ret.Count != 0 ? ret : null;
         }
         private static void MergeReplaceDictionary(Dictionary<char, List<KeyValuePair<string, string>>> primary, Dictionary<char, List<KeyValuePair<string, string>>> secondary)
