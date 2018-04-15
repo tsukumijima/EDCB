@@ -89,9 +89,9 @@ namespace EpgTimer
             }
             GlyphType = cacheSet.Select(t => t.Type).ToArray();
         }
-        public double GlyphWidth(string line, ref int n, out ushort glyphIndex, out int fontIndex)
+        public double GlyphWidth(string text, ref int i, out ushort glyphIndex, out int fontIndex)
         {
-            int key = line[n];
+            int key = text[i];
             fontIndex = fontCache[key];
             if (fontIndex >= 0)
             {
@@ -100,9 +100,9 @@ namespace EpgTimer
             }
 
             glyphIndex = 0;
-            if (char.IsSurrogatePair(line, n))
+            if (char.IsSurrogatePair(text, i))
             {
-                key = char.ConvertToUtf32(line, n++);
+                key = char.ConvertToUtf32(text, i++);
                 Tuple<int, ushort> keyData;
                 if (fontDic.TryGetValue(key, out keyData) == true)
                 {

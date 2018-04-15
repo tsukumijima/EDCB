@@ -40,7 +40,7 @@ namespace EpgTimer
             double y = y0;
             var getRenderHeight = new Func<double>(() => y - y0);
 
-            foreach (string line in text.Replace("\r", "").Split('\n'))
+            for (int i = 0; i < text.Length;)
             {
                 var glyphIndexes = new List<ushort>();
                 var advanceWidths = new List<double>();
@@ -57,12 +57,12 @@ namespace EpgTimer
                         new GlyphRun(itemFont.GlyphType[currentType], 0, false, fontSize, glyphIndexes, origin, advanceWidths, null, null, null, null, null, null)));
                 });
 
-                for (int n = 0; n < line.Length; n++)
+                for (; i < text.Length && text[i] != '\r' && text[i] != '\n'; i++)
                 {
                     //この辞書検索が負荷の大部分を占めているのでテーブルルックアップする
                     ushort glyphIndex;
                     int glyphType;
-                    double width = itemFont.GlyphWidth(line, ref n, out glyphIndex, out glyphType) * fontSize;
+                    double width = itemFont.GlyphWidth(text, ref i, out glyphIndex, out glyphType) * fontSize;
 
                     if (x + width > xMax)
                     {
@@ -90,6 +90,9 @@ namespace EpgTimer
                 }
                 AddGlyphRun();
                 if (y >= yMax) return getRenderHeight();//次の行無理
+
+                i = text.IndexOf('\n', i);
+                i = i < 0 ? text.Length : i + 1;
             }
             return getRenderHeight();
         }
