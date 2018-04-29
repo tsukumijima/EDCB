@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
-using System.Windows.Controls;
-using System.Windows;
 
 namespace EpgTimer
 {
@@ -28,7 +26,7 @@ namespace EpgTimer
         public override RecSettingData RecSettingInfo { get { return ReserveInfo != null ? ReserveInfo.RecSetting : null; } }
         public override bool IsManual { get { return ReserveInfo != null ? ReserveInfo.IsManual : false; } }
 
-        public virtual String EventName
+        public virtual string EventName
         {
             get
             {
@@ -37,14 +35,11 @@ namespace EpgTimer
                 return EventInfo.DataTitle;
             }
         }
-        public virtual String EventNameValue
+        public virtual string EventNameValue
         {
-            get
-            {
-                return Settings.Instance.TrimSortTitle == true ? MenuUtil.TrimKeyword(EventName) : EventName;
-            }
+            get { return Settings.Instance.TrimSortTitle == true ? MenuUtil.TrimKeyword(EventName) : EventName; }
         }
-        public virtual String ServiceName
+        public virtual string ServiceName
         {
             get
             {
@@ -59,7 +54,7 @@ namespace EpgTimer
                 return "";
             }
         }
-        public virtual String NetworkName
+        public virtual string NetworkName
         {
             get
             {
@@ -68,7 +63,7 @@ namespace EpgTimer
                 return CommonManager.ConvertNetworkNameText(EventInfo.original_network_id);
             }
         }
-        public virtual String StartTime
+        public virtual string StartTime
         {
             get
             {
@@ -90,7 +85,7 @@ namespace EpgTimer
         /// <summary>
         /// 番組長
         /// </summary>
-        public virtual String ProgramDuration
+        public virtual string ProgramDuration
         {
             get
             {
@@ -112,7 +107,7 @@ namespace EpgTimer
         /// <summary>
         /// 番組内容
         /// </summary>
-        public String ProgramContent
+        public string ProgramContent
         {
             get
             {
@@ -123,7 +118,7 @@ namespace EpgTimer
                 return (s1 + " " + s2.Substring(0, Math.Min(Math.Max(0, 80 - s1.Length), s2.Length))).Trim().Replace("\r\n", " ");
             }
         }
-        public String JyanruKey
+        public string JyanruKey
         {
             get
             {
@@ -132,7 +127,7 @@ namespace EpgTimer
                 return CommonManager.ConvertJyanruText(EventInfo);
             }
         }
-        public String Attrib
+        public string Attrib
         {
             get
             {
@@ -154,7 +149,7 @@ namespace EpgTimer
                 return ReserveInfo.IsEnabled;
             }
         }
-        public String Comment
+        public string Comment
         {
             get
             {
@@ -165,7 +160,7 @@ namespace EpgTimer
                     + CommentBase;
             }
         }
-        public String CommentBase
+        public string CommentBase
         {
             get
             {
@@ -182,7 +177,7 @@ namespace EpgTimer
                 }
             }
         }
-        public List<String> ErrComment
+        public List<string> ErrComment
         {
             get
             {
@@ -217,7 +212,7 @@ namespace EpgTimer
                 return s;
             }
         }
-        public List<String> RecFileName
+        public List<string> RecFileName
         {
             get
             {
@@ -243,7 +238,7 @@ namespace EpgTimer
                 return reserveTuner;
             }
         }
-        public override String MarginStart
+        public override string MarginStart
         {
             get
             {
@@ -261,7 +256,7 @@ namespace EpgTimer
                 return CustomMarginValue(ReserveInfo.StartMarginResActual * -1);
             }
         }
-        public override String MarginEnd
+        public override string MarginEnd
         {
             get
             {
@@ -279,11 +274,11 @@ namespace EpgTimer
                 return CustomMarginValue(ReserveInfo.EndMarginResActual);
             }
         }
-        public override String ConvertInfoText(object param = null)
+        public override string ConvertInfoText(object param = null)
         {
             return CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.All);
         }
-        public virtual String Status
+        public virtual string Status
         {
             get
             {
@@ -347,10 +342,7 @@ namespace EpgTimer
         }
         public override Brush BorderBrush
         {
-            get
-            {
-                return ViewUtil.EpgDataContentBrush(EventInfo);
-            }
+            get { return ViewUtil.EpgDataContentBrush(EventInfo); }
         }
     }
 

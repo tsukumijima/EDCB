@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Media;
-using System.Windows.Controls;
-using System.Windows;
 
 namespace EpgTimer
 {
     public class ReserveItem : SearchItem
     {
         public ReserveItem() { }
-        public ReserveItem(ReserveData item) { base.ReserveInfo = item; }
+        public ReserveItem(ReserveData item) { ReserveInfo = item; }
 
         public override ulong KeyID { get { return ReserveInfo == null ? 0 : ReserveInfo.ReserveID; } }
         public override object DataObj { get { return ReserveInfo; } }
@@ -30,7 +26,7 @@ namespace EpgTimer
             }
         }
 
-        public override String EventName
+        public override string EventName
         {
             get
             {
@@ -39,7 +35,7 @@ namespace EpgTimer
                 return ReserveInfo.Title;
             }
         }
-        public override String ServiceName
+        public override string ServiceName
         {
             get
             {
@@ -48,7 +44,7 @@ namespace EpgTimer
                 return ReserveInfo.StationName;
             }
         }
-        public override String NetworkName
+        public override string NetworkName
         {
             get
             {
@@ -57,7 +53,7 @@ namespace EpgTimer
                 return CommonManager.ConvertNetworkNameText(ReserveInfo.OriginalNetworkID);
             }
         }
-        public override String StartTime
+        public override string StartTime
         {
             get
             {
@@ -66,7 +62,7 @@ namespace EpgTimer
                 return GetTimeStringReserveStyle(ReserveInfo.StartTime, ReserveInfo.DurationSecond);
             }
         }
-        public static String GetTimeStringReserveStyle(DateTime time, uint durationSecond)
+        public static string GetTimeStringReserveStyle(DateTime time, uint durationSecond)
         {
             return CommonManager.ConvertTimeText(time, durationSecond, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond);
         }
@@ -79,7 +75,7 @@ namespace EpgTimer
                 return ReserveInfo.StartTime.Ticks;
             }
         }
-        public String StartTimeShort
+        public string StartTimeShort
         {
             get
             {
@@ -88,7 +84,7 @@ namespace EpgTimer
                 return CommonManager.ConvertTimeText(ReserveInfo.StartTime, ReserveInfo.DurationSecond, true, true);
             }
         }
-        public override String ProgramDuration
+        public override string ProgramDuration
         {
             get
             {
@@ -97,7 +93,7 @@ namespace EpgTimer
                 return GetDurationStringReserveStyle(ReserveInfo.DurationSecond);
             }
         }
-        public static String GetDurationStringReserveStyle(uint durationSecond)
+        public static string GetDurationStringReserveStyle(uint durationSecond)
         {
             return CommonManager.ConvertDurationText(durationSecond, Settings.Instance.ResInfoNoDurSecond);
         }
@@ -110,14 +106,14 @@ namespace EpgTimer
                 return ReserveInfo.DurationSecond;
             }
         }
-        public override String ConvertInfoText(object param = null)
+        public override string ConvertInfoText(object param = null)
         {
             var mode = param is Int32 ? (Int32)param : Settings.Instance.ReserveToolTipMode;
             if (mode == 1) return base.ConvertInfoText();
 
             if (ReserveInfo == null) return "";
             //
-            String view = CommonManager.ConvertTimeText(ReserveInfo.StartTime, ReserveInfo.DurationSecond, false, false, false) + "\r\n";
+            string view = CommonManager.ConvertTimeText(ReserveInfo.StartTime, ReserveInfo.DurationSecond, false, false, false) + "\r\n";
             view += ServiceName + "(" + NetworkName + ")" + "\r\n";
             view += EventName + "\r\n\r\n";
 
@@ -129,8 +125,8 @@ namespace EpgTimer
             return view;
         }
 
-        static String[] wiewString = { "", "", "無", "予+", "予+", "無+", "録*", "視*", "無*" };
-        public override String Status
+        static string[] wiewString = { "", "", "無", "予+", "予+", "無+", "録*", "視*", "無*" };
+        public override string Status
         {
             get
             {

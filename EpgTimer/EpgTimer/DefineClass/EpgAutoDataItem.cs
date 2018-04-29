@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
-using System.Windows.Controls;
-using System.Windows;
 
 namespace EpgTimer
 {
@@ -15,116 +13,67 @@ namespace EpgTimer
         public AutoAddDataItem() {}
         public AutoAddDataItem(AutoAddData data) { Data = data; }
 
-        public override ulong KeyID { get { return Data == null ? 0 : Data.DataID; } }
+        public override ulong KeyID { get { return Data.DataID; } }
         public override object DataObj { get { return Data; } }
-        public override RecSettingData RecSettingInfo { get { return Data != null ? Data.RecSettingInfo : null; } }
+        public override RecSettingData RecSettingInfo { get { return Data.RecSettingInfo; } }
 
-        public String EventName
+        public string EventName
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return Data.DataTitle;
-            }
+            get { return Data.DataTitle; }
         }
-        public String SearchCount
+        public uint SearchCount
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return Data.SearchCount.ToString();
-            }
+            get { return Data.SearchCount; }
         }
-        public String ReserveCount
+        public uint ReserveCount
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return Data.ReserveCount.ToString();
-            }
+            get { return Data.ReserveCount; }
         }
         //"ReserveCount"のうち、有効な予約アイテム数
-        public String OnCount
+        public uint OnCount
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return Data.OnCount.ToString();
-            }
+            get { return Data.OnCount; }
         }
         //"ReserveCount"のうち、無効な予約アイテム数
-        public String OffCount
+        public uint OffCount
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return Data.OffCount.ToString();
-            }
+            get { return Data.OffCount; }
         }
-        public String NextReserveName
+        public string NextReserveName
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return new ReserveItem(Data.GetNextReserve()).EventName;
-            }
+            get { return new ReserveItem(Data.GetNextReserve()).EventName; }
         }
-        public String NextReserveNameValue
+        public string NextReserveNameValue
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return new ReserveItem(Data.GetNextReserve()).EventNameValue;
-            }
+            get { return new ReserveItem(Data.GetNextReserve()).EventNameValue; }
         }
-        public String NextReserve
+        public string NextReserve
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return new ReserveItem(Data.GetNextReserve()).StartTime;
-            }
+            get { return new ReserveItem(Data.GetNextReserve()).StartTime; }
         }
         public long NextReserveValue
         {
             get
             {
-                if (Data == null) return long.MinValue;
                 if (Data.GetNextReserve() == null) return long.MaxValue;
                 //
                 return new ReserveItem(Data.GetNextReserve()).StartTimeValue;
             }
         }
-        public virtual String NetworkName { get { return ""; } }
-        public virtual String ServiceName { get { return ""; } }
+        public virtual string NetworkName { get { return ""; } }
+        public virtual string ServiceName { get { return ""; } }
         public virtual bool KeyEnabled
         {
-            set
-            {
-                EpgCmds.ChgOnOffCheck.Execute(this, null);
-            }
-            get
-            {
-                if (Data == null) return false;
-                //
-                return Data.IsEnabled;
-            }
+            set { EpgCmds.ChgOnOffCheck.Execute(this, null); }
+            get { return Data.IsEnabled; }
         }
-        public override String ConvertInfoText(object param = null) { return ""; }
+        public override string ConvertInfoText(object param = null) { return ""; }
         public override Brush ForeColor
         {
             get
             {
                 //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0 || Data == null || Data.IsEnabled == true) return base.ForeColor;
+                if (NowJumpingTable != 0 || Data.IsEnabled == true) return base.ForeColor;
                 //
                 //無効の場合
                 return CommonManager.Instance.RecModeForeColor[5];
@@ -135,7 +84,7 @@ namespace EpgTimer
             get
             {
                 //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0 || Data == null || Data.IsEnabled == true) return base.BackColor;
+                if (NowJumpingTable != 0 || Data.IsEnabled == true) return base.BackColor;
                 //
                 //無効の場合
                 return CommonManager.Instance.ResBackColor[1];
@@ -181,39 +130,22 @@ namespace EpgTimer
 
         public EpgAutoAddData EpgAutoAddInfo { get { return (EpgAutoAddData)Data; } set { Data = value; } }
 
-        public String NotKey
+        public string NotKey
         {
-            get
-            {
-                if (EpgAutoAddInfo == null) return "";
-                //
-                return EpgAutoAddInfo.searchInfo.notKey;
-            }
+            get { return EpgAutoAddInfo.searchInfo.notKey; }
         }
-        public String RegExp
+        public string RegExp
         {
-            get
-            {
-                if (EpgAutoAddInfo == null) return "";
-                //
-                return EpgAutoAddInfo.searchInfo.regExpFlag == 1 ? "○" : "×";
-            }
+            get { return EpgAutoAddInfo.searchInfo.regExpFlag == 1 ? "○" : "×"; }
         }
-        public String TitleOnly
+        public string TitleOnly
         {
-            get
-            {
-                if (EpgAutoAddInfo == null) return "";
-                //
-                return EpgAutoAddInfo.searchInfo.titleOnlyFlag == 1 ? "○" : "×";
-            }
+            get { return EpgAutoAddInfo.searchInfo.titleOnlyFlag == 1 ? "○" : "×"; }
         }
-        public String DateKey
+        public string DateKey
         {
             get
             {
-                if (EpgAutoAddInfo == null) return "";
-                //
                 switch (EpgAutoAddInfo.searchInfo.dateList.Count)
                 {
                     case 0: return "なし";
@@ -222,35 +154,23 @@ namespace EpgTimer
                 }
             }
         }
-        public String AddCount
+        public string AddCount
         {
-            get
-            {
-                if (EpgAutoAddInfo == null) return "";
-                //
-                return EpgAutoAddInfo.addCount.ToString();
-            }
+            get { return EpgAutoAddInfo.addCount.ToString(); }
         }
-        public String JyanruKey
+        public string JyanruKey
         {
-            get
-            {
-                if (EpgAutoAddInfo == null || EpgAutoAddInfo.searchInfo == null) return "";
-                //
-                return CommonManager.ConvertJyanruText(EpgAutoAddInfo.searchInfo);
-            }
+            get { return CommonManager.ConvertJyanruText(EpgAutoAddInfo.searchInfo); }
         }
         /// <summary>
         /// 地デジ、BS、CS
         /// </summary>
-        public override String NetworkName
+        public override string NetworkName
         {
             get
             {
-                if (EpgAutoAddInfo == null) return "";
-                //
-                return this.EpgAutoAddInfo.searchInfo.serviceList.Count == 0 ? "なし": 
-                    string.Join(",", this.EpgAutoAddInfo.searchInfo.serviceList
+                return EpgAutoAddInfo.searchInfo.serviceList.Count == 0 ? "なし": 
+                    string.Join(",", EpgAutoAddInfo.searchInfo.serviceList
                         .Select(service1 => CommonManager.ConvertNetworkNameText((ushort)(service1 >> 32), true))
                         .Distinct());
             }
@@ -258,15 +178,13 @@ namespace EpgTimer
         /// <summary>
         /// NHK総合１・東京、NHKBS1
         /// </summary>
-        public override String ServiceName
+        public override string ServiceName
         {
             get { return _ServiceName(2); }
         }
-        private String _ServiceName(int count = -1, bool withNetwork = false)
+        private string _ServiceName(int count = -1, bool withNetwork = false)
         {
-            if (EpgAutoAddInfo == null) return "";
-            //
-            String view = "";
+            string view = "";
             int countAll = EpgAutoAddInfo.searchInfo.serviceList.Count;
             foreach (ulong service1 in EpgAutoAddInfo.searchInfo.serviceList.Take(count == -1 ? countAll : count))
             {
@@ -291,12 +209,9 @@ namespace EpgTimer
             }
             return view;
         }
-        public override String ConvertInfoText(object param = null)
+        public override string ConvertInfoText(object param = null)
         {
-            if (EpgAutoAddInfo == null) return "";
-            //
-            String view = "";
-            view += "Andキーワード : " + EventName + "\r\n";
+            string view = "Andキーワード : " + EventName + "\r\n";
             view += "Notキーワード : " + NotKey + "\r\n";
             view += "正規表現モード : " + RegExp + "\r\n";
             view += "番組名のみ検索対象 : " + TitleOnly + "\r\n";
@@ -312,8 +227,6 @@ namespace EpgTimer
         {
             get
             {
-                if (EpgAutoAddInfo == null) return null;
-                //
                 if (EpgAutoAddInfo.searchInfo.contentList.Count == 0 || EpgAutoAddInfo.searchInfo.notContetFlag != 0)
                 {
                     return Brushes.Gainsboro;

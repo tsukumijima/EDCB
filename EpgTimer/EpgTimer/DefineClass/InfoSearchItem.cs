@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Controls;
-using System.Windows;
-using System.Windows.Input;
 using System.IO;
 
 namespace EpgTimer
@@ -36,15 +34,15 @@ namespace EpgTimer
         private static List<Type> dTypes = new List<Type> { typeof(ReserveData), typeof(RecFileInfo), typeof(EpgAutoAddData), typeof(ManualAutoAddData), typeof(DummyType) };
         private static List<Type> vTypes = new List<Type> { typeof(ReserveItem), typeof(RecInfoItem), typeof(EpgAutoDataItem), typeof(ManualAutoAddDataItem), typeof(DummyType) };
 
-        private static List<String> viewItemNames = new List<String> { "予約", "録画済み", "キーワード予約", "プログラム予約", "" };
-        public static List<String> ViewTypeNameList() { return viewItemNames.Take(viewItemNames.Count - 1).ToList(); }
-        public String ViewItemName { get { return viewItemNames[tIdx]; } }
+        private static List<string> viewItemNames = new List<string> { "予約", "録画済み", "キーワード予約", "プログラム予約", "" };
+        public static List<string> ViewTypeNameList() { return viewItemNames.Take(viewItemNames.Count - 1).ToList(); }
+        public string ViewItemName { get { return viewItemNames[tIdx]; } }
 
         private static List<ulong> keyIDOffset = new List<ulong> { 0x01UL << 60, 0x02UL << 60, 0x03UL << 60, 0x04UL << 60, 0 };
         public override ulong KeyID { get { return keyIDOffset[tIdx] | ViewItem.KeyID; } }
         public override object DataObj { get { return Data; } }
 
-        public String Status
+        public string Status
         {
             get
             {
@@ -62,17 +60,16 @@ namespace EpgTimer
                 else                                        return CommonManager.Instance.ResStatusColor[0];
             }
         }
-        public String EventName
+        public string EventName
         {
-            get
-            {
-                if (Data == null) return "";
-                //
-                return Data.DataTitle;
-            }
+            get { return Data.DataTitle; }
         }
-        public String DataTitle { get { return EventName; } }
-        public String StartTime
+        public string EventNameValue
+        {
+            get { return Settings.Instance.TrimSortTitle == true ? MenuUtil.TrimKeyword(EventName) : EventName; }
+        }
+        public string DataTitle { get { return EventName; } }
+        public string StartTime
         {
             get
             {
@@ -90,7 +87,7 @@ namespace EpgTimer
                 else                                        return long.MaxValue;
             }
         }
-        public String ProgramDuration
+        public string ProgramDuration
         {
             get
             {
@@ -108,7 +105,7 @@ namespace EpgTimer
                 else                                        return UInt32.MaxValue;
             }
         }
-        public String NetworkName
+        public string NetworkName
         {
             get
             {
@@ -118,7 +115,7 @@ namespace EpgTimer
                 else                                        return "";
             }
         }
-        public String ServiceName
+        public string ServiceName
         {
             get
             {
@@ -128,7 +125,7 @@ namespace EpgTimer
                 else                                        return "";
             }
         }
-        public String JyanruKey
+        public string JyanruKey
         {
             get
             {
@@ -137,7 +134,7 @@ namespace EpgTimer
                 else                                        return "";
             }
         }
-        public String Attrib
+        public string Attrib
         {
             get
             {
@@ -159,7 +156,7 @@ namespace EpgTimer
                 else                                        return false;
             }
         }
-        public String Comment
+        public string Comment
         {
             get
             {
@@ -169,7 +166,7 @@ namespace EpgTimer
                 else return "";
             }
         }
-        public String ProgramContent
+        public string ProgramContent
         {
             get
             {
@@ -183,7 +180,7 @@ namespace EpgTimer
                 return ret.Substring(0, Math.Min(50, ret.Length));
             }
         }
-        public List<String> RecFileName
+        public List<string> RecFileName
         {
             get
             {
@@ -193,7 +190,7 @@ namespace EpgTimer
                 else                                        return new List<string>();
             }
         }
-        public String ReserveTuner
+        public string ReserveTuner
         {
             get
             {
@@ -202,7 +199,7 @@ namespace EpgTimer
                 else                                        return "";
             }
         }
-        public override List<String> RecFolder
+        public override List<string> RecFolder
         {
             get
             {
@@ -211,7 +208,7 @@ namespace EpgTimer
             }
         }
 
-        public String GetSearchText(bool TitleOnly)
+        public string GetSearchText(bool TitleOnly)
         {
             if (TitleOnly == false)
             {
@@ -239,31 +236,15 @@ namespace EpgTimer
         }
         public override Brush ForeColor
         {
-            get
-            {
-                if (ViewItem == null) return base.ForeColor;
-                //
-                return ViewItem.ForeColor;
-            }
+            get { return ViewItem.ForeColor; }
         }
         public override Brush BackColor
         {
-            get
-            {
-                if (ViewItem == null) return base.BackColor;
-                //
-                return ViewItem.BackColor;
-            }
+            get { return ViewItem.BackColor; }
         }
         public override Brush BorderBrush
         {
-            get
-            {
-                if (ViewItem == null) return base.BorderBrush;
-                //
-                return ViewItem.BorderBrush;
-            }
+            get { return ViewItem.BorderBrush; }
         }
-
     }
 }

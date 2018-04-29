@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
-using System.Windows.Media;
 
 namespace EpgTimer
 {
@@ -14,13 +10,11 @@ namespace EpgTimer
         public ManualAutoAddData ManualAutoAddInfo { get { return (ManualAutoAddData)Data; } set { Data = value; } }
         public override bool IsManual { get { return true; } }
 
-        public String DayOfWeek
+        public string DayOfWeek
         {
             get
             {
-                if (ManualAutoAddInfo == null) return "";
-                //
-                String view = "";
+                string view = "";
                 byte dayOfWeekFlag = GetWeekFlgMod();
                 for (int i = 0; i < 7; i++)
                 {
@@ -37,8 +31,6 @@ namespace EpgTimer
         {
             get
             {
-                if (ManualAutoAddInfo == null) return double.MinValue;
-                //
                 int ret = 0;
                 byte dayOfWeekFlag = GetWeekFlgMod();
                 for (int i = 1; i <= 7; i++)
@@ -60,77 +52,37 @@ namespace EpgTimer
             }
             return ManualAutoAddInfo.dayOfWeekFlag;
         }
-        public String StartTime
+        public string StartTime
         {
-            get
-            {
-                if (ManualAutoAddInfo == null) return "";
-                //
-                return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime
-                    , ManualAutoAddInfo.durationSecond, true, Settings.Instance.ResInfoNoSecond, true, true);
-            }
+            get { return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, Settings.Instance.ResInfoNoSecond, true, true); }
         }
         public UInt32 StartTimeValue
         {
-            get
-            {
-                if (ManualAutoAddInfo == null) return UInt32.MinValue;
-                //
-                return ManualAutoAddInfo.startTime;
-            }
+            get { return ManualAutoAddInfo.startTime; }
         }
-        public String StartTimeShort
+        public string StartTimeShort
         {
-            get
-            {
-                if (ManualAutoAddInfo == null) return "";
-                //
-                return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime
-                    , ManualAutoAddInfo.durationSecond, true, true, true, true);
-            }
+            get { return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, true, true, true); }
         }
-        public String ProgramDuration
+        public string ProgramDuration
         {
-            get
-            {
-                if (ManualAutoAddInfo == null) return "";
-                //
-                return CommonManager.ConvertDurationText(ManualAutoAddInfo.PgDurationSecond, Settings.Instance.ResInfoNoDurSecond);
-            }
+            get { return CommonManager.ConvertDurationText(ManualAutoAddInfo.PgDurationSecond, Settings.Instance.ResInfoNoDurSecond); }
         }
         public UInt32 ProgramDurationValue
         {
-            get
-            {
-                if (ManualAutoAddInfo == null) return UInt32.MinValue;
-                //
-                return ManualAutoAddInfo.PgDurationSecond;
-            }
+            get { return ManualAutoAddInfo.PgDurationSecond; }
         }
-        public override String NetworkName
+        public override string NetworkName
         {
-            get
-            {
-                if (ManualAutoAddInfo == null) return "";
-                //
-                return CommonManager.ConvertNetworkNameText(ManualAutoAddInfo.originalNetworkID);
-            }
+            get { return CommonManager.ConvertNetworkNameText(ManualAutoAddInfo.originalNetworkID); }
         }
-        public override String ServiceName
+        public override string ServiceName
         {
-            get
-            {
-                if (ManualAutoAddInfo == null) return "";
-                //
-                return ManualAutoAddInfo.stationName;
-            }
+            get { return ManualAutoAddInfo.stationName; }
         }
-        public override String ConvertInfoText(object param = null)
+        public override string ConvertInfoText(object param = null)
         {
-            if (ManualAutoAddInfo == null) return "";
-            //
-            String view = "";
-            view += "番組名 : " + EventName + "\r\n";
+            string view = "番組名 : " + EventName + "\r\n";
             view += "曜日 : " + DayOfWeek + "\r\n";
             view += "時間 : " + CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, false, true, true) + "\r\n";
             view += "サービス : " + ServiceName + "(" + NetworkName + ")" + "\r\n";

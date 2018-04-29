@@ -1,166 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace EpgTimer
 {
     public class RecInfoItem : DataListItemBase
     {
         public RecInfoItem() { }
-        public RecInfoItem(RecFileInfo item)
-        {
-            this.RecInfo = item;
-        }
+        public RecInfoItem(RecFileInfo item) { RecInfo = item; }
 
-        public RecFileInfo RecInfo { get; set; }
+        public RecFileInfo RecInfo { get; private set; }
         public override ulong KeyID { get { return RecInfo == null ? 0 : RecInfo.ID; } }
         public override object DataObj { get { return RecInfo; } }
 
         public bool IsProtect
         {
-            set
-            {
-                EpgCmds.ChgOnOffCheck.Execute(this, null);
-            }
-            get
-            {
-                if (RecInfo == null) return false;
-                //
-                return  RecInfo.ProtectFlag != 0;
-            }
+            set { EpgCmds.ChgOnOffCheck.Execute(this, null); }
+            get { return RecInfo.ProtectFlag != 0; }
         }
-        public String EventName
+        public string EventName
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.Title;
-            }
+            get { return RecInfo.Title; }
         }
-        public String EventNameValue
+        public string EventNameValue
         {
-            get
-            {
-                return Settings.Instance.TrimSortTitle == true ? MenuUtil.TrimKeyword(EventName) : EventName;
-            }
+            get { return Settings.Instance.TrimSortTitle == true ? MenuUtil.TrimKeyword(EventName) : EventName; }
         }
-        public String ServiceName
+        public string ServiceName
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.ServiceName;
-            }
+            get { return RecInfo.ServiceName; }
         }
-        public String ProgramDuration
+        public string ProgramDuration
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return CommonManager.ConvertDurationText(RecInfo.DurationSecond, Settings.Instance.RecInfoNoDurSecond);
-            }
+            get { return CommonManager.ConvertDurationText(RecInfo.DurationSecond, Settings.Instance.RecInfoNoDurSecond); }
         }
         public UInt32 ProgramDurationValue
         {
-            get
-            {
-                if (RecInfo == null) return UInt32.MinValue;
-                //
-                return RecInfo.DurationSecond;
-            }
+            get { return RecInfo.DurationSecond; }
         }
-        public String StartTime
+        public string StartTime
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, Settings.Instance.RecInfoNoYear, Settings.Instance.RecInfoNoSecond);
-            }
+            get { return CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, Settings.Instance.RecInfoNoYear, Settings.Instance.RecInfoNoSecond); }
         }
         public long StartTimeValue
         {
-            get
-            {
-                if (RecInfo == null) return long.MinValue;
-                //
-                return RecInfo.StartTime.Ticks;
-            }
+            get { return RecInfo.StartTime.Ticks; }
         }
-        public String Drops
+        public long Drops
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.Drops.ToString();
-            }
+            get { return RecInfo.Drops; }
         }
-        public String DropsSerious
+        public long DropsSerious
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.DropsCritical.ToString();
-            }
+            get { return RecInfo.DropsCritical; }
         }
-        public String Scrambles
+        public long Scrambles
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.Scrambles.ToString();
-            }
+            get { return RecInfo.Scrambles; }
         }
-        public String ScramblesSerious
+        public long ScramblesSerious
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.ScramblesCritical.ToString();
-            }
+            get { return RecInfo.ScramblesCritical; }
         }
-        public String Result
+        public string Result
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.Comment;
-            }
+            get { return RecInfo.Comment; }
         }
-        public String NetworkName
+        public string NetworkName
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return CommonManager.ConvertNetworkNameText(RecInfo.OriginalNetworkID);
-            }
+            get { return CommonManager.ConvertNetworkNameText(RecInfo.OriginalNetworkID); }
         }
-        public String RecFilePath
+        public string RecFilePath
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return RecInfo.RecFilePath;
-            }
+            get { return RecInfo.RecFilePath; }
         }
         public override Brush BackColor
         {
@@ -170,34 +83,29 @@ namespace EpgTimer
                 if (NowJumpingTable != 0) return base.BackColor;
 
                 //通常表示
-                if (RecInfo != null)
-                {
-                    long drops = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Drops : RecInfo.DropsCritical;
-                    long scrambles = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Scrambles : RecInfo.ScramblesCritical;
+                long drops = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Drops : RecInfo.DropsCritical;
+                long scrambles = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Scrambles : RecInfo.ScramblesCritical;
 
-                    if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
-                        || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
-                    {
-                        return CommonManager.Instance.RecEndBackColor[1];
-                    }
-                    if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
-                        || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
-                        || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
-                    {
-                        return CommonManager.Instance.RecEndBackColor[2];
-                    }
+                if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
+                    || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
+                {
+                    return CommonManager.Instance.RecEndBackColor[1];
+                }
+                if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
+                    || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
+                    || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
+                {
+                    return CommonManager.Instance.RecEndBackColor[2];
                 }
                 return CommonManager.Instance.RecEndBackColor[0];
             }
         }
-        public override String ConvertInfoText(object param = null)
+        public override string ConvertInfoText(object param = null)
         {
-            if (RecInfo == null) return "";
-            //
             var mode = param is Int32 ? (Int32)param : Settings.Instance.RecInfoToolTipMode;
             if (mode == 1) return RecInfo.ProgramInfo;
 
-            String view = CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, false, false, false) + "\r\n";
+            string view = CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, false, false, false) + "\r\n";
             view += ServiceName + "(" + NetworkName + ")" + "\r\n";
             view += EventName + "\r\n\r\n";
 
@@ -212,12 +120,7 @@ namespace EpgTimer
         }
         public string DropInfoText
         {
-            get
-            {
-                if (RecInfo == null) return "";
-                //
-                return ConvertDropText("D:") + " " + ConvertScrambleText("S:");
-            }
+            get { return ConvertDropText("D:") + " " + ConvertScrambleText("S:"); }
         }
         private string ConvertDropText(string title = "Drops : ")
         {
