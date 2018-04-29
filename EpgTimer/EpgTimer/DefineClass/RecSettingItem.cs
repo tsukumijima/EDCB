@@ -11,7 +11,7 @@ namespace EpgTimer
         public virtual void Reset() { preset = null; }
         public virtual bool IsManual { get { return false; } }
 
-        public virtual String MarginStart
+        public virtual string MarginStart
         {
             get
             {
@@ -20,16 +20,16 @@ namespace EpgTimer
                 return CustomTimeFormat(RecSettingInfo.StartMarginActual * -1);
             }
         }
-        public virtual Double MarginStartValue
+        public virtual double MarginStartValue
         {
             get
             {
-                if (RecSettingInfo == null) return Double.MinValue;
+                if (RecSettingInfo == null) return double.MinValue;
                 //
                 return CustomMarginValue(RecSettingInfo.StartMarginActual * -1);
             }
         }
-        public virtual String MarginEnd
+        public virtual string MarginEnd
         {
             get
             {
@@ -38,11 +38,11 @@ namespace EpgTimer
                 return CustomTimeFormat(RecSettingInfo.EndMarginActual);
             }
         }
-        public virtual Double MarginEndValue
+        public virtual double MarginEndValue
         {
             get
             {
-                if (RecSettingInfo == null) return Double.MinValue;
+                if (RecSettingInfo == null) return double.MinValue;
                 //
                 return CustomMarginValue(RecSettingInfo.EndMarginActual);
             }
@@ -64,13 +64,13 @@ namespace EpgTimer
             }
             return span.ToString("+;-") + hours + minutes + seconds + (RecSettingInfo.IsMarginDefault == true ? "*" : " ");
         }
-        protected Double CustomMarginValue(int span)
+        protected double CustomMarginValue(int span)
         {
             return span + (RecSettingInfo.IsMarginDefault == true ? 0 : 0.1);
         }
 
-        protected String preset = null;
-        public virtual String Preset
+        protected string preset = null;
+        public virtual string Preset
         {
             get
             {
@@ -80,7 +80,7 @@ namespace EpgTimer
                 return preset;
             }
         }
-        public virtual String RecMode
+        public virtual string RecMode
         {
             get
             {
@@ -89,7 +89,7 @@ namespace EpgTimer
                 return CommonManager.ConvertRecModeText(RecSettingInfo.RecMode);
             }
         }
-        public virtual String Priority
+        public virtual string Priority
         {
             get
             {
@@ -98,7 +98,7 @@ namespace EpgTimer
                 return RecSettingInfo.Priority.ToString();
             }
         }
-        public virtual String Tuijyu
+        public virtual string Tuijyu
         {
             get
             {
@@ -107,7 +107,7 @@ namespace EpgTimer
                 return CommonManager.ConvertYesNoText(RecSettingInfo.TuijyuuFlag);
             }
         }
-        public virtual String Pittari
+        public virtual string Pittari
         {
             get
             {
@@ -116,7 +116,7 @@ namespace EpgTimer
                 return CommonManager.ConvertYesNoText(RecSettingInfo.PittariFlag);
             }
         }
-        public virtual String Tuner
+        public virtual string TunerID
         {
             get
             {
@@ -125,7 +125,12 @@ namespace EpgTimer
                 return CommonManager.ConvertTunerText(RecSettingInfo.TunerID);
             }
         }
-        public virtual List<String> RecFolder
+        public virtual string BatFilePath
+        {
+            get { return RecSettingInfo.BatFilePath; }
+        }
+
+        public virtual List<string> RecFolder
         {
             get
             {
@@ -135,13 +140,11 @@ namespace EpgTimer
             }
         }
 
-        public String ConvertRecSettingText()
+        public string ConvertRecSettingText()
         {
             if (RecSettingInfo == null) return "";
             //
-            String view = "";
-
-            view += "録画モード : " + RecMode + "\r\n";
+            string view = "録画モード : " + RecMode + "\r\n";
             view += "優先度 : " + Priority + "\r\n";
             view += "追従 : " + Tuijyu + "\r\n";
             view += "ぴったり(?): " + Pittari + "\r\n";
@@ -154,7 +157,7 @@ namespace EpgTimer
                 view += "録画フォルダ : " + (recFolderList.Count == 0 ? "(デフォルト)" : "") + "\r\n";
                 if (recFolderList.Count == 0)
                 {
-                    String plugInFile = IniFileHandler.GetPrivateProfileString("SET", "RecNamePlugInFile", "RecName_Macro.dll", SettingPath.TimerSrvIniPath);
+                    string plugInFile = IniFileHandler.GetPrivateProfileString("SET", "RecNamePlugInFile", "RecName_Macro.dll", SettingPath.TimerSrvIniPath);
                     foreach (string info in Settings.Instance.DefRecFolders)
                     {
                         view += info + " (WritePlugIn:Write_Default.dll ファイル名PlugIn:" + plugInFile + ")\r\n";
@@ -191,7 +194,7 @@ namespace EpgTimer
                 }
             }
             view += "連続録画動作 : " + (RecSettingInfo.ContinueRecFlag == 0 ? "分割" : "同一ファイル出力") + "\r\n";
-            view += "使用チューナー強制指定 : " + Tuner;
+            view += "使用チューナー強制指定 : " + TunerID;
 
             return view;
         }

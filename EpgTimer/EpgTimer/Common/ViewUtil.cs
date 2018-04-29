@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Reflection;
 
 namespace EpgTimer
 {
@@ -670,14 +669,11 @@ namespace EpgTimer
         {
             foreach(var item in list)
             {
-                if(item.Header is GridViewColumnHeader)
+                var header = item.Header as GridViewColumnHeader;
+                if (header != null && header.Uid == uid)
                 {
-                    var header = item.Header as GridViewColumnHeader;
-                    if (header.Uid == uid)
-                    {
-                        header.Content = title;
-                        if (tag != null) header.Tag = tag;
-                    }
+                    header.Content = title;
+                    if (tag != null) header.Tag = tag;
                 }
             }
         }

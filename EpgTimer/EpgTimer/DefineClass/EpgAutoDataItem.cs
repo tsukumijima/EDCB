@@ -138,9 +138,17 @@ namespace EpgTimer
         {
             get { return EpgAutoAddInfo.searchInfo.regExpFlag == 1 ? "○" : "×"; }
         }
+        public string Aimai
+        {
+            get { return EpgAutoAddInfo.searchInfo.aimaiFlag == 1 ? "○" : "×"; }
+        }
         public string TitleOnly
         {
             get { return EpgAutoAddInfo.searchInfo.titleOnlyFlag == 1 ? "○" : "×"; }
+        }
+        public string CaseSensitive
+        {
+            get { return EpgAutoAddInfo.searchInfo.caseFlag == 1 ? "はい" : "いいえ"; }
         }
         public string DateKey
         {
@@ -218,9 +226,11 @@ namespace EpgTimer
             view += "自動登録 : " + (KeyEnabled == true ? "有効" : "無効") + "\r\n";
             view += "ジャンル絞り込み : " + JyanruKey + "\r\n";
             view += "時間絞り込み : " + DateKey + "\r\n";
-            view += "検索対象サービス : " + _ServiceName(10, true);
+            view += "検索対象サービス : " + _ServiceName(10, true) + "\r\n\r\n";
 
-            view += "\r\n\r\n" + ConvertRecSettingText();
+            view += ConvertRecSettingText() + "\r\n\r\n";
+
+            view += "キーワード予約ID : " + string.Format("{0} (0x{0:X})", DisplayID);
             return view;
         }
         public override Brush BorderBrush

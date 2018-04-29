@@ -71,10 +71,10 @@
                             <ListView Grid.Row="4" Name="listBox_serviceView" VerticalAlignment="Stretch" SelectionChanged="listBox_serviceView_SelectionChanged" >
                                 <ListView.View>
                                     <GridView>
-                                        <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding Path=NetworkName}" />
-                                        <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
-                                        <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
-                                        <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                                        <GridViewColumn Header="ネット" DisplayMemberBinding="{Binding NetworkName}" />
+                                        <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding ServiceName}" />
+                                        <GridViewColumn Header="映像" DisplayMemberBinding="{Binding IsVideo}" />
+                                        <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding IsPartial}" />
                                     </GridView>
                                 </ListView.View>
                             </ListView>
@@ -108,9 +108,9 @@
                                     <ListView Name="listBox_serviceDttv" >
                                         <ListView.View>
                                             <GridView>
-                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
-                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding Path=IsVideo}" />
-                                                <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding Path=IsPartial}" />
+                                                <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding ServiceName}" />
+                                                <GridViewColumn Header="映像" DisplayMemberBinding="{Binding IsVideo}" />
+                                                <GridViewColumn Header="ワンセグ" DisplayMemberBinding="{Binding IsPartial}" />
                                             </GridView>
                                         </ListView.View>
                                     </ListView>

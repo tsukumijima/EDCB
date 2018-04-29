@@ -23,11 +23,11 @@
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Path=IsProtect}" Style="{StaticResource ProtectKey}" />
+                                <CheckBox IsChecked="{Binding IsProtect}" Style="{StaticResource ProtectKey}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=StartTime}">
+                    <GridViewColumn DisplayMemberBinding="{Binding StartTime}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="日時" Uid="StartTime" />
                         </GridViewColumn.Header>
@@ -38,53 +38,58 @@
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Path=ProgramDuration}" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding ProgramDuration}" HorizontalAlignment="Right" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=NetworkName}">
+                    <GridViewColumn DisplayMemberBinding="{Binding NetworkName}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="ネットワーク" Uid="NetworkName" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=ServiceName}">
+                    <GridViewColumn DisplayMemberBinding="{Binding ServiceName}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="サービス名" Uid="ServiceName" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=EventName}">
+                    <GridViewColumn DisplayMemberBinding="{Binding EventName}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="番組名" Uid="EventName" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Drops}">
+                    <GridViewColumn DisplayMemberBinding="{Binding Drops}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="Drop" Tag="Drop(全信号)" Uid="Drops" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=DropsSerious}">
+                    <GridViewColumn DisplayMemberBinding="{Binding DropsSerious}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="*Drop(映像・音声)" Tag="*Drop(映像・音声)" Uid="DropsSerious" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Scrambles}">
+                    <GridViewColumn DisplayMemberBinding="{Binding Scrambles}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="Scramble" Tag="Scramble(全信号)" Uid="Scrambles" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=ScramblesSerious}">
+                    <GridViewColumn DisplayMemberBinding="{Binding ScramblesSerious}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="*Scramble(映像・音声)" Tag="*Scramble(映像・音声)" Uid="ScramblesSerious" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Result}">
+                    <GridViewColumn DisplayMemberBinding="{Binding Result}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="結果" Uid="Result" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=RecFilePath}">
+                    <GridViewColumn DisplayMemberBinding="{Binding RecFilePath}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="録画ファイル" Uid="RecFilePath" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding DisplayID}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="ID" Uid="ID" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>

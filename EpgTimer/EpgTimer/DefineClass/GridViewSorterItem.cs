@@ -6,6 +6,7 @@ namespace EpgTimer
     public class GridViewSorterItem : IGridViewSorterItem
     {
         public virtual ulong KeyID { get { return (ulong)(this.GetHashCode()); } }
+        public virtual ulong DisplayID { get { return KeyID; } }
         public string GetValuePropertyName(string key)
         {
             //ソート用の代替プロパティには"Value"を後ろに付けることにする。

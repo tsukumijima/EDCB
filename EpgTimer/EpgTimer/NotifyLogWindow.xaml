@@ -20,17 +20,17 @@
         <ListView Grid.Row="1" Name="listView_log" Margin="6">
             <ListView.View>
                 <GridView x:Name="gridView_log">
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=TimeView}">
+                    <GridViewColumn DisplayMemberBinding="{Binding TimeView}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="日時" Uid="TimeView" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Title}">
+                    <GridViewColumn DisplayMemberBinding="{Binding Title}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="種別" Uid="Title" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=LogText}">
+                    <GridViewColumn DisplayMemberBinding="{Binding LogText}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="内容" Uid="LogText" />
                         </GridViewColumn.Header>

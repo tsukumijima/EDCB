@@ -43,7 +43,7 @@
         <ListView Grid.Row="1" Name="listView_result" Margin="0,5,0,1" Style="{StaticResource DataListViewStyle}" IsTabStop="True">
             <ListView.View>
                 <GridView x:Name="gridView_result">
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=ViewItemName}">
+                    <GridViewColumn DisplayMemberBinding="{Binding ViewItemName}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="種別" Uid="ViewItemName" />
                         </GridViewColumn.Header>

@@ -93,6 +93,7 @@ namespace EpgTimer
             //予約チェック
             lstCtrl.dataList.SetReserveData();
             lstCtrl.RefreshListView(true);
+            listView_event_SelectionChanged(null, null);
         }
 
         protected override void ReloadProgramViewItem()
@@ -181,7 +182,7 @@ namespace EpgTimer
             richTextBox_eventInfo.Document.Blocks.Clear();
             if (listView_event.SelectedItem == null) return;
             //
-            richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText((listView_event.SelectedItem as SearchItem).EventInfo);
+            richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText(listView_event.SelectedItem as SearchItem);
         }
 
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)

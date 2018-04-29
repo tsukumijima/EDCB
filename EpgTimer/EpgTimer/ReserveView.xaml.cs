@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -80,10 +78,7 @@ namespace EpgTimer
         {
             return lstCtrl.ReloadInfoData(dataList =>
             {
-                foreach (ReserveData info in CommonManager.Instance.DB.ReserveList.Values)
-                {
-                    dataList.Add(new ReserveItem(info));
-                }
+                dataList.AddRange(CommonManager.Instance.DB.ReserveList.Values.Select(info => new ReserveItem(info)));
                 return true;
             });
         }

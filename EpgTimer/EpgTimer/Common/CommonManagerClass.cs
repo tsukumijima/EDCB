@@ -634,7 +634,11 @@ namespace EpgTimer
             }
         }
 
-        public static String ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode)
+        public static string ConvertProgramText(SearchItem searchInfo, EventInfoTextMode textMode)
+        {
+            return ConvertProgramText(searchInfo.EventInfo, textMode, searchInfo.ReserveInfo);
+        }
+        public static string ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode, ReserveData resInfo = null)
         {
             if (eventInfo == null) return "";
 
@@ -800,9 +804,11 @@ namespace EpgTimer
                 retText += attStr + "\r\n\r\n";
             }
 
-            retText += Convert64PGKeyString(eventInfo.Create64PgKey()) + "\r\n";
+            retText += Convert64PGKeyString(eventInfo.Create64PgKey());
 
-            return retText;
+            if (resInfo != null) retText += "\r\n\r\n予約中/ID : " + string.Format("{0} (0x{0:X})", resInfo.ReserveID);
+
+            return retText + "\r\n";
         }
 
         //主にジャンル項目の設定リスト表示用
@@ -956,9 +962,13 @@ namespace EpgTimer
             return ConvertValueText(viewMode, new string[] { "標準モード", "1週間モード", "リスト表示モード" }, "");
         }
 
-        public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo)
+        public static FlowDocument ConvertDisplayText(SearchItem searchInfo)
         {
-            String epgText = ConvertProgramText(eventInfo, EventInfoTextMode.All);
+            return ConvertDisplayText(searchInfo.EventInfo, searchInfo.ReserveInfo);
+        }
+        public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo, ReserveData resInfo = null)
+        {
+            String epgText = ConvertProgramText(eventInfo, EventInfoTextMode.All, resInfo);
             if (epgText == "") epgText = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。";
             String text = epgText;
 

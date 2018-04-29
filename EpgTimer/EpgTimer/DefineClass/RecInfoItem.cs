@@ -112,10 +112,11 @@ namespace EpgTimer
             view += "録画結果 : " + Result + "\r\n";
             view += "録画ファイルパス : " + RecFilePath + "\r\n";
             view += ConvertDropText() + "\r\n";
-            view += ConvertScrambleText()+ "\r\n\r\n";
+            view += ConvertScrambleText() + "\r\n\r\n";
 
-            view += CommonManager.Convert64PGKeyString(RecInfo.Create64PgKey());
+            view += CommonManager.Convert64PGKeyString(RecInfo.Create64PgKey()) + "\r\n\r\n";
 
+            view += "録画情報ID : " + string.Format("{0} (0x{0:X})", DisplayID);
             return view;
         }
         public string DropInfoText

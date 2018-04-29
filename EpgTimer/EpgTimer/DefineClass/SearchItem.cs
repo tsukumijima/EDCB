@@ -21,6 +21,7 @@ namespace EpgTimer
         }
 
         public override ulong KeyID { get { return EventInfo == null ? 0 : EventInfo.CurrentPgUID(); } }
+        public override ulong DisplayID { get { return EventInfo == null ? 0 : EventInfo.Create64PgKey(); } }
         public override object DataObj { get { return EventInfo; } }
         public bool IsReserved { get { return (ReserveInfo != null); } }
         public override RecSettingData RecSettingInfo { get { return ReserveInfo != null ? ReserveInfo.RecSetting : null; } }
@@ -221,6 +222,15 @@ namespace EpgTimer
                 return ReserveInfo.RecFileNameList;
             }
         }
+        public string IsProgram
+        {
+            get
+            {
+                if (ReserveInfo == null) return "";
+                //
+                return ReserveInfo.IsEpgReserve == false ? "はい" : "いいえ";
+            }
+        }
         private string reserveTuner = null;
         public string ReserveTuner
         {
@@ -276,7 +286,7 @@ namespace EpgTimer
         }
         public override string ConvertInfoText(object param = null)
         {
-            return CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.All);
+            return CommonManager.ConvertProgramText(this, EventInfoTextMode.All).TrimEnd('\r', '\n');
         }
         public virtual string Status
         {

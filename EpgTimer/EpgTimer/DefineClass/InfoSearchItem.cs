@@ -40,6 +40,7 @@ namespace EpgTimer
 
         private static List<ulong> keyIDOffset = new List<ulong> { 0x01UL << 60, 0x02UL << 60, 0x03UL << 60, 0x04UL << 60, 0 };
         public override ulong KeyID { get { return keyIDOffset[tIdx] | ViewItem.KeyID; } }
+        public override ulong DisplayID { get { return ViewItem.DisplayID; } }
         public override object DataObj { get { return Data; } }
 
         public string Status

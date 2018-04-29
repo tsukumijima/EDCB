@@ -9,11 +9,11 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Path=Status}" Foreground="{Binding Path=StatusColor}"/>
+                    <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"/>
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=StartTime}">
+        <GridViewColumn DisplayMemberBinding="{Binding StartTime}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="日時" Uid="StartTime" />
             </GridViewColumn.Header>
@@ -24,36 +24,36 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Path=ProgramDuration}" HorizontalAlignment="Right" />
+                    <TextBlock Text="{Binding ProgramDuration}" HorizontalAlignment="Right" />
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=NetworkName}" >
+        <GridViewColumn DisplayMemberBinding="{Binding NetworkName}" >
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="ネットワーク" Uid="NetworkName" />
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=ServiceName}">
+        <GridViewColumn DisplayMemberBinding="{Binding ServiceName}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="サービス名" Uid="ServiceName" />
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=EventName}">
+        <GridViewColumn DisplayMemberBinding="{Binding EventName}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="番組名" Uid="EventName" />
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=ProgramContent}">
+        <GridViewColumn DisplayMemberBinding="{Binding ProgramContent}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="番組内容" Uid="ProgramContent" />
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=JyanruKey}">
+        <GridViewColumn DisplayMemberBinding="{Binding JyanruKey}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="ジャンル" Uid="JyanruKey" />
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=Attrib}">
+        <GridViewColumn DisplayMemberBinding="{Binding Attrib}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="付属情報" Uid="Attrib" />
             </GridViewColumn.Header>
@@ -64,11 +64,16 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <CheckBox IsChecked="{Binding Path=IsEnabled}" />
+                    <CheckBox IsChecked="{Binding IsEnabled}" />
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=Comment}">
+        <GridViewColumn DisplayMemberBinding="{Binding IsProgram}">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="プログラム予約" Uid="IsProgram" />
+            </GridViewColumn.Header>
+        </GridViewColumn>
+        <GridViewColumn DisplayMemberBinding="{Binding Comment}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="予約状況" Uid="Comment" />
             </GridViewColumn.Header>
@@ -79,7 +84,7 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <ComboBox ItemsSource="{Binding Path=ErrComment}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
+                    <ComboBox ItemsSource="{Binding ErrComment}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
@@ -89,11 +94,11 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <ComboBox ItemsSource="{Binding Path=RecFileName}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
+                    <ComboBox ItemsSource="{Binding RecFileName}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=ReserveTuner}">
+        <GridViewColumn DisplayMemberBinding="{Binding ReserveTuner}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="使用予定チューナー" Uid="ReserveTuner" />
             </GridViewColumn.Header>
@@ -101,34 +106,39 @@
     </my:GridViewColumnList>
     
     <my:GridViewColumnList x:Key="RecSettingViewColumns">
-        <GridViewColumn DisplayMemberBinding="{Binding Path=Preset}">
+        <GridViewColumn DisplayMemberBinding="{Binding Preset}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="プリセット" Uid="Preset"/>
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=RecMode}">
+        <GridViewColumn DisplayMemberBinding="{Binding RecMode}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="録画モード" Uid="RecMode"/>
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=Priority}">
+        <GridViewColumn DisplayMemberBinding="{Binding Priority}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="優先度" Uid="Priority"/>
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=Tuijyu}">
+        <GridViewColumn DisplayMemberBinding="{Binding Tuijyu}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="追従" Uid="Tuijyu"/>
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=Pittari}">
+        <GridViewColumn DisplayMemberBinding="{Binding Pittari}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="ぴったり(?)" Uid="Pittari"/>
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding Path=Tuner}">
+        <GridViewColumn DisplayMemberBinding="{Binding TunerID}">
             <GridViewColumn.Header>
-                <GridViewColumnHeader Content="チューナー" Uid="Tuner"/>
+                <GridViewColumnHeader Content="チューナー強制" Uid="TunerID"/>
+            </GridViewColumn.Header>
+        </GridViewColumn>
+        <GridViewColumn DisplayMemberBinding="{Binding BatFilePath}">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="録画後実行bat" Uid="BatFilePath" />
             </GridViewColumn.Header>
         </GridViewColumn>
         <GridViewColumn>
@@ -137,7 +147,7 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <ComboBox ItemsSource="{Binding Path=RecFolder}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
+                    <ComboBox ItemsSource="{Binding RecFolder}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
@@ -147,7 +157,7 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Path=MarginStart}" HorizontalAlignment="Right" />
+                    <TextBlock Text="{Binding MarginStart}" HorizontalAlignment="Right" />
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
@@ -157,9 +167,14 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Path=MarginEnd}" HorizontalAlignment="Right" />
+                    <TextBlock Text="{Binding MarginEnd}" HorizontalAlignment="Right" />
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
+        </GridViewColumn>
+        <GridViewColumn DisplayMemberBinding="{Binding DisplayID}">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="ID" Uid="ID" />
+            </GridViewColumn.Header>
         </GridViewColumn>
     </my:GridViewColumnList>
 </ResourceDictionary>

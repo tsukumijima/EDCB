@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -81,10 +79,7 @@ namespace EpgTimer
                 ErrCode err = CommonManager.Instance.DB.ReloadRecFileInfo();
                 if (CommonManager.CmdErrMsgTypical(err, "録画情報の取得") == false) return false;
 
-                foreach (RecFileInfo info in CommonManager.Instance.DB.RecFileInfo.Values)
-                {
-                    dataList.Add(new RecInfoItem(info));
-                }
+                dataList.AddRange(CommonManager.Instance.DB.RecFileInfo.Values.Select(info => new RecInfoItem(info)));
 
                 //ツールチップに番組情報を表示する場合は先に一括で詳細情報を読込んでおく
                 if (Settings.Instance.NoToolTip == false && Settings.Instance.RecInfoToolTipMode == 1)

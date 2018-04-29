@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -179,11 +178,7 @@ namespace EpgTimer
                 if (setting == null) return;
 
                 setting.Clear();
-                foreach (GridViewColumn info in gridView.Columns)
-                {
-                    var header = info.Header as GridViewColumnHeader;
-                    setting.Add(new ListColumnInfo(header.Uid, info.Width));
-                }
+                setting.AddRange(gridView.Columns.Select(info => new ListColumnInfo(((GridViewColumnHeader)info.Header).Uid, info.Width)));
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

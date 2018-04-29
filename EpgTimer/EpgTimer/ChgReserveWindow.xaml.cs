@@ -188,7 +188,7 @@ namespace EpgTimer
             SetReserveTimeInfo(reserveInfo);
 
             //番組詳細タブを初期化
-            richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(null);
+            richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(null, null);
             eventInfoNow = null;
             resInfoDisplay = null;
 

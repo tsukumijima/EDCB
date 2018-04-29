@@ -9,6 +9,7 @@ namespace EpgTimer
         public ReserveItem(ReserveData item) { ReserveInfo = item; }
 
         public override ulong KeyID { get { return ReserveInfo == null ? 0 : ReserveInfo.ReserveID; } }
+        public override ulong DisplayID { get { return KeyID; } }
         public override object DataObj { get { return ReserveInfo; } }
 
         public override EpgEventInfo EventInfo
@@ -120,8 +121,9 @@ namespace EpgTimer
             view += ConvertRecSettingText() + "\r\n";
             view += "予約状況 : " + Comment + "\r\n\r\n";
 
-            view += CommonManager.Convert64PGKeyString(ReserveInfo.Create64PgKey());
+            view += CommonManager.Convert64PGKeyString(ReserveInfo.Create64PgKey()) + "\r\n\r\n";
 
+            view += "予約ID : " + string.Format("{0} (0x{0:X})", DisplayID);
             return view;
         }
 
