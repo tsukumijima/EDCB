@@ -31,7 +31,7 @@ namespace EpgTimer
                 ("他の操作により設定が変更されています" + (msgSet.Count == 0 ? null : "\r\n *" + string.Join("\r\n *", msgSet)));
         }
 
-        public enum SettingMode { Default, EpgSetting }
+        public enum SettingMode { Default, ReserveSetting, TunerSetting, RecInfoSetting, EpgSetting, EpgTabSetting }
         public SettingMode Mode { get; private set; }
 
         public SettingWindow(SettingMode mode = SettingMode.Default, object param = null)
@@ -74,7 +74,26 @@ namespace EpgTimer
             Mode = mode;
             switch (mode)
             {
+                case SettingMode.ReserveSetting:
+                    tabItem_epgView.IsSelected = true;
+                    setEpgView.tabReserve.IsSelected = true;
+                    setEpgView.tabReserveBasic.IsSelected = true;
+                    break;
+                case SettingMode.TunerSetting:
+                    tabItem_epgView.IsSelected = true;
+                    setEpgView.tabTuner.IsSelected = true;
+                    setEpgView.tabTunerBasic.IsSelected = true;
+                    break;
+                case SettingMode.RecInfoSetting:
+                    tabItem_epgView.IsSelected = true;
+                    setEpgView.tabRecInfo.IsSelected = true;
+                    break;
                 case SettingMode.EpgSetting:
+                    tabItem_epgView.IsSelected = true;
+                    setEpgView.tabEpg.IsSelected = true;
+                    setEpgView.tabEpgBasic.IsSelected = true;
+                    break;
+                case SettingMode.EpgTabSetting:
                     tabItem_epgView.IsSelected = true;
                     setEpgView.tabEpg.IsSelected = true;
                     setEpgView.tabEpgTab.IsSelected = true;

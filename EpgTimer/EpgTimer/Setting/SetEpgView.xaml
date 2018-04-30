@@ -34,7 +34,7 @@
     <TabControl>
         <TabItem Header="番組表" Name="tabEpg">
             <TabControl>
-                <TabItem Header="基本">
+                <TabItem Header="基本" Name="tabEpgBasic">
                     <StackPanel>
                         <GroupBox Header="フォント" Margin="6,6,6,0" >
                             <StackPanel Orientation="Horizontal">
@@ -397,9 +397,9 @@
                 </TabItem>
             </TabControl>
         </TabItem>
-        <TabItem Header="使用予定チューナー">
+        <TabItem Header="使用予定チューナー" Name="tabTuner">
             <TabControl>
-                <TabItem Header="基本">
+                <TabItem Header="基本" Name="tabTunerBasic">
                     <StackPanel>
                         <GroupBox Header="フォント" Margin="6,6,6,0" >
                             <StackPanel Orientation="Horizontal">
@@ -554,7 +554,7 @@
                 </TabItem>
             </TabControl>
         </TabItem>
-        <TabItem Header="録画済み一覧">
+        <TabItem Header="録画済み一覧" Name="tabRecInfo">
             <StackPanel>
                 <GroupBox Header="各種設定" Margin="6,6,6,0">
                     <StackPanel Margin="11,6,0,0" >
@@ -622,9 +622,9 @@
                 </GroupBox>
             </StackPanel>
         </TabItem>
-        <TabItem Header="予約一覧・共通" >
+        <TabItem Header="予約一覧・共通" Name="tabReserve">
             <TabControl>
-                <TabItem Header="基本" >
+                <TabItem Header="基本" Name="tabReserveBasic">
                     <TabItem.Resources>
                         <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                             <Setter Property="Margin" Value="0,0,12,0"/>

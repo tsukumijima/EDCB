@@ -268,13 +268,14 @@ namespace EpgTimer
         }
 
         //番組表ヘッダ用のコンテキストメニュー関係
-        private enum edvCmds { Setting, ResetAll, All, /*Delete,*/ DeleteAll, ModeChange, VisibleChange, NameTabChange, NameTabVisible, ViewModeTabVisible, MoveCheckedTab }
+        private enum edvCmds { Setting, TabSetting, ResetAll, All, /*Delete,*/ DeleteAll, ModeChange, VisibleChange, NameTabChange, NameTabVisible, ViewModeTabVisible, MoveCheckedTab }
         public void EpgTabContextMenuOpen(object sender, MouseButtonEventArgs e)
         {
             try
             {
                 ClearTabHeader();//連続で表示される場合用
                 ctxm.Items.Clear();
+                e.Handled = true;
 
                 //ヘッダでのオープンかどうか判定。TabControlに持たせているのでPlacementTargetは使えない。
                 var tab = tabControl.GetPlacementItem() as EpgTabItem;
@@ -300,7 +301,7 @@ namespace EpgTimer
                 //メイン画面用
                 if (this.IsVisible == false)
                 {
-                    tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表の設定...(_O)", "");
+                    tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表全般の設定...(_O)", "");
                     return;
                 }
 
@@ -346,7 +347,8 @@ namespace EpgTimer
                 //メインメニュー
                 ctxm.Items.Add(menu_vs);
                 ctxm.Items.Add(menu_tb);
-                tabMenuAdd(ctxm, true, edvCmds.Setting, "番組表の設定...(_O)", trg.Uid);
+                tabMenuAdd(ctxm, true, sender is TabItem ? edvCmds.Setting : edvCmds.TabSetting,
+                    (sender is TabItem ? "番組表全般" : "表示項目(_O)") + "の設定...(_O)", trg.Uid);
                 //ctxm.Items.Add(new Separator());
                 //tabMenuAdd(ctxm, trg.Uid != "", edvCmds.Delete, trg.Tag + " を非表示(_D)", trg.Uid);
                 ctxm.Items.Add(new Separator());
@@ -411,7 +413,10 @@ namespace EpgTimer
                 switch (menu.Tag as edvCmds?)
                 {
                     case edvCmds.Setting:
-                        ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgSetting, menu.Uid);
+                        ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgSetting);
+                        return;
+                    case edvCmds.TabSetting:
+                        ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgTabSetting, menu.Uid);
                         return;
                     case edvCmds.ResetAll:
                         this.UpdateSetting(true);

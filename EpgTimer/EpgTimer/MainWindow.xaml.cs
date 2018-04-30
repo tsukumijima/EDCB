@@ -224,6 +224,30 @@ namespace EpgTimer
                 //番組表タブに番組表設定画面を出すコンテキストメニューを表示する
                 tabItem_epg.MouseRightButtonUp += epgView.EpgTabContextMenuOpen;
 
+                //その他のタブに設定画面を出すコンテキストメニューを表示する
+                tabControl_main.MouseRightButtonUp += (sender, e) =>
+                {
+                    var tab = tabControl_main.GetPlacementItem() as TabItem;
+                    if (tab == null && autoAddView.IsVisible == true && autoAddView.tabControl.GetPlacementItem() is TabItem)
+                    {
+                        tab = tabItem_AutoAdd;
+                    }
+                    if (tab == null) return;
+
+                    e.Handled = true;
+                    var mode = tab == tabItem_reserve ? SettingWindow.SettingMode.ReserveSetting :
+                    tab == tabItem_tunerReserve ? SettingWindow.SettingMode.TunerSetting :
+                    tab == tabItem_recinfo ? SettingWindow.SettingMode.RecInfoSetting :
+                    tab == tabItem_AutoAdd ? SettingWindow.SettingMode.ReserveSetting :
+                    //tab == tabItem_epg ? SettingWindow.SettingMode.EpgSetting :
+                    SettingWindow.SettingMode.Default;
+
+                    var menuSet = new MenuItem { Header = tab.Header as string + "の画面設定...(_O)" };
+                    menuSet.Click += (s2, e2) => ViewUtil.MainWindow.OpenSettingDialog(mode);
+                    var ctxm = new ContextMenu { IsOpen = true };
+                    ctxm.Items.Add(menuSet);
+                };
+
                 //初期タブ選択
                 switch (Settings.Instance.StartTab)
                 {
@@ -927,7 +951,7 @@ namespace EpgTimer
                 tunerReserveView.UpdateInfo();
                 recInfoView.UpdateInfo();
                 autoAddView.UpdateInfo();
-                epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgSetting);
+                epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgTabSetting);
                 SearchWindow.UpdatesInfo(false);
                 InfoSearchWindow.UpdatesInfo();
                 RecInfoDescWindow.UpdatesInfo();
