@@ -734,7 +734,7 @@ namespace EpgTimer
             }
         }
 
-        public void SaveData()
+        public void SaveData(bool manualSave = false)
         {
             reserveView.SaveViewData();
             recInfoView.SaveViewData();
@@ -742,7 +742,7 @@ namespace EpgTimer
             epgView.SaveViewData();
 
             Settings.Instance.WndSettings.GetSizeFromWindow(this);
-            Settings.SaveToXmlFile();
+            Settings.SaveToXmlFile(manualSave);
         }
 
         private void Window_StateChanged(object sender, EventArgs e)

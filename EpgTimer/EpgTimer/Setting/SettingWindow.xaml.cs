@@ -123,7 +123,7 @@ namespace EpgTimer
                 CommonManager.ReloadReplaceDictionary();
                 ItemFontCache.Clear();
 
-                ViewUtil.MainWindow.SaveData();
+                ViewUtil.MainWindow.SaveData(true);
                 ViewUtil.MainWindow.RefreshSetting(this);
             }
             catch (Exception ex)

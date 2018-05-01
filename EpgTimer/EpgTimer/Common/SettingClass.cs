@@ -942,7 +942,6 @@ namespace EpgTimer
             set { _instance = value; }
         }
 
-        private static bool noSave = false;
         /// <summary>設定ファイルロード関数</summary>
         public static void LoadFromXmlFile(bool nwMode = false)
         {
@@ -955,16 +954,18 @@ namespace EpgTimer
                     Instance = (Settings)(new XmlSerializer(typeof(Settings)).Deserialize(fs));
                 }
             }
+            catch (FileNotFoundException) { }
             catch (Exception ex)
             {
-                if (ex.GetBaseException().GetType() != typeof(FileNotFoundException))
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show("現在の設定ファイルは次の名前で保存されます。\r\n" + path + ".err",
+                    "設定ファイル読込みエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                try
                 {
-                    noSave = true;
-                    MessageBox.Show("設定ファイルの読込に失敗しました。\r\n" +
-                                    "現在の設定ファイルを削除するか、バックアップ(" + path + ".back)から復元してください。" +
-                                    "EpgTimerを再起動するまで設定ファイルは上書き保存されません。", "設定ファイルエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                    try { File.Replace(path, path + ".err", null); }
+                    catch (FileNotFoundException) { File.Move(path, path + ".err"); }
                 }
+                catch (Exception ex2) { MessageBox.Show(ex2.Message + "\r\n" + ex2.StackTrace); }
             }
 
             try
@@ -1059,25 +1060,20 @@ namespace EpgTimer
         }
 
         /// <summary>設定ファイルセーブ関数</summary>
-        public static void SaveToXmlFile()
+        public static void SaveToXmlFile(bool notifyException = true)
         {
             try
             {
-                if (noSave == true) return;
-
                 string path = GetSettingPath();
-                if (File.Exists(path) == true)
-                {
-                    File.Copy(path, path + ".back", true);
-                }
-
-                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (var fs = new FileStream(path + ".back", FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     //シリアル化して書き込む
                     new XmlSerializer(typeof(Settings)).Serialize(fs, Instance);
                 }
+                try { File.Replace(path + ".back", path, null); }
+                catch (FileNotFoundException) { File.Move(path + ".back", path); }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { if (notifyException) MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         private static string GetSettingPath()
