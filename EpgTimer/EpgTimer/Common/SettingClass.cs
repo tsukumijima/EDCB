@@ -924,6 +924,7 @@ namespace EpgTimer
             dest.NotifyLogMax = NotifyLogMax;
             dest.NotifyLogEpgTimer = NotifyLogEpgTimer;
             dest.TryEpgSetting = TryEpgSetting;
+            dest.SettingFolderPathNW = SettingFolderPathNW;
         }
 
         private static Settings _instance;
