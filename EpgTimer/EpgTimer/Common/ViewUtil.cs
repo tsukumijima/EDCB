@@ -516,15 +516,15 @@ namespace EpgTimer
             return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath);
         }
 
-        public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, bool noCase = true)
+        public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, StringComparison type = StringComparison.OrdinalIgnoreCase)
         {
-            return new RoutedEventHandler((sender, e) => ListBox_TextCheckAdd(lstBox, txtBox == null ? null : txtBox.Text, noCase));
+            return new RoutedEventHandler((sender, e) => ListBox_TextCheckAdd(lstBox, txtBox == null ? null : txtBox.Text, type));
         }
-        public static bool ListBox_TextCheckAdd(ListBox lstBox, string text, bool noCase = true)
+        public static bool ListBox_TextCheckAdd(ListBox lstBox, string text, StringComparison type = StringComparison.OrdinalIgnoreCase)
         {
             if (lstBox == null || String.IsNullOrEmpty(text) == true) return false;
             //
-            var isAdd = lstBox.Items.OfType<object>().All(s => String.Compare(text, s.ToString(), noCase) != 0);
+            var isAdd = lstBox.Items.OfType<object>().All(s => text.Equals(s.ToString(), type) == false);
             if (isAdd == true) lstBox.ScrollIntoViewLast(text);
             return isAdd;
         }

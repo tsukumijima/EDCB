@@ -242,7 +242,7 @@ namespace EpgTimer
 
                 int marginSec = 0;
                 int marginMinus = 1;
-                if (text.IndexOf("-") == 0)
+                if (text.StartsWith("-", StringComparison.Ordinal) == true)
                 {
                     marginMinus = -1;
                     text = text.Substring(1);
@@ -414,7 +414,7 @@ namespace EpgTimer
         public RecFileSetInfo Info { get; set; }
         public bool PartialRec { get; set; }
         public string RecFileName { get { return Info.RecFileName; } }
-        public string RecFolder { get { return String.Compare(Info.RecFolder, "!Default", true) == 0 ? "" : Info.RecFolder; } }
+        public string RecFolder { get { return Info.RecFolder.Equals("!Default", StringComparison.OrdinalIgnoreCase) == true ? "" : Info.RecFolder; } }
         public string RecNamePlugIn { get { return Info.RecNamePlugIn; } }
         public string WritePlugIn { get { return Info.WritePlugIn; } }
         public string PartialRecYesNo { get { return PartialRec ? "はい" : "いいえ"; } }

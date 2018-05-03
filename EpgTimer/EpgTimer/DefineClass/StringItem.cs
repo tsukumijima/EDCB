@@ -22,7 +22,7 @@ namespace EpgTimer
         {
             public override bool Equals(object x, object y)
             {
-                return x is StringItem && y is StringItem && (x as StringItem).Value.CompareTo((y as StringItem).Value) == 0;
+                return x is StringItem && y is StringItem && (x as StringItem).Value == (y as StringItem).Value;
             }
             public override bool Equals(object obj) { return Equals(this, obj); }
             public override int GetHashCode(object obj)

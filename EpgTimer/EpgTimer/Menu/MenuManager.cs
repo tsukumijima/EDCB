@@ -855,7 +855,7 @@ namespace EpgTimer
             var header = menu.Header as string;
             if (header != null)
             {
-                if (header.EndsWith("...") == true)
+                if (header.EndsWith("...", StringComparison.Ordinal) == true)
                 {
                     menu.Header = header.Substring(0, header.Length - 3);
                 }

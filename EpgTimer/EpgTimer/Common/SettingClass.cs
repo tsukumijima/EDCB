@@ -199,7 +199,7 @@ namespace EpgTimer
         {
             path = (path ?? "").Trim(' ');
             if (path != "\\") path = path.TrimEnd('\\');
-            return path + (path.EndsWith(Path.VolumeSeparatorChar.ToString()) == true ? "\\" : "");
+            return path + (path.EndsWith(Path.VolumeSeparatorChar.ToString(), StringComparison.Ordinal) == true ? "\\" : "");
         }
         public static string CheckTSExtension(string ext)
         {
@@ -240,7 +240,7 @@ namespace EpgTimer
         public static string EdcbExePath
         {
             get { return IniFileHandler.GetPrivateProfileString("SET", "RecExePath", DefEdcbExePath, CommonIniPath); }
-            set { IniFileHandler.WritePrivateProfileString("SET", "RecExePath", value == "" || string.Compare(value, DefEdcbExePath, true) == 0 ? null : value, SettingPath.CommonIniPath); }
+            set { IniFileHandler.WritePrivateProfileString("SET", "RecExePath", value == "" || value.Equals(DefEdcbExePath, StringComparison.OrdinalIgnoreCase) == true ? null : value, SettingPath.CommonIniPath); }
         }
         public static string EdcbIniPath
         {
@@ -284,7 +284,7 @@ namespace EpgTimer
             set
             {
                 string path = CheckFolder(value);
-                bool isDefaultPath = path == "" || string.Compare(path.TrimEnd('\\'), SettingPath.DefSettingFolderPath.TrimEnd('\\'), true) == 0;
+                bool isDefaultPath = path == "" || path.TrimEnd('\\').Equals(SettingPath.DefSettingFolderPath.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) == true;
                 if (CommonManager.Instance.NWMode == false)
                 {
                     IniFileHandler.WritePrivateProfileString("SET", "DataSavePath", isDefaultPath == true ? null : path, SettingPath.CommonIniPath);
@@ -633,7 +633,7 @@ namespace EpgTimer
                 defRecFolders = value;
                 if (defRecFolders == null) return;
 
-                int recFolderCount = defRecFolders.Count == 1 && string.Compare(defRecFolders[0], SettingPath.SettingFolderPath, true) == 0 ? 0 : defRecFolders.Count;
+                int recFolderCount = defRecFolders.Count == 1 && defRecFolders[0].Equals(SettingPath.SettingFolderPath, StringComparison.OrdinalIgnoreCase) == true ? 0 : defRecFolders.Count;
                 IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
                 IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
                 

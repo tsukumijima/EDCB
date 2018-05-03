@@ -194,7 +194,7 @@ namespace EpgTimer
                     {
                         log += "  ID=0x" + id.ToString("X12") + " -> 0x" + item.Key.ToString("X12") + " (" + item.ServiceName + ")\r\n";
                     }
-                    else if (log.EndsWith(".\r\n") == false)
+                    else if (log.EndsWith(".\r\n", StringComparison.Ordinal) == false)
                     {
                         log += "  ...\r\n";
                     }

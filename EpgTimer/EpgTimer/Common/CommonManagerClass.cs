@@ -1115,7 +1115,7 @@ namespace EpgTimer
 
             string base_src = "";
             string base_nw = "";
-            if (checkNWPath == true && Instance.NWMode == true && path != "" && path.StartsWith("\\\\") == false)
+            if (checkNWPath == true && Instance.NWMode == true && path != "" && path.StartsWith("\\\\", StringComparison.Ordinal) == false)
             {
                 //可能ならUNCパスをサーバ側のパスに戻す。
                 //複数の共有フォルダ使ってる場合はとりあえず諦める。(サーバ側で要逆変換)
@@ -1146,7 +1146,7 @@ namespace EpgTimer
             if (path != null && tbox.IsEnabled == true && tbox.IsReadOnly == false)
             {
                 //他のドライブに変ったりしたときは何もしない
-                if (base_nw != "" && path.StartsWith(base_nw) == true)
+                if (base_nw != "" && path.StartsWith(base_nw, StringComparison.Ordinal) == true)
                 {
                     path = path.Replace(base_nw, base_src);
                 }
@@ -1174,7 +1174,7 @@ namespace EpgTimer
                 String path1 = GetRecPath(folderPath);
                 bool isFile = File.Exists(path1) == true;//録画結果から開く場合
                 String path = isFile == true ? path1 : GetDirectoryName2(path1);//録画フォルダ未作成への対応
-                bool noParent = path.TrimEnd('\\').CompareTo(path1.TrimEnd('\\')) != 0;//フォルダを遡った場合の特例
+                bool noParent = path.TrimEnd('\\') != path1.TrimEnd('\\');//フォルダを遡った場合の特例
 
                 if (String.IsNullOrWhiteSpace(path) == true)
                 {
@@ -1454,7 +1454,7 @@ namespace EpgTimer
                         {
                             string buff = reader.ReadLine();
                             int start = buff.IndexOf('[');
-                            int end = buff.LastIndexOf(".dll]");
+                            int end = buff.LastIndexOf(".dll]", StringComparison.Ordinal);
                             if (start >= 0 && end >= start + 2)
                             {
                                 int comment = buff.IndexOf(';');
@@ -1472,7 +1472,7 @@ namespace EpgTimer
 
         private static String GetBonFileName(String src)
         {
-            int pos = src.LastIndexOf(")");
+            int pos = src.LastIndexOf(")", StringComparison.Ordinal);
             if (pos < 1)
             {
                 return src;

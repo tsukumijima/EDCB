@@ -145,7 +145,7 @@ namespace EpgTimer
         /// <summary>ヘッダが無効扱いのキーを持っていたらtrueを返す。</summary>
         private bool IsExceptionHeader(GridViewColumnHeader headerClicked0)
         {
-            return exceptionHeaders.Exists(str => str.CompareTo(getHeaderString(headerClicked0)) == 0);
+            return exceptionHeaders.Exists(str => str == getHeaderString(headerClicked0));
         }
 
         /// <summary>最後にソートしたヘッダを返す。マルチソートの場合、最後に追加されたヘッダを返す。</summary>

@@ -46,10 +46,10 @@ namespace EpgTimer
         {
             button_ok.Content = "変更";
             chkbox_partial.IsChecked = info.PartialRec;
-            textBox_recFolder.Text = String.Compare(info.Info.RecFolder, "!Default", true) == 0 ? "" : SettingPath.CheckFolder(info.Info.RecFolder);
-            comboBox_writePlugIn.SelectedItem = comboBox_writePlugIn.Items.OfType<string>().FirstOrDefault(s => String.Compare(s, info.Info.WritePlugIn, true) == 0);
+            textBox_recFolder.Text = info.Info.RecFolder.Equals("!Default", StringComparison.OrdinalIgnoreCase) == true ? "" : SettingPath.CheckFolder(info.Info.RecFolder);
+            comboBox_writePlugIn.SelectedItem = comboBox_writePlugIn.Items.OfType<string>().FirstOrDefault(s => s.Equals(info.Info.WritePlugIn, StringComparison.OrdinalIgnoreCase) == true);
             string pluginName = info.Info.RecNamePlugIn.Substring(0, (info.Info.RecNamePlugIn + '?').IndexOf('?'));
-            var plugin = comboBox_recNamePlugIn.Items.OfType<string>().FirstOrDefault(s => String.Compare(s, pluginName, true) == 0);
+            var plugin = comboBox_recNamePlugIn.Items.OfType<string>().FirstOrDefault(s => s.Equals(pluginName, StringComparison.OrdinalIgnoreCase) == true);
             if (plugin != null)
             {
                 comboBox_recNamePlugIn.SelectedItem = plugin;

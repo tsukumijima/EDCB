@@ -35,7 +35,7 @@ namespace EpgTimer
             }
         }
         public bool IsEpgReserve { get { return EventID != 0xFFFF; } }
-        public bool IsAutoAdded { get { return Comment != "" && Comment.EndsWith("$") == false; } }
+        public bool IsAutoAdded { get { return Comment != "" && Comment.EndsWith("$", StringComparison.Ordinal) == false; } }
         public void ReleaseAutoAdd() { if (IsAutoAdded == true) Comment += "$"; }
 
         public bool IsEnabled { get { return RecSetting.RecMode != 5; } }

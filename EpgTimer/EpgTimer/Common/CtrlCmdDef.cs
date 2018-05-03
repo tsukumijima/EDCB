@@ -1195,17 +1195,17 @@ namespace EpgTimer
                 chkRecDay %= 10000;
             }
 
-            if (andKey.StartsWith("^!{999}") == true)//"^!{999}"が前
+            if (andKey.StartsWith("^!{999}", StringComparison.Ordinal) == true)//"^!{999}"が前
             {
                 keyDisabledFlag = 1;
                 andKey = andKey.Substring(7);
             }
-            if (andKey.StartsWith("C!{999}") == true)
+            if (andKey.StartsWith("C!{999}", StringComparison.Ordinal) == true)
             {
                 caseFlag = 1;
                 andKey = andKey.Substring(7);
             }
-            if (andKey.Length > 13 && andKey.StartsWith("D!{1") == true && andKey[12] == '}')
+            if (andKey.Length > 13 && andKey.StartsWith("D!{1", StringComparison.Ordinal) == true && andKey[12] == '}')
             {
                 uint dur = 0;
                 uint.TryParse(andKey.Substring(4, 8), out dur);

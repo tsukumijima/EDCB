@@ -214,7 +214,7 @@ namespace EpgTimer.Setting
             string org_setPath = SettingPath.SettingFolderPath;
             SettingPath.SettingFolderPath = textBox_setPath.Text;
             System.IO.Directory.CreateDirectory(SettingPath.SettingFolderPath);
-            IsChangeSettingPath = string.Compare(org_setPath, SettingPath.SettingFolderPath, true) != 0;
+            IsChangeSettingPath = org_setPath.Equals(SettingPath.SettingFolderPath, StringComparison.OrdinalIgnoreCase) == false;
 
             SettingPath.EdcbExePath = textBox_exe.Text;
 
@@ -322,7 +322,7 @@ namespace EpgTimer.Setting
                         time += "w" + ((wday + 5) % 7 + 1);
                     }
 
-                    if (listView_time.Items.Cast<EpgCaptime>().Any(info => String.Compare(info.Time, time, true) == 0) == true)
+                    if (listView_time.Items.Cast<EpgCaptime>().Any(info => info.Time.Equals(time, StringComparison.OrdinalIgnoreCase) == true) == true)
                     { return; }
 
                     var item = new EpgCaptime();

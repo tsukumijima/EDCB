@@ -106,7 +106,7 @@ namespace EpgTimer
                 chListOrderByIndex = new List<ChSet5Item>();
                 for (string buff = reader.ReadLine(); buff != null; buff = reader.ReadLine())
                 {
-                    if (buff.IndexOf(";") == 0)
+                    if (buff.StartsWith(";", StringComparison.Ordinal))
                     {
                         //コメント行
                     }
