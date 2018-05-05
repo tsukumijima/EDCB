@@ -1068,6 +1068,14 @@ namespace EpgTimer
             try
             {
                 string path = GetSettingPath();
+
+                try
+                {
+                    //所有者などが特殊なときFile.Replace()に失敗することがあるため
+                    File.Delete(path + ".back");
+                }
+                catch { }
+
                 using (var fs = new FileStream(path + ".back", FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     //シリアル化して書き込む
