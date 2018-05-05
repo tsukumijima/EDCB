@@ -29,7 +29,7 @@ namespace EpgTimer
         {
             InitializeComponent();
 
-            base.SetParam(true, checkBox_windowPinned, checkBox_dataReplace);
+            base.SetParam(false, checkBox_windowPinned, checkBox_dataReplace);
 
             //コマンドの登録
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Cancel, (sender, e) => this.Close()));

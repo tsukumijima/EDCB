@@ -132,6 +132,7 @@ namespace EpgTimer
         private void PresetEdited(List<RecPresetItem> list, PresetEdit mode)
         {
             Settings.Instance.RecPresetList = list;
+            Settings.SaveToXmlFile();
             SettingWindow.UpdatesInfo("録画プリセット変更");
             if (CommonManager.Instance.NWMode == false)
             {
