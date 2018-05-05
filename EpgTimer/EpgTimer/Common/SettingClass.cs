@@ -925,6 +925,8 @@ namespace EpgTimer
             dest.NotifyLogEpgTimer = NotifyLogEpgTimer;
             dest.TryEpgSetting = TryEpgSetting;
             dest.SettingFolderPathNW = SettingFolderPathNW;
+            dest.AndKeyList = AndKeyList;
+            dest.NotKeyList = NotKeyList;
         }
 
         private static Settings _instance;

@@ -302,8 +302,8 @@ namespace EpgTimer.Setting
 
         private void button_clearSerchKeywords_Click(object sender, RoutedEventArgs e)
         {
-            settings.AndKeyList = new List<string>();
-            settings.NotKeyList = new List<string>();
+            Settings.Instance.AndKeyList.Clear();
+            Settings.Instance.NotKeyList.Clear();
         }
 
         private void checkBox_ReplacePatternEditFontShare_Click(object sender, RoutedEventArgs e)
