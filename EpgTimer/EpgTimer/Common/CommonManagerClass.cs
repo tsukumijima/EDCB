@@ -1454,7 +1454,7 @@ namespace EpgTimer
                         {
                             string buff = reader.ReadLine();
                             int start = buff.IndexOf('[');
-                            int end = buff.LastIndexOf(".dll]", StringComparison.Ordinal);
+                            int end = buff.LastIndexOf(".dll]", StringComparison.OrdinalIgnoreCase);
                             if (start >= 0 && end >= start + 2)
                             {
                                 int comment = buff.IndexOf(';');
@@ -1472,7 +1472,7 @@ namespace EpgTimer
 
         private static String GetBonFileName(String src)
         {
-            int pos = src.LastIndexOf(")", StringComparison.Ordinal);
+            int pos = src.LastIndexOf(')');
             if (pos < 1)
             {
                 return src;
