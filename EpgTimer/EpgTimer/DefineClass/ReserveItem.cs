@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Media;
 
 namespace EpgTimer
@@ -119,7 +121,10 @@ namespace EpgTimer
             view += EventName + "\r\n\r\n";
 
             view += ConvertRecSettingText() + "\r\n";
-            view += "予約状況 : " + Comment + "\r\n\r\n";
+            view += "使用予定チューナー : " + ReserveTuner + "\r\n";
+            view += "予約状況 : " + Comment + "\r\n";
+            List<string> errs = ErrComment;
+            view += "エラー状況 : " + (errs.Count == 0 ? "なし" : string.Join(" ", errs.Select(s => "＊" + s))) + "\r\n\r\n";
 
             view += CommonManager.Convert64PGKeyString(ReserveInfo.Create64PgKey()) + "\r\n\r\n";
 

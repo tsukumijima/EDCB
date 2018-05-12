@@ -222,7 +222,9 @@ namespace EpgTimer
             string view = "Andキーワード : " + EventName + "\r\n";
             view += "Notキーワード : " + NotKey + "\r\n";
             view += "正規表現モード : " + RegExp + "\r\n";
+            view += "あいまい検索モード : " + Aimai + "\r\n";
             view += "番組名のみ検索対象 : " + TitleOnly + "\r\n";
+            view += "大小文字区別 : " + CaseSensitive + "\r\n";
             view += "自動登録 : " + (KeyEnabled == true ? "有効" : "無効") + "\r\n";
             view += "ジャンル絞り込み : " + JyanruKey + "\r\n";
             view += "時間絞り込み : " + DateKey + "\r\n";
