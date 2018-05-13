@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace EpgTimer
@@ -12,6 +12,8 @@ namespace EpgTimer
     /// </summary>
     public partial class InfoSearchWindow : InfoSearchWindowBase
     {
+        private InfoSearchSettingData SearchInfo { get { return (InfoSearchSettingData)DataContext; } }
+
         private ListViewController<InfoSearchItem> lstCtrl;
         private CmdExe<InfoSearchItem> mc;
 
@@ -28,8 +30,11 @@ namespace EpgTimer
         private Type selectedType = typeof(InfoSearchItem);
 
         private bool startSearch = false;
+        private bool noSearchSettingSave = false;
 
-        public InfoSearchWindow()
+        public InfoSearchWindow(string searchWord = null) { InitWindow(null, searchWord); }
+        public InfoSearchWindow(InfoSearchSettingData searchInfo, bool noSave = false) { InitWindow(searchInfo, null, noSave); }
+        public void InitWindow(InfoSearchSettingData searchInfo, string searchWord = null, bool noSave = false)
         {
             InitializeComponent();
 
@@ -128,13 +133,11 @@ namespace EpgTimer
                 this.listView_result.SelectionChanged += (sender, e) => ResetMenu();
 
                 //その他設定
-                TextBox_SearchWord.Text = Settings.Instance.InfoSearchLastWord;
-                checkBox_TitleOnly.IsChecked = Settings.Instance.InfoSearchTitleOnly;
                 checkBox_ShowToolTip.IsChecked = Settings.Instance.InfoSearchItemTooltip;
-                checkBox_ReserveInfo.IsChecked = Settings.Instance.InfoSearchReserveInfo;
-                checkBox_RecInfo.IsChecked = Settings.Instance.InfoSearchRecInfo;
-                checkBox_EpgAutoAddInfo.IsChecked = Settings.Instance.InfoSearchEpgAutoAddInfo;
-                checkBox_ManualAutoAddInfo.IsChecked = Settings.Instance.InfoSearchManualAutoAddInfo;
+                DataContext = (searchInfo ?? Settings.Instance.InfoSearchData).DeepCloneObj();
+                if (searchWord != null) SearchInfo.SearchWord = searchWord;
+                startSearch = searchInfo != null || searchWord != null;
+                noSearchSettingSave = noSave;
 
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
@@ -163,14 +166,6 @@ namespace EpgTimer
             }
         }
 
-        public void SetSearchWord(string word)
-        {
-            if (word != null)
-            {
-                startSearch = true;
-                TextBox_SearchWord.Text = word;
-            }
-        }
         private void mc_Search(object sender, ExecutedRoutedEventArgs e)
         {
             Search();
@@ -183,56 +178,67 @@ namespace EpgTimer
                 lstCtrl.ReloadInfoData(dataList =>
                 {
                     var targetItems = new List<IRecWorkMainData>();
-                    if (checkBox_ReserveInfo.IsChecked == true)
+                    if (SearchInfo.ReserveInfo == true)
                     {
                         targetItems.AddRange(CommonManager.Instance.DB.ReserveList.Values);
                     }
-                    if (checkBox_RecInfo.IsChecked == true)
+                    if (SearchInfo.RecInfo == true)
                     {
                         //起動直後は読み込んでない場合がある。
                         CommonManager.Instance.DB.ReloadRecFileInfo();
 
                         //詳細情報が必要な場合はあらかじめ読込んでおく。
-                        if (checkBox_TitleOnly.IsChecked  == false)
+                        if (SearchInfo.TitleOnly == false)
                         {
                             CommonManager.Instance.DB.ReadRecFileAppend();
                         }
 
                         targetItems.AddRange(CommonManager.Instance.DB.RecFileInfo.Values);
                     }
-                    if (checkBox_EpgAutoAddInfo.IsChecked == true)
+                    if (SearchInfo.EpgAutoAddInfo == true)
                     {
                         targetItems.AddRange(CommonManager.Instance.DB.EpgAutoAddList.Values);
                     }
-                    if (checkBox_ManualAutoAddInfo.IsChecked == true)
+                    if (SearchInfo.ManualAutoAddInfo == true)
                     {
                         targetItems.AddRange(CommonManager.Instance.DB.ManualAutoAddList.Values);
                     }
 
-                    string sText = CommonManager.AdjustSearchText(TextBox_SearchWord.Text);
-                    string[] sWords = sText.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    string sText = CommonManager.AdjustSearchText(SearchInfo.SearchWord);
 
-                    var hitItems = InfoSearchItem.Items(targetItems).Where(data =>
+                    if (SearchInfo.RegExp == true)
                     {
-                        //検索ワードで対象のタイトルまたは詳細をAND検索
-                        string trgText = data.GetSearchText(checkBox_TitleOnly.IsChecked == true);
-                        trgText = CommonManager.AdjustSearchText(trgText).Replace(" ", "");
-                        if (sWords.All(word => trgText.Contains(word)) == true)
+                        dataList.AddRange(InfoSearchItem.Items(targetItems).Where(data =>
                         {
-                            return true;
-                        }
+                            string trgText = data.GetSearchText(SearchInfo.TitleOnly);
+                            trgText = CommonManager.ReplaceText(trgText, CommonManager.ReplaceUrlDictionary).ToLower();
+                            return Regex.Match(trgText, sText).Success;
+                        }));
+                    }
+                    else
+                    {
+                        string[] sWords = sText.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        dataList.AddRange(InfoSearchItem.Items(targetItems).Where(data =>
+                        {
+                            //検索ワードで対象のタイトルまたは詳細をAND検索
+                            string trgText = data.GetSearchText(SearchInfo.TitleOnly);
+                            trgText = CommonManager.AdjustSearchText(trgText).Replace(" ", "");
+                            if (sWords.All(word => trgText.Contains(word)) == true)
+                            {
+                                return true;
+                            }
 
-                        //キーワード予約を考慮し、逆に対象のタイトルで検索ワードのAND検索もしておく。
-                        string[] trgWords = CommonManager.AdjustSearchText(data.DataTitle).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        return trgWords.Any() == true && trgWords.All(word => sText.Contains(word));
-                    });
+                            //キーワード予約を考慮し、逆に対象のタイトルで検索ワードのAND検索もしておく。
+                            string[] trgWords = CommonManager.AdjustSearchText(data.DataTitle).Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            return trgWords.Any() == true && trgWords.All(word => sText.Contains(word));
+                        }));
+                    }
 
-                    dataList.AddRange(hitItems);
                     ToolTipCheck();
                     return true;
                 });
 
-                this.Title = ViewUtil.WindowTitleText(TextBox_SearchWord.Text, "予約情報検索");
+                this.Title = ViewUtil.WindowTitleText(SearchInfo.SearchWord, "予約情報検索");
                 UpdateStatus();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -330,22 +336,16 @@ namespace EpgTimer
             else
             {
                 WriteWindowSaveData();
-
-                var dlg = new InfoSearchWindow();
-                dlg.SetSearchWord(word);
-                dlg.Show();
+                InfoSearchSettingData data = SearchInfo.DeepClone();
+                data.SearchWord = word;
+                new InfoSearchWindow(data, noSearchSettingSave).Show();
             }
         }
 
         protected override void WriteWindowSaveData()
         {
-            Settings.Instance.InfoSearchLastWord = TextBox_SearchWord.Text;
-            Settings.Instance.InfoSearchTitleOnly = checkBox_TitleOnly.IsChecked == true;
+            if (noSearchSettingSave == false) Settings.Instance.InfoSearchData = SearchInfo.DeepClone();
             Settings.Instance.InfoSearchItemTooltip = checkBox_ShowToolTip.IsChecked == true;
-            Settings.Instance.InfoSearchReserveInfo = checkBox_ReserveInfo.IsChecked == true;
-            Settings.Instance.InfoSearchRecInfo = checkBox_RecInfo.IsChecked == true;
-            Settings.Instance.InfoSearchEpgAutoAddInfo = checkBox_EpgAutoAddInfo.IsChecked == true;
-            Settings.Instance.InfoSearchManualAutoAddInfo = checkBox_ManualAutoAddInfo.IsChecked == true;
             lstCtrl.SaveViewDataToSettings();
 
             base.WriteWindowSaveData();

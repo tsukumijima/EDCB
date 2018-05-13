@@ -903,10 +903,7 @@ namespace EpgTimer
             try
             {
                 word = TrimKeywordCheckToggled(word, Settings.Instance.MenuSet.InfoSearchTitle_Trim, NotToggle);
-
-                var dlg = new InfoSearchWindow();
-                dlg.SetSearchWord(word);
-                dlg.Show();
+                new InfoSearchWindow(word).Show();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

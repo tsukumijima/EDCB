@@ -22,14 +22,15 @@
                 <StackPanel Margin="6">
                     <GroupBox Margin="6" Header="検索対象">
                         <WrapPanel Margin="6">
-                            <CheckBox Margin="0,0,12,0" Content="予約" Name="checkBox_ReserveInfo" />
-                            <CheckBox Margin="0,0,12,0" Content="録画結果" Name="checkBox_RecInfo" />
-                            <CheckBox Margin="0,0,12,0" Content="キーワード予約" Name="checkBox_EpgAutoAddInfo" />
-                            <CheckBox Margin="0,0,12,0" Content="プログラム予約" Name="checkBox_ManualAutoAddInfo" />
+                            <CheckBox Margin="0,0,12,0" Content="予約" IsChecked="{Binding ReserveInfo}" />
+                            <CheckBox Margin="0,0,12,0" Content="録画結果" IsChecked="{Binding RecInfo}" />
+                            <CheckBox Margin="0,0,12,0" Content="キーワード予約" IsChecked="{Binding EpgAutoAddInfo}" />
+                            <CheckBox Margin="0,0,12,0" Content="プログラム予約" IsChecked="{Binding ManualAutoAddInfo}" />
                         </WrapPanel>
                     </GroupBox>
                     <WrapPanel Margin="6,0,0,0" >
-                        <CheckBox  Content="タイトルのみ検索" Name="checkBox_TitleOnly" ToolTip="未チェック時は、各詳細ウィンドウまたはツールチップに表示される情報を検索します。" />
+                        <CheckBox  Content="正規表現" IsChecked="{Binding RegExp}" ToolTipService.ShowDuration="600000" ToolTip="チェック時・未チェック時とも全半角、大小文字を区別しません。&#10;また、未チェック時は追加で逆検索(検索対象のタイトルで検索語を検索)を行います。&#10;　※関連キーワード予約を抽出しやすくするための処置" />
+                        <CheckBox  Margin="12,0,0,0" Content="タイトルのみ検索" IsChecked="{Binding TitleOnly}" ToolTip="未チェック時は、各詳細ウィンドウまたはツールチップに表示される情報を検索します。" />
                         <CheckBox  Margin="12,0,0,0" Content="検索結果のツールチップを表示する" Name="checkBox_ShowToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。" Checked="checkBox_ShowToolTip_Checked" Unchecked="checkBox_ShowToolTip_Checked" />
                     </WrapPanel>
                 </StackPanel>
@@ -37,7 +38,7 @@
             <DockPanel Margin="0,6,0,0" HorizontalAlignment="Stretch" >
                 <Label Margin="0,0,10,0" Content="検索語"/>
                 <Button DockPanel.Dock="Right" Content="検索" Name="button_search" MinWidth="72" HorizontalAlignment="Right" IsDefault="True" />
-                <TextBox Margin="0,0,20,0" Name="TextBox_SearchWord" HorizontalAlignment="Stretch" />
+                <TextBox Margin="0,0,20,0" Name="TextBox_SearchWord" Text="{Binding SearchWord, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" HorizontalAlignment="Stretch" />
             </DockPanel>
         </StackPanel>
         <ListView Grid.Row="1" Name="listView_result" Margin="0,5,0,1" Style="{StaticResource DataListViewStyle}" IsTabStop="True">

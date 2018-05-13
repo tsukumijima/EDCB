@@ -513,13 +513,8 @@ namespace EpgTimer
         public List<ListColumnInfo> InfoSearchWndColumn { get; set; }
         public string InfoSearchColumnHead { get; set; }
         public ListSortDirection InfoSearchSortDirection { get; set; }
-        public string InfoSearchLastWord { get; set; }
-        public bool InfoSearchTitleOnly { get; set; }
-        public bool InfoSearchReserveInfo { get; set; }
-        public bool InfoSearchRecInfo { get; set; }
-        public bool InfoSearchEpgAutoAddInfo { get; set; }
-        public bool InfoSearchManualAutoAddInfo { get; set; }
         public bool InfoSearchItemTooltip { get; set; }
+        public InfoSearchSettingData InfoSearchData { get; set; }
         public short AutoSaveNotifyLog { get; set; }
         public int NotifyLogMax { get; set; }
         public bool NotifyLogEpgTimer { get; set; }
@@ -823,13 +818,8 @@ namespace EpgTimer
             InfoSearchWndColumn = new List<ListColumnInfo>();
             InfoSearchColumnHead = "";
             InfoSearchSortDirection = ListSortDirection.Ascending;
-            InfoSearchLastWord = "";
-            InfoSearchTitleOnly = true;
-            InfoSearchReserveInfo = true;
-            InfoSearchRecInfo = true;
-            InfoSearchEpgAutoAddInfo = true;
-            InfoSearchManualAutoAddInfo = true;
             InfoSearchItemTooltip = true;
+            InfoSearchData = new InfoSearchSettingData(true);
             AutoSaveNotifyLog = 0;
             NotifyLogMax = 100;
             NotifyLogEpgTimer = false;
@@ -914,13 +904,8 @@ namespace EpgTimer
             dest.InfoSearchWndColumn = InfoSearchWndColumn;
             dest.InfoSearchColumnHead = InfoSearchColumnHead;
             dest.InfoSearchSortDirection = InfoSearchSortDirection;
-            dest.InfoSearchLastWord = InfoSearchLastWord;
-            dest.InfoSearchTitleOnly = InfoSearchTitleOnly;
-            dest.InfoSearchReserveInfo = InfoSearchReserveInfo;
-            dest.InfoSearchRecInfo = InfoSearchRecInfo;
-            dest.InfoSearchEpgAutoAddInfo = InfoSearchEpgAutoAddInfo;
-            dest.InfoSearchManualAutoAddInfo = InfoSearchManualAutoAddInfo;
             dest.InfoSearchItemTooltip = InfoSearchItemTooltip;
+            dest.InfoSearchData = InfoSearchData;
             dest.NotifyLogMax = NotifyLogMax;
             dest.NotifyLogEpgTimer = NotifyLogEpgTimer;
             dest.TryEpgSetting = TryEpgSetting;
