@@ -312,7 +312,7 @@ namespace EpgTimer
         {
             PopPanel.PopUpMode = true;
             PopPanel.SetBorderStyleFromSettings();
-            PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.DataObj) as PanelItem;
+            PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.Data) as PanelItem;
             PopPanel.Item.Width = PopWidth - PopPanel.WidthMarginRight;
             PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderHeight(9999), Popup.MinHeight);
             Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;

@@ -20,8 +20,8 @@ namespace EpgTimer
                     TopPos <= cursorPos.Y && cursorPos.Y < TopPos + Height;
         }
 
-        public PanelItem(object info) { DataObj = info; }
-        public object DataObj { get; protected set; }
+        public PanelItem(object info) { Data = info; }
+        public object Data { get; protected set; }
         public bool TitleDrawErr { get; set; }
         public virtual Brush BackColor { get { return null; } }
         public virtual Brush BorderBrush { get { return null; } }
@@ -29,7 +29,7 @@ namespace EpgTimer
 
     public class PanelItem<T> : PanelItem
     {
-        public T Data { get { return (T)DataObj; } }
+        public new T Data { get { return (T)base.Data; } }
         public PanelItem(T info) : base(info) { }
     }
 
