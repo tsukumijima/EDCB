@@ -203,6 +203,7 @@ namespace EpgTimer
                     CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
                     CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
                     CommonManager.Instance.DB.ReloadEpgData();//これはすぐにNotify来る場合があるので現状維持
+                    Dispatcher.BeginInvoke(new Action(() => UpdateReserveTab()), DispatcherPriority.Loaded);
                 }
 
                 //タスクトレイの設定
@@ -242,10 +243,21 @@ namespace EpgTimer
                     //tab == tabItem_epg ? SettingWindow.SettingMode.EpgSetting :
                     SettingWindow.SettingMode.Default;
 
-                    var menuSet = new MenuItem { Header = tab.Header as string + "の画面設定...(_O)" };
+                    var menuSet = new MenuItem { Header = (tab.Header as string ?? tab.Tag as string) + "の画面設定...(_O)" };
                     menuSet.Click += (s2, e2) => ViewUtil.MainWindow.OpenSettingDialog(mode);
                     var ctxm = new ContextMenu { IsOpen = true };
                     ctxm.Items.Add(menuSet);
+
+                    //チューナー不足時の追加メニュー
+                    if (tab == tabItem_reserve || tab == tabItem_tunerReserve)
+                    {
+                        var menuSearch = new MenuItem { Header = "チューナー不足予約一覧" };
+                        menuSearch.Click += (s2, e2) => new InfoSearchWindow(new InfoSearchSettingData()
+                        { SearchWord = "エラー状況 : *チューナー不足(", ReserveInfo = true }, true).Show();
+                        menuSearch.IsEnabled = res_icon_Error.Visibility == Visibility.Visible || res_icon_Warning.Visibility == Visibility.Visible;
+                        ctxm.Items.Add(new Separator() { IsEnabled = menuSearch.IsEnabled });
+                        ctxm.Items.Add(menuSearch);
+                    }
                 };
 
                 //初期タブ選択
@@ -618,6 +630,7 @@ namespace EpgTimer
             CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
             CommonManager.Instance.DB.ReloadEpgData(true);
             reserveView.UpdateInfo();
+            UpdateReserveTab();
             tunerReserveView.UpdateInfo();
             autoAddView.UpdateInfo();
             recInfoView.UpdateInfo();
@@ -1330,6 +1343,7 @@ namespace EpgTimer
                     {
                         err = CommonManager.Instance.DB.ReloadReserveInfo(true);
                         RefreshAllViewsReserveInfo();
+                        UpdateReserveTab();
                         TrayManager.UpdateInfo();
                         StatusManager.StatusNotifyAppend("予約データ更新 < ");
                     }
@@ -1444,6 +1458,7 @@ namespace EpgTimer
                     {
                         //更新しない場合でも、再描画だけはかけておく
                         RefreshAllViewsReserveInfo();
+                        UpdateReserveTab();
                     }
                 }
                 StatusManager.StatusNotifySet("情報の強制更新を実行(F5)");
@@ -1495,7 +1510,7 @@ namespace EpgTimer
                     return;
             }
             BlackoutWindow.NowJumpTable = true;
-            new BlackoutWindow(this).showWindow(tab.Header.ToString());
+            new BlackoutWindow(this).showWindow((tab.Header as string ?? tab.Tag).ToString());
             this.Focus();//チューナー画面やEPG画面でのフォーカス対策。とりあえずこれで解決する。
             tab.IsSelected = false;//必ずOnVisibleChanged()を発生させるため。
             tab.IsSelected = true;
@@ -1564,6 +1579,22 @@ namespace EpgTimer
                 }
                 ViewUtil.TabControlHeaderCopy(tabControl_main, tabEpgDummy);
             }
+        }
+
+        /// <summary>
+        /// 予約情報の更新通知
+        /// </summary>
+        public void UpdateReserveTab()
+        {
+            bool ReserveError = CommonManager.Instance.DB.ReserveList.Values.Any(info => info.OverlapMode == 2);
+            bool ReserveWarning = CommonManager.Instance.DB.ReserveList.Values.Any(info => info.OverlapMode == 1);
+            res_icon_Error.Visibility = ReserveError == true ? Visibility.Visible : Visibility.Collapsed;
+            res_icon_Warning.Visibility = (ReserveError == false && ReserveWarning == true) ? Visibility.Visible : Visibility.Collapsed;
+
+            //予約一覧のタブにツールチップを追加
+            string tooltip = ((ReserveError == true ? "チューナー不足(録画不可)あり" : "") + "\r\n" +
+                                    (ReserveWarning == true ? "チューナー不足(一部録画)あり" : "")).Trim();
+            grid_res_Header.ToolTip = tooltip != "" ? tooltip : null;
         }
 
         public void ListFoucsOnVisibleChanged()

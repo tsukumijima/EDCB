@@ -13,7 +13,14 @@ TextOptions.TextFormattingMode="Display"
         <WrapPanel Name="stackPanel_button" />
         <Grid Grid.Row="1">
             <TabControl Name="tabControl_main">
-                <TabItem Header="予約一覧" Name="tabItem_reserve">
+                <TabItem Name="tabItem_reserve" Tag="予約一覧">
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal" Name="grid_res_Header">
+                            <TextBlock Margin="0,0,-4,0" Padding="0,0,4,0" Text="予約一覧" />
+                            <Image Margin="4,-2,0,-2" Name="res_icon_Error" Source="Resources/109_AllAnnotations_Error_16x16_72.ico" Visibility="Collapsed" />
+                            <Image Margin="4,-2,0,-2" Name="res_icon_Warning" Source="Resources/109_AllAnnotations_Warning_16x16_72.ico" Visibility="Collapsed" />
+                        </StackPanel>
+                    </TabItem.Header>
                     <local:ReserveView x:Name="reserveView" />
                 </TabItem>
                 <TabItem Header="使用予定チューナー" Name="tabItem_tunerReserve">

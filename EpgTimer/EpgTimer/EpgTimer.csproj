@@ -524,6 +524,8 @@
     <Resource Include="Resources\key.ico" />
     <Resource Include="Resources\key_no.ico" />
     <Resource Include="Resources\drag.cur" />
+    <Resource Include="Resources\109_AllAnnotations_Error_16x16_72.ico" />
+    <Resource Include="Resources\109_AllAnnotations_Warning_16x16_72.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
