@@ -1,5 +1,6 @@
-﻿using System.Windows;
-using System.ComponentModel;
+﻿using System;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace EpgTimer {
     /// <summary>
@@ -48,15 +49,9 @@ namespace EpgTimer {
             this.messageLabel.Content = message0 + "...";
             this.Show();
             //
-            BackgroundWorker bgw1 = new BackgroundWorker();
-            bgw1.DoWork += (object sender, DoWorkEventArgs e) => {
-                System.Threading.Thread.Sleep(1000);
-            };
-            bgw1.RunWorkerCompleted += (object sender, RunWorkerCompletedEventArgs e) => {
-                //this.Owner.Focus();
-                this.Close();
-            };
-            bgw1.RunWorkerAsync();
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            timer.Tick += (sender, e) => { timer.Stop(); this.Close(); };
+            timer.Start();
         }
 
     }
