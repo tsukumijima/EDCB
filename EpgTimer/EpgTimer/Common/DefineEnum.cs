@@ -24,6 +24,7 @@ namespace EpgTimer
         No = 0, //なし
         EpgData = 1, //EPGデータ更新
         ReserveInfo = 2, //予約情報更新
+        ReserveName = 0x10000000 | ReserveInfo, //予約名のみ更新、EpgTimer内部でのみ使用。
         RecInfo = 3, //録画結果更新
         AutoAddEpgInfo = 4, //EPG自動予約登録更新
         AutoAddManualInfo = 5, //プログラム自動予約登録更新

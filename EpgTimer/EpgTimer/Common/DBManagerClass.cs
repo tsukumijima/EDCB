@@ -35,14 +35,9 @@ namespace EpgTimer
 
     class DBManager
     {
-        private bool updateEpgData = true;
-        private bool updateReserveInfo = true;
-        private bool updateRecInfo = true;
-        private bool updateAutoAddEpgInfo = true;
-        private bool updateAutoAddManualInfo = true;
-        private bool updatePlugInFile = true;
-        private bool noAutoReloadEpg = false;
-        private bool oneTimeReloadEpg = false;
+        public readonly Dictionary<UpdateNotifyItem, Action> DBChanged = new Dictionary<UpdateNotifyItem, Action>();
+        private HashSet<UpdateNotifyItem> upDateNotify = new HashSet<UpdateNotifyItem>(Enum.GetValues(typeof(UpdateNotifyItem)).Cast<UpdateNotifyItem>());
+
         private bool updateEpgAutoAddAppend = true;
         private bool updateEpgAutoAddAppendReserveInfo = true;
 
@@ -318,63 +313,48 @@ namespace EpgTimer
             EpgAutoAddList = new Dictionary<uint, EpgAutoAddData>();
         }
 
-        /// <summary>EPGデータの自動取得を行うかどうか(NW用)</summary>
-        public void SetNoAutoReloadEPG(bool noReload)
-        {
-            noAutoReloadEpg = noReload;
-        }
-
-        public void SetOneTimeReloadEpg()
-        {
-            oneTimeReloadEpg = true;
-        }
-
         /// <summary>データの更新があったことを通知</summary>
         /// <param name="updateInfo">[IN]更新のあったデータのフラグ</param>
-        public void SetUpdateNotify(UpdateNotifyItem updateInfo)
+        public void SetUpdateNotify(UpdateNotifyItem notify)
         {
-            switch (updateInfo)
+            upDateNotify.Add(notify);
+        }
+        public bool IsNotifyRegistered(UpdateNotifyItem notify)
+        {
+            return upDateNotify.Contains(notify);
+        }
+        public void ResetUpdateNotify(UpdateNotifyItem notify)
+        {
+            ResetNotifyWork(notify, true);
+        }
+        private void ResetNotifyWork(UpdateNotifyItem notify, bool resetOnly = false)
+        {
+            if (resetOnly == false && upDateNotify.Contains(notify) == true)
             {
-                case UpdateNotifyItem.EpgData:
-                    updateEpgData = true;
-                    updateEpgAutoAddAppend = true;
-                    epgAutoAddAppendList = null;//検索数が変わる。
-                    reserveAppendList = null;
-                    break;
-                case UpdateNotifyItem.ReserveInfo:
-                    updateReserveInfo = true;
-                    manualAutoAddAppendList = null;
-                    updateEpgAutoAddAppendReserveInfo = true;
-                    reserveAppendList = null;
-                    break;
-                case UpdateNotifyItem.RecInfo:
-                    updateRecInfo = true;
-                    break;
-                case UpdateNotifyItem.AutoAddEpgInfo:
-                    updateAutoAddEpgInfo = true;
-                    updateEpgAutoAddAppend = true;
-                    reserveAppendList = null;
-                    break;
-                case UpdateNotifyItem.AutoAddManualInfo:
-                    updateAutoAddManualInfo = true;
-                    manualAutoAddAppendList = null;
-                    reserveAppendList = null;
-                    break;
-                case UpdateNotifyItem.PlugInFile:
-                    updatePlugInFile = true;
-                    break;
+                Action postFunc;
+                if (DBChanged.TryGetValue(notify, out postFunc) == true && postFunc != null)
+                {
+                    postFunc();
+                }
             }
+            upDateNotify.Remove(notify);
+        }
+        private ErrCode ReloadWork(UpdateNotifyItem notify, bool immediately, bool noRaiseChanged, Func<ErrCode, ErrCode> work)
+        {
+            if (immediately == true) SetUpdateNotify(notify);
+            var ret = ErrCode.CMD_SUCCESS;
+            if (IsNotifyRegistered(notify) == true)
+            {
+                ret = work(ret);
+                if (ret == ErrCode.CMD_SUCCESS) ResetNotifyWork(notify, noRaiseChanged);
+            }
+            return ret;
         }
 
-        /// <summary>EPG更新フラグをオフにする(EpgTimerSrv直接起動時用)。</summary>
-        public void ResetUpdateNotifyEpg() { updateEpgData = false; }
-
         /// <summary>EPGデータの更新があれば再読み込みする</summary>
-        public ErrCode ReloadEpgData(bool immediately = false)
+        public ErrCode ReloadEpgData(bool immediately = false, bool noRaiseChanged = false)
         {
-            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.EpgData);
-            var ret = ErrCode.CMD_SUCCESS;
-            if (updateEpgData == true && (noAutoReloadEpg == false || oneTimeReloadEpg == true))
+            return ReloadWork(UpdateNotifyItem.EpgData, immediately, noRaiseChanged, ret =>
             {
                 ServiceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
 
@@ -385,7 +365,7 @@ namespace EpgTimer
                 var list2 = new List<EpgServiceEventInfo>();
                 if (Settings.Instance.EpgLoadArcInfo == true)
                 {
-                    try { CommonManager.CreateSrvCtrl().SendEnumPgArcAll(ref list2); } catch {}
+                    try { CommonManager.CreateSrvCtrl().SendEnumPgArcAll(ref list2); } catch { }
                 }
                 foreach (EpgServiceEventInfo info in list)
                 {
@@ -407,18 +387,17 @@ namespace EpgTimer
                 //リモコンIDの登録
                 ChSet5.SetRemoconID(ServiceEventList);
 
-                updateEpgData = false;
-                oneTimeReloadEpg = false;
-            }
-            return ret;
+                updateEpgAutoAddAppend = true;
+                epgAutoAddAppendList = null;//検索数が変わる。
+                reserveAppendList = null;
+                return ret;
+            });
         }
 
         /// <summary>予約情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadReserveInfo(bool immediately = false)
+        public ErrCode ReloadReserveInfo(bool immediately = false, bool noRaiseChanged = false)
         {
-            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.ReserveInfo);
-            var ret = ErrCode.CMD_SUCCESS;
-            if (updateReserveInfo == true)
+            return ReloadWork(UpdateNotifyItem.ReserveInfo, immediately, noRaiseChanged, ret =>
             {
                 ReserveList = new Dictionary<uint, ReserveData>();
                 TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
@@ -434,17 +413,61 @@ namespace EpgTimer
                 list.ForEach(info => ReserveList.Add(info.ReserveID, info));
                 list2.ForEach(info => TunerReserveList.Add(info.tunerID, info));
 
-                updateReserveInfo = false;
-            }
-            return ret;
+                manualAutoAddAppendList = null;
+                updateEpgAutoAddAppendReserveInfo = true;
+                reserveAppendList = null;
+                return ret;
+            });
+        }
+
+        /// <summary>
+        /// 予約情報の録画予定ファイル名のみ再読み込みする
+        /// </summary>
+        /// <returns></returns>
+        public ErrCode ReloadReserveRecFileNameList(bool immediately = false, bool noRaiseChanged = false)
+        {
+            return ReloadWork(UpdateNotifyItem.ReserveName, immediately, noRaiseChanged, ret =>
+            {
+                bool changed = false;
+                if (ReserveList.Count > 0)
+                {
+                    var list = new List<ReserveData>();
+                    try { ret = CommonManager.CreateSrvCtrl().SendEnumReserve(ref list); } catch { ret = ErrCode.CMD_ERR; }
+                    if (ret != ErrCode.CMD_SUCCESS) return ret;
+
+                    foreach (ReserveData info in list)
+                    {
+                        if (ReserveList.ContainsKey(info.ReserveID))
+                        {
+                            if (ReserveList[info.ReserveID].RecFileNameList.Count != info.RecFileNameList.Count)
+                            {
+                                ReserveList[info.ReserveID].RecFileNameList = info.RecFileNameList;
+                                changed = true;
+                            }
+                            else
+                            {
+                                for (int i = 0; i < info.RecFileNameList.Count; i++)
+                                {
+                                    if (ReserveList[info.ReserveID].RecFileNameList[i] != info.RecFileNameList[i])
+                                    {
+                                        ReserveList[info.ReserveID].RecFileNameList = info.RecFileNameList;
+                                        changed = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                ResetNotifyWork(UpdateNotifyItem.ReserveName, changed && noRaiseChanged);
+                return ret;
+            });
         }
 
         /// <summary>録画済み情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadRecFileInfo(bool immediately = false)
+        public ErrCode ReloadRecFileInfo(bool immediately = false, bool noRaiseChanged = false)
         {
-            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.RecInfo);
-            var ret = ErrCode.CMD_SUCCESS;
-            if (updateRecInfo == true)
+            return ReloadWork(UpdateNotifyItem.RecInfo, immediately, noRaiseChanged, ret =>
             {
                 RecFileInfo = new Dictionary<uint, RecFileInfo>();
                 var list = new List<RecFileInfo>();
@@ -455,17 +478,14 @@ namespace EpgTimer
                 list.ForEach(info => RecFileInfo.Add(info.ID, info));
 
                 ClearRecFileAppend();
-                updateRecInfo = false;
-            }
-            return ret;
+                return ret;
+            });
         }
 
         /// <summary>PlugInFileの再読み込み指定があればする</summary>
-        public ErrCode ReloadPlugInFile(bool immediately = false)
+        public ErrCode ReloadPlugInFile(bool immediately = false, bool noRaiseChanged = false)
         {
-            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.PlugInFile);
-            var ret = ErrCode.CMD_SUCCESS;
-            if (updatePlugInFile == true)
+            return ReloadWork(UpdateNotifyItem.PlugInFile, immediately, noRaiseChanged, ret =>
             {
                 var recNameList = new List<string>();
                 var writeList = new List<string>();
@@ -476,19 +496,14 @@ namespace EpgTimer
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
 
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumPlugIn(2, ref writeList); } catch { ret = ErrCode.CMD_ERR; }
-                if (ret != ErrCode.CMD_SUCCESS) return ret;
-
-                updatePlugInFile = false;
-            }
-            return ret;
+                return ret;
+            });
         }
 
         /// <summary>EPG自動予約登録情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadEpgAutoAddInfo(bool immediately = false)
+        public ErrCode ReloadEpgAutoAddInfo(bool immediately = false, bool noRaiseChanged = false)
         {
-            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.AutoAddEpgInfo);
-            var ret = ErrCode.CMD_SUCCESS;
-            if (updateAutoAddEpgInfo == true)
+            return ReloadWork(UpdateNotifyItem.AutoAddEpgInfo, immediately, noRaiseChanged, ret =>
             {
                 Dictionary<uint, EpgAutoAddData> oldList = EpgAutoAddList;
                 EpgAutoAddList = new Dictionary<uint, EpgAutoAddData>();
@@ -500,18 +515,16 @@ namespace EpgTimer
                 list.ForEach(info => EpgAutoAddList.Add(info.dataID, info));
 
                 ClearEpgAutoAddDataAppend(oldList);
-                updateAutoAddEpgInfo = false;
-            }
-            return ret;
+                updateEpgAutoAddAppend = true;
+                reserveAppendList = null;
+                return ret;
+            });
         }
 
-
         /// <summary>自動予約登録情報の更新があれば再読み込みする</summary>
-        public ErrCode ReloadManualAutoAddInfo(bool immediately = false)
+        public ErrCode ReloadManualAutoAddInfo(bool immediately = false, bool noRaiseChanged = false)
         {
-            if (immediately == true) SetUpdateNotify(UpdateNotifyItem.AutoAddManualInfo);
-            var ret = ErrCode.CMD_SUCCESS;
-            if (updateAutoAddManualInfo == true)
+            return ReloadWork(UpdateNotifyItem.AutoAddManualInfo, immediately, noRaiseChanged, ret =>
             {
                 ManualAutoAddList = new Dictionary<uint, ManualAutoAddData>();
                 var list = new List<ManualAutoAddData>();
@@ -521,10 +534,10 @@ namespace EpgTimer
 
                 list.ForEach(info => ManualAutoAddList.Add(info.dataID, info));
 
-                updateAutoAddManualInfo = false;
-            }
-            return ret;
+                manualAutoAddAppendList = null;
+                reserveAppendList = null;
+                return ret;
+            });
         }
-
     }
 }

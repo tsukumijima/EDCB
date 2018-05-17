@@ -40,12 +40,7 @@ namespace EpgTimer
 
             Settings.LoadFromXmlFile(CommonManager.Instance.NWMode);
             CommonManager.Instance.NWMode |= Settings.Instance.ForceNWMode;
-
-            if (CommonManager.Instance.NWMode == true)
-            {
-                CommonManager.Instance.DB.SetNoAutoReloadEPG(Settings.Instance.NgAutoEpgLoadNW);
-                IniFileHandler.ReadOnly = true;
-            }
+            IniFileHandler.ReadOnly = CommonManager.Instance.NWMode;
 
             CommonManager.Instance.MM.ReloadWorkData();
             CommonManager.Instance.ReloadCustContentColorList();
@@ -115,7 +110,7 @@ namespace EpgTimer
                             Environment.Exit(0);
                         }
                         //EpgTimerSrvを自分で起動させた場合、後でUpdateNotifyItem.EpgDataが来るので、初期フラグをリセットする。
-                        CommonManager.Instance.DB.ResetUpdateNotifyEpg();
+                        CommonManager.Instance.DB.ResetUpdateNotify(UpdateNotifyItem.EpgData);
                     }
                 }
                 catch { }
@@ -184,6 +179,17 @@ namespace EpgTimer
                 SetSearchButtonTooltip(buttonList["検索"]);
                 SetInfoSearchButtonTooltip(buttonList["予約情報検索"]);
 
+                //EpgDataは遅延実行される場合があるので、データ取得後の処理を登録
+                CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgData] = () =>
+                {
+                    reserveView.UpdateInfo();//ジャンルや番組内容などが更新される
+                    tunerReserveView.UpdateInfo();//自動登録行方不明のオプション時のみ意味がある
+                    autoAddView.UpdateInfo();//キーワード予約のみ意味がある
+                    SearchWindow.UpdatesInfo();
+                    InfoSearchWindow.UpdatesInfo();
+                    AddReserveEpgWindow.UpdatesInfo();
+                };
+
                 if (CommonManager.Instance.NWMode == false)
                 {
                     pipeServer = new PipeServer();
@@ -202,7 +208,10 @@ namespace EpgTimer
                     CommonManager.Instance.DB.ReloadReserveInfo(true);
                     CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
                     CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
-                    CommonManager.Instance.DB.ReloadEpgData();//これはすぐにNotify来る場合があるので現状維持
+                    if (Settings.Instance.NgAutoEpgLoadNW == false)
+                    {
+                        CommonManager.Instance.DB.ReloadEpgData(false, true);
+                    }
                     Dispatcher.BeginInvoke(new Action(() => UpdateReserveTab()), DispatcherPriority.Loaded);
                 }
 
@@ -624,11 +633,15 @@ namespace EpgTimer
 
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.PlugInFile);
+            CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
             CommonManager.Instance.DB.ReloadReserveInfo(true);
             CommonManager.Instance.DB.ClearRecFileAppend(true);
             CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
             CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
-            CommonManager.Instance.DB.ReloadEpgData(true);
+            if (Settings.Instance.NgAutoEpgLoadNW == false)
+            {
+                CommonManager.Instance.DB.ReloadEpgData(false, true);
+            }
             reserveView.UpdateInfo();
             UpdateReserveTab();
             tunerReserveView.UpdateInfo();
@@ -937,42 +950,44 @@ namespace EpgTimer
         }
         public void RefreshSetting(SettingWindow setting)
         {
-                if (CommonManager.Instance.NWMode == true)
+            if (CommonManager.Instance.NWMode == true)
+            {
+                if (setting.setBasicView.IsChangeSettingPath == true)
                 {
-                    if (setting.setBasicView.IsChangeSettingPath == true)
-                    {
-                        IniFileHandler.UpdateSrvProfileIniNW();
-                    }
-                    CommonManager.Instance.DB.SetNoAutoReloadEPG(Settings.Instance.NgAutoEpgLoadNW);
+                    IniFileHandler.UpdateSrvProfileIniNW();
                 }
-                else
-                {
-                    CommonManager.CreateSrvCtrl().SendReloadSetting();
-                    CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();
-                }
+            }
+            else
+            {
+                CommonManager.CreateSrvCtrl().SendReloadSetting();
+                CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();
+            }
 
-                if (setting.setEpgView.IsChangeEpgArcLoadSetting == true)
-                {
-                    CommonManager.Instance.DB.ReloadEpgData(true);
-                }
-                if (setting.setEpgView.IsChangeRecInfoDropExcept == true)
-                {
-                    CommonManager.Instance.DB.ResetRecFileErrInfo();
-                }
+            if (setting.setEpgView.IsChangeRecInfoDropExcept == true)
+            {
+                CommonManager.Instance.DB.ResetRecFileErrInfo();
+            }
+            if (setting.setEpgView.IsChangeEpgArcLoadSetting == true)
+            {
+                CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
+            }
+            if (Settings.Instance.NgAutoEpgLoadNW == false)
+            {
+                CommonManager.Instance.DB.ReloadEpgData(false, true);
+            }
+            reserveView.UpdateInfo();
+            tunerReserveView.UpdateInfo();
+            recInfoView.UpdateInfo();
+            autoAddView.UpdateInfo();
+            epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgTabSetting);
+            SearchWindow.UpdatesInfo(false);
+            InfoSearchWindow.UpdatesInfo();
+            RecInfoDescWindow.UpdatesInfo();
+            NotifyLogWindow.UpdatesInfo();
 
-                reserveView.UpdateInfo();
-                tunerReserveView.UpdateInfo();
-                recInfoView.UpdateInfo();
-                autoAddView.UpdateInfo();
-                epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgTabSetting);
-                SearchWindow.UpdatesInfo(false);
-                InfoSearchWindow.UpdatesInfo();
-                RecInfoDescWindow.UpdatesInfo();
-                NotifyLogWindow.UpdatesInfo();
+            ResetMainView();
 
-                ResetMainView();
-
-                StatusManager.StatusNotifySet("設定変更に伴う画面再構築を実行");
+            StatusManager.StatusNotifySet("設定変更に伴う画面再構築を実行");
         }
 
         public void RefreshMenu()
@@ -1054,17 +1069,15 @@ namespace EpgTimer
             }
         }
 
+        private bool epgReloadCmdRun = false;
         void EpgReloadCmd()
         {
-            if (CommonManager.Instance.NWMode == true)
-            {
-                CommonManager.Instance.DB.SetOneTimeReloadEpg();
-            }
             if (CommonManager.CreateSrvCtrl().SendReloadEpg() != ErrCode.CMD_SUCCESS)
             {
                 MessageBox.Show("EPG再読み込みを行える状態ではありません。\r\n（EPGデータ読み込み中。など）");
                 return;
             }
+            epgReloadCmdRun = true;
             StatusManager.StatusNotifySet("EPG再読み込みを実行");
         }
 
@@ -1316,22 +1329,32 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.EpgData:
                     {
-                        //NWでは重いが、使用している箇所多いので即取得する。
-                        //自動取得falseのときはReloadEpgData()ではじかれているので元々読込まれない。
-                        err = CommonManager.Instance.DB.ReloadEpgData(true);
-                        reserveView.UpdateInfo();//ジャンルや番組内容などが更新される
-                        if (Settings.Instance.DisplayReserveAutoAddMissing == true)
-                        {
-                            tunerReserveView.UpdateInfo();
-                        }
-                        autoAddView.epgAutoAddView.UpdateInfo();//検索数の更新
-                        epgView.UpdateInfo();
-                        SearchWindow.UpdatesInfo();
-                        InfoSearchWindow.UpdatesInfo();
-                        AddReserveEpgWindow.UpdatesInfo();
+                        //録画予定ファイル名が変化しているかもしれない。先に実行
+                        var err2 = CommonManager.Instance.DB.ReloadReserveRecFileNameList(true);
 
-                        StatusManager.StatusNotifyAppend("EPGデータ更新 < ");
-                        Dispatcher.BeginInvoke(new Action(() => GC.Collect()), DispatcherPriority.Input);
+                        //EpgDataは遅延実行される場合があるので、データ取得後の処理が登録されている
+                        CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
+                        if (Settings.Instance.NgAutoEpgLoadNW == false || epgReloadCmdRun == true)
+                        {
+                            epgReloadCmdRun = false;
+                            err = CommonManager.Instance.DB.ReloadEpgData();
+
+                            epgView.UpdateInfo();
+                            StatusManager.StatusNotifyAppend("EPGデータ更新 < ");
+                            Dispatcher.BeginInvoke(new Action(() => GC.Collect()), DispatcherPriority.Input);
+                        }
+                        else
+                        {
+                            reserveView.UpdateInfo();//予約名
+                            tunerReserveView.UpdateInfo();//予約名
+                            autoAddView.UpdateInfo();//予約名(次の予約)
+                            InfoSearchWindow.UpdatesInfo();//予約名
+                            StatusManager.StatusNotifyAppend("予約名データ更新 < ");
+                        }
+
+                        if (err2 != ErrCode.CMD_SUCCESS) err = err2;
+                        ChgReserveWindow.UpdatesInfo();//予約名など
+                        TrayManager.UpdateInfo();//予約名
                     }
                     break;
                 case UpdateNotifyItem.ReserveInfo:

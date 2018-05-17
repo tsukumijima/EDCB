@@ -60,7 +60,6 @@ namespace EpgTimer.Setting
                 checkBox_wakeReconnect.IsEnabled = true;
                 stackPanel_WoLWait.IsEnabled = true;
                 checkBox_suspendClose.IsEnabled = true;
-                checkBox_ngAutoEpgLoad.IsEnabled = true;
                 checkBox_keepTCPConnect.IsEnabled = true;
                 grid_srvResident.IsEnabled = false;
                 button_srvSetting.IsEnabled = false;
