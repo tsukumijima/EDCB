@@ -242,7 +242,7 @@ namespace EpgTimer
 
                 var serviceKeyHash = new HashSet<long>(key.serviceList);
                 serviceList.ForEach(info => info.IsSelected = serviceKeyHash.Contains((long)info.Key));
-                listView_service.ScrollIntoView(serviceList.Find(i => i.IsSelected == true));
+                Dispatcher.BeginInvoke(new Action(() => listView_service.ScrollIntoView(serviceList.Find(i => i.IsSelected == true))), System.Windows.Threading.DispatcherPriority.Loaded);
 
                 button_dttv_on.IsEnabled = serviceList.Any(item => item.ServiceInfo.IsDttv == true);
                 button_bs_on.IsEnabled = serviceList.Any(item => item.ServiceInfo.IsBS == true);
