@@ -211,6 +211,7 @@ namespace EpgTimer
                     if (Settings.Instance.NgAutoEpgLoadNW == false)
                     {
                         CommonManager.Instance.DB.ReloadEpgData(false, true);
+                        Dispatcher.BeginInvoke(new Action(() => epgView.UpdateInfo()), DispatcherPriority.Loaded);
                     }
                     Dispatcher.BeginInvoke(new Action(() => UpdateReserveTab()), DispatcherPriority.Loaded);
                 }

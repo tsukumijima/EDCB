@@ -17,6 +17,7 @@ namespace EpgTimer
         protected string[] status = { "", "", "", "" };
         protected bool ReloadInfoFlg = true;
         protected bool noStatus = false;
+        protected bool updateInvisible { get; set; }
 
         public virtual void UpdateInfo(bool reload = true)
         {
@@ -25,7 +26,7 @@ namespace EpgTimer
         }
         protected virtual void ReloadInfo()
         {
-            if (ReloadInfoFlg == true && this.IsVisible == true)
+            if (ReloadInfoFlg == true && (this.IsVisible == true || updateInvisible == true))
             {
                 ReloadInfoFlg = !ReloadInfoData();
                 UpdateStatus();

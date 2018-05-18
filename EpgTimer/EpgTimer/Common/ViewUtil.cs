@@ -17,13 +17,22 @@ namespace EpgTimer
     public static class ViewUtil
     {
         public static MainWindow MainWindow { get { return (MainWindow)Application.Current.MainWindow; } }
+        private static Matrix deviceMatrix = new Matrix();
         public static Matrix DeviceMatrix
         { 
             get
             {
                 var mw = MainWindow;//主にデザイン画面のエラー対策
-                return mw == null ? new Matrix() : PresentationSource.FromVisual(mw).CompositionTarget.TransformToDevice;
-            } 
+                if (mw != null)
+                {
+                    var ps = PresentationSource.FromVisual(mw);
+                    if (ps != null)
+                    {
+                        deviceMatrix = ps.CompositionTarget.TransformToDevice;
+                    }
+                }
+                return deviceMatrix;
+            }
         }
         public static double SnapsToDevicePixelsX(double x, int mode = 0)
         {

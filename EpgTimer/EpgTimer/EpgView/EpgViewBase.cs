@@ -106,6 +106,9 @@ namespace EpgTimer.EpgView
 
         protected virtual void InitCommand()
         {
+            //EpgReloadの制御。ReserveはVisibleに従う。
+            base.updateInvisible = Settings.Instance.PrebuildEpg;
+
             //ビューコードの登録
             mBinds.View = CtxmCode.EpgView;
 
