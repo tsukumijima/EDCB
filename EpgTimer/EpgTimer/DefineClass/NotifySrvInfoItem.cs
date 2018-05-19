@@ -8,7 +8,7 @@ namespace EpgTimer
         public override ulong KeyID { get { return keyID; } }
 
         public NotifySrvInfoItem() { }
-        public NotifySrvInfoItem(NotifySrvInfo info)
+        public NotifySrvInfoItem(NotifySrvInfo info, bool delCrlf = true)
         {
             Time = info.time.ToString("yyyy/MM/dd HH:mm:ss.fff");
             TimeView = info.time.ToString("yyyy/MM/dd(ddd) HH:mm:ss.fff");
@@ -22,7 +22,8 @@ namespace EpgTimer
                     notifyID == UpdateNotifyItem.EpgCapStart ? "EPG取得" :
                     notifyID == UpdateNotifyItem.EpgCapEnd ? "EPG取得" : info.notifyID.ToString();
             LogText = notifyID == UpdateNotifyItem.EpgCapStart ? "開始" :
-                      notifyID == UpdateNotifyItem.EpgCapEnd ? "終了" : info.param4.Replace("\r\n", "  ");
+                      notifyID == UpdateNotifyItem.EpgCapEnd ? "終了" : info.param4;
+            if (delCrlf == true) LogText = LogText.Replace("\r\n", "  ");
             keyID = (ulong)this.ToString().GetHashCode();
         }
         public NotifySrvInfoItem(string text)

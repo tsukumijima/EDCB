@@ -1282,11 +1282,12 @@ namespace EpgTimer
         void NotifyStatus(NotifySrvInfo status)
         {
             bool notifyLogWindowUpdate = false;//WakeUpHDDWork()などのメッセージを一応フォローしておく
-            var NotifyWork = new Action<string, string>((title, tips) =>
+            var NotifyWork = new Action(() =>
             {
                 if (Settings.Instance.NoBallonTips == false)
                 {
-                    TrayManager.Tray.ShowBalloonTip(title, tips);
+                    var item = new NotifySrvInfoItem(status, false);
+                    TrayManager.Tray.ShowBalloonTip(item.Title, item.LogText);
                 }
                 CommonManager.AddNotifyLog(status);
                 notifyLogWindowUpdate = true;
@@ -1302,31 +1303,31 @@ namespace EpgTimer
                     TrayManager.UpdateInfo(status.param1);
                     break;
                 case UpdateNotifyItem.PreRecStart:
-                    NotifyWork("予約録画開始準備", status.param4);
+                    NotifyWork();
                     TrayManager.UpdateInfo();
                     CommonManager.WakeUpHDDWork();
                     break;
                 case UpdateNotifyItem.RecStart:
-                    NotifyWork("録画開始", status.param4);
+                    NotifyWork();
                     RefreshAllViewsReserveInfo();
                     break;
                 case UpdateNotifyItem.RecEnd:
-                    NotifyWork("録画終了", status.param4);
+                    NotifyWork();
                     break;
                 case UpdateNotifyItem.RecTuijyu:
-                    NotifyWork("追従発生", status.param4);
+                    NotifyWork();
                     break;
                 case UpdateNotifyItem.ChgTuijyu:
-                    NotifyWork("番組変更", status.param4);
+                    NotifyWork();
                     break;
                 case UpdateNotifyItem.PreEpgCapStart:
-                    NotifyWork("EPG取得", status.param4);
+                    NotifyWork();
                     break;
                 case UpdateNotifyItem.EpgCapStart:
-                    NotifyWork("取得", "開始");
+                    NotifyWork();
                     break;
                 case UpdateNotifyItem.EpgCapEnd:
-                    NotifyWork("取得", "終了");
+                    NotifyWork();
                     break;
                 case UpdateNotifyItem.EpgData:
                     {
