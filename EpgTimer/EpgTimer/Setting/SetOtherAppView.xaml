@@ -14,11 +14,11 @@
                 <DockPanel Margin="0,6,0,0">
                     <Label Content="TVTest.exeパス" Width="{Binding ActualWidth, ElementName=label_cmdline}" />
                     <Button DockPanel.Dock="Right" Content="開く" Name="button_exe" />
-                    <TextBox Margin="0,0,6,0" Text="{Binding TvTestExe}" Name="textBox_exe"/>
+                    <TextBox Margin="0,0,6,0" Text="{Binding TvTestExe, UpdateSourceTrigger=PropertyChanged}" Name="textBox_exe"/>
                 </DockPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <Label Content="コマンドライン引数 " Name="label_cmdline" />
-                    <TextBox Margin="0,0,6,0" Text="{Binding TvTestCmd}" Width="{Binding ActualWidth, ElementName=textBox_exe}" />
+                    <TextBox Margin="0,0,6,0" Text="{Binding TvTestCmd, UpdateSourceTrigger=PropertyChanged}" Width="{Binding ActualWidth, ElementName=textBox_exe}" />
                 </StackPanel>
                 <DockPanel Margin="0,6,0,0">
                     <TextBlock Width="{Binding ActualWidth, ElementName=label_cmdline}" />
@@ -66,11 +66,11 @@
                 <DockPanel Margin="0,6,0,0">
                     <Label Content="再生アプリのexeパス" Name="label_app_path"/>
                     <Button DockPanel.Dock="Right" Content="開く" Name="button_playExe" />
-                    <TextBox Margin="6,0" Name="textBox_playExe" Text="{Binding FilePlayExe}"/>
+                    <TextBox Margin="6,0" Name="textBox_playExe" Text="{Binding FilePlayExe, UpdateSourceTrigger=PropertyChanged}"/>
                 </DockPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <Label Content="コマンドライン引数" Width="{Binding ActualWidth, ElementName=label_app_path}"/>
-                    <TextBox Margin="6,0" Text="{Binding FilePlayCmd}" Width="{Binding ActualWidth, ElementName=textBox_playExe}" />
+                    <TextBox Margin="6,0" Text="{Binding FilePlayCmd, UpdateSourceTrigger=PropertyChanged}" Width="{Binding ActualWidth, ElementName=textBox_playExe}" />
                 </StackPanel>
                 <DockPanel Margin="6,6,0,0">
                     <TextBlock Width="{Binding ActualWidth, ElementName=label_app_path}" />
