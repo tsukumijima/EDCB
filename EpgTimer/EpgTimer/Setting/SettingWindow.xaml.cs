@@ -50,7 +50,7 @@ namespace EpgTimer
             button_OK.Click += (sender, e) => { this.Close(); Apply(); };
             button_cancel.Click += (sender, e) => this.Close();
 
-            LoadSetting(CommonManager.Instance.IsConnected == true);
+            LoadSetting(CommonManager.Instance.IsConnected);
             SetMode(mode, param);
         }
 

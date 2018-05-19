@@ -20,12 +20,13 @@ namespace EpgTimer
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Mutex mutex;
-
         private Dictionary<string, Button> buttonList = new Dictionary<string, Button>();
         private MenuBinds mBinds = new MenuBinds();
         private DispatcherTimer chkTimer = null;
 
+        //MainWindowにIDisposableを実装するべき？
+        private Mutex mutex;
+        private NWConnect nwConnect = new NWConnect();
         private PipeServer pipeServer = null;
         private bool closeFlag = false;
         private bool? minimizedStarting = false;
@@ -193,12 +194,11 @@ namespace EpgTimer
 
                 if (CommonManager.Instance.NWMode == false)
                 {
-                    pipeServer = new PipeServer();
                     //コールバックは別スレッドかもしれないので設定は予めキャプチャする
                     uint execBat = Settings.Instance.ExecBat;
-                    pipeServer.StartServer("Global\\EpgTimerGUI_Ctrl_BonConnect_" + System.Diagnostics.Process.GetCurrentProcess().Id,
-                                           "EpgTimerGUI_Ctrl_BonPipe_" + System.Diagnostics.Process.GetCurrentProcess().Id,
-                                           (c, r) => OutsideCmdCallback(c, r, false, execBat));
+                    pipeServer = new PipeServer("Global\\EpgTimerGUI_Ctrl_BonConnect_" + System.Diagnostics.Process.GetCurrentProcess().Id,
+                                                "EpgTimerGUI_Ctrl_BonPipe_" + System.Diagnostics.Process.GetCurrentProcess().Id,
+                                                (c, r) => OutsideCmdCallback(c, r, false, execBat));
 
                     for (int i = 0; i < 150 && CommonManager.CreateSrvCtrl().SendRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id) != ErrCode.CMD_SUCCESS; i++)
                     {
@@ -558,7 +558,7 @@ namespace EpgTimer
                     connectTimer.Stop();
                     connectTimer = null;
                 }
-                if (CommonManager.Instance.NW.IsConnected == false)
+                if (CommonManager.Instance.IsConnected == false)
                 {
                     if (showDialog == true)
                     {
@@ -614,8 +614,11 @@ namespace EpgTimer
                 {
                     //コールバックは別スレッドかもしれないので設定は予めキャプチャする
                     uint execBat = Settings.Instance.ExecBat;
-                    if (CommonManager.Instance.NW.ConnectServer(address, Settings.Instance.NWServerPort, Settings.Instance.NWWaitPort, (c, r) => OutsideCmdCallback(c, r, true, execBat)))
+                    CommonManager.Instance.NWConnectedIP = null;
+                    if (nwConnect.ConnectServer(address, Settings.Instance.NWServerPort, Settings.Instance.NWWaitPort, (c, r) => OutsideCmdCallback(c, r, true, execBat)))
                     {
+                        CommonManager.Instance.NWConnectedIP = address;
+                        CommonManager.Instance.NWConnectedPort = Settings.Instance.NWServerPort;
                         connected = true;
                         break;
                     }
@@ -693,7 +696,7 @@ namespace EpgTimer
                     SystemEvents.PowerModeChanged += OnPowerModeChanged;
                     chkTimer.Tick += (sender, e) =>
                     {
-                        if (CommonManager.Instance.NW.IsConnected == true)
+                        if (CommonManager.Instance.IsConnected == true)
                         {
                             var status = new NotifySrvInfo();
                             var waitPort = Settings.Instance.NWWaitPort;
@@ -729,7 +732,7 @@ namespace EpgTimer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (CommonManager.Instance.NWMode == true && CommonManager.Instance.NW.IsConnected == false)
+            if (CommonManager.Instance.IsConnected == false)
             {
                 if (Settings.Instance.WakeReconnectNW == false && this.minimizedStarting == false)
                 {
@@ -762,15 +765,16 @@ namespace EpgTimer
                     {
                         cmd.SendClose();
                     }
-                    pipeServer.StopServer();
+                    pipeServer.Dispose();
                 }
-                else if (Settings.Instance.NWWaitPort != 0 && CommonManager.Instance.NW.IsConnected == true && TrayManager.IsSrvLost == false)
+                else if (Settings.Instance.NWWaitPort != 0 && CommonManager.Instance.IsConnected == true && TrayManager.IsSrvLost == false)
                 {
                     CommonManager.CreateSrvCtrl().SendUnRegistTCP(Settings.Instance.NWWaitPort);
                 }
                 mutex.ReleaseMutex();
                 mutex.Close();
                 TrayManager.Tray.Dispose();
+                nwConnect.Dispose();
             }
         }
 
@@ -808,7 +812,7 @@ namespace EpgTimer
                         this.WindowState = Settings.Instance.WndSettings[this].LastWindowState;
                     }
                     minimizedStarting = false;
-                    if (CommonManager.Instance.NWMode == true && Settings.Instance.WakeReconnectNW == false && CommonManager.Instance.NW.IsConnected == false)
+                    if (Settings.Instance.WakeReconnectNW == false && CommonManager.Instance.IsConnected == false)
                     {
                         Dispatcher.BeginInvoke(new Action(() => OpenConnectDialog()), DispatcherPriority.Render);
                     }
@@ -1122,6 +1126,7 @@ namespace EpgTimer
             {
                 SaveData();
             }
+            //※Window_Closing()でnwConnectは破棄されるが、CommonManager.NWConnectedIP/NWConnectedPortは残っているので問題無い
             CommonManager.CreateSrvCtrl().SendSuspend((ushort)(0xFF00 | suspendMode));
         }
 

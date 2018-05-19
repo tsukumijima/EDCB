@@ -19,9 +19,11 @@ namespace EpgTimer
     {
         public DBManager DB { get; private set; }
         public TVTestCtrlClass TVTestCtrl { get; private set; }
-        public bool NWMode { get; set; }
         public List<NotifySrvInfo> NotifyLogList { get; private set; }
-        public NWConnect NW { get; private set; }
+        public bool NWMode { get; set; }
+        public System.Net.IPAddress NWConnectedIP { get; set; }
+        public uint NWConnectedPort { get; set; }
+        public bool IsConnected { get { return NWMode == false || Instance.NWConnectedIP != null; } }
 
         MenuManager _mm;
         public MenuManager MM
@@ -52,7 +54,6 @@ namespace EpgTimer
         {
             DB = new DBManager();
             TVTestCtrl = new TVTestCtrlClass();
-            NW = new NWConnect();
             NWMode = false;
             NotifyLogList = new List<NotifySrvInfo>();
         }
@@ -402,15 +403,13 @@ namespace EpgTimer
             get { return Enumerable.Range(0, Settings.Instance.LaterTimeUse == false ? 24 : 37); }
         }
 
-        public bool IsConnected { get { return NWMode == false || NW.IsConnected == true; } }
-
         public static CtrlCmdUtil CreateSrvCtrl()
         {
             var cmd = new CtrlCmdUtil();
             if (Instance.NWMode)
             {
                 cmd.SetSendMode(true);
-                cmd.SetNWSetting(Instance.NW.ConnectedIP, Instance.NW.ConnectedPort);
+                cmd.SetNWSetting(Instance.NWConnectedIP, Instance.NWConnectedPort);
             }
             return cmd;
         }
@@ -1242,7 +1241,7 @@ namespace EpgTimer
 
                 if (NWMode == true && Settings.Instance.FilePlayOnNwWithExe == false)
                 {
-                    TVTestCtrl.StartStreamingPlay(filePath, NW.ConnectedIP, NW.ConnectedPort);
+                    TVTestCtrl.StartStreamingPlay(filePath, NWConnectedIP, NWConnectedPort);
                 }
                 else
                 {

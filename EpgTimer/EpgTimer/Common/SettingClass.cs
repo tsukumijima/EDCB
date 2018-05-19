@@ -136,7 +136,7 @@ namespace EpgTimer
             var err = ErrCode.CMD_SUCCESS;
             if (CommonManager.Instance.NWMode == true)
             {
-                if (CommonManager.Instance.NW.IsConnected == false) return err;
+                if (CommonManager.Instance.IsConnected == false) return err;
                 err = ReloadSettingFilesNW(iniList);
             }
 
