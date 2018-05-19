@@ -11,6 +11,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
 using System.Threading; //紅
+using Microsoft.Win32;
 
 namespace EpgTimer
 {
@@ -659,6 +660,15 @@ namespace EpgTimer
             return true;
         }
 
+        private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        {
+            if (e.Mode == PowerModes.Resume)
+            {
+                TrayManager.SrvLosted();
+                ChkTimerWork();
+            }
+        }
+
         public void ChkTimerWork()
         {
             //オプション状態などが変っている場合もあるので、いったん破棄する。
@@ -666,6 +676,7 @@ namespace EpgTimer
             {
                 chkTimer.Stop();
                 chkTimer = null;
+                SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             }
 
             bool chkSrvRegistTCP = CommonManager.Instance.NWMode == true && Settings.Instance.ChkSrvRegistTCP == true;
@@ -674,9 +685,12 @@ namespace EpgTimer
             if (chkSrvRegistTCP == true || updateTaskText == true)
             {
                 chkTimer = new DispatcherTimer();
-                chkTimer.Interval = TimeSpan.FromMinutes(Math.Max(Settings.Instance.ChkSrvRegistInterval, 1));
+                chkTimer.Interval = TimeSpan.FromSeconds(30);//初回はすぐ実行
+                chkTimer.Tick += (sender, e) => chkTimer.Interval = TimeSpan.FromMinutes(Math.Max(Settings.Instance.ChkSrvRegistInterval, 1));
+
                 if (chkSrvRegistTCP == true)
                 {
+                    SystemEvents.PowerModeChanged += OnPowerModeChanged;
                     chkTimer.Tick += (sender, e) =>
                     {
                         if (CommonManager.Instance.NW.IsConnected == true)
@@ -687,9 +701,8 @@ namespace EpgTimer
                             if (waitPort == 0 && CommonManager.CreateSrvCtrl().SendGetNotifySrvStatus(ref status) == ErrCode.CMD_SUCCESS ||
                                 waitPort != 0 && CommonManager.CreateSrvCtrl().SendIsRegistTCP(waitPort, ref registered) == ErrCode.CMD_SUCCESS)
                             {
-                                if (waitPort == 0 && CommonManager.Instance.NW.OnPolling == false ||
-                                    waitPort != 0 && registered == false ||
-                                    TrayManager.IsSrvLost == true)//EpgTimerNW側の休止復帰も含む
+                                if (TrayManager.IsSrvLost == true ||　//EpgTimerNW側の休止復帰も含む
+                                        waitPort != 0 && registered == false) //Srv側再起動の場合。待ち受けポート無しの場合は勝手に復帰する。
                                 {
                                     if (ConnectSrv() == true)
                                     {
