@@ -330,6 +330,8 @@ namespace EpgTimer
         CMD_EPG_SRV_ENUM_PG_INFO = 1022,
         /// <summary>番組情報取得</summary>
         CMD_EPG_SRV_GET_PG_INFO = 1023,
+        /// <summary>番組情報取得(指定IDリスト)</summary>
+        CMD_EPG_SRV_GET_PG_INFO_LIST = 1024,
         /// <summary>番組検索</summary>
         CMD_EPG_SRV_SEARCH_PG = 1025,
         /// <summary>番組検索(key毎版)</summary>
@@ -552,6 +554,8 @@ namespace EpgTimer
         }
         /// <summary>指定イベントの番組情報を取得する</summary>
         public ErrCode SendGetPgInfo(ulong pgID, ref EpgEventInfo val) { object o = val; return SendAndReceiveCmdData(CtrlCmd.CMD_EPG_SRV_GET_PG_INFO, pgID, ref o); }
+        /// <summary>指定イベントリストの番組情報を取得する</summary>
+        public ErrCode SendGetPgInfoList(List<ulong> pgIDList, ref List<EpgEventInfo> val) { object o = val; return SendAndReceiveCmdData(CtrlCmd.CMD_EPG_SRV_GET_PG_INFO_LIST, pgIDList, ref o); }
         /// <summary>指定キーワードで番組情報を検索する</summary>
         public ErrCode SendSearchPg(List<EpgSearchKeyInfo> key, ref List<EpgEventInfo> val) { object o = val; return SendAndReceiveCmdData(CtrlCmd.CMD_EPG_SRV_SEARCH_PG, key, ref o); }
         /// <summary>番組情報一覧を取得する</summary>
