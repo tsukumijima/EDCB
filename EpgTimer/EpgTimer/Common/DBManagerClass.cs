@@ -318,6 +318,12 @@ namespace EpgTimer
         public void SetUpdateNotify(UpdateNotifyItem notify)
         {
             upDateNotify.Add(notify);
+            if (notify == UpdateNotifyItem.EpgData)
+            {
+                updateEpgAutoAddAppend = true;
+                epgAutoAddAppendList = null;//検索数が変わる。
+                reserveAppendList = null;
+            }
         }
         public bool IsNotifyRegistered(UpdateNotifyItem notify)
         {
@@ -386,10 +392,6 @@ namespace EpgTimer
 
                 //リモコンIDの登録
                 ChSet5.SetRemoconID(ServiceEventList);
-
-                updateEpgAutoAddAppend = true;
-                epgAutoAddAppendList = null;//検索数が変わる。
-                reserveAppendList = null;
                 return ret;
             });
         }
