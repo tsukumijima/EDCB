@@ -73,13 +73,32 @@ namespace EpgTimer
             ChangeData(info);
         }
 
-        protected override bool ReloadInfoData()
+        private bool InfoCheckFlg = false;
+        public override void UpdateInfo(bool reload = true)
         {
-            CheckData(false);
-            return true;
+            InfoCheckFlg = true;
+            base.UpdateInfo(reload);
         }
-
+        protected override void ReloadInfo()
+        {
+            //再検索はCtrlCmdを使うので、アクティブウィンドウでだけ実行させる。
+            if (InfoCheckFlg == true && this.IsVisible == true && (this.WindowState != WindowState.Minimized || this.IsActive == true))
+            {
+                if (ReloadInfoFlg == true && eventInfo != null)
+                {
+                    SetData(MenuUtil.SearchEventInfoLikeThat(eventInfo, true));
+                }
+                CheckData(false);
+                ReloadInfoFlg = false;
+                InfoCheckFlg = false;
+            }
+        }
         public override void ChangeData(object data)
+        {
+            SetData(data);
+            CheckData(true);
+        }
+        private void SetData(object data)
         {
             var info = data as EpgEventInfo;
             if (data is SearchItem) info = ((SearchItem)data).EventInfo;
@@ -93,7 +112,6 @@ namespace EpgTimer
             tabStr = eventInfo.IsOver() == true ? "放映終了" : "予約";
 
             UpdateViewSelection(0);
-            CheckData();
         }
         private void MoveViewEpgTarget()
         {
@@ -127,7 +145,7 @@ namespace EpgTimer
         }
         private List<ReserveData> GetReserveList()
         {
-            UInt64 id = eventInfo.CurrentPgUID();
+            UInt64 id = eventInfo == null ? 0 : eventInfo.CurrentPgUID();
             return CommonManager.Instance.DB.ReserveList.Values.Where(data => data.CurrentPgUID() == id).ToList();
         }
 

@@ -1029,7 +1029,7 @@ namespace EpgTimer
             if (mode != UpdateViewMode.ReserveInfoNoAutoAdd) autoAddView.UpdateInfo();
             epgView.UpdateReserveInfo();
             SearchWindow.UpdatesInfo(false);
-            AddReserveEpgWindow.UpdatesInfo();
+            if (mode != UpdateViewMode.ReserveInfoNoAutoAdd) AddReserveEpgWindow.UpdatesInfo(false);
             ChgReserveWindow.UpdatesInfo();
             InfoSearchWindow.UpdatesInfo();
         }
