@@ -432,6 +432,13 @@ namespace EpgTimer
             }).ToList();
             TrayManager.Tray.ForceHideBalloonTipSec = Settings.Instance.ForceHideBalloonTipSec;
             TrayManager.Tray.Visible = true;
+
+            //ウィンドウ状態の設定。タスクアイコン状態からの設定変更で操作不能になるのも防止する。
+            if (this.WindowState == WindowState.Minimized)
+            {
+                var vis = Settings.Instance.ShowTray && Settings.Instance.MinHide ? Visibility.Hidden : Visibility.Visible;
+                Dispatcher.BeginInvoke(new Action(() => this.Visibility = vis), DispatcherPriority.Loaded);
+            }
         }
 
         const string specific = "PushLike";
