@@ -99,7 +99,7 @@ namespace EpgTimer.EpgView
         //EpgTimerNWで検索絞り込みを使用時に多少効果があるくらいだが‥
         protected EpgViewData viewData = new EpgViewData();
         protected int viewMode = 0;//最初に設定した後は固定するコード。
-        public void SetViewData(EpgViewData data) { viewData = data; viewMode = data.EpgTabInfo.ViewMode; }
+        public void SetViewData(EpgViewData data, int mode) { viewData = data; viewMode = mode; }
         protected CustomEpgTabInfo viewInfo { get { return viewData.EpgTabInfo; } }
         protected virtual bool viewCustNeedTimeOnly { get { return viewInfo.NeedTimeOnlyBasic; } }
         protected List<EpgServiceEventInfo> serviceEventList { get { return viewData.ServiceEventList; } }

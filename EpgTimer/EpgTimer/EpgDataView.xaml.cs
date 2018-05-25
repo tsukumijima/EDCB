@@ -677,7 +677,7 @@ namespace EpgTimer
                     break;
             }
             vItem.ViewSettingClick += viewSettingClick;
-            vItem.SetViewData(viewData);
+            vItem.SetViewData(viewData, viewMode);
             vItem.Visibility = Visibility.Collapsed;
             vItems[viewMode] = vItem;
             grid.Children.Add(vItem);
