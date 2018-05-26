@@ -129,7 +129,7 @@ namespace EpgTimer.EpgView
             programList.TryGetValue(resInfo.CurrentPgUID(), out refPgItem);
             if (refPgItem == null && SearchEvent == true)
             {
-                EpgEventInfo epgInfo = resInfo.SearchEventInfoLikeThat();
+                EpgEventInfo epgInfo = resInfo.ReserveEventInfo();
                 if (epgInfo != null)
                 {
                     EpgEventInfo epgRefInfo = epgInfo.GetGroupMainEvent();

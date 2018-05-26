@@ -6,7 +6,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
@@ -184,12 +183,11 @@ namespace EpgTimer
                 //EpgDataは遅延実行される場合があるので、データ取得後の処理を登録
                 CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgData] = () =>
                 {
-                    reserveView.UpdateInfo();//ジャンルや番組内容などが更新される
-                    tunerReserveView.UpdateInfo();//自動登録行方不明のオプション時のみ意味がある
-                    autoAddView.UpdateInfo();//キーワード予約のみ意味がある
-                    SearchWindow.UpdatesInfo();
+                    reserveView.UpdateInfo();
+                    SearchWindow.UpdatesInfo(false);
                     InfoSearchWindow.UpdatesInfo();
                     AddReserveEpgWindow.UpdatesInfo();
+                    ChgReserveWindow.UpdatesInfo();
                 };
 
                 if (CommonManager.Instance.NWMode == false)
@@ -654,12 +652,12 @@ namespace EpgTimer
             {
                 CommonManager.Instance.DB.ReloadEpgData(false, true);
             }
+            epgView.UpdateInfo();
             reserveView.UpdateInfo();
             UpdateReserveTab();
             tunerReserveView.UpdateInfo();
             autoAddView.UpdateInfo();
             recInfoView.UpdateInfo();
-            epgView.UpdateInfo();
             SearchWindow.UpdatesInfo();
             InfoSearchWindow.UpdatesInfo();
             AddReserveEpgWindow.UpdatesInfo();
@@ -1000,13 +998,15 @@ namespace EpgTimer
             {
                 CommonManager.Instance.DB.ReloadEpgData(false, true);
             }
+            epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgTabSetting);
             reserveView.UpdateInfo();
             tunerReserveView.UpdateInfo();
             recInfoView.UpdateInfo();
             autoAddView.UpdateInfo();
-            epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgTabSetting);
             SearchWindow.UpdatesInfo(false);
             InfoSearchWindow.UpdatesInfo();
+            AddReserveEpgWindow.UpdatesInfo();
+            ChgReserveWindow.UpdatesInfo();
             RecInfoDescWindow.UpdatesInfo();
             NotifyLogWindow.UpdatesInfo();
 
@@ -1036,9 +1036,9 @@ namespace EpgTimer
             if (mode != UpdateViewMode.ReserveInfoNoAutoAdd) autoAddView.UpdateInfo();
             epgView.UpdateReserveInfo();
             SearchWindow.UpdatesInfo(false);
+            InfoSearchWindow.UpdatesInfo();
             if (mode != UpdateViewMode.ReserveInfoNoAutoAdd) AddReserveEpgWindow.UpdatesInfo(false);
             ChgReserveWindow.UpdatesInfo();
-            InfoSearchWindow.UpdatesInfo();
         }
         void StatusbarReset()
         {
@@ -1337,51 +1337,40 @@ namespace EpgTimer
                     RefreshAllViewsReserveInfo();
                     break;
                 case UpdateNotifyItem.RecEnd:
-                    NotifyWork();
-                    break;
                 case UpdateNotifyItem.RecTuijyu:
-                    NotifyWork();
-                    break;
                 case UpdateNotifyItem.ChgTuijyu:
-                    NotifyWork();
-                    break;
                 case UpdateNotifyItem.PreEpgCapStart:
-                    NotifyWork();
-                    break;
                 case UpdateNotifyItem.EpgCapStart:
-                    NotifyWork();
-                    break;
                 case UpdateNotifyItem.EpgCapEnd:
                     NotifyWork();
                     break;
                 case UpdateNotifyItem.EpgData:
                     {
                         //録画予定ファイル名が変化しているかもしれない。先に実行
-                        var err2 = CommonManager.Instance.DB.ReloadReserveRecFileNameList(true);
+                        err = CommonManager.Instance.DB.ReloadReserveRecFileNameList(true);
+                        StatusManager.StatusNotifyAppend("予約名データ更新 < ");
 
-                        //EpgDataは遅延実行される場合があるので、データ取得後の処理が登録されている
+                        //EpgDataは遅延実行される場合があるので、実行処理内容には注意する。
                         CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
                         if (Settings.Instance.NgAutoEpgLoadNW == false || epgReloadCmdRun == true)
                         {
                             epgReloadCmdRun = false;
-                            err = CommonManager.Instance.DB.ReloadEpgData();
+                            var err2 = CommonManager.Instance.DB.ReloadEpgData(true, false);
+                            if (err == ErrCode.CMD_SUCCESS) err = err2;
 
-                            epgView.UpdateInfo();
+                            AddReserveEpgWindow.UpdatesInfo();
+
                             StatusManager.StatusNotifyAppend("EPGデータ更新 < ");
-                            Dispatcher.BeginInvoke(new Action(() => GC.Collect()), DispatcherPriority.Input);
-                        }
-                        else
-                        {
-                            reserveView.UpdateInfo();//予約名
-                            tunerReserveView.UpdateInfo();//予約名
-                            autoAddView.UpdateInfo();//予約名(次の予約)
-                            InfoSearchWindow.UpdatesInfo();//予約名
-                            StatusManager.StatusNotifyAppend("予約名データ更新 < ");
                         }
 
-                        if (err2 != ErrCode.CMD_SUCCESS) err = err2;
-                        ChgReserveWindow.UpdatesInfo();//予約名など
-                        TrayManager.UpdateInfo();//予約名
+                        epgView.UpdateInfo();
+                        reserveView.UpdateInfo();
+                        tunerReserveView.UpdateInfo();
+                        autoAddView.epgAutoAddView.UpdateInfo();
+                        SearchWindow.UpdatesInfo();
+                        InfoSearchWindow.UpdatesInfo();
+                        ChgReserveWindow.UpdatesInfo();
+                        TrayManager.UpdateInfo();
                     }
                     break;
                 case UpdateNotifyItem.ReserveInfo:

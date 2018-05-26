@@ -32,7 +32,7 @@ namespace EpgTimer
 
         public static void CopyContent2Clipboard(ReserveData resInfo, bool NotToggle = false)
         {
-            EpgEventInfo info = resInfo == null ? null : resInfo.SearchEventInfo(true);
+            EpgEventInfo info = resInfo == null ? null : resInfo.ReserveEventInfo();
             CopyContent2Clipboard(info, NotToggle);
         }
 

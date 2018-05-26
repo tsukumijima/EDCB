@@ -22,7 +22,7 @@ namespace EpgTimer
                 {
                     if (ReserveInfo != null)
                     {
-                        eventInfo = ReserveInfo.SearchEventInfo(false);
+                        eventInfo = ReserveInfo.ReserveEventInfo();
                     }
                 }
                 return eventInfo;

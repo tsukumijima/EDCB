@@ -479,7 +479,7 @@ namespace EpgTimer
                 //EPGを自動で読み込んでない時でも、元がEPG予約ならその番組情報は表示させられるようにする
                 if (reserveInfo.IsEpgReserve == true && reserveInfo.IsSamePg(resInfo) == true)
                 {
-                    eventInfo = eventInfoNow ?? reserveInfo.SearchEventInfo(true);
+                    eventInfo = eventInfoNow ?? reserveInfo.ReserveEventInfo();
                 }
                 else
                 {

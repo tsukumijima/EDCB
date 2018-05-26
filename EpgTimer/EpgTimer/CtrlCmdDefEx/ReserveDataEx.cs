@@ -66,27 +66,9 @@ namespace EpgTimer
             get { return (Int32)Math.Max(-DurationSecond, RecSetting.EndMarginActual); }
         }
 
-        public EpgEventInfo SearchEventInfo(bool getSrv = false)
+        public EpgEventInfo ReserveEventInfo()
         {
-            EpgEventInfo eventInfo = null;
-            try
-            {
-                if (IsEpgReserve == true)
-                {
-                    eventInfo = MenuUtil.SearchEventInfo(this.Create64PgKey());
-                    if (eventInfo == null && getSrv == true)
-                    {
-                        eventInfo = new EpgEventInfo();
-                        CommonManager.CreateSrvCtrl().SendGetPgInfo(Create64PgKey(), ref eventInfo);
-                    }
-                }
-                else
-                {
-                    eventInfo = SearchEventInfoLikeThat();
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return eventInfo;
+            return CommonManager.Instance.DB.GetReserveEventList(this);
         }
 
         public EpgEventInfo SearchEventInfoLikeThat()
@@ -117,7 +99,7 @@ namespace EpgTimer
             get
             {
                 if (Settings.Instance.DisplayReserveMultiple == false) return false;
-                return Append.IsMultiple;
+                return CommonManager.Instance.DB.IsReserveMulti(this);
             }
         }
         public override List<EpgAutoAddData> SearchEpgAutoAddList(bool? IsEnabled = null, bool ByFazy = false)
@@ -168,7 +150,6 @@ namespace EpgTimer
             EpgAutoListEnabled = new List<EpgAutoAddData>();
             ManualAutoList = new List<ManualAutoAddData>();
             ManualAutoListEnabled = new List<ManualAutoAddData>();
-            MultipleEPGList = new List<ReserveData>();
         }
 
         public bool IsAutoAddMissing { get; protected set; }
@@ -178,18 +159,15 @@ namespace EpgTimer
         public List<EpgAutoAddData> EpgAutoListDisabled { get { return EpgAutoList.GetAutoAddList(false); } }
         public List<ManualAutoAddData> ManualAutoList { get; protected set; }
         public List<ManualAutoAddData> ManualAutoListEnabled { get; protected set; }
-        public List<ManualAutoAddData> ManualAutoListDisabled { get { return ManualAutoList.FindAll(data => data.IsEnabled == false); } }
-        public bool IsMultiple { get; protected set; }
-        public List<ReserveData> MultipleEPGList { get; protected set; }
+        public List<ManualAutoAddData> ManualAutoListDisabled { get { return ManualAutoList.GetAutoAddList(false); } }
 
         //情報の更新をする。
         public void UpdateData()
         {
-            EpgAutoListEnabled = EpgAutoList.FindAll(data => data.IsEnabled == true);
+            EpgAutoListEnabled = EpgAutoList.GetAutoAddList(true);
             ManualAutoListEnabled = ManualAutoList.GetAutoAddList(true);
             IsAutoAddMissing = (EpgAutoList.Count + ManualAutoList.Count) == 0;
             IsAutoAddInvalid = (EpgAutoListEnabled.Count + ManualAutoListEnabled.Count) == 0;
-            IsMultiple = MultipleEPGList.Count != 0;
         }
     }
 }

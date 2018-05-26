@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Windows.Threading;
 
 namespace EpgTimer
 {
@@ -40,9 +41,14 @@ namespace EpgTimer
 
         private bool updateEpgAutoAddAppend = true;
         private bool updateEpgAutoAddAppendReserveInfo = true;
+        private bool updateReserveAppendEpgAuto = true;
+        private bool updateReserveAppendManualAuto = true;
 
         Dictionary<UInt32, RecFileInfoAppend> recFileAppendList = null;
         Dictionary<UInt32, ReserveDataAppend> reserveAppendList = null;
+        Dictionary<UInt32, EpgEventInfo> reserveEventList = null;
+        Dictionary<UInt64, EpgEventInfo> reserveEventListCache = null;
+        HashSet<UInt32> reserveMultiList = null;
         Dictionary<UInt32, AutoAddDataAppend> manualAutoAddAppendList = null;
         Dictionary<UInt32, EpgAutoAddDataAppend> epgAutoAddAppendList = null;
 
@@ -61,23 +67,17 @@ namespace EpgTimer
 
             //データ更新は必要になったときにまとめて行う
             //未使用か、ManualAutoAddData更新により古いデータ廃棄済みでデータが無い場合
-            Dictionary<uint, AutoAddDataAppend> dict = manualAutoAddAppendList;
-            if (dict == null)
+            if (manualAutoAddAppendList == null)
             {
-                dict = ManualAutoAddList.Values.ToDictionary(item => item.dataID, item => new AutoAddDataAppend(
+                manualAutoAddAppendList = ManualAutoAddList.Values.ToDictionary(item => item.dataID, item => new AutoAddDataAppend(
                     ReserveList.Values.Where(info => info != null && info.IsEpgReserve == false && item.CheckPgHit(info)).ToList()));
 
-                foreach (AutoAddDataAppend item in dict.Values) item.UpdateCounts();
-
-                manualAutoAddAppendList = dict;
+                foreach (AutoAddDataAppend item in manualAutoAddAppendList.Values) item.UpdateCounts();
             }
 
             AutoAddDataAppend retv;
-            if (dict.TryGetValue(master.dataID, out retv) == false)
-            {
-                retv = new AutoAddDataAppend();
-            }
-            return retv;
+            manualAutoAddAppendList.TryGetValue(master.dataID, out retv);
+            return retv ?? new AutoAddDataAppend();
         }
         public EpgAutoAddDataAppend GetEpgAutoAddDataAppend(EpgAutoAddData master)
         {
@@ -126,11 +126,8 @@ namespace EpgTimer
 
             //SendSearchPgByKeyに失敗した場合などは引っかかる。
             EpgAutoAddDataAppend retv;
-            if (dict.TryGetValue(master.dataID, out retv) == false)
-            {
-                retv = new EpgAutoAddDataAppend();
-            }
-            return retv;
+            dict.TryGetValue(master.dataID, out retv);
+            return retv ?? new EpgAutoAddDataAppend();
         }
         public void ClearEpgAutoAddDataAppend(Dictionary<UInt32, EpgAutoAddData> oldList = null)
         {
@@ -179,39 +176,133 @@ namespace EpgTimer
         {
             if (master == null) return null;
 
-            Dictionary<uint, ReserveDataAppend> dict = reserveAppendList;
-            if (dict == null)
+            if (reserveAppendList == null)
             {
-                dict = ReserveList.ToDictionary(data => data.Key, data => new ReserveDataAppend());
-                reserveAppendList = dict;
-
+                reserveAppendList = ReserveList.ToDictionary(data => data.Key, data => new ReserveDataAppend());
+                updateReserveAppendEpgAuto = true;
+                updateReserveAppendManualAuto = true;
+            }
+            //キーワード予約が更新された場合
+            if (updateReserveAppendEpgAuto == true)
+            {
+                foreach (ReserveDataAppend data in reserveAppendList.Values) data.EpgAutoList.Clear();
                 foreach (EpgAutoAddData item in EpgAutoAddList.Values)
                 {
-                    item.GetReserveList().ForEach(info => dict[info.ReserveID].EpgAutoList.Add(item));
+                    item.GetReserveList().ForEach(info => reserveAppendList[info.ReserveID].EpgAutoList.Add(item));
                 }
-
+            }
+            //プログラム予約が更新された場合
+            if (updateReserveAppendManualAuto == true)
+            {
+                foreach (ReserveDataAppend data in reserveAppendList.Values) data.ManualAutoList.Clear();
                 foreach (ManualAutoAddData item in ManualAutoAddList.Values)
                 {
-                    item.GetReserveList().ForEach(info => dict[info.ReserveID].ManualAutoList.Add(item));
+                    item.GetReserveList().ForEach(info => reserveAppendList[info.ReserveID].ManualAutoList.Add(item));
                 }
-
-                foreach (ReserveData item in ReserveList.Values.Where(data => data.IsEpgReserve == true))
-                {
-                    UInt64 key = item.Create64PgKey();
-                    dict[item.ReserveID].MultipleEPGList.AddRange(ReserveList.Values.Where(data => data.Create64PgKey() == key && data != item));
-                }
-
-                foreach (ReserveDataAppend data in dict.Values)
-                {
-                    data.UpdateData();
-                }
+            }
+            //その他データの再構築
+            if (updateReserveAppendEpgAuto == true || updateReserveAppendManualAuto == true)
+            {
+                foreach (ReserveDataAppend data in reserveAppendList.Values) data.UpdateData();
+                updateReserveAppendEpgAuto = false;
+                updateReserveAppendManualAuto = false;
             }
 
             ReserveDataAppend retv;
-            if (dict.TryGetValue(master.ReserveID, out retv) == false)
+            reserveAppendList.TryGetValue(master.ReserveID, out retv);
+            return retv ?? new ReserveDataAppend();
+        }
+
+        public bool IsReserveMulti(ReserveData master)
+        {
+            if (master == null) return false;
+
+            if (reserveMultiList == null)
             {
-                retv = new ReserveDataAppend();
+                reserveMultiList = new HashSet<uint>(ReserveList.Values.Where(data => data.IsEpgReserve == true)
+                                    .GroupBy(data => data.Create64PgKey(), data => data.ReserveID)
+                                    .Where(gr => gr.Count() > 1).SelectMany(gr => gr));
             }
+
+            return reserveMultiList.Contains(master.ReserveID);
+        }
+
+        public EpgEventInfo GetReserveEventList(ReserveData master)
+        {
+            if (master == null) return null;
+
+            if (reserveEventList == null)
+            {
+                if (ServiceEventList.Count != 0 && IsNotifyRegistered(UpdateNotifyItem.EpgData) == false)
+                {
+                    reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID,
+                        rs => rs.IsEpgReserve == true ? MenuUtil.SearchEventInfo(rs.Create64PgKey()) : rs.SearchEventInfoLikeThat());
+                }
+                else
+                {
+                    reserveEventList = new Dictionary<uint, EpgEventInfo>();
+                    reserveEventListCache = reserveEventListCache ?? new Dictionary<ulong, EpgEventInfo>();
+
+                    //要求はしないが、有効なデータが既に存在していればキーワード予約の追加データを参照する。
+                    bool useAppend = epgAutoAddAppendList != null && updateEpgAutoAddAppend == false 
+                        && updateEpgAutoAddAppendReserveInfo == false;
+
+                    var trgList = new List<ReserveData>();
+                    foreach (ReserveData data in ReserveList.Values)
+                    {
+                        EpgEventInfo info = null;
+                        ulong key = data.Create64PgKey();
+                        if (useAppend == true)
+                        {
+                            List<EpgAutoAddData> epgAutoList = data.GetEpgAutoAddList();
+                            if (epgAutoList.Count != 0)
+                            {
+                                SearchItem item = epgAutoList[0].GetSearchList()
+                                    .Find(sI => sI.IsReserved == true && sI.ReserveInfo.ReserveID == data.ReserveID);
+                                if (item != null)
+                                {
+                                    info = item.EventInfo;
+                                    reserveEventListCache[key] = info;
+                                }
+                            }
+                        }
+                        if (info == null) reserveEventListCache.TryGetValue(key, out info);
+                        if (info != null)
+                        {
+                            reserveEventList[data.ReserveID] = info;
+                        }
+                        else
+                        {
+                            trgList.Add(data);
+                        }
+                    }
+
+                    var pgIDset = trgList.ToLookup(data => data.Create64PgKey(), data => data.ReserveID);
+                    if (pgIDset.Any() == true)
+                    {
+                        var keys = pgIDset.Select(lu => lu.Key).ToList();
+                        var list = new List<EpgEventInfo>();
+                        try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(keys, ref list); }
+                        catch { }
+
+                        foreach (EpgEventInfo info in list)
+                        {
+                            ulong key = info.Create64PgKey();
+                            if (pgIDset.Contains(key) == true)
+                            {
+                                foreach (uint rID in pgIDset[key])
+                                {
+                                    reserveEventList[rID] = info;
+                                }
+                                reserveEventListCache[key] = info;
+                            }
+                        }
+                    }
+                }
+            }
+
+            EpgEventInfo retv;
+            reserveEventList.TryGetValue(master.ReserveID, out retv);
             return retv;
         }
 
@@ -322,7 +413,8 @@ namespace EpgTimer
             {
                 updateEpgAutoAddAppend = true;
                 epgAutoAddAppendList = null;//検索数が変わる。
-                reserveAppendList = null;
+                reserveEventList = null;
+                reserveEventListCache = null;
             }
         }
         public bool IsNotifyRegistered(UpdateNotifyItem notify)
@@ -392,6 +484,11 @@ namespace EpgTimer
 
                 //リモコンIDの登録
                 ChSet5.SetRemoconID(ServiceEventList);
+
+                reserveEventList = null;
+                reserveEventListCache = null;
+
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => GC.Collect()), DispatcherPriority.ApplicationIdle);
                 return ret;
             });
         }
@@ -415,9 +512,12 @@ namespace EpgTimer
                 list.ForEach(info => ReserveList.Add(info.ReserveID, info));
                 list2.ForEach(info => TunerReserveList.Add(info.tunerID, info));
 
-                manualAutoAddAppendList = null;
-                updateEpgAutoAddAppendReserveInfo = true;
                 reserveAppendList = null;
+                reserveMultiList = null;
+                reserveEventList = null;
+                updateEpgAutoAddAppendReserveInfo = true;
+                manualAutoAddAppendList = null;
+                ResetNotifyWork(UpdateNotifyItem.ReserveName, true);
                 return ret;
             });
         }
@@ -461,7 +561,7 @@ namespace EpgTimer
                         }
                     }
                 }
-                ResetNotifyWork(UpdateNotifyItem.ReserveName, changed && noRaiseChanged);
+                ResetNotifyWork(UpdateNotifyItem.ReserveName, !changed || noRaiseChanged);
                 return ret;
             });
         }
@@ -518,7 +618,7 @@ namespace EpgTimer
 
                 ClearEpgAutoAddDataAppend(oldList);
                 updateEpgAutoAddAppend = true;
-                reserveAppendList = null;
+                updateReserveAppendEpgAuto = true;
                 return ret;
             });
         }
@@ -537,7 +637,7 @@ namespace EpgTimer
                 list.ForEach(info => ManualAutoAddList.Add(info.dataID, info));
 
                 manualAutoAddAppendList = null;
-                reserveAppendList = null;
+                updateReserveAppendManualAuto = true;
                 return ret;
             });
         }
