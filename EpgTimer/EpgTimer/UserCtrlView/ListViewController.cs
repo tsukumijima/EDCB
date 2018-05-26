@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.ComponentModel;
 using System.Windows.Threading;
-using System.Reflection;
 
 namespace EpgTimer
 {
@@ -40,6 +39,15 @@ namespace EpgTimer
         {
             Owner = owner;
             dataList = new List<T>();
+        }
+
+        public void RefreshStyle()
+        {
+            //フォントなどの設定、無いときはSystemではなくListViewのデフォルトになるようにする。
+            if (listView == null) return;
+            listView.FontFamily = new FontFamily(Settings.Instance.FontNameListView + "," + System.Drawing.SystemFonts.MessageBoxFont.Name);
+            listView.FontSize = Settings.Instance.FontSizeListView;
+            listView.FontWeight = Settings.Instance.FontBoldListView == true ? FontWeights.Bold : FontWeights.Normal;
         }
 
         public void SetSelectionChangedEventHandler(SelectionChangedEventHandler hdlr = null)
@@ -89,6 +97,9 @@ namespace EpgTimer
             listView = lv;
             gridView = gv;
             IsSortViewOnReload = isSortOnReload;
+
+            //スタイルのオプションを読込む
+            RefreshStyle();
 
             //グリッド列の差し込み。クリアせずに追加する。
             if (cols_source != null)
@@ -157,6 +168,8 @@ namespace EpgTimer
         {
             try
             {
+                RefreshStyle();
+
                 //更新前の選択情報の保存
                 var oldItems = new ListViewSelectedKeeper(listView, true, GridViewSorter.GetKeyFunc(typeof(T)));
 

@@ -709,19 +709,27 @@
                         </Grid>
                     </GroupBox>
                 </TabItem>
-                <TabItem Header="色" >
+                <TabItem Header="色など">
                     <StackPanel Style="{StaticResource colorGrid}">
-                        <GroupBox Header="各画面共通デフォルト文字色" Margin="6,6,6,0" >
+                        <GroupBox Header="各画面共通デフォルトフォント・文字色" Margin="6,6,6,0" >
                             <Grid>
-                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="614,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="デフォルト" HorizontalAlignment="Left" Margin="12,23,0,0" VerticalAlignment="Top" />
-                                <ComboBox Margin="166,27,0,0" Name="cmb_ListDefFontColor" />
-                                <Button Margin="292,27,0,0" Name="btn_ListDefFontColor" />
+                                <Grid>
+                                    <Label Content="フォント" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
+                                    <ComboBox Style="{x:Null}" Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="60,6,0,0" Text="{Binding FontNameListView}" VerticalAlignment="Top" Width="240" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}"/>
+                                    <Label Content="サイズ" HorizontalAlignment="Left" Margin="316,6,0,0" VerticalAlignment="Top" />
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="368,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeListView, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <CheckBox Content="太字" HorizontalAlignment="Left" Margin="413,11,0,0" IsChecked="{Binding FontBoldListView}" VerticalAlignment="Top" />
+                                </Grid>
+                                <Grid Margin="488,0,0,0">
+                                    <ComboBox Margin="0,6,0,0" Name="cmb_ListDefFontColor" />
+                                    <Button Margin="126,6,0,0" Name="btn_ListDefFontColor" />
+                                </Grid>
                             </Grid>
                         </GroupBox>
                         <GroupBox Header="録画モード別文字色" Margin="6,6,6,0" >
                             <Grid x:Name="grid_ReserveRecModeColors">
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="292,-28,0,0" VerticalAlignment="Top" />
+                                <Label Content="カスタム色" HorizontalAlignment="Left" Margin="614,-28,0,0" VerticalAlignment="Top" />
                                 <Label Content="全サービス" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
                                 <Label Content="全サービス" HorizontalAlignment="Left" Margin="390,-3,0,0" VerticalAlignment="Top" />
                                 <Label Content="(デコード処理無し)" HorizontalAlignment="Left" Margin="390,11,0,0" VerticalAlignment="Top" />

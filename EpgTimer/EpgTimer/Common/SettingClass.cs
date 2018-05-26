@@ -484,6 +484,9 @@ namespace EpgTimer
         public double ChkSrvRegistInterval { get; set; }
         public Int32 TvTestOpenWait { get; set; }
         public Int32 TvTestChgBonWait { get; set; }
+        public string FontNameListView { get; set; }
+        public double FontSizeListView { get; set; }
+        public bool FontBoldListView { get; set; }
         public List<string> RecEndColors { get; set; }
         public List<uint> RecEndCustColors { get; set; }
         public string ListDefColor { get; set; }
@@ -800,6 +803,9 @@ namespace EpgTimer
             ChkSrvRegistInterval = 5;
             TvTestOpenWait = 2000;
             TvTestChgBonWait = 2000;
+            FontNameListView = System.Drawing.SystemFonts.MessageBoxFont.Name;
+            FontSizeListView = 12;
+            FontBoldListView = false;
             EpgInfoSingleClick = false;
             EpgInfoOpenMode = 0;
             ExecBat = 0;
