@@ -55,6 +55,7 @@ namespace EpgTimer
         public Dictionary<UInt64, EpgServiceAllEventInfo> ServiceEventList { get; private set; }
         public Dictionary<UInt32, ReserveData> ReserveList { get; private set; }
         public Dictionary<UInt32, TunerReserveInfo> TunerReserveList { get; private set; }
+        //public RecSettingData DefaultRecSetting { get; private set; }
         public Dictionary<UInt32, RecFileInfo> RecFileInfo { get; private set; }
         public List<String> RecNamePlugInList { get; private set; }
         public List<String> WritePlugInList { get; private set; }
@@ -397,6 +398,7 @@ namespace EpgTimer
             ServiceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
             ReserveList = new Dictionary<uint, ReserveData>();
             TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
+            //DefaultRecSetting = null;
             RecFileInfo = new Dictionary<uint, RecFileInfo>();
             RecNamePlugInList = new List<string>();
             WritePlugInList = new List<string>();
@@ -502,6 +504,7 @@ namespace EpgTimer
                 TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
                 var list = new List<ReserveData>();
                 var list2 = new List<TunerReserveInfo>();
+                //var resinfo = new ReserveData();
 
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumReserve(ref list); } catch { ret = ErrCode.CMD_ERR; }
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
@@ -509,8 +512,12 @@ namespace EpgTimer
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumTunerReserve(ref list2); } catch { ret = ErrCode.CMD_ERR; }
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
 
+                //try { ret = CommonManager.CreateSrvCtrl().SendGetReserve(0x7FFFFFFF, ref resinfo); } catch { ret = ErrCode.CMD_ERR; }
+                //if (ret != ErrCode.CMD_SUCCESS) return ret;
+
                 list.ForEach(info => ReserveList.Add(info.ReserveID, info));
                 list2.ForEach(info => TunerReserveList.Add(info.tunerID, info));
+                //DefaultRecSetting = resinfo.RecSetting;
 
                 reserveAppendList = null;
                 reserveMultiList = null;
