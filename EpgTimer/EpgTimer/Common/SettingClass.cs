@@ -480,6 +480,7 @@ namespace EpgTimer
         public bool SuspendCloseNW { get; set; }
         public bool NgAutoEpgLoadNW { get; set; }
         public bool PrebuildEpg { get; set; }
+        public bool PrebuildEpgAll { get; set; }
         public bool ChkSrvRegistTCP { get; set; }
         public double ChkSrvRegistInterval { get; set; }
         public Int32 TvTestOpenWait { get; set; }
@@ -799,6 +800,7 @@ namespace EpgTimer
             SuspendCloseNW = false;
             NgAutoEpgLoadNW = false;
             PrebuildEpg = false;
+            PrebuildEpgAll = false;
             ChkSrvRegistTCP = false;
             ChkSrvRegistInterval = 5;
             TvTestOpenWait = 2000;

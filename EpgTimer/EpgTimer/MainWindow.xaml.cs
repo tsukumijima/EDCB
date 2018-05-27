@@ -228,7 +228,7 @@ namespace EpgTimer
                 //番組表タブをタブ切り替えではなく非表示で切り替え、表示用の番組表ストックを維持する
                 this.tabControl_main.SelectionChanged += (sender, e) =>
                 {
-                    epgView.Visibility = tabItem_epg.IsSelected == true ? Visibility.Visible : Visibility.Collapsed;
+                    epgView.Visibility = tabItem_epg.IsSelected == true ? Visibility.Visible : Visibility.Hidden;
                 };
 
                 //番組表タブに番組表設定画面を出すコンテキストメニューを表示する
