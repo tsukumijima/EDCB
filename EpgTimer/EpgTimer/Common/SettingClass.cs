@@ -425,6 +425,7 @@ namespace EpgTimer
         public double SearchWndTabsHeight { get; set; }
         public bool CloseMin { get; set; }
         public bool WakeMin { get; set; }
+        public bool WakeMinTraySilent { get; set; }
         public bool ViewButtonShowAsTab { get; set; }
         public List<string> ViewButtonList { get; set; }
         public List<string> TaskMenuList { get; set; }
@@ -746,6 +747,7 @@ namespace EpgTimer
             SearchWndTabsHeight = 0;
             CloseMin = false;
             WakeMin = false;
+            WakeMinTraySilent = true;
             ViewButtonShowAsTab = false;
             ViewButtonList = new List<string>();
             TaskMenuList = new List<string>();

@@ -16,13 +16,16 @@
                         <CheckBox Content="×ボタンで最小化する" Margin="12,0,0,0" IsChecked="{Binding CloseMin}" />
                     </StackPanel>
                     <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,6,0,0" IsChecked="{Binding ShowTray}" />
-                    <CheckBox Content="最小化時にタスクトレイに格納する" Margin="18,4,0,0" IsChecked="{Binding MinHide}" IsEnabled="{Binding ShowTray}" />
-                </StackPanel>
-                <CheckBox Margin="0,6,0,0" Content="バルーンチップ/トーストでの動作通知を抑制する" IsChecked="{Binding NoBallonTips}" />
-                <StackPanel Margin="0,4,12,-2" Orientation="Horizontal" >
-                    <Label Content="バルーンチップを強制的に閉じる" ToolTip="0でタイムアウト無し"/>
-                    <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ForceHideBalloonTipSec, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='255,0'}"/>
-                    <Label Content="秒後" />
+                    <StackPanel Margin="18,0,12,0" IsEnabled="{Binding ShowTray}" >
+                        <CheckBox Content="最小化時にタスクトレイに格納する" Margin="0,4,0,0" IsChecked="{Binding MinHide}" />
+                        <CheckBox Content="最小化起動時に静かに起動する" Margin="0,4,0,0" IsChecked="{Binding WakeMinTraySilent}" ToolTipService.ShowOnDisabled="True" ToolTip="最初からタスクアイコンで起動しますが、アイコンからの最初の復帰時に時間がかかります。"/>
+                        <CheckBox Margin="0,4,0,0" Content="バルーンチップ/トーストでの動作通知を抑制する" IsChecked="{Binding NoBallonTips}" />
+                        <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" >
+                            <Label Content="バルーンチップを強制的に閉じる" ToolTipService.ShowOnDisabled="True" ToolTip="0でタイムアウト無し"/>
+                            <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ForceHideBalloonTipSec, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='255,0'}"/>
+                            <Label Content="秒後" />
+                        </StackPanel>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Margin="0,6,12,0" Name="grid_srvResident">
                     <CheckBox Content="EpgTimerSrvを常駐させる" Name="checkBox_srvResident" />

@@ -129,14 +129,11 @@ namespace EpgTimer
 
                 if (Settings.Instance.WakeMin == true)
                 {
-                    if (Settings.Instance.ShowTray && Settings.Instance.MinHide)
+                    minimizedStarting = true;
+                    this.WindowState = WindowState.Minimized;
+                    if (Settings.Instance.ShowTray && Settings.Instance.MinHide && Settings.Instance.WakeMinTraySilent)
                     {
                         this.Visibility = Visibility.Hidden;
-                    }
-                    else
-                    {
-                        minimizedStarting = true;
-                        this.WindowState = System.Windows.WindowState.Minimized;
                     }
                 }
 
@@ -413,6 +410,13 @@ namespace EpgTimer
 
         private void ResetTaskMenu()
         {
+            //ウィンドウ状態の設定。タスクアイコン状態からの設定変更で操作不能になるのも防止する。
+            if (this.WindowState == WindowState.Minimized)
+            {
+                var vis = Settings.Instance.ShowTray && Settings.Instance.MinHide ? Visibility.Hidden : Visibility.Visible;
+                Dispatcher.BeginInvoke(new Action(() => this.Visibility = vis), DispatcherPriority.Loaded);
+            }
+
             if (Settings.Instance.ShowTray == false)
             {
                 TrayManager.Tray.Dispose();
@@ -430,13 +434,6 @@ namespace EpgTimer
             }).ToList();
             TrayManager.Tray.ForceHideBalloonTipSec = Settings.Instance.ForceHideBalloonTipSec;
             TrayManager.Tray.Visible = true;
-
-            //ウィンドウ状態の設定。タスクアイコン状態からの設定変更で操作不能になるのも防止する。
-            if (this.WindowState == WindowState.Minimized)
-            {
-                var vis = Settings.Instance.ShowTray && Settings.Instance.MinHide ? Visibility.Hidden : Visibility.Visible;
-                Dispatcher.BeginInvoke(new Action(() => this.Visibility = vis), DispatcherPriority.Loaded);
-            }
         }
 
         const string specific = "PushLike";
@@ -737,9 +734,9 @@ namespace EpgTimer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (CommonManager.Instance.IsConnected == false)
+            if (this.minimizedStarting == false)
             {
-                if (Settings.Instance.WakeReconnectNW == false && this.minimizedStarting == false)
+                if (Settings.Instance.WakeReconnectNW == false && CommonManager.Instance.IsConnected == false)
                 {
                     Dispatcher.BeginInvoke(new Action(() => OpenConnectDialog()));
                 }
@@ -819,7 +816,7 @@ namespace EpgTimer
                     minimizedStarting = false;
                     if (Settings.Instance.WakeReconnectNW == false && CommonManager.Instance.IsConnected == false)
                     {
-                        Dispatcher.BeginInvoke(new Action(() => OpenConnectDialog()), DispatcherPriority.Render);
+                        Dispatcher.BeginInvoke(new Action(() => OpenConnectDialog()));
                     }
                 }
                 foreach (Window win in Application.Current.Windows)
