@@ -307,8 +307,6 @@ namespace EpgTimer
         }
         protected override void ReloadInfo()
         {
-            lstCtrl.RefreshStyle();
-
             //再検索はCtrlCmdを使うので、アクティブウィンドウでだけ実行させる。
             if (ReloadInfoFlg == true && this.IsActive == true)
             {

@@ -201,6 +201,7 @@ namespace EpgTimer
 
         public void RefreshListView(bool needSort = false)
         {
+            RefreshStyle();
             if (needSort == true) this.gvSorter.SortByMultiHeader(dataList);
             listView.Items.Refresh();
             if (needSort == true) listView.ScrollIntoView(listView.SelectedItem);
