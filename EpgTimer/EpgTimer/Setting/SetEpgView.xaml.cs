@@ -113,6 +113,14 @@ namespace EpgTimer.Setting
 
             button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
             checkBox_NotNoStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", System.IO.Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location) + ".rd.xaml");
+
+            comboBox_startTab.ItemsSource = new Dictionary<CtxmCode, string> {
+                        { CtxmCode.ReserveView, "予約一覧" },{ CtxmCode.TunerReserveView, "使用予定チューナー" },
+                        { CtxmCode.RecInfoView, "録画済み一覧" },{ CtxmCode.EpgAutoAddView, "キーワード自動予約登録" },
+                        { CtxmCode.ManualAutoAddView, "プログラム自動予約登録" },{ CtxmCode.EpgView, "番組表" }};
+
+            comboBox_mainViewButtonsDock.ItemsSource = new Dictionary<Dock, string> {
+                        { Dock.Bottom, "下" },{ Dock.Top, "上" },{ Dock.Left, "左" },{ Dock.Right, "右" }};
         }
 
         public void LoadSetting()
@@ -144,25 +152,6 @@ namespace EpgTimer.Setting
             //予約一覧・共通画面
             textBox_LaterTimeHour.Text = (settings.LaterTimeHour + 24).ToString();
             checkBox_picUpCustom.DataContext = settings.PicUpTitleWork;
-
-            wrapPanel_StartTab.Children.Clear();
-            foreach (var item in new Dictionary<CtxmCode, string> {
-                        { CtxmCode.ReserveView, "予約一覧" },{ CtxmCode.TunerReserveView, "使用予定チューナー" },
-                        { CtxmCode.RecInfoView, "録画済み一覧" },{ CtxmCode.EpgAutoAddView, "キーワード予約登録" },
-                        { CtxmCode.ManualAutoAddView, "プログラム予約登録" },{ CtxmCode.EpgView, "番組表" } })
-            {
-                var rbtn = new RadioButton { Tag = item.Key, Content = item.Value, IsChecked = item.Key == settings.StartTab };
-                rbtn.Checked += (sender, e) => settings.StartTab = (CtxmCode)(sender as RadioButton).Tag;
-                wrapPanel_StartTab.Children.Add(rbtn);
-            }
-            wrapPanel_MainViewButtonsDock.Children.Clear();
-            foreach (var item in new Dictionary<Dock, string> {
-                        { Dock.Bottom, "下" },{ Dock.Top, "上" },{ Dock.Left, "左" },{ Dock.Right, "右" } })
-            {
-                var rbtn = new RadioButton { Tag = item.Key, Content = item.Value, IsChecked = item.Key == settings.MainViewButtonsDock };
-                rbtn.Checked += (sender, e) => settings.MainViewButtonsDock = (Dock)(sender as RadioButton).Tag;
-                wrapPanel_MainViewButtonsDock.Children.Add(rbtn);
-            }
         }
 
         public void SaveSetting()
