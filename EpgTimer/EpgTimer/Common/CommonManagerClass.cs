@@ -1213,7 +1213,7 @@ namespace EpgTimer
                 return;
             }
 
-            if (Settings.Instance.FilePlayOnAirWithExe && (NWMode == false || Settings.Instance.FilePlayOnNwWithExe == true))
+            if (Settings.Instance.FilePlay && Settings.Instance.FilePlayOnAirWithExe)
             {
                 //ファイルパスを取得するため開いてすぐ閉じる
                 var info = new NWPlayTimeShiftInfo();
@@ -1239,7 +1239,7 @@ namespace EpgTimer
             {
                 if (string.IsNullOrWhiteSpace(filePath) == true) return;
 
-                if (NWMode == true && Settings.Instance.FilePlayOnNwWithExe == false)
+                if (Settings.Instance.FilePlay == false)
                 {
                     TVTestCtrl.StartStreamingPlay(filePath, NWConnectedIP, NWConnectedPort);
                 }
@@ -1276,7 +1276,7 @@ namespace EpgTimer
                             MessageBox.Show(msg1, title, MessageBoxButton.OK, MessageBoxImage.Information);
                             return;
                         }
-                        Process.Start(cmdLine);
+                        using (Process.Start(cmdLine)) { }
                     }
                     else
                     {
@@ -1285,7 +1285,7 @@ namespace EpgTimer
                             MessageBox.Show(msg2, title, MessageBoxButton.OK, MessageBoxImage.Information);
                             return;
                         }
-                        Process.Start(Settings.Instance.FilePlayExe, cmdLine);
+                        using (Process.Start(Settings.Instance.FilePlayExe, cmdLine)) { }
                     }
                 }
             }

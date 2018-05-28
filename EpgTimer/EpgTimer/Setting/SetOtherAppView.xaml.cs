@@ -26,7 +26,6 @@ namespace EpgTimer.Setting
                 button_down.Click += bx.button_Down_Click;
                 button_del.Click += bx.button_Delete_Click;
                 button_add.Click += (sender, e) => ViewUtil.ListBox_TextCheckAdd(listBox_bon, comboBox_bon.Text);
-                checkBox_playOnNwWithExe.IsEnabled = false;
             }
             else
             {
