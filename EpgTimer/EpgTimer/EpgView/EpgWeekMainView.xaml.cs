@@ -61,6 +61,9 @@ namespace EpgTimer
                             //横位置の設定
                             resItem.Width = Settings.Instance.ServiceWidth;
                             resItem.LeftPos = resItem.Width * dayList.BinarySearch(GetViewDay(info.StartTime));
+
+                            //範囲外は削除する。日を追加するのは簡単だが、viewCustNeedTimeOnly==trueで時間の方を追加するのが面倒すぎる。
+                            if (resItem.LeftPos < 0) reserveList.Remove(resItem);
                         }
                     }
                 }
@@ -160,15 +163,18 @@ namespace EpgTimer
             return ((ComboItem)comboBox_service.Items[idx]).Key;
         }
 
-        public override void MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override int MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
+            //実際には切り替えないと分からない
+            if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
             if (target != null) ChangeViewService(target.Create64Key());
-            base.MoveToReserveItem(target, style);
+            return base.MoveToReserveItem(target, style);
         }
-        public override void MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override int MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
+            if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
             if (target != null) ChangeViewService(target.Create64Key());
-            base.MoveToProgramItem(target, style);
+            return base.MoveToProgramItem(target, style);
         }
         protected void ChangeViewService(UInt64 id)
         {

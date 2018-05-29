@@ -63,7 +63,11 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmds.JumpReserve || menu.Tag == EpgCmds.JumpTuner || menu.Tag == EpgCmds.JumpTable)
             {
-                mcs_jumpTabMenuOpening(menu, "次の無効予約へジャンプ");
+                mcs_ctxmLoading_jumpTabRes(menu, "次の無効予約へジャンプ");
+                if (menu.Tag == EpgCmds.JumpTable && menu.IsEnabled == true)
+                {
+                    mcs_ctxmLoading_jumpTabEpg(menu);
+                }
             }
             else if (menu.Tag == EpgCmdsEx.ShowReserveDialogMenu)
             {

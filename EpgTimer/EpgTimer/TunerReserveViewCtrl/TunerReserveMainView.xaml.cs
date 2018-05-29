@@ -185,11 +185,12 @@ namespace EpgTimer
             BlackoutWindow.Clear();
         }
 
-        public override void MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             int idx = reserveList.FindIndex(item => item.Data.ReserveID == id);
-            if (idx != -1) tunerReserveView.ScrollToFindItem(reserveList[idx], style);
-            ItemIdx = idx;
+            if (idx != -1 && dryrun == false) tunerReserveView.ScrollToFindItem(reserveList[idx], style);
+            if (dryrun == false) ItemIdx = idx;
+            return idx;
         }
         public override object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {

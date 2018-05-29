@@ -244,7 +244,6 @@ namespace EpgTimer
 
             var CheckReservableEpg = new Func<MenuItem, List<EpgEventInfo>, bool>((mi, list) =>
             {
-                mi.ToolTip = null;
                 if (list.Count != 0 && list.Count(data => data.IsReservable == true) == 0)
                 {
                     mi.IsEnabled = false;
@@ -276,7 +275,6 @@ namespace EpgTimer
                 }
                 else
                 {
-                    menu.ToolTip = null;
                     menu.Visibility = Visibility.Visible;
                     if (view == CtxmCode.TunerReserveView && Settings.Instance.MenuSet.IsManualAssign.Contains(view) == false)
                     {
@@ -306,11 +304,15 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmds.JumpReserve || menu.Tag == EpgCmds.JumpTuner)
             {
-                mcs_jumpTabMenuOpening(menu);
+                mcs_ctxmLoading_jumpTabRes(menu);
             }
             else if (menu.Tag == EpgCmds.JumpTable)
             {
-                if (view != CtxmCode.EpgView) return;
+                if (view != CtxmCode.EpgView)
+                {
+                    mcs_ctxmLoading_jumpTabEpg(menu);
+                    return;
+                }
 
                 //標準モードでは非表示。
                 if ((int)ctxm.Tag == 0)
@@ -325,7 +327,6 @@ namespace EpgTimer
             else if (menu.Tag == EpgCmds.Play)
             {
                 menu.IsEnabled = false;
-                menu.ToolTip = null;
                 var info = headData as ReserveData;
                 if (info != null && info.IsEnabled == true)
                 {

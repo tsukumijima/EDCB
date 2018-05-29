@@ -78,11 +78,13 @@ namespace EpgTimer
         protected object UnPack(object item) { return IsUnPack == false ? item : item is DataListItemBase ? (item as DataListItemBase).DataObj : null; }
         protected int itemIdx = -1;
         protected int ItemIdx { get { return itemIdx; } set { if (value != -1) itemIdx = value; } }
-        public virtual void MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public virtual int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (DataListBox == null || DataListBox.Items.Count == 0) return;
+            if (DataListBox == null || DataListBox.Items.Count == 0) return -1;
 
-            ItemIdx = ViewUtil.JumpToListItem(id, DataListBox, style);
+            int idx = ViewUtil.JumpToListItem(id, DataListBox, style, dryrun);
+            if (dryrun == false) ItemIdx = idx;
+            return idx;
         }
         public virtual object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
@@ -96,28 +98,30 @@ namespace EpgTimer
         }
 
         //SearchItem関係
-        public virtual void MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public virtual int MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (DataListBox == null || DataListBox.Items.Count == 0) return;
+            if (DataListBox == null || DataListBox.Items.Count == 0) return -1;
 
             if (target != null && target.IsEpgReserve == true)
             {
                 //重複予約が無ければ、target.CurrentPgUID()でMoveToItem()に投げられる。
                 var item = DataListBox.Items.OfType<SearchItem>().FirstOrDefault(d => d.IsReserved == true && d.ReserveInfo.ReserveID == target.ReserveID);
-                ItemIdx = ViewUtil.ScrollToFindItem(item, DataListBox, style);
+                int idx = ViewUtil.ScrollToFindItem(item, DataListBox, style, dryrun);
+                if (dryrun == false) ItemIdx = idx;
+                return idx;
             }
             else
             {
                 //プログラム予約だと見つからないので、それらしい番組へジャンプする。
-                MoveToProgramItem(target == null ? null : target.SearchEventInfoLikeThat(), style);
+                return MoveToProgramItem(target == null ? null : target.SearchEventInfoLikeThat(), style, dryrun);
             }
         }
-        public virtual void MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public virtual int MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (DataListBox == null || DataListBox.Items.Count == 0) return;
+            if (DataListBox == null || DataListBox.Items.Count == 0) return -1;
 
             //過去番組表でイベントIDが重複している場合があるので開始時間も考慮する
-            MoveToItem(target == null ? 0 : target.CurrentPgUID(), style);
+            return MoveToItem(target == null ? 0 : target.CurrentPgUID(), style, dryrun);
         }
 
         //予約データの移動関係、SearchWindowとEpgListMainView

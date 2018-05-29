@@ -221,17 +221,33 @@ namespace EpgTimer.EpgView
 
             //「番組表へジャンプ」の場合、またはオプションで指定のある場合に強調表示する。
             var isMarking = (BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
-            if (BlackoutWindow.HasReserveData == true)
+            if (MoveToItem(BlackoutWindow.SelectedItem, isMarking) == false)
             {
-                MoveToReserveItem(BlackoutWindow.SelectedItem.ReserveInfo, isMarking);
-            }
-            else if (BlackoutWindow.HasProgramData == true)
-            {
-                MoveToProgramItem(BlackoutWindow.SelectedItem.EventInfo, isMarking);
+                StatusManager.StatusNotifySet("アイテムが見つかりませんでした < 番組表へジャンプ");
             }
             BlackoutWindow.Clear();
 
             RefreshStatus();
+        }
+
+        public bool IsEnabledJumpTab(SearchItem target)
+        {
+            return MoveToItem(target, JumpItemStyle.None, true);
+        }
+        public bool MoveToItem(SearchItem target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        {
+            if (target == null) return false;
+            if (target.ReserveInfo != null)
+            {
+                return MoveToReserveItem(target.ReserveInfo, style, dryrun) >= 0;
+            }
+            else if (target.EventInfo != null)
+            {
+                EpgEventInfo info = target.EventInfo;
+                info = info.event_id != 0xFFFF ? info : MenuUtil.SearchEventInfoLikeThat(info);
+                return MoveToProgramItem(info, style, dryrun) >= 0;
+            }
+            return false;
         }
     }
 }

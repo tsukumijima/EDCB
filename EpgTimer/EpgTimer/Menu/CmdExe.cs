@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace EpgTimer
 {
@@ -307,12 +308,7 @@ namespace EpgTimer
         }
         protected virtual void mcs_JumpTab(CtxmCode trg_code)
         {
-            SearchItem item = mcs_GetJumpTabItem(trg_code);
-            if (item != null)
-            {
-                BlackoutWindow.SelectedData = item;
-                mainWindow.moveTo_tabItem(trg_code);
-            }
+            MenuUtil.JumpTab(mcs_GetJumpTabItem(trg_code), trg_code);
             IsCommandExecuted = true;
         }
         protected virtual SearchItem mcs_GetJumpTabItem(CtxmCode trg_code)
@@ -463,6 +459,10 @@ namespace EpgTimer
                     //有効無効制御。ボタンをあまりグレーアウトしたくないのでCanExecuteを使わずここで実施する
                     menu.IsEnabled = this.ItemCount != 0 || GetCmdParam(menu.Tag as ICommand).IsNeedItem == false;
 
+                    //共通の処理
+                    menu.ToolTip = null;
+                    mcs_ctxmLoading_edit_tooltip(menu);
+
                     //コマンド集に応じた処理
                     mcs_ctxmLoading_switch(ctxm, menu);
                 }
@@ -471,12 +471,40 @@ namespace EpgTimer
             ClearData();
         }
         protected virtual void mcs_ctxmLoading_switch(ContextMenu ctxm, MenuItem menu) { }
-        protected virtual void mcs_jumpTabMenuOpening(MenuItem menu, string offres_tooltip = null)
+        protected virtual void mcs_ctxmLoading_edit_tooltip(MenuItem menu)
+        {
+            Func<bool, string, string, string, string> _ToggleModeTooltip = (mode, Caption, OnText, OffText) =>
+            {
+                string ModeText = (mode == true ? OnText : OffText);
+                string ToggleText = (mode == false ? OnText : OffText);
+                return Caption + ModeText + " (Shift+クリックで一時的に'" + ToggleText + "')";
+            };
+            if (menu.Tag == EpgCmds.ToAutoadd || menu.Tag == EpgCmds.ReSearch || menu.Tag == EpgCmds.ReSearch2)
+            {
+                menu.ToolTip = _ToggleModeTooltip(Settings.Instance.MenuSet.Keyword_Trim, "記号除去モード : ", "オン", "オフ");
+            }
+            else if (menu.Tag == EpgCmds.CopyTitle)
+            {
+                menu.ToolTip = _ToggleModeTooltip(Settings.Instance.MenuSet.CopyTitle_Trim, "記号除去モード : ", "オン", "オフ");
+            }
+            else if (menu.Tag == EpgCmds.CopyContent)
+            {
+                menu.ToolTip = _ToggleModeTooltip(Settings.Instance.MenuSet.CopyContentBasic, "取得モード : ", "基本情報のみ", "詳細情報");
+            }
+            else if (menu.Tag == EpgCmds.InfoSearchTitle)
+            {
+                menu.ToolTip = _ToggleModeTooltip(Settings.Instance.MenuSet.InfoSearchTitle_Trim, "記号除去モード : ", "オン", "オフ");
+            }
+            else if (menu.Tag == EpgCmds.SearchTitle)
+            {
+                menu.ToolTip = _ToggleModeTooltip(Settings.Instance.MenuSet.SearchTitle_Trim, "記号除去モード : ", "オン", "オフ");
+            }
+        }
+        protected virtual void mcs_ctxmLoading_jumpTabRes(MenuItem menu, string offres_tooltip = null)
         {
             //メニュー実行時に選択されるアイテムが予約でないとき、または予約が無いときは無効
             ReserveData resinfo = mcs_GetNextReserve();
             menu.IsEnabled = (resinfo != null);
-            menu.ToolTip = null;
             if (resinfo == null) return;
 
             if (resinfo.IsEnabled == false)
@@ -490,6 +518,20 @@ namespace EpgTimer
                     menu.ToolTip = "無効予約は使用予定チューナー画面に表示されない設定になっています。";
                 }
             }
+        }
+        protected virtual void mcs_ctxmLoading_jumpTabEpg(MenuItem menu)
+        {
+            //ジャンプ先がない場合無効にする
+            SearchItem item = mcs_GetSearchItem();
+            menu.IsEnabled = item != null;
+            //時間がかかったりするとイヤなのでメニュー構築を優先する
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
+            {
+                if (item != null && MenuUtil.IsEnabledJumpTab(item) == false)
+                {
+                    menu.ToolTip = ((menu.ToolTip as string) + "\r\n番組表にアイテムが見つかりません。").Trim();
+                }
+            }), DispatcherPriority.Loaded);
         }
         protected void mcs_SetSingleMenuEnabled(MenuItem menu, bool isEnabled)
         {

@@ -525,7 +525,7 @@ namespace EpgTimer
             if (DataView is EpgViewBase)
             {
                 //BeginInvokeはフォーカス対応
-                mainWindow.epgView.SearchJumpTargetProgram(reserveInfo == null ? 0 : reserveInfo.Create64Key());
+                MenuUtil.IsEnabledJumpTab(new ReserveItem(reserveInfo));
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     DataView.MoveToReserveItem(reserveInfo);

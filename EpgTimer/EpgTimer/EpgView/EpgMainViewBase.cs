@@ -176,11 +176,12 @@ namespace EpgTimer.EpgView
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
-        public override void MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             ProgramViewItem target_item;
             programList.TryGetValue(id, out target_item);
-            programView.ScrollToFindItem(target_item, style);
+            if (dryrun == false) programView.ScrollToFindItem(target_item, style);
+            return target_item == null ? -1 : 0;
         }
 
         public override object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
@@ -195,18 +196,19 @@ namespace EpgTimer.EpgView
             return list[idx] == null ? null : list[idx].Data;
         }
 
-        public override void MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override int MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (target == null) return;
+            if (target == null) return -1;
             int idx = reserveList.FindIndex(item => item.Data.ReserveID == target.ReserveID);
-            if (idx != -1) programView.ScrollToFindItem(reserveList[idx], style);
-            ItemIdx = idx;
+            if (idx != -1 && dryrun == false) programView.ScrollToFindItem(reserveList[idx], style);
+            if (dryrun == false) ItemIdx = idx;
+            return idx;
         }
-        public override void MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override int MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            MoveToItem(target == null ? 0 : target.CurrentPgUID(), style);
+            return MoveToItem(target == null ? 0 : target.CurrentPgUID(), style, dryrun);
         }
-        
+
         protected int resIdx = -1;
         public override object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {

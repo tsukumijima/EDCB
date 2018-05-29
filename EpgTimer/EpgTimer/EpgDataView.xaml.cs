@@ -219,9 +219,9 @@ namespace EpgTimer
             base.UserControl_IsVisibleChanged(sender, e);//ここでタブが生成される
             if (this.IsVisible == true)
             {
-                if (SearchJumpTargetProgram(BlackoutWindow.Create64Key()) == false)
+                if (SearchJumpTargetProgram(BlackoutWindow.SelectedItem) == false)
                 {
-                    BlackoutWindow.Clear();//見つからなかったときのゴミ掃除
+                    BlackoutWindow.Clear();//番組表タブが一つもないときなどのゴミ掃除
                 }
                 //PrebuildEpg==falseのとき中身だけ無くなることがある。
                 var tab = tabControl.SelectedItem as EpgTabItem;
@@ -230,16 +230,23 @@ namespace EpgTimer
         }
 
         /// <summary>予約一覧からのジャンプ先を番組表タブから探す</summary>
-        public bool SearchJumpTargetProgram(UInt64 serviceKey)
+        public bool SearchJumpTargetProgram(SearchItem trg, bool dryrun = false)
         {
             try
             {
-                if (serviceKey == 0) return false;
-
-                var tab = Tabs.OrderBy(tb => tb.IsSelected ? 0 : 1)
-                    .FirstOrDefault(tb => tb.Info.ViewServiceList.Contains(serviceKey) == true);
-
-                if (tab != null) tab.IsSelected = true;
+                if (trg == null) return false;
+                if (tabControl.Items.Count == 0) CreateTabItem();
+                var tab = Tabs.OrderBy(tb => tb.IsSelected ? 0 : 1).FirstOrDefault(tb =>
+                {
+                    var data = (AutoAddTargetData)trg.ReserveInfo ?? trg.EventInfo;
+                    bool ret = data == null ? false : tb.Info.ViewServiceList.Contains(data.Create64Key());
+                    if (ret == true && tb.view != null && tb.EpgLoaded == true)
+                    {
+                        return tb.view.IsEnabledJumpTab(trg);
+                    }
+                    return ret;
+                });
+                if (tab != null && dryrun == false) tab.IsSelected = true;
                 return tab != null;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -515,6 +522,7 @@ namespace EpgTimer
 
         //共有データ。eventListは主にEpgTimerNWでの検索絞り込み使用時用。
         EpgViewData viewData = new EpgViewData();
+        public bool EpgLoaded { get { return viewData.ServiceEventList.Count > 0; } }
         public CustomEpgTabInfo Info
         {
             get { return viewData.EpgTabInfo; }

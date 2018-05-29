@@ -981,6 +981,17 @@ namespace EpgTimer
             return IsEnabled == null ? list : list.FindAll(data => data.IsEnabled == IsEnabled);
         }
 
+        public static void JumpTab(object target, CtxmCode trg_code)
+        {
+            if (target == null) return;
+            BlackoutWindow.SelectedData = target;
+            ViewUtil.MainWindow.moveTo_tabItem(trg_code);
+        }
+        public static bool IsEnabledJumpTab(SearchItem target)
+        {
+            return ViewUtil.MainWindow.epgView.SearchJumpTargetProgram(target, true);
+        }
+
         public static string ConvertAutoddTextMenu(AutoAddData data)
         {
             if(data is EpgAutoAddData)

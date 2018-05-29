@@ -298,9 +298,7 @@ namespace EpgTimer
             {
                 SetHideWindow(this);
                 MinimizeWindows();
-
-                BlackoutWindow.SelectedData = item;
-                mainWindow.moveTo_tabItem(code);
+                MenuUtil.JumpTab(item, code);
             }));
         }
         protected override void OnClosed(EventArgs e)

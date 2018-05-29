@@ -209,32 +209,32 @@ namespace EpgTimer
         }
 
         //指定アイテムまでマーキング付で移動する。
-        public static int JumpToListItem(object target, ListBox listBox, JumpItemStyle style = JumpItemStyle.None)
+        public static int JumpToListItem(object target, ListBox listBox, JumpItemStyle style = JumpItemStyle.None, bool dryrun = false)
         {
             if (target is IGridViewSorterItem)
             {
-                return JumpToListItem(((IGridViewSorterItem)target).KeyID, listBox, style);
+                return JumpToListItem(((IGridViewSorterItem)target).KeyID, listBox, style, dryrun);
             }
             else
             {
-                return ScrollToFindItem(target, listBox, style);
+                return ScrollToFindItem(target, listBox, style, dryrun);
             }
         }
-        public static int JumpToListItem(UInt64 gvSorterID, ListBox listBox, JumpItemStyle style = JumpItemStyle.None)
+        public static int JumpToListItem(UInt64 gvSorterID, ListBox listBox, JumpItemStyle style = JumpItemStyle.None, bool dryrun = false)
         {
             var target = listBox.Items.OfType<IGridViewSorterItem>().FirstOrDefault(data => data.KeyID == gvSorterID);
-            return ScrollToFindItem(target, listBox, style);
+            return ScrollToFindItem(target, listBox, style, dryrun);
         }
-        public static int ScrollToFindItem(object target, ListBox listBox, JumpItemStyle style = JumpItemStyle.None)
+        public static int ScrollToFindItem(object target, ListBox listBox, JumpItemStyle style = JumpItemStyle.None, bool dryrun = false)
         {
             int selIdx = -1;
             try
             {
-                listBox.SelectedItem = target;
-                if (listBox.SelectedItem == null) return selIdx;
+                selIdx = listBox.Items.IndexOf(target);
+                if (dryrun == true || selIdx < 0) return selIdx;
 
+                listBox.SelectedIndex = selIdx;
                 listBox.ScrollIntoView(target);
-                selIdx = listBox.SelectedIndex;
 
                 //パネルビューと比較して、こちらでは最後までゆっくり点滅させる。全表示時間は同じ。
                 //ただ、結局スクロールさせる位置がうまく調整できてないので効果は限定的。

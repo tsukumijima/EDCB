@@ -579,42 +579,10 @@ namespace EpgTimer
                     item = menu;
                 }
                 item.Tag = data.Command;
-                item.ToolTip = GetCtxmTooltip(data.Command);
                 ToolTipService.SetShowOnDisabled(item, true);
 
                 dest.Add(item);
             });
-        }
-        private string GetCtxmTooltip(ICommand icmd)
-        {
-            Func<bool, string, string, string, string> _ToggleModeTooltip = (mode, Caption, OnText, OffText) =>
-            {
-                string ModeText = (mode == true ? OnText : OffText);
-                string ToggleText = (mode == false ? OnText : OffText);
-                return Caption + ModeText + " (Shift+クリックで一時的に'" + ToggleText + "')";
-            };
-
-            if (icmd == EpgCmds.ToAutoadd || icmd == EpgCmds.ReSearch || icmd == EpgCmds.ReSearch2)
-            {
-                return _ToggleModeTooltip(Settings.Instance.MenuSet.Keyword_Trim, "記号除去モード : ", "オン", "オフ");
-            }
-            else if (icmd == EpgCmds.CopyTitle)
-            {
-                return _ToggleModeTooltip(Settings.Instance.MenuSet.CopyTitle_Trim, "記号除去モード : ", "オン", "オフ");
-            }
-            else if (icmd == EpgCmds.CopyContent)
-            {
-                return _ToggleModeTooltip(Settings.Instance.MenuSet.CopyContentBasic, "取得モード : ", "基本情報のみ", "詳細情報");
-            }
-            else if (icmd == EpgCmds.InfoSearchTitle)
-            {
-                return _ToggleModeTooltip(Settings.Instance.MenuSet.InfoSearchTitle_Trim, "記号除去モード : ", "オン", "オフ");
-            }
-            else if (icmd == EpgCmds.SearchTitle)
-            {
-                return _ToggleModeTooltip(Settings.Instance.MenuSet.SearchTitle_Trim, "記号除去モード : ", "オン", "オフ");
-            }
-            return null;
         }
 
         public void CtxmGenerateAddOnPresetItems(MenuItem menu) { CtxmGenerateOnPresetItems(menu, EpgCmds.AddOnPreset); }
