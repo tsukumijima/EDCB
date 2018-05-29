@@ -39,12 +39,16 @@ namespace EpgTimer
         public abstract uint PgDurationSecond { get; }
         public virtual UInt64 Create64Key() { return Create64PgKey() >> 16; }
         public abstract UInt64 Create64PgKey();
+        private UInt64 currentPgUID = 0;//DeepCopyでは無視
         public virtual UInt64 CurrentPgUID()
         {
-            UInt64 key = Create64PgKey();
-            //return ((UInt64)(new TimeSpan(PgStartTime.Ticks).TotalDays)) << 32
-            return (UInt64)(PgStartTime.Ticks) & 0xFFFFFF0000000000 //分解能約1日
-                | ((UInt32)CommonManager.Create16Key(key >> 16)) << 16 | (UInt16)key;
+            if (currentPgUID == 0)
+            {
+                UInt64 key = Create64PgKey();
+                currentPgUID = (UInt64)(PgStartTime.Ticks) & 0xFFFFFF0000000000 //分解能約1日
+                    | ((UInt32)CommonManager.Create16Key(key >> 16)) << 16 | (UInt16)key;
+            }
+            return currentPgUID;
         }
         //CurrentPgUID()は同一のEventIDの番組をチェックするが、こちらは放映時刻をチェックする。
         //プログラム予約が絡んでいる場合、結果が変わってくる。
