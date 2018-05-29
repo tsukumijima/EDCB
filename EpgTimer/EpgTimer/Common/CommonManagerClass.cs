@@ -1230,7 +1230,7 @@ namespace EpgTimer
             }
             else
             {
-                TVTestCtrl.StartTimeShift(data.ReserveID);
+                TVTestCtrl.StartStreamingPlay(null, data.ReserveID);
             }
         }
         public void FilePlay(String filePath)
@@ -1241,7 +1241,7 @@ namespace EpgTimer
 
                 if (Settings.Instance.FilePlay == false)
                 {
-                    TVTestCtrl.StartStreamingPlay(filePath, NWConnectedIP, NWConnectedPort);
+                    TVTestCtrl.StartStreamingPlay(filePath, 0);
                 }
                 else
                 {
