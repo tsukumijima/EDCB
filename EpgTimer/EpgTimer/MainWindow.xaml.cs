@@ -53,7 +53,7 @@ namespace EpgTimer
             {
                 Environment.Exit(0);
             }
-            mutexName = (CommonManager.Instance.NWMode ? "" : "2") +
+            mutexName = (CommonManager.Instance.NWMode ? "NW" : "2") +
                         (appName.StartsWith("EpgTimer", StringComparison.OrdinalIgnoreCase) ? appName.Substring(8).ToUpperInvariant() : "");
             mutex = new Mutex(false, "Global\\EpgTimer_Bon" + mutexName);
             if (!mutex.WaitOne(0, false))
@@ -640,7 +640,7 @@ namespace EpgTimer
 
             StatusManager.StatusNotifySet("EpgTimerSrvへ接続完了");
 
-            IniFileHandler.UpdateSrvProfileIniNW();
+            IniFileHandler.UpdateSrvProfileIni();
 
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.PlugInFile);
@@ -982,13 +982,13 @@ namespace EpgTimer
             {
                 if (setting.setBasicView.IsChangeSettingPath == true)
                 {
-                    IniFileHandler.UpdateSrvProfileIniNW();
+                    IniFileHandler.UpdateSrvProfileIni();
                 }
             }
             else
             {
                 CommonManager.CreateSrvCtrl().SendReloadSetting();
-                CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();
+                CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate(mutexName);
             }
 
             if (setting.setEpgView.IsChangeRecInfoDropExcept == true)
@@ -1427,9 +1427,10 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.IniFile:
                     {
-                        if (CommonManager.Instance.NWMode == true || status.param4 != "EpgTimer")
+                        //EpgtimerNWはSendNotifyProfileUpdate()しないので当面これでいい
+                        if (status.param4 != mutexName)
                         {
-                            err = IniFileHandler.UpdateSrvProfileIniNW();
+                            err = IniFileHandler.UpdateSrvProfileIni();
                             RefreshAllViewsReserveInfo();
                             notifyLogWindowUpdate = true;
                             SettingWindow.UpdatesInfo("別画面/PCでの設定更新");

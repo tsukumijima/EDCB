@@ -131,7 +131,7 @@ namespace EpgTimer
             }
         }
 
-        public static ErrCode UpdateSrvProfileIniNW(List<string> iniList = null)
+        public static ErrCode UpdateSrvProfileIni(List<string> iniList = null)
         {
             var err = ErrCode.CMD_SUCCESS;
             if (CommonManager.Instance.NWMode == true)
