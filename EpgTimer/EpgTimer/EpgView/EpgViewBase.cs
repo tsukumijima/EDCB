@@ -106,7 +106,6 @@ namespace EpgTimer.EpgView
 
         protected virtual void InitCommand()
         {
-            //EpgReloadの制御。ReserveはVisibleに従う。
             base.updateInvisible = Settings.Instance.PrebuildEpg;
 
             //ビューコードの登録
@@ -178,14 +177,14 @@ namespace EpgTimer.EpgView
         /// <summary>
         /// 予約情報更新通知
         /// </summary>
-        public void UpdateReserveInfo(bool reload = true)
+        public void UpdateReserveInfo(bool immediately = true)
         {
-            ReloadReserveInfoFlg |= reload;
-            ReloadReserveInfo();
+            ReloadReserveInfoFlg = true;
+            if (immediately == true) ReloadReserveInfo();
         }
         protected void ReloadReserveInfo()
         {
-            if (ReloadReserveInfoFlg == true && this.IsVisible == true)
+            if (ReloadReserveInfoFlg == true)
             {
                 ReloadReserveInfoFlg = !ReloadReserveInfoData();
                 if (ViewReserveUpdated != null) ViewReserveUpdated(this, true);
@@ -221,10 +220,9 @@ namespace EpgTimer.EpgView
 
             //「番組表へジャンプ」の場合、またはオプションで指定のある場合に強調表示する。
             var isMarking = (BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
-            if (MoveToItem(BlackoutWindow.SelectedItem, isMarking) == false)
-            {
-                StatusManager.StatusNotifySet("アイテムが見つかりませんでした < 番組表へジャンプ");
-            }
+            bool mgs = MoveToItem(BlackoutWindow.SelectedItem, isMarking) == false &&
+                    BlackoutWindow.NowJumpTable == true && BlackoutWindow.HasData == true;
+            StatusManager.StatusNotifySet(mgs == false ? "" : "アイテムが見つかりませんでした < 番組表へジャンプ");
             BlackoutWindow.Clear();
 
             RefreshStatus();
@@ -239,11 +237,13 @@ namespace EpgTimer.EpgView
             if (target == null) return false;
             if (target.ReserveInfo != null)
             {
+                ReloadReserveInfo();
                 return MoveToReserveItem(target.ReserveInfo, style, dryrun) >= 0;
             }
             else if (target.EventInfo != null)
             {
                 EpgEventInfo info = target.EventInfo;
+                //録画結果でevent_idを持っていないもの(未放送時間帯を録画など)は結局番組を見つけられないので、過去番組は探さない。
                 info = info.event_id != 0xFFFF ? info : MenuUtil.SearchEventInfoLikeThat(info);
                 return MoveToProgramItem(info, style, dryrun) >= 0;
             }

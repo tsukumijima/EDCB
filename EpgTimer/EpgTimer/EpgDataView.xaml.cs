@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace EpgTimer
 {
@@ -73,7 +74,7 @@ namespace EpgTimer
         }
 
         /// <summary>予約情報の更新通知</summary>//ストックにもフラグを立てる。
-        public void UpdateReserveInfo(bool reload = true) { foreach (var tb in Tabs) tb.UpdateReserveInfo(reload); }
+        public void UpdateReserveInfo() { foreach (var tb in Tabs) tb.UpdateReserveInfo(); }
 
         /// <summary>EPGデータの再描画</summary>
         public override void UpdateInfo(bool reload = true)
@@ -219,10 +220,10 @@ namespace EpgTimer
             base.UserControl_IsVisibleChanged(sender, e);//ここでタブが生成される
             if (this.IsVisible == true)
             {
-                if (SearchJumpTargetProgram(BlackoutWindow.SelectedItem) == false)
-                {
-                    BlackoutWindow.Clear();//番組表タブが一つもないときなどのゴミ掃除
-                }
+                SearchJumpTargetProgram(BlackoutWindow.SelectedItem);
+                //番組表タブが一つもないときなどのゴミ掃除
+                Dispatcher.BeginInvoke(new Action(() => BlackoutWindow.Clear()), DispatcherPriority.Input);
+
                 //PrebuildEpg==falseのとき中身だけ無くなることがある。
                 var tab = tabControl.SelectedItem as EpgTabItem;
                 if (tab != null && tab.view == null) tab.SetContent();
@@ -557,9 +558,10 @@ namespace EpgTimer
         }
 
         //更新関係。非表示のものはフラグが立つだけ。EPG更新が来たときはどうせ全部書き直しなので描画ストックを破棄する。
+        private bool IsViewDisplay(EpgViewBase v) { return ViewUtil.IsEpgViewSelected == true && this.IsSelected == true && v == view; }
         public void SaveViewData() { foreach (var v in vItems.Values) v.SaveViewData(); }//これは非表示でも実行
         public void UpdateMenu(bool refresh = true) { foreach (var v in vItems.Values) v.UpdateMenu(refresh); }
-        public void UpdateReserveInfo(bool reload = true) { foreach (var v in vItems.Values) v.UpdateReserveInfo(reload); }
+        public void UpdateReserveInfo() { foreach (var v in vItems.Values) v.UpdateReserveInfo(IsViewDisplay(v)); }
         public void UpdateInfo()
         {
             //状態の設定、オプションによりRender()を仕分ける

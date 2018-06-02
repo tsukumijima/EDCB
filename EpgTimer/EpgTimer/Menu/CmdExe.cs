@@ -527,7 +527,7 @@ namespace EpgTimer
             //時間がかかったりするとイヤなのでメニュー構築を優先する
             Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
             {
-                if (item != null && MenuUtil.IsEnabledJumpTab(item) == false)
+                if (item != null && MenuUtil.CheckJumpTab(item) == false)
                 {
                     menu.ToolTip = ((menu.ToolTip as string) + "\r\n番組表にアイテムが見つかりません。").Trim();
                 }

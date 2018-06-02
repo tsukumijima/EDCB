@@ -987,9 +987,9 @@ namespace EpgTimer
             BlackoutWindow.SelectedData = target;
             ViewUtil.MainWindow.moveTo_tabItem(trg_code);
         }
-        public static bool IsEnabledJumpTab(SearchItem target)
+        public static bool CheckJumpTab(SearchItem target, bool switchTab = false)
         {
-            return ViewUtil.MainWindow.epgView.SearchJumpTargetProgram(target, true);
+            return ViewUtil.MainWindow.epgView.SearchJumpTargetProgram(target, !switchTab);
         }
 
         public static string ConvertAutoddTextMenu(AutoAddData data)
