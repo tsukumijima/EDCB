@@ -93,26 +93,22 @@ namespace EpgTimer
                     List<EpgSearchKeyInfo> keyList = srcList.RecSearchKeyList().DeepClone();
                     keyList.ForEach(key => key.keyDisabledFlag = 0); //無効解除
 
-                    try
-                    {
-                        var list_list = new List<List<EpgEventInfo>>();
-                        CommonManager.CreateSrvCtrl().SendSearchPgByKey(keyList, ref list_list);
-
-                        //通常あり得ないが、コマンド成功にもかかわらず何か問題があった場合は飛ばす
-                        if (srcList.Count == list_list.Count)
-                        {
-                            int i = 0;
-                            foreach (EpgAutoAddData item in srcList)
-                            {
-                                dict.Add(item.dataID, new EpgAutoAddDataAppend(list_list[i++]));
-                            }
-                        }
-
-                        epgAutoAddAppendList = dict;
-                    }
+                    var list_list = new List<List<EpgEventInfo>>();
+                    try { CommonManager.CreateSrvCtrl().SendSearchPgByKey(keyList, ref list_list); }
                     catch { }
+
+                    //通常あり得ないが、コマンド成功にもかかわらず何か問題があった場合は飛ばす
+                    if (srcList.Count == list_list.Count)
+                    {
+                        int i = 0;
+                        foreach (EpgAutoAddData item in srcList)
+                        {
+                            dict.Add(item.dataID, new EpgAutoAddDataAppend(list_list[i++]));
+                        }
+                    }
                 }
 
+                epgAutoAddAppendList = dict;
                 updateEpgAutoAddAppend = false;
                 updateEpgAutoAddAppendReserveInfo = true;//現時刻でのSearchList再作成も含む
             }
