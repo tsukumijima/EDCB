@@ -40,7 +40,7 @@
         <ListView Margin="0,0,5,29" Name="listBox_service" Style="{StaticResource ServiceListViewStyle}" >
             <ListView.View>
                 <GridView>
-                    <GridViewColumn>
+                    <GridViewColumn Header="　　　">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <CheckBox IsChecked="{Binding Path=IsSelectedViewCmd}" />

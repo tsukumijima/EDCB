@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Windows.Threading;
 
 namespace EpgTimer
 {
@@ -489,8 +488,6 @@ namespace EpgTimer
 
                 reserveEventList = null;
                 reserveEventListCache = null;
-
-                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => GC.Collect()), DispatcherPriority.ApplicationIdle);
                 return ret;
             });
         }

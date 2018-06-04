@@ -68,9 +68,9 @@
                     <Label Content="秒後" />
                 </StackPanel>
                 <CheckBox Content="休止／スタンバイ移行時にEpgTimerNWを終了する" Margin="0,6,0,0" Name="checkBox_suspendClose" IsEnabled="False" IsChecked="{Binding SuspendCloseNW}" />
-                <CheckBox Content="EPGデータを常に更新する" Margin="0,6,0,0" IsChecked="{Binding NgAutoEpgLoadNW, Converter={StaticResource invert}}" Name="checkBox_ngAutoEpgLoad" />
+                <CheckBox Content="EPGデータを常に更新する" Margin="0,6,0,0" IsChecked="{Binding NgAutoEpgLoadNW, Converter={StaticResource invert}}" Name="checkBox_ngAutoEpgLoad" ToolTipService.ShowDuration="600000" ToolTip="未チェックでも、番組表を表示するときは更新されます。&#10;また「EPG再読み込み」で更新できます。"/>
                 <StackPanel Margin="0,0,12,0">
-                    <CheckBox Content="EPGデータ更新時にすぐ番組表を構築する" Margin="0,6,0,0" IsChecked="{Binding PrebuildEpg}" ToolTipService.ShowDuration="600000" ToolTip="番組表タブが未選択の状態でも、表示中の番組表をすぐに構築します。&#10;番組表タブへの切替えが早くなりますが、EPG更新時は重くなります。" />
+                    <CheckBox Content="EPGデータ更新時にすぐ番組表を構築する" Margin="0,6,0,0" IsChecked="{Binding PrebuildEpg}" ToolTipService.ShowDuration="600000" ToolTip="チェック時は、番組表タブが非表示の場合にも、すぐ番組表を構築します。&#10;番組表タブへの切替えが早くなりますが、EPG更新時などは重くなります。" />
                     <CheckBox Content="全番組表を構築する　※更新時や設定変更時に大変重くなります" Margin="18,4,0,0" IsChecked="{Binding PrebuildEpgAll}" IsEnabled="{Binding PrebuildEpg}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,12,0" >

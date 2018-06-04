@@ -16,7 +16,6 @@ namespace EpgTimer
         protected MenuBinds mBinds = new MenuBinds();
         protected string[] status = { "", "", "", "" };
         protected bool ReloadInfoFlg = true;
-        protected bool noStatus = false;
         protected bool updateInvisible { get; set; }
 
         public virtual void UpdateInfo(bool reload = true)
@@ -36,7 +35,7 @@ namespace EpgTimer
         protected virtual bool ReloadInfoData() { return true; }
         protected void UpdateStatus(int mode = 0)
         {
-            if (noStatus || Settings.Instance.DisplayStatus == false) return;
+            if (Settings.Instance.DisplayStatus == false) return;
             UpdateStatusData(mode);
             RefreshStatus();
         }

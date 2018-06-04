@@ -16,27 +16,20 @@ namespace EpgTimer
     /// </summary>
     public partial class EpgDataView : DataItemViewBase
     {
-        private IEnumerable<EpgTabItem> Tabs { get { return tabControl.Items.OfType<EpgTabItem>(); } }
-        private List<CustomEpgTabInfo> tabInfo = new List<CustomEpgTabInfo>();//Settingデータの参照を保持
+        bool IsSelected { get { return Visibility == Visibility.Visible; } }//タスクアイコン状態も含む
+        IEnumerable<EpgTabItem> Tabs { get { return tabControl.Items.OfType<EpgTabItem>(); } }
+        List<CustomEpgTabInfo> tabInfo = new List<CustomEpgTabInfo>();//Settingデータの参照を保持
         CustomEpgTabInfo get_tabInfo(string Uid) { return tabInfo.Find(ti => ti.Uid == Uid); }
         ContextMenu ctxm = new ContextMenu();//使用時に生成するとClearTabHeader()のタイミングが前後するので準備しておく。
 
         public EpgDataView()
         {
             InitializeComponent();
-            base.noStatus = true;
-            base.updateInvisible = true;//Reloadの際のVisibleの制御はこちらで行う。
 
             //コンテキストメニューの設定
             ctxm.Unloaded += (s, e) => ClearTabHeader();
             tabControl.MouseRightButtonUp += EpgTabContextMenuOpen;
             grid_viewMode.PreviewMouseRightButtonUp += EpgTabContextMenuOpen;
-
-            //番組表設定画面の設定
-            EpgTabItem.grid_tab = this.grid_tab;
-            EpgTabItem.TabInfoOriginal = get_tabInfo;
-            EpgTabItem.viewSettingClick += epgView_ViewSettingClick;
-            EpgTabItem.TabItemsChanged += new Action(() => ViewUtil.TabControlHeaderCopy(tabControl, dummyTab));
 
             //コマンドだと細かく設定しないといけないパターンなのでこの辺りで一括指定
             this.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, ActiveView);
@@ -47,7 +40,7 @@ namespace EpgTimer
         {
             get
             {
-                var tab = Tabs.FirstOrDefault(tb => tb.IsSelected == true);
+                var tab = tabControl.SelectedItem as EpgTabItem;
                 return tab == null ? null : tab.view;
             }
         }
@@ -76,27 +69,26 @@ namespace EpgTimer
         /// <summary>予約情報の更新通知</summary>//ストックにもフラグを立てる。
         public void UpdateReserveInfo() { foreach (var tb in Tabs) tb.UpdateReserveInfo(); }
 
-        /// <summary>EPGデータの再描画</summary>
-        public override void UpdateInfo(bool reload = true)
+        /// <summary>EPGデータの再描画</summary>//ReloadInfo()とも、DataViewBaseのは未使用
+        public override void UpdateInfo(bool epgReloaded = true)
         {
-            //不要ストックの破棄をさせるので即時実行。番組表自体はVisible_Changedで再描画される。
-            //なお、これがReloadInfoData()にあると毎回タブ整理が走るので、移動してはいけない。
-            foreach (var tb in Tabs) { tb.UpdateInfo(); }
-            base.UpdateInfo(reload);
-        }
-        protected override bool ReloadInfoData()
-        {
-            if (this.IsVisible == true || Settings.Instance.PrebuildEpg == true)
+            ReloadInfoFlg = true;
+            //不要ストックの破棄。EPGデータを更新しない設定の時は表示中以外のストックを放棄する。
+            foreach (var tb in Tabs) tb.CleanUpContent(Settings.Instance.NgAutoEpgLoadNW);
+            if (IsSelected == true || Settings.Instance.PrebuildEpg == true && epgReloaded == true)
             {
-                //タブが無ければ生成。
-                if (tabControl.Items.Count == 0)
-                {
-                    return CreateTabItem();
-                }
-                //既にある場合は先に走ったUpdateInfo()でViewのフラグが立っているので更新される。
-                return true;
+                ReloadInfo();
             }
-            return false;
+            Dispatcher.BeginInvoke(new Action(() => GC.Collect()), DispatcherPriority.Input);
+        }
+        protected override void ReloadInfo()
+        {
+            if (ReloadInfoFlg == false) return;
+            ReloadInfoFlg = false;
+
+            //タブが無ければ生成。
+            if (tabControl.Items.Count == 0) CreateTabItem();
+            foreach (var tb in Tabs) tb.SetContent(true);
         }
 
         EpgViewState oldState = null;
@@ -123,19 +115,22 @@ namespace EpgTimer
                 //保存情報は次回のタブ作成時に復元する。
                 tabInfo.Clear();
                 tabControl.Items.Clear();
-                UpdateInfo();
+                //実際にEPGが読込まれたかと無関係に、操作感としてこれでいい。
+                UpdateInfo(!Settings.Instance.NgAutoEpgLoadNW);
             }
             catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
 
-            //UpdateInfo()は非表示の時走らない。
+            //UpdateInfo()はオプションによるガ非表示の時走らない。
             //データはここでクリアしてしまうので、現に表示されているもの以外は表示状態はリセットされる。
             //ただし、番組表(oldID)の選択そのものは保持する。
             oldState = null;
         }
 
         /// <summary>タブ生成</summary>
-        private bool CreateTabItem()
+        private bool OnCreateTab = false;
+        private void CreateTabItem()
         {
+            OnCreateTab = true;//タブの初期選択対策。挙動が以前と変わってるような‥
             try
             {
                 tabInfo = Settings.Instance.UseCustomEpgView == false ?
@@ -143,31 +138,23 @@ namespace EpgTimer
 
                 //とりあえず同じIDを探して表示してみる(中身は別物になってるかもしれないが、とりあえず表示を試みる)。
                 //標準・カスタム切り替えの際は、標準番組表が負のIDを与えられているので、このコードは走らない。
-                EpgTabItem.OnCreateTab = true;//タブの初期選択対策。挙動が以前と変わってるような‥
-                int idx = 0;
                 foreach (CustomEpgTabInfo info in tabInfo.Where(info => info.IsVisible == true))
                 {
-                    tabControl.Items.Add(new EpgTabItem(info, null, info.Uid == oldID ? oldState : null));
-                    if (info.Uid == oldID) idx = tabControl.Items.Count - 1;
+                    tabControl.Items.Add(new EpgTabItem(info, this, oldID, info.Uid == oldID ? oldState : null));
                 }
-                tabControl.SelectedIndex = -1;
-                EpgTabItem.OnCreateTab = false;
-                tabControl.SelectedIndex = idx;
-
-                foreach (var tb in Tabs) { tb.PrebuildContent(); }
+                if (tabControl.SelectedIndex < 0) tabControl.SelectedIndex = 0;
             }
             catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
 
             oldID = null;
-            EpgTabItem.OnCreateTab = false;
-            return true;
+            OnCreateTab = false;
         }
 
-        private void epgView_ViewSettingClick(EpgViewBase sender, int param)
+        private void epgView_ViewSettingClick(int param)
         {
             try
             {
-                EpgTabItem tab = Tabs.FirstOrDefault(ti => ti.view == sender);
+                var tab = tabControl.SelectedItem as EpgTabItem;
                 if (tab == null) return;
 
                 if (param < -2 || 2 < param) return;
@@ -208,26 +195,21 @@ namespace EpgTimer
                 }
 
                 //選択用タブの選択を切り替え。
-                tab_viewMode_Change(info != null ? info.ViewMode : param);
-
-                tab.SetContent(info, param);
+                tab_viewMode_ChangeTabOnly(info != null ? info.ViewMode : param);
+                tab.ChangeContent(info, param);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            base.UserControl_IsVisibleChanged(sender, e);//ここでタブが生成される
-            if (this.IsVisible == true)
-            {
-                SearchJumpTargetProgram(BlackoutWindow.SelectedItem);
-                //番組表タブが一つもないときなどのゴミ掃除
-                Dispatcher.BeginInvoke(new Action(() => BlackoutWindow.Clear()), DispatcherPriority.Input);
+            if (this.IsVisible == false) return;
 
-                //PrebuildEpg==falseのとき中身だけ無くなることがある。
-                var tab = tabControl.SelectedItem as EpgTabItem;
-                if (tab != null && tab.view == null) tab.SetContent();
-            }
+            ReloadInfo();
+
+            SearchJumpTargetProgram(BlackoutWindow.SelectedItem);
+            //番組表タブが一つもないときなどのゴミ掃除
+            Dispatcher.BeginInvoke(new Action(() => BlackoutWindow.Clear()), DispatcherPriority.Input);
         }
 
         /// <summary>予約一覧からのジャンプ先を番組表タブから探す</summary>
@@ -236,12 +218,21 @@ namespace EpgTimer
             try
             {
                 if (trg == null) return false;
-                if (tabControl.Items.Count == 0) CreateTabItem();
+
+                var data = (AutoAddTargetData)trg.ReserveInfo ?? trg.EventInfo;
+                if (data == null) return false;
+
+                if (Tabs.Any() == false)//dryrun以外でここに来るときは本当にタブが無い
+                {
+                    var infoList = Settings.Instance.UseCustomEpgView == false ?
+                        CommonManager.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
+                    return infoList.Where(info => info.IsVisible == true)
+                        .SelectMany(info => info.ViewServiceList).Contains(data.Create64Key());
+                }
                 var tab = Tabs.OrderBy(tb => tb.IsSelected ? 0 : 1).FirstOrDefault(tb =>
                 {
-                    var data = (AutoAddTargetData)trg.ReserveInfo ?? trg.EventInfo;
-                    bool ret = data == null ? false : tb.Info.ViewServiceList.Contains(data.Create64Key());
-                    if (ret == true && tb.view != null && tb.EpgLoaded == true)
+                    bool ret = tb.Info.ViewServiceList.Contains(data.Create64Key());
+                    if (ret == true && tb.view != null && tb.IsEpgLoaded == true)
                     {
                         return tb.view.IsEnabledJumpTab(trg);
                     }
@@ -257,22 +248,19 @@ namespace EpgTimer
         //表示切り替えタブ関係
         private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ActiveView != null)
+            //データの変更はEpgTabItem.OnSelected()が行うのでタブの見かけだけ変更する。
+            if (tabControl.SelectedItem != null)
             {
-                tab_viewMode.SelectedIndex = (tabControl.SelectedItem as EpgTabItem).Info.ViewMode;
+                tab_viewMode_ChangeTabOnly((tabControl.SelectedItem as EpgTabItem).Info.ViewMode);
             }
         }
         private void tab_viewMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (tab_viewMode_Changing == true) return;
-            if (ActiveView != null)
-            {
-                //タブでの切り替えでは、選択番組への移動を行わない
-                epgView_ViewSettingClick(ActiveView, tab_viewMode.SelectedIndex);
-            }
+            epgView_ViewSettingClick(tab_viewMode.SelectedIndex);
         }
         private bool tab_viewMode_Changing = false;
-        private void tab_viewMode_Change(int idx)
+        private void tab_viewMode_ChangeTabOnly(int idx)
         {
             try
             {
@@ -498,9 +486,9 @@ namespace EpgTimer
                     {
                         if (tab == null)
                         {
-                            var tabItem = new EpgTabItem(info, selectID);
+                            var tabItem = new EpgTabItem(info, this, selectID);
                             tabControl.Items.Insert(pos, tabItem);
-                            tabItem.PrebuildContent();
+                            tabItem.SetContent();
                         }
                         pos++;
                     }
@@ -508,29 +496,35 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
+
+        //EpgTabItemを内部クラスにしづらいので、データ部分だけ仮にまとめる
+        public class EpgDataViewInfo
+        {
+            public EpgDataViewInfo(EpgDataView epgview) { epgView = epgview ?? new EpgDataView(); }
+            EpgDataView epgView = null;
+            public bool IsSelected { get { return epgView.IsSelected; } }
+            public Grid grid { get { return epgView.grid_tab; } }
+            public bool OnCreateTab { get { return epgView.OnCreateTab; } }
+            public CustomEpgTabInfo TabInfo(string Uid) { return epgView.get_tabInfo(Uid); }
+            public Action<int> viewSettingClick { get { return epgView.epgView_ViewSettingClick; } }
+            public void TabItemsChanged() { ViewUtil.TabControlHeaderCopy(epgView.tabControl, epgView.dummyTab); }
+        }
     }
 
     //TabItemとして振る舞うが、実際の表示は別途用意したGridを使用する
     public class EpgTabItem : TabItem
     {
-        public EpgViewBase view { get; private set; }
-
-        public static Grid grid_tab = new Grid { };
-        public static Func<string, CustomEpgTabInfo> TabInfoOriginal = s => null;
-        public static bool OnCreateTab = false;
-        public static event Action TabItemsChanged = () => { };
-        public static event Action<EpgViewBase, int> viewSettingClick = (item, info) => { };
-
-        //共有データ。eventListは主にEpgTimerNWでの検索絞り込み使用時用。
+        //共有データ。
+        EpgDataView.EpgDataViewInfo epgView;
         EpgViewData viewData = new EpgViewData();
-        public bool EpgLoaded { get { return viewData.ServiceEventList.Count > 0; } }
+        public bool IsEpgLoaded { get { return viewData.IsEpgLoaded; } }
         public CustomEpgTabInfo Info
         {
             get { return viewData.EpgTabInfo; }
             private set
             {
                 viewData.EpgTabInfo = value.DeepClone();
-                CustomEpgTabInfo org = TabInfoOriginal(value.Uid);
+                CustomEpgTabInfo org = epgView.TabInfo(value.Uid);
                 org = org ?? value;
                 base.Header = org.TabName;
                 base.Tag = org.TabName;
@@ -540,129 +534,104 @@ namespace EpgTimer
 
         //一度作った番組表の描画をストックしておく。
         private Grid grid = new Grid { Visibility = Visibility.Hidden };
+        public EpgViewBase view { get { EpgViewBase v; vItems.TryGetValue(Info.ViewMode, out v); return v; } }
         private Dictionary<int, EpgViewBase> vItems = new Dictionary<int, EpgViewBase>();
-        private Dictionary<int, EpgViewState> vStates = new Dictionary<int, EpgViewState>();
+        private List<EpgViewState> vStates = new List<EpgViewState> { null, null, null };
 
         public EpgTabItem() { }
-        public EpgTabItem(CustomEpgTabInfo setInfo, string selectID = null, EpgViewState state = null)
+        public EpgTabItem(CustomEpgTabInfo setInfo, EpgDataView epgview, string selectID = null, EpgViewState state = null)
         {
             //この番組表の表示エリアを登録
-            grid_tab.Children.Add(grid);
+            epgView = new EpgDataView.EpgDataViewInfo(epgview);
+            epgView.grid.Children.Add(grid);
+            viewData.ViewSettingClick += epgView.viewSettingClick;
 
             //番組情報を登録
             Info = setInfo;
             if (state != null) Info.ViewMode = state.viewMode;
             if (state != null) vStates[state.viewMode] = state;
 
-            if (base.Uid == selectID) base.IsSelected = true;
+            if (base.Uid == selectID) IsSelected = true;
         }
 
-        //更新関係。非表示のものはフラグが立つだけ。EPG更新が来たときはどうせ全部書き直しなので描画ストックを破棄する。
-        private bool IsViewDisplay(EpgViewBase v) { return ViewUtil.IsEpgViewSelected == true && this.IsSelected == true && v == view; }
+        //更新関係。IsDisplay()によりタスクアイコン時でも表示しているものを更新する。
+        private bool IsDisplay(int v) { return epgView.IsSelected == true && IsSelected == true && v == Info.ViewMode; }
         public void SaveViewData() { foreach (var v in vItems.Values) v.SaveViewData(); }//これは非表示でも実行
         public void UpdateMenu(bool refresh = true) { foreach (var v in vItems.Values) v.UpdateMenu(refresh); }
-        public void UpdateReserveInfo() { foreach (var v in vItems.Values) v.UpdateReserveInfo(IsViewDisplay(v)); }
-        public void UpdateInfo()
-        {
-            //状態の設定、オプションによりRender()を仕分ける
-            SetViewGrid(true);
+        public void UpdateReserveInfo() { foreach (var v in vItems) v.Value.UpdateReserveInfo(IsDisplay(v.Key)); }
 
-            //共有データのクリア
-            viewData.ClearEventList();
+        //更新時の動作
+        //PrebuildEpg==false → 表示中の番組のみ構築
+        //PrebuildEpg==true → 選択中の番組表のみ構築し、検索用に各番組表を内部に作成する
+        //PrebuildEpgAll==true → 全番組表を構築する。表示モード切替タブが表示の場合は、全表示モード分を全て構築する
+        private bool isStockView(int v, bool clear = false)
+        {
+            //細かく状態を保存・復元できれば、Clear時は全再構築でもいいが、今は少なくとも表示/選択中のものは保持する。
+            return IsDisplay(v) == true || Settings.Instance.PrebuildEpg == true && (IsSelected == true && v == Info.ViewMode ||
+                !clear && (v == Info.ViewMode || Settings.Instance.PrebuildEpgAll == true && Settings.Instance.EpgViewModeTabEnabled == true));
+        }
+        public void CleanUpContent(bool clear = false)
+        {
+            //ReloadInfo()後に再セットする。
+            grid.Children.Clear();
 
             //現在表示されているものまたは事前構築に該当しているもの以外は表示状態を残して破棄
-            foreach (var v in vItems.ToList())
+            vItems.Where(v => isStockView(v.Key, clear) == false).ToList().ForEach(v =>
             {
-                if (v.Value.IsVisible == true || Settings.Instance.PrebuildEpg == true && (v.Value == view ||
-                    Settings.Instance.PrebuildEpgAll == true && Settings.Instance.EpgViewModeTabEnabled == true &&
-                    (Settings.Instance.EpgNameTabEnabled == true || this.IsSelected == true)))
+                v.Value.SaveViewData();
+                EpgViewState state = v.Value.GetViewState();
+                if (state != null) vStates[state.viewMode] = state;
+                vItems.Remove(v.Key);
+            });
+        }
+        public void SetContent(bool reloadInfo = false)
+        {
+            for (int mode = 0; mode < 3; mode++)
+            {
+                if (vItems.ContainsKey(mode) == false && isStockView(mode) == true)
                 {
-                    v.Value.UpdateInfo();
-                }
-                else
-                {
-                    if (v.Value == view) view = null;
-                    v.Value.SaveViewData();
-                    EpgViewState state = v.Value.GetViewState();
-                    if (state != null) vStates[state.viewMode] = state;
-                    vItems.Remove(v.Key);
-                    grid.Children.Remove(v.Value);//PrebuildEpg == falseのときは削除されていない
+                    switch (mode)
+                    {
+                        case 1://1週間表示
+                            vItems[mode] = new EpgWeekMainView();
+                            break;
+                        case 2://リスト表示
+                            vItems[mode] = new EpgListMainView();
+                            break;
+                        default://標準ラテ欄表示
+                            vItems[mode] = new EpgMainView();
+                            break;
+                    }
+                    vItems[mode].SetViewData(viewData, mode);
+                    vItems[mode].SetViewState(vStates[mode]);
+                    vStates[mode] = null;
+                    if (reloadInfo == false) vItems[mode].UpdateInfo();
                 }
             }
-        }
-
-        //CreateTabItem()の際に事前構築対象を作成しておく。PrebuildEpgAll==trueの時だけ全番組表のRenderが走る。
-        public void PrebuildContent(bool update = true)
-        {
-            if (Settings.Instance.PrebuildEpg == false) return;
-
-            int start = Settings.Instance.EpgViewModeTabEnabled == true ? 0 : Info.ViewMode;
-            int end = Settings.Instance.EpgViewModeTabEnabled == true ? 2 : Info.ViewMode;
-            for (int i = start; i <= end; i++)
+            if (reloadInfo == true)
             {
-                if (vItems.ContainsKey(i) == false)
-                {
-                    CreateViewItem(i);
-                    if (update == true) vItems[i].UpdateInfo();
-                }
+                CleanUpContent();
+                viewData.ClearEventList();
+                foreach (var v in vItems) v.Value.UpdateInfo();
             }
-            view = vItems[Info.ViewMode];
-            SetViewGrid();
-        }
-        public void SetViewGrid(bool remove = false)
-        {
+
+            //ストックするものとRenderさせるものは異なる。PrebuildEpgAllのときだけ全てのRenderを走らせる。
+            //この際タブの表示オプションに応じて選択する必要があるが、実際のRender(UpdateInfo())時には
+            //不要なものは排除されているので細かく考慮する必要が無い。(PrebuildEpg==false時も同様)
             foreach (var v in vItems.Values)
             {
                 v.Visibility = v == view ? Visibility.Visible : Visibility.Hidden;
-                if (Settings.Instance.PrebuildEpg == false ||
-                    (Settings.Instance.PrebuildEpgAll == true && Settings.Instance.EpgNameTabEnabled == true || this.IsSelected == true) &&
-                    (Settings.Instance.PrebuildEpgAll == true && Settings.Instance.EpgViewModeTabEnabled == true || v == view))
+                if (Settings.Instance.PrebuildEpgAll == true || IsSelected == true && v == view)
                 {
                     if (grid.Children.Contains(v) == false)
                     {
                         grid.Children.Add(v);
                     }
                 }
-                else
-                {
-                    if (remove == true) grid.Children.Remove(v);
-                }
             }
         }
-
-        //番組表の選択に対する処理。
-        protected override void OnSelected(RoutedEventArgs e)
-        {
-            if (OnCreateTab == true) return;
-            if (view == null) SetContent();
-            SetViewGrid();
-            grid.Visibility = Visibility.Visible;
-            base.OnSelected(e);
-        }
-        protected override void OnUnselected(RoutedEventArgs e)
-        {
-            if (OnCreateTab == true) return;
-            grid.Visibility = Visibility.Hidden;
-            if (view != null) view.SaveViewData();
-            base.OnUnselected(e);
-        }
-        //削除されたとき
-        protected override void OnVisualParentChanged(DependencyObject oldParent)
-        {
-            if (this.Parent == null)
-            {
-                grid_tab.Children.Remove(grid);
-                grid.Children.Clear();//無くても問題無いが、あると割とすぐGC.Collect()に乗っかる。
-            }
-
-            //EPGビューの高さ調整用
-            TabItemsChanged();
-
-            base.OnVisualParentChanged(oldParent);
-        }
-
         //表示切り替えに対する処理
-        public void SetContent(CustomEpgTabInfo setInfo = null, int mode = -1)
+        public void ChangeContent(CustomEpgTabInfo setInfo = null, int mode = -1)
         {
             if (setInfo != null) Info = setInfo;
             if (mode >= 0) Info.ViewMode = mode;
@@ -670,44 +639,35 @@ namespace EpgTimer
             //表示中のものはデータを保存する
             if (view != null) view.SaveViewData();
 
-            PrebuildContent(setInfo == null);
-
-            if (vItems.ContainsKey(Info.ViewMode) == true)
-            {
-                view = vItems[Info.ViewMode];
-            }
-            else
-            {
-                view = CreateViewItem(Info.ViewMode);
-            }
-
-            SetViewGrid();
-            if (setInfo != null) UpdateInfo();
+            SetContent(setInfo != null);
         }
-        public EpgViewBase CreateViewItem(int viewMode)
+
+        //番組表の選択に対する処理。
+        protected override void OnSelected(RoutedEventArgs e)
         {
-            EpgViewBase vItem;
-            switch (viewMode)
+            grid.Visibility = Visibility.Visible;
+            base.OnSelected(e);
+            if (epgView.OnCreateTab == false) SetContent();
+        }
+        protected override void OnUnselected(RoutedEventArgs e)
+        {
+            grid.Visibility = Visibility.Hidden;
+            base.OnUnselected(e);
+            if (epgView.OnCreateTab == false && view != null) view.SaveViewData();
+        }
+        //削除されたとき
+        protected override void OnVisualParentChanged(DependencyObject oldParent)
+        {
+            if (Parent == null)
             {
-                case 1://1週間表示
-                    vItem = new EpgWeekMainView();
-                    break;
-                case 2://リスト表示
-                    vItem = new EpgListMainView();
-                    break;
-                default://標準ラテ欄表示
-                    vItem = new EpgMainView();
-                    break;
+                epgView.grid.Children.Remove(grid);
+                grid.Children.Clear();//無くても問題無いが、あると割とすぐGC.Collect()に乗っかる。
             }
-            vItem.ViewSettingClick += viewSettingClick;
-            vItem.SetViewData(viewData, viewMode);
-            vItem.Visibility = Visibility.Collapsed;
-            EpgViewState state;
-            vStates.TryGetValue(viewMode, out state);
-            vItem.SetViewState(state);
-            vStates.Remove(viewMode);
-            vItems[viewMode] = vItem;
-            return vItem;
+
+            //EPGビューの高さ調整用
+            epgView.TabItemsChanged();
+
+            base.OnVisualParentChanged(oldParent);
         }
     }
 }

@@ -653,7 +653,7 @@ namespace EpgTimer
             {
                 CommonManager.Instance.DB.ReloadEpgData(false, true);
             }
-            epgView.UpdateInfo();
+            epgView.UpdateInfo(!Settings.Instance.NgAutoEpgLoadNW);
             reserveView.UpdateInfo();
             UpdateReserveTab();
             tunerReserveView.UpdateInfo();
@@ -1351,31 +1351,30 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.EpgData:
                     {
+                        bool epgReload = tabItem_epg.IsSelected == true || Settings.Instance.NgAutoEpgLoadNW == false || epgReloadCmdRun == true;
+                        epgReloadCmdRun = false;
+
                         //録画予定ファイル名が変化しているかもしれない。先に実行
                         err = CommonManager.Instance.DB.ReloadReserveRecFileNameList(true);
-                        StatusManager.StatusNotifyAppend("予約名データ更新 < ");
 
-                        //EpgDataは遅延実行される場合があるので、実行処理内容には注意する。
+                        //EpgDataは遅延実行される場合があるので、処理内容には注意する。
                         CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
-                        if (Settings.Instance.NgAutoEpgLoadNW == false || epgReloadCmdRun == true)
+                        if (epgReload == true)
                         {
-                            epgReloadCmdRun = false;
-                            var err2 = CommonManager.Instance.DB.ReloadEpgData(true, false);
+                            var err2 = CommonManager.Instance.DB.ReloadEpgData(false, true);
                             if (err == ErrCode.CMD_SUCCESS) err = err2;
-
-                            AddReserveEpgWindow.UpdatesInfo();
-
-                            StatusManager.StatusNotifyAppend("EPGデータ更新 < ");
                         }
 
-                        epgView.UpdateInfo();
+                        epgView.UpdateInfo(epgReload);
                         reserveView.UpdateInfo();
                         tunerReserveView.UpdateInfo();
                         autoAddView.epgAutoAddView.UpdateInfo();
                         SearchWindow.UpdatesInfo();
                         InfoSearchWindow.UpdatesInfo();
+                        if (epgReload == true) AddReserveEpgWindow.UpdatesInfo();
                         ChgReserveWindow.UpdatesInfo();
                         TrayManager.UpdateInfo();
+                        StatusManager.StatusNotifyAppend((epgReload == true ? "EPG" : "予約名") + "データ更新 < ");
                     }
                     break;
                 case UpdateNotifyItem.ReserveInfo:

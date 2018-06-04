@@ -17,7 +17,6 @@ namespace EpgTimer
     public static class ViewUtil
     {
         public static MainWindow MainWindow { get { return (MainWindow)Application.Current.MainWindow; } }
-        public static bool IsEpgViewSelected { get { return MainWindow.tabItem_epg.IsSelected; } }//タスクアイコン状態も含む
         private static Matrix deviceMatrix = new Matrix();
         public static Matrix DeviceMatrix
         { 

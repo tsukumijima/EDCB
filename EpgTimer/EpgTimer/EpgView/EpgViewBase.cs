@@ -16,15 +16,17 @@ namespace EpgTimer.EpgView
             ClearEventList();
         }
         public CustomEpgTabInfo EpgTabInfo { get; set; }
-        private bool rloadEpgDataFlg;
+        public bool IsEpgLoaded { get; private set; }
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
-        public void ClearEventList() { ServiceEventList = new List<EpgServiceEventInfo>(); rloadEpgDataFlg = true; }
+        public void ClearEventList() { ServiceEventList = new List<EpgServiceEventInfo>(); IsEpgLoaded = false; }
+        public event Action<int> ViewSettingClick = (param) => { };
+        public void ViewSetting(int param) { ViewSettingClick(param); }
 
         public bool ReloadEpgData()
         {
             try
             {
-                if (rloadEpgDataFlg == false) return true;
+                if (IsEpgLoaded == true) return true;
                 if (CommonManager.Instance.IsConnected == false) return false;
 
                 Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic;
@@ -73,7 +75,7 @@ namespace EpgTimer.EpgView
                     );
                 }
 
-                rloadEpgDataFlg = false;
+                IsEpgLoaded = true;
                 return true;
             }
             catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
@@ -106,7 +108,7 @@ namespace EpgTimer.EpgView
 
         protected virtual void InitCommand()
         {
-            base.updateInvisible = Settings.Instance.PrebuildEpg;
+            base.updateInvisible = true;
 
             //ビューコードの登録
             mBinds.View = CtxmCode.EpgView;
@@ -115,8 +117,8 @@ namespace EpgTimer.EpgView
             mc = new CmdExeReserve(this);
 
             //コマンド集にないものを登録
-            mc.AddReplaceCommand(EpgCmds.ViewChgSet, (sender, e) => ViewSetting(-1));
-            mc.AddReplaceCommand(EpgCmds.ViewChgReSet, (sender, e) => ViewSetting(-2));
+            mc.AddReplaceCommand(EpgCmds.ViewChgSet, (sender, e) => viewData.ViewSetting(-1));
+            mc.AddReplaceCommand(EpgCmds.ViewChgReSet, (sender, e) => viewData.ViewSetting(-2));
             mc.AddReplaceCommand(EpgCmds.ViewChgMode, mc_ViewChgMode);
 
             //コマンド集を振り替えるもの
@@ -124,8 +126,6 @@ namespace EpgTimer.EpgView
         }
 
         //表示設定関係
-        public event Action<EpgViewBase, int> ViewSettingClick = (sender, info) => { };
-        protected void ViewSetting(int param) { ViewSettingClick(this, param); }
         protected void mc_ViewChgMode(object sender, ExecutedRoutedEventArgs e)
         {
             try
@@ -137,7 +137,7 @@ namespace EpgTimer.EpgView
                 //コマンド集の機能による各ビューの共用メソッド。
                 BlackoutWindow.SelectedData = mc.GetJumpTabItem();
 
-                ViewSetting(param.ID);
+                viewData.ViewSetting(param.ID);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
