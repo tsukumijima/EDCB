@@ -88,7 +88,7 @@ namespace EpgTimer
             if (updateEpgAutoAddAppend == true)
             {
                 List<EpgAutoAddData> srcList = EpgAutoAddList.Values.Where(data => dict.ContainsKey(data.dataID) == false).ToList();
-                if (srcList.Count != 0)
+                if (srcList.Count != 0 && Settings.Instance.NoEpgAutoAddAppend == false)
                 {
                     List<EpgSearchKeyInfo> keyList = srcList.RecSearchKeyList().DeepClone();
                     keyList.ForEach(key => key.keyDisabledFlag = 0); //無効解除
@@ -127,7 +127,7 @@ namespace EpgTimer
         }
         public void ClearEpgAutoAddDataAppend(Dictionary<UInt32, EpgAutoAddData> oldList = null)
         {
-            if (oldList == null) epgAutoAddAppendList = null;
+            if (oldList == null || Settings.Instance.NoEpgAutoAddAppend == true) epgAutoAddAppendList = null;
             if (epgAutoAddAppendList == null) return;
 
             var xs = new System.Xml.Serialization.XmlSerializer(typeof(EpgSearchKeyInfo));
@@ -229,7 +229,7 @@ namespace EpgTimer
 
             if (reserveEventList == null)
             {
-                if (ServiceEventList.Count != 0 && IsNotifyRegistered(UpdateNotifyItem.EpgData) == false)
+                if (ServiceEventList.Count != 0 && IsNotifyRegistered(UpdateNotifyItem.EpgData) == false || Settings.Instance.NoReserveEventList == true)
                 {
                     reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID,
                         rs => rs.IsEpgReserve == true ? MenuUtil.SearchEventInfo(rs.Create64PgKey()) : rs.SearchEventInfoLikeThat());

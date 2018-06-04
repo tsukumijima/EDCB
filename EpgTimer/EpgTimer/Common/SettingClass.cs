@@ -480,6 +480,8 @@ namespace EpgTimer
         public double WoLWaitSecond { get; set; }
         public bool SuspendCloseNW { get; set; }
         public bool NgAutoEpgLoadNW { get; set; }
+        public bool NoReserveEventList { get; set; }
+        public bool NoEpgAutoAddAppend { get; set; }
         public bool PrebuildEpg { get; set; }
         public bool PrebuildEpgAll { get; set; }
         public bool ChkSrvRegistTCP { get; set; }
@@ -801,6 +803,8 @@ namespace EpgTimer
             WoLWaitSecond= 30;
             SuspendCloseNW = false;
             NgAutoEpgLoadNW = false;
+            NoReserveEventList = false;
+            NoEpgAutoAddAppend = false;
             PrebuildEpg = false;
             PrebuildEpgAll = false;
             ChkSrvRegistTCP = false;
