@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EpgTimer
 {
-    public partial class EpgEventInfo : AutoAddTargetData
+    public partial class EpgEventInfo : AutoAddTargetDataStable
     {
         public override string DataTitle { get { return (ShortInfo == null ? "" : ShortInfo.event_name); } }
         public override ulong DataID { get { return CurrentPgUID(); } }

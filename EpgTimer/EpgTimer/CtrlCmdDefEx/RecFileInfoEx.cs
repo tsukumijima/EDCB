@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EpgTimer
 {
-    public partial class RecFileInfo : AutoAddTargetData
+    public partial class RecFileInfo : AutoAddTargetDataStable
     {
         public override string DataTitle { get { return Title; } }
         public override ulong DataID { get { return ID; } }
