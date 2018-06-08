@@ -318,6 +318,7 @@ namespace EpgTimer
 
     public class Settings
     {
+        //ver履歴 20170512、20170717
         private int verSaved = 0;
         public int SettingFileVer { get { return 20170717; } set { verSaved = value; } }
 
@@ -988,9 +989,9 @@ namespace EpgTimer
                     Instance.SearchPresetList[0].Data = Instance.DefSearchKey;
                 }
 
-                //互換用コード。旧CS仮対応コード(+0x70)も変換する。
                 if (Instance.verSaved < 20170512)
                 {
+                    //互換用コード。旧CS仮対応コード(+0x70)も変換する。
                     foreach (var info in Instance.CustomEpgTabList)
                     {
                         info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
@@ -999,6 +1000,22 @@ namespace EpgTimer
                         info.ViewContentKindList = null;
                     }
                     EpgContentData.FixNibble(Instance.SearchPresetList[0].Data.contentList);
+
+                    //互換用コード。カラム名の変更追従。
+                    var objk = new EpgAutoDataItem();
+                    Instance.AutoAddEpgColumn.ForEach(c =>
+                    {
+                        if      (c.Tag == "AndKey")         c.Tag = CommonUtil.NameOf(() => objk.EventName);
+                        else if (c.Tag == "NetworkKey")     c.Tag = CommonUtil.NameOf(() => objk.NetworkName);
+                        else if (c.Tag == "ServiceKey")     c.Tag = CommonUtil.NameOf(() => objk.ServiceName);
+                    });
+                    var objm = new ManualAutoAddDataItem();
+                    Instance.AutoAddManualColumn.ForEach(c =>
+                    {
+                        if      (c.Tag == "Title")          c.Tag = CommonUtil.NameOf(() => objm.EventName);
+                        else if (c.Tag == "Time")           c.Tag = CommonUtil.NameOf(() => objm.StartTime);
+                        else if (c.Tag == "StationName")    c.Tag = CommonUtil.NameOf(() => objm.ServiceName);
+                    });
                 }
 
                 //色設定関係
