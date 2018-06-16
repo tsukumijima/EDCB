@@ -1003,6 +1003,10 @@ namespace EpgTimer
             {
                 CommonManager.Instance.DB.ReloadEpgData(false, true);
             }
+
+            ResetMainView();
+            StatusManager.StatusNotifySet("設定変更に伴う画面再構築を実行");
+
             epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgTabSetting);
             reserveView.UpdateInfo();
             tunerReserveView.UpdateInfo();
@@ -1014,10 +1018,6 @@ namespace EpgTimer
             ChgReserveWindow.UpdatesInfo();
             RecInfoDescWindow.UpdatesInfo();
             NotifyLogWindow.UpdatesInfo();
-
-            ResetMainView();
-
-            StatusManager.StatusNotifySet("設定変更に伴う画面再構築を実行");
         }
 
         public void RefreshMenu()

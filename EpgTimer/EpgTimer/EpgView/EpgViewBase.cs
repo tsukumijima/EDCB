@@ -218,11 +218,13 @@ namespace EpgTimer.EpgView
             ReloadInfo();
             ReloadReserveInfo();//ReloadInfo()が実行された場合は、こちらは素通りになる。
 
-            //「番組表へジャンプ」の場合、またはオプションで指定のある場合に強調表示する。
-            var isMarking = (BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
-            bool mgs = MoveToItem(BlackoutWindow.SelectedItem, isMarking) == false &&
-                    BlackoutWindow.NowJumpTable == true && BlackoutWindow.HasData == true;
-            StatusManager.StatusNotifySet(mgs == false ? "" : "アイテムが見つかりませんでした < 番組表へジャンプ");
+            if (BlackoutWindow.HasData == true)
+            {
+                //「番組表へジャンプ」の場合、またはオプションで指定のある場合に強調表示する。
+                var isMarking = (BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
+                bool mgs = MoveToItem(BlackoutWindow.SelectedItem, isMarking) == false && BlackoutWindow.NowJumpTable == true;
+                StatusManager.StatusNotifySet(mgs == false ? "" : "アイテムが見つかりませんでした < 番組表へジャンプ");
+            }
             BlackoutWindow.Clear();
 
             RefreshStatus();
