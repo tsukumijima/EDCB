@@ -1,21 +1,25 @@
-#ifndef __STRING_UTIL_H__
-#define __STRING_UTIL_H__
+#ifndef INCLUDE_STRING_UTIL_H
+#define INCLUDE_STRING_UTIL_H
 
-void Format(string& strBuff, const char *format, ...);
+void Format(string& strBuff, PRINTF_FORMAT_SZ const char *format, ...);
 
-void Format(wstring& strBuff, const WCHAR *format, ...);
+void Format(wstring& strBuff, PRINTF_FORMAT_SZ const WCHAR *format, ...);
 
 void Replace(string& strBuff, const string& strOld, const string& strNew); //alias-safe
 
 void Replace(wstring& strBuff, const wstring& strOld, const wstring& strNew); //alias-safe
 
+//convert to CP932
 void WtoA(const wstring& strIn, string& strOut);
+//convert to CP932
 size_t WtoA(const WCHAR *in, size_t inLenHint, vector<char>& out);
 
 void WtoUTF8(const wstring& strIn, string& strOut);
 size_t WtoUTF8(const WCHAR *in, size_t inLenHint, vector<char>& out);
 
+//convert from CP932
 void AtoW(const string& strIn, wstring& strOut);
+//convert from CP932
 size_t AtoW(const char *in, size_t inLenHint, vector<WCHAR>& out);
 
 void UTF8toW(const string& strIn, wstring& strOut);

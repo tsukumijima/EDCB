@@ -8,6 +8,7 @@ public:
 	struct SETTING {
 		int epgArchivePeriodHour;
 		int residentMode;
+		bool blinkPreRec;
 		bool noBalloonTip;
 		bool saveNotifyLog;
 		DWORD wakeTime;
@@ -36,6 +37,7 @@ public:
 		int tuijyuHour;
 		bool backPriority;
 		bool fixedTunerPriority;
+		bool commentAutoAdd;
 		bool autoDelRecInfo;
 		DWORD autoDelRecInfoNum;
 		DWORD recInfo2Max;
@@ -51,18 +53,25 @@ public:
 		bool recView;
 		bool recNW;
 		bool pgInfoLog;
+		bool pgInfoLogAsUtf8;
 		bool dropLog;
 		bool recOverWrite;
 		int processPriority;
 		bool keepDisk;
+		wstring tsExt;
+		bool enableCaption; //LoadSetting()Ç≈èâä˙âªÇ≥ÇÍÇ»Ç¢
+		bool enableData; //LoadSetting()Ç≈èâä˙âªÇ≥ÇÍÇ»Ç¢
 	};
 	static SETTING LoadSetting(LPCWSTR iniPath);
 	static vector<pair<wstring, wstring>> EnumBonFileName(LPCWSTR settingPath);
 	INT_PTR ShowDialog();
 private:
-	static vector<wstring> EnumRecNamePlugInFileName(LPCWSTR moduleFolder);
+	static wstring CheckTSExtension(const wstring& ext);
+	static vector<wstring> EnumRecNamePlugInFileName();
 	static bool GetDlgButtonCheck(HWND hwnd, int id);
 	static void SetDlgButtonCheck(HWND hwnd, int id, bool check);
+	static void GetWindowTextBuffer(HWND hwnd, vector<WCHAR>& buff);
+	static void GetListBoxTextBuffer(HWND hwnd, int index, vector<WCHAR>& buff);
 	static void AddListBoxItem(HWND hList, HWND hItem);
 	static void DeleteListBoxItem(HWND hList);
 	static void MoveListBoxItem(HWND hList, int step);

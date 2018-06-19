@@ -1,17 +1,10 @@
-#ifndef __TIME_UTIL_H__
-#define __TIME_UTIL_H__
+#ifndef INCLUDE_TIME_UTIL_H
+#define INCLUDE_TIME_UTIL_H
 
 #include "StringUtil.h"
 
 #define I64_1SEC ((__int64)10000000)
-
-void GetTimeString( SYSTEMTIME Time, wstring& strDay );
-
-void GetTimeString2( SYSTEMTIME StartTime, SYSTEMTIME EndTime, wstring& strDay );
-
-void GetTimeString3( SYSTEMTIME StartTime, DWORD dwDureSec, wstring& strDay );
-
-void GetTimeString4( SYSTEMTIME Time, wstring& strDay );
+#define I64_UTIL_TIMEZONE (9 * 3600 * I64_1SEC)
 
 LPCWSTR GetDayOfWeekName( WORD wDayOfWeek );
 

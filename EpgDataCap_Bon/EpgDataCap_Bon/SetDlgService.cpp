@@ -30,7 +30,7 @@ CSetDlgService::~CSetDlgService()
 {
 }
 
-BOOL CSetDlgService::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
+BOOL CSetDlgService::Create(LPCWSTR lpszTemplateName, HWND hWndParent)
 {
 	return CreateDialogParam(GetModuleHandle(NULL), lpszTemplateName, hWndParent, DlgProc, (LPARAM)this) != NULL;
 }
@@ -83,17 +83,13 @@ BOOL CSetDlgService::OnInitDialog()
 	lvc.cx = rc.right - GetSystemMetrics(SM_CXVSCROLL) - 4;
 	ListView_InsertColumn(hItem, 0, &lvc);
 
-	wstring path = L"";
-	GetSettingPath(path);
-
-	wstring searchKey = path;
-	searchKey += L"\\*.ChSet4.txt";
+	const fs_path path = GetSettingPath();
 
 	WIN32_FIND_DATA findData;
 	HANDLE find;
 
 	//指定フォルダのファイル一覧取得
-	find = FindFirstFile( searchKey.c_str(), &findData);
+	find = FindFirstFile(fs_path(path).append(L"*.ChSet4.txt").c_str(), &findData);
 	if ( find == INVALID_HANDLE_VALUE ) {
 		return FALSE;
 	}
@@ -101,9 +97,6 @@ BOOL CSetDlgService::OnInitDialog()
 		if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 ){
 			//本当に拡張子DLL?
 			if( IsExt(findData.cFileName, L".txt") == TRUE ){
-				wstring chSetPath = L"";
-				Format(chSetPath, L"%s\\%s", path.c_str(), findData.cFileName);
-
 				wstring bonFileName = L"";
 				wstring buff = findData.cFileName;
 
@@ -112,7 +105,7 @@ BOOL CSetDlgService::OnInitDialog()
 				bonFileName += L".dll";
 
 				if( chList.insert(std::make_pair(bonFileName, CParseChText4())).second ){
-					chList[bonFileName].ParseText(chSetPath.c_str());
+					chList[bonFileName].ParseText(fs_path(path).append(findData.cFileName).c_str());
 					ComboBox_AddString(GetDlgItem(IDC_COMBO_BON), bonFileName.c_str());
 				}
 			}
@@ -123,10 +116,6 @@ BOOL CSetDlgService::OnInitDialog()
 	if( chList.size() > 0 ){
 		ComboBox_SetCurSel(GetDlgItem(IDC_COMBO_BON), 0);
 		ReloadList();
-
-		WCHAR text[512] = L"";
-		GetDlgItemText(m_hWnd, IDC_COMBO_BON, text, 512);
-		lastSelect = text;
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -172,25 +161,21 @@ void CSetDlgService::SynchronizeCheckState()
 
 BOOL CSetDlgService::FindBonFileName(wstring src, wstring& dllName)
 {
-	wstring buff = src;
-	size_t pos = buff.rfind(L")");
-	if( pos == string::npos ){
-		dllName = src;
+	size_t i = src.size();
+	for( int depth = 0; i > 0; ){
+		if( src[--i] == L')' ){
+			depth++;
+		}else if( src[i] == L'(' && depth > 0 ){
+			if( --depth == 0 ){
+				break;
+			}
+		}
+	}
+	dllName.swap(src);
+	if( i == 0 ){
 		return FALSE;
 	}
-
-	int count = 1;
-	for( size_t i=pos-1; i>=0; i-- ){
-		if(buff.compare(i,1,L")") == 0 ){
-			count++;
-		}else if(buff.compare(i,1,L"(") == 0){
-			count--;
-		}
-		if( count == 0 ){
-			dllName = buff.substr(0, i);
-			break;
-		}
-	}
+	dllName.erase(i);
 
 	return TRUE;
 }

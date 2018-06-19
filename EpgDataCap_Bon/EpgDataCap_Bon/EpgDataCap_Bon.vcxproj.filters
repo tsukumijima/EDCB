@@ -27,7 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
     <None Include="res\EpgDataCap_Bon.rc2">
       <Filter>リソース ファイル</Filter>
     </None>
@@ -105,9 +104,6 @@
     <ClInclude Include="..\..\Common\SendCtrlCmd.h">
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\SendTSTCP.h">
-      <Filter>ヘッダー ファイル\Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\SendTSTCPDllUtil.h">
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
@@ -124,9 +120,6 @@
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\TSPacketUtil.h">
-      <Filter>ヘッダー ファイル\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\Util.h">
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\BonCtrl\BonCtrl.h">
@@ -183,9 +176,6 @@
     <ClInclude Include="EpgDataCap_BonMain.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="CmdLineUtil.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\BonCtrl\ChSetUtil.h">
       <Filter>ヘッダー ファイル\BonCtrl</Filter>
     </ClInclude>
@@ -212,6 +202,15 @@
     </ClInclude>
     <ClInclude Include="SetDlgService.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\Common.h">
+      <Filter>ヘッダー ファイル\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ThreadUtil.h">
+      <Filter>ヘッダー ファイル\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\BonCtrl\ServiceFilter.h">
+      <Filter>ヘッダー ファイル\BonCtrl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -249,9 +248,6 @@
       <Filter>ソース ファイル\Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\TSPacketUtil.cpp">
-      <Filter>ソース ファイル\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\Util.cpp">
       <Filter>ソース ファイル\Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\CtrlCmdUtil.cpp">
@@ -311,9 +307,6 @@
     <ClCompile Include="EpgDataCap_BonMain.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="CmdLineUtil.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\BonCtrl\ChSetUtil.cpp">
       <Filter>ソース ファイル\BonCtrl</Filter>
     </ClCompile>
@@ -337,6 +330,9 @@
     </ClCompile>
     <ClCompile Include="SetDlgService.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\BonCtrl\ServiceFilter.cpp">
+      <Filter>ソース ファイル\BonCtrl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

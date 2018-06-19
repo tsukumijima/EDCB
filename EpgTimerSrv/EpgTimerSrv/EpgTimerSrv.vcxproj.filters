@@ -33,15 +33,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
     <None Include="small.ico">
       <Filter>リソース ファイル</Filter>
     </None>
     <None Include="EpgTimerSrv.ico">
       <Filter>リソース ファイル</Filter>
-    </None>
-    <None Include="RegExp.tlb">
-      <Filter>ソース ファイル</Filter>
     </None>
     <None Include="mod_lua.inl">
       <Filter>ヘッダー ファイル\civetweb</Filter>
@@ -71,9 +67,6 @@
     </ClInclude>
     <ClInclude Include="EpgTimerSrvMain.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\Util.h">
-      <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
     <ClInclude Include="EpgDBManager.h">
       <Filter>ヘッダー ファイル</Filter>
@@ -144,9 +137,6 @@
     <ClInclude Include="..\..\Common\TSPacketUtil.h">
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\SendTSTCP.h">
-      <Filter>ヘッダー ファイル\Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\SendTSTCPDllUtil.h">
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
@@ -201,6 +191,18 @@
     <ClInclude Include="EpgTimerSrvSetting.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\Common.h">
+      <Filter>ヘッダー ファイル\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ThreadUtil.h">
+      <Filter>ヘッダー ファイル\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\InstanceManager.h">
+      <Filter>ヘッダー ファイル\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="RegExp.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -214,9 +216,6 @@
     </ClCompile>
     <ClCompile Include="EpgTimerSrvMain.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Common\Util.cpp">
-      <Filter>ソース ファイル\Common</Filter>
     </ClCompile>
     <ClCompile Include="EpgDBManager.cpp">
       <Filter>ソース ファイル</Filter>
@@ -306,6 +305,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="EpgTimerSrvSetting.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="RegExp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

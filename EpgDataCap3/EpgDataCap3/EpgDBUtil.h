@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ARIB8CharDecode.h"
 #include "AribDescriptor.h"
 #include "../../Common/EpgDataCap3Def.h"
 #include "../../Common/EpgTimerUtil.h"
@@ -7,9 +8,6 @@
 class CEpgDBUtil
 {
 public:
-	CEpgDBUtil(void);
-	~CEpgDBUtil(void);
-
 	BOOL AddEIT(WORD PID, const AribDescriptor::CDescriptor& eit, __int64 streamTime);
 
 	BOOL AddServiceListNIT(const AribDescriptor::CDescriptor& nit);
@@ -110,8 +108,6 @@ public:
 		);
 
 protected:
-	CRITICAL_SECTION dbLock;
-
 	struct SI_TAG{
 		BYTE tableID;		//データ追加時のtable_id
 		BYTE version;		//データ追加時のバージョン
@@ -134,12 +130,11 @@ protected:
 		vector<EVENT_INFO> nextEvent;
 		BYTE lastTableID;
 		BYTE lastTableIDExt;
-		vector<SECTION_FLAG_INFO> sectionList;	//添え字はテーブル番号(0～7)
-		vector<SECTION_FLAG_INFO> sectionExtList;
+		SECTION_FLAG_INFO sectionList[8];	//添え字はテーブル番号(0～7)
+		SECTION_FLAG_INFO sectionExtList[8];
 		SERVICE_EVENT_INFO(void){
 			lastTableID = 0;
 			lastTableIDExt = 0;
-			sectionList.resize(8);
 		}
 	};
 	map<ULONGLONG, SERVICE_EVENT_INFO> serviceEventMap;
@@ -177,17 +172,19 @@ protected:
 	std::unique_ptr<SERVICE_INFO[]> serviceDataList;
 	std::unique_ptr<EPGDB_SERVICE_INFO[]> serviceDBList;
 	std::unique_ptr<CServiceInfoAdapter[]> serviceAdapterList;
+
+	CARIB8CharDecode arib;
 protected:
 	void Clear();
 	
-	static void AddBasicInfo(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lpParent, WORD onid, WORD tsid);
-	static void AddShortEvent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lp);
-	static BOOL AddExtEvent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lpParent);
+	void AddBasicInfo(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lpParent, WORD onid, WORD tsid);
+	void AddShortEvent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lp);
+	BOOL AddExtEvent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lpParent);
 	static void AddContent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lp);
-	static void AddComponent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lp);
-	static BOOL AddAudioComponent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lpParent);
+	void AddComponent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lp);
+	BOOL AddAudioComponent(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lpParent);
 	static void AddEventGroup(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lp, WORD onid, WORD tsid);
 	static void AddEventRelay(EPGDB_EVENT_INFO* eventInfo, const AribDescriptor::CDescriptor& eit, AribDescriptor::CDescriptor::CLoopPointer lp, WORD onid, WORD tsid);
 
-	static BOOL CheckSectionAll(const vector<SECTION_FLAG_INFO>& sectionList);
+	static BOOL CheckSectionAll(const SECTION_FLAG_INFO (&sectionList)[8]);
 };

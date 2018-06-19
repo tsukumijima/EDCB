@@ -6,31 +6,46 @@
 #include "EpgDataCap_Bon.h"
 #include "EpgDataCap_BonDlg.h"
 
-#include "CmdLineUtil.h"
-#include "../../Common/BlockLock.h"
+#include "../../Common/ThreadUtil.h"
+#include <io.h>
+#include <fcntl.h>
+#include <share.h>
+#include <sys/stat.h>
 
-static FILE* g_debugLog;
-static CRITICAL_SECTION g_debugLogLock;
-static bool g_saveDebugLog;
+#ifndef SUPPRESS_OUTPUT_STACK_TRACE
+#include <tlhelp32.h>
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
+#endif
 
-static void StartDebugLog()
+namespace
 {
-	wstring iniPath;
-	GetModuleIniPath(iniPath);
-	if( GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, iniPath.c_str()) != 0 ){
-		wstring logFolder;
-		GetModuleFolderPath(logFolder);
+
+FILE* g_debugLog;
+recursive_mutex_ g_debugLogLock;
+bool g_saveDebugLog;
+
+void StartDebugLog()
+{
+	if( GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0 ){
 		for( int i = 0; i < 100; i++ ){
 			//パスに添え字をつけて書き込み可能な最初のものに記録する
 			WCHAR logFileName[64];
-			swprintf_s(logFileName, L"\\EpgDataCap_Bon_DebugLog-%d.txt", i);
-			g_debugLog = _wfsopen((logFolder + logFileName).c_str(), L"ab", _SH_DENYWR);
+			swprintf_s(logFileName, L"EpgDataCap_Bon_DebugLog-%d.txt", i);
+			fs_path logPath = GetModulePath().replace_filename(logFileName);
+			//やりたいことは_wfsopen(L"abN",_SH_DENYWR)だが_wfsopenには"N"オプションがなさそうなので低水準で開く
+			int fd;
+			if( _wsopen_s(&fd, logPath.c_str(), _O_APPEND | _O_BINARY | _O_CREAT | _O_NOINHERIT | _O_WRONLY, _SH_DENYWR, _S_IWRITE) == 0 ){
+				g_debugLog = _wfdopen(fd, L"ab");
+				if( g_debugLog == NULL ){
+					_close(fd);
+				}
+			}
 			if( g_debugLog ){
 				_fseeki64(g_debugLog, 0, SEEK_END);
 				if( _ftelli64(g_debugLog) == 0 ){
 					fputwc(L'\xFEFF', g_debugLog);
 				}
-				InitializeCriticalSection(&g_debugLogLock);
 				g_saveDebugLog = true;
 				OutputDebugString(L"****** LOG START ******\r\n");
 				break;
@@ -39,12 +54,11 @@ static void StartDebugLog()
 	}
 }
 
-static void StopDebugLog()
+void StopDebugLog()
 {
 	if( g_saveDebugLog ){
 		OutputDebugString(L"****** LOG STOP ******\r\n");
 		g_saveDebugLog = false;
-		DeleteCriticalSection(&g_debugLogLock);
 		fclose(g_debugLog);
 	}
 }
@@ -53,11 +67,7 @@ static void StopDebugLog()
 // 例外によってアプリケーションが終了する直前にスタックトレースを"実行ファイル名.exe.err"に出力する
 // デバッグ情報(.pdbファイル)が存在すれば出力はより詳細になる
 
-#include <tlhelp32.h>
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
-
-static void OutputStackTrace(DWORD exceptionCode, const PVOID* addrOffsets)
+void OutputStackTrace(DWORD exceptionCode, const PVOID* addrOffsets)
 {
 	WCHAR path[MAX_PATH + 4];
 	path[GetModuleFileName(NULL, path, MAX_PATH)] = L'\0';
@@ -101,7 +111,7 @@ static void OutputStackTrace(DWORD exceptionCode, const PVOID* addrOffsets)
 	}
 }
 
-static LONG WINAPI TopLevelExceptionFilter(_EXCEPTION_POINTERS* exceptionInfo)
+LONG WINAPI TopLevelExceptionFilter(_EXCEPTION_POINTERS* exceptionInfo)
 {
 	static struct {
 		LONG used;
@@ -148,8 +158,11 @@ static LONG WINAPI TopLevelExceptionFilter(_EXCEPTION_POINTERS* exceptionInfo)
 
 #endif // SUPPRESS_OUTPUT_STACK_TRACE
 
+// 唯一の CEpgDataCap_BonApp オブジェクトです。
 
-// CEpgDataCap_BonApp
+CEpgDataCap_BonApp theApp;
+
+}
 
 // CEpgDataCap_BonApp コンストラクション
 
@@ -158,12 +171,6 @@ CEpgDataCap_BonApp::CEpgDataCap_BonApp()
 	// TODO: この位置に構築用コードを追加してください。
 	// ここに InitInstance 中の重要な初期化処理をすべて記述してください。
 }
-
-
-// 唯一の CEpgDataCap_BonApp オブジェクトです。
-
-CEpgDataCap_BonApp theApp;
-
 
 // CEpgDataCap_BonApp 初期化
 
@@ -185,39 +192,54 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	SetUnhandledExceptionFilter(TopLevelExceptionFilter);
 #endif
 
-	// コマンドオプションを解析
-	CCmdLineUtil cCmdUtil;
-	int argc;
-	LPWSTR *argv = CommandLineToArgvW(GetCommandLine(), &argc);
-	if (argv != NULL) {
-		for (int i = 1; i < argc; i++) {
-			BOOL bFlag = argv[i][0] == L'-' || argv[i][0] == L'/' ? TRUE : FALSE;
-			cCmdUtil.ParseParam(&argv[i][bFlag ? 1 : 0], bFlag, i == argc - 1 ? TRUE : FALSE);
-		}
-		LocalFree(argv);
-	}
-
 	CEpgDataCap_BonDlg dlg;
-
-	map<wstring, wstring>::iterator itr;
 	dlg.SetIniMin(FALSE);
 	dlg.SetIniView(TRUE);
 	dlg.SetIniNW(TRUE);
-	for( itr = cCmdUtil.m_CmdList.begin(); itr != cCmdUtil.m_CmdList.end(); itr++ ){
-		if( CompareNoCase(itr->first, L"d") == 0 ){
-			dlg.SetInitBon(itr->second.c_str());
-			OutputDebugString(itr->second.c_str());
-		}else if( CompareNoCase(itr->first, L"min") == 0 ){
-			dlg.SetIniMin(TRUE);
-		}else if( CompareNoCase(itr->first, L"noview") == 0 ){
-			dlg.SetIniView(FALSE);
-		}else if( CompareNoCase(itr->first, L"nonw") == 0 ){
-			dlg.SetIniNW(FALSE);
-		}else if( CompareNoCase(itr->first, L"nwudp") == 0 ){
-			dlg.SetIniNWUDP(TRUE);
-		}else if( CompareNoCase(itr->first, L"nwtcp") == 0 ){
-			dlg.SetIniNWTCP(TRUE);
+
+	// コマンドオプションを解析
+	int argc;
+	LPWSTR *argv = CommandLineToArgvW(GetCommandLine(), &argc);
+	if (argv != NULL) {
+		LPCWSTR curr = L"";
+		LPCWSTR optUpperD = NULL;
+		LPCWSTR optLowerD = NULL;
+		for (int i = 1; i < argc; i++) {
+			if (argv[i][0] == L'-' || argv[i][0] == L'/') {
+				curr = L"";
+				if (wcscmp(argv[i] + 1, L"D") == 0 && optUpperD == NULL) {
+					curr = argv[i] + 1;
+					optUpperD = L"";
+				} else if (wcscmp(argv[i] + 1, L"d") == 0 && optLowerD == NULL) {
+					curr = argv[i] + 1;
+					optLowerD = L"";
+				} else if (_wcsicmp(argv[i] + 1, L"min") == 0) {
+					dlg.SetIniMin(TRUE);
+				} else if (_wcsicmp(argv[i] + 1, L"noview") == 0) {
+					dlg.SetIniView(FALSE);
+				} else if (_wcsicmp(argv[i] + 1, L"nonw") == 0) {
+					dlg.SetIniNW(FALSE);
+				} else if (_wcsicmp(argv[i] + 1, L"nwudp") == 0) {
+					dlg.SetIniNWUDP(TRUE);
+				} else if (_wcsicmp(argv[i] + 1, L"nwtcp") == 0) {
+					dlg.SetIniNWTCP(TRUE);
+				}
+			} else if (wcscmp(curr, L"D") == 0 && optUpperD && optUpperD[0] == L'\0') {
+				optUpperD = argv[i];
+			} else if (wcscmp(curr, L"d") == 0 && optLowerD && optLowerD[0] == L'\0') {
+				optLowerD = argv[i];
+			}
 		}
+		if (optUpperD) {
+			dlg.SetInitBon(optUpperD);
+			OutputDebugString(optUpperD);
+		}
+		// 原作の挙動に合わせるため
+		if (optLowerD) {
+			dlg.SetInitBon(optLowerD);
+			OutputDebugString(optLowerD);
+		}
+		LocalFree(argv);
 	}
 
 
@@ -238,12 +260,12 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	return FALSE;
 }
 
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	SetDllDirectory(TEXT(""));
+	SetDllDirectory(L"");
 	StartDebugLog();
 	//メインスレッドに対するCOMの初期化
-	CoInitialize(NULL);
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 	theApp.InitInstance();
 	CoUninitialize();
 	StopDebugLog();

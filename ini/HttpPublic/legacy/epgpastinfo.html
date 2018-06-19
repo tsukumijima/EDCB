@@ -1,38 +1,41 @@
+-- vim:set ft=lua:
 dofile(mg.script_name:gsub('[^\\/]*$','')..'util.lua')
 
-ct=[=[
+ct=CreateContentBuilder(GZIP_THRESHOLD_BYTE)
+ct:Append([=[
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="ja">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="stylesheet" type="text/css" href="default.css">
-<title>EpgTimer</title>
+<title>番組詳細 - EDCB</title>
 </head>
 <body>
 <h1>番組詳細</h1>
 <div id="main">
   <dl>
-]=]
+]=])
 
-_onid,_tsid,_sid,_startTime=(mg.get_var(mg.request_info.query_string,'id') or ''):match('^(%d+)%-(%d+)%-(%d+)%-(%d+)$')
-_onid=tonumber(_onid) or 0
-_tsid=tonumber(_tsid) or 0
-_sid=tonumber(_sid) or 0
-_startTime=tonumber(_startTime) or 0
+onid,tsid,sid,startTime=(mg.get_var(mg.request_info.query_string,'id') or ''):match('^(%d?%d?%d?%d?%d)%-(%d?%d?%d?%d?%d)%-(%d?%d?%d?%d?%d)%-(%d+)$')
+onid=tonumber(onid) or 0
+tsid=tonumber(tsid) or 0
+sid=tonumber(sid) or 0
+startTime=tonumber(startTime) or 0
 
 edcb.htmlEscape=15
-et=edcb.EnumEventInfoArchive({{onid=_onid, tsid=_tsid, sid=_sid}}, {startTime=os.date('!*t',_startTime), durationSecond=1})
+et=edcb.EnumEventInfoArchive({{onid=onid,tsid=tsid,sid=sid}}, {startTime=os.date('!*t',startTime), durationSecond=1})
 if et and #et~=0 then
-  ct=ct..'    <dt>番組情報</dt><dd>\n'..string.gsub(_ConvertEpgInfoText2(et[1]), '\r?\n', '<br>\n')..'</dd>\n'
+  ct:Append('    <dt>番組情報</dt><dd>\n'..ConvertEpgInfoText2(et[1]):gsub('\r?\n','<br>\n')..'</dd>\n')
 end
 
-ct=ct..[=[
+ct:Append([=[
   </dl>
 </div>
 <div id="footer">
-  <a href="epg.html">番組表へ</a>
+  <a href="epg.html">番組表</a> <a href="epglist.html?id=]=]..onid..'-'..tsid..'-'..sid..[=[#now">リスト番組表</a>
 </div>
 </body>
 </html>
-]=]
-mg.write(Response(200, 'text/html', 'utf-8', #ct)..'\r\n', ct)
+]=])
+ct:Finish()
+mg.write(ct:Pop(Response(200,'text/html','utf-8',ct.len)..(ct.gzip and 'Content-Encoding: gzip\r\n' or '')..'\r\n'))

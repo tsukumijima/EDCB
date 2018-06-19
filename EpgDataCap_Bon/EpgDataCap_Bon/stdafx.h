@@ -8,6 +8,7 @@
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // Windows ヘッダーから使用されていない部分を除外します。
+#define NOMINMAX
 // Windows ヘッダー ファイル:
 #include <windows.h>
 #include <windowsx.h>
@@ -20,7 +21,6 @@
 
 // C ランタイム ヘッダー ファイル
 #include <stdio.h>
-#include <share.h>
 
 #define afx_msg
 
@@ -52,7 +52,3 @@ void OutputDebugStringWrapper(LPCWSTR lpOutputString);
 #endif
 
 #include "../../Common/Common.h"
-
-// TODO: この警告は可能なら解決すべき
-// declaration of 'identifier' hides class member
-#pragma warning(disable : 4458)

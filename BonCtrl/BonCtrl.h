@@ -5,19 +5,23 @@
 #include "../Common/StructDef.h"
 #include "../Common/EpgTimerUtil.h"
 #include "../Common/StringUtil.h"
+#include "../Common/ThreadUtil.h"
 
 #include "BonDriverUtil.h"
 #include "PacketInit.h"
 #include "TSOut.h"
 #include "ChSetUtil.h"
 #include <list>
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+#include <atomic>
+#endif
 
 class CBonCtrl
 {
 public:
 	//チャンネルスキャン、EPG取得のステータス用
 	enum JOB_STATUS {
-		ST_STOP,		//停止中
+		ST_STOP = -4,	//停止中
 		ST_WORKING,		//実行中
 		ST_COMPLETE,	//完了
 		ST_CANCEL,		//キャンセルされた
@@ -33,9 +37,11 @@ public:
 		LPCWSTR bonDriverFolderPath
 		);
 
-	void SetEMMMode(BOOL enable);
+	void SetEMMMode(BOOL enable) { this->tsOut.SetEmm(enable); }
 
-	void SetTsBuffMaxCount(DWORD tsBuffMaxCount, int writeBuffMaxCount);
+	void SetNoLogScramble(BOOL noLog) { this->tsOut.SetNoLogScramble(noLog); }
+
+	void SetParseEpgPostProcess(BOOL parsePost) { this->tsOut.SetParseEpgPostProcess(parsePost); }
 
 	//BonDriverフォルダのBonDriver_*.dllを列挙
 	//戻り値：
@@ -49,13 +55,15 @@ public:
 	// bonDriverFile	[IN]EnumBonDriverで取得されたBonDriverのファイル名
 	DWORD OpenBonDriver(
 		LPCWSTR bonDriverFile,
-		int openWait = 200
+		int openWait,
+		DWORD tsBuffMaxCount
 		);
 
 	//ロードしているBonDriverの開放
 	void CloseBonDriver();
 
 	//ロード中のBonDriverのファイル名を取得する（ロード成功しているかの判定）
+	//※スレッドセーフ
 	//戻り値：
 	// TRUE（成功）：FALSE（Openに失敗している）
 	//引数：
@@ -89,6 +97,7 @@ public:
 		);
 
 	//チャンネル変更中かどうか
+	//※スレッドセーフ
 	//戻り値：
 	// TRUE（変更中）、FALSE（完了）
 	BOOL IsChChanging(BOOL* chChgErr);
@@ -104,11 +113,6 @@ public:
 		WORD* TSID
 		);
 
-	//シグナルレベルの取得
-	//戻り値：
-	// シグナルレベル
-	float GetSignalLevel();
-
 	//サービス一覧を取得する
 	//戻り値：
 	// エラーコード
@@ -120,11 +124,11 @@ public:
 
 	//TSストリーム制御用コントロールを作成する
 	//戻り値：
-	// エラーコード
+	// 制御識別ID
 	//引数：
-	// id			[OUT]制御識別ID
-	BOOL CreateServiceCtrl(
-		DWORD* id
+	// sendUdpTcp	[IN]UDP/TCP送信用にする
+	DWORD CreateServiceCtrl(
+		BOOL sendUdpTcp
 		);
 
 	//TSストリーム制御用コントロールを作成する
@@ -189,9 +193,10 @@ public:
 	// createSize			[IN]ファイル作成時にディスクに予約する容量
 	// saveFolder			[IN]使用するフォルダ一覧
 	// saveFolderSub		[IN]HDDの空きがなくなった場合に一時的に使用するフォルダ
+	// writeBuffMaxCount	[IN]出力バッファ上限
 	BOOL StartSave(
 		DWORD id,
-		wstring fileName,
+		const wstring& fileName,
 		BOOL overWriteFlag,
 		BOOL pittariFlag,
 		WORD pittariONID,
@@ -199,8 +204,9 @@ public:
 		WORD pittariSID,
 		WORD pittariEventID,
 		ULONGLONG createSize,
-		vector<REC_FILE_SET_INFO>* saveFolder,
-		vector<wstring>* saveFolderSub
+		const vector<REC_FILE_SET_INFO>& saveFolder,
+		const vector<wstring>& saveFolderSub,
+		int writeBuffMaxCount
 	);
 
 	//ファイル保存を終了する
@@ -253,6 +259,7 @@ public:
 		);
 
 	//録画中のファイルのファイルパスを取得する
+	//※スレッドセーフ
 	//引数：
 	// id					[IN]制御識別ID
 	// filePath				[OUT]保存ファイル名
@@ -261,7 +268,9 @@ public:
 		DWORD id,
 		wstring* filePath,
 		BOOL* subRecFlag
-		);
+		) {
+		this->tsOut.GetSaveFilePath(id, filePath, subRecFlag);
+	}
 
 	//ドロップとスクランブルのカウントを保存する
 	//引数：
@@ -282,6 +291,7 @@ public:
 		);
 
 	//指定サービスの現在or次のEPG情報を取得する
+	//※スレッドセーフ
 	//戻り値：
 	// エラーコード
 	//引数：
@@ -289,16 +299,19 @@ public:
 	// transportStreamID		[IN]取得対象のtransportStreamID
 	// serviceID				[IN]取得対象のServiceID
 	// nextFlag					[IN]TRUE（次の番組）、FALSE（現在の番組）
-	// epgInfo					[OUT]EPG情報（DLL内で自動的にdeleteする。次に取得を行うまで有効）
+	// epgInfo					[OUT]EPG情報
 	DWORD GetEpgInfo(
 		WORD originalNetworkID,
 		WORD transportStreamID,
 		WORD serviceID,
 		BOOL nextFlag,
 		EPGDB_EVENT_INFO* epgInfo
-		);
+		) {
+		return this->tsOut.GetEpgInfo(originalNetworkID, transportStreamID, serviceID, nextFlag, epgInfo);
+	}
 
 	//指定イベントのEPG情報を取得する
+	//※スレッドセーフ
 	//戻り値：
 	// エラーコード
 	//引数：
@@ -307,7 +320,7 @@ public:
 	// serviceID				[IN]取得対象のServiceID
 	// eventID					[IN]取得対象のEventID
 	// pfOnlyFlag				[IN]p/fからのみ検索するかどうか
-	// epgInfo					[OUT]EPG情報（DLL内で自動的にdeleteする。次に取得を行うまで有効）
+	// epgInfo					[OUT]EPG情報
 	DWORD SearchEpgInfo(
 		WORD originalNetworkID,
 		WORD transportStreamID,
@@ -315,27 +328,28 @@ public:
 		WORD eventID,
 		BYTE pfOnlyFlag,
 		EPGDB_EVENT_INFO* epgInfo
-		);
+		) {
+		return this->tsOut.SearchEpgInfo(originalNetworkID, transportStreamID, serviceID, eventID, pfOnlyFlag, epgInfo);
+	}
 	
 	//PC時計を元としたストリーム時間との差を取得する
+	//※スレッドセーフ
 	//戻り値：
 	// 差の秒数
-	int GetTimeDelay(
-		);
+	int GetTimeDelay() { return this->tsOut.GetTimeDelay(); }
 
 	//録画中かどうかを取得する
+	//※スレッドセーフ
 	// TRUE（録画中）、FALSE（録画していない）
-	BOOL IsRec();
+	BOOL IsRec() { return this->tsOut.IsRec(); }
 
 	//チャンネルスキャンを開始する
 	//戻り値：
-	// エラーコード
-	DWORD StartChScan();
+	// TRUE（成功）、FALSE（失敗）
+	BOOL StartChScan();
 
 	//チャンネルスキャンをキャンセルする
-	//戻り値：
-	// エラーコード
-	DWORD StopChScan();
+	void StopChScan();
 
 	//チャンネルスキャンの状態を取得する
 	//戻り値：
@@ -354,35 +368,21 @@ public:
 		DWORD* totalNum
 		);
 
-	//EPG取得対象のサービス一覧を取得する
-	//戻り値：
-	// エラーコード
-	//引数：
-	// chList		[OUT]EPG取得するチャンネル一覧
-	DWORD GetEpgCapService(
-		vector<EPGCAP_SERVICE_INFO>* chList
-		);
-
-
 	//EPG取得を開始する
 	//戻り値：
-	// エラーコード
+	// TRUE（成功）、FALSE（失敗）
 	//引数：
-	// chList		[IN]EPG取得するチャンネル一覧
-	// BSBasic		[IN]BSで１チャンネルから基本情報のみ取得するかどうか
-	// CS1Basic		[IN]CS1で１チャンネルから基本情報のみ取得するかどうか
-	// CS2Basic		[IN]CS2で１チャンネルから基本情報のみ取得するかどうか
-	DWORD StartEpgCap(
+	// chList		[IN]EPG取得するチャンネル一覧(NULL可)
+	BOOL StartEpgCap(
 		vector<EPGCAP_SERVICE_INFO>* chList
 		);
 
 	//EPG取得を停止する
-	//戻り値：
-	// エラーコード
-	DWORD StopEpgCap(
+	void StopEpgCap(
 		);
 
 	//EPG取得のステータスを取得する
+	//※info==NULLの場合に限りスレッドセーフ
 	//戻り値：
 	// ステータス
 	//引数：
@@ -408,13 +408,16 @@ public:
 		DWORD backStartWaitSec
 		);
 
-	BOOL GetViewStatusInfo(
-		DWORD id,
-		float* signal,
-		DWORD* space,
-		DWORD* ch,
-		ULONGLONG* drop,
-		ULONGLONG* scramble
+	//現在のストリームの表示用のステータスを取得する
+	//※スレッドセーフ
+	//引数：
+	// signalLv		[OUT]シグナルレベル
+	// space		[OUT]物理CHのspace(不明のとき負)
+	// ch			[OUT]物理CHのch(不明のとき負)
+	void GetViewStatusInfo(
+		float* signalLv,
+		int* space,
+		int* ch
 		);
 
 protected:
@@ -423,38 +426,47 @@ protected:
 	CTSOut tsOut;
 	CChSetUtil chUtil;
 
-	CRITICAL_SECTION buffLock;
+	recursive_mutex_ buffLock;
 	std::list<vector<BYTE>> tsBuffList;
+	std::list<vector<BYTE>> tsFreeList;
+	float statusSignalLv;
+	int viewSpace;
+	int viewCh;
 
-	HANDLE analyzeThread;
-	HANDLE analyzeEvent;
+	thread_ analyzeThread;
+	CAutoResetEvent analyzeEvent;
 	BOOL analyzeStopFlag;
 
 	//チャンネルスキャン用
-	HANDLE chScanThread;
-	HANDLE chScanStopEvent;
-	DWORD chSt_space;
-	DWORD chSt_ch;
-	wstring chSt_chName;
-	DWORD chSt_chkNum;
-	DWORD chSt_totalNum;
-	JOB_STATUS chSt_err;
-	typedef struct _CHK_CH_INFO{
+	thread_ chScanThread;
+	CAutoResetEvent chScanStopEvent;
+	struct CHK_CH_INFO {
 		DWORD space;
 		DWORD ch;
 		wstring spaceName;
 		wstring chName;
-	}CHK_CH_INFO;
+	};
+	//スキャン中はconst操作のみ
+	vector<CHK_CH_INFO> chScanChkList;
+#if defined(_MSC_VER) && _MSC_VER < 1900
+	LONG chScanIndexOrStatus;
+#else
+	std::atomic<int> chScanIndexOrStatus;
+#endif
 
 	//EPG取得用
-	HANDLE epgCapThread;
-	HANDLE epgCapStopEvent;
+	thread_ epgCapThread;
+	CAutoResetEvent epgCapStopEvent;
+	//取得中はconst操作のみ
 	vector<EPGCAP_SERVICE_INFO> epgCapChList;
-	EPGCAP_SERVICE_INFO epgSt_ch;
-	JOB_STATUS epgSt_err;
+#if defined(_MSC_VER) && _MSC_VER < 1900
+	LONG epgCapIndexOrStatus;
+#else
+	std::atomic<int> epgCapIndexOrStatus;
+#endif
 
-	HANDLE epgCapBackThread;
-	HANDLE epgCapBackStopEvent;
+	thread_ epgCapBackThread;
+	CAutoResetEvent epgCapBackStopEvent;
 	BOOL enableLiveEpgCap;
 	BOOL enableRecEpgCap;
 
@@ -463,25 +475,25 @@ protected:
 	BOOL epgCapBackCS2Basic;
 	BOOL epgCapBackCS3Basic;
 	DWORD epgCapBackStartWaitSec;
-	DWORD tsBuffMaxCount;
-	int writeBuffMaxCount;
 protected:
-	DWORD _SetCh(
+	DWORD ProcessSetCh(
 		DWORD space,
 		DWORD ch,
-		BOOL chScan = FALSE
+		BOOL chScan,
+		BOOL restartEpgCapBack
 		);
 
 	static void GetEpgDataFilePath(WORD ONID, WORD TSID, wstring& epgDataFilePath);
 
-	static void RecvCallback(void* param, BYTE* data, DWORD size, DWORD remain);
-	static UINT WINAPI AnalyzeThread(LPVOID param);
+	void RecvCallback(BYTE* data, DWORD size, DWORD remain, DWORD tsBuffMaxCount);
+	void StatusCallback(float signalLv, int space, int ch);
+	static void AnalyzeThread(CBonCtrl* sys);
 
-	static UINT WINAPI ChScanThread(LPVOID param);
-	static UINT WINAPI EpgCapThread(LPVOID param);
+	static void ChScanThread(CBonCtrl* sys);
+	static void EpgCapThread(CBonCtrl* sys);
 
 	void StartBackgroundEpgCap();
 	void StopBackgroundEpgCap();
-	static UINT WINAPI EpgCapBackThread(LPVOID param);
+	static void EpgCapBackThread(CBonCtrl* sys);
 };
 

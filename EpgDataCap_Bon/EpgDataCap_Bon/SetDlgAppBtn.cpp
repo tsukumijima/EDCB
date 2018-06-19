@@ -18,7 +18,7 @@ CSetDlgAppBtn::~CSetDlgAppBtn()
 {
 }
 
-BOOL CSetDlgAppBtn::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
+BOOL CSetDlgAppBtn::Create(LPCWSTR lpszTemplateName, HWND hWndParent)
 {
 	return CreateDialogParam(GetModuleHandle(NULL), lpszTemplateName, hWndParent, DlgProc, (LPARAM)this) != NULL;
 }
@@ -30,6 +30,7 @@ BOOL CSetDlgAppBtn::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
 BOOL CSetDlgAppBtn::OnInitDialog()
 {
 	// TODO:  ここに初期化を追加してください
+	fs_path appIniPath = GetModuleIniPath();
 	SetDlgItemText(m_hWnd, IDC_EDIT_VIEW_EXE, GetPrivateProfileToString( L"SET", L"ViewPath", L"", appIniPath.c_str() ).c_str());
 	SetDlgItemText(m_hWnd, IDC_EDIT_VIEW_OPT, GetPrivateProfileToString( L"SET", L"ViewOption", L"", appIniPath.c_str() ).c_str());
 
@@ -42,6 +43,7 @@ void CSetDlgAppBtn::SaveIni(void)
 	if( m_hWnd == NULL ){
 		return;
 	}
+	fs_path appIniPath = GetModuleIniPath();
 
 	WCHAR buff[512]=L"";
 	GetDlgItemText(m_hWnd, IDC_EDIT_VIEW_EXE, buff, 512);
@@ -54,12 +56,10 @@ void CSetDlgAppBtn::OnBnClickedButtonViewExe()
 {
 	// TODO: ここにコントロール通知ハンドラー コードを追加します。
 	WCHAR strFile[MAX_PATH]=L"";
-	OPENFILENAME ofn;
-	memset(&ofn, 0, sizeof(OPENFILENAME));
+	OPENFILENAME ofn = {};
 	ofn.lStructSize = sizeof (OPENFILENAME);
 	ofn.hwndOwner = m_hWnd;
-	ofn.lpstrFilter = 	TEXT("exe files (*.exe)\0*.exe\0")
-					TEXT("All files (*.*)\0*.*\0\0");
+	ofn.lpstrFilter = L"exe files (*.exe)\0*.exe\0All files (*.*)\0*.*\0";
 	ofn.lpstrFile = strFile;
 	ofn.nMaxFile = MAX_PATH;
 	ofn.Flags = OFN_FILEMUSTEXIST;

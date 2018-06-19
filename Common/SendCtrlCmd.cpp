@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "SendCtrlCmd.h"
 #ifndef SEND_CTRL_CMD_NO_TCP
 #include <winsock2.h>
@@ -81,7 +81,7 @@ void CSendCtrlCmd::SetPipeSetting(
 // ip			[IN]接続先IP
 // port			[IN]接続先ポート
 void CSendCtrlCmd::SetNWSetting(
-	wstring ip,
+	const wstring& ip,
 	DWORD port
 	)
 {
@@ -186,14 +186,14 @@ static int RecvAll(SOCKET sock, char* buf, int len, int flags)
 	return n;
 }
 
-DWORD CSendCtrlCmd::SendTCP(wstring ip, DWORD port, DWORD timeOut, CMD_STREAM* sendCmd, CMD_STREAM* resCmd)
+DWORD CSendCtrlCmd::SendTCP(const wstring& ip, DWORD port, DWORD timeOut, CMD_STREAM* sendCmd, CMD_STREAM* resCmd)
 {
 	if( sendCmd == NULL || resCmd == NULL ){
 		return CMD_ERR_INVALID_ARG;
 	}
 
 	string ipA, strPort;
-	WtoA(ip, ipA);
+	WtoUTF8(ip, ipA);
 	Format(strPort, "%d", port);
 
 	struct addrinfo hints = {};
@@ -205,10 +205,24 @@ DWORD CSendCtrlCmd::SendTCP(wstring ip, DWORD port, DWORD timeOut, CMD_STREAM* s
 		return CMD_ERR_INVALID_ARG;
 	}
 	SOCKET sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-	if( sock != INVALID_SOCKET &&
-	    connect(sock, result->ai_addr, (int)result->ai_addrlen) == SOCKET_ERROR ){
-		closesocket(sock);
-		sock = INVALID_SOCKET;
+	if( sock != INVALID_SOCKET ){
+		fd_set wmask;
+		FD_ZERO(&wmask);
+		FD_SET(sock, &wmask);
+		struct timeval tv = {(long)(timeOut / 1000), 0};
+		//ノンブロッキングモードで接続待ち
+		unsigned long x = 1;
+		if( ioctlsocket(sock, FIONBIO, &x) == SOCKET_ERROR ||
+		    (connect(sock, result->ai_addr, (int)result->ai_addrlen) == SOCKET_ERROR &&
+		     (WSAGetLastError() != WSAEWOULDBLOCK || select((int)sock + 1, NULL, &wmask, NULL, &tv) != 1)) ){
+			closesocket(sock);
+			sock = INVALID_SOCKET;
+		}else{
+			x = 0;
+			ioctlsocket(sock, FIONBIO, &x);
+			setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&SND_RCV_TIMEOUT, sizeof(SND_RCV_TIMEOUT));
+			setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&SND_RCV_TIMEOUT, sizeof(SND_RCV_TIMEOUT));
+		}
 	}
 	freeaddrinfo(result);
 
@@ -222,11 +236,12 @@ DWORD CSendCtrlCmd::SendTCP(wstring ip, DWORD port, DWORD timeOut, CMD_STREAM* s
 	head[1] = sendCmd->dataSize;
 	DWORD extSize = 0;
 	if( sendCmd->dataSize > 0 ){
-		extSize = min(sendCmd->dataSize, sizeof(head) - sizeof(DWORD)*2);
+		extSize = min(sendCmd->dataSize, (DWORD)(sizeof(head) - sizeof(DWORD)*2));
 		memcpy(head + 2, sendCmd->data.get(), extSize);
 	}
-	if( send(sock, (char*)head, sizeof(DWORD)*2 + extSize, 0) == SOCKET_ERROR ||
-	    sendCmd->dataSize > extSize && send(sock, (char*)sendCmd->data.get() + extSize, sendCmd->dataSize - extSize, 0) == SOCKET_ERROR ){
+	if( send(sock, (char*)head, sizeof(DWORD)*2 + extSize, 0) != (int)(sizeof(DWORD)*2 + extSize) ||
+	    (sendCmd->dataSize > extSize &&
+	     send(sock, (char*)sendCmd->data.get() + extSize, sendCmd->dataSize - extSize, 0) != (int)(sendCmd->dataSize - extSize)) ){
 		closesocket(sock);
 		return CMD_ERR;
 	}
@@ -252,7 +267,7 @@ DWORD CSendCtrlCmd::SendTCP(wstring ip, DWORD port, DWORD timeOut, CMD_STREAM* s
 #endif
 
 DWORD CSendCtrlCmd::SendFileCopy(
-	wstring val,
+	const wstring& val,
 	BYTE** resVal,
 	DWORD* resValSize
 	)
@@ -266,28 +281,6 @@ DWORD CSendCtrlCmd::SendFileCopy(
 		}
 		*resValSize = res.dataSize;
 		*resVal = res.data.release();
-	}
-	return ret;
-}
-
-DWORD CSendCtrlCmd::SendGetEpgFile2(
-	wstring val,
-	BYTE** resVal,
-	DWORD* resValSize
-	)
-{
-	CMD_STREAM res;
-	DWORD ret = SendCmdData2(CMD2_EPG_SRV_GET_EPG_FILE2, val, &res);
-
-	if( ret == CMD_SUCCESS ){
-		WORD ver = 0;
-		DWORD readSize = 0;
-		if( ReadVALUE(&ver, res.data, res.dataSize, &readSize) == FALSE || res.dataSize <= readSize ){
-			return CMD_ERR;
-		}
-		*resValSize = res.dataSize - readSize;
-		*resVal = res.data.release();
-		memmove(*resVal, *resVal + readSize, *resValSize);
 	}
 	return ret;
 }

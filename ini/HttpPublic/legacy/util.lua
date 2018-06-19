@@ -1,5 +1,8 @@
+--このサイズ以上のときページ圧縮する(nilのとき常に非圧縮)
+GZIP_THRESHOLD_BYTE=4096
+
 --EPG情報をTextに変換(EpgTimerUtil.cppから移植)
-function _ConvertEpgInfoText2(onidOrEpg, tsid, sid, eid)
+function ConvertEpgInfoText2(onidOrEpg, tsid, sid, eid)
   local s, v = '', (type(onidOrEpg)=='table' and onidOrEpg or edcb.SearchEpg(onidOrEpg, tsid, sid, eid))
   if v then
     s=s..(v.startTime and FormatTimeAndDuration(v.startTime, v.durationSecond)..(v.durationSecond and '' or '～未定') or '未定')..'\n'
@@ -37,10 +40,10 @@ function _ConvertEpgInfoText2(onidOrEpg, tsid, sid, eid)
       s=s..'\n'
     end
     s=s..'\n'..(NetworkType(v.onid)=='地デジ' and '' or v.freeCAFlag and '有料放送\n' or '無料放送\n')
-      ..string.format('OriginalNetworkID:%d(0x%04X)\n', v.onid, v.onid)
-      ..string.format('TransportStreamID:%d(0x%04X)\n', v.tsid, v.tsid)
-      ..string.format('ServiceID:%d(0x%04X)\n', v.sid, v.sid)
-      ..string.format('EventID:%d(0x%04X)\n', v.eid, v.eid)
+      ..('OriginalNetworkID:%d(0x%04X)\n'):format(v.onid,v.onid)
+      ..('TransportStreamID:%d(0x%04X)\n'):format(v.tsid,v.tsid)
+      ..('ServiceID:%d(0x%04X)\n'):format(v.sid,v.sid)
+      ..('EventID:%d(0x%04X)\n'):format(v.eid,v.eid)
   end
   return s
 end
@@ -49,26 +52,30 @@ end
 function RecSettingTemplate(rs)
   local s='録画モード: <select name="recMode">'
   for i=1,#RecModeTextList() do
-    s=s..'<option value="'..(i-1)..'"'..(rs.recMode==i-1 and ' selected="selected"' or '')..'>'..RecModeTextList()[i]
+    s=s..'<option value="'..(i-1)..'"'..(rs.recMode==i-1 and ' selected' or '')..'>'..RecModeTextList()[i]
   end
   s=s..'</select><br>\n'
     ..'イベントリレー追従: <select name="tuijyuuFlag">'
-    ..'<option value="0"'..(not rs.tuijyuuFlag and ' selected="selected"' or '')..'>しない'
-    ..'<option value="1"'..(rs.tuijyuuFlag and ' selected="selected"' or '')..'>する</select><br>\n'
+    ..'<option value="0"'..(not rs.tuijyuuFlag and ' selected' or '')..'>しない'
+    ..'<option value="1"'..(rs.tuijyuuFlag and ' selected' or '')..'>する</select><br>\n'
     ..'優先度: <select name="priority">'
   for i=1,5 do
-    s=s..'<option value="'..i..'"'..(rs.priority==i and ' selected="selected"' or '')..'>'..i
+    s=s..'<option value="'..i..'"'..(rs.priority==i and ' selected' or '')..'>'..i
   end
+  --デフォルト値
+  local rsdef=(edcb.GetReserveData(0x7FFFFFFF) or {}).recSetting
   s=s..'</select><br>\n'
     ..'ぴったり（？）録画: <select name="pittariFlag">'
-    ..'<option value="0"'..(not rs.pittariFlag and ' selected="selected"' or '')..'>しない'
-    ..'<option value="1"'..(rs.pittariFlag and ' selected="selected"' or '')..'>する</select><br>\n'
-    ..'録画マージン: <input type="checkbox" name="useDefMarginFlag" value="1"'..(rs.startMargin and '' or ' checked="checked"')..'>デフォルト || '
-    ..'開始（秒） <input type="text" name="startMargin" value="'..(rs.startMargin or 0)..'"> '
-    ..'終了（秒） <input type="text" name="endMargin" value="'..(rs.endMargin or 0)..'"><br>\n'
-    ..'指定サービス対象データ: <input type="checkbox" name="serviceMode" value="1"'..(rs.serviceMode%2==0 and ' checked="checked"' or '')..'>デフォルト || '
-    ..'<input type="checkbox" name="serviceMode_1" value="1"'..(rs.serviceMode%2~=0 and math.floor(rs.serviceMode/16)%2~=0 and ' checked="checked"' or '')..'>字幕を含める '
-    ..'<input type="checkbox" name="serviceMode_2" value="1"'..(rs.serviceMode%2~=0 and math.floor(rs.serviceMode/32)%2~=0 and ' checked="checked"' or '')..'>データカルーセルを含める<br>\n'
+    ..'<option value="0"'..(not rs.pittariFlag and ' selected' or '')..'>しない'
+    ..'<option value="1"'..(rs.pittariFlag and ' selected' or '')..'>する</select><br>\n'
+    ..'録画マージン: <input type="checkbox" name="useDefMarginFlag" value="1"'..(rs.startMargin and '' or ' checked')..'>デフォルト || '
+    ..'開始（秒） <input type="text" name="startMargin" value="'..(rs.startMargin or rsdef and rsdef.startMargin or 0)..'" size="5"> '
+    ..'終了（秒） <input type="text" name="endMargin" value="'..(rs.endMargin or rsdef and rsdef.endMargin or 0)..'" size="5"><br>\n'
+    ..'指定サービス対象データ: <input type="checkbox" name="serviceMode" value="1"'..(rs.serviceMode%2==0 and ' checked' or '')..'>デフォルト || '
+    ..'<input type="checkbox" name="serviceMode_1" value="1"'
+      ..(math.floor(rs.serviceMode%2~=0 and rs.serviceMode/16 or rsdef and rsdef.serviceMode/16 or 0)%2~=0 and ' checked' or '')..'>字幕を含める '
+    ..'<input type="checkbox" name="serviceMode_2" value="1"'
+      ..(math.floor(rs.serviceMode%2~=0 and rs.serviceMode/32 or rsdef and rsdef.serviceMode/32 or 0)%2~=0 and ' checked' or '')..'>データカルーセルを含める<br>\n'
     ..'<table><tr><td>録画フォルダ</td><td>出力PlugIn</td><td>ファイル名PlugIn</td><td>部分受信</td></tr>\n'
   for i,v in ipairs(rs.recFolderList) do
     s=s..'<tr><td>'..v.recFolder..'</td><td>'..v.writePlugIn..'</td><td>'..v.recNamePlugIn..'</td><td>いいえ</td></tr>\n'
@@ -77,27 +84,28 @@ function RecSettingTemplate(rs)
     s=s..'<tr><td>'..v.recFolder..'</td><td>'..v.writePlugIn..'</td><td>'..v.recNamePlugIn..'</td><td>はい</td></tr>\n'
   end
   s=s..'</table>（プリセットによる変更のみ対応）<br>\n'
-    ..'<input type="checkbox" name="partialRecFlag" value="1"'..(rs.partialRecFlag~=0 and ' checked="checked"' or '')..'>部分受信（ワンセグ）を別ファイルに同時出力する<br>\n'
-    ..'<input type="checkbox" name="continueRecFlag" value="1"'..(rs.continueRecFlag and ' checked="checked"' or '')..'>後ろの予約を同一ファイルで出力する<br>\n'
-    ..'使用チューナー強制指定: <select name="tunerID"><option value="0"'..(rs.tunerID==0 and ' selected="selected"' or '')..'>自動'
+    ..'<input type="checkbox" name="partialRecFlag" value="1"'..(rs.partialRecFlag~=0 and ' checked' or '')..'>部分受信（ワンセグ）を別ファイルに同時出力する<br>\n'
+    ..'<input type="checkbox" name="continueRecFlag" value="1"'..(rs.continueRecFlag and ' checked' or '')..'>後ろの予約を同一ファイルで出力する<br>\n'
+    ..'使用チューナー強制指定: <select name="tunerID"><option value="0"'..(rs.tunerID==0 and ' selected' or '')..'>自動'
   local a=edcb.GetTunerReserveAll()
   for i=1,#a-1 do
-    s=s..'<option value="'..a[i].tunerID..'"'..(a[i].tunerID==rs.tunerID and ' selected="selected"' or '')..string.format('>ID:%08X(', a[i].tunerID)..a[i].tunerName..')'
+    s=s..'<option value="'..a[i].tunerID..'"'..(a[i].tunerID==rs.tunerID and ' selected' or '')..string.format('>ID:%08X(', a[i].tunerID)..a[i].tunerName..')'
   end
   s=s..'</select><br>\n'
     ..'録画後動作: <select name="suspendMode">'
-    ..'<option value="0"'..(rs.suspendMode==0 and ' selected="selected"' or '')..'>デフォルト設定を使用'
-    ..'<option value="1"'..(rs.suspendMode==1 and ' selected="selected"' or '')..'>スタンバイ'
-    ..'<option value="2"'..(rs.suspendMode==2 and ' selected="selected"' or '')..'>休止'
-    ..'<option value="3"'..(rs.suspendMode==3 and ' selected="selected"' or '')..'>シャットダウン'
-    ..'<option value="4"'..(rs.suspendMode==4 and ' selected="selected"' or '')..'>何もしない</select> '
-    ..'<input type="checkbox" name="rebootFlag" value="1"'..(rs.rebootFlag and ' checked="checked"' or '')..'>復帰後再起動する<br>\n'
+    ..'<option value="0"'..(rs.suspendMode==0 and ' selected' or '')..'>'..(rsdef and ({'スタンバイ','休止','シャットダウン','何もしない'})[rsdef.suspendMode] or '')..'（デフォルト）'
+    ..'<option value="1"'..(rs.suspendMode==1 and ' selected' or '')..'>スタンバイ'
+    ..'<option value="2"'..(rs.suspendMode==2 and ' selected' or '')..'>休止'
+    ..'<option value="3"'..(rs.suspendMode==3 and ' selected' or '')..'>シャットダウン'
+    ..'<option value="4"'..(rs.suspendMode==4 and ' selected' or '')..'>何もしない</select> '
+    ..'<input type="checkbox" name="rebootFlag" value="1"'
+      ..((rs.suspendMode==0 and rsdef and rsdef.rebootFlag or rs.suspendMode~=0 and rs.rebootFlag) and ' checked' or '')..'>復帰後再起動する<br>\n'
     ..'録画後実行bat（プリセットによる変更のみ対応）: '..(#rs.batFilePath==0 and '（なし）' or rs.batFilePath)..'<br>\n'
   return s
 end
 
 function RecModeTextList()
-  return {'全サービス','指定サービスのみ','全サービス（デコード処理なし）','指定サービスのみ（デコード処理なし）','視聴','無効'}
+  return {'全サービス','指定サービス','全サービス（デコード処理なし）','指定サービス（デコード処理なし）','視聴','無効'}
 end
 
 function NetworkType(onid)
@@ -193,37 +201,102 @@ function DocumentToNativePath(path)
   return nil
 end
 
+--現在の変換モードでHTMLエスケープする
+function EdcbHtmlEscape(s)
+  return edcb.Convert('utf-8','utf-8',s)
+end
+
+--PCRをもとにファイルの長さを概算する(少なめに報告するかもしれない)
+function GetDurationSec(f)
+  local fsize=f:seek('end') or 0
+  if fsize>1880000 and f:seek('set') then
+    for i=1,10000 do
+      local buf=f:read(188)
+      if buf and #buf==188 and buf:byte(1)==0x47 then
+        --adaptation_field_control and adaptation_field_length and PCR_flag
+        if math.floor(buf:byte(4)/16)%4>=2 and buf:byte(5)>=5 and math.floor(buf:byte(6)/16)%2~=0 then
+          local pcr=((buf:byte(7)*256+buf:byte(8))*256+buf:byte(9))*256+buf:byte(10)
+          local pid=buf:byte(2)%32*256+buf:byte(3)
+          if f:seek('set',(math.floor(fsize/188)-10000)*188) then
+            for j=1,10000 do
+              buf=f:read(188)
+              if buf and #buf==188 and buf:byte(1)==0x47 then
+                if math.floor(buf:byte(4)/16)%4>=2 and buf:byte(5)>=5 and math.floor(buf:byte(6)/16)%2~=0 and
+                   pid==buf:byte(2)%32*256+buf:byte(3) then
+                  local pcr2=((buf:byte(7)*256+buf:byte(8))*256+buf:byte(9))*256+buf:byte(10)
+                  return math.floor((pcr2+0x100000000-pcr)%0x100000000/45000),fsize
+                end
+              else
+                break
+              end
+            end
+          end
+          break
+        end
+      else
+        break
+      end
+    end
+  end
+  return 0,fsize
+end
+
 --レスポンスを生成する
 function Response(code,ctype,charset,cl)
   return 'HTTP/1.1 '..code..' '..mg.get_response_code_text(code)
+    ..'\r\nX-Frame-Options: SAMEORIGIN'
     ..(ctype and '\r\nX-Content-Type-Options: nosniff\r\nContent-Type: '..ctype..(charset and '; charset='..charset or '') or '')
     ..(cl and '\r\nContent-Length: '..cl or '')
     ..(mg.keep_alive(not not cl) and '\r\n' or '\r\nConnection: close\r\n')
 end
 
---可能ならコンテンツをzlib圧縮する(lua-zlib(zlib.dll)が必要)
-function Deflate(ct)
-  local zl
-  local trim
-  for k,v in pairs(mg.request_info.http_headers) do
-    if not zl and k:lower()=='accept-encoding' and v:lower():find('deflate') then
-      local status, zlib = pcall(require, 'zlib')
-      if status then
-        zl=zlib.deflate()(ct, 'finish')
+--コンテンツを連結するオブジェクトを生成する
+function CreateContentBuilder(thresh)
+  local self={ct={''},len=0,thresh_=thresh}
+  function self:Append(s)
+    if self.thresh_ and self.len+#s>=self.thresh_ and not self.stream_ then
+      self.stream_=true
+      --可能ならコンテンツをgzip圧縮する(lua-zlib(zlib.dll)が必要)
+      for k,v in pairs(mg.request_info.http_headers) do
+        if k:lower()=='accept-encoding' and v:lower():find('gzip') then
+          local status,zlib=pcall(require,'zlib')
+          if status then
+            self.stream_=zlib.deflate(6,31)
+            self.ct={'',(self.stream_(table.concat(self.ct)))}
+            self.len=#self.ct[2]
+            self.gzip=true
+          end
+          break
+        end
       end
-    elseif k:lower()=='user-agent' and (v:find(' MSIE ') or v:find(' Trident/7%.') or v:find(' Edge/')) then
-      --RFC2616非準拠のブラウザはzlibヘッダを取り除く
-      trim=true
+    end
+    s=self.gzip and self.stream_(s) or s
+    if #s>0 then
+      self.ct[#self.ct+1]=s
+      self.len=self.len+#s
     end
   end
-  if trim and zl and #zl >= 6 then
-    zl=zl:sub(3, #zl-4)
+  function self:Finish()
+    if self.gzip and self.stream_ then
+      self.ct[#self.ct+1]=self.stream_()
+      self.len=self.len+#self.ct[#self.ct]
+    end
+    self.stream_=nil
   end
-  return zl
+  function self:Pop(s)
+    self:Finish()
+    self.ct[1]=s or ''
+    s=table.concat(self.ct)
+    self.ct={''}
+    self.len=0
+    self.gzip=nil
+    return s
+  end
+  return self
 end
 
 --POSTメッセージボディをすべて読む
-function ReadPost()
+function AssertPost()
   local post, s
   if mg.request_info.request_method=='POST' then
     post=''
@@ -232,8 +305,9 @@ function ReadPost()
       post=post..(s or '')
     until not s
     if #post~=mg.request_info.content_length then
-      post=nil
+      post=''
     end
+    AssertCsrf(post)
   end
   return post
 end
@@ -249,12 +323,20 @@ end
 
 --CSRFトークンを取得する
 --※このトークンを含んだコンテンツを圧縮する場合はBREACH攻撃に少し気を配る
-function CsrfToken()
-  return edcb.serverRandom:sub(1,16)
+function CsrfToken(t)
+  --メッセージに時刻をつける
+  local m='legacy:'..(math.floor(os.time()/3600/12)+(t or 0))
+  local kip,kop=('\54'):rep(48),('\92'):rep(48)
+  for k in edcb.serverRandom:sub(1,32):gmatch('..') do
+    kip=string.char(bit32.bxor(tonumber(k,16),54))..kip
+    kop=string.char(bit32.bxor(tonumber(k,16),92))..kop
+  end
+  --HMAC-MD5(hex)
+  return mg.md5(kop..mg.md5(kip..m))
 end
 
 --CSRFトークンを検査する
 --※サーバに変更を加える要求(POSTに限らない)を処理する前にこれを呼ぶべき
 function AssertCsrf(qs)
-  assert(mg.get_var(qs,'ctok')==edcb.serverRandom:sub(1,16))
+  assert(mg.get_var(qs,'ctok')==CsrfToken() or mg.get_var(qs,'ctok')==CsrfToken(-1))
 end

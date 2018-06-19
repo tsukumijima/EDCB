@@ -5,6 +5,7 @@
 #include <list>
 
 #include "../../Common/StringUtil.h"
+#include "../../Common/ThreadUtil.h"
 #pragma comment(lib, "Ws2_32.lib")
 
 class CSendTSTCPMain
@@ -12,16 +13,6 @@ class CSendTSTCPMain
 public:
 	CSendTSTCPMain(void);
 	~CSendTSTCPMain(void);
-
-	//DLLの初期化
-	//戻り値：TRUE:成功、FALSE:失敗
-	BOOL Initialize(
-		);
-
-	//DLLの開放
-	//戻り値：なし
-	void UnInitialize(
-		);
 
 	//送信先を追加
 	//戻り値：エラーコード
@@ -59,23 +50,25 @@ public:
 
 
 protected:
-	HANDLE m_hStopSendEvent;
-	HANDLE m_hSendThread;
+	CAutoResetEvent m_stopSendEvent;
+	thread_ m_sendThread;
 
-	CRITICAL_SECTION m_sendLock;
-	CRITICAL_SECTION m_buffLock;
+	recursive_mutex_ m_sendLock;
 
 	std::list<vector<BYTE>> m_TSBuff;
 
-	typedef struct _SEND_INFO{
+	struct SEND_INFO {
 		string strIP;
 		DWORD dwPort;
 		SOCKET sock;
+		HANDLE pipe;
+		HANDLE olEvent;
+		OVERLAPPED ol;
 		BOOL bConnect;
-	}SEND_INFO;
-	map<wstring, SEND_INFO> m_SendList;
+	};
+	std::list<SEND_INFO> m_SendList;
 
 protected:
-	static UINT WINAPI SendThread(LPVOID pParam);
+	static void SendThread(CSendTSTCPMain* pSys);
 
 };

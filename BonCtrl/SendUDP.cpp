@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "SendUDP.h"
 #include "../Common/PathUtil.h"
 
@@ -27,7 +27,7 @@ BOOL CSendUDP::StartUpload( vector<NW_SEND_INFO>* List )
 	for( int i=0; i<(int)List->size(); i++ ){
 		SOCKET_DATA Item;
 		string ipA, strPort;
-		WtoA((*List)[i].ipString, ipA);
+		WtoUTF8((*List)[i].ipString, ipA);
 		Format(strPort, "%d", (WORD)(*List)[i].port);
 		struct addrinfo hints = {};
 		hints.ai_flags = AI_NUMERICHOST;
@@ -60,9 +60,7 @@ BOOL CSendUDP::StartUpload( vector<NW_SEND_INFO>* List )
 		}
 		SockList.push_back(Item);
 	}
-	wstring iniPath;
-	GetModuleIniPath(iniPath);
-	m_uiSendSize = GetPrivateProfileInt(L"Set", L"UDPPacket", 128, iniPath.c_str()) * 188;
+	m_uiSendSize = GetPrivateProfileInt(L"SET", L"UDPPacket", 128, GetModuleIniPath().c_str()) * 188;
 
 	return TRUE;
 }
@@ -81,7 +79,7 @@ void CSendUDP::SendData(BYTE* pbBuff, DWORD dwSize)
 {
 	for( DWORD dwRead=0; dwRead<dwSize; ){
 		//ペイロード分割。BonDriver_UDPに送る場合は受信サイズ48128以下でなければならない
-		int iSendSize = min(max(m_uiSendSize, 188), dwSize - dwRead);
+		int iSendSize = min(max((int)m_uiSendSize, 188), (int)(dwSize - dwRead));
 		for( size_t i=0; i<SockList.size(); i++ ){
 			int iRet = sendto(SockList[i].sock, (char*)(pbBuff + dwRead), iSendSize, 0, (struct sockaddr *)&SockList[i].addr, (int)SockList[i].addrlen);
 			if( iRet == SOCKET_ERROR ){

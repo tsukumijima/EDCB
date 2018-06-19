@@ -2,20 +2,19 @@
 
 #include <Windows.h>
 
-#include "../Common/Util.h"
 #include "../Common/StructDef.h"
 #include "../Common/PathUtil.h"
 #include "../Common/StringUtil.h"
 #include "../Common/ErrDef.h"
 #include "../Common/EpgDataCap3Util.h"
 #include "../Common/TSPacketUtil.h"
+#include "../Common/ThreadUtil.h"
 
 #include "BonCtrlDef.h"
 #include "ScrambleDecoderUtil.h"
-#include "CreatePATPacket.h"
+#include "ServiceFilter.h"
 #include "OneServiceUtil.h"
-#include "PMTUtil.h"
-#include "CATUtil.h"
+#include <functional>
 
 class CTSOut
 {
@@ -66,7 +65,7 @@ public:
 	//戻り値：
 	// TRUE（成功）、FALSE（失敗）
 	BOOL StartSaveEPG(
-		const wstring& epgFilePath
+		const wstring& epgFilePath_
 		);
 
 	//EPGデータの保存を終了する
@@ -104,20 +103,18 @@ public:
 	//戻り値：
 	// エラーコード
 	//引数：
-	// serviceListSize			[OUT]serviceListの個数
-	// serviceList				[OUT]サービス情報のリスト（DLL内で自動的にdeleteする。次に取得を行うまで有効）
+	// funcGetList		[IN]戻り値がNO_ERRのときサービス情報の個数とそのリストを引数として呼び出される関数
 	DWORD GetServiceListActual(
-		DWORD* serviceListSize,
-		SERVICE_INFO** serviceList
+		const std::function<void(DWORD, SERVICE_INFO*)>& funcGetList
 		);
 
 	//TSストリーム制御用コントロールを作成する
 	//戻り値：
-	// TRUE（成功）、FALSE（失敗
+	// 制御識別ID
 	//引数：
-	// id			[OUT]制御識別ID
-	BOOL CreateServiceCtrl(
-		DWORD* id
+	// sendUdpTcp	[IN]UDP/TCP送信用にする
+	DWORD CreateServiceCtrl(
+		BOOL sendUdpTcp
 		);
 
 	//TSストリーム制御用コントロールを削除する
@@ -192,8 +189,8 @@ public:
 		WORD pittariSID,
 		WORD pittariEventID,
 		ULONGLONG createSize,
-		const vector<REC_FILE_SET_INFO>* saveFolder,
-		const vector<wstring>* saveFolderSub,
+		const vector<REC_FILE_SET_INFO>& saveFolder,
+		const vector<wstring>& saveFolderSub,
 		int maxBuffCount
 	);
 
@@ -326,12 +323,20 @@ public:
 		const wstring& bonDriver
 		);
 
+	void SetNoLogScramble(
+		BOOL noLog
+		);
+
+	void SetParseEpgPostProcess(
+		BOOL parsePost
+		);
 protected:
-	CRITICAL_SECTION objLock;
+	//objLock->epgUtilLockの順にロックする
+	recursive_mutex_ objLock;
+	recursive_mutex_ epgUtilLock;
 
 	CEpgDataCap3Util epgUtil;
 	CScrambleDecoderUtil decodeUtil;
-	CCreatePATPacket patUtil;
 
 	enum { CH_ST_INIT, CH_ST_WAIT_PAT, CH_ST_WAIT_PAT2, CH_ST_WAIT_ID, CH_ST_DONE } chChangeState;
 	DWORD chChangeTime;
@@ -342,25 +347,25 @@ protected:
 
 	BOOL enableDecodeFlag;
 	BOOL emmEnableFlag;
-	BOOL serviceOnlyFlag;
 
 	map<DWORD, std::unique_ptr<COneServiceUtil>> serviceUtilMap; //キー識別ID
-	map<WORD, CPMTUtil> pmtUtilMap; //キーPMTのPID
-	CCATUtil catUtil;
-
-	map<WORD,WORD> needPIDMap; //キーPID
+	CServiceFilter serviceFilter;
 
 	DWORD nextCtrlID;
 
-	HANDLE epgFile;
+	std::unique_ptr<FILE, decltype(&fclose)> epgFile;
 	enum { EPG_FILE_ST_NONE, EPG_FILE_ST_PAT, EPG_FILE_ST_TOT, EPG_FILE_ST_ALL } epgFileState;
-	DWORD epgFileTotPos;
+	__int64 epgFileTotPos;
 	wstring epgFilePath;
 	wstring epgTempFilePath;
 
 	wstring bonFile;
+	BOOL noLogScramble;
+	BOOL parseEpgPostProcess;
 protected:
-	void CheckNeedPID();
+	void ParseEpgPacket(BYTE* data, const CTSPacketUtil& packet);
+
+	void UpdateServiceUtil(BOOL updateFilterSID);
 
 	DWORD GetNextID();
 

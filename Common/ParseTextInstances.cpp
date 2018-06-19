@@ -246,6 +246,16 @@ bool CParseRecInfoText::DelRecInfo(DWORD id)
 	return false;
 }
 
+bool CParseRecInfoText::ChgPathRecInfo(DWORD id, LPCWSTR recFilePath)
+{
+	map<DWORD, REC_FILE_INFO>::iterator itr = this->itemMap.find(id);
+	if( itr != this->itemMap.end() ){
+		itr->second.recFilePath = recFilePath;
+		return true;
+	}
+	return false;
+}
+
 bool CParseRecInfoText::ChgProtectRecInfo(DWORD id, BYTE flag)
 {
 	map<DWORD, REC_FILE_INFO>::iterator itr = this->itemMap.find(id);
@@ -259,7 +269,6 @@ bool CParseRecInfoText::ChgProtectRecInfo(DWORD id, BYTE flag)
 void CParseRecInfoText::SetRecInfoFolder(LPCWSTR folder)
 {
 	this->recInfoFolder = folder;
-	ChkFolderPath(this->recInfoFolder);
 }
 
 bool CParseRecInfoText::ParseLine(LPCWSTR parseLine, pair<DWORD, REC_FILE_INFO>& item)
@@ -338,17 +347,26 @@ bool CParseRecInfoText::SaveLine(const pair<DWORD, REC_FILE_INFO>& item, wstring
 
 bool CParseRecInfoText::SelectIDToSave(vector<DWORD>& sortList) const
 {
-	multimap<wstring, DWORD> sortMap;
+	vector<const REC_FILE_INFO*> work;
+	work.reserve(this->itemMap.size());
 	for( map<DWORD, REC_FILE_INFO>::const_iterator itr = this->itemMap.begin(); itr != this->itemMap.end(); itr++ ){
-		wstring strKey;
-		Format(strKey, L"%04d%02d%02d%02d%02d%02d%04X%04X",
-			itr->second.startTime.wYear, itr->second.startTime.wMonth, itr->second.startTime.wDay,
-			itr->second.startTime.wHour, itr->second.startTime.wMinute, itr->second.startTime.wSecond,
-			itr->second.originalNetworkID, itr->second.transportStreamID);
-		sortMap.insert(pair<wstring, DWORD>(strKey, itr->first));
+		work.push_back(&itr->second);
 	}
-	for( multimap<wstring, DWORD>::const_iterator itr = sortMap.begin(); itr != sortMap.end(); itr++ ){
-		sortList.push_back(itr->second);
+	std::sort(work.begin(), work.end(), [](const REC_FILE_INFO* a, const REC_FILE_INFO* b) -> bool {
+		const SYSTEMTIME& sa = a->startTime;
+		const SYSTEMTIME& sb = b->startTime;
+		return sa.wYear < sb.wYear || sa.wYear == sb.wYear && (
+		       sa.wMonth < sb.wMonth || sa.wMonth == sb.wMonth && (
+		       sa.wDay < sb.wDay || sa.wDay == sb.wDay && (
+		       sa.wHour < sb.wHour || sa.wHour == sb.wHour && (
+		       sa.wMinute < sb.wMinute || sa.wMinute == sb.wMinute && (
+		       sa.wSecond < sb.wSecond || sa.wSecond == sb.wSecond && (
+		       a->originalNetworkID < b->originalNetworkID || a->originalNetworkID == b->originalNetworkID && (
+		       a->transportStreamID < b->transportStreamID)))))));
+	});
+	sortList.reserve(work.size());
+	for( size_t i = 0; i < work.size(); i++ ){
+		sortList.push_back(work[i]->id);
 	}
 	return true;
 }
@@ -364,18 +382,20 @@ wstring CParseRecInfoText::GetExtraInfo(LPCWSTR recFilePath, LPCWSTR extension, 
 			hFile = CreateFile((wstring(recFilePath) + extension).c_str(), GENERIC_READ, shareAll, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		}
 		if( hFile == INVALID_HANDLE_VALUE && resultOfGetRecInfoFolder.empty() == false ){
-			wstring recFileName;
-			GetFileName(recFilePath, recFileName);
-			hFile = CreateFile((resultOfGetRecInfoFolder + L"\\" + recFileName + extension).c_str(), GENERIC_READ, shareAll, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			fs_path infoPath = fs_path(resultOfGetRecInfoFolder).append(fs_path(recFilePath).filename().concat(extension).native());
+			hFile = CreateFile(infoPath.c_str(), GENERIC_READ, shareAll, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		}
 		if( hFile != INVALID_HANDLE_VALUE ){
 			DWORD dwSize = GetFileSize(hFile, NULL);
 			if( dwSize != 0 && dwSize != INVALID_FILE_SIZE ){
 				vector<char> buf(dwSize);
 				DWORD dwRead;
-				if( ReadFile(hFile, &buf.front(), dwSize, &dwRead, NULL) != FALSE && dwRead != 0 ){
-					string errInfoA(&buf.front(), &buf.front() + dwRead);
-					AtoW(errInfoA, info);
+				if( ReadFile(hFile, buf.data(), dwSize, &dwRead, NULL) ){
+					if( dwRead >= 3 && buf[0] == '\xEF' && buf[1] == '\xBB' && buf[2] == '\xBF' ){
+						UTF8toW(string(buf.begin() + 3, buf.begin() + dwRead), info);
+					}else{
+						AtoW(string(buf.begin(), buf.begin() + dwRead), info);
+					}
 				}
 			}
 			CloseHandle(hFile);
@@ -396,11 +416,7 @@ void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO& item)
 		OutputDebugString((L"★RecInfo Auto Delete : " + item.recFilePath + L"\r\n").c_str());
 		wstring debug;
 		for( size_t i = 0; i < this->customDelExt.size(); i++ ){
-			wstring delPath;
-			wstring delTitle;
-			GetFileFolder(item.recFilePath, delPath);
-			GetFileTitle(item.recFilePath, delTitle);
-			delPath += L'\\' + delTitle;
+			wstring delPath = fs_path(item.recFilePath).replace_extension().native();
 			DeleteFile((delPath + this->customDelExt[i]).c_str());
 			debug = (debug.empty() ? delPath + L'(' : debug + L'|') + this->customDelExt[i];
 		}
@@ -411,9 +427,7 @@ void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO& item)
 			//録画情報フォルダにも適用
 			debug.clear();
 			for( size_t i = 0; i < this->customDelExt.size(); i++ ){
-				wstring delPath;
-				GetFileTitle(item.recFilePath, delPath);
-				delPath = this->recInfoFolder + L'\\' + delPath;
+				wstring delPath = fs_path(this->recInfoFolder).append(fs_path(item.recFilePath).stem().native()).native();
 				DeleteFile((delPath + this->customDelExt[i]).c_str());
 				debug = (debug.empty() ? delPath + L'(' : debug + L'|') + this->customDelExt[i];
 			}
@@ -428,9 +442,7 @@ void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO& item)
 		OutputDebugString((L"★RecInfo Auto Delete : " + item.recFilePath + L"(.err|.program.txt)\r\n").c_str());
 		if( this->recInfoFolder.empty() == false ){
 			//録画情報フォルダにも適用
-			wstring delPath;
-			GetFileName(item.recFilePath, delPath);
-			delPath = this->recInfoFolder + L'\\' + delPath;
+			wstring delPath = fs_path(this->recInfoFolder).append(fs_path(item.recFilePath).filename().native()).native();
 			DeleteFile((delPath + L".err").c_str());
 			DeleteFile((delPath + L".program.txt").c_str());
 			OutputDebugString((L"★RecInfo Auto Delete : " + delPath + L"(.err|.program.txt)\r\n").c_str());
@@ -630,7 +642,6 @@ bool CParseReserveText::ParseLine(LPCWSTR parseLine, pair<DWORD, RESERVE_DATA>& 
 		if( strRecFolderList[i].empty() == false ){
 			Separate(strRecFolderList[i], L"*", folderItem.recFolder, folderItem.writePlugIn);
 			Separate(folderItem.writePlugIn, L"*", folderItem.writePlugIn, folderItem.recNamePlugIn);
-			ChkFolderPath(folderItem.recFolder);
 			if( folderItem.writePlugIn.empty() ){
 				folderItem.writePlugIn = L"Write_Default.dll";
 			}
@@ -774,7 +785,7 @@ vector<pair<LONGLONG, const RESERVE_DATA*>> CParseReserveText::GetReserveList(BO
 		}
 		retList.push_back( pair<LONGLONG, const RESERVE_DATA*>((startTime / I64_1SEC) << 16 | itr->second.transportStreamID, &itr->second) );
 	}
-	sort(retList.begin(), retList.end());
+	std::sort(retList.begin(), retList.end());
 	return retList;
 }
 

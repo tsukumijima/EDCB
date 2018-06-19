@@ -18,7 +18,7 @@ CSetDlgApp::~CSetDlgApp()
 {
 }
 
-BOOL CSetDlgApp::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
+BOOL CSetDlgApp::Create(LPCWSTR lpszTemplateName, HWND hWndParent)
 {
 	return CreateDialogParam(GetModuleHandle(NULL), lpszTemplateName, hWndParent, DlgProc, (LPARAM)this) != NULL;
 }
@@ -30,6 +30,7 @@ BOOL CSetDlgApp::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
 BOOL CSetDlgApp::OnInitDialog()
 {
 	// TODO:  Ç±Ç±Ç…èâä˙âªÇí«â¡ÇµÇƒÇ≠ÇæÇ≥Ç¢
+	fs_path appIniPath = GetModuleIniPath();
 
 	Button_SetCheck(GetDlgItem(IDC_CHECK_ALL_SERVICE), GetPrivateProfileInt(L"SET", L"AllService", 0, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_ENABLE_DECODE), GetPrivateProfileInt(L"SET", L"Scramble", 1, appIniPath.c_str()));
@@ -37,12 +38,16 @@ BOOL CSetDlgApp::OnInitDialog()
 	Button_SetCheck(GetDlgItem(IDC_CHECK_NEED_CAPTION), GetPrivateProfileInt(L"SET", L"Caption", 1, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_NEED_DATA), GetPrivateProfileInt(L"SET", L"Data", 0, appIniPath.c_str()));
 
+	SetDlgItemText(m_hWnd, IDC_EDIT_REC_FILENAME,
+		GetPrivateProfileToString(L"SET", L"RecFileName", L"$DYYYY$$DMM$$DDD$-$THH$$TMM$$TSS$-$ServiceName$.ts", appIniPath.c_str()).c_str());
 	Button_SetCheck(GetDlgItem(IDC_CHECK_OVER_WRITE), GetPrivateProfileInt(L"SET", L"OverWrite", 0, appIniPath.c_str()));
 	
 	Button_SetCheck(GetDlgItem(IDC_CHECK_EPGCAP_LIVE), GetPrivateProfileInt(L"SET", L"EpgCapLive", 1, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_EPGCAP_REC), GetPrivateProfileInt(L"SET", L"EpgCapRec", 1, appIniPath.c_str()));
+	Button_SetCheck(GetDlgItem(IDC_CHECK_PARSE_EPG_POST_PROC), GetPrivateProfileInt(L"SET", L"ParseEpgPostProcess", 0, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_TASKMIN), GetPrivateProfileInt(L"SET", L"MinTask", 0, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_OPENLAST), GetPrivateProfileInt(L"SET", L"OpenLast", 1, appIniPath.c_str()));
+	Button_SetCheck(GetDlgItem(IDC_CHECK_NO_LOG_SCRAMBLE), GetPrivateProfileInt(L"SET", L"NoLogScramble", 0, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_SAVE_DEBUG_LOG), GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, appIniPath.c_str()));
 	SetDlgItemInt(m_hWnd, IDC_EDIT_TS_BUFF_MAX, GetPrivateProfileInt(L"SET", L"TsBuffMaxCount", 5000, appIniPath.c_str()), FALSE);
 	int buffMax = GetPrivateProfileInt(L"SET", L"WriteBuffMaxCount", -1, appIniPath.c_str());
@@ -59,6 +64,7 @@ void CSetDlgApp::SaveIni(void)
 	if( m_hWnd == NULL ){
 		return;
 	}
+	fs_path appIniPath = GetModuleIniPath();
 
 	WritePrivateProfileInt( L"SET", L"AllService", Button_GetCheck(GetDlgItem(IDC_CHECK_ALL_SERVICE)), appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"Scramble", Button_GetCheck(GetDlgItem(IDC_CHECK_ENABLE_DECODE)), appIniPath.c_str() );
@@ -66,12 +72,17 @@ void CSetDlgApp::SaveIni(void)
 	WritePrivateProfileInt( L"SET", L"Caption", Button_GetCheck(GetDlgItem(IDC_CHECK_NEED_CAPTION)), appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"Data", Button_GetCheck(GetDlgItem(IDC_CHECK_NEED_DATA)), appIniPath.c_str() );
 
+	WCHAR recFileName[512];
+	GetDlgItemText(m_hWnd, IDC_EDIT_REC_FILENAME, recFileName, 512);
+	WritePrivateProfileString( L"SET", L"RecFileName", recFileName, appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"OverWrite", Button_GetCheck(GetDlgItem(IDC_CHECK_OVER_WRITE)), appIniPath.c_str() );
 
 	WritePrivateProfileInt( L"SET", L"EpgCapLive", Button_GetCheck(GetDlgItem(IDC_CHECK_EPGCAP_LIVE)), appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"EpgCapRec", Button_GetCheck(GetDlgItem(IDC_CHECK_EPGCAP_REC)), appIniPath.c_str() );
+	WritePrivateProfileInt( L"SET", L"ParseEpgPostProcess", Button_GetCheck(GetDlgItem(IDC_CHECK_PARSE_EPG_POST_PROC)), appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"MinTask", Button_GetCheck(GetDlgItem(IDC_CHECK_TASKMIN)), appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"OpenLast", Button_GetCheck(GetDlgItem(IDC_CHECK_OPENLAST)), appIniPath.c_str() );
+	WritePrivateProfileInt( L"SET", L"NoLogScramble", Button_GetCheck(GetDlgItem(IDC_CHECK_NO_LOG_SCRAMBLE)), appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"SaveDebugLog", Button_GetCheck(GetDlgItem(IDC_CHECK_SAVE_DEBUG_LOG)), appIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"TsBuffMaxCount", GetDlgItemInt(m_hWnd, IDC_EDIT_TS_BUFF_MAX, NULL, FALSE), appIniPath.c_str() );
 	int buffMax = GetDlgItemInt(m_hWnd, IDC_EDIT_WRITE_BUFF_MAX, NULL, FALSE);

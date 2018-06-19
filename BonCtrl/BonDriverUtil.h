@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../Common/ThreadUtil.h"
+#include <functional>
+
 class IBonDriver2;
 
 class CBonDriverUtil
@@ -24,11 +27,12 @@ public:
 	//引数：
 	// bonDriverFile	[IN]EnumBonDriverで取得されたBonDriverのファイル名
 	// recvFunc_		[IN]ストリーム受信時のコールバック関数
+	// statusFunc_		[IN]ステータス(シグナルレベル,Space,Ch)取得時のコールバック関数
 	bool OpenBonDriver(
 		LPCWSTR bonDriverFile,
-		void (*recvFunc_)(void*, BYTE*, DWORD, DWORD),
-		void* recvParam_,
-		int openWait = 200
+		const std::function<void(BYTE*, DWORD, DWORD)>& recvFunc_,
+		const std::function<void(float, int, int)>& statusFunc_,
+		int openWait
 		);
 
 	//ロードしているBonDriverの開放
@@ -64,35 +68,29 @@ public:
 		DWORD* ch
 		);
 
-	//シグナルレベルの取得
-	//戻り値：
-	// シグナルレベル
-	float GetSignalLevel();
-
 	//OpenしたBonDriverのファイル名を取得
 	//戻り値：
 	// BonDriverのファイル名（拡張子含む）（emptyで未Open）
 	wstring GetOpenBonDriverFileName();
 
 private:
-	CBonDriverUtil(const CBonDriverUtil&);
-	CBonDriverUtil& operator=(const CBonDriverUtil&);
 	//BonDriverにアクセスするワーカースレッド
-	static UINT WINAPI DriverThread(LPVOID param);
+	static void DriverThread(CBonDriverUtil* sys);
 	//ワーカースレッドのメッセージ専用ウィンドウプロシージャ
 	static LRESULT CALLBACK DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static class CInit { public: CInit(); } s_init;
-	CRITICAL_SECTION utilLock;
+	recursive_mutex_ utilLock;
 	wstring loadDllFolder;
 	wstring loadDllFileName;
 	wstring loadTunerName;
 	vector<pair<wstring, vector<wstring>>> loadChList;
 	bool initChSetFlag;
-	void (*recvFunc)(void*, BYTE*, DWORD, DWORD);
-	void* recvParam;
+	std::function<void(BYTE*, DWORD, DWORD)> recvFunc;
+	std::function<void(float, int, int)> statusFunc;
+	int statusTimeout;
 	IBonDriver2* bon2IF;
-	HANDLE hDriverThread;
+	thread_ driverThread;
 	HWND hwndDriver;
 };
 

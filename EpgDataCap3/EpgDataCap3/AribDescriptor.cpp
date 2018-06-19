@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "AribDescriptor.h"
 #include "../../Common/EpgTimerUtil.h"
 
@@ -1425,7 +1425,7 @@ int CDescriptor::DecodeProperty(const BYTE* data, DWORD dataSize, const short** 
 					if( readSize + byteSize > dataSize ){
 						return -1;
 					}
-					DWORD copySize = min(byteSize, 0xFFF);
+					DWORD copySize = min<DWORD>(byteSize, 0xFFF);
 					pp->resize(pp->size() + 1);
 					DESCRIPTOR_PROPERTY& dp = pp->back();
 					dp.id = dpID;

@@ -11,9 +11,11 @@ if not edcb.FindFile(readex, 1) then readex='readex.exe' end
 XCODE=false
 -- 変換コマンド
 -- libvpxの例:リアルタイム変換と画質が両立するようにビットレート-bと計算量-cpu-usedを調整する
-XCMD='"'..ffmpeg..'" -i pipe:0 -vcodec libvpx -b 896k -quality realtime -cpu-used 1 -vf yadif=0:-1:1 -s 512x288 -r 30000/1001 -acodec libvorbis -ab 128k -f webm -'
+XCMD='"'..ffmpeg..'" -i pipe:0 -vcodec libvpx -b:v 896k -quality realtime -cpu-used 1 -vf yadif=0:-1:1 -s 512x288 -r 30000/1001 -acodec libvorbis -ab 128k -f webm -'
+--XCMD='"'..ffmpeg..'" -i pipe:0 -vcodec libx264 -profile:v main -level 31 -b:v 896k -maxrate 4M -bufsize 4M -preset veryfast -g 120 -vf yadif=0:-1:1 -s 512x288 -r 30000/1001 -acodec aac -ab 128k -f mp4 -movflags frag_keyframe+empty_moov -'
 -- 変換後の拡張子
 XEXT='.webm'
+--XEXT='.mp4'
 -- 転送開始前に変換しておく量(bytes)
 XPREPARE=nil
 
@@ -33,15 +35,16 @@ end
 f=nil
 if fpath then
   fname='xcode'..(fpath:match('%.[0-9A-Za-z]+$') or '')
+  fnamets='xcode'..edcb.GetPrivateProfile('SET','TSExt','.ts','EpgTimerSrv.ini'):lower()
   -- 拡張子を限定
-  if mg.get_mime_type(fname):find('^video/') or fname:lower():find('%.ts$') then
+  if fname:lower()==fnamets then
     f=edcb.io.open(fpath, 'rb')
     if f then
       offset=math.floor((f:seek('end', 0) or 0) * offset / 99 / 188) * 188
       if XCODE then
         f:close()
         -- 容量確保の可能性があるときは周期188+同期語0x47(188*256+0x47=48199)で対象ファイルを終端判定する
-        sync=fname:lower():find('%.ts$') and edcb.GetPrivateProfile('SET','KeepDisk',0,'EpgTimerSrv.ini')~='0'
+        sync=edcb.GetPrivateProfile('SET','KeepDisk',0,'EpgTimerSrv.ini')~='0'
         f=edcb.io.popen('""'..readex..'" '..offset..(sync and ' 4p48199' or ' 4')..' "'..fpath..'" | '..XCMD..'"', 'rb')
         fname='xcode'..XEXT
       else

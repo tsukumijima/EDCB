@@ -1,20 +1,20 @@
-#ifndef __CTRL_CMD_DEF_H__
-#define __CTRL_CMD_DEF_H__
+#ifndef INCLUDE_CTRL_CMD_DEF_H
+#define INCLUDE_CTRL_CMD_DEF_H
 
 //デフォルトコネクトタイムアウト
 #define CONNECT_TIMEOUT 15*1000
 
 //パイプ名
-#define CMD2_EPG_SRV_PIPE _T("\\\\.\\pipe\\EpgTimerSrvPipe")
-#define CMD2_GUI_CTRL_PIPE _T("\\\\.\\pipe\\EpgTimerGUI_Ctrl_BonPipe_") //+プロセスID
-#define CMD2_VIEW_CTRL_PIPE _T("\\\\.\\pipe\\View_Ctrl_BonPipe_") //+プロセスID
-#define CMD2_TVTEST_CTRL_PIPE _T("\\\\.\\pipe\\TvTest_Ctrl_BonPipe_") //+プロセスID
+#define CMD2_EPG_SRV_PIPE L"\\\\.\\pipe\\EpgTimerSrvPipe"
+#define CMD2_GUI_CTRL_PIPE L"\\\\.\\pipe\\EpgTimerGUI_Ctrl_BonPipe_" //+プロセスID
+#define CMD2_VIEW_CTRL_PIPE L"\\\\.\\pipe\\View_Ctrl_BonPipe_" //+プロセスID
+#define CMD2_TVTEST_CTRL_PIPE L"\\\\.\\pipe\\TvTest_Ctrl_BonPipe_" //+プロセスID
 
 //接続待機用イベント
-#define CMD2_EPG_SRV_EVENT_WAIT_CONNECT _T("Global\\EpgTimerSrvConnect")
-#define CMD2_GUI_CTRL_WAIT_CONNECT _T("Global\\EpgTimerGUI_Ctrl_BonConnect_") //+プロセスID
-#define CMD2_VIEW_CTRL_WAIT_CONNECT _T("Global\\View_Ctrl_BonConnect_") //+プロセスID
-#define CMD2_TVTEST_CTRL_WAIT_CONNECT _T("Global\\TvTest_Ctrl_BonConnect_") //+プロセスID
+#define CMD2_EPG_SRV_EVENT_WAIT_CONNECT L"Global\\EpgTimerSrvConnect"
+#define CMD2_GUI_CTRL_WAIT_CONNECT L"Global\\EpgTimerGUI_Ctrl_BonConnect_" //+プロセスID
+#define CMD2_VIEW_CTRL_WAIT_CONNECT L"Global\\View_Ctrl_BonConnect_" //+プロセスID
+#define CMD2_TVTEST_CTRL_WAIT_CONNECT L"Global\\TvTest_Ctrl_BonConnect_" //+プロセスID
 
 //コマンドバージョン
 //#define CMD_VER 2	//バージョン情報追加対応　録画設定への部分受信録画フォルダ指定追加
@@ -41,6 +41,7 @@
 #define CMD2_EPG_SRV_ENUM_TUNER_RESERVE		1016 //チューナーごとの予約ID一覧取得
 #define CMD2_EPG_SRV_ENUM_RECINFO			1017 //録画済み情報一覧取得
 #define CMD2_EPG_SRV_DEL_RECINFO			1018 //録画済み情報削除
+#define CMD2_EPG_SRV_CHG_PATH_RECINFO		1019 //録画済み情報のファイルパス変更
 
 //バージョン情報追加対応版
 #define CMD2_EPG_SRV_ENUM_RESERVE2			2011 //予約一覧取得
@@ -68,6 +69,7 @@
 #define CMD2_EPG_SRV_ENUM_SERVICE			1021 //読み込まれたEPGデータのサービスの一覧取得
 #define CMD2_EPG_SRV_ENUM_PG_INFO			1022 //サービス指定で番組情報一覧を取得する
 #define CMD2_EPG_SRV_GET_PG_INFO			1023 //番組情報取得
+#define CMD2_EPG_SRV_GET_PG_INFO_LIST		1024 //番組情報取得(指定IDリスト)
 #define CMD2_EPG_SRV_SEARCH_PG				1025 //番組検索
 #define CMD2_EPG_SRV_ENUM_PG_ALL			1026 //番組情報一覧取得
 #define CMD2_EPG_SRV_ENUM_PG_ARC_INFO		1028 //サービス指定で過去番組情報一覧を取得する

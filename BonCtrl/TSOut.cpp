@@ -1,14 +1,12 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "TSOut.h"
 
 #include "../Common/TimeUtil.h"
 #include "../Common/EpgTimerUtil.h"
-#include "../Common/BlockLock.h"
 
 CTSOut::CTSOut(void)
+	: epgFile(NULL, fclose)
 {
-	InitializeCriticalSection(&this->objLock);
-
 	this->chChangeState = CH_ST_INIT;
 	this->chChangeTime = 0;
 	this->lastONID = 0xFFFF;
@@ -18,18 +16,16 @@ CTSOut::CTSOut(void)
 
 	this->enableDecodeFlag = TRUE;
 	this->emmEnableFlag = FALSE;
-	this->serviceOnlyFlag = FALSE;
 
 	this->nextCtrlID = 1;
-
-	this->epgFile = NULL;
+	this->noLogScramble = FALSE;
+	this->parseEpgPostProcess = FALSE;
 }
 
 
 CTSOut::~CTSOut(void)
 {
 	StopSaveEPG(FALSE);
-	DeleteCriticalSection(&this->objLock);
 }
 
 void CTSOut::SetChChangeEvent(BOOL resetEpgUtil)
@@ -41,9 +37,9 @@ void CTSOut::SetChChangeEvent(BOOL resetEpgUtil)
 
 	this->decodeUtil.UnLoadDll();
 
-	this->catUtil = CCATUtil();
-
 	if( resetEpgUtil == TRUE ){
+		CBlockLock lock2(&this->epgUtilLock);
+		//EpgDataCap3は内部メソッド単位でアトミック。初期化以外はobjLockかepgUtilLockのどちらかを獲得すればよい
 		this->epgUtil.UnInitialize();
 		this->epgUtil.Initialize(FALSE);
 	}
@@ -91,7 +87,7 @@ void CTSOut::OnChChanged(WORD onid, WORD tsid)
 	}
 	ResetErrCount();
 
-	this->pmtUtilMap.clear();
+	this->serviceFilter.Clear(tsid);
 }
 
 void CTSOut::AddTSBuff(BYTE* data, DWORD dataSize)
@@ -149,91 +145,12 @@ void CTSOut::AddTSBuff(BYTE* data, DWORD dataSize)
 						}
 					}
 				}else{
-					//指定サービスに必要なPIDを解析
-					if( packet.transport_scrambling_control == 0 ){
-						//CAT
-						if( packet.PID == 0x0001 ){
-							if(this->catUtil.AddPacket(&packet) == TRUE){
-								CheckNeedPID();
-							}
-						}
-						//PMT
-						if( packet.payload_unit_start_indicator == 1 && packet.data_byteSize > 0){
-							BYTE pointer = packet.data_byte[0];
-							if( pointer+1 < packet.data_byteSize ){
-								if( packet.data_byte[1+pointer] == 0x02 ){
-									//PMT
-									map<WORD, CPMTUtil>::iterator itrPmt;
-									itrPmt = this->pmtUtilMap.find(packet.PID);
-									if( itrPmt == this->pmtUtilMap.end() ){
-										itrPmt = this->pmtUtilMap.insert(std::make_pair(packet.PID, CPMTUtil())).first;
-									}
-									if( itrPmt->second.AddPacket(&packet) == TRUE ){
-										CheckNeedPID();
-									}
-								}
-							}
-						}else{
-							//PMTの2パケット目かチェック
-							map<WORD, CPMTUtil>::iterator itrPmt;
-							itrPmt = this->pmtUtilMap.find(packet.PID);
-							if( itrPmt != this->pmtUtilMap.end() ){
-								if( itrPmt->second.AddPacket(&packet) == TRUE ){
-									CheckNeedPID();
-								}
-							}
-						}
+					this->serviceFilter.FilterPacket(this->decodeBuff, data + i, packet);
+					if( this->serviceFilter.CatOrPmtUpdated() ){
+						UpdateServiceUtil(FALSE);
 					}
-
-					//デコード用のバッファ作成
-					if( this->serviceOnlyFlag == FALSE ){
-						//全サービス
-						this->decodeBuff.insert(this->decodeBuff.end(), data + i, data + i + 188);
-					}else{
-						//指定サービス
-						if( packet.PID <= 0x30 || this->needPIDMap.count(packet.PID) != 0 ){
-							if( packet.PID == 0x0000 ){
-								//PATなので必要なサービスのみに絞る
-								BYTE* patBuff = NULL;
-								DWORD patBuffSize = 0;
-								if( patUtil.GetPacket(&patBuff, &patBuffSize) == TRUE ){
-									if( packet.payload_unit_start_indicator == 1 ){
-										this->decodeBuff.insert(this->decodeBuff.end(), patBuff, patBuff + patBuffSize);
-									}
-								}
-							}else{
-								this->decodeBuff.insert(this->decodeBuff.end(), data + i, data + i + 188);
-							}
-						}
-					}
-					if( this->epgFile != NULL ){
-						DWORD write;
-						if( packet.PID == 0 && packet.payload_unit_start_indicator ){
-							if( this->epgFileState == EPG_FILE_ST_NONE ){
-								this->epgFileState = EPG_FILE_ST_PAT;
-							}else if( this->epgFileState == EPG_FILE_ST_PAT ){
-								this->epgFileState = EPG_FILE_ST_TOT;
-								//番組情報が不足しないよう改めて蓄積状態をリセット
-								this->epgUtil.ClearSectionStatus();
-								//TOTを前倒しで書き込むための場所を確保
-								BYTE nullData[188] = { 0x47, 0x1F, 0xFF, 0x10 };
-								memset(nullData + 4, 0xFF, 184);
-								this->epgFileTotPos = SetFilePointer(this->epgFile, 0, NULL, FILE_CURRENT);
-								WriteFile(this->epgFile, nullData, 188, &write, NULL);
-							}
-						}
-						//まずPAT、次に(あれば)TOTを書き込む。この処理は必須ではないが番組情報をより確実かつ効率的に読み出せる
-						if( packet.PID == 0x14 && this->epgFileState == EPG_FILE_ST_TOT ){
-							this->epgFileState = EPG_FILE_ST_ALL;
-							if( this->epgFileTotPos != INVALID_SET_FILE_POINTER ){
-								SetFilePointer(this->epgFile, this->epgFileTotPos, NULL, FILE_BEGIN);
-							}
-							WriteFile(this->epgFile, data + i, 188, &write, NULL);
-							LONG posHigh = 0;
-							SetFilePointer(this->epgFile, 0, &posHigh, FILE_END);
-						}else if( packet.PID == 0 && this->epgFileState >= EPG_FILE_ST_PAT || packet.PID <= 0x30 && this->epgFileState >= EPG_FILE_ST_TOT ){
-							WriteFile(this->epgFile, data + i, 188, &write, NULL);
-						}
+					if( packet.PID <= 0x30 && this->parseEpgPostProcess == FALSE ){
+						ParseEpgPacket(data + i, packet);
 					}
 				}
 			}
@@ -278,144 +195,135 @@ void CTSOut::AddTSBuff(BYTE* data, DWORD dataSize)
 	}
 	
 	//デコード済みのデータを解析させる
-	{
+	if( this->parseEpgPostProcess ){
 		for( DWORD i=0; i<decodeSize; i+=188 ){
-			this->epgUtil.AddTSPacket(decodeData + i, 188);
+			CTSPacketUtil packet;
+			if( packet.Set188TS(decodeData + i, 188) && packet.PID <= 0x30 ){
+				ParseEpgPacket(decodeData + i, packet);
+			}
 		}
 	}
 
 	//各サービス処理にデータ渡す
 	{
 		for( auto itrService = serviceUtilMap.begin(); itrService != serviceUtilMap.end(); itrService++ ){
-			itrService->second->AddTSBuff(decodeData, decodeSize);
+			itrService->second->AddTSBuff(decodeData, decodeSize, [this](WORD onid, WORD tsid, WORD sid) -> int {
+				CBlockLock lock2(&this->epgUtilLock);
+				EPG_EVENT_INFO* epgInfo;
+				return this->epgUtil.GetEpgInfo(onid, tsid, sid, FALSE, &epgInfo) == NO_ERR ? epgInfo->event_id : -1;
+			});
 		}
 	}
 }
 
-void CTSOut::CheckNeedPID()
+void CTSOut::ParseEpgPacket(BYTE* data, const CTSPacketUtil& packet)
 {
-	this->needPIDMap.clear();
-	this->serviceOnlyFlag = TRUE;
-	//PAT作成用のPMTリスト
-	map<WORD, CCreatePATPacket::PROGRAM_PID_INFO> PIDMap;
-	//NITのPID追加しておく
-	PIDMap[0x10].PMTPID = 0x10;
-	PIDMap[0x10].SID = 0;
-
-	map<WORD, string> pidName;
-	map<WORD, CPMTUtil>::iterator itrPmt;
-	for( itrPmt = pmtUtilMap.begin(); itrPmt != pmtUtilMap.end(); itrPmt++ ){
-		string name = "";
-		Format(name, "PMT(ServiceID 0x%04X)", itrPmt->second.program_number);
-		pidName.insert(pair<WORD, string>(itrPmt->first, name));
-		map<WORD, WORD>::iterator itrPID;
-		for( itrPID = itrPmt->second.PIDList.begin(); itrPID != itrPmt->second.PIDList.end(); itrPID++ ){
-			switch(itrPID->second){
-			case 0x00:
-				name = "ECM";
-				break;
-			case 0x02:
-				name = "MPEG2 VIDEO";
-				break;
-			case 0x0F:
-				name = "MPEG2 AAC";
-				break;
-			case 0x1B:
-				name = "MPEG4 VIDEO";
-				break;
-			case 0x04:
-				name = "MPEG2 AUDIO";
-				break;
-			case 0x24:
-				name = "HEVC VIDEO";
-				break;
-			case 0x06:
-				name = "字幕";
-				break;
-			case 0x0D:
-				name = "データカルーセル";
-				break;
-			default:
-				Format(name, "stream_type 0x%0X", itrPID->second);
-				break;
+	if( this->epgFile ){
+		if( packet.PID == 0 && packet.payload_unit_start_indicator ){
+			if( this->epgFileState == EPG_FILE_ST_NONE ){
+				this->epgFileState = EPG_FILE_ST_PAT;
+			}else if( this->epgFileState == EPG_FILE_ST_PAT ){
+				this->epgFileState = EPG_FILE_ST_TOT;
+				//番組情報が不足しないよう改めて蓄積状態をリセット
+				this->epgUtil.ClearSectionStatus();
+				//TOTを前倒しで書き込むための場所を確保
+				BYTE nullData[188] = { 0x47, 0x1F, 0xFF, 0x10 };
+				memset(nullData + 4, 0xFF, 184);
+				this->epgFileTotPos = _ftelli64(this->epgFile.get());
+				fwrite(nullData, 1, 188, this->epgFile.get());
 			}
-			pidName.insert(pair<WORD, string>(itrPID->first, name));
 		}
-		pidName.insert(pair<WORD, string>(itrPmt->second.PCR_PID, "PCR"));
-		
-	}
-
-	//EMMのPID
-	{
-		map<WORD,WORD>::iterator itrPID;
-		for( itrPID = catUtil.PIDList.begin(); itrPID != catUtil.PIDList.end(); itrPID++ ){
-			this->needPIDMap.insert(pair<WORD,WORD>(itrPID->first, itrPID->second));
-			pidName.insert(pair<WORD, string>(itrPID->first, "EMM"));
+		//まずPAT、次に(あれば)TOTを書き込む。この処理は必須ではないが番組情報をより確実かつ効率的に読み出せる
+		if( packet.PID == 0x14 && this->epgFileState == EPG_FILE_ST_TOT ){
+			this->epgFileState = EPG_FILE_ST_ALL;
+			if( this->epgFileTotPos >= 0 ){
+				_fseeki64(this->epgFile.get(), this->epgFileTotPos, SEEK_SET);
+			}
+			fwrite(data, 1, 188, this->epgFile.get());
+			_fseeki64(this->epgFile.get(), 0, SEEK_END);
+		}else if( (packet.PID == 0 && this->epgFileState >= EPG_FILE_ST_PAT) || this->epgFileState >= EPG_FILE_ST_TOT ){
+			fwrite(data, 1, 188, this->epgFile.get());
 		}
 	}
+	this->epgUtil.AddTSPacket(data, 188);
+}
 
+void CTSOut::UpdateServiceUtil(BOOL updateFilterSID)
+{
+	vector<WORD> filterSIDList;
 
 	//各サービスのPMTを探す
 	for( auto itrService = serviceUtilMap.begin(); itrService != serviceUtilMap.end(); itrService++ ){
-		if( itrService->second->GetSID() == 0xFFFF ){
-			//全サービス対象
-			this->serviceOnlyFlag = FALSE;
-			for( itrPmt = pmtUtilMap.begin(); itrPmt != pmtUtilMap.end(); itrPmt++ ){
-				//PAT作成用のPMTリスト作成
-				CCreatePATPacket::PROGRAM_PID_INFO item;
-				item.PMTPID = itrPmt->first;
-				item.SID = itrPmt->second.program_number;
-				PIDMap.insert(pair<WORD, CCreatePATPacket::PROGRAM_PID_INFO>(item.PMTPID,item));
-
-				//PMT記載のPIDを登録
-				this->needPIDMap.insert(pair<WORD,WORD>(itrPmt->first, (WORD)0));
-				map<WORD,WORD>::iterator itrPID;
-				for( itrPID = itrPmt->second.PIDList.begin(); itrPID != itrPmt->second.PIDList.end(); itrPID++ ){
-					this->needPIDMap.insert(pair<WORD,WORD>(itrPID->first, itrPID->second));
-				}
-			}
-		}else{
-			for( itrPmt = pmtUtilMap.begin(); itrPmt != pmtUtilMap.end(); itrPmt++ ){
-				if( itrService->second->GetSID() == itrPmt->second.program_number ){
-					//PMT発見
-					itrService->second->SetPmtPID(this->lastTSID, itrPmt->first);
-					itrService->second->SetEmmPID(catUtil.PIDList);
-
-
-					//PAT作成用のPMTリスト作成
-					CCreatePATPacket::PROGRAM_PID_INFO item2;
-					item2.PMTPID = itrPmt->first;
-					item2.SID = itrPmt->second.program_number;
-					PIDMap.insert(pair<WORD, CCreatePATPacket::PROGRAM_PID_INFO>(item2.PMTPID,item2));
-					//_OutputDebugString(L"0x%04x, 0x%04x", itrPmt->first,itrPmt->second->program_number);
-					//PMT記載のPIDを登録
-					this->needPIDMap.insert(pair<WORD,WORD>(itrPmt->first, (WORD)0));
-					this->needPIDMap.insert(pair<WORD,WORD>(itrPmt->second.PCR_PID, (WORD)0));
-					map<WORD,WORD>::iterator itrPID;
-					for( itrPID = itrPmt->second.PIDList.begin(); itrPID != itrPmt->second.PIDList.end(); itrPID++ ){
-						this->needPIDMap.insert(pair<WORD,WORD>(itrPID->first, itrPID->second));
-					}
-				}
-			}
+		if( updateFilterSID ){
+			filterSIDList.push_back(itrService->second->GetSID());
 		}
-		itrService->second->SetPIDName(pidName);
+		//EMMのPID
+		for( auto itr = this->serviceFilter.CatUtil().GetPIDList().cbegin(); itr != this->serviceFilter.CatUtil().GetPIDList().end(); itr++ ){
+			itrService->second->SetPIDName(*itr, "EMM");
+		}
+		for( auto itrPmt = this->serviceFilter.PmtUtilMap().cbegin(); itrPmt != this->serviceFilter.PmtUtilMap().end(); itrPmt++ ){
+			if( itrService->second->GetSID() == itrPmt->second.GetProgramNumber() ){
+				//PMT発見
+				itrService->second->SetPmtPID(this->lastTSID, itrPmt->first);
+				itrService->second->SetEmmPID(this->serviceFilter.CatUtil().GetPIDList());
+			}
+
+			itrService->second->SetPIDName(itrPmt->second.GetPcrPID(), "PCR");
+			string name;
+			for( auto itrPID = itrPmt->second.GetPIDTypeList().cbegin(); itrPID != itrPmt->second.GetPIDTypeList().end(); itrPID++ ){
+				switch( itrPID->second ){
+				case 0x00:
+					name = "ECM";
+					break;
+				case 0x02:
+					name = "MPEG2 VIDEO";
+					break;
+				case 0x0F:
+					name = "MPEG2 AAC";
+					break;
+				case 0x1B:
+					name = "MPEG4 VIDEO";
+					break;
+				case 0x04:
+					name = "MPEG2 AUDIO";
+					break;
+				case 0x24:
+					name = "HEVC VIDEO";
+					break;
+				case 0x06:
+					name = "\x8e\x9a\x96\x8b"; //(CP932)"字幕"
+					break;
+				case 0x0D:
+					name = "\x83\x66\x81\x5b\x83\x5e\x83\x4a\x83\x8b\x81\x5b\x83\x5a\x83\x8b"; //(CP932)"データカルーセル"
+					break;
+				default:
+					Format(name, "stream_type 0x%0X", itrPID->second);
+					break;
+				}
+				itrService->second->SetPIDName(itrPID->first, name.c_str());
+			}
+			Format(name, "PMT(ServiceID 0x%04X)", itrPmt->second.GetProgramNumber());
+			itrService->second->SetPIDName(itrPmt->first, name.c_str());
+		}
 	}
-	this->patUtil.SetParam(this->lastTSID, &PIDMap);
+	if( updateFilterSID ){
+		this->serviceFilter.SetServiceID(std::find(filterSIDList.begin(), filterSIDList.end(), 0xFFFF) != filterSIDList.end(), filterSIDList);
+	}
 }
 
 //EPGデータの保存を開始する
 //戻り値：
 // TRUE（成功）、FALSE（失敗）
 BOOL CTSOut::StartSaveEPG(
-	const wstring& epgFilePath
+	const wstring& epgFilePath_
 	)
 {
 	CBlockLock lock(&this->objLock);
 	if( this->epgFile != NULL ){
 		return FALSE;
 	}
-	this->epgFilePath = epgFilePath;
-	this->epgTempFilePath = epgFilePath;
+	this->epgFilePath = epgFilePath_;
+	this->epgTempFilePath = epgFilePath_;
 	this->epgTempFilePath += L".tmp";
 
 	_OutputDebugString(L"★%s\r\n", this->epgFilePath.c_str());
@@ -424,12 +332,13 @@ BOOL CTSOut::StartSaveEPG(
 	this->epgUtil.ClearSectionStatus();
 	this->epgFileState = EPG_FILE_ST_NONE;
 
-	this->epgFile = _CreateDirectoryAndFile(this->epgTempFilePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
-	if( this->epgFile == INVALID_HANDLE_VALUE ){
-		this->epgFile = NULL;
+	UtilCreateDirectories(fs_path(this->epgTempFilePath).parent_path());
+	FILE* fp;
+	if( _wfopen_s(&fp, this->epgTempFilePath.c_str(), L"wbN") != 0 ){
 		OutputDebugString(L"err\r\n");
 		return FALSE;
 	}
+	this->epgFile.reset(fp);
 
 	return TRUE;
 }
@@ -444,8 +353,7 @@ void CTSOut::StopSaveEPG(
 		return;
 	}
 
-	CloseHandle(this->epgFile);
-	this->epgFile = NULL;
+	this->epgFile.reset();
 
 	if( copy == TRUE ){
 		CopyFile(this->epgTempFilePath.c_str(), this->epgFilePath.c_str(), FALSE );
@@ -462,7 +370,7 @@ EPG_SECTION_STATUS CTSOut::GetSectionStatus(
 	BOOL l_eitFlag
 	)
 {
-	CBlockLock lock(&this->objLock);
+	CBlockLock lock(&this->epgUtilLock);
 
 	return this->epgUtil.GetSectionStatus(l_eitFlag);
 }
@@ -475,7 +383,7 @@ pair<EPG_SECTION_STATUS, BOOL> CTSOut::GetSectionStatusService(
 	BOOL l_eitFlag
 	)
 {
-	CBlockLock lock(&this->objLock);
+	CBlockLock lock(&this->epgUtilLock);
 
 	return this->epgUtil.GetSectionStatusService(originalNetworkID, transportStreamID, serviceID, l_eitFlag);
 }
@@ -538,16 +446,20 @@ BOOL CTSOut::GetLoadStatus(
 //戻り値：
 // エラーコード
 //引数：
-// serviceListSize			[OUT]serviceListの個数
-// serviceList				[OUT]サービス情報のリスト（DLL内で自動的にdeleteする。次に取得を行うまで有効）
+// funcGetList		[IN]戻り値がNO_ERRのときサービス情報の個数とそのリストを引数として呼び出される関数
 DWORD CTSOut::GetServiceListActual(
-	DWORD* serviceListSize,
-	SERVICE_INFO** serviceList
+	const std::function<void(DWORD, SERVICE_INFO*)>& funcGetList
 	)
 {
-	CBlockLock lock(&this->objLock);
+	CBlockLock lock(&this->epgUtilLock);
 
-	return this->epgUtil.GetServiceListActual(serviceListSize, serviceList);
+	DWORD serviceListSize;
+	SERVICE_INFO* serviceList;
+	DWORD ret = this->epgUtil.GetServiceListActual(&serviceListSize, &serviceList);
+	if( ret == NO_ERR && funcGetList ){
+		funcGetList(serviceListSize, serviceList);
+	}
+	return ret;
 }
 
 //次に使用する制御IDを取得する
@@ -591,21 +503,22 @@ DWORD CTSOut::GetNextID()
 
 //TSストリーム制御用コントロールを作成する
 //戻り値：
-// エラーコード
+// 制御識別ID
 //引数：
-// id			[OUT]制御識別ID
-BOOL CTSOut::CreateServiceCtrl(
-	DWORD* id
+// sendUdpTcp	[IN]UDP/TCP送信用にする
+DWORD CTSOut::CreateServiceCtrl(
+	BOOL sendUdpTcp
 	)
 {
 	CBlockLock lock(&this->objLock);
 
-	*id = GetNextID();
-	auto itr = this->serviceUtilMap.insert(std::make_pair(*id, std::unique_ptr<COneServiceUtil>(new COneServiceUtil))).first;
-	itr->second->SetEpgUtil(&this->epgUtil);
+	auto itr = this->serviceUtilMap.insert(
+		std::make_pair(GetNextID(), std::unique_ptr<COneServiceUtil>(new COneServiceUtil(sendUdpTcp)))).first;
 	itr->second->SetBonDriver(bonFile);
+	itr->second->SetNoLogScramble(noLogScramble);
+	UpdateServiceUtil(TRUE);
 
-	return TRUE;
+	return itr->first;
 }
 
 //TSストリーム制御用コントロールを削除する
@@ -623,7 +536,7 @@ BOOL CTSOut::DeleteServiceCtrl(
 		return FALSE;
 	}
 
-	CheckNeedPID();
+	UpdateServiceUtil(TRUE);
 
 	return TRUE;
 }
@@ -647,7 +560,7 @@ BOOL CTSOut::SetServiceID(
 	}
 
 	itr->second->SetSID(serviceID);
-	CheckNeedPID();
+	UpdateServiceUtil(TRUE);
 
 	return TRUE;
 }
@@ -733,7 +646,7 @@ DWORD CTSOut::GetEpgInfo(
 	EPGDB_EVENT_INFO* epgInfo
 	)
 {
-	CBlockLock lock(&this->objLock);
+	CBlockLock lock(&this->epgUtilLock);
 
 	EPG_EVENT_INFO* _epgInfo;
 	DWORD err = this->epgUtil.GetEpgInfo(originalNetworkID, transportStreamID, serviceID, nextFlag, &_epgInfo);
@@ -763,7 +676,7 @@ DWORD CTSOut::SearchEpgInfo(
 	EPGDB_EVENT_INFO* epgInfo
 	)
 {
-	CBlockLock lock(&this->objLock);
+	CBlockLock lock(&this->epgUtilLock);
 
 	EPG_EVENT_INFO* _epgInfo;
 	DWORD err = this->epgUtil.SearchEpgInfo(originalNetworkID, transportStreamID, serviceID, eventID, pfOnlyFlag, &_epgInfo);
@@ -780,7 +693,7 @@ DWORD CTSOut::SearchEpgInfo(
 int CTSOut::GetTimeDelay(
 	)
 {
-	CBlockLock lock(&this->objLock);
+	CBlockLock lock(&this->epgUtilLock);
 
 	return this->epgUtil.GetTimeDelay();
 }
@@ -826,8 +739,8 @@ BOOL CTSOut::StartSave(
 	WORD pittariSID,
 	WORD pittariEventID,
 	ULONGLONG createSize,
-	const vector<REC_FILE_SET_INFO>* saveFolder,
-	const vector<wstring>* saveFolderSub,
+	const vector<REC_FILE_SET_INFO>& saveFolder,
+	const vector<wstring>& saveFolderSub,
 	int maxBuffCount
 )
 {
@@ -1044,3 +957,23 @@ void CTSOut::SetBonDriver(
 	bonFile = bonDriver;
 }
 
+void CTSOut::SetNoLogScramble(
+	BOOL noLog
+	)
+{
+	CBlockLock lock(&this->objLock);
+
+	for( auto itr = serviceUtilMap.begin(); itr != serviceUtilMap.end(); itr++ ){
+		itr->second->SetNoLogScramble(noLog);
+	}
+	noLogScramble = noLog;
+}
+
+void CTSOut::SetParseEpgPostProcess(
+	BOOL parsePost
+	)
+{
+	CBlockLock lock(&this->objLock);
+
+	parseEpgPostProcess = parsePost;
+}

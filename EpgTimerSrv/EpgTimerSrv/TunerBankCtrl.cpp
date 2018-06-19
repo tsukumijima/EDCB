@@ -1,12 +1,10 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "TunerBankCtrl.h"
 #include "../../Common/EpgTimerUtil.h"
 #include "../../Common/SendCtrlCmd.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/ReNamePlugInUtil.h"
-#include "../../Common/BlockLock.h"
 #include "../../Common/TimeUtil.h"
-#include "../../Common/Util.h"
 #include <tlhelp32.h>
 
 CTunerBankCtrl::CTunerBankCtrl(DWORD tunerID_, LPCWSTR bonFileName_, const vector<CH_DATA4>& chList_, CNotifyManager& notifyManager_, CEpgDBManager& epgDBManager_)
@@ -20,7 +18,6 @@ CTunerBankCtrl::CTunerBankCtrl(DWORD tunerID_, LPCWSTR bonFileName_, const vecto
 	, delayTime(0)
 	, epgCapDelayTime(0)
 {
-	InitializeCriticalSection(&this->watchContext.lock);
 	this->watchContext.count = 0;
 }
 
@@ -29,7 +26,6 @@ CTunerBankCtrl::~CTunerBankCtrl()
 	if( this->hTunerProcess ){
 		CloseHandle(this->hTunerProcess);
 	}
-	DeleteCriticalSection(&this->watchContext.lock);
 }
 
 void CTunerBankCtrl::ReloadSetting(const CEpgTimerSrvSetting::SETTING& s)
@@ -42,6 +38,7 @@ void CTunerBankCtrl::ReloadSetting(const CEpgTimerSrvSetting::SETTING& s)
 	this->recNW = s.recNW;
 	this->backPriority = s.backPriority;
 	this->saveProgramInfo = s.pgInfoLog;
+	this->saveProgramInfoAsUtf8 = s.pgInfoLogAsUtf8;
 	this->saveErrLog = s.dropLog;
 	this->recOverWrite = s.recOverWrite;
 	this->processPriority =
@@ -53,6 +50,7 @@ void CTunerBankCtrl::ReloadSetting(const CEpgTimerSrvSetting::SETTING& s)
 	this->keepDisk = s.keepDisk;
 	this->recNameNoChkYen = s.noChkYen;
 	this->recNamePlugInFileName = s.recNamePlugIn ? s.recNamePlugInFile : wstring();
+	this->tsExt = s.tsExt;
 }
 
 bool CTunerBankCtrl::AddReserve(const TUNER_RESERVE& reserve)
@@ -64,7 +62,7 @@ bool CTunerBankCtrl::AddReserve(const TUNER_RESERVE& reserve)
 	}
 	TUNER_RESERVE_WORK& r = this->reserveMap.insert(std::make_pair(reserve.reserveID, TUNER_RESERVE_WORK())).first->second;
 	static_cast<TUNER_RESERVE&>(r) = reserve;
-	r.startOrder = (r.startTime - r.startMargin) / I64_1SEC << 16 | r.reserveID & 0xFFFF;
+	r.startOrder = (r.startTime - r.startMargin) / I64_1SEC << 16 | (r.reserveID & 0xFFFF);
 	r.effectivePriority = (this->backPriority ? -1 : 1) * ((__int64)((this->backPriority ? r.priority : ~r.priority) & 7) << 60 | r.startOrder);
 	r.state = TR_IDLE;
 	r.retryOpenCount = 0;
@@ -103,7 +101,7 @@ bool CTunerBankCtrl::ChgCtrlReserve(TUNER_RESERVE* reserve)
 		TUNER_RESERVE_WORK& r = itr->second;
 		static_cast<TUNER_RESERVE&>(r) = *reserve;
 		//内部パラメータを再計算
-		r.startOrder = (r.startTime - r.startMargin) / I64_1SEC << 16 | r.reserveID & 0xFFFF;
+		r.startOrder = (r.startTime - r.startMargin) / I64_1SEC << 16 | (r.reserveID & 0xFFFF);
 		r.effectivePriority = (this->backPriority ? -1 : 1) * ((__int64)((this->backPriority ? r.priority : ~r.priority) & 7) << 60 | r.startOrder);
 		return true;
 	}
@@ -720,7 +718,7 @@ bool CTunerBankCtrl::CreateCtrl(DWORD* ctrlID, DWORD* partialCtrlID, const TUNER
 	if( this->hTunerProcess == NULL ){
 		return false;
 	}
-	BYTE partialRecMode = reserve.recMode == RECMODE_VIEW ? 0 : min(reserve.partialRecMode, 2);
+	BYTE partialRecMode = reserve.recMode == RECMODE_VIEW ? 0 : min<BYTE>(reserve.partialRecMode, 2);
 	WORD partialSID = 0;
 	if( partialRecMode == 1 || partialRecMode == 2 ){
 		if( FindPartialService(reserve.onid, reserve.tsid, reserve.sid, &partialSID, NULL) == false ){
@@ -778,19 +776,13 @@ bool CTunerBankCtrl::CreateCtrl(DWORD* ctrlID, DWORD* partialCtrlID, const TUNER
 
 void CTunerBankCtrl::SaveProgramInfo(LPCWSTR recPath, const EPGDB_EVENT_INFO& info, bool append) const
 {
-	wstring iniCommonPath;
-	GetCommonIniPath(iniCommonPath);
-	wstring infoFolder = GetPrivateProfileToString(L"SET", L"RecInfoFolder", L"", iniCommonPath.c_str());
-	ChkFolderPath(infoFolder);
+	fs_path savePath = GetPrivateProfileToFolderPath(L"SET", L"RecInfoFolder", GetCommonIniPath().c_str());
 
-	wstring savePath;
-	if( infoFolder.empty() ){
-		savePath = recPath;
+	if( savePath.empty() ){
+		savePath = fs_path(recPath).concat(L".program.txt");
 	}else{
-		GetFileName(recPath, savePath);
-		savePath = infoFolder + L"\\" + savePath;
+		savePath.append(fs_path(recPath).filename().concat(L".program.txt").native());
 	}
-	savePath += L".program.txt";
 
 	wstring serviceName;
 	for( size_t i = 0; i < this->chList.size(); i++ ){
@@ -802,13 +794,19 @@ void CTunerBankCtrl::SaveProgramInfo(LPCWSTR recPath, const EPGDB_EVENT_INFO& in
 		}
 	}
 	string outText;
-	WtoA(ConvertEpgInfoText2(&info, serviceName), outText);
+	if( this->saveProgramInfoAsUtf8 ){
+		WtoUTF8(ConvertEpgInfoText2(&info, serviceName), outText);
+	}else{
+		WtoA(ConvertEpgInfoText2(&info, serviceName), outText);
+	}
 
 	//※原作と異なりディレクトリの自動生成はしない
-	std::unique_ptr<FILE, decltype(&fclose)> fp(_wfsopen(savePath.c_str(), append ? L"ab" : L"wb", _SH_DENYWR), fclose);
+	std::unique_ptr<FILE, decltype(&fclose)> fp(secure_wfopen(savePath.c_str(), append ? L"abN" : L"wbN"), fclose);
 	if( fp ){
 		if( append ){
 			fputs("\r\n-----------------------\r\n", fp.get());
+		}else if( this->saveProgramInfoAsUtf8 ){
+			fputs("\xEF\xBB\xBF", fp.get());
 		}
 		fputs(outText.c_str(), fp.get());
 	}
@@ -835,16 +833,14 @@ bool CTunerBankCtrl::RecStart(const TUNER_RESERVE_WORK& reserve, __int64 now) co
 			param.saveFolder = i == 0 ? reserve.recFolder : reserve.partialRecFolder;
 			if( param.saveFolder.empty() ){
 				param.saveFolder.resize(1);
-				wstring commonIniPath;
-				GetCommonIniPath(commonIniPath);
-				GetRecFolderPath(param.saveFolder[0].recFolder);
-				param.saveFolder[0].writePlugIn = GetPrivateProfileToString(L"SET", L"RecWritePlugIn0", L"", commonIniPath.c_str());
+				param.saveFolder[0].recFolder = GetRecFolderPath().native();
+				param.saveFolder[0].writePlugIn = GetPrivateProfileToString(L"SET", L"RecWritePlugIn0", L"", GetCommonIniPath().c_str());
 				param.saveFolder[0].recNamePlugIn = this->recNamePlugInFileName;
 			}else{
 				for( size_t j = 0; j < param.saveFolder.size(); j++ ){
 					if( CompareNoCase(param.saveFolder[j].recFolder, L"!Default") == 0 ){
 						//注意: この置換は原作にはない
-						GetRecFolderPath(param.saveFolder[j].recFolder);
+						param.saveFolder[j].recFolder = GetRecFolderPath().native();
 					}
 					if( param.saveFolder[j].recNamePlugIn.empty() ){
 						param.saveFolder[j].recNamePlugIn = this->recNamePlugInFileName;
@@ -866,7 +862,8 @@ bool CTunerBankCtrl::RecStart(const TUNER_RESERVE_WORK& reserve, __int64 now) co
 				ConvertSystemTime(max(reserve.startTime, now), &stDefault);
 				param.saveFolder[j].recFileName = ConvertRecName(
 					param.saveFolder[j].recNamePlugIn.c_str(), st, reserve.durationSecond, reserve.title.c_str(), reserve.onid, reserve.tsid, sid, eid,
-					stationName.c_str(), this->bonFileName.c_str(), this->tunerID, reserve.reserveID, this->epgDBManager, stDefault, param.ctrlID, this->recNameNoChkYen);
+					stationName.c_str(), this->bonFileName.c_str(), this->tunerID, reserve.reserveID, this->epgDBManager,
+					stDefault, param.ctrlID, this->tsExt.c_str(), this->recNameNoChkYen);
 				param.saveFolder[j].recNamePlugIn.clear();
 			}
 			param.overWriteFlag = this->recOverWrite;
@@ -1057,16 +1054,12 @@ bool CTunerBankCtrl::OpenTuner(bool minWake, bool noView, bool nwUdp, bool nwTcp
 	if( this->hTunerProcess ){
 		return false;
 	}
-	wstring commonIniPath;
-	GetCommonIniPath(commonIniPath);
-	wstring strIni;
-	GetModuleFolderPath(strIni);
-	strIni += L"\\ViewApp.ini";
+	fs_path commonIniPath = GetCommonIniPath();
+	fs_path strIni = GetModulePath().replace_filename(L"ViewApp.ini");
 
 	wstring strExecute = GetPrivateProfileToString(L"SET", L"RecExePath", L"", commonIniPath.c_str());
 	if( strExecute.empty() ){
-		GetModuleFolderPath(strExecute);
-		strExecute += L"\\EpgDataCap_Bon.exe";
+		strExecute = GetModulePath().replace_filename(L"EpgDataCap_Bon.exe").native();
 	}
 
 	wstring strParam = L" " + GetPrivateProfileToString(L"APP_CMD_OPT", L"Bon", L"-d", strIni.c_str()) + L" " + this->bonFileName;
@@ -1086,7 +1079,7 @@ bool CTunerBankCtrl::OpenTuner(bool minWake, bool noView, bool nwUdp, bool nwTcp
 
 	//原作と異なりイベントオブジェクト"Global\\EpgTimerSrv_OpenTuner_Event"による排他制御はしない
 	//また、サービスモードでない限りGUI経由でなく直接CreateProcess()するので注意
-	if( this->notifyManager.IsGUI() == FALSE ){
+	if( this->notifyManager.IsGUI() == false ){
 		//表示できないのでGUI経由で起動してみる
 		CSendCtrlCmd ctrlCmd;
 		vector<DWORD> registGUI = this->notifyManager.GetRegistGUI();
@@ -1120,9 +1113,8 @@ bool CTunerBankCtrl::OpenTuner(bool minWake, bool noView, bool nwUdp, bool nwTcp
 		ctrlCmd.SetPipeSetting(CMD2_VIEW_CTRL_WAIT_CONNECT, CMD2_VIEW_CTRL_PIPE, this->tunerPid);
 		ctrlCmd.SetConnectTimeOut(0);
 		//起動完了まで最大30秒ほど待つ
-		for( int i = 0; i < 300; i++ ){
-			Sleep(100);
-			if( WaitForSingleObject(this->hTunerProcess, 0) != WAIT_TIMEOUT ){
+		for( DWORD tick = GetTickCount(); GetTickCount() - tick < 30000; ){
+			if( WaitForSingleObject(this->hTunerProcess, 10) != WAIT_TIMEOUT ){
 				CloseTuner();
 				return false;
 			}else if( ctrlCmd.SendViewSetID(this->tunerID) == CMD_SUCCESS ){
@@ -1253,13 +1245,11 @@ bool CTunerBankCtrl::CloseOtherTuner()
 wstring CTunerBankCtrl::ConvertRecName(
 	LPCWSTR recNamePlugIn, const SYSTEMTIME& startTime, DWORD durationSec, LPCWSTR eventName, WORD onid, WORD tsid, WORD sid, WORD eid,
 	LPCWSTR serviceName, LPCWSTR bonDriverName, DWORD tunerID, DWORD reserveID, CEpgDBManager& epgDBManager_,
-	const SYSTEMTIME& startTimeForDefault, DWORD ctrlID, bool noChkYen)
+	const SYSTEMTIME& startTimeForDefault, DWORD ctrlID, LPCWSTR ext, bool noChkYen)
 {
 	wstring ret;
 	if( recNamePlugIn[0] ){
-		wstring plugInPath;
-		GetModuleFolderPath(plugInPath);
-		plugInPath += L"\\RecName\\";
+		fs_path plugInPath = GetModulePath().replace_filename(L"RecName\\");
 		PLUGIN_RESERVE_INFO info;
 		info.startTime = startTime;
 		info.durationSec = durationSec;
@@ -1293,8 +1283,8 @@ wstring CTunerBankCtrl::ConvertRecName(
 	}
 	if( ret.empty() ){
 		const SYSTEMTIME& st = startTimeForDefault;
-		Format(ret, L"%04d%02d%02d%02d%02d%02X%02X%02d-%.159s.ts",
-		       st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, HIWORD(tunerID), LOWORD(tunerID), ctrlID, eventName);
+		Format(ret, L"%04d%02d%02d%02d%02d%02X%02X%02d-%.159s%s",
+		       st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, HIWORD(tunerID), LOWORD(tunerID), ctrlID, eventName, ext);
 		CheckFileName(ret);
 	}
 	return ret;

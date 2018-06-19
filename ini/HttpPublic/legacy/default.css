@@ -22,6 +22,9 @@ th, td {
 }
 
 #result {
+  background: #fff;
+  color: #f00;
+  font-size: small;
   font-weight: bold;
 }
 
@@ -31,13 +34,13 @@ th, td {
 }
 
 .scrambles {
-  background: #ff0;
+  background: #ff8;
   color: #000;
 }
 
 .drops {
-  background: #f00;
-  color: #fff;
+  background: #f88;
+  color: #000;
 }
 
 .disabled {
@@ -46,13 +49,13 @@ th, td {
 }
 
 .partially {
-  background: #ff0;
+  background: #ff8;
   color: #000;
 }
 
 .shortage {
-  background: #f00;
-  color: #fff;
+  background: #f88;
+  color: #000;
 }
 
 .epg-table {
@@ -151,6 +154,19 @@ th, td {
   color: #fff;
 }
 
+.epg-list > div {
+  color: #000;
+}
+
+.epg-list > div > a:link {
+  text-decoration: none;
+}
+
+.epg-list > div > b {
+  background: #f00;
+  color: #fff;
+}
+
 .cont-0 {
   background: #ffffe0;
 }
@@ -209,4 +225,8 @@ th, td {
 
 .past {
   opacity: 0.5;
+}
+
+#now {
+  border-bottom: 2px solid #f00;
 }

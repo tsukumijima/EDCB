@@ -3,43 +3,46 @@
 #include "StringUtil.h"
 #include "CtrlCmdDef.h"
 #include "StructDef.h"
+#include "ThreadUtil.h"
 
+#include <functional>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 
-typedef int (CALLBACK *CMD_CALLBACK_PROC)(void* pParam, CMD_STREAM* pCmdParam, CMD_STREAM* pResParam);
-
 class CTCPServer
 {
 public:
+	//応答が保留されているコマンドを再度呼ぶ(=NotifyUpdate()する)間隔
+	static const DWORD NOTIFY_INTERVAL = 2000;
+	//送受信タイムアウト
+	static const DWORD SND_RCV_TIMEOUT = 30000;
+
 	CTCPServer(void);
 	~CTCPServer(void);
 
-	BOOL StartServer(
-		DWORD dwPort, 
-		DWORD dwResponseTimeout,
-		LPCWSTR acl,
-		CMD_CALLBACK_PROC pfnCmdProc, 
-		void* pParam
-		);
+	bool StartServer(unsigned short port, bool ipv6, DWORD dwResponseTimeout, LPCWSTR acl,
+	                 const std::function<void(CMD_STREAM*, CMD_STREAM*)>& cmdProc);
 	void StopServer();
 	void NotifyUpdate();
 
 protected:
-	CMD_CALLBACK_PROC m_pCmdProc;
-	void* m_pParam;
-	DWORD m_dwPort;
+	std::function<void(CMD_STREAM*, CMD_STREAM*)> m_cmdProc;
+	unsigned short m_port;
+	bool m_ipv6;
 	DWORD m_dwResponseTimeout;
-	wstring m_acl;
+	string m_acl;
 
 	WSAEVENT m_hNotifyEvent;
-	BOOL m_stopFlag;
-	HANDLE m_hThread;
+	WSAEVENT m_hAcceptEvent;
+	bool m_stopFlag;
+	thread_ m_thread;
 
 	SOCKET m_sock;
 	
 protected:
-	static UINT WINAPI ServerThread(LPVOID pParam);
+	static void SetBlockingMode(SOCKET sock);
+	static void SetNonBlockingMode(SOCKET sock, WSAEVENT hEvent, long lNetworkEvents);
+	static void ServerThread(CTCPServer* pSys);
 
 };

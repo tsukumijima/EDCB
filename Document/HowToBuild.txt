@@ -1,12 +1,12 @@
-[�r���h��]
+﻿[ビルド環境]
 
-Visual Studio Express 2015 for Desktop ���C���X�g�[������
-���̂��̂͊�{�I�ɕs�v
+Visual Studio Express 2015 for Desktop または Express 2017 for Desktop をインストールする
+他のものは基本的に不要
 
 
-[�r���h��(VisualStudio2010)]
+[ビルド環境(VisualStudio2010)]
 
-�i�ȉ������Ԃɓ����j
+（以下を順番に入れる）
 
 Visual C++ 2010 Express
 http://go.microsoft.com/fwlink/?LinkId=190491
@@ -14,55 +14,58 @@ http://go.microsoft.com/fwlink/?LinkId=190491
 Visual C# 2010 Express
 http://go.microsoft.com/fwlink/?LinkId=190492
 
-Visual Studio 2010 Service Pack 1
+Visual Studio 2010 Service Pack 1（リンク切れ）
 http://www.microsoft.com/ja-jp/download/details.aspx?id=23691
 
 Windows SDK 7.1
 http://www.microsoft.com/en-us/download/details.aspx?id=8279
-# Visual C++ Compilers �̃`�F�b�N���O���ăC���X�g�[������B�łȂ��Ǝ��s����
-# Visual C++ x86/x64 2010 Redistributable �����O�ɃA���C���X�g�[�����Ă����K�v�����邩������Ȃ�
+# Visual C++ Compilers のチェックを外してインストールする。でないと失敗する
+# Visual C++ x86/x64 2010 Redistributable を事前にアンインストールしておく必要があるかもしれない
 
-Windows SDK 7.1 �p Microsoft Visual C++ 2010 Service Pack 1 �R���p�C���X�V�v���O����
+Windows SDK 7.1 用 Microsoft Visual C++ 2010 Service Pack 1 コンパイラ更新プログラム
 http://www.microsoft.com/ja-jp/download/details.aspx?id=4422
 
 
-[���O����] 
+[ビルド]
 
-�iWrite_AVIVO���r���h����̂ɕK�v�B�ʏ�͕s�v�j
+1."Document\EDCB_ALL.VS2015.sln"を開き、ツールバーを[Release][Win32]にしてビルド→ソリューションのビルド
 
-1.C:\Program Files\Microsoft SDKs\Windows\v7.1\Samples\multimedia\directshow\baseclasses�i���ɂ���ăp�X���Ⴄ�����j
-�t�H���_�����[�g�t�H���_(Document�t�H���_��e��v���W�F�N�g�Ɠ��K�w�̃t�H���_)�ɃR�s�[���Abaseclasses.sln���J��
+（注意）
+・Windows SDKのエラーが出る場合は、プロジェクト→ソリューションの再ターゲット
+  で切り替える。ビルド可能なバージョンなら何でもいい
+・WindowsXPで実行可能なファイルを作りたいときは、EpgTimerを除く全プロジェクトの
+  構成プロパティ→プラットフォームツールセットを"v140_xp"に切り替える必要がある
+  （ソリューションエクスプローラ―上でCtrl+マウス選択を駆使すればまとめて切り替えられる）
+・SSE2非対応CPUで実行可能なファイルを作りたいときは、拡張命令セットを"拡張命令なし(/arch:IA32)"に切り替える
 
-��BaseClasses��Microsoft�������ɔz�z���Ă���͗l
-https://github.com/Microsoft/Windows-classic-samples/tree/master/Samples/Win7Samples/multimedia/directshow/baseclasses
-https://developer.microsoft.com/en-us/windows/samples
-
-2.�c�[���o�[�ɂ���ΐF�̉������O�p�{�^���̉E���ɂ���v���_�E�����j���[���uRelease�v�ɕύX
-�\�����[�V�����G�N�X�v���[���[��́uBaseClasses�v���E�N���b�N���āu�r���h�v
-(���[�g�t�H���_)\baseclasses\Release\strmbase.lib
-���쐬����Ă���̂��m�F
+2.（EpgTimerNWが必要な場合のみ）生成された"EpgTimer.exe"を"EpgTimerNW.exe"というファイル名でコピー
 
 
-[�r���h]
+[ビルド(VisualStudio2010)]
 
-1."Document\EDCB_ALL.VS2015.sln"���J���A�c�[���o�[��[Release][Win32]�ɂ��ăr���h���\�����[�V�����̃r���h
+1."Document\EDCB_VCALL.sln"を開き、ツールバーを[Release][Win32]にしてビルド→ソリューションのビルド
 
-�i���Ӂj
-WindowsXP�Ŏ��s�\�ȃt�@�C������肽���Ƃ��́AEpgTimer�������S�v���W�F�N�g��
-�\���v���p�e�B���v���b�g�t�H�[���c�[���Z�b�g��"v140_xp"�ɐ؂�ւ���K�v������
-�i�\�����[�V�����G�N�X�v���[���\���Ctrl+�}�E�X�I������g����΂܂Ƃ߂Đ؂�ւ�����j
+2."EpgTimer\EpgTimer.sln"を 右クリック→プログラムから開く→C# 2010 Express で開き（.NET Framework v4.0への再ターゲットのダイアログが出るときは従う）
+  ツール(T)→設定→上級者設定にチェック、[Release][x86]にしてビルド
 
-2.�iEpgTimerNW���K�v�ȏꍇ�̂݁j�������ꂽ"EpgTimer.exe"��"EpgTimerNW.exe"�Ƃ����t�@�C�����ŃR�s�[
+（注意）
+・プロジェクトを開くのに失敗する場合は"EpgTimer\EpgTimer\EpgTimer.csproj"をメモ帳で開き
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  となっている部分を
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  に変更する
 
-3.�iWrite_AVIVO���K�v�ȏꍇ�̂݁j�\�����[�V�����G�N�X�v���[���\��Write_AVIVO���E�N���b�N���ăr���h
+3.（EpgTimerNWが必要な場合のみ）生成された"EpgTimer.exe"を"EpgTimerNW.exe"というファイル名でコピー
 
 
-[�r���h(VisualStudio2010)]
+[その他]
 
-1."Document\EDCB_VCALL.sln"���J���A�c�[���o�[��[Release][Win32]�ɂ��ăr���h���\�����[�V�����̃r���h
+・EpgTimer.exeをビルドするだけならVisualStudioは不要(参考:2ch_EDCB/52/224)
+  必要なら.NET Framework v4.0以降をインストールして、EpgTimerフォルダでコマンドプロンプトを開いて以下を実行
+  > C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe EpgTimer.sln /p:Configuration=Release /p:Platform=x86
+  放置してもたぶん問題ないが、MSB3644の警告がでる場合は"EpgTimer\EpgTimer\EpgTimer.csproj"をメモ帳で開き
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  となっている部分をインストールされている.NETのバージョンに変更するか、v4.5のTargeting Packをインストールする
 
-2."EpgTimer\EpgTimer.sln"�� �E�N���b�N���v���O��������J����C# 2010 Express �ŊJ���A�c�[��(T)���ݒ聨�㋉�Ґݒ�Ƀ`�F�b�N�A[Release][x86]�ɂ��ăr���h
-
-3.�iEpgTimerNW���K�v�ȏꍇ�̂݁j�������ꂽ"EpgTimer.exe"��"EpgTimerNW.exe"�Ƃ����t�@�C�����ŃR�s�[
-
-4.�iWrite_AVIVO���K�v�ȏꍇ�̂݁j�\�����[�V�����G�N�X�v���[���\��Write_AVIVO���E�N���b�N���ăr���h
+・プラットフォームツールセット:LLVM-vs2014( http://releases.llvm.org/ )に対応している
+  ソースコードのUTF-8変換が必要。ConvToUTF8.batで変換できる(ConvToSJIS.batでShift_JISに逆変換)

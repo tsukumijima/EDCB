@@ -1,13 +1,12 @@
-#ifndef __COMMON_DEF_H__
-#define __COMMON_DEF_H__
+#ifndef INCLUDE_COMMON_DEF_H
+#define INCLUDE_COMMON_DEF_H
 
 #include "ErrDef.h"
 #include "StructDef.h"
 
-#define SAVE_FOLDER L"\\EpgTimerBon"
-#define EPG_SAVE_FOLDER L"\\EpgData"
-#define LOGO_SAVE_FOLDER L"\\LogoData"
-#define BON_DLL_FOLDER L"\\BonDriver"
+#define EPG_SAVE_FOLDER L"EpgData"
+#define LOGO_SAVE_FOLDER L"LogoData"
+#define BON_DLL_FOLDER L"BonDriver"
 
 #define RESERVE_TEXT_NAME L"Reserve.txt"
 #define REC_INFO_TEXT_NAME L"RecInfo.txt"

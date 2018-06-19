@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "CreatePMTPacket.h"
 
 CCreatePMTPacket::CCreatePMTPacket(void)
@@ -20,13 +20,13 @@ CCreatePMTPacket::CCreatePMTPacket(void)
 // needCaption			[IN]字幕データを含めるかどうか（TRUE:含める、FALSE：含めない）
 // needData				[IN]データカルーセルを含めるかどうか（TRUE:含める、FALSE：含めない）
 void CCreatePMTPacket::SetCreateMode(
-	BOOL needCaption,
-	BOOL needData
+	BOOL needCaption_,
+	BOOL needData_
 )
 {
-	if( this->needCaption != needCaption || this->needData != needData ){
-		this->needCaption = needCaption;
-		this->needData = needData;
+	if( this->needCaption != needCaption_ || this->needData != needData_ ){
+		this->needCaption = needCaption_;
+		this->needData = needData_;
 		CreatePMT();
 	}
 }
@@ -315,7 +315,7 @@ void CCreatePMTPacket::CreatePMT()
 	this->createPSI[6] = this->createVer<<1;
 	this->createPSI[6] |= 0xC1;
 
-	unsigned long ulCrc = CalcCrc32((int)this->createPSI.size()-1, &this->createPSI[1]);
+	DWORD ulCrc = CalcCrc32((int)this->createPSI.size()-1, &this->createPSI[1]);
 	this->createPSI.push_back(ulCrc>>24&0xFF);
 	this->createPSI.push_back(ulCrc>>16&0xFF);
 	this->createPSI.push_back(ulCrc>>8&0xFF);

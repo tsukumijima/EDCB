@@ -19,7 +19,7 @@ CSetDlgEpg::~CSetDlgEpg()
 {
 }
 
-BOOL CSetDlgEpg::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
+BOOL CSetDlgEpg::Create(LPCWSTR lpszTemplateName, HWND hWndParent)
 {
 	return CreateDialogParam(GetModuleHandle(NULL), lpszTemplateName, hWndParent, DlgProc, (LPARAM)this) != NULL;
 }
@@ -31,6 +31,8 @@ BOOL CSetDlgEpg::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
 BOOL CSetDlgEpg::OnInitDialog()
 {
 	// TODO:  ここに初期化を追加してください
+	fs_path commonIniPath = GetCommonIniPath();
+	fs_path appIniPath = GetModuleIniPath();
 	Button_SetCheck( GetDlgItem(IDC_CHECK_BS), GetPrivateProfileInt( L"SET", L"BSBasicOnly", 1, commonIniPath.c_str() ) );
 	Button_SetCheck( GetDlgItem(IDC_CHECK_CS1), GetPrivateProfileInt( L"SET", L"CS1BasicOnly", 1, commonIniPath.c_str() ) );
 	Button_SetCheck( GetDlgItem(IDC_CHECK_CS2), GetPrivateProfileInt( L"SET", L"CS2BasicOnly", 1, commonIniPath.c_str() ) );
@@ -40,10 +42,7 @@ BOOL CSetDlgEpg::OnInitDialog()
 	Button_SetCheck( GetDlgItem(IDC_CHECK_BACK_CS2), GetPrivateProfileInt( L"SET", L"EpgCapBackCS2BasicOnly", 1, appIniPath.c_str() ) );
 	Button_SetCheck( GetDlgItem(IDC_CHECK_BACK_CS3), GetPrivateProfileInt( L"SET", L"EpgCapBackCS3BasicOnly", 0, appIniPath.c_str() ) );
 
-	wstring path;
-	GetSettingPath(path);
-	path += L"\\ChSet5.txt";
-	this->chSet.ParseText(path.c_str());
+	this->chSet.ParseText(GetSettingPath().append(L"ChSet5.txt").c_str());
 
 	//リストビューにチェックボックスと列をつくる
 	HWND hItem = GetDlgItem(IDC_LIST_SERVICE);
@@ -75,6 +74,8 @@ void CSetDlgEpg::SaveIni(void)
 	if( m_hWnd == NULL ){
 		return;
 	}
+	fs_path commonIniPath = GetCommonIniPath();
+	fs_path appIniPath = GetModuleIniPath();
 
 	WritePrivateProfileInt( L"SET", L"BSBasicOnly", Button_GetCheck(GetDlgItem(IDC_CHECK_BS)), commonIniPath.c_str() );
 	WritePrivateProfileInt( L"SET", L"CS1BasicOnly", Button_GetCheck(GetDlgItem(IDC_CHECK_CS1)), commonIniPath.c_str() );

@@ -5,7 +5,6 @@
 #include "EpgDataCap_Bon.h"
 #include "SetDlgBasic.h"
 
-#include "../../Common/Util.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/StringUtil.h"
 
@@ -21,7 +20,7 @@ CSetDlgBasic::~CSetDlgBasic()
 {
 }
 
-BOOL CSetDlgBasic::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
+BOOL CSetDlgBasic::Create(LPCWSTR lpszTemplateName, HWND hWndParent)
 {
 	return CreateDialogParam(GetModuleHandle(NULL), lpszTemplateName, hWndParent, DlgProc, (LPARAM)this) != NULL;
 }
@@ -31,19 +30,15 @@ BOOL CSetDlgBasic::Create(LPCTSTR lpszTemplateName, HWND hWndParent)
 BOOL CSetDlgBasic::OnInitDialog()
 {
 	// TODO:  ここに初期化を追加してください
-	wstring path;
-	GetSettingPath(path);
+	fs_path path = GetSettingPath();
 	SetDlgItemText(m_hWnd, IDC_EDIT_SET_PATH, path.c_str());
 
-	int iNum = GetPrivateProfileInt( L"SET", L"RecFolderNum", 0, commonIniPath.c_str() );
-	if( iNum == 0 ){
-		ListBox_AddString(GetDlgItem(IDC_LIST_REC_FOLDER), path.c_str());
-	}else{
-		for( int i = 0; i < iNum; i++ ){
-			WCHAR key[64];
-			swprintf_s(key, L"RecFolderPath%d", i);
-			ListBox_AddString(GetDlgItem(IDC_LIST_REC_FOLDER), GetPrivateProfileToString( L"SET", key, L"", commonIniPath.c_str() ).c_str());
+	for( int i = 0; ; i++ ){
+		fs_path recPath = GetRecFolderPath(i);
+		if( recPath.empty() ){
+			break;
 		}
+		ListBox_AddString(GetDlgItem(IDC_LIST_REC_FOLDER), recPath.c_str());
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -55,15 +50,12 @@ void CSetDlgBasic::SaveIni()
 	if( m_hWnd == NULL ){
 		return;
 	}
+	fs_path commonIniPath = GetCommonIniPath();
 
 	WCHAR settingFolderPath[512] = L"";
 	GetDlgItemText(m_hWnd, IDC_EDIT_SET_PATH, settingFolderPath, 512);
-	wstring chkSettingPath = settingFolderPath;
-	ChkFolderPath(chkSettingPath);
-	wstring defSettingPath;
-	GetDefSettingPath(defSettingPath);
-	WritePrivateProfileString(L"SET", L"DataSavePath", CompareNoCase(chkSettingPath, defSettingPath) ? settingFolderPath : NULL, commonIniPath.c_str());
-	_CreateDirectory(settingFolderPath);
+	WritePrivateProfileString(L"SET", L"DataSavePath", _wcsicmp(settingFolderPath, GetDefSettingPath().c_str()) ? settingFolderPath : NULL, commonIniPath.c_str());
+	UtilCreateDirectories(settingFolderPath);
 
 	int iNum = ListBox_GetCount(GetDlgItem(IDC_LIST_REC_FOLDER));
 	if( iNum == 1 ){
@@ -72,9 +64,7 @@ void CSetDlgBasic::SaveIni()
 		if( 0 <= len && len < 512 ){
 			ListBox_GetText(GetDlgItem(IDC_LIST_REC_FOLDER), 0, folder);
 		}
-		wstring chkFolder = folder;
-		ChkFolderPath(chkFolder);
-		if( CompareNoCase(chkFolder, chkSettingPath) == 0 ){
+		if( _wcsicmp(folder, settingFolderPath) == 0 ){
 			iNum = 0;
 		}
 	}
@@ -145,8 +135,6 @@ void CSetDlgBasic::OnBnClickedButtonRecAdd()
 	if( GetDlgItemText(m_hWnd, IDC_EDIT_REC_FOLDER, recFolderPath, 512) <= 0 ){
 		return ;
 	}
-	wstring addPath = recFolderPath;
-	ChkFolderPath( addPath );
 
 	//同一フォルダがすでにあるかチェック
 	int iNum = ListBox_GetCount(GetDlgItem(IDC_LIST_REC_FOLDER));
@@ -157,16 +145,14 @@ void CSetDlgBasic::OnBnClickedButtonRecAdd()
 		if( 0 <= len && len < 512 ){
 			ListBox_GetText(GetDlgItem(IDC_LIST_REC_FOLDER), i, folder);
 		}
-		wstring strPath = folder;
-		ChkFolderPath( strPath );
 
-		if( CompareNoCase( addPath, strPath ) == 0 ){
+		if( _wcsicmp(recFolderPath, folder) == 0 ){
 			findFlag = TRUE;
 			break;
 		}
 	}
 	if( findFlag == FALSE ){
-		ListBox_AddString(GetDlgItem(IDC_LIST_REC_FOLDER), addPath.c_str());
+		ListBox_AddString(GetDlgItem(IDC_LIST_REC_FOLDER), recFolderPath);
 	}
 }
 

@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "HttpServer.h"
 #include "../../Common/StringUtil.h"
 #include "../../Common/PathUtil.h"
@@ -6,6 +6,8 @@
 #include "civetweb.h"
 #include <io.h>
 #include <fcntl.h>
+#include <wincrypt.h>
+#pragma comment(lib, "Crypt32.lib")
 
 #define LUA_DLL_NAME L"lua52.dll"
 
@@ -20,6 +22,7 @@ const char UPNP_URN_AVT_1[] = "urn:schemas-upnp-org:service:AVTransport:1";
 CHttpServer::CHttpServer()
 	: mgContext(NULL)
 	, hLuaDll(NULL)
+	, initedLibrary(false)
 {
 }
 
@@ -28,47 +31,41 @@ CHttpServer::~CHttpServer()
 	StopServer();
 }
 
-bool CHttpServer::StartServer(const SERVER_OPTIONS& op, int (*initProc)(lua_State*), void* initParam)
+bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void(lua_State*)>& initProc)
 {
 	StopServer();
 
-	//LuaのDLLが無いとき分かりにくいタイミングでエラーになるので事前に読んでおく(必須ではない)
-	this->hLuaDll = LoadLibrary(LUA_DLL_NAME);
-	if( this->hLuaDll == NULL ){
-		OutputDebugString(L"CHttpServer::StartServer(): " LUA_DLL_NAME L" not found.\r\n");
-		return false;
-	}
 	string ports;
 	WtoUTF8(op.ports, ports);
-	wstring rootPathW = op.rootPath;
-	ChkFolderPath(rootPathW);
 	string rootPathU;
-	WtoUTF8(rootPathW, rootPathU);
+	WtoUTF8(op.rootPath, rootPathU);
 	//パスにASCII範囲外を含むのは(主にLuaが原因で)難ありなので蹴る
-	for( size_t i = 0; i < rootPathU.size(); i++ ){
-		if( rootPathU[i] & 0x80 ){
-			OutputDebugString(L"CHttpServer::StartServer(): path has multibyte.\r\n");
-			return false;
-		}
+	if( std::find_if(rootPathU.begin(), rootPathU.end(), [](char c) { return (c & 0x80) != 0; }) != rootPathU.end() ){
+		OutputDebugString(L"CHttpServer::StartServer(): path has unavailable chars.\r\n");
+		return false;
 	}
-	wstring modulePath;
-	GetModuleFolderPath(modulePath);
 	string accessLogPath;
 	//ログは_wfopen()されるのでWtoUTF8()。civetweb.cのACCESS_LOG_FILEとERROR_LOG_FILEの扱いに注意
-	WtoUTF8(modulePath, accessLogPath);
-	string errorLogPath = accessLogPath + "\\HttpError.log";
-	accessLogPath += "\\HttpAccess.log";
-	string sslCertPath;
-	//認証鍵は実質fopen()されるのでWtoA()
-	WtoA(modulePath, sslCertPath);
-	sslCertPath += "\\ssl_cert.pem";
-	string sslPeerPath;
-	WtoA(modulePath, sslPeerPath);
-	sslPeerPath += "\\ssl_peer.pem";
+	WtoUTF8(GetModulePath().replace_filename(L"HttpAccess.log").native(), accessLogPath);
+	string errorLogPath;
+	WtoUTF8(GetModulePath().replace_filename(L"HttpError.log").native(), errorLogPath);
+
+	fs_path sslFsPath = GetModulePath().replace_filename(L"ssl_");
+	//認証鍵は実質fopen()されるのでCP_ACP
+	vector<char> sslPath(WideCharToMultiByte(CP_ACP, 0, sslFsPath.c_str(), -1, NULL, 0, NULL, NULL));
+	if( sslPath.empty() ||
+	    WideCharToMultiByte(CP_ACP, 0, sslFsPath.c_str(), -1, sslPath.data(), (int)sslPath.size(), NULL, NULL) == 0 ){
+		OutputDebugString(L"CHttpServer::StartServer(): path has unavailable chars.\r\n");
+		return false;
+	}
+	string sslCertPath = string(sslPath.data()) + "cert.pem";
+	string sslPeerPath = string(sslPath.data()) + "peer.pem";
+	fs_path sslPeerFsPath = sslFsPath.concat(L"peer.pem");
+
 	string globalAuthPath;
 	//グローバルパスワードは_wfopen()されるのでWtoUTF8()
-	WtoUTF8(modulePath, globalAuthPath);
-	globalAuthPath += "\\glpasswd";
+	fs_path globalAuthFsPath = GetModulePath().replace_filename(L"glpasswd");
+	WtoUTF8(globalAuthFsPath.native(), globalAuthPath);
 
 	//Access Control List
 	string acl;
@@ -88,7 +85,7 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, int (*initProc)(lua_Stat
 
 	//追加のMIMEタイプ
 	CParseContentTypeText contentType;
-	contentType.ParseText((modulePath + L"\\ContentTypeText.txt").c_str());
+	contentType.ParseText(GetModulePath().replace_filename(L"ContentTypeText.txt").c_str());
 	wstring extraMimeW;
 	for( map<wstring, wstring>::const_iterator itr = contentType.GetMap().begin(); itr != contentType.GetMap().end(); itr++ ){
 		extraMimeW += itr->first + L'=' + itr->second + L',';
@@ -110,8 +107,9 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, int (*initProc)(lua_Stat
 		"ssl_cipher_list", sslCipherList.c_str(),
 		"ssl_protocol_version", sslProtocolVersion.c_str(),
 		"lua_script_pattern", "**.lua$|**.html$|*/api/*$",
+		"access_control_allow_origin", "",
 	};
-	int opCount = 2 * 13;
+	int opCount = 2 * 14;
 	if( op.saveLog ){
 		options[opCount++] = "access_log_file";
 		options[opCount++] = accessLogPath.c_str();
@@ -127,31 +125,46 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, int (*initProc)(lua_Stat
 		options[opCount++] = "ssl_certificate";
 		options[opCount++] = sslCertPath.c_str();
 	}
-	wstring sslPeerPathW;
-	AtoW(sslPeerPath, sslPeerPathW);
-	if( GetFileAttributes(sslPeerPathW.c_str()) != INVALID_FILE_ATTRIBUTES || GetLastError() != ERROR_FILE_NOT_FOUND ){
+	if( GetFileAttributes(sslPeerFsPath.c_str()) != INVALID_FILE_ATTRIBUTES || GetLastError() != ERROR_FILE_NOT_FOUND ){
 		//信頼済み証明書ファイルが「存在しないことを確信」できなければ有効にする
 		options[opCount++] = "ssl_verify_peer";
 		options[opCount++] = "yes";
 	}
-	wstring globalAuthPathW;
-	UTF8toW(globalAuthPath, globalAuthPathW);
-	if( GetFileAttributes(globalAuthPathW.c_str()) != INVALID_FILE_ATTRIBUTES || GetLastError() != ERROR_FILE_NOT_FOUND ){
+	if( GetFileAttributes(globalAuthFsPath.c_str()) != INVALID_FILE_ATTRIBUTES || GetLastError() != ERROR_FILE_NOT_FOUND ){
 		//グローバルパスワードは「存在しないことを確信」できなければ指定しておく
 		options[opCount++] = "global_auth_file";
 		options[opCount++] = globalAuthPath.c_str();
 	}
 
+	//LuaのDLLが無いとき分かりにくいタイミングでエラーになるので事前に読んでおく(必須ではない)
+	this->hLuaDll = LoadLibrary(LUA_DLL_NAME);
+	if( this->hLuaDll == NULL ){
+		OutputDebugString(L"CHttpServer::StartServer(): " LUA_DLL_NAME L" not found.\r\n");
+		return false;
+	}
+
+	//"serve files" + "support Lua" + "support caching" + (セキュアポートを含むとき)"support HTTPS"
+	unsigned int feat = 1 + 32 + 128 + (ports.find('s') != string::npos ? 2 : 0);
+	this->initedLibrary = true;
+	if( mg_init_library(feat) != feat ){
+		OutputDebugString(L"CHttpServer::StartServer(): Library initialization failed.\r\n");
+		StopServer();
+		return false;
+	}
+
 	this->initLuaProc = initProc;
-	this->initLuaParam = initParam;
 	mg_callbacks callbacks = {};
 	callbacks.init_lua = &InitLua;
 	this->mgContext = mg_start(&callbacks, this, options);
+	if( this->mgContext == NULL ){
+		StopServer();
+		return false;
+	}
 
-	if( this->mgContext && op.enableSsdpServer ){
+	if( op.enableSsdpServer ){
 		//"<UDN>uuid:{UUID}</UDN>"が必要
 		string notifyUuid;
-		std::unique_ptr<FILE, decltype(&fclose)> fp(_wfsopen((rootPathW + L"\\dlna\\dms\\ddd.xml").c_str(), L"rb", _SH_DENYNO), fclose);
+		std::unique_ptr<FILE, decltype(&fclose)> fp(shared_wfopen(fs_path(op.rootPath).append(L"dlna\\dms\\ddd.xml").c_str(), L"rbN"), fclose);
 		if( fp ){
 			char olbuff[257];
 			for( size_t n = fread(olbuff, 1, 256, fp.get()); ; n = fread(olbuff + 64, 1, 192, fp.get()) + 64 ){
@@ -192,7 +205,7 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, int (*initProc)(lua_Stat
 			OutputDebugString(L"CHttpServer::StartServer(): invalid /dlna/dms/ddd.xml\r\n");
 		}
 	}
-	return this->mgContext != NULL;
+	return true;
 }
 
 bool CHttpServer::StopServer(bool checkOnly)
@@ -220,6 +233,10 @@ bool CHttpServer::StopServer(bool checkOnly)
 		}
 		this->mgContext = NULL;
 	}
+	if( this->initedLibrary ){
+		mg_exit_library();
+		this->initedLibrary = false;
+	}
 	if( this->hLuaDll ){
 		FreeLibrary(this->hLuaDll);
 		this->hLuaDll = NULL;
@@ -227,11 +244,24 @@ bool CHttpServer::StopServer(bool checkOnly)
 	return true;
 }
 
+string CHttpServer::CreateRandom()
+{
+	char ret[65] = {};
+	HCRYPTPROV prov;
+	if( CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) ){
+		unsigned __int64 r[4] = {};
+		if( CryptGenRandom(prov, sizeof(r), (BYTE*)r) ){
+			sprintf_s(ret, "%016I64x%016I64x%016I64x%016I64x", r[0], r[1], r[2], r[3]);
+		}
+		CryptReleaseContext(prov, 0);
+	}
+	return ret;
+}
+
 void CHttpServer::InitLua(const mg_connection* conn, void* luaContext)
 {
 	const CHttpServer* sys = (CHttpServer*)mg_get_user_data(mg_get_context(conn));
 	lua_State* L = (lua_State*)luaContext;
-	lua_pushlightuserdata(L, sys->initLuaParam);
 	sys->initLuaProc(L);
 }
 
@@ -253,18 +283,17 @@ void reg_int_(lua_State* L, const char* name, size_t size, int val)
 	lua_rawset(L, -3);
 }
 
+void reg_int64_(lua_State* L, const char* name, size_t size, __int64 val)
+{
+	lua_pushlstring(L, name, size - 1);
+	lua_pushnumber(L, (lua_Number)val);
+	lua_rawset(L, -3);
+}
+
 void reg_boolean_(lua_State* L, const char* name, size_t size, bool val)
 {
 	lua_pushlstring(L, name, size - 1);
 	lua_pushboolean(L, val);
-	lua_rawset(L, -3);
-}
-
-void reg_function_(lua_State* L, const char* name, size_t size, lua_CFunction func, void* userdata)
-{
-	lua_pushlstring(L, name, size - 1);
-	lua_pushlightuserdata(L, userdata);
-	lua_pushcclosure(L, func, 1);
 	lua_rawset(L, -3);
 }
 #endif
@@ -324,13 +353,13 @@ SYSTEMTIME get_time(lua_State* L, const char* name)
 	lua_getfield(L, -1, name);
 	if( lua_istable(L, -1) ){
 		SYSTEMTIME st;
-		st.wYear = (WCHAR)get_int(L, "year");
-		st.wMonth = (WCHAR)get_int(L, "month");
-		st.wDay = (WCHAR)get_int(L, "day");
-		st.wHour = (WCHAR)get_int(L, "hour");
-		st.wMinute = (WCHAR)get_int(L, "min");
-		st.wSecond = (WCHAR)get_int(L, "sec");
-		st.wMilliseconds = (WCHAR)get_int(L, "msec");
+		st.wYear = (WORD)get_int(L, "year");
+		st.wMonth = (WORD)get_int(L, "month");
+		st.wDay = (WORD)get_int(L, "day");
+		st.wHour = (WORD)get_int(L, "hour");
+		st.wMinute = (WORD)get_int(L, "min");
+		st.wSecond = (WORD)get_int(L, "sec");
+		st.wMilliseconds = (WORD)get_int(L, "msec");
 		FILETIME ft;
 		if( SystemTimeToFileTime(&st, &ft) && FileTimeToSystemTime(&ft, &st) ){
 			ret = st;
@@ -660,7 +689,7 @@ int io_open(lua_State* L)
 		free(wfilename);
 		luaL_argerror(L, 2, "utf8towcsdup");
 	}
-	p->f = _wfsopen(wfilename, wmode, _SH_DENYNO);
+	p->f = shared_wfopen(wfilename, wmode);
 	nefree(wmode);
 	nefree(wfilename);
 	return (p->f == NULL) ? luaL_fileresult(L, 0, filename) : 1;
@@ -681,8 +710,10 @@ int io_popen(lua_State* L)
 	if( dw == 0 || dw >= MAX_PATH ){
 		cmdexe[0] = L'\0';
 	}
-	HANDLE ppipe, tpipe, cpipe; //parent, temporary, child
+	HANDLE ppipe = INVALID_HANDLE_VALUE; //parent
+	HANDLE tpipe = INVALID_HANDLE_VALUE; //temporary
 	if( cmdexe[0] && CreatePipe(mode[0] == 'r' ? &ppipe : &tpipe, mode[0] == 'r' ? &tpipe : &ppipe, NULL, 0) ){
+		HANDLE cpipe; //child
 		BOOL b = DuplicateHandle(GetCurrentProcess(), tpipe, GetCurrentProcess(), &cpipe, 0, TRUE, DUPLICATE_SAME_ACCESS);
 		CloseHandle(tpipe);
 		if( b ){

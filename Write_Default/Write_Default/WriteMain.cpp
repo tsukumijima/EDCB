@@ -1,7 +1,5 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "WriteMain.h"
-#include <process.h>
-#include "../../Common/BlockLock.h"
 
 extern HINSTANCE g_instance;
 
@@ -10,7 +8,6 @@ CWriteMain::CWriteMain(void)
 	this->file = INVALID_HANDLE_VALUE;
 	this->writeBuffSize = 0;
 	this->teeFile = INVALID_HANDLE_VALUE;
-	this->teeThread = NULL;
 
 	WCHAR dllPath[MAX_PATH];
 	DWORD ret = GetModuleFileName(g_instance, dllPath, MAX_PATH);
@@ -21,18 +18,16 @@ CWriteMain::CWriteMain(void)
 		this->teeCmd = GetPrivateProfileToString(L"SET", L"TeeCmd", L"", iniPath.c_str());
 		if( this->teeCmd.empty() == false ){
 			this->teeBuff.resize(GetPrivateProfileInt(L"SET", L"TeeSize", 770048, iniPath.c_str()));
-			this->teeBuff.resize(max(this->teeBuff.size(), 1));
+			this->teeBuff.resize(max<size_t>(this->teeBuff.size(), 1));
 			this->teeDelay = GetPrivateProfileInt(L"SET", L"TeeDelay", 0, iniPath.c_str());
 		}
 	}
-	InitializeCriticalSection(&this->wroteLock);
 }
 
 
 CWriteMain::~CWriteMain(void)
 {
 	Stop();
-	DeleteCriticalSection(&this->wroteLock);
 }
 
 BOOL CWriteMain::Start(
@@ -45,18 +40,15 @@ BOOL CWriteMain::Start(
 
 	this->savePath = fileName;
 	_OutputDebugString(L"★CWriteMain::Start CreateFile:%s\r\n", this->savePath.c_str());
-	this->file = _CreateDirectoryAndFile(this->savePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, overWriteFlag ? CREATE_ALWAYS : CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+	UtilCreateDirectories(fs_path(this->savePath).parent_path());
+	this->file = CreateFile(this->savePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, overWriteFlag ? CREATE_ALWAYS : CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 	if( this->file == INVALID_HANDLE_VALUE ){
 		_OutputDebugString(L"★CWriteMain::Start Err:0x%08X\r\n", GetLastError());
-		WCHAR szPath[_MAX_PATH];
-		WCHAR szDrive[_MAX_DRIVE];
-		WCHAR szDir[_MAX_DIR];
-		WCHAR szFname[_MAX_FNAME];
-		WCHAR szExt[_MAX_EXT];
-		_wsplitpath_s(fileName, szDrive, szDir, szFname, szExt);
-		_wmakepath_s(szPath, szDrive, szDir, szFname, NULL);
+		fs_path pathWoExt = this->savePath;
+		fs_path ext = pathWoExt.extension();
+		pathWoExt.replace_extension();
 		for( int i = 1; ; i++ ){
-			Format(this->savePath, L"%s-(%d)%s", szPath, i, szExt);
+			Format(this->savePath, L"%s-(%d)%s", pathWoExt.c_str(), i, ext.c_str());
 			this->file = CreateFile(this->savePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, overWriteFlag ? CREATE_ALWAYS : CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 			if( this->file != INVALID_HANDLE_VALUE || i >= 999 ){
 				DWORD err = GetLastError();
@@ -85,8 +77,8 @@ BOOL CWriteMain::Start(
 	if( this->teeCmd.empty() == false ){
 		this->teeFile = CreateFile(this->savePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		if( this->teeFile != INVALID_HANDLE_VALUE ){
-			this->teeThreadStopFlag = FALSE;
-			this->teeThread = (HANDLE)_beginthreadex(NULL, 0, TeeThread, this, 0, NULL);
+			this->teeThreadStopEvent.Reset();
+			this->teeThread = thread_(TeeThread, this);
 		}
 	}
 
@@ -112,13 +104,9 @@ BOOL CWriteMain::Stop(
 		CloseHandle(this->file);
 		this->file = INVALID_HANDLE_VALUE;
 	}
-	if( this->teeThread != NULL ){
-		this->teeThreadStopFlag = TRUE;
-		if( WaitForSingleObject(this->teeThread, 8000) == WAIT_TIMEOUT ){
-			TerminateThread(this->teeThread, 0xffffffff);
-		}
-		CloseHandle(this->teeThread);
-		this->teeThread = NULL;
+	if( this->teeThread.joinable() ){
+		this->teeThreadStopEvent.Set();
+		this->teeThread.join();
 	}
 	if( this->teeFile != INVALID_HANDLE_VALUE ){
 		CloseHandle(this->teeFile);
@@ -189,34 +177,28 @@ BOOL CWriteMain::Write(
 	return FALSE;
 }
 
-UINT WINAPI CWriteMain::TeeThread(LPVOID param)
+void CWriteMain::TeeThread(CWriteMain* sys)
 {
-	CWriteMain* sys = (CWriteMain*)param;
 	wstring cmd = sys->teeCmd;
 	Replace(cmd, L"$FilePath$", sys->savePath);
 	vector<WCHAR> cmdBuff(cmd.c_str(), cmd.c_str() + cmd.size() + 1);
+	//カレントは実行ファイルのあるフォルダ
+	fs_path currentDir = GetModulePath().parent_path();
 
-	WCHAR szCurrentDir[_MAX_PATH];
-	DWORD ret = GetModuleFileName(NULL, szCurrentDir, _MAX_PATH);
-	if( ret && ret < _MAX_PATH ){
-		//カレントは実行ファイルのあるフォルダ
-		WCHAR szDrive[_MAX_DRIVE];
-		WCHAR szDir[_MAX_DIR];
-		_wsplitpath_s(szCurrentDir, szDrive, _MAX_DRIVE, szDir, _MAX_DIR, NULL, 0, NULL, 0);
-		_wmakepath_s(szCurrentDir, szDrive, szDir, NULL, NULL);
+	HANDLE olEvents[] = { sys->teeThreadStopEvent.Handle(), CreateEvent(NULL, TRUE, FALSE, NULL) };
+	if( olEvents[1] ){
+		WCHAR pipeName[64];
+		swprintf_s(pipeName, L"\\\\.\\pipe\\anon_%08x_%08x", GetCurrentProcessId(), GetCurrentThreadId());
+		SECURITY_ATTRIBUTES sa = {};
+		sa.nLength = sizeof(sa);
+		sa.bInheritHandle = TRUE;
 
-		//標準入力にパイプしたプロセスを起動する
-		HANDLE tempPipe;
-		HANDLE writePipe;
-		if( CreatePipe(&tempPipe, &writePipe, NULL, 0) ){
-			HANDLE readPipe;
-			BOOL bRet = DuplicateHandle(GetCurrentProcess(), tempPipe, GetCurrentProcess(), &readPipe, 0, TRUE, DUPLICATE_SAME_ACCESS);
-			CloseHandle(tempPipe);
-			if( bRet ){
-				SECURITY_ATTRIBUTES sa;
-				sa.nLength = sizeof(sa);
-				sa.lpSecurityDescriptor = NULL;
-				sa.bInheritHandle = TRUE;
+		//出力を速やかに打ち切るために非同期書き込みのパイプを作成する。CreatePipe()は非同期にできない
+		HANDLE readPipe = CreateNamedPipe(pipeName, PIPE_ACCESS_INBOUND, 0, 1, 8192, 8192, 0, &sa);
+		if( readPipe != INVALID_HANDLE_VALUE ){
+			HANDLE writePipe = CreateFile(pipeName, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
+			if( writePipe != INVALID_HANDLE_VALUE ){
+				//標準入力にパイプしたプロセスを起動する
 				STARTUPINFO si = {};
 				si.cb = sizeof(si);
 				si.dwFlags = STARTF_USESTDHANDLES;
@@ -225,7 +207,7 @@ UINT WINAPI CWriteMain::TeeThread(LPVOID param)
 				si.hStdOutput = CreateFile(L"nul", GENERIC_WRITE, 0, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 				si.hStdError = CreateFile(L"nul", GENERIC_WRITE, 0, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 				PROCESS_INFORMATION pi;
-				bRet = CreateProcess(NULL, &cmdBuff.front(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, szCurrentDir, &si, &pi);
+				BOOL bRet = CreateProcess(NULL, cmdBuff.data(), NULL, NULL, TRUE, BELOW_NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, currentDir.c_str(), &si, &pi);
 				CloseHandle(readPipe);
 				if( si.hStdOutput != INVALID_HANDLE_VALUE ){
 					CloseHandle(si.hStdOutput);
@@ -236,7 +218,7 @@ UINT WINAPI CWriteMain::TeeThread(LPVOID param)
 				if( bRet ){
 					CloseHandle(pi.hThread);
 					CloseHandle(pi.hProcess);
-					while( sys->teeThreadStopFlag == FALSE ){
+					for(;;){
 						__int64 readablePos;
 						{
 							CBlockLock lock(&sys->wroteLock);
@@ -246,20 +228,38 @@ UINT WINAPI CWriteMain::TeeThread(LPVOID param)
 						DWORD read;
 						if( SetFilePointerEx(sys->teeFile, liPos, &liPos, FILE_CURRENT) &&
 						    readablePos - liPos.QuadPart >= (__int64)sys->teeBuff.size() &&
-						    ReadFile(sys->teeFile, &sys->teeBuff.front(), (DWORD)sys->teeBuff.size(), &read, NULL) && read > 0 ){
-							DWORD write;
-							if( WriteFile(writePipe, &sys->teeBuff.front(), read, &write, NULL) == FALSE ){
+						    ReadFile(sys->teeFile, sys->teeBuff.data(), (DWORD)sys->teeBuff.size(), &read, NULL) && read > 0 ){
+							OVERLAPPED ol = {};
+							ol.hEvent = olEvents[1];
+							if( WriteFile(writePipe, sys->teeBuff.data(), read, NULL, &ol) == FALSE && GetLastError() != ERROR_IO_PENDING ){
+								//出力完了
+								break;
+							}
+							if( WaitForMultipleObjects(2, olEvents, FALSE, INFINITE) != WAIT_OBJECT_0 + 1 ){
+								//打ち切り
+								CancelIo(writePipe);
+								WaitForSingleObject(olEvents[1], INFINITE);
+								break;
+							}
+							DWORD xferred;
+							if( GetOverlappedResult(writePipe, &ol, &xferred, FALSE) == FALSE || xferred < read ){
+								//出力完了
 								break;
 							}
 						}else{
-							Sleep(100);
+							if( WaitForSingleObject(olEvents[0], 200) != WAIT_TIMEOUT ){
+								//打ち切り
+								break;
+							}
 						}
 					}
 					//プロセスは回収しない(標準入力が閉じられた後にどうするかはプロセスの判断に任せる)
 				}
+				CloseHandle(writePipe);
+			}else{
+				CloseHandle(readPipe);
 			}
-			CloseHandle(writePipe);
 		}
+		CloseHandle(olEvents[1]);
 	}
-	return 0;
 }

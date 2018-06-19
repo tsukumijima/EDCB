@@ -20,8 +20,8 @@ public:
 	// needCaption			[IN]字幕データを含めるかどうか（TRUE:含める、FALSE：含めない）
 	// needData				[IN]データカルーセルを含めるかどうか（TRUE:含める、FALSE：含めない）
 	void SetCreateMode(
-		BOOL needCaption,
-		BOOL needData
+		BOOL needCaption_,
+		BOOL needData_
 	);
 
 	//作成元となるPMTのパケットを入力
@@ -79,13 +79,13 @@ protected:
 
 	vector<BYTE> firstDescBuff;
 
-	typedef struct _SECOND_DESC_BUFF{
+	struct SECOND_DESC_BUFF {
 		BYTE stream_type;
 		WORD elementary_PID;
 		vector<BYTE> descBuff;
 		WORD quality;
 		WORD qualityPID;
-	}SECOND_DESC_BUFF;
+	};
 	vector<SECOND_DESC_BUFF> secondDescBuff;
 
 	vector<WORD> emmPIDList;

@@ -13,6 +13,9 @@ public:
 	~CSendCtrlCmd(void);
 
 #ifndef SEND_CTRL_CMD_NO_TCP
+	//送受信タイムアウト（接続先が要求を処理するのにかかる時間よりも十分に長く）
+	static const DWORD SND_RCV_TIMEOUT = 30000;
+
 	//コマンド送信方法の設定
 	//引数：
 	// tcpFlag		[IN] TRUE：TCP/IPモード、FALSE：名前付きパイプモード
@@ -45,7 +48,7 @@ public:
 	// ip			[IN]接続先IP
 	// port			[IN]接続先ポート
 	void SetNWSetting(
-		wstring ip,
+		const wstring& ip,
 		DWORD port
 		);
 
@@ -54,13 +57,6 @@ public:
 	void SetConnectTimeOut(
 		DWORD timeOut
 		);
-
-	//Program.txtを追加で再読み込みする
-	//戻り値：
-	// エラーコード
-	DWORD SendAddloadReserve(){
-		return SendCmdWithoutData(CMD2_EPG_SRV_ADDLOAD_RESERVE);
-	}
 
 	//EPGデータを再読み込みする
 	//戻り値：
@@ -194,6 +190,15 @@ public:
 	// val				[IN]削除するID一覧
 	DWORD SendDelRecInfo(const vector<DWORD>& val){
 		return SendCmdData(CMD2_EPG_SRV_DEL_RECINFO, val);
+	}
+
+	//録画済み情報のファイルパスを変更する
+	//戻り値：
+	// エラーコード
+	//引数：
+	// val				[IN]録画済み情報一覧
+	DWORD SendChgPathRecInfo(const vector<REC_FILE_INFO>& val){
+		return SendCmdData(CMD2_EPG_SRV_CHG_PATH_RECINFO, val);
 	}
 
 	//サービス一覧を取得する
@@ -372,7 +377,7 @@ public:
 	// resVal		[OUT]ファイルのバイナリデータ
 	// resValSize	[OUT]resValのサイズ
 	DWORD SendFileCopy(
-		wstring val,
+		const wstring& val,
 		BYTE** resVal,
 		DWORD* resValSize
 		);
@@ -409,7 +414,7 @@ public:
 	// val			[IN]Sender
 	// エラーコード
 	DWORD SendProfileUpdate(
-		wstring val
+		const wstring& val
 		){
 		return SendCmdData(CMD2_EPG_SRV_PROFILE_UPDATE, val);
 	}
@@ -451,7 +456,7 @@ public:
 	// val				[IN]開くファイルのサーバー側ファイルパス
 	// resVal			[OUT]制御用CtrlID
 	DWORD SendNwPlayOpen(
-		wstring val,
+		const wstring& val,
 		DWORD* resVal
 		){
 		return SendAndReceiveCmdData(CMD2_EPG_SRV_NWPLAY_OPEN, val, resVal);
@@ -575,40 +580,6 @@ public:
 	DWORD SendChgReserve2(const vector<RESERVE_DATA>& val){
 		return SendCmdData2(CMD2_EPG_SRV_CHG_RESERVE2, val);
 	}
-
-	//予約追加が可能か確認する
-	//戻り値：
-	// エラーコード
-	//引数：
-	// val				[IN]予約情報
-	// resVal			[OUT]追加可能かのステータス
-	DWORD SendAddChkReserve2(const RESERVE_DATA& val, WORD* resVal){
-		return SendAndReceiveCmdData2(CMD2_EPG_SRV_ADDCHK_RESERVE2, val, resVal);
-	}
-
-
-	//EPGデータファイルのタイムスタンプ取得
-	//戻り値：
-	// エラーコード
-	//引数：
-	// val				[IN]取得ファイル名
-	// resVal			[OUT]タイムスタンプ
-	DWORD SendGetEpgFileTime2(wstring val, LONGLONG* resVal){
-		return SendAndReceiveCmdData2(CMD2_EPG_SRV_GET_EPG_FILETIME2, val, resVal);
-	}
-
-	//EPGデータファイル取得
-	//戻り値：
-	// エラーコード
-	//引数：
-	// val			[IN]ファイル名
-	// resVal		[OUT]ファイルのバイナリデータ
-	// resValSize	[OUT]resValのサイズ
-	DWORD SendGetEpgFile2(
-		wstring val,
-		BYTE** resVal,
-		DWORD* resValSize
-		);
 
 	//自動予約登録条件一覧を取得する
 	//戻り値：
@@ -740,7 +711,7 @@ public:
 	// exeCmd			[IN]コマンドライン
 	// PID				[OUT]起動したexeのPID
 	DWORD SendGUIExecute(
-		wstring exeCmd,
+		const wstring& exeCmd,
 		DWORD* PID
 		){
 		return SendAndReceiveCmdData(CMD2_TIMER_GUI_VIEW_EXECUTE, exeCmd, PID);
@@ -785,7 +756,7 @@ public:
 	//引数：
 	// bonDriver			[IN]BonDriverファイル名
 	DWORD SendViewSetBonDrivere(
-		wstring bonDriver
+		const wstring& bonDriver
 		){
 		return SendCmdData(CMD2_VIEW_APP_SET_BONDRIVER, bonDriver);
 	}
@@ -1034,7 +1005,7 @@ protected:
 protected:
 	DWORD SendPipe(LPCWSTR pipeName_, LPCWSTR eventName_, DWORD timeOut, CMD_STREAM* send, CMD_STREAM* res);
 #ifndef SEND_CTRL_CMD_NO_TCP
-	DWORD SendTCP(wstring ip, DWORD port, DWORD timeOut, CMD_STREAM* sendCmd, CMD_STREAM* resCmd);
+	DWORD SendTCP(const wstring& ip, DWORD port, DWORD timeOut, CMD_STREAM* sendCmd, CMD_STREAM* resCmd);
 #endif
 
 	DWORD SendCmdStream(CMD_STREAM* send, CMD_STREAM* res);

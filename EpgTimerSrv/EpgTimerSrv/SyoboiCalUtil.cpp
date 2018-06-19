@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "SyoboiCalUtil.h"
 
 #include <winhttp.h>
@@ -84,18 +84,14 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 		return FALSE;
 	}
 
-	wstring iniAppPath = L"";
-	GetModuleIniPath(iniAppPath);
+	fs_path iniAppPath = GetModuleIniPath();
 	if( GetPrivateProfileInt(L"SYOBOI", L"use", 0, iniAppPath.c_str()) == 0 ){
 		return FALSE;
 	}
 	_OutputDebugString(L"★SyoboiCalUtil:SendReserve");
 
-	wstring textPath;
-	GetModuleFolderPath(textPath);
-	textPath += L"\\SyoboiCh.txt";
 	CParseServiceChgText srvChg;
-	srvChg.ParseText(textPath.c_str());
+	srvChg.ParseText(GetModulePath().replace_filename(L"SyoboiCh.txt").c_str());
 
 	wstring proxyServerName;
 	wstring proxyUserName;
@@ -127,7 +123,7 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 	auth += L":";
 	auth += pass;
 	string authA;
-	WtoA(auth, authA);
+	WtoUTF8(auth, authA);
 
 	DWORD destSize = 0;
 	Base64Enc(authA.c_str(), (DWORD)authA.size(), NULL, &destSize);
@@ -223,6 +219,8 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 	LPCWSTR result = L"1";
 	HINTERNET connect = NULL;
 	HINTERNET request = NULL;
+	DWORD statusCode;
+	DWORD statusCodeSize;
 
 	if( WinHttpSetTimeouts(session, 15000, 15000, 15000, 15000) == FALSE ){
 		result = L"0 SetTimeouts";
@@ -260,8 +258,7 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 		goto EXIT;
 	}
 	//HTTPのステータスコード確認
-	DWORD statusCode;
-	DWORD statusCodeSize = sizeof(statusCode);
+	statusCodeSize = sizeof(statusCode);
 	if( WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_HEADER_NAME_BY_INDEX,
 	                        &statusCode, &statusCodeSize, WINHTTP_NO_HEADER_INDEX) == FALSE ){
 		statusCode = 0;

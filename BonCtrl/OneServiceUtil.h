@@ -3,7 +3,6 @@
 #include "../Common/ErrDef.h"
 #include "../Common/TSPacketUtil.h"
 #include "../Common/StringUtil.h"
-#include "../Common/EpgDataCap3Util.h"
 
 #include "BonCtrlDef.h"
 #include "SendUDP.h"
@@ -14,22 +13,19 @@
 #include "CreatePMTPacket.h"
 #include "CreatePATPacket.h"
 #include "DropCount.h"
+#include <functional>
 
 class COneServiceUtil
 {
 public:
-	COneServiceUtil(void);
+	COneServiceUtil(BOOL sendUdpTcp_);
 	~COneServiceUtil(void);
-
-	void SetEpgUtil(
-		CEpgDataCap3Util* epgUtil
-		);
 
 	//処理対象ServiceIDを設定
 	//引数：
 	// SID			[IN]ServiceID。0xFFFFで全サービス対象。
 	void SetSID(
-		WORD SID
+		WORD SID_
 	);
 
 	//設定されてる処理対象のServiceIDを取得
@@ -56,23 +52,23 @@ public:
 		);
 
 	//出力用TSデータを送る
-	//戻り値：
-	// TRUE（成功）、FALSE（失敗）
 	//引数：
 	// data		[IN]TSデータ
 	// size		[IN]dataのサイズ
-	BOOL AddTSBuff(
+	// funcGetPresent	[IN]EPGの現在番組IDを調べる関数
+	void AddTSBuff(
 		BYTE* data,
-		DWORD size
+		DWORD size,
+		const std::function<int(WORD, WORD, WORD)>& funcGetPresent
 		);
 
 	void SetPmtPID(
 		WORD TSID,
-		WORD pmtPID
+		WORD pmtPID_
 		);
 
 	void SetEmmPID(
-		const map<WORD,WORD>& PIDMap
+		const vector<WORD>& pidList
 		);
 
 	//ファイル保存を開始する
@@ -93,13 +89,13 @@ public:
 		const wstring& fileName,
 		BOOL overWriteFlag,
 		BOOL pittariFlag,
-		WORD pittariONID,
-		WORD pittariTSID,
-		WORD pittariSID,
-		WORD pittariEventID,
+		WORD pittariONID_,
+		WORD pittariTSID_,
+		WORD pittariSID_,
+		WORD pittariEventID_,
 		ULONGLONG createSize,
-		const vector<REC_FILE_SET_INFO>* saveFolder,
-		const vector<wstring>* saveFolderSub,
+		const vector<REC_FILE_SET_INFO>& saveFolder,
+		const vector<wstring>& saveFolderSub,
 		int maxBuffCount
 	);
 
@@ -178,12 +174,15 @@ public:
 		const wstring& bonDriver
 		);
 	void SetPIDName(
-		const map<WORD, string>& pidName
+		WORD pid,
+		LPCSTR name
+		);
+	void SetNoLogScramble(
+		BOOL noLog
 		);
 protected:
+	BOOL sendUdpTcp;
 	WORD SID;
-
-	CEpgDataCap3Util* epgUtil;
 
 	BOOL enableScramble;
 
@@ -200,7 +199,7 @@ protected:
 	CCreatePMTPacket createPmt;
 
 	WORD pmtPID;
-	map<WORD,WORD> emmPIDMap;
+	vector<WORD> emmPIDList;
 
 	CDropCount dropCount;
 
@@ -209,21 +208,19 @@ protected:
 
 	WORD lastPMTVer;
 
-	wstring fileName;
-	BOOL overWriteFlag;
-	ULONGLONG createSize;
-	vector<REC_FILE_SET_INFO> saveFolder;
-	vector<wstring> saveFolderSub;
+	wstring pittariFileName;
+	BOOL pittariOverWriteFlag;
+	ULONGLONG pittariCreateSize;
+	vector<REC_FILE_SET_INFO> pittariSaveFolder;
+	vector<wstring> pittariSaveFolderSub;
 	WORD pittariONID;
 	WORD pittariTSID;
 	WORD pittariSID;
 	WORD pittariEventID;
 	wstring pittariRecFilePath;
-	int maxBuffCount;
+	int pittariMaxBuffCount;
 
 protected:
-	BOOL WriteData(BYTE* data, DWORD size);
-
 	void StratPittariRec();
 	void StopPittariRec();
 };
