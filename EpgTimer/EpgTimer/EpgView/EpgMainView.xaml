@@ -7,24 +7,19 @@
              xmlns:local="clr-namespace:EpgTimer.EpgView"
              d:DesignHeight="300" d:DesignWidth="300" IsVisibleChanged="UserControl_IsVisibleChanged">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <local:DateView Grid.Row="0" x:Name="dateView" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
-        <Grid Grid.Row="1" Name="grid_PG">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <Button Grid.Row="0" Grid.Column="0" Name="button_now" Content="現在" Padding="1" VerticalAlignment="Stretch" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
-            <local:TimeView Grid.Row="1" x:Name="timeView" Margin="0,0,0,17" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
-            <local:ServiceView Grid.Column="1" x:Name="serviceView" Margin="0,0,17,0" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
-            <local:ProgramView Grid.Column="1" Grid.Row="1" x:Name="epgProgramView" />
-        </Grid>            
+        <local:DateView Grid.ColumnSpan="2" x:Name="dateView" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <Button Grid.Row="1" Name="button_now" Content="現在" Padding="1" VerticalAlignment="Stretch" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <local:TimeView Grid.Row="2" x:Name="timeView" Margin="0,0,0,17" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <local:ServiceView Grid.Column="1" Grid.Row="1" x:Name="serviceView" Margin="0,0,17,0" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <local:ProgramView Grid.Column="1" Grid.Row="2" x:Name="epgProgramView" />
     </Grid>
 </local:EpgMainViewBase>
