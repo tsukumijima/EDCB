@@ -105,6 +105,27 @@ namespace EpgTimer.EpgView
         protected CustomEpgTabInfo viewInfo { get { return viewData.EpgTabInfo; } }
         protected virtual bool viewCustNeedTimeOnly { get { return viewInfo.NeedTimeOnlyBasic; } }
         protected List<EpgServiceEventInfo> serviceEventList { get { return viewData.ServiceEventList; } }
+        protected List<EpgServiceEventInfo> serviceEventListOrderAdjust
+        {
+            get
+            {
+                var grpList = new SortedList<ulong, EpgServiceEventInfo>();
+                var ordered = new List<EpgServiceEventInfo>();
+                var back = new EpgServiceInfo();
+                viewData.ServiceEventList.ForEach(info =>
+                {
+                    if (info.serviceInfo.ONID != back.ONID || info.serviceInfo.TSID != back.TSID || info.serviceInfo.SID > back.SID)
+                    {
+                        ordered.AddRange(grpList.Values);
+                        grpList.Clear();
+                        back = info.serviceInfo;
+                    }
+                    grpList[info.serviceInfo.SID] = info;
+                });
+                ordered.AddRange(grpList.Values);
+                return ordered;
+            }
+        }
 
         protected virtual void InitCommand()
         {

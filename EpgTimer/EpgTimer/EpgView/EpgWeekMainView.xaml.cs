@@ -80,9 +80,9 @@ namespace EpgTimer
             try
             {
                 //表示していたサービスがあれば維持
-                ulong selectID = RestoreState.selectID ?? GetSelectID();
-                comboBox_service.ItemsSource = serviceEventList.Select(item => new ComboItem(item.serviceInfo.Create64Key(), item.serviceInfo.service_name));
-                comboBox_service.SelectedIndex = Math.Max(0, serviceEventList.FindIndex(info => info.serviceInfo.Create64Key() == selectID));
+                comboBox_service.ItemsSource = serviceEventListOrderAdjust.Select(item => new ComboItem(item.serviceInfo.Create64Key(), item.serviceInfo.service_name));
+                comboBox_service.SelectedValue = RestoreState.selectID ?? GetSelectID();
+                if (comboBox_service.SelectedIndex < 0) comboBox_service.SelectedIndex = 0;
 
                 UpdateProgramView();
                 MoveNowTime();

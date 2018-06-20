@@ -197,7 +197,7 @@ namespace EpgTimer
                 // 同一TSIDが連続する部分を選択中の中から探す(散らばっているTSIDはまとめない)
                 var a = listBox_serviceView.Items[itemIndex] as ServiceViewItem;
                 var b = listBox_serviceView.Items[itemIndex + 1] as ServiceViewItem;
-                if (a.ServiceInfo.TSID == b.ServiceInfo.TSID) continue;
+                if (a.ServiceInfo.ONID == b.ServiceInfo.ONID && a.ServiceInfo.TSID == b.ServiceInfo.TSID) continue;
 
                 // 見つかった場合 firstTsidIndex < itemIndex になる
                 if (itemIndex != firstTsidIndex) grpDicAdd(firstTsidIndex, itemIndex);

@@ -105,7 +105,7 @@ namespace EpgTimer
 
                 listBox_service.ItemsSource = null;
 
-                serviceList = serviceEventList.Select(item => item.serviceInfo.Create64Key())
+                serviceList = serviceEventListOrderAdjust.Select(item => item.serviceInfo.Create64Key())
                                             .Where(key => ChSet5.ChList.ContainsKey(key))
                                             .Select(key => new ServiceViewItem(ChSet5.ChList[key])).ToList();
                 serviceList.ForEach(item => item.IsSelected = lastSID.Contains(item.Key) == false);
@@ -121,12 +121,10 @@ namespace EpgTimer
         {
             lstCtrl.ReloadInfoData(dataList =>
             {
-                if (serviceEventList.Count != serviceList.Count) return false;
-
-                foreach (var list in serviceEventList.Zip(serviceList, (f, s) => new { f, s })
-                                            .Where(d => d.s.IsSelected == true).Select(d => d.f.eventList))
+                var eventDic = serviceEventList.ToDictionary(item => item.serviceInfo.Create64Key(), item => item.eventList);
+                foreach (var item in serviceList.Where(item => item.IsSelected == true && eventDic.ContainsKey(item.Key) == true))
                 {
-                    dataList.AddRange(list.Where(e => e.IsGroupMainEvent == true).ToSearchList(viewInfo.FilterEnded));
+                    dataList.AddRange(eventDic[item.Key].Where(e => e.IsGroupMainEvent == true).ToSearchList(viewInfo.FilterEnded));
                 }
                 return true;
             });
