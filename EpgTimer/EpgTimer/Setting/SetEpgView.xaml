@@ -43,13 +43,13 @@
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
                                     <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Name="comboBox_fontTitle" Text="{Binding FontNameTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="カンマ区切りで英字フォント+日本語フォントのようなフォントフォールバックの指定が出来ます。&#10;　(例)Times New Roman, MS UI Gothic"/>
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeTitle, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeTitle, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" HorizontalAlignment="Left" Margin="471,11,0,0" IsChecked="{Binding FontBoldTitle}" VerticalAlignment="Top" />
                                     <Label Content="タイトル以外" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
                                     <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding FontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSize, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
                                 <Grid Style="{StaticResource colorGrid}">
                                     <ComboBox Margin="12,6,0,0" Width="96" Name="comboBox_colorTitle1" Tag="0" />
@@ -62,20 +62,20 @@
                         <GroupBox Header="表示設定" Margin="6,6,6,0" >
                             <Grid>
                                 <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding ScrollSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding ScrollSize}" VerticalAlignment="Top" Width="55" />
                                 <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding MouseScrollAuto}" VerticalAlignment="Top" />
                                 <Label Content="サービス１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding ServiceWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding ServiceWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
                                 <CheckBox Content="ツールチップ" HorizontalAlignment="Left" Margin="226,41,0,0" IsChecked="{Binding EpgServiceNameTooltip}" VerticalAlignment="Top" ToolTip="サービス名をツールチップに表示します"/>
                                 <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding MinHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding MinHeight, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Text="{Binding DragScroll, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Text="{Binding DragScroll}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Text="{Binding MinimumHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Text="{Binding MinimumHeight, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="枠線の幅" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding EpgBorderLeftSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(サービス区切り)"/>
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding EpgBorderTopSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding EpgBorderLeftSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(サービス区切り)"/>
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding EpgBorderTopSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
                                 <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
                                     <CheckBox Content="番組内容のポップアップ表示" Margin="0,6,0,0" IsChecked="{Binding EpgPopup}"/>
                                     <StackPanel Margin="20,0,0,0" IsEnabled="{Binding EpgPopup}" >
@@ -86,7 +86,7 @@
                                         </WrapPanel>
                                         <WrapPanel>
                                             <Label Content="ポップアップの幅　サービスの幅 ×" />
-                                            <TextBox Width="55" Text="{Binding EpgPopupWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
+                                            <TextBox Width="55" Text="{Binding EpgPopupWidth, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
                                             <Label Content="倍" />
                                         </WrapPanel>
                                     </StackPanel>
@@ -95,7 +95,7 @@
                                         <CheckBox Content="番組名を表示しきれない物のみ表示する" Margin="0,6,0,0" IsChecked="{Binding EpgToolTipNoViewOnly}" />
                                         <WrapPanel>
                                             <Label Content="ツールチップを表示するまでの時間(ミリ秒) " />
-                                            <TextBox Width="55" Text="{Binding EpgToolTipViewWait, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox Width="55" Text="{Binding EpgToolTipViewWait}" />
                                         </WrapPanel>
                                     </StackPanel>
                                     <Label Content="番組内容を詳しく表示する" Margin="0,0,0,-4"/>
@@ -120,7 +120,7 @@
                                             <CheckBox Content="過去の番組情報を表示しない" IsChecked="{Binding EpgLoadArcInfo, Converter={StaticResource invert}}" Margin="0,2,0,2" ToolTipService.ShowDuration="60000" ToolTip="過去の番組情報を読み込まないようにします。&#10;・過去の番組情報を読み込んでいると、番組データの不整合のため表示が乱れる場合があります。&#10;・検索による絞り込みを使用している場合は、元々過去の番組情報は読み込まれていません。" />
                                             <StackPanel Orientation="Horizontal" ToolTip="前2つのオプションとは関係なく、強制的に表示を制限します。" >
                                                 <CheckBox Content="番組表の表示を" IsChecked="{Binding EpgNoDisplayOld}" />
-                                                <TextBox Text="{Binding EpgNoDisplayOldDays, UpdateSourceTrigger=PropertyChanged}" Width="55" Margin="6,0,0,0"/>
+                                                <TextBox Text="{Binding EpgNoDisplayOldDays}" Width="55" Margin="6,0,0,0"/>
                                                 <Label Content="日前までに制限する"/>
                                             </StackPanel>
                                         </StackPanel>
@@ -166,7 +166,7 @@
                                     <Label Content="編集欄の表示フォント" Name="label_FontReplacePattern"/>
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="12,0,0,0">
                                         <Label Content="サイズ" />
-                                        <TextBox Name="textBox_FontSizeReplacePatternEdit" Width="39" Text="{Binding FontSizeReplacePattern, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                        <TextBox Name="textBox_FontSizeReplacePatternEdit" Width="39" Text="{Binding FontSizeReplacePattern, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                         <CheckBox Content="太字" Margin="6,0,0,0" Click="checkBox_FontBoldReplacePattern_Click" IsChecked="{Binding FontBoldReplacePattern}"/>
                                     </StackPanel>
                                     <ComboBox Margin="6,0,0,0" Name="comboBox_FontReplacePatternEdit" IsEditable="True" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}"/>
@@ -408,13 +408,13 @@
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
                                     <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Text="{Binding TunerFontNameService}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSizeService, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSizeService, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" HorizontalAlignment="Left" Margin="471,11,0,0" IsChecked="{Binding TunerFontBoldService}" VerticalAlignment="Top" />
                                     <Label Content="サービス以外" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
                                     <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding TunerFontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSize, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
                                 <Grid x:Name="grid_TunerFontColor" Style="{StaticResource colorGrid}">
                                     <ComboBox Margin="12,6,0,0" Width="96" Name="comboBox_tunerFontColorService" Tag="0" IsEnabled="{Binding TunerColorModeUse, Converter={StaticResource invert}}"/>
@@ -427,20 +427,20 @@
                         <GroupBox Header="表示設定" Margin="6,6,6,0">
                             <Grid>
                                 <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding TunerScrollSize, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding TunerScrollSize}" VerticalAlignment="Top" Width="55" />
                                 <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding TunerMouseScrollAuto}" VerticalAlignment="Top" />
                                 <Label Content="チューナー１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding TunerWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding TunerWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
                                 <CheckBox Content="ツールチップ" HorizontalAlignment="Left" Margin="226,41,0,0" IsChecked="{Binding TunerNameTooltip}" VerticalAlignment="Top" ToolTip="チューナー名をツールチップに表示します"/>
                                 <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding TunerMinHeight, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding TunerMinHeight, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Text="{Binding TunerMinimumLine, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="650,6,0,0" Text="{Binding TunerMinimumLine, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Text="{Binding TunerDragScroll, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="55" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="470,36,0,0" Text="{Binding TunerDragScroll}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="枠線の幅" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding TunerBorderLeftSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(チューナー区切り)"/>
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding TunerBorderTopSize, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding TunerBorderLeftSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(チューナー区切り)"/>
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding TunerBorderTopSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
                                 <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
                                     <CheckBox Content="予約のポップアップ表示" Margin="0,6,0,0" IsChecked="{Binding TunerPopup}"/>
                                     <StackPanel Margin="20,0,0,0" IsEnabled="{Binding TunerPopup}" >
@@ -451,7 +451,7 @@
                                         <CheckBox Content="ポップアップに優先度と録画モードを表示する" Margin="0,6,0,0" IsChecked="{Binding TunerPopupRecinfo}" />
                                         <WrapPanel>
                                             <Label Content="ポップアップの幅　チューナーの幅 ×" />
-                                            <TextBox Width="55" Text="{Binding TunerPopupWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
+                                            <TextBox Width="55" Text="{Binding TunerPopupWidth, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
                                             <Label Content="倍" />
                                         </WrapPanel>
                                     </StackPanel>
@@ -463,7 +463,7 @@
                                         </WrapPanel>
                                         <WrapPanel>
                                             <Label Content="ツールチップを表示するまでの時間(ミリ秒) " />
-                                            <TextBox Width="55" Text="{Binding TunerToolTipViewWait, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox Width="55" Text="{Binding TunerToolTipViewWait}" />
                                         </WrapPanel>
                                     </StackPanel>
                                 </StackPanel>
@@ -577,15 +577,15 @@
                                 <DockPanel>
                                     <StackPanel>
                                         <DockPanel Margin="0,0,0,2">
-                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoDropErrIgnore, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoDropErrIgnore}" />
                                             <Label Content="ドロップをエラー扱いしない閾値" />
                                         </DockPanel>
                                         <DockPanel Margin="0,0,0,2">
-                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoDropWrnIgnore, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoDropWrnIgnore}" />
                                             <Label Content="ドロップを警告扱いしない閾値" />
                                         </DockPanel>
                                         <DockPanel Margin="0,0,0,2">
-                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoScrambleIgnore, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBox DockPanel.Dock="Right" Width="62" Text="{Binding RecInfoScrambleIgnore}" />
                                             <Label Content="スクランブル未解除を警告扱いしない閾値 " />
                                         </DockPanel>
                                         <Label Content="※それぞれ-1指定で、ドロップなどを全て無視。" Margin="12,0,0,0" />
@@ -636,7 +636,7 @@
                                 <CheckBox Margin="0,6,12,0" Content="重複しているEPG予約を強調表示する" IsChecked="{Binding DisplayReserveMultiple}" ToolTip="プログラム予約は対象外です" />
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
                                     <Label Content="番組表などへジャンプしたときの強調表示の継続時間 " />
-                                    <TextBox Width="40" Text="{Binding DisplayNotifyJumpTime, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
+                                    <TextBox Width="40" Text="{Binding DisplayNotifyJumpTime, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
                                     <Label Content="秒" />
                                 </StackPanel>
                                 <StackPanel Margin="0,0,12,0" >
@@ -666,7 +666,7 @@
                                 <CheckBox Margin="0,6,12,0" Content="録画設定タブ、予約タブにプリセットを表示する" IsChecked="{Binding DisplayPresetOnSearch}" ToolTipService.ShowDuration="20000" ToolTip="検索/キーワードダイアログ、予約登録/変更ダイアログが対象です。&#10;またこのオプションが有効のときは、タブにプリセット選択用の右クリックメニューが表示されます。"/>
                                 <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
                                     <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " IsChecked="{Binding NoToolTip, Converter={StaticResource invert}}" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
-                                    <TextBox Text="{Binding ToolTipWidth, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='max,16'}" Width="44" />
+                                    <TextBox Text="{Binding ToolTipWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" Width="44" />
                                 </StackPanel>
                                 <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧など)" IsChecked="{Binding ReserveToolTipMode}" ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
                                 <StackPanel Margin="0,0,12,0" >
@@ -711,7 +711,7 @@
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
                                     <ComboBox Style="{x:Null}" Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="60,6,0,0" Text="{Binding FontNameListView}" VerticalAlignment="Top" Width="240" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}"/>
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="316,6,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="368,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeListView, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="368,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeListView, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" HorizontalAlignment="Left" Margin="413,11,0,0" IsChecked="{Binding FontBoldListView}" VerticalAlignment="Top" />
                                 </Grid>
                                 <Grid Margin="488,0,0,0">

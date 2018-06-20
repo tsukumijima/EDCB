@@ -18,7 +18,7 @@
                 </DockPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <Label Content="コマンドライン引数 " Name="label_cmdline" />
-                    <TextBox Margin="0,0,6,0" Text="{Binding TvTestCmd, UpdateSourceTrigger=PropertyChanged}" Width="{Binding ActualWidth, ElementName=textBox_exe}" />
+                    <TextBox Margin="0,0,6,0" Text="{Binding TvTestCmd}" Width="{Binding ActualWidth, ElementName=textBox_exe}" />
                 </StackPanel>
                 <DockPanel Margin="0,6,0,0">
                     <TextBlock Width="{Binding ActualWidth, ElementName=label_cmdline}" />
@@ -43,12 +43,12 @@
                     <StackPanel Margin="36,0,0,0" >
                         <StackPanel Orientation="Horizontal">
                             <Label Content="TvTestの起動待ち時間" Width="{Binding ActualWidth, ElementName=label_wait_bon}"/>
-                            <TextBox Margin="6,0,0,0" Width="62" Text="{Binding TvTestOpenWait, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='12000,0'}"/>
+                            <TextBox Margin="6,0,0,0" Width="62" Text="{Binding TvTestOpenWait, Converter={StaticResource vcheck},ConverterParameter='12000,0'}"/>
                             <Label Content="ミリ秒" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0" >
                             <Label Content="BonDriverの切り替え待ち時間" Name="label_wait_bon"/>
-                            <TextBox Margin="6,0,0,0" Width="62" Text="{Binding TvTestChgBonWait, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource vcheck},ConverterParameter='12000,0'}"/>
+                            <TextBox Margin="6,0,0,0" Width="62" Text="{Binding TvTestChgBonWait, Converter={StaticResource vcheck},ConverterParameter='12000,0'}"/>
                             <Label Content="ミリ秒" />
                         </StackPanel>
                     </StackPanel>
@@ -72,7 +72,7 @@
                 </DockPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <Label Content="コマンドライン引数" Width="{Binding ActualWidth, ElementName=label_app_path}" IsEnabled="{Binding FilePlay}" />
-                    <local:TextBoxWithReadOnlyEffect Margin="6,0" Text="{Binding FilePlayCmd, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding FilePlay, Converter={StaticResource invert}}" Width="{Binding ActualWidth, ElementName=textBox_playExe}" />
+                    <local:TextBoxWithReadOnlyEffect Margin="6,0" Text="{Binding FilePlayCmd}" IsReadOnly="{Binding FilePlay, Converter={StaticResource invert}}" Width="{Binding ActualWidth, ElementName=textBox_playExe}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="12,0,0,0" IsEnabled="{Binding FilePlay}" >
                     <TextBlock Width="{Binding ActualWidth, ElementName=label_app_path}" />
