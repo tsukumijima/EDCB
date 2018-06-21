@@ -854,18 +854,18 @@ namespace EpgTimer
 
         public static bool? OpenAddManualAutoAddDialog()
         {
-            return OpenManualAutoAddDialog(null);
+            return OpenManualAutoAddDialog(null, AutoAddMode.NewAdd);
         }
         public static bool? OpenChangeManualAutoAddDialog(ManualAutoAddData Data)
         {
             if (AddManualAutoAddWindow.ChangeDataLastUsedWindow(Data) != null) return true;
-            return OpenManualAutoAddDialog(Data);
+            return OpenManualAutoAddDialog(Data, AutoAddMode.Change);
         }
-        public static bool? OpenManualAutoAddDialog(ManualAutoAddData Data)
+        public static bool? OpenManualAutoAddDialog(ManualAutoAddData Data, AutoAddMode mode)
         {
             try
             {
-                new AddManualAutoAddWindow(Data, AutoAddMode.Change).Show();
+                new AddManualAutoAddWindow(Data, mode).Show();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
