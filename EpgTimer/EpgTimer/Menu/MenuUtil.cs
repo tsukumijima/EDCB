@@ -412,7 +412,7 @@ namespace EpgTimer
                 + CmdExeUtil.FormatTitleListForDialog(list);
 
             return MessageBox.Show(text, "[予約" + description + "]の確認", MessageBoxButton.OKCancel,
-                                MessageBoxImage.Exclamation, MessageBoxResult.Cancel) == MessageBoxResult.OK;
+                                MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK;
         }
 
         public static bool AutoAddChangeKeyEnabled(IEnumerable<AutoAddData> itemlist, bool value)
@@ -450,11 +450,11 @@ namespace EpgTimer
                 {
                     if (MessageBox.Show("多数の項目を処理しようとしています。\r\n"
                         + "または多数の予約が追加されます。\r\n"
-                        + "よろしいですか？\r\n\r\n"
+                        + "よろしいですか?\r\n\r\n"
                         + "[項目数 : " + itemlist.Count() + "]\r\n"
                         + "[追加される予約数 : " + addReserveNum + "]\r\n"
                         , "自動予約登録の変更", MessageBoxButton.OKCancel,
-                        MessageBoxImage.Exclamation, MessageBoxResult.Cancel) == MessageBoxResult.Cancel)
+                        MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Cancel)
                     {
                         return false;
                     }
@@ -727,9 +727,9 @@ namespace EpgTimer
         {
             if (Settings.Instance.CautionManyChange == true && Count >= Settings.Instance.CautionManyNum)
             {
-                if (MessageBox.Show("多数の項目を処理しようとしています。\r\nよろしいですか？\r\n"
+                if (MessageBox.Show("多数の項目を処理しようとしています。\r\nよろしいですか?\r\n"
                     + "　項目数: " + Count + "\r\n"
-                    , description, MessageBoxButton.OKCancel, MessageBoxImage.Exclamation, MessageBoxResult.Cancel) == MessageBoxResult.Cancel)
+                    , description, MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Cancel)
                 {
                     return false;
                 }

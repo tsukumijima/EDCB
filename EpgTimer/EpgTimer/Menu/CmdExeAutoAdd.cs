@@ -124,8 +124,7 @@ namespace EpgTimer
                     + "[変更項目数: {0}]\r\n[貼り付けテキスト: \"{1}\"]\r\n\r\n", dataList.Count, Clipboard.GetText())
                     + CmdExeUtil.FormatTitleListForDialog(dataList.Select(info => info.searchInfo.andKey).ToList());
 
-                if (MessageBox.Show(text.ToString(), "[Notキーワード変更]の確認", MessageBoxButton.OKCancel,
-                                    MessageBoxImage.Exclamation, MessageBoxResult.OK) != MessageBoxResult.OK)
+                if (MessageBox.Show(text.ToString(), "[Notキーワード変更]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
                 { return; }
             }
 

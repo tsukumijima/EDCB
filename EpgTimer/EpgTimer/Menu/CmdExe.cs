@@ -729,7 +729,7 @@ namespace EpgTimer
 
             return (MessageBox.Show(string.Format(
                 "全て削除しますか?\r\n" + "[削除項目数: {0}]", Count)
-                , "[全削除]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation, MessageBoxResult.OK) != MessageBoxResult.OK);
+                , "[全削除]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
         public static bool CheckKeyboardDeleteCancel(ExecutedRoutedEventArgs e, List<string> list)
         {
@@ -738,8 +738,7 @@ namespace EpgTimer
 
             return (MessageBox.Show(
                 string.Format("削除しますか?\r\n\r\n" + "[削除項目数: {0}]\r\n\r\n", list.Count) + FormatTitleListForDialog(list)
-                , "削除の確認", MessageBoxButton.OKCancel,
-                MessageBoxImage.Exclamation, MessageBoxResult.OK) != MessageBoxResult.OK);
+                , "削除の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
         public static bool CheckAllProcCancel(ExecutedRoutedEventArgs e, IEnumerable<AutoAddData> dataList, bool IsDelete)
         {
@@ -758,8 +757,7 @@ namespace EpgTimer
                                         + "[{3}: {4}]\r\n\r\n", s[0], s[1], titleList.Count, s[2], dataList.GetReserveList().Count)
                 + CmdExeUtil.FormatTitleListForDialog(titleList);
 
-            return (MessageBox.Show(text, "[" + s[3] + "]の確認", MessageBoxButton.OKCancel,
-                                MessageBoxImage.Exclamation, MessageBoxResult.OK) != MessageBoxResult.OK);
+            return (MessageBox.Show(text, "[" + s[3] + "]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
         public static string FormatTitleListForDialog(ICollection<string> list)
         {
