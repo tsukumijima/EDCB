@@ -1,6 +1,10 @@
 ﻿<Window x:Class="EpgTimer.SetContextMenuWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        mc:Ignorable="d" 
+        xmlns:local="clr-namespace:EpgTimer" d:DataContext="{d:DesignInstance local:MenuSettingData}"
         Title="右クリックメニューの設定" Height="600" Width="650" Loaded="Window_Loaded" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" >
 
     <Grid>
@@ -72,8 +76,8 @@
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
-                            <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageDelete2" />
-                            <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageAdjustRes" />
+                            <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageDelete2}" />
+                            <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageAdjustRes}" />
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
                             <Separator Style="{StaticResource MiddleLine}" />
@@ -81,23 +85,23 @@
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
-                            <CheckBox Content="関連候補も表示する" Name="checkBox_AutoAddFazySearch" />
-                            <CheckBox Content="詳細ツールチップを表示する" Name="checkBox_AutoAddSearchToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
-                            <CheckBox Content="候補が1つなら展開しない" Name="checkBox_AutoAddSearchSkipSubMenu" ToolTip="該当する自動予約登録が1つのときはサブメニューを展開せず、自動予約登録名をツールチップに表示します。"/>
-                            <CheckBox Content="詳細ツールチップを表示する" Name="checkBox_ReserveSearchToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
-                            <CheckBox Content="記号類を取り除く" Name="checkBox_EpgKeyword_Trim" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。"/>
-                            <CheckBox Content="ジャンル情報を設定する" Name="checkBox_SetJunreToAutoAdd" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;可能ならジャンル情報も設定します。(録画済み一覧、プログラム予約一覧では働きません)"/>
-                            <CheckBox Content="大分類のみ設定する" Margin="20,0,6,1"  Name="checkBox_SetJunreContentToAutoAdd" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;ジャンル情報を設定するとき、小分類を無視して大分類のみで設定します。"/>
-                            <CheckBox Content="自動登録無効を解除する" Name="checkBox_CancelAutoAddOff" />
+                            <CheckBox Content="関連候補も表示する" IsChecked="{Binding AutoAddFazySearch}" />
+                            <CheckBox Content="詳細ツールチップを表示する" IsChecked="{Binding AutoAddSearchToolTip}" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
+                            <CheckBox Content="候補が1つなら展開しない" IsChecked="{Binding AutoAddSearchSkipSubMenu}" ToolTip="該当する自動予約登録が1つのときはサブメニューを展開せず、自動予約登録名をツールチップに表示します。"/>
+                            <CheckBox Content="詳細ツールチップを表示する" IsChecked="{Binding ReserveSearchToolTip}" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
+                            <CheckBox Content="記号類を取り除く" IsChecked="{Binding Keyword_Trim}" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。"/>
+                            <CheckBox Content="ジャンル情報を設定する" IsChecked="{Binding SetJunreToAutoAdd}" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;可能ならジャンル情報も設定します。(録画済み一覧、プログラム予約一覧では働きません)"/>
+                            <CheckBox Content="大分類のみ設定する" Margin="20,0,6,1"  IsChecked="{Binding SetJunreContentToAutoAdd}" ToolTipService.ShowDuration="60000" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;ジャンル情報を設定するとき、小分類を無視して大分類のみで設定します。"/>
+                            <CheckBox Content="自動登録無効を解除する" IsChecked="{Binding CancelAutoAddOff}" />
                             <CheckBox Visibility="Hidden"/>
-                            <CheckBox Content="一つ上で開く(録画結果除く)" Name="checkBox_OpenParentFolder" />
+                            <CheckBox Content="一つ上で開く(録画結果除く)" IsChecked="{Binding OpenParentFolder}" />
                             <Separator Style="{StaticResource MiddleLine}" />
-                            <CheckBox Content="記号類を取り除く" Name="checkBox_CopyTitle_Trim" />
-                            <CheckBox Content="基本情報のみコピーする" Name="checkBox_CopyContentBasic" />
-                            <CheckBox Content="記号類を取り除く" Name="checkBox_InfoSearchTtile_Trim" />
-                            <CheckBox Content="記号類を取り除く" Name="checkBox_SearchTtile_Trim" />
+                            <CheckBox Content="記号類を取り除く" IsChecked="{Binding CopyTitle_Trim}" />
+                            <CheckBox Content="基本情報のみコピーする" IsChecked="{Binding CopyContentBasic}" />
+                            <CheckBox Content="記号類を取り除く" IsChecked="{Binding InfoSearchTitle_Trim}" />
+                            <CheckBox Content="記号類を取り除く" IsChecked="{Binding SearchTitle_Trim}" />
                             <CheckBox Visibility="Hidden" />
-                            <CheckBox Content="確認メッセージを表示しない" Name="checkBox_NoMessageNotKEY" />
+                            <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageNotKEY}" />
                             <Separator Style="{StaticResource MiddleLine}" />
                             <CheckBox Visibility="Hidden" />
                             <Separator Style="{StaticResource UnderLine}" />
@@ -131,7 +135,7 @@
                     </Grid.ColumnDefinitions>
                     <DockPanel Grid.ColumnSpan="3">
                         <Label Content="画面選択" />
-                        <ComboBox Grid.ColumnSpan="3" Name="comboBoxViewSelect" Margin="6,0,0,0" SelectionChanged="comboBoxViewSelect_SelectionChanged" Height="{Binding ElementName=button_allDefault,Path=ActualHeight}"/>
+                        <ComboBox Grid.ColumnSpan="3" Name="comboBoxViewSelect" Margin="6,0,0,0" SelectedValuePath="Key" DisplayMemberPath="Value" SelectionChanged="comboBoxViewSelect_SelectionChanged" Height="{Binding ElementName=button_allDefault,Path=ActualHeight}"/>
                     </DockPanel>
                     <Label Content="表示項目" Grid.Row="2"/>
                     <Label Content="全項目一覧" Grid.Row="2" Grid.Column="4"/>
@@ -157,7 +161,7 @@
                 <StackPanel Margin="6">
                     <DockPanel Margin="0,0,0,6" >
                         <Label Content="検索のURI " />
-                        <TextBox Name="textBox_SearchURI" Height="24" />
+                        <TextBox Text="{Binding SearchURI}" />
                     </DockPanel>
                     <GroupBox Header="個別設定を使用する" Margin="0,6,0,0" >
                         <StackPanel Margin="6,6,0,0">
@@ -171,9 +175,9 @@
                             </WrapPanel>
                         </StackPanel>
                     </GroupBox>
-                    <CheckBox Margin="0,6,0,0" Content="ショートカット操作に対する確認メッセージを表示しない" Name="checkBox_NoMessageKeyGesture" />
+                    <CheckBox Margin="0,6,0,0" Content="ショートカット操作に対する確認メッセージを表示しない" IsChecked="{Binding NoMessageKeyGesture}" />
                     <Label Margin="0,-4,0,-4" Content="※削除、自動予約登録画面の並び替え関係、予約ダイアログの確定操作など" />
-                    <CheckBox Margin="0,6,0,0" Content="「全て削除」(録画済み一覧、検索/自動登録ダイアログ)で確認メッセージを表示しない" Name="checkBox_NoMessageDeleteAll" />
+                    <CheckBox Margin="0,6,0,0" Content="「全て削除」(録画済み一覧、検索/自動登録ダイアログ)で確認メッセージを表示しない" IsChecked="{Binding NoMessageDeleteAll}" />
                     <DockPanel Margin="0,12,0,0" >
                         <TextBlock Text="※ " VerticalAlignment="Top"/>
                         <TextBlock Text="共通設定にあるショートカットキーを変更したい場合は、設定ファイル(XML)で直接指定してください。&#10;設定項目　&lt;EasyMenuItems&gt;&lt;CmdSaveData&gt;&lt;ShortCuts&gt;"/>

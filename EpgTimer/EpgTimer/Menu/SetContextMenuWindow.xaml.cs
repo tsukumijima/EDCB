@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -100,8 +99,6 @@ namespace EpgTimer
                 stackItems_ges2 = stackPanel_gesture2.Children.OfType<CheckBox>().ToList();
 
                 //個別設定画面用の設定
-                this.comboBoxViewSelect.DisplayMemberPath = CommonUtil.NameOf(() => new ComboItem().Value);
-                this.comboBoxViewSelect.SelectedValuePath = CommonUtil.NameOf(() => new ComboItem().Key);
                 var bx = new BoxExchangeEditor(this.listBox_Default, this.listBox_Setting, true, true, true, true);
                 bx.AllowDuplication(StringItem.Items(EpgCmdsEx.SeparatorString), StringItem.Cloner, StringItem.Comparator);
                 button_reset.Click += new RoutedEventHandler(bx.button_Reset_Click);
@@ -124,27 +121,6 @@ namespace EpgTimer
                     chkbox.Unchecked += new RoutedEventHandler(checkBox_IsManualMenuCode_Checked);
                     wrapPanel_IsManualMenu.Children.Add(chkbox);
                 }
-
-                //細かいオプションの設定
-                checkBox_NoMessageKeyGesture.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageKeyGesture));
-                checkBox_NoMessageDeleteAll.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageDeleteAll));
-                checkBox_NoMessageDelete2.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageDelete2));
-                checkBox_NoMessageAdjustRes.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageAdjustRes));
-                checkBox_SetJunreToAutoAdd.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.SetJunreToAutoAdd));
-                checkBox_SetJunreContentToAutoAdd.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.SetJunreContentToAutoAdd));                
-                checkBox_CancelAutoAddOff.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.CancelAutoAddOff));
-                checkBox_AutoAddFazySearch.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddFazySearch));
-                checkBox_AutoAddSearchToolTip.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddSearchToolTip));
-                checkBox_AutoAddSearchSkipSubMenu.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.AutoAddSearchSkipSubMenu));
-                checkBox_ReserveSearchToolTip.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.ReserveSearchToolTip));
-                checkBox_EpgKeyword_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.Keyword_Trim));
-                checkBox_CopyTitle_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.CopyTitle_Trim));
-                checkBox_CopyContentBasic.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.CopyContentBasic));
-                checkBox_InfoSearchTtile_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.InfoSearchTitle_Trim));
-                checkBox_SearchTtile_Trim.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.SearchTitle_Trim));
-                textBox_SearchURI.SetBinding(TextBox.TextProperty, CommonUtil.NameOf(() => info.SearchURI));
-                checkBox_NoMessageNotKEY.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.NoMessageNotKEY));
-                checkBox_OpenParentFolder.SetBinding(CheckBox.IsCheckedProperty, CommonUtil.NameOf(() => info.OpenParentFolder));
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
