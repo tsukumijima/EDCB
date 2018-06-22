@@ -338,6 +338,7 @@ namespace EpgTimer
         public bool NoBallonTips { get; set; }
         public int ForceHideBalloonTipSec { get; set; }
         public bool PlayDClick { get; set; }
+        public bool ConfirmDelRecInfoFileDelete { get; set; }
         public bool ShowEpgCapServiceOnly { get; set; }
         public bool SortServiceList { get; set; }
         public bool ExitAfterProcessingArgs { get; set; }
@@ -676,6 +677,7 @@ namespace EpgTimer
             NoBallonTips = false;
             ForceHideBalloonTipSec = 0;
             PlayDClick = false;
+            ConfirmDelRecInfoFileDelete = true;
             ShowEpgCapServiceOnly = false;
             SortServiceList = true;
             ExitAfterProcessingArgs = false;

@@ -21,16 +21,18 @@ namespace EpgTimer
         protected override void mc_Delete(object sender, ExecutedRoutedEventArgs e)
         {
             dataList = dataList.GetNoProtectedList();
-            if (mcs_DeleteCheck(e) == false) return;
-
-            if (IniFileHandler.GetPrivateProfileInt("SET", "RecInfoDelFile", 0, SettingPath.CommonIniPath) == 1)
-            {
-                if (MessageBox.Show("録画ファイルが存在する場合は一緒に削除されます。\r\nよろしいですか?",
-                    "ファイル削除", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
-                { return; }
-            }
-
+            if (mcs_DeleteCheck(e) == false || mcs_DeleteCheckDelFile(dataList) == false) return;
             IsCommandExecuted = MenuUtil.RecinfoDelete(dataList);
+        }
+        public static bool mcs_DeleteCheckDelFile(IEnumerable<RecFileInfo> list)
+        {
+            if (Settings.Instance.ConfirmDelRecInfoFileDelete && list.Any(info => info.RecFilePath.Length > 0)
+                && IniFileHandler.GetPrivateProfileInt("SET", "RecInfoDelFile", 0, SettingPath.CommonIniPath) == 1)
+            {
+                return (MessageBox.Show("録画ファイルが存在する場合は一緒に削除されます。\r\nよろしいですか?",
+                    "ファイル削除", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK);
+            }
+            return true;
         }
         protected override void mc_Play(object sender, ExecutedRoutedEventArgs e)
         {

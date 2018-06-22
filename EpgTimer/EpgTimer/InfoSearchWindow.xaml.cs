@@ -304,6 +304,9 @@ namespace EpgTimer
             if (CmdExeUtil.CheckDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
             { return; }
 
+            if (CmdExeRecinfo.mcs_DeleteCheckDelFile(dataList.OfType<RecFileInfo>()) == false)
+            { return; }
+
             if (MenuUtil.CautionManyMessage(dataList.Count, "削除の確認") == false)
             { return; }
 
