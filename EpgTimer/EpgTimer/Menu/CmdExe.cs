@@ -285,7 +285,7 @@ namespace EpgTimer
             }
             else
             {
-                if (CmdExeUtil.CheckKeyboardDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
+                if (CmdExeUtil.CheckDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
                 { return false; ; }
             }
             return true;
@@ -725,15 +725,15 @@ namespace EpgTimer
     {
         public static bool CheckAllDeleteCancel(ExecutedRoutedEventArgs e, int Count)
         {
-            if (CmdExeUtil.IsMessageBeforeCommand(e) == false) return false;
+            if (IsMessageBeforeCommand(e) == false) return false;
 
             return (MessageBox.Show(string.Format(
                 "全て削除しますか?\r\n" + "[削除項目数: {0}]", Count)
                 , "[全削除]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
-        public static bool CheckKeyboardDeleteCancel(ExecutedRoutedEventArgs e, List<string> list)
+        public static bool CheckDeleteCancel(ExecutedRoutedEventArgs e, List<string> list)
         {
-            if (IsDisplayKgMessage(e) == false) return false;
+            if (IsMessageBeforeCommand(e) == false) return false;
             if (list == null || list.Count == 0) return false;
 
             return (MessageBox.Show(
@@ -742,7 +742,7 @@ namespace EpgTimer
         }
         public static bool CheckAllProcCancel(ExecutedRoutedEventArgs e, IEnumerable<AutoAddData> dataList, bool IsDelete)
         {
-            if (CmdExeUtil.IsMessageBeforeCommand(e) == false) return false;
+            if (IsMessageBeforeCommand(e) == false) return false;
 
             List<string> titleList = dataList.Where(info => info != null).Select(info => info.DataTitle).ToList();
             if (titleList.Count == 0) return false;
@@ -755,7 +755,7 @@ namespace EpgTimer
                                         + "(個別予約も処理の対象となります。)\r\n\r\n"
                                         + "[{1}項目数: {2}]\r\n"
                                         + "[{3}: {4}]\r\n\r\n", s[0], s[1], titleList.Count, s[2], dataList.GetReserveList().Count)
-                + CmdExeUtil.FormatTitleListForDialog(titleList);
+                + FormatTitleListForDialog(titleList);
 
             return (MessageBox.Show(text, "[" + s[3] + "]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
@@ -771,9 +771,10 @@ namespace EpgTimer
         {
             if (HasCommandParameter(e) == false) return false;
             //コマンド側のオプションに変更可能なようにまとめておく
-            bool NoMessage = false;
+            bool NoMessage = true;
             if (e.Command == EpgCmds.DeleteAll) NoMessage = Settings.Instance.MenuSet.NoMessageDeleteAll;
-            else if (e.Command == EpgCmds.Delete2) NoMessage = Settings.Instance.MenuSet.NoMessageDelete2;
+            else if (e.Command == EpgCmds.Delete || e.Command == EpgCmds.DeleteInDialog) NoMessage = Settings.Instance.MenuSet.NoMessageDelete;
+            else if (e.Command == EpgCmds.Delete2 || e.Command == EpgCmds.Delete2InDialog) NoMessage = Settings.Instance.MenuSet.NoMessageDelete2;
             else if (e.Command == EpgCmds.SetNotKey) NoMessage = Settings.Instance.MenuSet.NoMessageNotKEY;
             else if (e.Command == EpgCmds.AdjustReserve) NoMessage = Settings.Instance.MenuSet.NoMessageAdjustRes;
 

@@ -376,7 +376,7 @@ namespace EpgTimer
         {
             if (proc != 3)
             {
-                if (CmdExeUtil.IsDisplayKgMessage(e) == true)
+                if (CmdExeUtil.IsMessageBeforeCommand(e) == true)
                 {
                     if (MessageBox.Show(AutoAddString + "を" + cmdMsg[proc] + "します。\r\nよろしいですか？", cmdMsg[proc] + "の確認", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
                     { return -2; }

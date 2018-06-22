@@ -291,7 +291,7 @@ namespace EpgTimer
         static string[] cmdMsg = new string[] { "追加", "変更", "削除" };
         protected virtual bool CheckReserveChange(ExecutedRoutedEventArgs e, int proc)
         {
-            if (CmdExeUtil.IsDisplayKgMessage(e) == true)
+            if (CmdExeUtil.IsMessageBeforeCommand(e) == true)
             {
                 if (MessageBox.Show("予約を" + cmdMsg[proc] + "します。\r\nよろしいですか？", cmdMsg[proc] + "の確認", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
                 { return false; }

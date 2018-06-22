@@ -110,6 +110,7 @@ namespace EpgTimer
     
         public List<CtxmCode> IsManualAssign { get; set; }
         public bool NoMessageKeyGesture { get; set; }
+        public bool NoMessageDelete { get; set; }
         public bool NoMessageDeleteAll { get; set; }
         public bool NoMessageDelete2 { get; set; }
         public bool NoMessageAdjustRes { get; set; }
@@ -135,6 +136,7 @@ namespace EpgTimer
         {
             IsManualAssign = new List<CtxmCode>();
             NoMessageKeyGesture = false;
+            NoMessageDelete = true;
             NoMessageDeleteAll = false;
             NoMessageDelete2 = false;
             NoMessageAdjustRes = false;

@@ -161,7 +161,7 @@ namespace EpgTimer
         private void reserve_del(object sender, ExecutedRoutedEventArgs e) { reserve_proc(e, 2); }
         private void reserve_proc(ExecutedRoutedEventArgs e, int proc)
         {
-            if (CmdExeUtil.IsDisplayKgMessage(e) == true)
+            if (CmdExeUtil.IsMessageBeforeCommand(e) == true)
             {
                 if (MessageBox.Show("予約を" + cmdMsg[proc] + "します。\r\nよろしいですか？", cmdMsg[proc] + "の確認", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
                 { return; }

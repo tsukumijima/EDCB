@@ -301,7 +301,7 @@ namespace EpgTimer
             //
             List<IRecWorkMainData> dataList = lstCtrl.GetSelectedItemsList().Select(data => data.Data).ToList();
 
-            if (CmdExeUtil.CheckKeyboardDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
+            if (CmdExeUtil.CheckDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
             { return; }
 
             if (MenuUtil.CautionManyMessage(dataList.Count, "削除の確認") == false)
