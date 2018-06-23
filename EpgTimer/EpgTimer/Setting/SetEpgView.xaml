@@ -633,55 +633,55 @@
                     </TabItem.Resources>
                     <GroupBox Header="各種設定" Margin="6,6,6,0" VerticalAlignment="Top">
                         <WrapPanel Orientation="Vertical" Margin="11,0,0,0" >
-                                <CheckBox Margin="0,6,12,0" Content="自動予約登録(キーワード/プログラム予約)を見失った予約を強調表示する" IsChecked="{Binding DisplayReserveAutoAddMissing}" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わったときなどに発生する場合があります" />
-                                <CheckBox Margin="0,6,12,0" Content="重複しているEPG予約を強調表示する" IsChecked="{Binding DisplayReserveMultiple}" ToolTip="プログラム予約は対象外です" />
-                                <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
-                                    <Label Content="番組表などへジャンプしたときの強調表示の継続時間 " />
-                                    <TextBox Width="40" Text="{Binding DisplayNotifyJumpTime, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
-                                    <Label Content="秒" />
-                                </StackPanel>
-                                <StackPanel Margin="0,0,12,0" >
-                                    <Label Content="リスト表示で省略する(録画済み一覧以外)" />
-                                    <WrapPanel Margin="14,-2,0,0" >
-                                        <CheckBox Content="'年' 　" IsChecked="{Binding ResInfoNoYear}" />
-                                        <CheckBox Content="'秒' 　" IsChecked="{Binding ResInfoNoSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
-                                        <CheckBox Content="長さの'秒'" IsChecked="{Binding ResInfoNoDurSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
-                                    </WrapPanel>
-                                </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" IsChecked="{Binding TrimSortTitle}" />
-                                <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
-                                    <CheckBox Content="記号類の除去にカスタム設定を使用する" Name="checkBox_picUpCustom" IsChecked="{Binding UseCustom}" ToolTipService.ShowDuration="20000" ToolTip="右クリックメニューや各画面の列の並べ替えに使用している設定を、内部デフォルト設定から変更します。" />
-                                    <Button Margin="12,0,0,0" Content="設定" Click="button_SetPicUpCustom_Click" />
-                                </StackPanel>
-                                <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
-                                    <CheckBox Content="深夜時間表示をする 　" IsChecked="{Binding LaterTimeUse}" />
-                                    <TextBox Width="40" Name="textBox_LaterTimeHour" />
-                                    <Label Content="時まで" />
-                                </StackPanel>
-                                <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" IsChecked="{Binding KeepReserveWindow}" />
-                                <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" IsChecked="{Binding UseLastSearchKey}" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
-                                <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
-                                    <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" IsChecked="{Binding SaveSearchKeyword}" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>
-                                    <Button Content="履歴クリア" Margin="6,0,0,0" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
-                                </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="録画設定タブ、予約タブにプリセットを表示する" IsChecked="{Binding DisplayPresetOnSearch}" ToolTipService.ShowDuration="20000" ToolTip="検索/キーワードダイアログ、予約登録/変更ダイアログが対象です。&#10;またこのオプションが有効のときは、タブにプリセット選択用の右クリックメニューが表示されます。"/>
-                                <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
-                                    <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " IsChecked="{Binding NoToolTip, Converter={StaticResource invert}}" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
-                                    <TextBox Text="{Binding ToolTipWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" Width="44" />
-                                </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧など)" IsChecked="{Binding ReserveToolTipMode}" ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
-                                <StackPanel Margin="0,0,12,0" >
-                                    <Label Content="番組詳細タブを選択した状態で予約ダイアログを開く" ToolTip="番組表、使用予定チューナー画面はそれぞれの設定タブを参照" />
-                                    <WrapPanel Margin="14,-2,0,0" >
-                                        <CheckBox Content="予約一覧 　" IsChecked="{Binding ReserveEpgInfoOpenMode}" />
-                                        <CheckBox Content="自動予約登録・検索関連ダイアログなど" IsChecked="{Binding SearchEpgInfoOpenMode}" ToolTipService.ShowDuration="20000" ToolTip="対象となるのは、次の画面。&#10;キーワード予約一覧、プログラム予約一覧、&#10;検索/キーワード予約ダイアログ、予約情報検索ダイアログ" />
-                                    </WrapPanel>
-                                </StackPanel>
-                                <StackPanel Margin="0,4,12,0" >
-                                    <CheckBox Content="ステータス表示をする" IsChecked="{Binding DisplayStatus}" />
-                                    <CheckBox Margin="14,4,0,0" Content="主要操作の操作結果を表示をする" IsChecked="{Binding DisplayStatusNotify}" IsEnabled="{Binding DisplayStatus}" />
-                                </StackPanel>
-                                <CheckBox Margin="0,6,12,0" Content="テーマを適用する(要再起動)" Name="checkBox_NotNoStyle" IsChecked="{Binding NoStyle, Converter={StaticResource invert}}" />
+                            <CheckBox Margin="0,6,12,0" Content="自動予約登録(キーワード/プログラム予約)を見失った予約を強調表示する" IsChecked="{Binding DisplayReserveAutoAddMissing}" ToolTip="自動予約登録を削除・変更した場合や、EPGのタイトルが変わったときなどに発生する場合があります" />
+                            <CheckBox Margin="0,6,12,0" Content="重複しているEPG予約を強調表示する" IsChecked="{Binding DisplayReserveMultiple}" ToolTip="プログラム予約は対象外です" />
+                            <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
+                                <Label Content="番組表などへジャンプしたときの強調表示の継続時間 " />
+                                <TextBox Width="40" Text="{Binding DisplayNotifyJumpTime, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
+                                <Label Content="秒" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0" >
+                                <Label Content="リスト表示で省略する(録画済み一覧以外)" />
+                                <WrapPanel Margin="14,-2,0,0" >
+                                    <CheckBox Content="'年' 　" IsChecked="{Binding ResInfoNoYear}" />
+                                    <CheckBox Content="'秒' 　" IsChecked="{Binding ResInfoNoSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    <CheckBox Content="長さの'秒'" IsChecked="{Binding ResInfoNoDurSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                </WrapPanel>
+                            </StackPanel>
+                            <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" IsChecked="{Binding TrimSortTitle}" />
+                            <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
+                                <CheckBox Content="記号類の除去にカスタム設定を使用する" Name="checkBox_picUpCustom" IsChecked="{Binding UseCustom}" ToolTipService.ShowDuration="20000" ToolTip="右クリックメニューや各画面の列の並べ替えに使用している設定を、内部デフォルト設定から変更します。" />
+                                <Button Margin="12,0,0,0" Content="設定" Click="button_SetPicUpCustom_Click" />
+                            </StackPanel>
+                            <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
+                                <CheckBox Content="深夜時間表示をする 　" IsChecked="{Binding LaterTimeUse}" />
+                                <TextBox Width="40" Name="textBox_LaterTimeHour" />
+                                <Label Content="時まで" />
+                            </StackPanel>
+                            <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" IsChecked="{Binding KeepReserveWindow}" />
+                            <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" IsChecked="{Binding UseLastSearchKey}" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
+                            <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
+                                <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" IsChecked="{Binding SaveSearchKeyword}" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>
+                                <Button Content="履歴クリア" Margin="6,0,0,0" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
+                            </StackPanel>
+                            <CheckBox Margin="0,6,12,0" Content="録画設定タブ、予約タブにプリセットを表示する" IsChecked="{Binding DisplayPresetOnSearch}" ToolTipService.ShowDuration="20000" ToolTip="検索/キーワードダイアログ、予約登録/変更ダイアログが対象です。&#10;またこのオプションが有効のときは、タブにプリセット選択用の右クリックメニューが表示されます。"/>
+                            <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
+                                <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " IsChecked="{Binding NoToolTip, Converter={StaticResource invert}}" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
+                                <TextBox Text="{Binding ToolTipWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" Width="44" />
+                            </StackPanel>
+                            <CheckBox Margin="0,6,12,0" Content="詳細情報のツールチップに番組情報を表示する(予約一覧など)" IsChecked="{Binding ReserveToolTipMode}" ToolTip="使用予定チューナー画面、録画済み一覧画面はそれぞれの設定タブを参照" />
+                            <StackPanel Margin="0,0,12,0" >
+                                <Label Content="番組詳細タブを選択した状態で予約ダイアログを開く" ToolTip="番組表、使用予定チューナー画面はそれぞれの設定タブを参照" />
+                                <WrapPanel Margin="14,-2,0,0" >
+                                    <CheckBox Content="予約一覧 　" IsChecked="{Binding ReserveEpgInfoOpenMode}" />
+                                    <CheckBox Content="自動予約登録・検索関連ダイアログなど" IsChecked="{Binding SearchEpgInfoOpenMode}" ToolTipService.ShowDuration="20000" ToolTip="対象となるのは、次の画面。&#10;キーワード予約一覧、プログラム予約一覧、&#10;検索/キーワード予約ダイアログ、予約情報検索ダイアログ" />
+                                </WrapPanel>
+                            </StackPanel>
+                            <StackPanel Margin="0,4,12,0" >
+                                <CheckBox Content="ステータス表示をする" IsChecked="{Binding DisplayStatus}" />
+                                <CheckBox Margin="14,4,0,0" Content="主要操作の操作結果を表示をする" IsChecked="{Binding DisplayStatusNotify}" IsEnabled="{Binding DisplayStatus}" />
+                            </StackPanel>
+                            <CheckBox Margin="0,6,12,0" Content="テーマを適用する(要再起動)" Name="checkBox_NotNoStyle" IsChecked="{Binding NoStyle, Converter={StaticResource invert}}" />
                             <StackPanel Orientation="Horizontal" Margin="0,6,12,0">
                                 <Label Content="初期表示画面 "/>
                                 <ComboBox Name="comboBox_startTab" Width="160" SelectedValue="{Binding StartTab}" SelectedValuePath="Key" DisplayMemberPath="Value"/>
