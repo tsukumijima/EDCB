@@ -300,6 +300,7 @@ namespace EpgTimer
             if (listView_result.SelectedItem == null) return;
             //
             List<IRecWorkMainData> dataList = lstCtrl.GetSelectedItemsList().Select(data => data.Data).ToList();
+            dataList.RemoveAll(d => d is RecFileInfo && (d as RecFileInfo).ProtectFlag != 0);
 
             if (CmdExeUtil.CheckDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
             { return; }
