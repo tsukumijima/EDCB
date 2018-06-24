@@ -28,13 +28,13 @@ namespace EpgTimer
                 comboBox_timeH_week.ItemsSource = Enumerable.Range(0, 24);
                 info.StartTimeWeek = 4;
 
-                servieceList = ChSet5.ChList.Values.Select(info => new ServiceViewItem(info)).ToDictionary(item => item.Key, item => item);
-                var selectedList = ChSet5.ChListSelected.Select(info => servieceList[info.Key]).ToList();
-                listBox_serviceDttv.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsDttv == true);
-                listBox_serviceBS.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsBS == true);
-                listBox_serviceCS.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsCS1 == true || info.ServiceInfo.IsCS2 == true);
-                listBox_serviceCS3.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsCS3 == true);
-                listBox_serviceOther.ItemsSource = selectedList.Where(info => info.ServiceInfo.IsOther == true);
+                servieceList = ChSet5.ChList.Values.Select(item => new ServiceViewItem(item)).ToDictionary(item => item.Key, item => item);
+                var selectedList = ChSet5.ChListSelected.Select(item => servieceList[item.Key]).ToList();
+                listBox_serviceDttv.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsDttv == true);
+                listBox_serviceBS.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsBS == true);
+                listBox_serviceCS.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsCS1 == true || item.ServiceInfo.IsCS2 == true);
+                listBox_serviceCS3.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsCS3 == true);
+                listBox_serviceOther.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsOther == true);
                 listBox_serviceAll.ItemsSource = selectedList;
 
                 foreach (TabItem tab in tab_ServiceList.Items)
