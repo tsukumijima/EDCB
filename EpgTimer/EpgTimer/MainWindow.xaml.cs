@@ -230,6 +230,10 @@ namespace EpgTimer
                 this.tabControl_main.SelectionChanged += (sender, e) =>
                 {
                     epgView.Visibility = tabItem_epg.IsSelected == true ? Visibility.Visible : Visibility.Hidden;
+
+                    //キー操作などによるタブ風ボタンエリアへの進入防止
+                    if (tabControl_main.SelectedItem == null || (tabControl_main.SelectedItem as TabItem).Tag as string != specific) return;
+                    (e.RemovedItems[0] as TabItem == tabItem_reserve ? tabItem_epg : tabItem_reserve).IsSelected = true;
                 };
 
                 //番組表タブに番組表設定画面を出すコンテキストメニューを表示する
