@@ -83,6 +83,7 @@
     <Compile Include="AutoAddView.xaml.cs">
       <DependentUpon>AutoAddView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DefineClass\TextBoxWithReadOnlyEffect.cs" />
     <Compile Include="DefineClass\InfoSearchSetting.cs" />
     <Compile Include="DefineClass\PicUpTitle.cs" />
     <Compile Include="UserCtrlView\BlackoutWindow.xaml.cs">

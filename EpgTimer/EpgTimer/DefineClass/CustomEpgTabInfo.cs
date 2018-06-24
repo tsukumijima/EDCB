@@ -23,7 +23,8 @@ namespace EpgTimer
             ID = -1;
             IsVisible = true;
         }
-        public String TabName { get; set; }
+        public string TabName { get; set; }
+        public override string ToString() { return TabName; }
         public int ViewMode { get; set; }
         public bool NeedTimeOnlyBasic { get; set; }
         public bool NeedTimeOnlyWeek { get; set; }
@@ -37,7 +38,7 @@ namespace EpgTimer
         public bool SearchGenreNoSyncView { get; set; }
         public bool FilterEnded { get; set; }
         public int ID { get; set; }
-        public String Uid { get { return ID.ToString(); } }
+        public string Uid { get { return ID.ToString(); } }
         public bool IsVisible { get; set; }
 
         public EpgSearchKeyInfo GetSearchKeyReloadEpg()
@@ -59,11 +60,6 @@ namespace EpgTimer
             other.ViewContentList = ViewContentList.DeepClone();
             other.SearchKey = SearchKey.DeepClone();
             return other;
-        }
-
-        public override string ToString()
-        {
-            return TabName;
         }
     }
 }

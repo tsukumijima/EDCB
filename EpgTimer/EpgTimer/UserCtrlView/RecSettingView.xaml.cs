@@ -40,8 +40,6 @@ namespace EpgTimer
         }
 
         private RadioBtnSelect recEndModeRadioBtns;
-        private List<TunerSelectInfo> tunerList = new List<TunerSelectInfo>();
-
         private bool IsManual = false;
 
         private PresetEditor<RecPresetItem> preEdit = new PresetEditor<RecPresetItem>();
@@ -73,15 +71,10 @@ namespace EpgTimer
 
                 recEndModeRadioBtns = new RadioBtnSelect(radioButton_non, radioButton_standby, radioButton_suspend, radioButton_shutdown);
 
-                tunerList.Add(new TunerSelectInfo("自動", 0));
-                foreach (TunerReserveInfo info in CommonManager.Instance.DB.TunerReserveList.Values)
-                {
-                    if (info.tunerID != 0xFFFFFFFF)
-                    {
-                        tunerList.Add(new TunerSelectInfo(info.tunerName, info.tunerID));
-                    }
-                }
-                comboBox_tuner.ItemsSource = tunerList;
+                comboBox_tuner.ItemsSource = new List<TunerSelectInfo> { new TunerSelectInfo("自動", 0) }
+                    .Concat(CommonManager.Instance.DB.TunerReserveList.Values
+                    .Where(info => info.tunerID != 0xFFFFFFFF)
+                    .Select(info => new TunerSelectInfo(info.tunerName, info.tunerID)));
                 comboBox_tuner.SelectedIndex = 0;
 
                 stackPanel_PresetEdit.Children.Clear();
@@ -89,7 +82,7 @@ namespace EpgTimer
                 preEdit.Set(this, PresetSelectChanged, PresetEdited, "録画プリセット", SetRecPresetWindow.SettingWithDialog);
                 comboBox_preSet = preEdit.comboBox_preSet;
 
-                var bx = new BoxExchangeEdit.BoxExchangeEditor(null, listView_recFolder, true, true, true);
+                var bx = new BoxExchangeEditor(null, listView_recFolder, true, true, true);
                 bx.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_recFolderChg);
                 bx.targetBoxAllowDoubleClick(bx.TargetBox, (sender, e) => button_recFolderChg.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
                 button_recFolderDel.Click += new RoutedEventHandler(bx.button_Delete_Click);
@@ -230,7 +223,7 @@ namespace EpgTimer
 
             setInfo.PartialRecFlag = (byte)(checkBox_partial.IsChecked == true ? 1 : 0);
             setInfo.ContinueRecFlag = (byte)(checkBox_continueRec.IsChecked == true ? 1 : 0);
-            setInfo.TunerID = ((TunerSelectInfo)comboBox_tuner.SelectedItem).ID;
+            setInfo.TunerID = (uint)(comboBox_tuner.SelectedValue ?? 0);
 
             return setInfo;
         }
@@ -301,7 +294,7 @@ namespace EpgTimer
                 checkBox_margineDef.IsChecked = recSetting.IsMarginDefault;
                 checkBox_continueRec.IsChecked = (recSetting.ContinueRecFlag == 1);
                 checkBox_partial.IsChecked = (recSetting.PartialRecFlag == 1);
-                comboBox_tuner.SelectedItem = comboBox_tuner.Items.OfType<TunerSelectInfo>().FirstOrDefault(info => info.ID == recSetting.TunerID);
+                comboBox_tuner.SelectedValue = recSetting.TunerID;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             OnUpdatingView = false;

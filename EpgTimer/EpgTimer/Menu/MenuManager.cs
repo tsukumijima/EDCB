@@ -42,80 +42,86 @@ namespace EpgTimer
             var cm_Separator = new CtxmItemData(EpgCmdsEx.SeparatorString, EpgCmdsEx.Separator);
 
             //予約追加サブメニュー 実行時、セパレータ以降にプリセットを展開する。
-            var cm_AddMenu = new CtxmItemData("予約追加", EpgCmdsEx.AddMenu);
-            cm_AddMenu.Items.Add(new CtxmItemData("ダイアログ表示...", EpgCmds.ShowDialog, 1));
+            var cm_AddMenu = new CtxmItemData("予約追加(仮)", EpgCmdsEx.AddMenu);
+            cm_AddMenu.Items.Add(new CtxmItemData("ダイアログ表示(_X)...", EpgCmds.ShowDialog, 1));
             cm_AddMenu.Items.Add(new CtxmItemData(cm_Separator));
             cm_AddMenu.Items.Add(new CtxmItemData("デフォルト", EpgCmds.AddOnPreset, 0));//仮
 
             //予約変更サブメニューの各サブメニュー
             ////自動登録の有効/無効
-            var cm_ChgKeyEnabledMenu = new CtxmItemData("自動登録有効", EpgCmdsEx.ChgKeyEnabledMenu);
-            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData("有効 (_0)", EpgCmds.ChgKeyEnabled, 0));
-            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData("無効 (_1)", EpgCmds.ChgKeyEnabled, 1));
+            var cm_ChgKeyEnabledMenu = new CtxmItemData("自動登録有効(仮)", EpgCmdsEx.ChgKeyEnabledMenu);
+            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData("有効(_0)", EpgCmds.ChgKeyEnabled, 0));
+            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData("無効(_1)", EpgCmds.ChgKeyEnabled, 1));
 
             ////プリセット変更 実行時、サブメニューにプリセットを展開する。
-            var cm_ChgOnPresetMenu = new CtxmItemData("プリセットへ変更", EpgCmdsEx.ChgOnPresetMenu);
-            cm_ChgOnPresetMenu.Items.Add(new CtxmItemData("デフォルト", EpgCmds.ChgOnPreset, 0));//仮
+            var cm_ChgOnPresetMenu = new CtxmItemData("プリセットへ変更(仮)", EpgCmdsEx.ChgOnPresetMenu);
+            cm_ChgOnPresetMenu.Items.Add(new CtxmItemData("デフォルト(_0)", EpgCmds.ChgOnPreset, 0));//仮
 
             ////予約モード変更
-            var cm_ChgResModeMenu = new CtxmItemData("予約モード変更", EpgCmdsEx.ChgResModeMenu);
-            cm_ChgResModeMenu.Items.Add(new CtxmItemData("EPG予約 (_0)", EpgCmds.ChgResMode, 0));
-            cm_ChgResModeMenu.Items.Add(new CtxmItemData("プログラム予約 (_1)", EpgCmds.ChgResMode, 1));
+            var cm_ChgResModeMenu = new CtxmItemData("予約モード変更(仮)", EpgCmdsEx.ChgResModeMenu);
+            cm_ChgResModeMenu.Items.Add(new CtxmItemData("EPG予約(_E)", EpgCmds.ChgResMode, 0));
+            cm_ChgResModeMenu.Items.Add(new CtxmItemData("プログラム予約(_P)", EpgCmds.ChgResMode, 1));
 
             ////録画モード
-            var cm_ChgRecmodeMenu = new CtxmItemData("録画モード", EpgCmdsEx.ChgRecmodeMenu);
+            var cm_ChgRecmodeMenu = new CtxmItemData("録画モード(仮)", EpgCmdsEx.ChgRecmodeMenu);
             for (int i = 0; i <= 5; i++)
             {
-                cm_ChgRecmodeMenu.Items.Add(new CtxmItemData(string.Format("{0} (_{1})"
+                cm_ChgRecmodeMenu.Items.Add(new CtxmItemData(string.Format("{0}(_{1})"
                     , CommonManager.ConvertRecModeText(i), i), EpgCmds.ChgRecmode, i));
             }
 
             ////優先度
-            var cm_ChgPriorityMenu = new CtxmItemData("優先度", EpgCmdsEx.ChgPriorityMenu);
+            var cm_ChgPriorityMenu = new CtxmItemData("優先度(仮)", EpgCmdsEx.ChgPriorityMenu);
             for (int i = 1; i <= 5; i++)
             {
                 cm_ChgPriorityMenu.Items.Add(new CtxmItemData(
-                    CommonManager.ConvertPriorityText(i).Insert(1, string.Format(" (_{0})", i)), EpgCmds.ChgPriority, i));
+                    CommonManager.ConvertPriorityText(i).Insert(1, string.Format("(_{0})", i)), EpgCmds.ChgPriority, i));
             }
 
             ////イベントリレー変更
-            var cm_ChgRelayMenu = new CtxmItemData("イベントリレー追従", EpgCmdsEx.ChgRelayMenu);
+            var cm_ChgRelayMenu = new CtxmItemData("イベントリレー追従(仮)", EpgCmdsEx.ChgRelayMenu);
             for (int i = 0; i <= 1; i++)
             {
-                cm_ChgRelayMenu.Items.Add(new CtxmItemData(string.Format("{0} (_{1})"
+                cm_ChgRelayMenu.Items.Add(new CtxmItemData(string.Format("{0}(_{1})"
                     , CommonManager.ConvertYesNoText(i), i), EpgCmds.ChgRelay, i));
             }
 
             ////ぴったり変更
-            var cm_ChgPittariMenu = new CtxmItemData("ぴったり（？）録画", EpgCmdsEx.ChgPittariMenu);
+            var cm_ChgPittariMenu = new CtxmItemData("ぴったり録画(仮)", EpgCmdsEx.ChgPittariMenu);
             for (int i = 0; i <= 1; i++)
             {
-                cm_ChgPittariMenu.Items.Add(new CtxmItemData(string.Format("{0} (_{1})"
+                cm_ChgPittariMenu.Items.Add(new CtxmItemData(string.Format("{0}(_{1})"
                     , CommonManager.ConvertYesNoText(i), i), EpgCmds.ChgPittari, i));
             }
 
             ////チューナー変更、実行時、セパレータ以降に一覧を展開する。
-            var cm_ChgTunerMenu = new CtxmItemData("チューナー", EpgCmdsEx.ChgTunerMenu);
-            cm_ChgTunerMenu.Items.Add(new CtxmItemData("自動", EpgCmds.ChgTuner, 0));
+            var cm_ChgTunerMenu = new CtxmItemData("チューナー(仮)", EpgCmdsEx.ChgTunerMenu);
+            cm_ChgTunerMenu.Items.Add(new CtxmItemData("自動(_0)", EpgCmds.ChgTuner, 0));
             cm_ChgTunerMenu.Items.Add(new CtxmItemData(cm_Separator));
             
             ////開始マージン
-            var cm_ChgMarginStartMenu = new CtxmItemData("開始マージン", EpgCmdsEx.ChgMarginStartMenu);
-            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("デフォルトへ変更", EpgCmds.ChgMarginStart, 0));
-            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("指定値へ変更...", EpgCmds.ChgMarginValue, 1));
+            var cm_ChgMarginStartMenu = new CtxmItemData("開始マージン(仮)", EpgCmdsEx.ChgMarginStartMenu);
+            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("マージン設定をデフォルトに変更(_I)", EpgCmds.ChgMarginStart, 0));
+            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("指定値へ変更(_S)...", EpgCmds.ChgMarginValue, 1));
             cm_ChgMarginStartMenu.Items.Add(new CtxmItemData(cm_Separator));
-            new List<int> { -60, -30, -5, -1, 1, 5, 30, 60 }.ForEach(val => cm_ChgMarginStartMenu.Items.Add(
-                new CtxmItemData(string.Format("{0:増やす : ＋0;減らす : －0} 秒", val), EpgCmds.ChgMarginStart, val)));
-            
+            int idx = 0;
+            var vals = new int[] { 1, 5, 30, 60 };
+            foreach (int val in vals.Concat(vals.Select(val => -val)))
+            {
+                cm_ChgMarginStartMenu.Items.Add(new CtxmItemData(string.Format(
+                    "{0:増やす;減らす}(_{1}) : {0:+0;-0} 秒", val, idx++), EpgCmds.ChgMarginStart, val));
+            }
+            cm_ChgMarginStartMenu.Items.Insert(cm_ChgMarginStartMenu.Items.Count - vals.Length, new CtxmItemData(cm_Separator));
+
             ////終了マージン、複製してコマンドだけ差し替える。
-            var cm_ChgMarginEndMenu = new CtxmItemData("終了マージン", cm_ChgMarginStartMenu);
+            var cm_ChgMarginEndMenu = new CtxmItemData("終了マージン(仮)", cm_ChgMarginStartMenu);
             cm_ChgMarginEndMenu.Command = EpgCmdsEx.ChgMarginEndMenu;
             cm_ChgMarginEndMenu.Items = cm_ChgMarginStartMenu.Items.DeepClone();
             cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginStart) menu.Command = EpgCmds.ChgMarginEnd; });
             cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginValue) menu.ID = 2; });
 
             //予約変更サブメニュー登録
-            var cm_ChangeMenu = new CtxmItemData("変更", EpgCmdsEx.ChgMenu);
+            var cm_ChangeMenu = new CtxmItemData("変更(仮)", EpgCmdsEx.ChgMenu);
             cm_ChangeMenu.Items.Add(new CtxmItemData("ダイアログ表示...", EpgCmds.ShowDialog));
             cm_ChangeMenu.Items.Add(new CtxmItemData(cm_Separator));
             cm_ChangeMenu.Items.Add(new CtxmItemData("自動登録有効", cm_ChgKeyEnabledMenu));
@@ -136,14 +142,14 @@ namespace EpgTimer
             ctmd.Items = cm_ChangeMenu.Items;
             
             //ビューモードサブメニュー
-            var cm_ViewMenu = new CtxmItemData("表示モード", EpgCmdsEx.ViewMenu);
+            var cm_ViewMenu = new CtxmItemData("表示モード(仮)", EpgCmdsEx.ViewMenu);
             for (int i = 0; i <= 2; i++)
             {
                 cm_ViewMenu.Items.Add(new CtxmItemData(CommonManager.ConvertViewModeText(i)
-                    + string.Format(" (_{0})", i + 1), EpgCmds.ViewChgMode, i));
+                    + string.Format("(_{0})", i + 1), EpgCmds.ViewChgMode, i));
             }
             cm_ViewMenu.Items.Add(new CtxmItemData(cm_Separator));
-            cm_ViewMenu.Items.Add(new CtxmItemData("表示設定...(_S)", EpgCmds.ViewChgSet));
+            cm_ViewMenu.Items.Add(new CtxmItemData("表示設定(_S)...", EpgCmds.ViewChgSet));
             cm_ViewMenu.Items.Add(new CtxmItemData("一時的な変更をクリア(_R)", EpgCmds.ViewChgReSet));
 
             //共通メニューの追加用リスト
@@ -585,6 +591,11 @@ namespace EpgTimer
             });
         }
 
+        public static char ToAccessKey(double n, uint divisor = 36)
+        {
+            return "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"[(int)((uint)n % Math.Min(36, divisor))];
+        }
+
         public void CtxmGenerateAddOnPresetItems(MenuItem menu) { CtxmGenerateOnPresetItems(menu, EpgCmds.AddOnPreset); }
         public void CtxmGenerateChgOnPresetItems(MenuItem menu) { CtxmGenerateOnPresetItems(menu, EpgCmds.ChgOnPreset); }
         public void CtxmGenerateOnPresetItems(MenuItem menu, ICommand icmd)
@@ -597,7 +608,7 @@ namespace EpgTimer
             foreach (var item in Settings.Instance.RecPresetList)
             {
                 var menuItem = new MenuItem();
-                menuItem.Header = string.Format("プリセット - {0} (_{1})", item.DisplayName, item.ID);
+                menuItem.Header = string.Format("プリセット(_{0}) : " + MenuUtil.ToAccessKeyForm(item.ToString()), ToAccessKey(item.ID));
                 menuItem.Command = icmd;
                 menuItem.CommandParameter = new EpgCmdParam(menu.CommandParameter as EpgCmdParam);
                 (menuItem.CommandParameter as EpgCmdParam).ID = item.ID;
@@ -628,11 +639,13 @@ namespace EpgTimer
 
             if (menu.IsEnabled == false) return;
 
+            int idx = 1; //0は自動
             foreach (var info in CommonManager.Instance.DB.TunerReserveList.Values.Where(info => info.tunerID != 0xFFFFFFFF)
                 .Select(info => new TunerSelectInfo(info.tunerName, info.tunerID)))
             {
                 var menuItem = new MenuItem();
-                menuItem.Header = string.Format("{0}", info);
+                var s = MenuUtil.ToAccessKeyForm(info.ToString());
+                menuItem.Header = s.Insert(Math.Min(11, s.Length), "(_" + ToAccessKey(idx++) + ")");
                 menuItem.Command = EpgCmds.ChgTuner;
                 menuItem.CommandParameter = new EpgCmdParam(menu.CommandParameter as EpgCmdParam);
                 (menuItem.CommandParameter as EpgCmdParam).ID = (int)info.ID;
@@ -669,13 +682,26 @@ namespace EpgTimer
                 chkList.AddRange(info.GetEpgAutoAddList(true));
                 chkList.AddRange(info.GetManualAutoAddList(true));
 
+                int idx = 0;
                 addList.ForEach(autoAdd =>
                 {
                     var menuItem = new MenuItem();
                     menuItem.IsChecked = chkList.Contains(autoAdd) && (info is ReserveData ? (info as ReserveData).IsAutoAdded : true);
 
-                    menuItem.Header = MenuUtil.ConvertAutoddTextMenu(autoAdd);
-                    LimitLenHeader(menuItem);
+                    if (autoAdd is EpgAutoAddData)
+                    {
+                        menuItem.Header = "キーワード予約 : " + (autoAdd.DataTitle == "" ? "(空白)" : autoAdd.DataTitle);
+                    }
+                    else
+                    {
+                        var view = new ManualAutoAddDataItem(autoAdd as ManualAutoAddData);
+                        menuItem.Header = "プログラム自動 : " + string.Format("({0}){1} {2}", view.DayOfWeek, view.StartTimeShort, view.EventName == "" ? "(空白)" : view.EventName);
+                    }
+
+                    SetLimitLenHeader(menuItem, null, false, 42, 28);
+                    var header = menuItem.Header as Label;
+                    header.Content = MenuUtil.ToAccessKeyForm(header.Content as string).Insert(7, "(_" + ToAccessKey(idx++) + ")");
+
                     if (Settings.Instance.MenuSet.AutoAddSearchToolTip == true)
                     {
                         menuItem.ToolTip = AutoAddDataItemEx.CreateIncetance(autoAdd).ToolTipViewAlways;
@@ -707,16 +733,17 @@ namespace EpgTimer
                     var menuItem = new MenuItem();
 
                     menuItem.IsChecked = chkList.Contains(data) && data.IsAutoAdded;
-                    menuItem.Header = resItem.StartTimeShort + " " + data.Title;
-                    LimitLenHeader(menuItem, 42, 28);
+                    SetLimitLenHeader(menuItem, resItem.StartTimeShort + " " + data.Title, null, 42, 28);
+
                     //ステータスがあれば表示する
+                    var headBlock = new StackPanel { Orientation = Orientation.Horizontal };
                     if (hasStatus == true)
                     {
-                        var headBlock = new StackPanel { Orientation = Orientation.Horizontal };
                         headBlock.Children.Add(new TextBlock { Text = resItem.Status, Foreground = resItem.StatusColor, Width = 25 });
-                        headBlock.Children.Add(new TextBlock { Text = menuItem.Header as string });//折り返しも可能だがいまいちな感じ。
-                        menuItem.Header = headBlock;
                     }
+                    headBlock.Children.Add(new TextBlock { Text = menuItem.Header as string });//折り返しも可能だがいまいちな感じ。
+                    menuItem.Header = headBlock;
+
                     if (Settings.Instance.MenuSet.ReserveSearchToolTip == true)
                     {
                         menuItem.ToolTip = resItem.ToolTipViewAlways;
@@ -771,8 +798,7 @@ namespace EpgTimer
         private void CtxmGenerateOpenFolderItem(MenuItem menu, string path, string header_exp = "")
         {
             var menuItem = new MenuItem();
-            menuItem.Header = header_exp + path;
-            LimitLenHeader(menuItem);
+            SetLimitLenHeader(menuItem, header_exp + path, true);
             menuItem.Command = EpgCmds.OpenFolder;
             menuItem.CommandParameter = new EpgCmdParam(menu.CommandParameter as EpgCmdParam);
             (menuItem.CommandParameter as EpgCmdParam).Data = path;
@@ -781,19 +807,17 @@ namespace EpgTimer
         }
 
         /// <summary>長すぎるとき省略してツールチップを追加する</summary>
-        public bool LimitLenHeader(MenuItem menu, int max = 45, int pos = -1)
+        public void SetLimitLenHeader(MenuItem menu, string s, bool? useTextBlock, int max = 45, int pos = -1)
         {
-            var header = menu.Header as string;
-            if (header == null) return false;
-
-            bool isLengthOver = header.Length > max;
-            if (isLengthOver == true)
+            s = s ?? menu.Header as string;
+            if (s != null && s.Length > max)
             {
-                menu.ToolTip = ViewUtil.GetTooltipBlockStandard(header);
-                header = CommonUtil.LimitLenString(header, max, pos); // 長すぎる場合は省略
+                menu.ToolTip = ViewUtil.GetTooltipBlockStandard(s);
+                s = CommonUtil.LimitLenString(s, max, pos); // 長すぎる場合は省略
             }
-            menu.Header = header;
-            return isLengthOver;
+            menu.Header = useTextBlock == null ? s : 
+                            useTextBlock == true ? (object)new TextBlock { Text = s, Tag = s }
+                                : new Label { Content = s, Padding = new Thickness(), Tag = s };
         }
 
         private void CtxmClearItemMenu(MenuItem menu, bool? isEndDot = null)
@@ -810,7 +834,8 @@ namespace EpgTimer
             if (menu.Items.Count == 1)
             {
                 var submenu = (menu.Items[0] as MenuItem);
-                menu.ToolTip = submenu.ToolTip ?? submenu.Header;
+                menu.ToolTip = submenu.ToolTip ?? (submenu.Header is FrameworkElement ?
+                    (submenu.Header as FrameworkElement).Tag : MenuUtil.DeleteAccessKey(submenu.Header as string, true));
                 menu.Command = submenu.Command;
                 (menu.CommandParameter as EpgCmdParam).Data = (submenu.CommandParameter as EpgCmdParam).Data;
                 (menu.CommandParameter as EpgCmdParam).ID = (submenu.CommandParameter as EpgCmdParam).ID;

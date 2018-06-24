@@ -559,18 +559,21 @@ namespace EpgTimer
             //選択アイテムが全て同じ設定の場合だけチェックを表示する
             foreach (var subMenu in menu.Items.OfType<MenuItem>())
             {
-                if (subMenu.Tag == EpgCmdsEx.ChgKeyEnabledMenu)
+                subMenu.Visibility = Visibility.Visible;
+                if (subMenu.Tag == EpgCmds.ShowDialog)
+                {
+                    subMenu.Header = "ダイアログ表示(_X)...";
+                }
+                else if (subMenu.Tag == EpgCmdsEx.ChgKeyEnabledMenu)
                 {
                     if (typeof(T).IsSubclassOf(typeof(AutoAddData)) == false)
                     {
                         subMenu.Visibility = Visibility.Collapsed;
                         continue;
                     }
-                    subMenu.Visibility = Visibility.Visible;
-
                     var list = dataList.OfType<AutoAddData>().ToList();
                     bool? value = list.All(info => info.IsEnabled == list[0].IsEnabled) ? (bool?)list[0].IsEnabled : null;
-                    subMenu.Header = string.Format("自動登録有効 : {0}", value == null ? "*" : (value == true ? "有効" : "無効"));
+                    subMenu.Header = string.Format("自動登録有効(_A) : {0}", value == null ? "*" : (value == true ? "有効" : "無効"));
                     SetCheckmarkSubMenus(subMenu, value == true ? 0 : value == false ? 1 : int.MinValue);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgOnPresetMenu)
@@ -579,7 +582,7 @@ namespace EpgTimer
 
                     RecPresetItem pre_0 = listr[0].RecSettingInfo.LookUpPreset(listr[0].IsManual);
                     RecPresetItem value = listr.All(data => data.RecSettingInfo.LookUpPreset(data.IsManual).ID == pre_0.ID) ? pre_0 : null;
-                    subMenu.Header = string.Format("プリセット : {0}", value == null ? "*" : value.DisplayName);
+                    subMenu.Header = string.Format("プリセット(_P) : {0}", value == null ? "*" : value.DisplayName);
                     SetCheckmarkSubMenus(subMenu, value == null ? int.MinValue : value.ID);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgResModeMenu)
@@ -592,12 +595,10 @@ namespace EpgTimer
                         subMenu.Visibility = Visibility.Collapsed;
                         continue;
                     }
-                    subMenu.Visibility = Visibility.Visible;
-
                     var list = dataList.OfType<ReserveData>().ToList();
                     ReserveMode? resMode_0 = list[0].ReserveMode;
                     ReserveMode? value = list.All(info => info.ReserveMode == resMode_0) ? resMode_0 : null;
-                    subMenu.Header = string.Format("予約モード : {0}", value == null ? "*" : CommonManager.ConvertResModeText(value));
+                    subMenu.Header = string.Format("予約モード(_M) : {0}", value == null ? "*" : CommonManager.ConvertResModeText(value));
                     SetCheckmarkSubMenus(subMenu, value == ReserveMode.EPG ? 0 : value == ReserveMode.Program ? 1 : int.MinValue);
 
                     if (list[0].IsAutoAdded == false) continue;
@@ -615,27 +616,24 @@ namespace EpgTimer
                 }
                 else if (subMenu.Tag == EpgCmds.ChgBulkRecSet)
                 {
-                    subMenu.Visibility = (recSettings.Count < 2 ? Visibility.Collapsed : Visibility.Visible);
+                    if (recSettings.Count < 2) subMenu.Visibility = Visibility.Collapsed;
+                    subMenu.Header = "まとめて録画設定を変更(_O)...";
                 }
                 else if (subMenu.Tag == EpgCmds.ChgGenre)
                 {
-                    if (typeof(T) != typeof(EpgAutoAddData))
-                    {
-                        subMenu.Visibility = Visibility.Collapsed;
-                        continue;
-                    }
-                    subMenu.Visibility = (recSettings.Count < 2 ? Visibility.Collapsed : Visibility.Visible);
+                    if (recSettings.Count < 2 || typeof(T) != typeof(EpgAutoAddData)) subMenu.Visibility = Visibility.Collapsed;
+                    subMenu.Header = "まとめてジャンル絞り込みを変更(_J)...";
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgRecmodeMenu)
                 {
                     byte value = recSettings.All(info => info.RecMode == recSettings[0].RecMode) ? recSettings[0].RecMode : byte.MaxValue;
-                    subMenu.Header = string.Format("録画モード : {0}", value == byte.MaxValue ? "*" : CommonManager.ConvertRecModeText(value));
+                    subMenu.Header = string.Format("録画モード(_R) : {0}", value == byte.MaxValue ? "*" : CommonManager.ConvertRecModeText(value));
                     SetCheckmarkSubMenus(subMenu, value);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgPriorityMenu)
                 {
                     byte value = recSettings.All(info => info.Priority == recSettings[0].Priority) ? recSettings[0].Priority : byte.MaxValue;
-                    subMenu.Header = string.Format("優先度 : {0}", value == byte.MaxValue ? "*" : value.ToString());
+                    subMenu.Header = string.Format("優先度(_Y) : {0}", value == byte.MaxValue ? "*" : value.ToString());
                     SetCheckmarkSubMenus(subMenu, value);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgRelayMenu || subMenu.Tag == EpgCmdsEx.ChgPittariMenu)
@@ -651,12 +649,12 @@ namespace EpgTimer
                     if (subMenu.Tag == EpgCmdsEx.ChgRelayMenu)
                     {
                         value = recSettings.All(info => info.TuijyuuFlag == recSettings[0].TuijyuuFlag) ? recSettings[0].TuijyuuFlag : byte.MaxValue;
-                        format = "イベントリレー追従 : {0}";
+                        format = "イベントリレー追従(_Z) : {0}";
                     }
                     else
                     {
                         value = recSettings.All(info => info.PittariFlag == recSettings[0].PittariFlag) ? recSettings[0].PittariFlag : byte.MaxValue;
-                        format = "ぴったり（？）録画 : {0}";
+                        format = "ぴったり(?)録画(_F) : {0}";
                     }
                     subMenu.Header = string.Format(format, value == byte.MaxValue ? "*" : CommonManager.ConvertYesNoText(value));
                     SetCheckmarkSubMenus(subMenu, value);
@@ -667,18 +665,18 @@ namespace EpgTimer
                 {
                     uint tunerID = recSettings.All(info => info.TunerID == recSettings[0].TunerID) ? recSettings[0].TunerID : uint.MaxValue;
                     mm.CtxmGenerateTunerMenuItems(subMenu);
-                    subMenu.Header = string.Format("チューナー : {0}", tunerID == uint.MaxValue ? "*" : CommonManager.ConvertTunerText(tunerID));
+                    subMenu.Header = string.Format("チューナー(_T) : {0}", tunerID == uint.MaxValue ? "*" : CommonManager.ConvertTunerText(tunerID));
                     SetCheckmarkSubMenus(subMenu, (int)tunerID);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgMarginStartMenu)
                 {
                     int value = recSettings.All(info => info.StartMarginActual == recSettings[0].StartMarginActual) ? recSettings[0].StartMarginActual : int.MaxValue;
-                    subMenu.Header = string.Format("開始マージン : {0} 秒", value == int.MaxValue ? "*" : value.ToString());
+                    subMenu.Header = string.Format("開始マージン(_S) : {0} 秒", value == int.MaxValue ? "*" : value.ToString());
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgMarginEndMenu)
                 {
                     int value = recSettings.All(info => info.EndMarginActual == recSettings[0].EndMarginActual) ? recSettings[0].EndMarginActual : int.MaxValue;
-                    subMenu.Header = string.Format("終了マージン : {0} 秒", value == int.MaxValue ? "*" : value.ToString());
+                    subMenu.Header = string.Format("終了マージン(_E) : {0} 秒", value == int.MaxValue ? "*" : value.ToString());
                 }
             }
         }
@@ -792,7 +790,7 @@ namespace EpgTimer
         public static int ReadIdData(ExecutedRoutedEventArgs e, int min = int.MinValue, int max = int.MaxValue)
         {
             if (HasCommandParameter(e) == false) return min;
-            return Math.Max(Math.Min((int)((e.Parameter as EpgCmdParam).ID), max), min);
+            return Math.Max(Math.Min((e.Parameter as EpgCmdParam).ID, max), min);
         }
         public static object ReadObjData(ExecutedRoutedEventArgs e)
         {

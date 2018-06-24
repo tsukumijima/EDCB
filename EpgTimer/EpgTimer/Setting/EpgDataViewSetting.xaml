@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             xmlns:my="clr-namespace:EpgTimer"
+             xmlns:my="clr-namespace:EpgTimer" d:DataContext="{d:DesignInstance my:CustomEpgTabInfo}"
              d:DesignHeight="500" d:DesignWidth="650">
     <UserControl.Resources>
         <!-- デザイン時用。これが無いと、このビューを組み込んだコントロールでデザイナがエラーになる。 -->
@@ -15,20 +15,21 @@
             <StackPanel Margin="6" Name="PanelDisplaySet">
                 <CheckBox Content="表示する" Name="checkBox_isVisible" />
                 <DockPanel Margin="0,6,0,0" >
-                    <Label Content="タブ名" Name="label_tabName" />
-                    <TextBox Margin="6,0,0,0" Name="textBox_tabName" MinWidth="160" HorizontalAlignment="Left"/>
+                    <Label Content="タブ名" IsEnabled="{Binding IsEnabled, ElementName=checkBox_isVisible}"/>
+                    <my:TextBoxWithReadOnlyEffect Margin="6,0,0,0" x:Name="textBox_tabName" IsReadOnly="{Binding IsEnabled, ElementName=checkBox_isVisible, Converter={StaticResource invert}}"/>
                 </DockPanel>
+                <Label Margin="50,0,0,0" Content="※半角アンダーバー'__'でアクセスキーが設定出来ます。文字として'__'を使用したいときは、'__'を2つ続けてください。" IsEnabled="{Binding IsEnabled, ElementName=checkBox_isVisible}" />
                 <Label Content="初期表示モード" Margin="0,6,0,0" />
                 <RadioButton Content="標準モード" Margin="14,6,0,0" />
-                <CheckBox Content="番組のない時間帯は表示しない" Margin="28,6,0,0" Name="checkBox_noTimeView_rate" />
+                <CheckBox Content="番組のない時間帯は表示しない" Margin="28,6,0,0" IsChecked="{Binding NeedTimeOnlyBasic}" />
                 <RadioButton Content="1週間モード" Margin="14,12,0,0" />
-                <CheckBox Content="番組のない時間帯は表示しない" Margin="28,6,0,0" Name="checkBox_noTimeView_week" />
+                <CheckBox Content="番組のない時間帯は表示しない" Margin="28,6,0,0" IsChecked="{Binding NeedTimeOnlyWeek}" />
                 <StackPanel Orientation="Horizontal" Margin="28,6,0,0" >
                     <Label Content="表示開始時刻" />
-                    <ComboBox Margin="6,0,0,0" Name="comboBox_timeH_week" MinWidth="54" ItemsSource="{Binding}" />
+                    <ComboBox Margin="6,0,0,0" MinWidth="54" Name="comboBox_timeH_week" SelectedIndex="{Binding StartTimeWeek}" />
                 </StackPanel>
                 <RadioButton Content="リスト表示モード" Margin="14,12,0,0" />
-                <CheckBox Content="終了済みの番組は表示しない" Margin="28,6,0,0" Name="checkBox_filterEnded" />
+                <CheckBox Content="終了済みの番組は表示しない" Margin="28,6,0,0" IsChecked="{Binding FilterEnded}" />
             </StackPanel>
         </TabItem>
         <TabItem Header="表示条件" >
@@ -44,8 +45,8 @@
             <DockPanel Margin="6">
                 <WrapPanel DockPanel.Dock="Top">
                     <Button Content="検索条件" Click="button_searchKey_Click" />
-                    <CheckBox Margin="12,0,0,0" Content="検索による絞り込みを行う" Name="checkBox_searchMode" />
-                    <CheckBox Margin="12,0,0,0" Content="ジャンルは「表示ジャンル」と別条件で絞り込む" Name="checkBox_searchServiceFromView" />
+                    <CheckBox Margin="12,0,0,0" Content="検索による絞り込みを行う" IsChecked="{Binding SearchMode}" />
+                    <CheckBox Margin="12,0,0,0" Content="ジャンルは「表示ジャンル」と別条件で絞り込む" IsChecked="{Binding SearchGenreNoSyncView}" />
                 </WrapPanel>
                 <TabControl Margin="0,6,0,0" HorizontalAlignment="Stretch">
                     <TabItem Header="表示サービス" >
@@ -188,7 +189,7 @@
                             </Grid.ColumnDefinitions>
                             <WrapPanel Grid.ColumnSpan="3">
                                 <Label Content="表示ジャンル(未登録で全ジャンル対象)" HorizontalAlignment="Center" />
-                                <CheckBox Content="NOT扱いとする" Margin="12,0,0,0" Name="checkBox_notContent" HorizontalAlignment="Center" />
+                                <CheckBox Content="NOT扱いとする" Margin="12,0,0,0" Name="checkBox_notContent" HorizontalAlignment="Center" IsChecked="{Binding ViewNotContentFlag}"/>
                             </WrapPanel>
                             <ListBox Grid.Row="2" Name="listBox_jyanruView" DisplayMemberPath="ListBoxView" SelectionMode="Extended" />
                             <StackPanel Grid.Row="2" Grid.Column="2" Style="{StaticResource stackButtons}">

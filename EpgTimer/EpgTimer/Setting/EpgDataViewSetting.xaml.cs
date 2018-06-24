@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -14,7 +13,7 @@ namespace EpgTimer
     /// </summary>
     public partial class EpgDataViewSetting : UserControl
     {
-        private CustomEpgTabInfo info = new CustomEpgTabInfo();
+        private CustomEpgTabInfo info { get { return DataContext as CustomEpgTabInfo; } }
         private EpgSearchKeyInfo searchKey = new EpgSearchKeyInfo();
         private RadioBtnSelect viewModeRadioBtns;
         private Dictionary<ulong, ServiceViewItem> servieceList;
@@ -23,10 +22,11 @@ namespace EpgTimer
         {
             InitializeComponent();
 
+            DataContext = new CustomEpgTabInfo();
             try
             {
                 comboBox_timeH_week.ItemsSource = Enumerable.Range(0, 24);
-                comboBox_timeH_week.SelectedIndex = 4;
+                info.StartTimeWeek = 4;
 
                 servieceList = ChSet5.ChList.Values.Select(info => new ServiceViewItem(info)).ToDictionary(item => item.Key, item => item);
                 var selectedList = ChSet5.ChListSelected.Select(info => servieceList[info.Key]).ToList();
@@ -55,8 +55,6 @@ namespace EpgTimer
         public void SetTryMode(bool tryMode)
         {
             checkBox_isVisible.IsEnabled = !tryMode;
-            label_tabName.IsEnabled = !tryMode;
-            textBox_tabName.SetReadOnlyWithEffect(tryMode);
         }
 
         /// <summary>
@@ -65,24 +63,16 @@ namespace EpgTimer
         /// <param name="setInfo"></param>
         public void SetSetting(CustomEpgTabInfo setInfo)
         {
-            info = setInfo.DeepClone();
+            DataContext = setInfo.DeepClone();
             searchKey = setInfo.SearchKey.DeepClone();
 
             textBox_tabName.Text = setInfo.TabName;
             checkBox_isVisible.IsChecked = setInfo.IsVisible;
             viewModeRadioBtns.Value = setInfo.ViewMode;
 
-            checkBox_noTimeView_rate.IsChecked = setInfo.NeedTimeOnlyBasic;
-            checkBox_noTimeView_week.IsChecked = setInfo.NeedTimeOnlyWeek;
-            comboBox_timeH_week.SelectedIndex = setInfo.StartTimeWeek;
-            checkBox_searchMode.IsChecked = setInfo.SearchMode;
-            checkBox_searchServiceFromView.IsChecked = setInfo.SearchGenreNoSyncView;
-            checkBox_filterEnded.IsChecked = (setInfo.FilterEnded == true);
-
             listBox_serviceView.Items.AddItems(setInfo.ViewServiceList
                 .Where(id => servieceList.ContainsKey(id) == true).Select(id => servieceList[id]));
             listBox_jyanruView.Items.AddItems(setInfo.ViewContentList.Select(data => CommonManager.ContentKindInfoForDisplay(data)));
-            checkBox_notContent.IsChecked = setInfo.ViewNotContentFlag;
         }
 
         /// <summary>
@@ -95,18 +85,11 @@ namespace EpgTimer
             info.IsVisible = checkBox_isVisible.IsEnabled == true ? checkBox_isVisible.IsChecked == true : info.IsVisible;
             info.ViewMode = viewModeRadioBtns.Value;
 
-            info.NeedTimeOnlyBasic = (checkBox_noTimeView_rate.IsChecked == true);
-            info.NeedTimeOnlyWeek = (checkBox_noTimeView_week.IsChecked == true);
-            info.StartTimeWeek = comboBox_timeH_week.SelectedIndex;
-            info.SearchMode = (checkBox_searchMode.IsChecked == true);
-            info.SearchGenreNoSyncView = (checkBox_searchServiceFromView.IsChecked == true);
-            info.FilterEnded = (checkBox_filterEnded.IsChecked == true);
             info.SearchKey = searchKey.DeepClone();
             info.SearchKey.serviceList.Clear();//不要なので削除
 
             info.ViewServiceList = listBox_serviceView.Items.OfType<ServiceViewItem>().Select(item => item.Key).ToList();
             info.ViewContentList = listBox_jyanruView.Items.OfType<ContentKindInfo>().Select(item => item.Data).DeepClone();
-            info.ViewNotContentFlag = checkBox_notContent.IsChecked == true;
 
             return info.DeepClone();
         }

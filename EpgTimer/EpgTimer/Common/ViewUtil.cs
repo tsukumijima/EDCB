@@ -736,16 +736,4 @@ namespace EpgTimer
             foreach (var tb in src.Items.OfType<TabItem>()) trg.Items.Add(new TabItem { Header = tb.Header as string ?? tb.Tag as string });
         }
     }
-
-    public class TextBoxWithReadOnlyEffect : TextBox
-    {
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            base.OnPropertyChanged(e);
-            if (e.Property == TextBox.IsReadOnlyProperty)
-            {
-                ViewUtil.SetDisabledEffect(this, IsReadOnly);
-            }
-        }
-    }
 }

@@ -122,6 +122,33 @@ namespace EpgTimer
         }
 
         /// <summary>
+        /// アクセスキーを削除した文字列を返す。displayFormをtrueにすると、アクセスキーが有効な
+        /// コントロール上での実際の表示文字列、falseにすると、アクセスキーが有効なコントロールで
+        /// アクセスキーのみ削除され、それ以外は処理前と同じ表示結果となる文字列を返す。
+        /// </summary>
+        /// <param name="displayForm">falseにすると、引き続き'_'をエスケープした文字列を返す。</param>
+        public static string DeleteAccessKey(string s, bool displayForm = false)
+        {
+            if (s == null) return s;
+            for (int i = 0; i < s.Length - 1; i++)
+            {
+                if (s[i] == '_')
+                {
+                    if (s[i + 1] != '_')
+                    {
+                        s = s.Remove(i, 1);
+                        break;//アクセスキーは最初の1つだけ
+                    }
+                    i++;
+                }
+            }
+            s = ToDisplayForm(s);
+            return displayForm == true ? s : ToAccessKeyForm(s);
+        }
+        public static string ToDisplayForm(string s) { return s.Replace("__", "_"); }
+        public static string ToAccessKeyForm(string s) { return s.Replace("_", "__"); }
+
+        /// <summary>
         /// 変換エラーの場合、デフォルト値を返し、テキストボックスの内容をデフォルト値に置き換える。
         /// </summary>
         public static T MyToNumerical<T>(TextBox box, Func<string, T> converter, T defValue = default(T))
@@ -159,7 +186,7 @@ namespace EpgTimer
                 return defValue;
             }
         }
-        
+
         public static bool ReserveAdd(List<EpgEventInfo> itemlist, RecSettingView recSettingView, int presetID = 0, bool cautionMany = true)
         {
             try
@@ -379,7 +406,7 @@ namespace EpgTimer
 
         public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true)
         {
-            if (CheckReserveOnRec(itemlist,"変更") == false) return false;
+            if (CheckReserveOnRec(itemlist, "変更") == false) return false;
             return ReserveCmdSend(itemlist, CommonManager.CreateSrvCtrl().SendChgReserve, "予約変更", cautionMany);
         }
 
@@ -991,19 +1018,5 @@ namespace EpgTimer
         {
             return ViewUtil.MainWindow.epgView.SearchJumpTargetProgram(target, !switchTab);
         }
-
-        public static string ConvertAutoddTextMenu(AutoAddData data)
-        {
-            if(data is EpgAutoAddData)
-            {
-                return "キーワード予約:" + (data.DataTitle == "" ? "(空白)" : data.DataTitle);
-            }
-            else
-            {
-                var view = new ManualAutoAddDataItem(data as ManualAutoAddData);
-                return "プログラム自動:" + string.Format("({0}){1} {2}", view.DayOfWeek, view.StartTimeShort, view.EventName == "" ? "(空白)" : view.EventName);
-            }
-        }
     }
-
 }

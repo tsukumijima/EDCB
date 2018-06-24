@@ -257,7 +257,7 @@ namespace EpgTimer
                     //tab == tabItem_epg ? SettingWindow.SettingMode.EpgSetting :
                     SettingWindow.SettingMode.Default;
 
-                    var menuSet = new MenuItem { Header = (tab.Header as string ?? tab.Tag as string) + "の画面設定...(_O)" };
+                    var menuSet = new MenuItem { Header = (tab.Header as string ?? tab.Tag as string) + "の画面設定(_O)..." };
                     menuSet.Click += (s2, e2) => ViewUtil.MainWindow.OpenSettingDialog(mode);
                     var ctxm = new ContextMenu { IsOpen = true };
                     ctxm.Items.Add(menuSet);
@@ -265,7 +265,7 @@ namespace EpgTimer
                     //チューナー不足時の追加メニュー
                     if (tab == tabItem_reserve || tab == tabItem_tunerReserve)
                     {
-                        var menuSearch = new MenuItem { Header = "チューナー不足予約一覧" };
+                        var menuSearch = new MenuItem { Header = "チューナー不足予約一覧(_L)..." };
                         menuSearch.Click += (s2, e2) => new InfoSearchWindow(new InfoSearchSettingData()
                         { SearchWord = "エラー状況 : *チューナー不足(", ReserveInfo = true }, true).Show();
                         menuSearch.IsEnabled = res_icon_Error.Visibility == Visibility.Visible || res_icon_Warning.Visibility == Visibility.Visible;
@@ -492,7 +492,7 @@ namespace EpgTimer
 
             //ボタン風のタブを追加する
             var ti = new TabItem();
-            ti.Header = btn.Content;
+            ti.Header = MenuUtil.DeleteAccessKey(btn.Content as string);
             ti.ToolTip = btn.ToolTip;
             ti.Tag = specific;
             ti.Uid = id;

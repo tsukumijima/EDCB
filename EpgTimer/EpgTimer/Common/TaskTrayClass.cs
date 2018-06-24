@@ -69,7 +69,7 @@ namespace EpgTimer
                             if (item.Key != null)
                             {
                                 var newcontitem = new ToolStripMenuItem();
-                                newcontitem.Text = item.Key;
+                                newcontitem.Text = MenuUtil.DeleteAccessKey(item.Key, true);
                                 newcontitem.Click += item.Value;
                                 menu.Items.Add(newcontitem);
                             }

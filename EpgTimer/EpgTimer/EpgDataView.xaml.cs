@@ -317,12 +317,12 @@ namespace EpgTimer
                 var menu_vs = new MenuItem { Header = trg.Tag + " の表示モード(_V)", IsEnabled = trg.Uid != "", Uid = trg.Uid };
                 for (int i = 0; i <= 2; i++)
                 {
-                    menu1 = tabMenuAdd(menu_vs, true, EpgCmds.ViewChgMode, CommonManager.ConvertViewModeText(i) + string.Format(" (_{0})", i + 1), trg.Uid);
+                    menu1 = tabMenuAdd(menu_vs, true, EpgCmds.ViewChgMode, CommonManager.ConvertViewModeText(i) + string.Format("(_{0})", i + 1), trg.Uid);
                     menu1.CommandParameter = new EpgCmdParam(null, 0, i);//コマンド自体は、menuの処理メソッドから走らせる。
                     menu1.IsChecked = trg.Uid == "" ? false : i == trg.Info.ViewMode;
                 }
                 menu_vs.Items.Add(new Separator());
-                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgSet, "表示設定...(_S)", trg.Uid);
+                tabMenuAdd(menu_vs, true, EpgCmds.ViewChgSet, "表示設定(_S)...", trg.Uid);
                 tabMenuAdd(menu_vs, true, EpgCmds.ViewChgReSet, "一時的な変更をクリア(_R)", trg.Uid);
 
                 //番組表の操作メニュー
@@ -352,7 +352,7 @@ namespace EpgTimer
                 ctxm.Items.Add(menu_vs);
                 ctxm.Items.Add(menu_tb);
                 tabMenuAdd(ctxm, true, sender is TabItem ? edvCmds.Setting : edvCmds.TabSetting,
-                    (sender is TabItem ? "番組表全般" : "表示項目(_O)") + "の設定...(_O)", trg.Uid);
+                    (sender is TabItem ? "番組表全般" : "表示項目") + "の設定(_O)...", trg.Uid);
                 //ctxm.Items.Add(new Separator());
                 //tabMenuAdd(ctxm, trg.Uid != "", edvCmds.Delete, trg.Tag + " を非表示(_D)", trg.Uid);
                 ctxm.Items.Add(new Separator());
@@ -371,10 +371,7 @@ namespace EpgTimer
                     {
                         menu1 = tabMenuAdd(ctxm, true, edvCmds.VisibleChange, info.TabName, info.Uid);
                         menu1.IsChecked = info.IsVisible;
-                        if (trg.Uid == info.Uid)
-                        {
-                            menu1.Header = new TextBlock() { Text = info.TabName as string, FontWeight = FontWeights.Bold }; ;
-                        }
+                        if (trg.Uid == info.Uid) menu1.FontWeight = FontWeights.Bold;
                     });
                 }
                 else
@@ -387,14 +384,13 @@ namespace EpgTimer
                         menu1.IsChecked = trg.Uid == info.Uid;
                     }
                 }
-
-                trg.Header = new TextBlock() { Text = trg.Header as string, Foreground = Brushes.Red };
+                trg.Foreground = Brushes.Red;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
         private void ClearTabHeader()
         {
-            foreach (TabItem tab in tabControl.Items) tab.Header = tab.Tag;
+            foreach (TabItem tab in tabControl.Items) tab.ClearValue(Control.ForegroundProperty);
         }
 
         private void MenuCmdsExecute(object sender, RoutedEventArgs e)
@@ -527,7 +523,7 @@ namespace EpgTimer
                 CustomEpgTabInfo org = epgView.TabInfo(value.Uid);
                 org = org ?? value;
                 base.Header = org.TabName;
-                base.Tag = org.TabName;
+                base.Tag = MenuUtil.DeleteAccessKey(org.TabName);
                 base.Uid = org.Uid;
             }
         }
