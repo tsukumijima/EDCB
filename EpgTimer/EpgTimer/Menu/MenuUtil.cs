@@ -401,7 +401,7 @@ namespace EpgTimer
         public static bool ReserveChangeResModeAutoAdded(List<ReserveData> itemList, AutoAddData autoAdd)
         {
             if (ReserveDelete(itemList, false) == false) return false;
-            return AutoAddChange(CommonUtil.ToList(autoAdd), false, false, false, false);
+            return AutoAddChange(CommonUtil.ToList(autoAdd), false, false, false);
         }
 
         public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true)
@@ -442,26 +442,14 @@ namespace EpgTimer
                                 MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK;
         }
 
-        public static bool AutoAddChangeKeyEnabled(IEnumerable<AutoAddData> itemlist, bool value)
+        public static bool AutoAddChangeKeyEnabled(IEnumerable<AutoAddData> itemlist, bool? value = null)
         {
             try
             {
                 if (AutoAddChangeKeyEnabledCautionMany(itemlist) == false) return false;
 
-                foreach (var item in itemlist) item.IsEnabled = value;
+                foreach (var item in itemlist) item.IsEnabled = value ?? !item.IsEnabled;
                 return AutoAddChange(itemlist, false);
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
-        }
-        public static bool AutoAddChangeOnOffKeyEnabled(IEnumerable<AutoAddData> itemlist, bool cautionMany = true)
-        {
-            try
-            {
-                if (AutoAddChangeKeyEnabledCautionMany(itemlist) == false) return false;
-
-                foreach (var item in itemlist) item.IsEnabled = !item.IsEnabled;
-                return AutoAddChange(itemlist, false, cautionMany);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;
@@ -505,14 +493,14 @@ namespace EpgTimer
         }
         public static bool AutoAddChange(IEnumerable<AutoAddData> itemlist, bool cautionMany = true)
         {
-            return AutoAddChange(itemlist, Settings.Instance.SyncResAutoAddChange, Settings.Instance.SyncResAutoAddChgNewRes, cautionMany);
+            return AutoAddChange(itemlist, Settings.Instance.SyncResAutoAddChange, cautionMany);
         }
-        public static bool AutoAddChange(IEnumerable<AutoAddData> itemlist, bool SyncChange, bool NewRes, bool cautionMany = true, bool isViewOrder = true)
+        public static bool AutoAddChange(IEnumerable<AutoAddData> itemlist, bool SyncChange, bool cautionMany = true, bool isViewOrder = true)
         {
             if (SyncChange == true)
             {
                 //操作前にリストを作成する
-                List<ReserveData> deleteList = NewRes == false ? null : new List<ReserveData>();
+                List<ReserveData> deleteList = Settings.Instance.SyncResAutoAddChgNewRes == false ? null : new List<ReserveData>();
                 List<ReserveData> syncList = AutoAddSyncChangeList(itemlist, false, deleteList);
                 return AutoAddCmdSend(itemlist, 1, deleteList, syncList, cautionMany, isViewOrder);
             }
@@ -544,9 +532,9 @@ namespace EpgTimer
                         {
                             rdata.RecSetting.RecMode = 5;
                         }
+                        //プログラム予約の場合は名前も追従させる。
                         if (data.IsManual == true && resinfo.IsManual == true)
                         {
-                            //プログラム予約の場合は名前も追従させる。
                             rdata.Title = data.DataTitle;
                         }
                         syncDict.Add(resinfo.ReserveID, rdata);

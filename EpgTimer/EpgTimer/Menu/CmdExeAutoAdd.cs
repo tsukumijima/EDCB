@@ -17,7 +17,7 @@ namespace EpgTimer
         }
         protected override void mc_ChangeOnOffKeyEnabled(object sender, ExecutedRoutedEventArgs e)
         {
-            IsCommandExecuted = MenuUtil.AutoAddChangeOnOffKeyEnabled(dataList);
+            IsCommandExecuted = MenuUtil.AutoAddChangeKeyEnabled(dataList);
         }
         protected override void mc_ChangeRecSetting(object sender, ExecutedRoutedEventArgs e)
         {

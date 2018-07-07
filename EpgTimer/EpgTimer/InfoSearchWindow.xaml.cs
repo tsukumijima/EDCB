@@ -291,7 +291,7 @@ namespace EpgTimer
 
             MenuUtil.ReserveChangeOnOff(dataList.OfType<ReserveData>().DeepClone(), null, false);
             MenuUtil.RecinfoChgProtect(dataList.OfType<RecFileInfo>().DeepClone(), false);
-            MenuUtil.AutoAddChangeOnOffKeyEnabled(dataList.OfType<AutoAddData>().DeepClone(), false);
+            MenuUtil.AutoAddChangeKeyEnabled(dataList.OfType<AutoAddData>().DeepClone());
 
             StatusManager.StatusNotifySet(true, mc.GetCmdMessageFormat("状態切替を実行", dataList.Count));
         }

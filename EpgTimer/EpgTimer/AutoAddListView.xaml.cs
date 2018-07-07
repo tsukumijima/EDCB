@@ -40,7 +40,7 @@ namespace EpgTimer
                 var newList = View.lstCtrl.dataList.AutoAddInfoList().DeepClone();
                 newList.ForEach(item => item.DataID = changeIDTable[item.DataID]);
 
-                bool ret = MenuUtil.AutoAddChange(newList, false, false, false, false);
+                bool ret = MenuUtil.AutoAddChange(newList, false, false, false);
                 StatusManager.StatusNotifySet(ret, "並べ替えを保存");
                 if (ret == true)
                 {
