@@ -207,6 +207,7 @@ namespace EpgTimer
             setInfo.ServiceData = checkBox_serviceData.IsChecked == true;
 
             setInfo.BatFilePath = textBox_bat.Text;
+            setInfo.RecTag = textBox_recTag.Text;
             setInfo.RecFolderList.Clear();
             setInfo.PartialRecFolder.Clear();
             foreach (RecFileSetInfoView view in listView_recFolder.Items)
@@ -276,6 +277,7 @@ namespace EpgTimer
                 checkBox_serviceMode.IsChecked = null;//切り替え時のイベント発生のために必要
                 checkBox_serviceMode.IsChecked = recSetting.ServiceModeIsDefault;
                 textBox_bat.Text = recSetting.BatFilePath;
+                textBox_recTag.Text = recSetting.RecTag;
 
                 listView_recFolder.Items.Clear();
                 foreach (RecFileSetInfo info in recSetting.RecFolderList)

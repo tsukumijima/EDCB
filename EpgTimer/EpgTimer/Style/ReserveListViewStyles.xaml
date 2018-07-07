@@ -141,6 +141,11 @@
                 <GridViewColumnHeader Content="録画後実行bat" Uid="BatFilePath" />
             </GridViewColumn.Header>
         </GridViewColumn>
+        <GridViewColumn DisplayMemberBinding="{Binding RecTag}">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="録画タグ" Uid="RecTag" />
+            </GridViewColumn.Header>
+        </GridViewColumn>
         <GridViewColumn>
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="録画フォルダ" Uid="RecFolder"/>

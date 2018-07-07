@@ -129,6 +129,10 @@ namespace EpgTimer
         {
             get { return RecSettingInfo.BatFilePath; }
         }
+        public virtual string RecTag
+        {
+            get { return RecSettingInfo.RecTag; }
+        }
 
         public virtual List<string> RecFolder
         {
@@ -171,6 +175,7 @@ namespace EpgTimer
                     }
                 }
             }
+            view += "録画タグ : " + RecSettingInfo.RecTag + "\r\n";
             view += "録画マージン : 開始 " + RecSettingInfo.StartMarginActual.ToString() +
                                   " 終了 " + RecSettingInfo.EndMarginActual.ToString()
                      + (RecSettingInfo.IsMarginDefault == true ? " (デフォルト)" : "") + "\r\n";

@@ -76,6 +76,8 @@
                     <Label Content="録画後実行bat" Height="28" HorizontalAlignment="Left" Margin="6,289,0,0" Name="label16" VerticalAlignment="Top" />
                     <TextBox Height="24" Margin="110,291,60,0" Name="textBox_bat" VerticalAlignment="Top" />
                     <Button Content="開く" Height="23" HorizontalAlignment="Right " Margin="0,291,11,0" Name="button_bat" VerticalAlignment="Top" Width="44" />
+                    <Label Content="録画タグ" HorizontalAlignment="Left" Margin="6,321,0,0" VerticalAlignment="Top" />
+                    <TextBox Height="24" Margin="110,323,60,0" Name="textBox_recTag" VerticalAlignment="Top" />
                 </Grid>
             </Grid>
         </Border>

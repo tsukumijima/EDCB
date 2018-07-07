@@ -113,6 +113,8 @@ namespace EpgTimer
         public byte PittariFlag;
         /// <summary>録画後BATファイルパス</summary>
         public string BatFilePath;
+        /// <summary>録画タグ/summary>
+        public string RecTag;
         /// <summary>録画フォルダパス</summary>
         public List<RecFileSetInfo> RecFolderList;
         /// <summary>休止モード</summary>
@@ -141,6 +143,7 @@ namespace EpgTimer
             ServiceMode = 16;
             PittariFlag = 0;
             BatFilePath = "";
+            RecTag = "";
             RecFolderList = new List<RecFileSetInfo>();
             SuspendMode = 2;
             RebootFlag = 0;
@@ -161,7 +164,7 @@ namespace EpgTimer
             w.Write(TuijyuuFlag);
             w.Write(ServiceMode);
             w.Write(PittariFlag);
-            w.Write(BatFilePath);
+            w.Write(PackBatFilePath());
             w.Write(RecFolderList);
             w.Write(SuspendMode);
             w.Write(RebootFlag);
@@ -187,6 +190,7 @@ namespace EpgTimer
             r.Read(ref ServiceMode);
             r.Read(ref PittariFlag);
             r.Read(ref BatFilePath);
+            UnPackBatFilePath(BatFilePath);
             r.Read(ref RecFolderList);
             r.Read(ref SuspendMode);
             r.Read(ref RebootFlag);
@@ -208,6 +212,16 @@ namespace EpgTimer
             other.PartialRecFolder = PartialRecFolder.DeepClone();   //RecFileSetInfo
             other.RecFolderList = RecFolderList.DeepClone();         //RecFileSetInfo
             return other;
+        }
+        public string PackBatFilePath()
+        {
+            return BatFilePath + (string.IsNullOrEmpty(RecTag) == true ? "" : ("*" + RecTag));
+        }
+        public void UnPackBatFilePath(string s)
+        {
+            string[] unPacked = s.Split(new[] { '*' }, 2);
+            BatFilePath = unPacked[0];
+            RecTag = unPacked.Length == 2 ? unPacked[1] : "";
         }
     }
 

@@ -34,6 +34,7 @@ namespace EpgTimer
         {
             return other != null
                 && BatFilePath == other.BatFilePath
+                //&& RecTag == other.RecTag RecTagは見ないことにする
                 && ContinueRecFlag == other.ContinueRecFlag
                 && (EndMargine == other.EndMargine || IsMarginDefault)//マージンデフォルト時
                 && PartialRecFlag == other.PartialRecFlag

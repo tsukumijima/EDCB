@@ -73,7 +73,7 @@ namespace EpgTimer
             Data.TuijyuuFlag = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "TuijyuuFlag", 1, SettingPath.TimerSrvIniPath);
             Data.ServiceMode = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "ServiceMode", 16, SettingPath.TimerSrvIniPath);
             Data.PittariFlag = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "PittariFlag", 0, SettingPath.TimerSrvIniPath);
-            Data.BatFilePath = IniFileHandler.GetPrivateProfileString(defName, "BatFilePath", "", SettingPath.TimerSrvIniPath);
+            Data.UnPackBatFilePath(IniFileHandler.GetPrivateProfileString(defName, "BatFilePath", "", SettingPath.TimerSrvIniPath));
 
             var GetRecFileSetInfo = new Action<string, List<RecFileSetInfo>>((appName, folderList) =>
             {
@@ -112,7 +112,7 @@ namespace EpgTimer
             IniFileHandler.WritePrivateProfileString(defName, "TuijyuuFlag", Data.TuijyuuFlag, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "ServiceMode", Data.ServiceMode, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "PittariFlag", Data.PittariFlag, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "BatFilePath", Data.BatFilePath, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "BatFilePath", Data.PackBatFilePath(), SettingPath.TimerSrvIniPath);
 
             var WriteRecFileSetInfo = new Action<string, List<RecFileSetInfo>>((appName, folderList) =>
             {
