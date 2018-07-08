@@ -14,7 +14,7 @@
         <Grid Margin="16,4,4,6" Name="stackPanel_PresetEdit" >
             <my:PresetEditorBase /><!-- デザイン時用。実行時は別途Addする -->
         </Grid>
-        <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FF8C8E94" Padding="4,0,4,4">
+        <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FF8C8E94" Padding="10,8">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -22,37 +22,43 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
                 <Grid>
-                    <Label Content="録画モード" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" Name="label7" VerticalAlignment="Top" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="83,6,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="160" />
-                    <Label Content="イベントリレー追従" Height="28" HorizontalAlignment="Left" Margin="300,6,0,0" Name="label8" VerticalAlignment="Top" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="440,6,0,0" Name="comboBox_tuijyu" VerticalAlignment="Top" Width="75" />
-                    <Label Content="ぴったり（？）録画" Height="28" HorizontalAlignment="Left" Margin="300,35,0,0" Name="label9" VerticalAlignment="Top" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="440,35,0,0" Name="comboBox_pittari" VerticalAlignment="Top" Width="75" />
-                    <Label Content="優先度" Height="28" HorizontalAlignment="Left" Margin="6,35,0,0" Name="label10" VerticalAlignment="Top" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="83,35,0,0" Name="comboBox_priority" VerticalAlignment="Top" Width="75" />
-                    <Label Content="録画マージン" Height="28" HorizontalAlignment="Left" Margin="6,64,0,0" Name="label12" VerticalAlignment="Top" />
-                    <CheckBox Content="デフォルト" Height="16" HorizontalAlignment="Left" Margin="160,69,0,0" Name="checkBox_margineDef" VerticalAlignment="Top" Checked="checkBox_margineDef_Checked" Unchecked="checkBox_margineDef_Checked" />
-                    <Label Content="開始" Height="28" HorizontalAlignment="Left" Margin="255,64,0,0" Name="label13" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="295,66,0,0" Name="textBox_margineStart" VerticalAlignment="Top" Width="57" Text="0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
-                    <Label Content="終了" Height="28" HorizontalAlignment="Left" Margin="365,64,0,0" Name="label14" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
-                    <TextBox Height="24" HorizontalAlignment="Left" Margin="405,66,0,0" Name="textBox_margineEnd" VerticalAlignment="Top" Width="57" Text="0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
-                    <Label Content="指定サービス対象データ" Height="28" HorizontalAlignment="Left" Margin="6,93,0,0" Name="label15" VerticalAlignment="Top" />
-                    <CheckBox Content="デフォルト" Height="16" HorizontalAlignment="Left" Margin="160,98,0,0" Name="checkBox_serviceMode" VerticalAlignment="Top" Checked="checkBox_serviceMode_Checked" Unchecked="checkBox_serviceMode_Checked" />
-                    <CheckBox Content="字幕を含める" Height="16" HorizontalAlignment="Left" Margin="260,98,0,0" Name="checkBox_serviceCaption" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
-                    <CheckBox Content="データカルーセルを含める" Height="16" HorizontalAlignment="Left" Margin="370,98,0,0" Name="checkBox_serviceData" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
+                    <Label Content="録画モード" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <ComboBox HorizontalAlignment="Left" Margin="77,3,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="160" />
+                    <Label Content="イベントリレー追従" HorizontalAlignment="Left" Margin="294,0,0,0" VerticalAlignment="Top" />
+                    <ComboBox HorizontalAlignment="Left" Margin="414,3,0,0" Name="comboBox_tuijyu" VerticalAlignment="Top" Width="75" />
+                    <Label Content="ぴったり(?)録画" HorizontalAlignment="Left" Margin="294,27,0,0" VerticalAlignment="Top" />
+                    <ComboBox HorizontalAlignment="Left" Margin="414,30,0,0" Name="comboBox_pittari" VerticalAlignment="Top" Width="75" />
+                    <Label Content="優先度" HorizontalAlignment="Left" Margin="0,27,0,0" VerticalAlignment="Top" />
+                    <ComboBox HorizontalAlignment="Left" Margin="77,30,0,0" Name="comboBox_priority" VerticalAlignment="Top" Width="75" />
+                    <Label Content="録画マージン" HorizontalAlignment="Left" Margin="0,54,0,0" VerticalAlignment="Top" />
+                    <CheckBox Content="デフォルト" Height="16" HorizontalAlignment="Left" Margin="154,59,0,0" Name="checkBox_margineDef" VerticalAlignment="Top" Checked="checkBox_margineDef_Checked" Unchecked="checkBox_margineDef_Checked" />
+                    <Label Content="開始" HorizontalAlignment="Left" Margin="249,54,0,0" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
+                    <TextBox HorizontalAlignment="Left" Margin="289,56,0,0" Name="textBox_margineStart" VerticalAlignment="Top" Width="57" Text="0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
+                    <Label Content="終了" HorizontalAlignment="Left" Margin="359,54,0,0" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
+                    <TextBox HorizontalAlignment="Left" Margin="399,56,0,0" Name="textBox_margineEnd" VerticalAlignment="Top" Width="57" Text="0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
+                    <Label Content="指定サービス対象データ" HorizontalAlignment="Left" Margin="0,81,0,0" VerticalAlignment="Top" />
+                    <CheckBox Content="デフォルト" HorizontalAlignment="Left" Margin="154,86,0,0" Name="checkBox_serviceMode" VerticalAlignment="Top" Checked="checkBox_serviceMode_Checked" Unchecked="checkBox_serviceMode_Checked" />
+                    <CheckBox Content="字幕を含める" HorizontalAlignment="Left" Margin="254,86,0,0" Name="checkBox_serviceCaption" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
+                    <CheckBox Content="データカルーセルを含める" HorizontalAlignment="Left" Margin="364,86,0,0" Name="checkBox_serviceData" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
                 </Grid>
-                <DockPanel Grid.Row="1" Margin="11,4,11,7" Panel.ZIndex="1">
-                    <StackPanel DockPanel.Dock="Right" Margin="5,0,0,0" Width="44" >
-                        <Button Content="追加" Margin="0,0,0,6" Name="button_recFolderAdd" Click="button_recFolderAdd_Click" />
-                        <Button Content="変更" Margin="0,0,0,6" Name="button_recFolderChg" Click="button_recFolderChg_Click" />
-                        <Button Content="コピー" Margin="0,0,0,6" Name="button_recFolderCopy" Click="button_recFolderCopy_Click" />
+                <DockPanel Grid.Row="1" Margin="0,4" Panel.ZIndex="1">
+                    <StackPanel DockPanel.Dock="Right" Margin="6,0,0,0" Width="44" >
+                        <Button Content="追加" Margin="0,0,0,4" Name="button_recFolderAdd" Click="button_recFolderAdd_Click" />
+                        <Button Content="変更" Margin="0,0,0,4" Name="button_recFolderChg" Click="button_recFolderChg_Click" />
+                        <Button Content="コピー" Margin="0,0,0,4" Name="button_recFolderCopy" Click="button_recFolderCopy_Click" />
                         <Button Content="削除" Name="button_recFolderDel" />
                     </StackPanel>
-                    <DockPanel DockPanel.Dock="Bottom" Margin="0,5,0,0" >
-                        <CheckBox Content="部分受信(ワンセグ)を別ファイルに同時出力する" Margin="30,0,30,0" Name="checkBox_partial" ToolTipService.ShowDuration="30000" ToolTip="ワンセグを指定フォルダに出力したい場合は、部分受信用の録画フォルダ設定を追加してください。&#10;部分受信用の設定が存在しない場合、ワンセグはデフォルトの録画保存フォルダに出力されます。&#10;(「部分受信でない録画フォルダ設定」のフォルダに同時出力されるわけではありません)"/>
-                        <CheckBox Content="後ろの予約を同一ファイルで出力する" Name="checkBox_continueRec" />
-                    </DockPanel>
-                    <ListView Name="listView_recFolder" >
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <DockPanel Margin="0,4,0,0">
+                            <CheckBox Content="部分受信(ワンセグ)を別ファイルに同時出力する" Margin="30,0,30,0" Name="checkBox_partial" ToolTipService.ShowDuration="30000" ToolTip="ワンセグを指定フォルダに出力したい場合は、部分受信用の録画フォルダ設定を追加してください。&#10;部分受信用の設定が存在しない場合、ワンセグはデフォルトの録画保存フォルダに出力されます。&#10;(「部分受信でない録画フォルダ設定」のフォルダに同時出力されるわけではありません)"/>
+                            <CheckBox Content="後ろの予約を同一ファイルで出力する" Name="checkBox_continueRec" />
+                        </DockPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,-1">
+                            <Label Content="使用チューナー強制指定" />
+                            <ComboBox Margin="12,0,0,0" Name="comboBox_tuner" SelectedValuePath="ID" Width="370" />
+                        </StackPanel>
+                    </StackPanel>
+                    <ListView Name="listView_recFolder" Margin="5,0,0,0">
                         <ListView.View>
                             <GridView x:Name="gridView_recFolder">
                                 <GridViewColumn Header="部分受信" DisplayMemberBinding="{Binding Path=PartialRecYesNo}" />
@@ -63,22 +69,26 @@
                         </ListView.View>
                     </ListView>
                 </DockPanel>
-                <Grid Grid.Row="2" Margin="0,-231,0,0">
-                    <Label Content="使用チューナー強制指定" Height="28" HorizontalAlignment="Left" Margin="6,231,0,0" Name="label23" VerticalAlignment="Top" />
-                    <ComboBox Height="24" HorizontalAlignment="Left" Margin="160,231,0,0" Name="comboBox_tuner" SelectedValuePath="ID" VerticalAlignment="Top" Width="370" />
-                    <Label Content="録画後動作" Height="28" HorizontalAlignment="Left" Margin="6,260,0,0" Name="label18" VerticalAlignment="Top" />
-                    <CheckBox Content="デフォルト" Height="16" HorizontalAlignment="Left" Margin="90,265,0,0" Name="checkBox_suspendDef" VerticalAlignment="Top" Checked="checkBox_suspendDef_Checked" Unchecked="checkBox_suspendDef_Checked"/>
-                    <RadioButton Content="何もしない" Height="16" HorizontalAlignment="Left" Margin="185,265,0,0" Name="radioButton_non" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
-                    <RadioButton Content="スタンバイ" Height="16" HorizontalAlignment="Left" Margin="275,265,0,0" Name="radioButton_standby" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
-                    <RadioButton Content="休止" Height="16" HorizontalAlignment="Left" Margin="365,265,0,0" Name="radioButton_suspend" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
-                    <RadioButton Content="シャットダウン" Height="16" HorizontalAlignment="Left" Margin="422,265,0,0" Name="radioButton_shutdown" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
-                    <CheckBox Content="復帰後再起動する" Height="16" HorizontalAlignment="Left" Margin="540,265,0,0" Name="checkBox_reboot" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
-                    <Label Content="録画後実行bat" Height="28" HorizontalAlignment="Left" Margin="6,289,0,0" Name="label16" VerticalAlignment="Top" />
-                    <TextBox Height="24" Margin="110,291,60,0" Name="textBox_bat" VerticalAlignment="Top" />
-                    <Button Content="開く" Height="23" HorizontalAlignment="Right " Margin="0,291,11,0" Name="button_bat" VerticalAlignment="Top" Width="44" />
-                    <Label Content="録画タグ" HorizontalAlignment="Left" Margin="6,321,0,0" VerticalAlignment="Top" />
-                    <TextBox Height="24" Margin="110,323,60,0" Name="textBox_recTag" VerticalAlignment="Top" />
-                </Grid>
+                <StackPanel Grid.Row="2">
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,-1">
+                        <Label Content="録画後動作" />
+                        <CheckBox Content="デフォルト" Margin="12,0,0,0" Name="checkBox_suspendDef" Checked="checkBox_suspendDef_Checked" Unchecked="checkBox_suspendDef_Checked"/>
+                        <RadioButton Content="何もしない" Margin="12,0,0,0" Name="radioButton_non" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
+                        <RadioButton Content="スタンバイ" Margin="12,0,0,0" Name="radioButton_standby" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
+                        <RadioButton Content="休止" Margin="12,0,0,0" Name="radioButton_suspend" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
+                        <RadioButton Content="シャットダウン" Margin="12,0,0,0" Name="radioButton_shutdown" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
+                        <CheckBox Content="復帰後再起動する" Margin="36,0,0,0" Name="checkBox_reboot" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_suspendDef, Converter={StaticResource invert}}" />
+                    </StackPanel>
+                    <Grid Margin="0,3,0,-1">
+                        <Label Content="録画後実行bat"/>
+                        <TextBox Margin="104,0,50,0" Name="textBox_bat" />
+                        <Button Content="開く" HorizontalAlignment="Right" Name="button_bat" Width="44" />
+                    </Grid>
+                    <Grid Margin="0,3,0,-1">
+                        <Label Content="録画タグ" />
+                        <TextBox Margin="104,0,50,0" Name="textBox_recTag" />
+                    </Grid>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>
