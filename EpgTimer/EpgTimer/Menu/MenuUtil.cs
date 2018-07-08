@@ -537,6 +537,12 @@ namespace EpgTimer
                         {
                             rdata.Title = data.DataTitle;
                         }
+                        //録画タグの保持。
+                        if (SyncAll == false && Settings.Instance.SyncResAutoAddChgNewRes == false
+                                && Settings.Instance.SyncResAutoAddChgKeepRecTag == true)
+                        {
+                            rdata.RecSetting.RecTag = resinfo.RecSetting.RecTag;
+                        }
                         syncDict.Add(resinfo.ReserveID, rdata);
                     }
                 }

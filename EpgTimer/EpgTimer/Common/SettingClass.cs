@@ -539,6 +539,7 @@ namespace EpgTimer
         public int CautionOnRecMarginMin { get; set; }
         public bool SyncResAutoAddChange { get; set; }
         public bool SyncResAutoAddChgNewRes { get; set; }
+        public bool SyncResAutoAddChgKeepRecTag { get; set; }
         public bool SyncResAutoAddDelete { get; set; }
         public bool DisplayNotifyEpgChange { get; set; }
         public double DisplayNotifyJumpTime { get; set; }
@@ -853,6 +854,7 @@ namespace EpgTimer
             CautionOnRecMarginMin = 5;
             SyncResAutoAddChange = false;
             SyncResAutoAddChgNewRes = false;
+            SyncResAutoAddChgKeepRecTag = false;
             SyncResAutoAddDelete = false;
             DisplayNotifyEpgChange = false;
             DisplayNotifyJumpTime = 3;
