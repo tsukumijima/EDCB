@@ -363,6 +363,7 @@ namespace EpgTimer
                 HashSet<uint> oldset = null;
                 if (proc == 0)
                 {
+                    resInfo.Comment = "";
                     oldset = new HashSet<uint>(CommonManager.Instance.DB.ReserveList.Keys);
                     ret = MenuUtil.ReserveAdd(CommonUtil.ToList(resInfo));
                     StatusManager.StatusNotifySet(ret, "録画予約を追加");
