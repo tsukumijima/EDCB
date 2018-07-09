@@ -189,37 +189,32 @@ namespace EpgTimer
 
         public static bool ReserveAdd(List<EpgEventInfo> itemlist, RecSettingView recSettingView, int presetID = 0, bool cautionMany = true)
         {
-            try
+            itemlist = CheckReservable(itemlist);
+            if (itemlist == null) return false;
+
+            RecSettingData setInfo;
+            if (recSettingView != null)
             {
-                itemlist = CheckReservable(itemlist);
-                if (itemlist == null) return false;
-
-                RecSettingData setInfo;
-                if (recSettingView != null)
-                {
-                    //ダイアログからの予約、SearchWindowの簡易予約
-                    setInfo = recSettingView.GetRecSetting();
-                }
-                else
-                {
-                    //簡易予約やプリセット予約
-                    setInfo = Settings.Instance.RecPreset(presetID).Data;
-                }
-
-                var list = new List<ReserveData>();
-
-                foreach (EpgEventInfo item in itemlist)
-                {
-                    var resInfo = new ReserveData();
-                    item.ConvertToReserveData(ref resInfo);
-                    resInfo.RecSetting = setInfo;//setInfoはコピーしなくても大丈夫。
-                    list.Add(resInfo);
-                }
-
-                return ReserveAdd(list, cautionMany);
+                //ダイアログからの予約、SearchWindowの簡易予約
+                setInfo = recSettingView.GetRecSetting();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            else
+            {
+                //簡易予約やプリセット予約
+                setInfo = Settings.Instance.RecPreset(presetID).Data;
+            }
+
+            var list = new List<ReserveData>();
+
+            foreach (EpgEventInfo item in itemlist)
+            {
+                var resInfo = new ReserveData();
+                item.ConvertToReserveData(ref resInfo);
+                resInfo.RecSetting = setInfo;//setInfoはコピーしなくても大丈夫。
+                list.Add(resInfo);
+            }
+
+            return ReserveAdd(list, cautionMany);
         }
         public static List<EpgEventInfo> CheckReservable(List<EpgEventInfo> list, bool fixlist = true)
         {
@@ -256,59 +251,27 @@ namespace EpgTimer
 
         public static bool ReserveChangeOnOff(List<ReserveData> itemlist, RecSettingView recSettingView = null, bool cautionMany = true)
         {
-            try
+            //無効から戻す録画モードの選択。とりあえずデフォルト設定から。無効で登録なら指定サービスにする。
+            byte defMode = Settings.Instance.RecPresetList[0].Data.RecMode;
+            defMode = defMode != 5 ? defMode : (byte)1;
+
+            //SearchWindowの場合は現在のビューの設定を読み込む。ただし無効で登録ならデフォルト優先。
+            if (recSettingView != null)
             {
-                //無効から戻す録画モードの選択。とりあえずデフォルト設定から。無効で登録なら指定サービスにする。
-                byte defMode = Settings.Instance.RecPresetList[0].Data.RecMode;
-                defMode = defMode != 5 ? defMode : (byte)1;
-
-                //SearchWindowの場合は現在のビューの設定を読み込む。ただし無効で登録ならデフォルト優先。
-                if (recSettingView != null)
-                {
-                    byte viewMode = recSettingView.GetRecSetting().RecMode;
-                    defMode = viewMode != 5 ? viewMode : defMode;
-                }
-
-                //個別設定なので、ChangeRecmode()は不可。
-                itemlist.ForEach(item => item.RecSetting.RecMode = (item.RecSetting.RecMode == 5 ? defMode : (byte)5));
-
-                return ReserveChange(itemlist, cautionMany);
+                byte viewMode = recSettingView.GetRecSetting().RecMode;
+                defMode = viewMode != 5 ? viewMode : defMode;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
-        }
 
-        public static void ChangeOnPreset(IEnumerable<IRecSetttingData> dataList, int presetID)
-        {
-            RecSettingData setData = Settings.Instance.RecPreset(presetID).Data;
-            foreach (var data in dataList) data.RecSettingInfo = setData.DeepClone();
-        }
+            //個別設定なので、ChangeRecmode()は不可。
+            itemlist.ForEach(item => item.RecSetting.RecMode = (item.RecSetting.RecMode == 5 ? defMode : (byte)5));
 
-        public static void ChangeRecmode(List<RecSettingData> infoList, byte recMode)
-        {
-            infoList.ForEach(info => { if (info != null) info.RecMode = recMode; });
-        }
-
-        public static void ChangePriority(List<RecSettingData> infoList, byte priority)
-        {
-            infoList.ForEach(info => { if (info != null) info.Priority = priority; });
-        }
-
-        public static void ChangeRelay(List<RecSettingData> infoList, byte relay)
-        {
-            infoList.ForEach(info => { if (info != null) info.TuijyuuFlag = relay; });
-        }
-
-        public static void ChangePittari(List<RecSettingData> infoList, byte pittari)
-        {
-            infoList.ForEach(info => { if (info != null) info.PittariFlag = pittari; });
+            return ReserveChange(itemlist, cautionMany);
         }
 
         public static void ChangeMargin(List<RecSettingData> infoList, bool isDefault, int? start = null, int? end = null, bool isOffset = false)
         {
-            infoList.ForEach(info => { if (info != null) info.SetMargin(isDefault, start, end, isOffset); });
+            infoList.ForEach(info => info.SetMargin(isDefault, start, end, isOffset));
         }
-
         public static bool ChangeMarginValue(List<RecSettingData> infoList, bool start, UIElement owner = null)
         {
             try
@@ -327,11 +290,6 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;
-        }
-
-        public static void ChangeTuner(List<RecSettingData> infoList, uint tuner)
-        {
-            infoList.ForEach(info => { if (info != null) info.TunerID = tuner; });
         }
 
         public static bool ChangeBulkSet(IEnumerable<IRecSetttingData> dataList, UIElement owner = null, bool pgAll = false)
@@ -364,7 +322,7 @@ namespace EpgTimer
                 if (dlg.ShowDialog() == false) return false;
 
                 EpgSearchKeyInfo setData = dlg.DataView.GetSearchKey();
-                infoList.ForEach(info => { if (info != null) info.contentList = setData.contentList.DeepClone(); });
+                infoList.ForEach(info => info.contentList = setData.contentList.DeepClone());
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -373,29 +331,24 @@ namespace EpgTimer
 
         public static bool ReserveChangeResMode(List<ReserveData> itemlist, uint resMode)
         {
-            try
+            List<ReserveData> list;
+            if (resMode == 0)//EPG予約へ変更
             {
-                List<ReserveData> list;
-                if (resMode == 0)//EPG予約へ変更
-                {
-                    list = itemlist.Where(item => item.ReserveMode == ReserveMode.KeywordAuto ||
-                        item.IsEpgReserve == false && item.SearchEventInfoLikeThat().ConvertToReserveData(ref item) == true).ToList();
-                }
-                else if (resMode == 1)//プログラム予約へ変更
-                {
-                    list = itemlist.Where(item => item.ReserveMode != ReserveMode.Program).ToList();
-                    list.ForEach(item => { item.EventID = 0xFFFF; });
-                }
-                else
-                {
-                    return true;
-                }
-
-                list.ForEach(item => item.ReleaseAutoAdd());
-                return ReserveChange(list);
+                list = itemlist.Where(item => item.ReserveMode == ReserveMode.KeywordAuto ||
+                    item.IsEpgReserve == false && item.SearchEventInfoLikeThat().ConvertToReserveData(ref item) == true).ToList();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            else if (resMode == 1)//プログラム予約へ変更
+            {
+                list = itemlist.Where(item => item.ReserveMode != ReserveMode.Program).ToList();
+                list.ForEach(item => { item.EventID = 0xFFFF; });
+            }
+            else
+            {
+                return true;
+            }
+
+            list.ForEach(item => item.ReleaseAutoAdd());
+            return ReserveChange(list);
         }
 
         public static bool ReserveChangeResModeAutoAdded(List<ReserveData> itemList, AutoAddData autoAdd)
@@ -412,14 +365,9 @@ namespace EpgTimer
 
         public static bool ReserveDelete(List<ReserveData> itemlist, bool cautionMany = true)
         {
-            try
-            {
-                if (CheckReserveOnRec(itemlist, "削除") == false) return false;
-                List<uint> list = itemlist.Select(item => item.ReserveID).ToList();
-                return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelReserve, "予約削除", cautionMany);
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            if (CheckReserveOnRec(itemlist, "削除") == false) return false;
+            List<uint> list = itemlist.Select(item => item.ReserveID).ToList();
+            return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelReserve, "予約削除", cautionMany);
         }
 
         public static bool CheckReserveOnRec(List<ReserveData> itemlist, string description)
@@ -444,15 +392,10 @@ namespace EpgTimer
 
         public static bool AutoAddChangeKeyEnabled(IEnumerable<AutoAddData> itemlist, bool? value = null)
         {
-            try
-            {
-                if (AutoAddChangeKeyEnabledCautionMany(itemlist) == false) return false;
+            if (AutoAddChangeKeyEnabledCautionMany(itemlist) == false) return false;
 
-                foreach (var item in itemlist) item.IsEnabled = value ?? !item.IsEnabled;
-                return AutoAddChange(itemlist, false);
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            foreach (var item in itemlist) item.IsEnabled = value ?? !item.IsEnabled;
+            return AutoAddChange(itemlist, false);
         }
         public static bool AutoAddChangeKeyEnabledCautionMany(IEnumerable<AutoAddData> itemlist)
         {
@@ -479,13 +422,8 @@ namespace EpgTimer
         }
         public static bool EpgAutoAddChangeNotKey(List<EpgAutoAddData> itemlist)
         {
-            try
-            {
-                itemlist.ForEach(item => item.searchInfo.notKey = Clipboard.GetText());
-                return AutoAddChange(itemlist);
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return false;
+            itemlist.ForEach(item => item.searchInfo.notKey = Clipboard.GetText());
+            return AutoAddChange(itemlist);
         }
         public static bool AutoAddAdd(IEnumerable<AutoAddData> itemlist)
         {
@@ -619,42 +557,38 @@ namespace EpgTimer
         private static bool AutoAddCmdSendWork(IEnumerable<AutoAddData> itemlist, int mode,
             List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true)
         {
-            try
+            var message = "自動予約登録の" + (new List<string> { "追加", "変更", "削除" }[(int)mode]);
+            if (cautionMany == true && CautionManyMessage(itemlist.Count(), message) == false) return false;
+
+            var epgList = itemlist.OfType<EpgAutoAddData>().ToList();
+            var manualList = itemlist.OfType<ManualAutoAddData>().ToList();
+
+            if (isViewOrder == true)
             {
-                var message = "自動予約登録の" + (new List<string> { "追加", "変更", "削除" }[(int)mode]);
-                if (cautionMany == true && CautionManyMessage(itemlist.Count(), message) == false) return false;
-
-                var epgList = itemlist.OfType<EpgAutoAddData>().ToList();
-                var manualList = itemlist.OfType<ManualAutoAddData>().ToList();
-
-                if (isViewOrder == true)
+                //自動予約登録データ変更の前に、並び順を自動保存する。
+                if ((AutoAddOrderAutoSave(ref epgList, mode != 0) && AutoAddOrderAutoSave(ref manualList, mode != 0)) == false)
                 {
-                    //自動予約登録データ変更の前に、並び順を自動保存する。
-                    if ((AutoAddOrderAutoSave(ref epgList, mode != 0) && AutoAddOrderAutoSave(ref manualList, mode != 0)) == false)
-                    {
-                        MessageBox.Show("自動登録の並べ替え保存中に問題が発生しました。\r\n処理を中止します。", message, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return false;
-                    }
-                }
-
-                var cmd = CommonManager.CreateSrvCtrl();//これは単なる表記の省略
-                switch (mode)
-                {
-                    case 0:
-                        return ReserveCmdSend(epgList, cmd.SendAddEpgAutoAdd, "キーワード予約の追加", false)
-                            && ReserveCmdSend(manualList, cmd.SendAddManualAdd, "プログラム自動予約の追加", false);
-                    case 1:
-                        return (delReserveList == null ? true : ReserveDelete(delReserveList, false))
-                            && ReserveCmdSend(epgList, cmd.SendChgEpgAutoAdd, "キーワード予約の変更", false)
-                            && ReserveCmdSend(manualList, cmd.SendChgManualAdd, "プログラム自動予約の変更", false)
-                            && (chgReserveList == null ? true : ReserveChange(chgReserveList, false));
-                    case 2:
-                        return ReserveCmdSend(epgList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelEpgAutoAdd, "キーワード予約の削除", false)
-                            && ReserveCmdSend(manualList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelManualAdd, "プログラム自動予約の削除", false)
-                            && (delReserveList == null ? true : ReserveDelete(delReserveList, false));
+                    MessageBox.Show("自動登録の並べ替え保存中に問題が発生しました。\r\n処理を中止します。", message, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    return false;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+
+            var cmd = CommonManager.CreateSrvCtrl();//これは単なる表記の省略
+            switch (mode)
+            {
+                case 0:
+                    return ReserveCmdSend(epgList, cmd.SendAddEpgAutoAdd, "キーワード予約の追加", false)
+                        && ReserveCmdSend(manualList, cmd.SendAddManualAdd, "プログラム自動予約の追加", false);
+                case 1:
+                    return (delReserveList == null ? true : ReserveDelete(delReserveList, false))
+                        && ReserveCmdSend(epgList, cmd.SendChgEpgAutoAdd, "キーワード予約の変更", false)
+                        && ReserveCmdSend(manualList, cmd.SendChgManualAdd, "プログラム自動予約の変更", false)
+                        && (chgReserveList == null ? true : ReserveChange(chgReserveList, false));
+                case 2:
+                    return ReserveCmdSend(epgList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelEpgAutoAdd, "キーワード予約の削除", false)
+                        && ReserveCmdSend(manualList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelManualAdd, "プログラム自動予約の削除", false)
+                        && (delReserveList == null ? true : ReserveDelete(delReserveList, false));
+            }
             return false;
         }
 

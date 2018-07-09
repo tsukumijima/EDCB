@@ -302,7 +302,7 @@ namespace EpgTimer
             List<IRecWorkMainData> dataList = lstCtrl.GetSelectedItemsList().Select(data => data.Data).ToList();
             dataList.RemoveAll(d => d is RecFileInfo && (d as RecFileInfo).ProtectFlag != 0);
 
-            if (CmdExeUtil.CheckDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
+            if (CmdExeUtil.CheckDeleteCancel(e, dataList) == true)
             { return; }
 
             if (CmdExeRecinfo.mcs_DeleteCheckDelFile(dataList.OfType<RecFileInfo>()) == false)

@@ -137,13 +137,15 @@ namespace EpgTimer
         }
         protected override void mc_ChgBulkRecSet(object sender, ExecutedRoutedEventArgs e)
         {
+            if (dataList.Count == 0) return;
             var mList = dataList.FindAll(info => info.IsEpgReserve == false);
             if (MenuUtil.ChangeBulkSet(dataList, this.Owner, mList.Count == dataList.Count) == false) return;
             IsCommandExecuted = MenuUtil.ReserveChange(dataList);
         }
         protected override void mc_CopyItem(object sender, ExecutedRoutedEventArgs e)
         {
-            var list = dataList.DeepClone();
+            if (dataList.Count == 0) return;//この行無くても結果は同じ
+            var list = dataList.DeepClone();//予約以外はコピー不要なためコピーされていない。
             list.ForEach(rs => rs.Comment = "");
             IsCommandExecuted = MenuUtil.ReserveAdd(list);
         }
@@ -197,11 +199,9 @@ namespace EpgTimer
         }
         protected override void mc_Play(object sender, ExecutedRoutedEventArgs e)
         {
-            if (dataList.Count != 0)
-            {
-                CommonManager.Instance.FilePlay(dataList[0]);
-                IsCommandExecuted = true;
-            }
+            if (dataList.Count == 0) return;
+            CommonManager.Instance.FilePlay(dataList[0]);
+            IsCommandExecuted = true;
         }
         protected override void mc_CopyTitle(object sender, ExecutedRoutedEventArgs e)
         {

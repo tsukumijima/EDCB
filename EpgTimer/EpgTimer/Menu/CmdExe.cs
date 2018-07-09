@@ -285,7 +285,7 @@ namespace EpgTimer
             }
             else
             {
-                if (CmdExeUtil.CheckDeleteCancel(e, dataList.Select(data => data.DataTitle).ToList()) == true)
+                if (CmdExeUtil.CheckDeleteCancel(e, dataList) == true)
                 { return false; ; }
             }
             return true;
@@ -364,8 +364,7 @@ namespace EpgTimer
         protected virtual void mc_CopyContent(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_InfoSearchTitle(object sender, ExecutedRoutedEventArgs e)
         {
-            MenuUtil.OpenInfoSearchDialog(dataList[0].DataTitle, CmdExeUtil.IsKeyGesture(e));
-            IsCommandExecuted = true;
+            IsCommandExecuted = true == MenuUtil.OpenInfoSearchDialog(dataList[0].DataTitle, CmdExeUtil.IsKeyGesture(e));
         }
         protected virtual void mc_SearchTitle(object sender, ExecutedRoutedEventArgs e)
         {
@@ -388,31 +387,38 @@ namespace EpgTimer
         }
         protected bool mcc_chgRecSetting(ExecutedRoutedEventArgs e)
         {
-            List<RecSettingData> infoList = dataList.OfType<IRecSetttingData>().RecSettingList();
+            List<RecSettingData> infoList = dataList.OfType<IRecSetttingData>().Where(data => data.RecSettingInfo != null).RecSettingList();
+            if (infoList.Count == 0) return false;
 
             if (e.Command == EpgCmds.ChgOnPreset)
             {
-                MenuUtil.ChangeOnPreset(dataList.OfType<IRecSetttingData>(), CmdExeUtil.ReadIdData(e, 0, 0xFE));
+                var val = Settings.Instance.RecPreset(CmdExeUtil.ReadIdData(e, 0, 0xFE)).Data;
+                foreach (var data in dataList.OfType<IRecSetttingData>()) data.RecSettingInfo = val.DeepClone();
             }
             else if (e.Command == EpgCmds.ChgRecmode)
             {
-                MenuUtil.ChangeRecmode(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 5));
+                var val = (byte)CmdExeUtil.ReadIdData(e, 0, 5);
+                infoList.ForEach(info => info.RecMode = val);
             }
             else if (e.Command == EpgCmds.ChgPriority)
             {
-                MenuUtil.ChangePriority(infoList, (byte)CmdExeUtil.ReadIdData(e, 1, 5));
+                var val = (byte)CmdExeUtil.ReadIdData(e, 1, 5);
+                infoList.ForEach(info => info.Priority = val);
             }
             else if (e.Command == EpgCmds.ChgRelay)
             {
-                MenuUtil.ChangeRelay(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 1));
+                var val = (byte)CmdExeUtil.ReadIdData(e, 0, 1);
+                infoList.ForEach(info => info.TuijyuuFlag = val);
             }
             else if (e.Command == EpgCmds.ChgPittari)
             {
-                MenuUtil.ChangePittari(infoList, (byte)CmdExeUtil.ReadIdData(e, 0, 1));
+                var val = (byte)CmdExeUtil.ReadIdData(e, 0, 1);
+                infoList.ForEach(info => info.PittariFlag = val);
             }
             else if (e.Command == EpgCmds.ChgTuner)
             {
-                MenuUtil.ChangeTuner(infoList, (uint)CmdExeUtil.ReadIdData(e, 0, int.MaxValue - 1));
+                var val = (uint)CmdExeUtil.ReadIdData(e, 0, int.MaxValue - 1);
+                infoList.ForEach(info => info.TunerID = val);
             }
             else if (e.Command == EpgCmds.ChgMarginStart)
             {
@@ -545,7 +551,7 @@ namespace EpgTimer
         {
             if (menu.IsEnabled == false) return;
 
-            var listr = dataList.OfType<IRecSetttingData>().ToList();
+            var listr = dataList.OfType<IRecSetttingData>().Where(data => data.RecSettingInfo != null).ToList();
             List<RecSettingData> recSettings = listr.RecSettingList();
 
             Action<MenuItem, int> SetCheckmarkSubMenus = (subMenu, value) =>
@@ -723,28 +729,29 @@ namespace EpgTimer
     {
         public static bool CheckAllDeleteCancel(ExecutedRoutedEventArgs e, int Count)
         {
+            if (Count == 0) return true;//今は無くても同じ
             if (IsMessageBeforeCommand(e) == false) return false;
 
             return (MessageBox.Show(string.Format(
                 "全て削除しますか?\r\n" + "[削除項目数: {0}]", Count)
                 , "[全削除]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
-        public static bool CheckDeleteCancel(ExecutedRoutedEventArgs e, List<string> list)
+        public static bool CheckDeleteCancel(ExecutedRoutedEventArgs e, IEnumerable<IRecWorkMainData> dataList)
         {
+            if (dataList.Any() == false) return true;//今は無くても同じ
             if (IsMessageBeforeCommand(e) == false) return false;
-            if (list == null || list.Count == 0) return false;
 
+            List<string> titleList = dataList.Select(info => info.DataTitle).ToList();
             return (MessageBox.Show(
-                string.Format("削除しますか?\r\n\r\n" + "[削除項目数: {0}]\r\n\r\n", list.Count) + FormatTitleListForDialog(list)
+                string.Format("削除しますか?\r\n\r\n" + "[削除項目数: {0}]\r\n\r\n", titleList.Count) + FormatTitleListForDialog(titleList)
                 , "削除の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
         public static bool CheckAllProcCancel(ExecutedRoutedEventArgs e, IEnumerable<AutoAddData> dataList, bool IsDelete)
         {
+            if (dataList.Any() == false) return true;//今は無くても同じ
             if (IsMessageBeforeCommand(e) == false) return false;
 
-            List<string> titleList = dataList.Where(info => info != null).Select(info => info.DataTitle).ToList();
-            if (titleList.Count == 0) return false;
-
+            List<string> titleList = dataList.Select(info => info.DataTitle).ToList();
             var s = IsDelete == true
                 ? new string[] { "予約ごと削除して", "削除", "削除される予約数", "予約ごと削除" }
                 : new string[] { "予約の録画設定を自動登録の録画設定に合わせても", "処理", "対象予約数", "予約の録画設定変更" };
