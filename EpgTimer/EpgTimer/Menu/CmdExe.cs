@@ -126,6 +126,10 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.CopyContent, new cmdOption(mc_CopyContent, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.InfoSearchTitle, new cmdOption(mc_InfoSearchTitle, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.SearchTitle, new cmdOption(mc_SearchTitle, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.InfoSearchRecTag, new cmdOption(mc_InfoSearchRecTag, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.SearchRecTag, new cmdOption(mc_SearchRecTag, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.CopyRecTag, new cmdOption(mc_CopyRecTag, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.SetRecTag, new cmdOption(mc_SetRecTag, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.CopyNotKey, new cmdOption(mc_CopyNotKey, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.SetNotKey, new cmdOption(mc_SetNotKey, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ProtectChange, new cmdOption(mc_ProtectChange, null, cmdExeType.MultiItem, true));
@@ -371,6 +375,28 @@ namespace EpgTimer
             MenuUtil.SearchTextWeb(dataList[0].DataTitle, CmdExeUtil.IsKeyGesture(e));
             IsCommandExecuted = true;
         }
+        protected virtual void mc_InfoSearchRecTag(object sender, ExecutedRoutedEventArgs e)
+        {
+            string tag = mcs_getRecTag();
+            if (tag != null) IsCommandExecuted = true == MenuUtil.OpenInfoSearchDialog(tag);
+        }
+        protected virtual void mc_SearchRecTag(object sender, ExecutedRoutedEventArgs e)
+        {
+            string tag = mcs_getRecTag();
+            if (tag != null) MenuUtil.SearchTextWeb(tag);
+        }
+        protected virtual void mc_CopyRecTag(object sender, ExecutedRoutedEventArgs e)
+        {
+            string tag = mcs_getRecTag();
+            if (tag != null) Clipboard.SetDataObject(mcs_getRecTag());
+        }
+        protected virtual string mcs_getRecTag()
+        {
+            var data = SelectSingleData(true) as IRecSetttingData;
+            IsCommandExecuted = data != null && data.RecSettingInfo != null;
+            return IsCommandExecuted == true ? data.RecSettingInfo.RecTag : null;
+        }
+        protected virtual void mc_SetRecTag(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_CopyNotKey(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_SetNotKey(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_ProtectChange(object sender, ExecutedRoutedEventArgs e) { }
@@ -468,6 +494,12 @@ namespace EpgTimer
                     //共通の処理
                     menu.ToolTip = null;
                     mcs_ctxmLoading_edit_tooltip(menu);
+
+                    //録画タグ
+                    if (menu.Tag == EpgCmds.InfoSearchRecTag || menu.Tag == EpgCmds.SearchRecTag || menu.Tag == EpgCmds.CopyRecTag)
+                    {
+                        menu.IsEnabled = mcs_getRecTag() != null;
+                    }
 
                     //コマンド集に応じた処理
                     mcs_ctxmLoading_switch(ctxm, menu);
@@ -722,6 +754,12 @@ namespace EpgTimer
             cmdMessage.Add(EpgCmds.DeleteAll, "全て削除を実行");
             cmdMessage.Add(EpgCmds.AdjustReserve, "自動予約登録に予約を合わせる");
             cmdMessage.Add(EpgCmds.ProtectChange, "プロテクト切替を実行");
+            cmdMessage.Add(EpgCmds.CopyTitle, "番組名/ANDキーをコピー");
+            cmdMessage.Add(EpgCmds.CopyContent, "番組情報をコピー");
+            cmdMessage.Add(EpgCmds.CopyRecTag, "録画タグをコピー");
+            cmdMessage.Add(EpgCmds.SetRecTag, "録画タグを変更");
+            cmdMessage.Add(EpgCmds.CopyNotKey, "Notキーをコピー");
+            cmdMessage.Add(EpgCmds.SetNotKey, "Notキーを変更");
         }
     }
 
@@ -764,6 +802,18 @@ namespace EpgTimer
 
             return (MessageBox.Show(text, "[" + s[3] + "]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
         }
+        public static bool CheckSetFromClipBoardCancel(ExecutedRoutedEventArgs e, IEnumerable<IRecWorkMainData> dataList, string caption)
+        {
+            if (dataList.Any() == false) return true;
+            if (IsMessageBeforeCommand(e) == false) return false;
+
+            List<string> titleList = dataList.Select(info => info.DataTitle).ToList();
+            var text = string.Format("{0}を変更してよろしいですか?\r\n\r\n"
+                + "[変更項目数: {1}]\r\n[貼り付けテキスト: \"{2}\"]\r\n\r\n", caption, titleList.Count, Clipboard.GetText())
+                + FormatTitleListForDialog(titleList);
+
+            return (MessageBox.Show(text, "[" + caption + "変更]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) ;
+        }
         public static string FormatTitleListForDialog(ICollection<string> list)
         {
             int DisplayNum = MenuSettingData.CautionDisplayItemNum;
@@ -780,6 +830,7 @@ namespace EpgTimer
             if (e.Command == EpgCmds.DeleteAll) NoMessage = Settings.Instance.MenuSet.NoMessageDeleteAll;
             else if (e.Command == EpgCmds.Delete || e.Command == EpgCmds.DeleteInDialog) NoMessage = Settings.Instance.MenuSet.NoMessageDelete;
             else if (e.Command == EpgCmds.Delete2 || e.Command == EpgCmds.Delete2InDialog) NoMessage = Settings.Instance.MenuSet.NoMessageDelete2;
+            else if (e.Command == EpgCmds.SetRecTag) NoMessage = Settings.Instance.MenuSet.NoMessageRecTag;
             else if (e.Command == EpgCmds.SetNotKey) NoMessage = Settings.Instance.MenuSet.NoMessageNotKEY;
             else if (e.Command == EpgCmds.AdjustReserve) NoMessage = Settings.Instance.MenuSet.NoMessageAdjustRes;
 

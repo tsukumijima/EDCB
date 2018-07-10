@@ -222,7 +222,7 @@ namespace EpgTimer
                     return ViewItem.ConvertInfoText();
                 }
             }
-            return DataTitle;
+            return DataTitle + " " + RecTag;
         }
 
         public bool IsToolTipEnabled = false;

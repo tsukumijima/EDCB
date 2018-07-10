@@ -232,12 +232,17 @@ namespace EpgTimer
             MenuUtil.SearchTextWeb(headDataEv.DataTitle, CmdExeUtil.IsKeyGesture(e));
             IsCommandExecuted = true;
         }
+        protected override void mc_SetRecTag(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "録画タグ") == true) return;
+            IsCommandExecuted = MenuUtil.ReserveChangeRecTag(dataList, Clipboard.GetText());
+        }
         protected override void mcs_ctxmLoading_switch(ContextMenu ctxm, MenuItem menu)
         {
             var view = (menu.CommandParameter as EpgCmdParam).Code;
 
             //有効無効制御の追加分。予約データが無ければ無効
-            new List<ICommand> { EpgCmdsEx.ChgMenu, EpgCmds.CopyItem, EpgCmds.Delete, EpgCmds.DeleteAll, EpgCmds.Play }.ForEach(icmd =>
+            new List<ICommand> { EpgCmdsEx.ChgMenu, EpgCmds.CopyItem, EpgCmds.Delete, EpgCmds.DeleteAll, EpgCmds.Play, EpgCmds.SetRecTag }.ForEach(icmd =>
             {
                 if (menu.Tag == icmd) menu.IsEnabled = dataList.Count != 0;
             });

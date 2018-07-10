@@ -127,11 +127,21 @@ namespace EpgTimer
         }
         public virtual string BatFilePath
         {
-            get { return RecSettingInfo.BatFilePath; }
+            get
+            {
+                if (RecSettingInfo == null) return "";
+                //
+                return RecSettingInfo.BatFilePath;
+            }
         }
         public virtual string RecTag
         {
-            get { return RecSettingInfo.RecTag; }
+            get
+            {
+                if (RecSettingInfo == null) return "";
+                //
+                return RecSettingInfo.RecTag;
+            }
         }
 
         public virtual List<string> RecFolder

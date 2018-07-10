@@ -63,6 +63,10 @@
                             <CheckBox Content="番組情報をコピー" />
                             <CheckBox Content="番組名/ANDキーで予約情報検索" />
                             <CheckBox Content="番組名/ANDキーをネットで検索" />
+                            <CheckBox Content="録画タグで予約情報検索" />
+                            <CheckBox Content="録画タグをネットで検索" />
+                            <CheckBox Content="録画タグをコピー" />
+                            <CheckBox Content="録画タグに貼り付け" />
                             <CheckBox Content="NOTキーをコピー" />
                             <CheckBox Content="NOTキーに貼り付け" />
                             <Separator Style="{StaticResource MiddleLine}" />
@@ -100,6 +104,10 @@
                             <CheckBox Content="基本情報のみコピーする" IsChecked="{Binding CopyContentBasic}" />
                             <CheckBox Content="記号類を取り除く" IsChecked="{Binding InfoSearchTitle_Trim}" />
                             <CheckBox Content="記号類を取り除く" IsChecked="{Binding SearchTitle_Trim}" />
+                            <CheckBox Visibility="Hidden" />
+                            <CheckBox Visibility="Hidden" />
+                            <CheckBox Visibility="Hidden" />
+                            <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageRecTag}" />
                             <CheckBox Visibility="Hidden" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageNotKEY}" />
                             <Separator Style="{StaticResource MiddleLine}" />

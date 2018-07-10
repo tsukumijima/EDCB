@@ -51,11 +51,14 @@ namespace EpgTimer
             Clipboard.SetDataObject(text, true);
         }
 
-        public static void SearchTextWeb(string KeyWord, bool NotToggle = false)
+        public static void SearchTextWeb(string KeyWord, bool? NotToggle = null)
         {
             try
             {
-                KeyWord = TrimKeywordCheckToggled(KeyWord, Settings.Instance.MenuSet.SearchTitle_Trim, NotToggle);
+                if (NotToggle != null)
+                {
+                    KeyWord = TrimKeywordCheckToggled(KeyWord, Settings.Instance.MenuSet.SearchTitle_Trim, (bool)NotToggle);
+                }
                 string txtURI = Settings.Instance.MenuSet.SearchURI + UrlEncode(KeyWord, System.Text.Encoding.UTF8);
                 System.Diagnostics.Process.Start(txtURI);
             }
@@ -390,6 +393,16 @@ namespace EpgTimer
                                 MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK;
         }
 
+        public static bool ReserveChangeRecTag(List<ReserveData> itemlist, string value, bool cautionMany = true)
+        {
+            foreach (var item in itemlist) item.RecSettingInfo.RecTag = value;
+            return ReserveChange(itemlist, cautionMany);
+        }
+        public static bool AutoAddChangeRecTag(IEnumerable<AutoAddData> itemlist, string value, bool cautionMany = true)
+        {
+            foreach (var item in itemlist) item.RecSettingInfo.RecTag = value;
+            return AutoAddChange(itemlist, cautionMany);
+        }
         public static bool AutoAddChangeKeyEnabled(IEnumerable<AutoAddData> itemlist, bool? value = null)
         {
             if (AutoAddChangeKeyEnabledCautionMany(itemlist) == false) return false;
@@ -853,11 +866,14 @@ namespace EpgTimer
             return null;
         }
 
-        public static bool? OpenInfoSearchDialog(string word = null, bool NotToggle = false)
+        public static bool? OpenInfoSearchDialog(string word = null, bool? NotToggle = null)
         {
             try
             {
-                word = TrimKeywordCheckToggled(word, Settings.Instance.MenuSet.InfoSearchTitle_Trim, NotToggle);
+                if (NotToggle != null)
+                {
+                    word = TrimKeywordCheckToggled(word, Settings.Instance.MenuSet.InfoSearchTitle_Trim, (bool)NotToggle);
+                }
                 new InfoSearchWindow(word).Show();
                 return true;
             }

@@ -58,6 +58,10 @@ namespace EpgTimer
             new List<ICommand>{EpgCmds.CopyContent},
             new List<ICommand>{EpgCmds.InfoSearchTitle},
             new List<ICommand>{EpgCmds.SearchTitle},
+            new List<ICommand>{EpgCmds.InfoSearchRecTag},
+            new List<ICommand>{EpgCmds.SearchRecTag},
+            new List<ICommand>{EpgCmds.CopyRecTag},
+            new List<ICommand>{EpgCmds.SetRecTag},
             new List<ICommand>{EpgCmds.CopyNotKey},
             new List<ICommand>{EpgCmds.SetNotKey},
 

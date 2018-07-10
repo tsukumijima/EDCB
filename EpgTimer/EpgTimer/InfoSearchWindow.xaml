@@ -30,7 +30,7 @@
                     </GroupBox>
                     <WrapPanel Margin="6,0,0,0" >
                         <CheckBox  Content="正規表現" IsChecked="{Binding RegExp}" ToolTipService.ShowDuration="600000" ToolTip="チェック時・未チェック時とも全半角、大小文字を区別しません。&#10;また、未チェック時は追加で逆検索(検索対象のタイトルで検索語を検索)を行います。&#10;　※関連キーワード予約を抽出しやすくするための処置" />
-                        <CheckBox  Margin="12,0,0,0" Content="タイトルのみ検索" IsChecked="{Binding TitleOnly}" ToolTip="未チェック時は、各詳細ウィンドウまたはツールチップに表示される情報を検索します。" />
+                        <CheckBox  Margin="12,0,0,0" Content="タイトル・録画タグのみ検索" IsChecked="{Binding TitleOnly}" ToolTip="未チェック時は、各詳細ウィンドウまたはツールチップに表示される情報を検索します。" />
                         <CheckBox  Margin="12,0,0,0" Content="検索結果のツールチップを表示する" Name="checkBox_ShowToolTip" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。" Checked="checkBox_ShowToolTip_Checked" Unchecked="checkBox_ShowToolTip_Checked" />
                     </WrapPanel>
                 </StackPanel>

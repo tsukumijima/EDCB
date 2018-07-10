@@ -73,15 +73,19 @@ namespace EpgTimer
             AddCommand(EpgCmds.JumpTuner, Key.F3, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.JumpTable, Key.F3);
             AddCommand(EpgCmds.JumpListView, Key.F3, ModifierKeys.Alt);//簡易検索画面用のジャンプ。
-            AddCommand(EpgCmds.ToAutoadd);
-            AddCommand(EpgCmds.ReSearch, Key.F, ModifierKeys.Control | ModifierKeys.Shift);
-            AddCommand(EpgCmds.ReSearch2, Key.F, ModifierKeys.Control | ModifierKeys.Alt, isEnable: false);
+            AddCommand(EpgCmds.ToAutoadd, Key.K, ModifierKeys.Control);
+            AddCommand(EpgCmds.ReSearch, Key.R, ModifierKeys.Control);
+            AddCommand(EpgCmds.ReSearch2, Key.R, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.Play, Key.P, ModifierKeys.Control);
             AddCommand(EpgCmds.OpenFolder, isEnable: false);
             AddCommand(EpgCmds.CopyTitle, Key.C, ModifierKeys.Control, isEnable: false);
-            AddCommand(EpgCmds.CopyContent, isEnable: false);
-            AddCommand(EpgCmds.InfoSearchTitle, isEnable: false);
-            AddCommand(EpgCmds.SearchTitle, isEnable: false);
+            AddCommand(EpgCmds.CopyContent, Key.C, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
+            AddCommand(EpgCmds.InfoSearchTitle, Key.T, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
+            AddCommand(EpgCmds.SearchTitle, Key.E, ModifierKeys.Control, isEnable: false);
+            AddCommand(EpgCmds.InfoSearchRecTag, Key.T, ModifierKeys.Control | ModifierKeys.Alt, isEnable: false);
+            AddCommand(EpgCmds.SearchRecTag, Key.E, ModifierKeys.Control | ModifierKeys.Alt, isEnable: false);
+            AddCommand(EpgCmds.CopyRecTag, Key.X, ModifierKeys.Control | ModifierKeys.Alt, isEnable: false);
+            AddCommand(EpgCmds.SetRecTag, Key.V, ModifierKeys.Control | ModifierKeys.Alt, isEnable: false);
             AddCommand(EpgCmds.CopyNotKey, Key.X, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.SetNotKey, Key.V, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.ProtectChange, Key.S, ModifierKeys.Control, isEnable: false);
@@ -96,7 +100,7 @@ namespace EpgTimer
             AddCommand(EpgCmds.DeleteInDialog, Key.X, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.Delete2InDialog, Key.D, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.Search, Key.F, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
-            AddCommand(EpgCmds.InfoSearch, Key.F, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToView, gesNeedMenu: false);
+            AddCommand(EpgCmds.InfoSearch, Key.T, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.TopItem, Key.Up, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToList | GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.UpItem, Key.Up, ModifierKeys.Control, spc: GestureTrg.ToList | GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.DownItem, Key.Down, ModifierKeys.Control, spc: GestureTrg.ToList | GestureTrg.ToView, gesNeedMenu: false);

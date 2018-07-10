@@ -85,6 +85,7 @@ namespace EpgTimer
                 mc.AddReplaceCommand(EpgCmds.ShowDialog, mc_ShowDialog);//Enterキーからの実行が無ければ省略できる
                 mc.AddReplaceCommand(EpgCmds.ChgOnOff, mc_ChgOnOff);
                 mc.AddReplaceCommand(EpgCmds.Delete, mc_Delete);
+                mc.AddReplaceCommand(EpgCmds.SetRecTag, mc_SetRecTag);
 
                 //ボタンの設定
                 mBinds.View = CtxmCode.InfoSearchWindow;
@@ -316,6 +317,23 @@ namespace EpgTimer
             MenuUtil.AutoAddDelete(dataList.OfType<AutoAddData>().ToList(), false);
 
             StatusManager.StatusNotifySet(true, mc.GetCmdMessageFormat("削除を実行", dataList.Count));
+        }
+        private void mc_SetRecTag(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (listView_result.SelectedItem == null) return;
+            //
+            List<IRecWorkMainData> dataList = lstCtrl.GetSelectedItemsList().Select(data => data.Data).Where(data => data is IRecSetttingData).ToList();
+
+            if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "録画タグ") == true)
+            { return; }
+
+            if (MenuUtil.CautionManyMessage(dataList.Count, "変更の確認") == false)
+            { return; }
+
+            MenuUtil.ReserveChangeRecTag(dataList.OfType<ReserveData>().DeepClone(), Clipboard.GetText(), false);
+            MenuUtil.AutoAddChangeRecTag(dataList.OfType<AutoAddData>().DeepClone(), Clipboard.GetText(), false);
+
+            StatusManager.StatusNotifySet(true, mc.GetCmdMessageFormat("状態切替を実行", dataList.Count));
         }
         private void mc_JumpTab(CtxmCode trg_code)
         {

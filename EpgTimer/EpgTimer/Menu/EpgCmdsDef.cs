@@ -48,6 +48,10 @@ namespace EpgTimer
         public static RoutedUICommand CopyContent { get; private set; }
         public static RoutedUICommand InfoSearchTitle { get; private set; }
         public static RoutedUICommand SearchTitle { get; private set; }
+        public static RoutedUICommand InfoSearchRecTag { get; private set; }
+        public static RoutedUICommand SearchRecTag { get; private set; }
+        public static RoutedUICommand CopyRecTag { get; private set; }
+        public static RoutedUICommand SetRecTag { get; private set; }
         public static RoutedUICommand CopyNotKey { get; private set; }
         public static RoutedUICommand SetNotKey { get; private set; }
         public static RoutedUICommand ProtectChange { get; private set; }

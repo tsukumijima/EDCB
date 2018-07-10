@@ -55,6 +55,11 @@ namespace EpgTimer
             ReserveData resinfo = dataList[0].GetNextReserve();
             return resinfo != null ? resinfo : dataList[0].GetReserveList().GetNextReserve(true);
         }
+        protected override void mc_SetRecTag(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "録画タグ") == true) return;
+            IsCommandExecuted = MenuUtil.AutoAddChangeRecTag(dataList, Clipboard.GetText());
+        }
         protected override void mcs_ctxmLoading_switch(ContextMenu ctxm, MenuItem menu)
         {
             if (menu.Tag == EpgCmdsEx.ChgMenu)
@@ -118,16 +123,7 @@ namespace EpgTimer
         }
         protected override void mc_SetNotKey(object sender, ExecutedRoutedEventArgs e)
         {
-            if (CmdExeUtil.IsMessageBeforeCommand(e) == true)
-            {
-                var text = string.Format("Notキーを変更してよろしいですか?\r\n\r\n"
-                    + "[変更項目数: {0}]\r\n[貼り付けテキスト: \"{1}\"]\r\n\r\n", dataList.Count, Clipboard.GetText())
-                    + CmdExeUtil.FormatTitleListForDialog(dataList.Select(info => info.searchInfo.andKey).ToList());
-
-                if (MessageBox.Show(text.ToString(), "[Notキーワード変更]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
-                { return; }
-            }
-
+            if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "Notキーワード") == true) return;
             IsCommandExecuted = MenuUtil.EpgAutoAddChangeNotKey(dataList);
         }
     }
