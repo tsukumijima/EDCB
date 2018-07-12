@@ -71,6 +71,7 @@ namespace EpgTimer
                             case 0x00: return CommonManager.Instance.CustContentColorList[0x01];//スポーツ(CS)→スポーツ
                             case 0x01: return CommonManager.Instance.CustContentColorList[0x06];//洋画(CS)→映画
                             case 0x02: return CommonManager.Instance.CustContentColorList[0x06];//邦画(CS)→映画
+                            case 0x03: return CommonManager.Instance.CustContentColorList[0x15];//その他(CS)→その他
                         }
                         //ラストへ
                     }

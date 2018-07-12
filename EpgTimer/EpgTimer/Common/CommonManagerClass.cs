@@ -194,7 +194,7 @@ namespace EpgTimer
                 new ContentKindInfo(0x0B020000, "福祉", "社会福祉"),
                 new ContentKindInfo(0x0B030000, "福祉", "ボランティア"),
                 new ContentKindInfo(0x0B040000, "福祉", "手話"),
-                new ContentKindInfo(0x0B050000, "福祉", "文字（字幕）"),
+                new ContentKindInfo(0x0B050000, "福祉", "文字(字幕)"),
                 new ContentKindInfo(0x0B060000, "福祉", "音声解説"),
                 new ContentKindInfo(0x0B0F0000, "福祉", "その他"),
 
@@ -239,9 +239,10 @@ namespace EpgTimer
                 new ContentKindInfo(0x0E01020C, "邦画(CS)", "ホームドラマ"),
                 new ContentKindInfo(0x0E01020F, "邦画(CS)", "その他"),
 
-                new ContentKindInfo(0x0E0103FF, "アダルト(CS)", ""),
-                new ContentKindInfo(0x0E010300, "アダルト(CS)", "アダルト"),
-                new ContentKindInfo(0x0E01030F, "アダルト(CS)", "その他"),
+                new ContentKindInfo(0x0E0103FF, "その他(CS)", ""),
+                new ContentKindInfo(0x0E010300, "その他(CS)", "アダルト"),
+                new ContentKindInfo(0x0E010301, "その他(CS)", "海外放送"),
+                new ContentKindInfo(0x0E01030F, "その他(CS)", "その他"),
 
                 new ContentKindInfo(0x0FFF0000, "その他", ""),
                 new ContentKindInfo(0x0F0F0000, "その他", "その他"),
