@@ -58,12 +58,15 @@ namespace EpgTimer
         {
             if (nibbleList != null)
             {
-                EpgContentData info = nibbleList.Find(info1 =>
-                    info1.content_nibble_level_1 <= 0x0B || info1.content_nibble_level_1 == 0x0E || info1.content_nibble_level_1 == 0x0F);
+                //0x0C,0D(将来用)は、設定UIは無いが色設定データ自体はあるので他と同様に扱う。
+                //0x0E00(番組特性コード)と0x0E02～(未定義で将来の割り当ては不明)は除外。
+                //0x10以上は存在しないが、コード上は弾いておく。
+                EpgContentData info = nibbleList.Find(n => n.content_nibble_level_1 <= 0x0F
+                                && (n.content_nibble_level_1 != 0x0E || n.content_nibble_level_2 == 0x01));
 
                 if (info != null)
                 {
-                    if (info.content_nibble_level_1 == 0x0E && info.content_nibble_level_2 == 0x01)
+                    if (info.content_nibble_level_1 == 0x0E)
                     {
                         //CSのコード置き換え。通常は一般のジャンル情報も付いているので、効果は薄いかも。
                         switch (info.user_nibble_1)
@@ -71,14 +74,11 @@ namespace EpgTimer
                             case 0x00: return CommonManager.Instance.CustContentColorList[0x01];//スポーツ(CS)→スポーツ
                             case 0x01: return CommonManager.Instance.CustContentColorList[0x06];//洋画(CS)→映画
                             case 0x02: return CommonManager.Instance.CustContentColorList[0x06];//邦画(CS)→映画
-                            case 0x03: return CommonManager.Instance.CustContentColorList[0x15];//その他(CS)→その他
+                            case 0x03: return CommonManager.Instance.CustContentColorList[0x0F];//その他(CS)→その他
+                            default: return CommonManager.Instance.CustContentColorList[0x0F];//将来用→その他
                         }
-                        //ラストへ
                     }
-                    else
-                    {
-                        return CommonManager.Instance.CustContentColorList[info.content_nibble_level_1];
-                    }
+                    return CommonManager.Instance.CustContentColorList[info.content_nibble_level_1];
                 }
             }
             return CommonManager.Instance.CustContentColorList[0x10];
