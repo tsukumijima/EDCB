@@ -58,9 +58,10 @@ namespace EpgTimer
             NotifyLogList = new List<NotifySrvInfo>();
         }
 
+        public static readonly ContentKindInfo[] ContentKindList;
         public static readonly Dictionary<UInt32, ContentKindInfo> ContentKindDictionary;
         public static readonly Dictionary<UInt16, string> ComponentKindDictionary;
-        public static readonly Dictionary<UInt16, string> ServiceTypeDictionary;
+        public static readonly string[] ServiceTypeList;
         public static readonly string[] DayOfWeekArray;
         public static readonly string[] RecModeList;
         public static readonly string[] YesNoList;
@@ -69,7 +70,7 @@ namespace EpgTimer
 
         static CommonManager()
         {
-            ContentKindDictionary = new[]
+            ContentKindList = new[]
             {
                 new ContentKindInfo(0x00FF0000, "ニュース／報道", ""),
                 new ContentKindInfo(0x00000000, "ニュース／報道", "定時・総合"),
@@ -270,7 +271,8 @@ namespace EpgTimer
                 new ContentKindInfo(0x0E000F0F, "その他付属情報", "その他"),
 
                 new ContentKindInfo(0xFEFF0000, "不明な情報(番組表でのみ有効)", ""),
-            }.ToDictionary(info => info.Data.Key, info => info);
+            };
+            ContentKindDictionary = ContentKindList.ToDictionary(info => info.Data.Key, info => info);
 
             ComponentKindDictionary = new Dictionary<UInt16, string>()
             {
@@ -351,32 +353,26 @@ namespace EpgTimer
                 { 0x05E4, "H.264|MPEG-4 AVC、1080p(1125p)、アスペクト比 > 16:9" }
             };
 
-            ServiceTypeDictionary = new Dictionary<UInt16, string>()
-            {
-                { 0x01, "デジタルTVサービス"},
-                { 0x02, "デジタル音声サービス"},
-                { 0xA1, "臨時映像サービス"},
-                { 0xA2, "臨時音声サービス"},
-                { 0xA3, "臨時データサービス"},
-                { 0xA4, "エンジニアリングサービス"},
-                { 0xA5, "プロモーション映像サービス"},
-                { 0xA6, "プロモーション音声サービス"},
-                { 0xA7, "プロモーションデータサービス"},
-                { 0xA8, "事前蓄積用データサービス"},
-                { 0xA9, "蓄積専用データサービス"},
-                { 0xAA, "ブックマーク一覧データサービス"},
-                { 0xAB, "サーバー型サイマルサービス"},
-                { 0xAC, "独立ファイルサービス"},
-                { 0xAD, "超高精細度4K専用TVサービス"},
-                { 0xC0, "データサービス"},
-                { 0xC1, "TLVを用いた蓄積型サービス"},
-                { 0xC2, "マルチメディアサービス"},
-                { 0xFF, "無効"},
-            };
-            for (UInt16 i = 0; i < 0xFF; i++)
-            {
-                if (ServiceTypeDictionary.ContainsKey(i) == false) ServiceTypeDictionary.Add(i, "不明");
-            }
+            ServiceTypeList = Enumerable.Repeat("不明", 256).ToArray();
+            ServiceTypeList[0x01] = "デジタルTVサービス";
+            ServiceTypeList[0x02] = "デジタル音声サービス";
+            ServiceTypeList[0xA1] = "臨時映像サービス";
+            ServiceTypeList[0xA2] = "臨時音声サービス";
+            ServiceTypeList[0xA3] = "臨時データサービス";
+            ServiceTypeList[0xA4] = "エンジニアリングサービス";
+            ServiceTypeList[0xA5] = "プロモーション映像サービス";
+            ServiceTypeList[0xA6] = "プロモーション音声サービス";
+            ServiceTypeList[0xA7] = "プロモーションデータサービス";
+            ServiceTypeList[0xA8] = "事前蓄積用データサービス";
+            ServiceTypeList[0xA9] = "蓄積専用データサービス";
+            ServiceTypeList[0xAA] = "ブックマーク一覧データサービス";
+            ServiceTypeList[0xAB] = "サーバー型サイマルサービス";
+            ServiceTypeList[0xAC] = "独立ファイルサービス";
+            ServiceTypeList[0xAD] = "超高精細度4K専用TVサービス";
+            ServiceTypeList[0xC0] = "データサービス";
+            ServiceTypeList[0xC1] = "TLVを用いた蓄積型サービス";
+            ServiceTypeList[0xC2] = "マルチメディアサービス";
+            ServiceTypeList[0xFF] = "無効";
 
             DayOfWeekArray = new string[] { "日", "月", "火", "水", "木", "金", "土" };
             RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
@@ -386,17 +382,6 @@ namespace EpgTimer
                 ",Ａ,A,Ｂ,B,Ｃ,C,Ｄ,D,Ｅ,E,Ｆ,F,Ｇ,G,Ｈ,H,Ｉ,I,Ｊ,J,Ｋ,K,Ｌ,L,Ｍ,M,Ｎ,N,Ｏ,O,Ｐ,P,Ｑ,Q,Ｒ,R,Ｓ,S,Ｔ,T,Ｕ,U,Ｖ,V,Ｗ,W,Ｘ,X,Ｙ,Y,Ｚ,Z" +
                 ",ａ,a,ｂ,b,ｃ,c,ｄ,d,ｅ,e,ｆ,f,ｇ,g,ｈ,h,ｉ,i,ｊ,j,ｋ,k,ｌ,l,ｍ,m,ｎ,n,ｏ,o,ｐ,p,ｑ,q,ｒ,r,ｓ,s,ｔ,t,ｕ,u,ｖ,v,ｗ,w,ｘ,x,ｙ,y,ｚ,z" +
                 ",！,!,＃,#,＄,$,％,%,＆,&,’,',（,(,）,),～,~,￣,~,＝,=,＠,@,；,;,：,:,？,?,＿,_,＋,+,－,-,＊,*,／,/,．,.,　, ");
-        }
-
-        public static IEnumerable<ContentKindInfo> ContentKindList
-        {
-            get
-            {
-                //「その他」をラストへ。各々大分類を前へ
-                // (Valueの順序は未定義だが、現在の実装的には削除・追加しなければ大丈夫らしい。でも並べ替えておく)
-                return ContentKindDictionary.Values.OrderBy(info => (info.Data.Nibble2 + 1) & 0xFF | (info.Data.Nibble1 << 8) |
-                    ((info.Data.content_nibble_level_1 == 0xFE ? 0x7000 : info.Data.IsAttributeInfo ? 0x6000 : info.Data.content_nibble_level_1 == 0xFF ? 0x5000 : info.Data.content_nibble_level_1 == 0x0F ? 0x1000 : info.Data.IsUserNibble ? info.Data.content_nibble_level_2 : 0) << 16));
-            }
         }
 
         public static IEnumerable<int> CustomHourList

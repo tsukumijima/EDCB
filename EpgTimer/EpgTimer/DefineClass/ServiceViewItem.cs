@@ -27,7 +27,7 @@ namespace EpgTimer
         }
         public String ServiceType
         {
-            get { return CommonManager.ServiceTypeDictionary[(byte)ServiceInfo.ServiceType]; }
+            get { return CommonManager.ServiceTypeList[(byte)ServiceInfo.ServiceType]; }
         }
         public string IsVideo
         {
