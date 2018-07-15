@@ -153,8 +153,6 @@ namespace EpgTimer
             foreach (MenuItem item in cm.Items)
             {
                 item.Click += listBox_serviceView_SidSort;
-                ToolTipService.SetShowOnDisabled(item, true);
-                ToolTipService.SetShowDuration(item, 20000);
             }
             listBox_serviceView.ContextMenu = cm;
             listBox_serviceView.ContextMenuOpening += listBox_serviceView_ContextMenu_Opening;

@@ -38,7 +38,7 @@
                     </DockPanel>
                     <StackPanel KeyboardNavigation.TabNavigation="Once" Margin="15,0,0,0" Orientation="Horizontal" >
                         <CheckBox Content="正規表現モード" Margin="0,0,15,0" Name="checkBox_regExp" />
-                        <CheckBox Content="あいまい検索モード" Margin="0,0,15,0" Name="checkBox_aimai" ToolTip="正規表現モードでは無効" ToolTipService.ShowOnDisabled="True" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_regExp, Converter={StaticResource invert}}" />
+                        <CheckBox Content="あいまい検索モード" Margin="0,0,15,0" Name="checkBox_aimai" ToolTip="正規表現モードでは無効" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_regExp, Converter={StaticResource invert}}" />
                         <CheckBox Content="番組名のみ検索対象にする" Margin="0,0,15,0" Name="checkBox_titleOnly" />
                         <CheckBox Content="大小文字区別" Margin="0,0,15,0" Name="checkBox_case" />
                         <CheckBox Content="自動登録を無効にする" Margin="0,0,15,0" Name="checkBox_keyDisabled" />
@@ -158,7 +158,7 @@
                                 </StackPanel>
                                 <GroupBox Header="自動予約登録専用" >
                                     <StackPanel Margin="6,6,6,0">
-                                        <CheckBox Content="同一番組名の録画結果があれば無効で登録する" Margin="0,0,0,4" Name="checkBox_chkRecEnd" ToolTipService.ShowDuration="20000" ToolTip="番組名を比較する際に無視する文字([再]など)の設定は、&#10;設定画面から[設定]-[動作設定]-[予約情報管理]を参照。" />
+                                        <CheckBox Content="同一番組名の録画結果があれば無効で登録する" Margin="0,0,0,4" Name="checkBox_chkRecEnd" ToolTip="番組名を比較する際に無視する文字([再]など)の設定は、&#10;設定画面から[設定]-[動作設定]-[予約情報管理]を参照。" />
                                         <StackPanel Margin="20,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_chkRecEnd}" >
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4" >
                                                 <Label Content="確認対象期間 " Padding="0"/>

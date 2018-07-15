@@ -8,7 +8,7 @@
             <TextBlock Text="録画フォルダ" Width="100" Margin="0,0,8,0" />
             <Button Content="開く" Name="button_folder" Margin="8,0,0,0" DockPanel.Dock="Right" Width="43" />
             <Grid>
-                <TextBox Name="textBox_recFolder" ToolTipService.ShowDuration="20000" />
+                <TextBox Name="textBox_recFolder" />
                 <TextBox Name="textBox_recFolderDef" Foreground="DarkGray" Background="{x:Null}" BorderBrush="{x:Null}" IsHitTestVisible="False" ToolTip="デフォルト録画先:[設定]-[基本設定]-[基本]画面の「録画保存フォルダ」" />
             </Grid>
         </DockPanel>

@@ -3,7 +3,6 @@
              xmlns:my="clr-namespace:EpgTimer">
 
     <Style TargetType="ListViewItem" x:Key="ToolTipListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
-        <Setter Property="ToolTipService.ShowDuration" Value="20000" />
         <Setter Property="ToolTip" Value="{Binding ToolTipView}"/>
     </Style>
     <Style TargetType="ListView" x:Key="ServiceListViewStyle">

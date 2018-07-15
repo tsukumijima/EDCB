@@ -16,7 +16,6 @@
         </VisualBrush>
         <Style x:Key="colorButton" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="ToolTip" Value="{Binding Background, RelativeSource={RelativeSource Self}}"/>
-            <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
             <Setter Property="Height" Value="24"/>
             <Setter Property="Width" Value="58"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -41,13 +40,13 @@
                                 <Grid>
                                     <Label Content="タイトル" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Name="comboBox_fontTitle" Text="{Binding FontNameTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="カンマ区切りで英字フォント+日本語フォントのようなフォントフォールバックの指定が出来ます。&#10;　(例)Times New Roman, MS UI Gothic"/>
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Name="comboBox_fontTitle" Text="{Binding FontNameTitle}" VerticalAlignment="Top" Width="203" ToolTip="カンマ区切りで英字フォント+日本語フォントのようなフォントフォールバックの指定が出来ます。&#10;　(例)Times New Roman, MS UI Gothic"/>
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeTitle, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" HorizontalAlignment="Left" Margin="471,11,0,0" IsChecked="{Binding FontBoldTitle}" VerticalAlignment="Top" />
                                     <Label Content="タイトル以外" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding FontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding FontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSize, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
@@ -117,7 +116,7 @@
                                                 <TextBox Name="textBox_epgArchivePeriod" Width="55" />
                                                 <Label Content="日前まで保存する　( 最大14日 )" />
                                             </StackPanel>
-                                            <CheckBox Content="過去の番組情報を表示しない" IsChecked="{Binding EpgLoadArcInfo, Converter={StaticResource invert}}" Margin="0,2,0,2" ToolTipService.ShowDuration="60000" ToolTip="過去の番組情報を読み込まないようにします。&#10;・過去の番組情報を読み込んでいると、番組データの不整合のため表示が乱れる場合があります。&#10;・検索による絞り込みを使用している場合は、元々過去の番組情報は読み込まれていません。" />
+                                            <CheckBox Content="過去の番組情報を表示しない" IsChecked="{Binding EpgLoadArcInfo, Converter={StaticResource invert}}" Margin="0,2,0,2" ToolTip="過去の番組情報を読み込まないようにします。&#10;・過去の番組情報を読み込んでいると、番組データの不整合のため表示が乱れる場合があります。&#10;・検索による絞り込みを使用している場合は、元々過去の番組情報は読み込まれていません。" />
                                             <StackPanel Orientation="Horizontal" ToolTip="前2つのオプションとは関係なく、強制的に表示を制限します。" >
                                                 <CheckBox Content="番組表の表示を" IsChecked="{Binding EpgNoDisplayOld}" />
                                                 <TextBox Text="{Binding EpgNoDisplayOldDays}" Width="55" Margin="6,0,0,0"/>
@@ -151,13 +150,13 @@
                             </Grid.RowDefinitions>
                             <DockPanel Grid.ColumnSpan="2" Margin="0,6,0,0">
                                 <Label Content="タイトルの文字列置換リスト（/置換前/置換後/…）" Name="label_replacePatternTitleDef" ToolTip="先頭の文字が区切り記号になります。例えば(,置換前,置換後,…)でも可。"/>
-                                <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" IsChecked="{Binding EpgReplacePatternTitleDef}" ToolTipService.ShowDuration="20000" ToolTip="追加で内蔵辞書を適用します。ただしその分表示が遅くなります。&#10;同一のキーはテキストボックスの置換を優先します。" />
+                                <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" Name="checkBox_replacePatternTitleDef" IsChecked="{Binding EpgReplacePatternTitleDef}" ToolTip="追加で内蔵辞書を適用します。ただしその分表示が遅くなります。&#10;同一のキーはテキストボックスの置換を優先します。" />
                                 <CheckBox Content="使用予定チューナー画面にも適用" Margin="12,0,0,0" IsChecked="{Binding ApplyReplacePatternTuner}" />
                             </DockPanel>
                             <TextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" Name="textBox_ReplacePatternTitle" Text="{Binding EpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="{Binding Text, ElementName=comboBox_FontReplacePatternEdit}" FontSize="{Binding Text, ElementName=textBox_FontSizeReplacePatternEdit}" />
                             <DockPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,6,0,0">
                                 <Label Content="タイトル以外の文字列置換リスト（〃）" Width="{Binding ActualWidth, ElementName=label_replacePatternTitleDef}"/>
-                                <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" IsEnabled="{Binding ShareEpgReplacePatternTitle, Converter={StaticResource invert}}" IsChecked="{Binding EpgReplacePatternDef}" ToolTipService.ShowDuration="20000" ToolTipService.ShowOnDisabled="True" ToolTip="{Binding ToolTip, ElementName=checkBox_replacePatternTitleDef}" />
+                                <CheckBox Content="内蔵URL変換(全半角変換)辞書をマージ" Margin="12,0,0,0" IsEnabled="{Binding ShareEpgReplacePatternTitle, Converter={StaticResource invert}}" IsChecked="{Binding EpgReplacePatternDef}" ToolTip="{Binding ToolTip, ElementName=checkBox_replacePatternTitleDef}" />
                                 <CheckBox Content="タイトルの置換リストを使用" Margin="12,0,0,0" IsChecked="{Binding ShareEpgReplacePatternTitle}"/>
                             </DockPanel>
                             <local:TextBoxWithReadOnlyEffect Grid.Row="3" Grid.Column="1" VerticalAlignment="Stretch" x:Name="textBox_ReplacePattern" Text="{Binding EpgReplacePattern}" IsReadOnly="{Binding ShareEpgReplacePatternTitle}" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" TextWrapping="Wrap" FontFamily="{Binding Text, ElementName=comboBox_FontReplacePatternEdit}" FontSize="{Binding Text, ElementName=textBox_FontSizeReplacePatternEdit}" />
@@ -406,13 +405,13 @@
                                 <Grid>
                                     <Label Content="サービス" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,6,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Text="{Binding TunerFontNameService}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Text="{Binding TunerFontNameService}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSizeService, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" HorizontalAlignment="Left" Margin="471,11,0,0" IsChecked="{Binding TunerFontBoldService}" VerticalAlignment="Top" />
                                     <Label Content="サービス以外" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding TunerFontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
+                                    <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding TunerFontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,36,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="426,36,0,0" VerticalAlignment="Top" Width="39" Text="{Binding TunerFontSize, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                 </Grid>
@@ -599,7 +598,7 @@
                                                 <TextBox Text="除外PID" VerticalAlignment="Top" IsHitTestVisible="False" Background="{x:Null}" BorderBrush="{x:Null}" />
                                                 <Button Content="リセット" Name="button_RecInfoDropExceptDefault" HorizontalAlignment="Center"/>
                                             </StackPanel>
-                                            <TextBox Name="textBox_RecInfoDropExcept" Text="EIT, NIT, CAT, SDT, SDTT, TOT, ECM, EMM" TextWrapping="Wrap" VerticalAlignment="Stretch" ToolTipService.ShowDuration="20000" ToolTip="入力形式はカンマ区切り、大文字小文字は区別されます。&#10;※録画情報ダイアログの「エラーログ」タブの表示内容に対して、単純な文字列比較による判定を行います。"/>
+                                            <TextBox Name="textBox_RecInfoDropExcept" Text="EIT, NIT, CAT, SDT, SDTT, TOT, ECM, EMM" TextWrapping="Wrap" VerticalAlignment="Stretch" ToolTip="入力形式はカンマ区切り、大文字小文字は区別されます。&#10;※録画情報ダイアログの「エラーログ」タブの表示内容に対して、単純な文字列比較による判定を行います。"/>
                                         </DockPanel>
                                     </DockPanel>
                                 </DockPanel>
@@ -650,7 +649,7 @@
                             </StackPanel>
                             <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" IsChecked="{Binding TrimSortTitle}" />
                             <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
-                                <CheckBox Content="記号類の除去にカスタム設定を使用する" Name="checkBox_picUpCustom" IsChecked="{Binding UseCustom}" ToolTipService.ShowDuration="20000" ToolTip="右クリックメニューや各画面の列の並べ替えに使用している設定を、内部デフォルト設定から変更します。" />
+                                <CheckBox Content="記号類の除去にカスタム設定を使用する" Name="checkBox_picUpCustom" IsChecked="{Binding UseCustom}" ToolTip="右クリックメニューや各画面の列の並べ替えに使用している設定を、内部デフォルト設定から変更します。" />
                                 <Button Margin="12,0,0,0" Content="設定" Click="button_SetPicUpCustom_Click" />
                             </StackPanel>
                             <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
@@ -659,12 +658,12 @@
                                 <Label Content="時まで" />
                             </StackPanel>
                             <CheckBox Content="予約変更ダイアログを操作後も開いたままにする" Margin="0,6,12,0" IsChecked="{Binding KeepReserveWindow}" />
-                            <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" IsChecked="{Binding UseLastSearchKey}" ToolTipService.ShowDuration="20000" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
+                            <CheckBox Content="検索/キーワード予約ダイアログで前回の検索条件を保存する" Margin="0,6,12,0" IsChecked="{Binding UseLastSearchKey}" ToolTip="チェック時、検索プリセットに「前回検索条件」が表示されます。&#10;チェックを外して設定を確定すると、保存されている前回の検索条件はクリアされます。"/>
                             <StackPanel Margin="0,6,12,0" Orientation="Horizontal">
                                 <CheckBox Content="検索/キーワード予約ダイアログで検索語の履歴を保存する" IsChecked="{Binding SaveSearchKeyword}" ToolTip="「検索/キーワード予約ダイアログで前回の検索条件を保存する」とは独立して検索キーワードのみ保存します"/>
                                 <Button Content="履歴クリア" Margin="6,0,0,0" Name="button_clearSerchKeywords" Click="button_clearSerchKeywords_Click" />
                             </StackPanel>
-                            <CheckBox Margin="0,6,12,0" Content="録画設定タブ、予約タブにプリセットを表示する" IsChecked="{Binding DisplayPresetOnSearch}" ToolTipService.ShowDuration="20000" ToolTip="検索/キーワードダイアログ、予約登録/変更ダイアログが対象です。&#10;またこのオプションが有効のときは、タブにプリセット選択用の右クリックメニューが表示されます。"/>
+                            <CheckBox Margin="0,6,12,0" Content="録画設定タブ、予約タブにプリセットを表示する" IsChecked="{Binding DisplayPresetOnSearch}" ToolTip="検索/キーワードダイアログ、予約登録/変更ダイアログが対象です。&#10;またこのオプションが有効のときは、タブにプリセット選択用の右クリックメニューが表示されます。"/>
                             <StackPanel Margin="0,4,12,0" Orientation="Horizontal" >
                                 <CheckBox Content="詳細情報のツールチップを表示する　ツールチップの幅 " IsChecked="{Binding NoToolTip, Converter={StaticResource invert}}" ToolTip="番組表、使用予定チューナー画面、その他一部画面は個別にツールチップの表示設定があります。" />
                                 <TextBox Text="{Binding ToolTipWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" Width="44" />
@@ -674,7 +673,7 @@
                                 <Label Content="番組詳細タブを選択した状態で予約ダイアログを開く" ToolTip="番組表、使用予定チューナー画面はそれぞれの設定タブを参照" />
                                 <WrapPanel Margin="14,-2,0,0" >
                                     <CheckBox Content="予約一覧 　" IsChecked="{Binding ReserveEpgInfoOpenMode}" />
-                                    <CheckBox Content="自動予約登録・検索関連ダイアログなど" IsChecked="{Binding SearchEpgInfoOpenMode}" ToolTipService.ShowDuration="20000" ToolTip="対象となるのは、次の画面。&#10;キーワード予約一覧、プログラム予約一覧、&#10;検索/キーワード予約ダイアログ、予約情報検索ダイアログ" />
+                                    <CheckBox Content="自動予約登録・検索関連ダイアログなど" IsChecked="{Binding SearchEpgInfoOpenMode}" ToolTip="対象となるのは、次の画面。&#10;キーワード予約一覧、プログラム予約一覧、&#10;検索/キーワード予約ダイアログ、予約情報検索ダイアログ" />
                                 </WrapPanel>
                             </StackPanel>
                             <StackPanel Margin="0,4,12,0" >
@@ -710,7 +709,7 @@
                             <Grid>
                                 <Grid>
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
-                                    <ComboBox Style="{x:Null}" Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="60,6,0,0" Text="{Binding FontNameListView}" VerticalAlignment="Top" Width="240" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" ToolTipService.ShowDuration="20000" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}"/>
+                                    <ComboBox Style="{x:Null}" Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="60,6,0,0" Text="{Binding FontNameListView}" VerticalAlignment="Top" Width="240" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}"/>
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="316,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="368,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeListView, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" HorizontalAlignment="Left" Margin="413,11,0,0" IsChecked="{Binding FontBoldListView}" VerticalAlignment="Top" />

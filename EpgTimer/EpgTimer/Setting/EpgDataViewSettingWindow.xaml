@@ -10,7 +10,7 @@
         </Grid.RowDefinitions>
         <my:EpgDataViewSetting x:Name="epgDataViewSetting" />
         <Grid Grid.Row="1" Margin="24,10,24,0" MinWidth="300">
-            <CheckBox Content="番組表を一時的に変更する" Name="checkBox_tryEpgSetting" Click="checkBox_tryEpgSetting_Click" ToolTipService.ShowOnDisabled="True" ToolTip="今だけ番組表の表示を変更し、設定を保存しません。再起動などした際は保存されている設定に戻ります。" />
+            <CheckBox Content="番組表を一時的に変更する" Name="checkBox_tryEpgSetting" Click="checkBox_tryEpgSetting_Click" ToolTip="今だけ番組表の表示を変更し、設定を保存しません。再起動などした際は保存されている設定に戻ります。" />
             <DockPanel HorizontalAlignment="Right">
                 <Button Content="OK" Margin="0,0,20,0" Name="button_ok" MinWidth="75" />
                 <Button Content="キャンセル" Name="button_cancel" MinWidth="75" IsCancel="True" />

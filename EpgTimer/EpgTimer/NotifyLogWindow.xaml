@@ -15,7 +15,7 @@
             <Label Content="表示行数"/>
             <TextBox Name="textBox_logMax" Margin="0,0,6,0" MinWidth="55" TextChanged="textBox_logMax_TextChanged" />
             <Button Content="変更" Name="button_reload" />
-            <CheckBox Content="EpgTimerの内部ログを表示" Margin="24,0,0,0" Name="checkBox_displayInternal" Click="checkBox_displayInternal_Click" ToolTipService.ShowOnDisabled="True" />
+            <CheckBox Content="EpgTimerの内部ログを表示" Margin="24,0,0,0" Name="checkBox_displayInternal" Click="checkBox_displayInternal_Click" />
         </StackPanel>
         <ListView Grid.Row="1" Name="listView_log" Margin="6">
             <ListView.View>

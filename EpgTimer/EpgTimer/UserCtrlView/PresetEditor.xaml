@@ -10,9 +10,9 @@
         <TextBlock Text="プリセット" Name="txt_title"/>
         <ComboBox VerticalAlignment="Stretch" Margin="12,0,6,0" Name="comboBox_preSet" Width="196" />
         <Button Content="再読込" Margin="6,0,0,0" MinWidth="48" Name="button_reload" />
-        <Button Content="追加" Margin="6,0,0,0" MinWidth="48" Name="button_add" ToolTipService.ShowOnDisabled="True"/>
-        <Button Content="変更" Margin="6,0,0,0" MinWidth="48" Name="button_chg" ToolTipService.ShowOnDisabled="True"/>
-        <Button Content="削除" Margin="6,0,0,0" MinWidth="48" Name="button_del" ToolTipService.ShowOnDisabled="True"/>
+        <Button Content="追加" Margin="6,0,0,0" MinWidth="48" Name="button_add" />
+        <Button Content="変更" Margin="6,0,0,0" MinWidth="48" Name="button_chg" />
+        <Button Content="削除" Margin="6,0,0,0" MinWidth="48" Name="button_del" />
         <Button Content="設定" Margin="6,0,0,0" MinWidth="48" Name="button_set" />
     </StackPanel>
 </UserControl>

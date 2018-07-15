@@ -47,7 +47,6 @@ namespace EpgTimer
             btn.CommandParameter = new EpgCmdParam(typeof(Button), View, id, data);
             btn.ToolTip = "";
             btn.ToolTipOpening += new ToolTipEventHandler(ICmdTooltip);
-            ToolTipService.SetShowOnDisabled(btn, true);
         }
 
         public static void ICmdTooltip(Object sender, ToolTipEventArgs e)

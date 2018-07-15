@@ -40,7 +40,7 @@
                             <RadioButton Content="EPG予約" Name="radioButton_Epg" ToolTip="EPG予約に戻す場合、指定日時と放映時間が重複する番組で、開始日時の最も近いものが選択されます。" Click="radioButton_Epg_Click" />
                             <RadioButton Content="プログラム予約" Margin="12,0,0,0" Name="radioButton_Program" Click="radioButton_Program_Click" ToolTip="プログラム予約では「追従機能」「ぴったり録画機能」は使用できません。"/>
                             <StackPanel Name="stack_Status" Orientation="Horizontal" >
-                                <CheckBox Content="自動予約登録を解除する" Margin="30,0,20,0" Name="checkBox_releaseAutoAdd" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="600000" ToolTip="個別予約に変更し、「自動予約登録の変更・削除に合わせて予約を変更・削除する」オプションの対象から外します。&#10;＊「自動予約登録を見失った予約を強調表示する」オプションの対象からも外れます。&#10;＊右クリックメニュー「変更」から戻せます。" IsEnabled="False" />
+                                <CheckBox Content="自動予約登録を解除する" Margin="30,0,20,0" Name="checkBox_releaseAutoAdd" ToolTip="個別予約に変更し、「自動予約登録の変更・削除に合わせて予約を変更・削除する」オプションの対象から外します。&#10;＊「自動予約登録を見失った予約を強調表示する」オプションの対象からも外れます。&#10;＊右クリックメニュー「変更」から戻せます。" IsEnabled="False" />
                                 <Label Content="予約状況:" ToolTip="予約を開いた時点での予約状況" />
                                 <ComboBox Name="text_Status" MinWidth="200"/>
                                 <Label Name="label_errStar" Content="{}" Foreground="OrangeRed" />

@@ -598,7 +598,6 @@ namespace EpgTimer
                     item = menu;
                 }
                 item.Tag = data.Command;
-                ToolTipService.SetShowOnDisabled(item, true);
 
                 dest.Add(item);
             });

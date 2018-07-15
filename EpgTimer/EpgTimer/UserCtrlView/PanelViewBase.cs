@@ -214,7 +214,6 @@ namespace EpgTimer
             Tooltip.Fill = Brushes.Transparent;
             Tooltip.Stroke = Brushes.Transparent;
             //Tooltip.ToolTipClosing += new ToolTipEventHandler((sender, e) => TooltipClear());//何度でも出せるようにする
-            ToolTipService.SetShowDuration(Tooltip, 300000);
             ToolTipService.SetInitialShowDelay(Tooltip, 0);
         }
         public virtual void ClearInfo()

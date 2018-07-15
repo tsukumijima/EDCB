@@ -18,10 +18,10 @@
                     <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,6,0,0" IsChecked="{Binding ShowTray}" />
                     <StackPanel Margin="18,0,12,0" IsEnabled="{Binding ShowTray}" >
                         <CheckBox Content="最小化時にタスクトレイに格納する" Margin="0,4,0,0" IsChecked="{Binding MinHide}" />
-                        <CheckBox Content="最小化起動時に静かに起動する" Margin="0,4,0,0" IsChecked="{Binding WakeMinTraySilent}" ToolTipService.ShowOnDisabled="True" ToolTip="最初からタスクアイコンで起動しますが、アイコンからの最初の復帰時に時間がかかります。"/>
+                        <CheckBox Content="最小化起動時に静かに起動する" Margin="0,4,0,0" IsChecked="{Binding WakeMinTraySilent}" ToolTip="最初からタスクアイコンで起動しますが、アイコンからの最初の復帰時に時間がかかります。"/>
                         <CheckBox Margin="0,4,0,0" Content="バルーンチップ/トーストでの動作通知を抑制する" IsChecked="{Binding NoBallonTips}" />
                         <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" >
-                            <Label Content="バルーンチップを強制的に閉じる" ToolTipService.ShowOnDisabled="True" ToolTip="0でタイムアウト無し"/>
+                            <Label Content="バルーンチップを強制的に閉じる" ToolTip="0でタイムアウト無し"/>
                             <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ForceHideBalloonTipSec, Converter={StaticResource vcheck},ConverterParameter='255,0'}"/>
                             <Label Content="秒後" />
                         </StackPanel>
@@ -33,7 +33,7 @@
                     <CheckBox Content="開始準備で点滅させる" Margin="36,4,0,0" Name="checkBox_blinkPreRec" />
                     <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvResident}" />
                 </StackPanel>
-                <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTipService.ShowOnDisabled="True" ToolTip="※設定項目は、この設定画面と重複します。"/>
+                <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTip="※設定項目は、この設定画面と重複します。"/>
                 <StackPanel Margin="0,4,12,0" >
                     <Label Content="スタートアップにショートカットを作成する" />
                     <StackPanel Margin="18,-4,0,0" Orientation="Horizontal">
@@ -46,7 +46,7 @@
                 <StackPanel Margin="0,6,12,0" >
                     <Label Content="情報通知ログをファイルに保存する" />
                     <StackPanel Margin="18,-2,0,0" Orientation="Horizontal">
-                        <CheckBox Content="EpgTimerSrv側" Name="checkBox_srvSaveNotifyLog" ToolTipService.ShowOnDisabled="True" ToolTip="また、チェック時は情報通知ダイアログでEpgTimerSrv側のログを表示します。"/>
+                        <CheckBox Content="EpgTimerSrv側" Name="checkBox_srvSaveNotifyLog" ToolTip="また、チェック時は情報通知ダイアログでEpgTimerSrv側のログを表示します。"/>
                         <CheckBox Margin="18,0,0,0" Content="EpgTimer側" IsChecked="{Binding AutoSaveNotifyLog}" />
                     </StackPanel>
                 </StackPanel>
@@ -63,33 +63,33 @@
                 <CheckBox Margin="0,6,12,0" Content="引数つきで起動したとき(iEPG予約追加など)はすぐに終了する" IsChecked="{Binding ExitAfterProcessingArgs}" />
                 <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" IsChecked="{Binding WakeReconnectNW}" />
                 <StackPanel Orientation="Horizontal" Margin="0,6,12,0" Name="stackPanel_WoLWait" IsEnabled="False">
-                    <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" IsChecked="{Binding WoLWaitRecconect}" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="WoL→接続(→待機→再接続)&#10;最初にマジックパケットを投げてから接続処理を行います。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
+                    <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" IsChecked="{Binding WoLWaitRecconect}" ToolTip="WoL→接続(→待機→再接続)&#10;最初にマジックパケットを投げてから接続処理を行います。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
                     <TextBox Margin="6,0,0,0" Width="62" Text="{Binding WoLWaitSecond, Converter={StaticResource vcheck},ConverterParameter='3600,1'}"/>
                     <Label Content="秒後" />
                 </StackPanel>
                 <CheckBox Content="休止／スタンバイ移行時にEpgTimerNWを終了する" Margin="0,6,0,0" Name="checkBox_suspendClose" IsEnabled="False" IsChecked="{Binding SuspendCloseNW}" />
-                <CheckBox Content="EPGデータを常に更新する" Margin="0,6,0,0" IsChecked="{Binding NgAutoEpgLoadNW, Converter={StaticResource invert}}" Name="checkBox_ngAutoEpgLoad" ToolTipService.ShowDuration="600000" ToolTip="未チェックでも、番組表を表示するときは更新されます。&#10;また「EPG再読み込み」で更新できます。"/>
+                <CheckBox Content="EPGデータを常に更新する" Margin="0,6,0,0" IsChecked="{Binding NgAutoEpgLoadNW, Converter={StaticResource invert}}" Name="checkBox_ngAutoEpgLoad" ToolTip="未チェックでも、番組表を表示するときは更新されます。&#10;また「EPG再読み込み」で更新できます。"/>
                 <StackPanel Margin="0,0,12,0">
-                    <CheckBox Content="EPGデータ更新時にすぐ番組表を構築する" Margin="0,6,0,0" IsChecked="{Binding PrebuildEpg}" ToolTipService.ShowDuration="600000" ToolTip="チェック時は、番組表タブが非表示の場合にも、すぐ番組表を構築します。&#10;番組表タブへの切替えが早くなりますが、EPG更新時などは重くなります。" />
+                    <CheckBox Content="EPGデータ更新時にすぐ番組表を構築する" Margin="0,6,0,0" IsChecked="{Binding PrebuildEpg}" ToolTip="チェック時は、番組表タブが非表示の場合にも、すぐ番組表を構築します。&#10;番組表タブへの切替えが早くなりますが、EPG更新時などは重くなります。" />
                     <CheckBox Content="全番組表を構築する　※更新時や設定変更時に大変重くなります" Margin="18,4,0,0" IsChecked="{Binding PrebuildEpgAll}" IsEnabled="{Binding PrebuildEpg}" />
                 </StackPanel>
                 <StackPanel Margin="0,0,12,0">
-                    <Label Content="内部追加データを取得しない[テスト用]" ToolTipService.ShowDuration="600000" ToolTip="起動時など若干速くなる場合もありますが、いろいろ問題が発生します(特にキーワード予約の方)。&#10;設定を変更した場合、再起動/再接続するまでは動作不定です。" />
+                    <Label Content="内部追加データを取得しない[テスト用]" ToolTip="起動時など若干速くなる場合もありますが、いろいろ問題が発生します(特にキーワード予約の方)。&#10;設定を変更した場合、再起動/再接続するまでは動作不定です。" />
                     <WrapPanel Margin="14,0,0,0">
-                        <CheckBox Content="予約番組情報　 " IsChecked="{Binding NoReserveEventList}" ToolTipService.ShowDuration="600000" ToolTip="チェック時は、EPGデータ未取得時に予約ダイアログの番組情報などが表示されなくなります。" />
-                        <CheckBox Content="キーワード予約検索情報" IsChecked="{Binding NoEpgAutoAddAppend}" ToolTipService.ShowDuration="600000" ToolTip="チェック時は、キーワード予約の連動更新機能を始め、&#10;キーワード予約関連の機能に多くの支障が発生します。" />
+                        <CheckBox Content="予約番組情報　 " IsChecked="{Binding NoReserveEventList}" ToolTip="チェック時は、EPGデータ未取得時に予約ダイアログの番組情報などが表示されなくなります。" />
+                        <CheckBox Content="キーワード予約検索情報" IsChecked="{Binding NoEpgAutoAddAppend}" ToolTip="チェック時は、キーワード予約の連動更新機能を始め、&#10;キーワード予約関連の機能に多くの支障が発生します。" />
                     </WrapPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,12,0" >
                     <StackPanel>
-                        <CheckBox Content="EpgTimerSrvとの接続維持を試みる" Name="checkBox_keepTCPConnect" IsEnabled="False" IsChecked="{Binding ChkSrvRegistTCP}" ToolTipService.ShowOnDisabled="True" ToolTip="EpgTimerNW使用時、EpgTimerSrv側の再起動時などに接続維持を試みます" />
+                        <CheckBox Content="EpgTimerSrvとの接続維持を試みる" Name="checkBox_keepTCPConnect" IsEnabled="False" IsChecked="{Binding ChkSrvRegistTCP}" ToolTip="EpgTimerNW使用時、EpgTimerSrv側の再起動時などに接続維持を試みます" />
                         <CheckBox Content="タスクトレイアイコンのツールチップを更新する" Margin="0,6,0,0" IsChecked="{Binding UpdateTaskText}" ToolTip="EpgTimerNWで「EpgTimerSrvとの接続維持を試みる」使用時以外はほとんど効果ありません" />
                     </StackPanel>
                     <Border Height="28" Width="10" Margin="6,0,0,0" BorderBrush="Gray" BorderThickness="0,1,1,1" />
                     <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ChkSrvRegistInterval, Converter={StaticResource vcheck},ConverterParameter='10080,1'}"/>
                     <Label Content="分間隔" />
                 </StackPanel>
-                <CheckBox Content="常にEpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" IsChecked="{Binding ForceNWMode}" ToolTipService.ShowDuration="20000" ToolTip="このオプションを使用しなくても、同じフォルダにEpgTimerSrv.exeが存在しないか、&#10;実行ファイル名を「EpgTimerNW」から始まる名前にするとNWモードで起動します。" />
+                <CheckBox Content="常にEpgTimerNWとして使用する (要再起動)" Margin="0,6,0,0" IsChecked="{Binding ForceNWMode}" ToolTip="このオプションを使用しなくても、同じフォルダにEpgTimerSrv.exeが存在しないか、&#10;実行ファイル名を「EpgTimerNW」から始まる名前にするとNWモードで起動します。" />
                 <StackPanel Orientation="Horizontal" Margin="0,12,12,0">
                     <Button Content="録画プリセット設定" Margin="0,0,20,0" Name="button_recDef" Click="button_recDef_Click" />
                     <Button Content="検索プリセット設定" Name="button_searchDef" Click="button_searchDef_Click" />
@@ -185,13 +185,13 @@
                     </Grid>
                     <CheckBox Margin="16,0,0,4" Content="同一ファイル名が存在した場合に上書きする" Name="checkBox_appOverWrite" />
                     <StackPanel Orientation="Horizontal" Margin="16,-4,0,4" >
-                        <CheckBox Content="録画用アプリ起動時に録画先フォルダへのアクセスを発生させる[試験的]" Name="checkBox_wakeUpHdd" ToolTipService.ShowDuration="60000" ToolTipService.ShowOnDisabled="True" ToolTip="EpgTimerが実行中であれば、録画するHDDのスリープ解除を試みます。&#10;EpgTimerは予約録画開始準備の通知を受け、録画フォルダに一時ファイルを作成・削除します。&#10;同じフォルダに録画中または情報保持期間内にアクセスの記録があれば何もしませんが、&#10;判定は録画先フォルダのみで行い、ドライブの確認を行いません。"/>
-                        <StackPanel Orientation="Horizontal" ToolTipService.ShowDuration="20000" ToolTipService.ShowOnDisabled="True" ToolTip="録画用アプリの起動時間×2＋1分より大きい値を設定してください。&#10;それ以下に設定すると、情報の保持効果が不十分または失われます。">
+                        <CheckBox Content="録画用アプリ起動時に録画先フォルダへのアクセスを発生させる[試験的]" Name="checkBox_wakeUpHdd" ToolTip="EpgTimerが実行中であれば、録画するHDDのスリープ解除を試みます。&#10;EpgTimerは予約録画開始準備の通知を受け、録画フォルダに一時ファイルを作成・削除します。&#10;同じフォルダに録画中または情報保持期間内にアクセスの記録があれば何もしませんが、&#10;判定は録画先フォルダのみで行い、ドライブの確認を行いません。"/>
+                        <StackPanel Orientation="Horizontal" ToolTip="録画用アプリの起動時間×2＋1分より大きい値を設定してください。&#10;それ以下に設定すると、情報の保持効果が不十分または失われます。">
                             <TextBlock Text=" ( 情報保持期間 "/>
                             <TextBox Name="textBox_noWakeUpHddMin" Width="42" />
                             <TextBlock Text=" 分" Margin="0,0,12,0" />
                         </StackPanel>
-                        <CheckBox Content="複数同時開始時のみ )" Name="checkBox_onlyWakeUpHddOverlap"  ToolTipService.ShowOnDisabled="True" ToolTip="1分以内の同時開始予約または複数フォルダへの書き出しがある場合のみ実行します" />
+                        <CheckBox Content="複数同時開始時のみ )" Name="checkBox_onlyWakeUpHddOverlap" ToolTip="1分以内の同時開始予約または複数フォルダへの書き出しがある場合のみ実行します" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -208,7 +208,7 @@
                         <CheckBox Margin="0,0,0,4" Content="優先度が同じで時間が重なった場合、後の予約を優先する" Name="checkBox_back_priority" />
                         <CheckBox Margin="0,0,0,4" Content="優先度が同じ場合、チューナー強制指定された予約を先に割り当てる" Name="checkBox_fixedTunerPriority" />
                         <DockPanel Margin="0,0,0,4" Name="grid_AppReserveIgnore">
-                            <Label Content="同一番組無効登録の判定で無視する文字列" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="キーワード予約の「同一番組名の録画結果があれば無効で登録する」の、&#10;比較の際に削除する文字列を正規表現で指定する。&#10;例 : \[[再無生]\]　→　[再]と[無]と[生]を無視"/>
+                            <Label Content="同一番組無効登録の判定で無視する文字列" ToolTip="キーワード予約の「同一番組名の録画結果があれば無効で登録する」の、&#10;比較の際に削除する文字列を正規表現で指定する。&#10;例 : \[[再無生]\]　→　[再]と[無]と[生]を無視"/>
                             <TextBox Width="120" Name="text_RecInfo2RegExp"/>
                         </DockPanel>
                         <CheckBox Margin="0,0,0,4" Content="キーワード予約をプログラム予約化したとき、再び追加されないようにする" Name="checkBox_CommentAutoAdd" />
@@ -219,7 +219,7 @@
                             <CheckBox Content="録画結果を自動的に削除する  保持件数" Name="checkBox_autoDelRecInfo" />
                             <TextBox Name="textBox_autoDelRecInfo" Width="62" Margin="5,0,0,0" />
                         </StackPanel>
-                        <CheckBox Margin="0,0,0,4" Content="録画済み一覧から削除するときに録画ファイルも削除する" Name="checkBox_recInfoDelFile" Click="checkBox_autoDel_Click" ToolTipService.ShowOnDisabled="True" ToolTip="自動削除時(「録画結果を自動的に削除する」チェック時)にも適用されます" />
+                        <CheckBox Margin="0,0,0,4" Content="録画済み一覧から削除するときに録画ファイルも削除する" Name="checkBox_recInfoDelFile" Click="checkBox_autoDel_Click" ToolTip="自動削除時(「録画結果を自動的に削除する」チェック時)にも適用されます" />
                         <CheckBox Margin="20,0,0,4" Content="同時に削除するファイルの拡張子は削除設定に従う" Name="checkBox_applyExtTo" IsEnabled="{Binding IsChecked, ElementName=checkBox_recInfoDelFile}" Click="checkBox_autoDel_Click" />
                     </StackPanel>
                 </DockPanel>
@@ -245,7 +245,7 @@
                         </Grid.ColumnDefinitions>
                         <Label Content="同時に削除するファイルの拡張子" Grid.ColumnSpan="4" />
                         <ListBox Name="listBox_ext" Grid.Row="1" SelectionMode="Extended" />
-                        <Button Content="初期" Grid.Row="1" Grid.Column="2" Name="button_ext_def" VerticalAlignment="Top" Click="button_ext_def_Click" ToolTip="デフォルトの拡張子を追加します。('.ts.err','.ts.program.txt')" ToolTipService.ShowOnDisabled="True" />
+                        <Button Content="初期" Grid.Row="1" Grid.Column="2" Name="button_ext_def" VerticalAlignment="Top" Click="button_ext_def_Click" ToolTip="デフォルトの拡張子を追加します。('.ts.err','.ts.program.txt')" />
                         <Button Content="削除" Grid.Row="1" Grid.Column="2" Name="button_ext_del" VerticalAlignment="Bottom" />
                         <TextBox Grid.Row="3" Name="textBox_ext" />
                         <Button Content="追加" Grid.Row="3" Grid.Column="2" Name="button_ext_add" />
@@ -278,13 +278,13 @@
                         <Label Content="分以内" />
                     </StackPanel >
                     <StackPanel Margin="0,0,0,2" Orientation="Horizontal" >
-                        <Label Content="自動予約登録の変更・削除に合わせて予約を変更・削除する"  ToolTipService.ShowDuration="600000" ToolTip="個別予約は対象外です。また、他の有効な自動予約登録の対象になっている予約は連動削除されません。&#10;＊右クリックメニューの「予約を自動登録に合わせる」「予約ごと削除」では、検索された予約は全て変更・削除されます。&#10;＊自動予約登録から外れた予約は、[各画面の設定][予約一覧・共通]のオプションで強調表示することができます。" />
+                        <Label Content="自動予約登録の変更・削除に合わせて予約を変更・削除する" ToolTip="個別予約は対象外です。また、他の有効な自動予約登録の対象になっている予約は連動削除されません。&#10;＊右クリックメニューの「予約を自動登録に合わせる」「予約ごと削除」では、検索された予約は全て変更・削除されます。&#10;＊自動予約登録から外れた予約は、[各画面の設定][予約一覧・共通]のオプションで強調表示することができます。" />
                         <CheckBox Margin="12,0,0,0" Content="変更時" IsChecked="{Binding SyncResAutoAddChange}"/>
                         <CheckBox Margin="12,0,0,0" Content="削除時" IsChecked="{Binding SyncResAutoAddDelete}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="18,-2,0,6">
-                        <CheckBox Content="変更時、予約を一度削除してから再登録する (無効の予約を除く)" IsChecked="{Binding SyncResAutoAddChgNewRes}" IsEnabled="{Binding SyncResAutoAddChange}" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="600000" ToolTip="キーワード予約無効時や検索条件変更時など、対象外となった予約が削除されるので注意が必要です。&#10;また、「録画中または開始直前の予約を変更・削除するとき警告する」が有効の場合はその設定時間、&#10;それ以外の場合は録画開始1分以内の予約は削除せず、通常の変更のみを試みます。" />
-                        <CheckBox Margin="12,0,0,0" Content="変更時、録画タグを保持する(左記オプション未チェック時のみ)" IsChecked="{Binding SyncResAutoAddChgKeepRecTag}" IsEnabled="{Binding SyncResAutoAddChange}" ToolTipService.ShowOnDisabled="True" />
+                        <CheckBox Content="変更時、予約を一度削除してから再登録する (無効の予約を除く)" IsChecked="{Binding SyncResAutoAddChgNewRes}" IsEnabled="{Binding SyncResAutoAddChange}" ToolTip="キーワード予約無効時や検索条件変更時など、対象外となった予約が削除されるので注意が必要です。&#10;また、「録画中または開始直前の予約を変更・削除するとき警告する」が有効の場合はその設定時間、&#10;それ以外の場合は録画開始1分以内の予約は削除せず、通常の変更のみを試みます。" />
+                        <CheckBox Margin="12,0,0,0" Content="変更時、録画タグを保持する(左記オプション未チェック時のみ)" IsChecked="{Binding SyncResAutoAddChgKeepRecTag}" IsEnabled="{Binding SyncResAutoAddChange}" />
                     </StackPanel>
                 </StackPanel>
             </Grid>

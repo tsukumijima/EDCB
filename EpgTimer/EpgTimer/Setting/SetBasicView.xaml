@@ -18,14 +18,14 @@
                     <Label Content="録画用アプリのexe" HorizontalAlignment="Left" Margin="12,40,0,0" VerticalAlignment="Top" />
                     <TextBox HorizontalAlignment="Left" Margin="157,42,0,0" Name="textBox_exe" VerticalAlignment="Top" Width="414" />
                     <Button Content="開く" HorizontalAlignment="Left" Margin="577,42,0,0" Name="button_exe" VerticalAlignment="Top" Width="44" />
-                    <Label Content="コマンドライン引数" HorizontalAlignment="Left" Margin="12,68,0,0" VerticalAlignment="Top" ToolTipService.ShowOnDisabled="True" />
+                    <Label Content="コマンドライン引数" HorizontalAlignment="Left" Margin="12,68,0,0" VerticalAlignment="Top" />
                     <TextBox HorizontalAlignment="Left" Margin="157,70,0,0" Name="textBox_cmdBon" VerticalAlignment="Top" Width="96" />
                     <Label Content="{}{BonDriver}" HorizontalAlignment="Left" Margin="253,68,0,0" VerticalAlignment="Top" IsEnabled="False" />
                     <Label Content="最小化" HorizontalAlignment="Left" Margin="354,68,0,0" VerticalAlignment="Top" />
                     <TextBox HorizontalAlignment="Left" Margin="405,70,0,0" Name="textBox_cmdMin" VerticalAlignment="Top" Width="64" />
                     <Label Content="非視聴時" HorizontalAlignment="Left" Margin="494,68,0,0" VerticalAlignment="Top" />
                     <TextBox HorizontalAlignment="Left" Margin="557,70,0,0" Name="textBox_cmdViewOff" VerticalAlignment="Top" Width="64" />
-                    <Label Content="録画保存フォルダ　（空き容量が少ない場合、上から順に録画対象のフォルダとします）" HorizontalAlignment="Left" Margin="12,96,0,0" Name="label_recFolder" VerticalAlignment="Top" ToolTipService.ShowOnDisabled="True" ToolTip="未設定の場合は「設定関係保存フォルダ」がデフォルトになります"/>
+                    <Label Content="録画保存フォルダ　（空き容量が少ない場合、上から順に録画対象のフォルダとします）" HorizontalAlignment="Left" Margin="12,96,0,0" Name="label_recFolder" VerticalAlignment="Top" ToolTip="未設定の場合は「設定関係保存フォルダ」がデフォルトになります"/>
                     <ListBox Height="69" HorizontalAlignment="Left" Margin="32,121,0,0" Name="listBox_recFolder" VerticalAlignment="Top" Width="539" SelectionMode="Extended" />
                     <Button Content="↑" HorizontalAlignment="Left" Margin="577,121,0,0" Name="button_rec_up" VerticalAlignment="Top" Width="44" />
                     <Button Content="↓" HorizontalAlignment="Left" Margin="577,145,0,0" Name="button_rec_down" VerticalAlignment="Top" Width="44" />
@@ -40,7 +40,7 @@
                     <Label Margin="12,270,0,0" Content="BonDriver (EpgDataCap_Bonでチャンネルスキャンを完了したものが表示されます)" HorizontalAlignment="Left" VerticalAlignment="Top" />
                     <ListBox Height="100" HorizontalAlignment="Left" Margin="32,296,0,0" Name="listBox_bon" VerticalAlignment="Top" Width="272" SelectionMode="Extended" />
                     <Label Content="※ 上にあるBonDriverから優先的に使用します。" HorizontalAlignment="Left" Margin="309,293,0,0" VerticalAlignment="Top" />
-                    <Label Content="※ 設定はEpgTimerSrvの次回起動時に適用されます。" HorizontalAlignment="Left" Margin="309,312,0,0" VerticalAlignment="Top" ToolTip="Windowsサービスとして動作させている場合は、Windowsサービスを一度停止してください。" ToolTipService.ShowOnDisabled="True" />
+                    <Label Content="※ 設定はEpgTimerSrvの次回起動時に適用されます。" HorizontalAlignment="Left" Margin="309,312,0,0" VerticalAlignment="Top" ToolTip="Windowsサービスとして動作させている場合は、Windowsサービスを一度停止してください。" />
                     <StackPanel HorizontalAlignment="Left" Margin="309,346,0,0" VerticalAlignment="Top" Width="312">
                         <DockPanel>
                             <Button Content="↑" Name="button_bon_up" Width="44" />
@@ -113,7 +113,7 @@
                         <TextBlock Text="分" />
                     </DockPanel>
                     <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="0,4,0,0"  Name="checkBox_EpgCapSaveTimeOut"/>
-                    <CheckBox Content="EPG取得時に放送波時間でPC時計を同期する" Margin="0,4,0,0" Name="checkBox_timeSync" ToolTipService.ShowOnDisabled="True" ToolTipService.ShowDuration="20000" ToolTip="EpgTimerSrv.exeにシステム時刻の変更特権が与えられているか、&#10;EpgTimerAdminProxy.exeがシステム時刻の変更特権を与えられて起動している必要があります。"/>
+                    <CheckBox Content="EPG取得時に放送波時間でPC時計を同期する" Margin="0,4,0,0" Name="checkBox_timeSync" ToolTip="EpgTimerSrv.exeにシステム時刻の変更特権が与えられているか、&#10;EpgTimerAdminProxy.exeがシステム時刻の変更特権を与えられて起動している必要があります。"/>
                     <CheckBox Content="EPG取得対象サービスのみ表示する" Margin="0,4,0,0" Name="checkBox_showEpgCapServiceOnly" IsChecked="{Binding ShowEpgCapServiceOnly}"/>
                     <CheckBox Content="リストボックスなどでIDでソートする" Margin="0,4,0,0" Name="checkBox_SortServiceList" IsChecked="{Binding SortServiceList}"/>
                 </StackPanel>
@@ -182,7 +182,7 @@
                     <StackPanel Margin="6,6,6,0">
                         <CheckBox Name="checkBox_httpServer" Content="Httpサーバ機能(WebUI)を使用する" Margin="0,6,0,0"/>
                         <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Name="grid_httpCtrl">
-                            <TextBlock Text="ポート" Margin="6,0,6,0" ToolTipService.ShowOnDisabled="True" ToolTip="SSLや複数ポート指定方法などはCivetWeb本家ドキュメント参照" />
+                            <TextBlock Text="ポート" Margin="6,0,6,0" ToolTip="SSLや複数ポート指定方法などはCivetWeb本家ドキュメント参照" />
                             <TextBox Name="textBox_httpPort" Width="54" />
                             <TextBlock Text="アクセス制御" Margin="12,0,6,0" />
                             <TextBox Name="textBox_httpAcl" Width="220" />
@@ -197,7 +197,7 @@
                             <TextBox Name="textBox_docrootPath" />
                         </DockPanel>
                         <CheckBox Name="checkBox_httpLog" Content="ログを保存する" Margin="0,6,0,0" />
-                        <CheckBox Name="checkBox_dlnaServer" Content="DLNA の DMS ぽい機能を使用する" Margin="0,6,0,0" ToolTipService.ShowOnDisabled="True" ToolTip="DLNA の DMS ぽい機能を利用するには ini\HttpPublic フォルダにある dlna 以下のフォルダを公開フォルダにコピーしてください。"/>
+                        <CheckBox Name="checkBox_dlnaServer" Content="DLNA の DMS ぽい機能を使用する" Margin="0,6,0,0" ToolTip="DLNA の DMS ぽい機能を利用するには ini\HttpPublic フォルダにある dlna 以下のフォルダを公開フォルダにコピーしてください。"/>
                         <TextBlock Text="　※セキュリティ関係の設定など、詳しくはReadMe_Mod.txtの「■CivetWebの組み込みについて■」を参照のこと" Foreground="Red" Margin="0,12,0,0"/>
                     </StackPanel>
                 </GroupBox>

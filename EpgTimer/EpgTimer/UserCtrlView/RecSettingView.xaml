@@ -50,7 +50,7 @@
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Bottom">
                         <DockPanel Margin="0,4,0,0">
-                            <CheckBox Content="部分受信(ワンセグ)を別ファイルに同時出力する" Margin="30,0,30,0" Name="checkBox_partial" ToolTipService.ShowDuration="30000" ToolTip="ワンセグを指定フォルダに出力したい場合は、部分受信用の録画フォルダ設定を追加してください。&#10;部分受信用の設定が存在しない場合、ワンセグはデフォルトの録画保存フォルダに出力されます。&#10;(「部分受信でない録画フォルダ設定」のフォルダに同時出力されるわけではありません)"/>
+                            <CheckBox Content="部分受信(ワンセグ)を別ファイルに同時出力する" Margin="30,0,30,0" Name="checkBox_partial" ToolTip="ワンセグを指定フォルダに出力したい場合は、部分受信用の録画フォルダ設定を追加してください。&#10;部分受信用の設定が存在しない場合、ワンセグはデフォルトの録画保存フォルダに出力されます。&#10;(「部分受信でない録画フォルダ設定」のフォルダに同時出力されるわけではありません)"/>
                             <CheckBox Content="後ろの予約を同一ファイルで出力する" Name="checkBox_continueRec" />
                         </DockPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,5,0,-1">

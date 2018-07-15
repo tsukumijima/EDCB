@@ -90,6 +90,10 @@ namespace EpgTimer
             // レイアウト用のスタイルをロード
             App.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Style/UiLayoutStyles.xaml") });
 
+            //ツールチップの表示時間を30秒、Disableでも表示するように変更
+            ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(true));
+            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(30000));
+
             //オリジナルのmutex名をもつEpgTimerか
             if (mutexName == "2")
             {
