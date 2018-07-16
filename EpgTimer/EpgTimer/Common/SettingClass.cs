@@ -421,6 +421,7 @@ namespace EpgTimer
         public bool EpgNameTabEnabled { get; set; }
         public bool EpgViewModeTabEnabled { get; set; }
         public bool EpgTabMoveCheckEnabled { get; set; }
+        public SerializableDictionary<ulong, byte> RemoconIDList { get; set; }
         public string ResColumnHead { get; set; }
         public ListSortDirection ResSortDirection { get; set; }
         public WindowSettingData WndSettings { get; set; }
@@ -747,6 +748,7 @@ namespace EpgTimer
             EpgNameTabEnabled = true;
             EpgViewModeTabEnabled = false;
             EpgTabMoveCheckEnabled = true;
+            RemoconIDList = new SerializableDictionary<ulong, byte>();
             ResColumnHead = "";
             ResSortDirection = ListSortDirection.Ascending;
             WndSettings = new WindowSettingData();

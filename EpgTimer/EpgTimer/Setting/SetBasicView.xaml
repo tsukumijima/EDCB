@@ -115,7 +115,7 @@
                     <CheckBox Content="タイムアウト発生時にも取得済みのEPGデータを保存する" Margin="0,4,0,0"  Name="checkBox_EpgCapSaveTimeOut"/>
                     <CheckBox Content="EPG取得時に放送波時間でPC時計を同期する" Margin="0,4,0,0" Name="checkBox_timeSync" ToolTip="EpgTimerSrv.exeにシステム時刻の変更特権が与えられているか、&#10;EpgTimerAdminProxy.exeがシステム時刻の変更特権を与えられて起動している必要があります。"/>
                     <CheckBox Content="EPG取得対象サービスのみ表示する" Margin="0,4,0,0" Name="checkBox_showEpgCapServiceOnly" IsChecked="{Binding ShowEpgCapServiceOnly}"/>
-                    <CheckBox Content="リストボックスなどでIDでソートする" Margin="0,4,0,0" Name="checkBox_SortServiceList" IsChecked="{Binding SortServiceList}"/>
+                    <CheckBox Content="リストボックスなどでソートする" Margin="0,4,0,0" Name="checkBox_SortServiceList" IsChecked="{Binding SortServiceList}" ToolTip="ネットワーク毎に概ねサービスID順に並べ替えます。&#10;地デジについては、番組表を読み込んだことがあればチャンネル順に並べ替えます。&#10;未チェック時は「ChSet5.txt」の並び順で表示します。"/>
                 </StackPanel>
                 <TextBlock Grid.Row="2" Text="EPG取得開始時間" Margin="0,12,0,4" />
                 <ListView Grid.Row="3" Name="listView_time">

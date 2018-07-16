@@ -37,17 +37,35 @@ namespace EpgTimer
             //ネットワーク種別優先かつ限定受信を分離したID順ソート。可能なら地上波はリモコンID優先にする。
             return ret.OrderBy(item => (
                 (ulong)(item.IsDttv ? 0 : item.IsBS ? 1 : item.IsCS ? 2 : 3) << 60 |
-                (ulong)(item.IsDttv && item.PartialFlag ? 1 : 0) << 56 |
-                (ulong)(item.IsDttv ? (item.RemoconID + 255) % 256 : 0) << 48 |
-                item.Key));
+                (ulong)(item.IsDttv ? (item.PartialFlag ? 1 : 0) : item.ONID) << 32 |
+                (ulong)(item.IsDttv ? (item.RemoconID() + 255) % 256 : item.BSQuickCh()) << 16 |
+                (ulong)(item.IsDttv ? 0xFFFF : 0x03FF) & item.SID));
+        }
+        private static int BSQuickCh(this ChSet5Item item)
+        {
+            //BSの連動放送のチャンネルをくくる
+            //スターチャンネルをまとめて、かつ放送大学ラジオもまとめつつ230番台を順に並べるのは難しい。
+            if (item.IsBS == false) return 0;
+            int ch = item.SID / 10;
+            int offset = ch >= 40 && ch < 60 ? 30 : ch >= 70 && ch < 90 ? 60 : 0;
+            return ch - offset;
         }
 
         public static void SetRemoconID(Dictionary<ulong, EpgServiceAllEventInfo> infoList)
         {
-            foreach (ChSet5Item item in ChList.Values)
+            Settings.Instance.RemoconIDList.Clear();
+            foreach (EpgServiceInfo info in infoList.Select(info => info.Value.serviceInfo)
+                                                    .Where(info => info.remote_control_key_id != 0))
             {
-                item.RemoconID = infoList.ContainsKey(item.Key) == false ? (byte)0 : infoList[item.Key].serviceInfo.remote_control_key_id;
+                Settings.Instance.RemoconIDList[info.TSID] = info.remote_control_key_id;
             }
+            Settings.SaveToXmlFile(false);
+        }
+        public static byte RemoconID(this ChSet5Item item)
+        {
+            byte ret = 0;
+            if (item.IsDttv) Settings.Instance.RemoconIDList.TryGetValue(item.TSID, out ret);
+            return ret;
         }
 
         public static bool IsVideo(UInt16 ServiceType)
@@ -190,7 +208,6 @@ namespace EpgTimer
         public String NetworkName { get; set; }
         public bool EpgCapFlag { get; set; }
         public bool SearchFlag { get; set; }
-        public Byte RemoconID { get; set; }
 
         public bool IsVideo { get { return ChSet5.IsVideo(ServiceType); } }
         public bool IsDttv { get { return ChSet5.IsDttv(ONID); } }
@@ -210,7 +227,7 @@ namespace EpgTimer
                 SID = this.SID,
                 network_name = this.NetworkName,
                 partialReceptionFlag = (byte)(this.PartialFlag ? 1 : 0),
-                remote_control_key_id = this.RemoconID,
+                remote_control_key_id = this.RemoconID(),
                 service_name = this.ServiceName,
                 service_provider_name = this.NetworkName,
                 service_type = (byte)this.ServiceType,
