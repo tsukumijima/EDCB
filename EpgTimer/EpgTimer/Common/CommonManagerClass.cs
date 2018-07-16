@@ -254,8 +254,9 @@ namespace EpgTimer
                 new ContentKindInfo(0x0E000000, "編成情報", "中止の可能性あり"),
                 new ContentKindInfo(0x0E000001, "編成情報", "延長の可能性あり"),
                 new ContentKindInfo(0x0E000002, "編成情報", "中断の可能性あり"),
-                new ContentKindInfo(0x0E000003, "編成情報", "同一シリーズの別話数放送の可能性あり"),
-                new ContentKindInfo(0x0E000004, "編成情報", "編成未定"),
+                new ContentKindInfo(0x0E000003, "編成情報", "別話数放送の可能性あり"),
+                new ContentKindInfo(0x0E000004, "編成情報", "編成未定枠"),
+                new ContentKindInfo(0x0E000005, "編成情報", "繰り上げの可能性あり"),
                 new ContentKindInfo(0x0E00000F, "編成情報", "その他の編成情報"),
 
                 new ContentKindInfo(0x0E0001FF, "中断情報", "中断に関する情報あり"),
