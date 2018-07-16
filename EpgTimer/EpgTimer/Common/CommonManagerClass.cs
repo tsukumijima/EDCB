@@ -408,7 +408,7 @@ namespace EpgTimer
             if (chKey64to16Dic.TryGetValue(key64, out Key16) == false)
             {
                 Key16 = (UInt16)chKey64to16Dic.Count;
-                chKey64to16Dic.Add(key64, Key16);
+                chKey64to16Dic[key64] = Key16;
             }
             return Key16;
         }

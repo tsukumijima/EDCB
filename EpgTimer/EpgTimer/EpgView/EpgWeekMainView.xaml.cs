@@ -111,8 +111,8 @@ namespace EpgTimer
 
                 serviceEventList[idx].eventList.ForEach(eventInfo =>
                 {
-                    try { programList.Add(eventInfo.CurrentPgUID(), new ProgramViewItem(eventInfo)); }
-                    catch { }//無いはずだが一応保険
+                    //無いはずだが、ToDictionary()にせず、一応保険。
+                    programList[eventInfo.CurrentPgUID()] = new ProgramViewItem(eventInfo);
                 });
 
                 //日付リスト構築

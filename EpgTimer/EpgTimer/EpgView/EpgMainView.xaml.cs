@@ -207,8 +207,7 @@ namespace EpgTimer
 
                         //continueが途中にあるので登録はこの位置
                         var viewItem = new ProgramViewItem(eventInfo);
-                        try { programList.Add(eventInfo.CurrentPgUID(), viewItem); }
-                        catch { }//無いはずだが一応保険
+                        programList[eventInfo.CurrentPgUID()] = viewItem;
                         programGroupList.Last().Data.Add(viewItem);
 
                         //横位置の設定

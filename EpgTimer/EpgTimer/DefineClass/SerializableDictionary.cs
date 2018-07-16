@@ -24,7 +24,7 @@ namespace EpgTimer
                 Pair entry = serializer.Deserialize(reader) as Pair;
                 if (entry != null)
                 {
-                    Add(entry.key, entry.value);
+                    this[entry.key] = entry.value;
                 }
             }
 

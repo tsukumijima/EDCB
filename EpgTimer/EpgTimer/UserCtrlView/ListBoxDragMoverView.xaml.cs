@@ -184,7 +184,7 @@ namespace EpgTimer
             var changeIDTable = new Dictionary<ulong, ulong>();
             for (int i = 0; i < this.listBox.Items.Count; i++)
             {
-                changeIDTable.Add(hlp.GetID(this.listBox.Items[i]), dataIdList[i]);
+                changeIDTable[hlp.GetID(this.listBox.Items[i])] = dataIdList[i];
             }
             return changeIDTable;
         }

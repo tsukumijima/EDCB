@@ -514,16 +514,14 @@ namespace EpgTimer
             if (SyncAll == false)
             {
                 //syncListのReserveDataはコピーなのでIDで処理する
-                var extList1 = new List<uint>();
-                var extList2 = new List<uint>();
+                var extList1 = new List<uint>();//処理対象のうち無効の自動登録の予約一覧
+                var extList2 = new List<uint>();//処理対象のうち有効の自動登録の予約一覧
                 foreach (AutoAddData data in itemlist)
                 {
                     (data.IsEnabled == false ? extList1 : extList2).AddRange(data.GetReserveList().Where(info => info.IsAutoAdded == true).Select(info => info.ReserveID));
                 }
-                extList1 = extList1.Distinct().ToList();//処理対象のうち無効の自動登録の予約一覧
-                extList2 = extList2.Distinct().ToList();//処理対象のうち有効の自動登録の予約一覧
-                var extDict = extList1.Except(extList2).ToDictionary(data => data, data => data);
-                syncList = syncList.Where(resinfo => extDict.ContainsKey(resinfo.ReserveID) == false).ToList();
+                var extHash = new HashSet<uint>(extList1.Except(extList2));
+                syncList = syncList.Where(resinfo => extHash.Contains(resinfo.ReserveID) == false).ToList();
             }
 
             return syncList;

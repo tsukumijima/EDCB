@@ -103,7 +103,7 @@ namespace EpgTimer
                         int i = 0;
                         foreach (EpgAutoAddData item in srcList)
                         {
-                            dict.Add(item.dataID, new EpgAutoAddDataAppend(list_list[i++]));
+                            dict[item.dataID] = new EpgAutoAddDataAppend(list_list[i++]);
                         }
                     }
                 }
@@ -146,11 +146,7 @@ namespace EpgTimer
                 EpgAutoAddDataAppend data;
                 if (epgAutoAddAppendList.TryGetValue(info.dataID, out data) == true)
                 {
-                    string key = SearchKey2String(info);
-                    if (dicOld.ContainsKey(key) == false)
-                    {
-                        dicOld.Add(key, data);
-                    }
+                    dicOld[SearchKey2String(info)] = data;
                 }
             }
             var newAppend = new Dictionary<uint, EpgAutoAddDataAppend>();
@@ -162,7 +158,7 @@ namespace EpgTimer
                 {
                     //同一内容の検索が複数ある場合は同じデータを参照することになる。
                     //特に問題無いはずだが、マズいようなら何か対応する。
-                    newAppend.Add(info.dataID, append1);
+                    newAppend[info.dataID] = append1;
                 }
             }
             epgAutoAddAppendList = newAppend;
@@ -328,7 +324,7 @@ namespace EpgTimer
                         if (CommonManager.CreateSrvCtrl().SendGetRecInfo(master.ID, ref extraRecInfo) == ErrCode.CMD_SUCCESS)
                         {
                             retv = new RecFileInfoAppend(extraRecInfo);
-                            recFileAppendList.Add(master.ID, retv);
+                            recFileAppendList[master.ID] = retv;
                         }
                     }
                     catch { }
@@ -351,7 +347,7 @@ namespace EpgTimer
                 var extraDatalist = new List<RecFileInfo>();
                 if (CommonManager.CreateSrvCtrl().SendGetRecInfoList(list.Select(info => info.ID).ToList(), ref extraDatalist) == ErrCode.CMD_SUCCESS)
                 {
-                    extraDatalist.ForEach(item => recFileAppendList.Add(item.ID, new RecFileInfoAppend(item)));
+                    extraDatalist.ForEach(item => recFileAppendList[item.ID] = new RecFileInfoAppend(item));
                 }
             }
             catch { }
@@ -359,7 +355,7 @@ namespace EpgTimer
             //何か問題があった場合でも何度もSendGetRecInfoList()しないよう残りも全て登録してしまう。
             foreach (var item in list.Where(info => recFileAppendList.ContainsKey(info.ID) == false))
             {
-                recFileAppendList.Add(item.ID, new RecFileInfoAppend(item, false));
+                recFileAppendList[item.ID] = new RecFileInfoAppend(item, false);
             }
         }
         public void ClearRecFileAppend(bool connect = false)
@@ -467,7 +463,7 @@ namespace EpgTimer
                     UInt64 id = info.serviceInfo.Create64Key();
                     //対応する過去番組情報があれば付加する
                     int i = list2.FindIndex(info2 => id == info2.serviceInfo.Create64Key());
-                    ServiceEventList.Add(id, new EpgServiceAllEventInfo(info.serviceInfo, info.eventList, i < 0 ? new List<EpgEventInfo>() : list2[i].eventList));
+                    ServiceEventList[id] = new EpgServiceAllEventInfo(info.serviceInfo, info.eventList, i < 0 ? new List<EpgEventInfo>() : list2[i].eventList);
                 }
                 //過去番組情報が残っていればサービスリストに加える
                 foreach (EpgServiceEventInfo info in list2)
@@ -475,7 +471,7 @@ namespace EpgTimer
                     UInt64 id = info.serviceInfo.Create64Key();
                     if (ServiceEventList.ContainsKey(id) == false)
                     {
-                        ServiceEventList.Add(id, new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList));
+                        ServiceEventList[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
                     }
                 }
 
@@ -508,8 +504,8 @@ namespace EpgTimer
                 //try { ret = CommonManager.CreateSrvCtrl().SendGetReserve(0x7FFFFFFF, ref resinfo); } catch { ret = ErrCode.CMD_ERR; }
                 //if (ret != ErrCode.CMD_SUCCESS) return ret;
 
-                list.ForEach(info => ReserveList.Add(info.ReserveID, info));
-                list2.ForEach(info => TunerReserveList.Add(info.tunerID, info));
+                list.ForEach(info => ReserveList[info.ReserveID] = info);
+                list2.ForEach(info => TunerReserveList[info.tunerID] = info);
                 //DefaultRecSetting = resinfo.RecSetting;
 
                 reserveAppendList = null;
@@ -577,7 +573,7 @@ namespace EpgTimer
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumRecInfoBasic(ref list); } catch { ret = ErrCode.CMD_ERR; }
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
 
-                list.ForEach(info => RecFileInfo.Add(info.ID, info));
+                list.ForEach(info => RecFileInfo[info.ID] = info);
 
                 ClearRecFileAppend();
                 return ret;
@@ -614,7 +610,7 @@ namespace EpgTimer
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumEpgAutoAdd(ref list); } catch { ret = ErrCode.CMD_ERR; }
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
 
-                list.ForEach(info => EpgAutoAddList.Add(info.dataID, info));
+                list.ForEach(info => EpgAutoAddList[info.dataID] = info);
 
                 ClearEpgAutoAddDataAppend(oldList);
                 updateEpgAutoAddAppend = true;
@@ -634,7 +630,7 @@ namespace EpgTimer
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumManualAdd(ref list); } catch { ret = ErrCode.CMD_ERR; }
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
 
-                list.ForEach(info => ManualAutoAddList.Add(info.dataID, info));
+                list.ForEach(info => ManualAutoAddList[info.dataID] = info);
 
                 manualAutoAddAppendList = null;
                 updateReserveAppendManualAuto = true;

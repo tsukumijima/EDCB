@@ -89,13 +89,10 @@ namespace EpgTimer
                                                                 || IsExceptionHeader(headerClicked0)) return false;
 
             // ソート関連のパラメータをセット
-            if (this._multiHeaderSortDict.ContainsKey(headerClicked0))
+            var dir1 = ListSortDirection.Ascending;
+            if (this._multiHeaderSortDict.TryGetValue(headerClicked0, out dir1))
             {
-                ListSortDirection Direction1 = this._multiHeaderSortDict[headerClicked0];
-                Direction1 = Direction1 == ListSortDirection.Ascending ?
-                                        ListSortDirection.Descending : ListSortDirection.Ascending;
-                Direction1 = directionSet == false ? Direction1 : direction;
-                this._multiHeaderSortDict[headerClicked0] = Direction1;
+                dir1 = dir1 == ListSortDirection.Ascending ? ListSortDirection.Descending : ListSortDirection.Ascending;
             }
             else
             {
@@ -106,8 +103,8 @@ namespace EpgTimer
                 this.defaultHeaderBorderBrush = headerClicked0.BorderBrush;
                 headerClicked0.FontWeight = FontWeights.Bold;
                 headerClicked0.BorderBrush = SystemColors.HighlightBrush;
-                this._multiHeaderSortDict.Add(headerClicked0, directionSet == false ? ListSortDirection.Ascending : direction);
             }
+            this._multiHeaderSortDict[headerClicked0] = directionSet == false ? dir1 : direction;
 
             // ソートの実行
             return this.SortByMultiHeader(itemList0);
