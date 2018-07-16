@@ -149,11 +149,11 @@ namespace EpgTimer
         {
             try
             {
-                if (chList == null) return false;
+                if (chListOrderByIndex == null) return false;
                 //
                 using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, fileEncoding))
                 {
-                    foreach (ChSet5Item info in chList.Values)
+                    foreach (ChSet5Item info in chListOrderByIndex)
                     {
                         writer.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}",
                             info.ServiceName,
