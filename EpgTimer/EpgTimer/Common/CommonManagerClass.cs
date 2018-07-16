@@ -527,7 +527,11 @@ namespace EpgTimer
 
         public static string AdjustSearchText(string s)
         {
-            return ReplaceText(s, ReplaceUrlDictionary).Replace("\r\n", "").ToLower();
+            return ReplaceUrl(s).Replace("\r\n", "").ToLower();
+        }
+        public static string ReplaceUrl(string s)
+        {
+            return ReplaceText(s, ReplaceUrlDictionary);
         }
 
         /// <summary>良くある通信エラー(CMD_ERR_CONNECT,CMD_ERR_TIMEOUT)をMessageBoxで表示する。</summary>
@@ -970,7 +974,7 @@ namespace EpgTimer
 
             int searchFrom = 0;
             Paragraph para = new Paragraph();
-            string rtext = ReplaceText(text, ReplaceUrlDictionary);
+            string rtext = ReplaceUrl(text);
             if (rtext.Length == text.Length)
             {
                 for (Match m = Regex.Match(rtext, @"https?://[0-9A-Za-z!#$%&'()~=@;:?_+\-*/.]+"); m.Success; m = m.NextMatch())

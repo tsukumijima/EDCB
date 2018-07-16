@@ -39,12 +39,12 @@ namespace EpgTimer.EpgView
                 };
                 service1.DataContext = info;
 
-                var text = ViewUtil.GetPanelTextBlock(info.service_name);
+                var text = ViewUtil.GetPanelTextBlock(CommonManager.ReplaceUrl(info.service_name));
                 text.Margin = new Thickness(1, 0, 1, 0);
                 text.Foreground = CommonManager.Instance.EpgServiceFontColor;
                 service1.Children.Add(text);
 
-                text = ViewUtil.GetPanelTextBlock(info.remote_control_key_id != 0 ? info.remote_control_key_id.ToString() : info.network_name + " " + (info.SID & (ChSet5.IsDttv(info.ONID) == false ? 0x03FF : 0xFFFF)).ToString());
+                text = ViewUtil.GetPanelTextBlock(ChSet5.IsDttv(info.ONID) ? (info.remote_control_key_id != 0 ? "地デジ " + info.remote_control_key_id.ToString() : "ServiceID:" + info.SID.ToString()) : CommonManager.ReplaceUrl(info.network_name) + " " + (info.SID & 0x03FF).ToString());
                 text.Margin = new Thickness(1, 0, 1, 2);
                 text.Foreground = CommonManager.Instance.EpgServiceFontColor;
                 service1.Children.Add(text);

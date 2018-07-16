@@ -212,7 +212,7 @@ namespace EpgTimer
                         dataList.AddRange(InfoSearchItem.Items(targetItems).Where(data =>
                         {
                             string trgText = data.GetSearchText(SearchInfo.TitleOnly);
-                            trgText = CommonManager.ReplaceText(trgText, CommonManager.ReplaceUrlDictionary).ToLower();
+                            trgText = CommonManager.ReplaceUrl(trgText).ToLower();
                             return Regex.Match(trgText, sText).Success;
                         }));
                     }
