@@ -32,8 +32,8 @@ namespace EpgTimer
                 var selectedList = ChSet5.ChListSelected.Select(item => servieceList[item.Key]).ToList();
                 listBox_serviceDttv.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsDttv == true);
                 listBox_serviceBS.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsBS == true);
-                listBox_serviceCS.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsCS1 == true || item.ServiceInfo.IsCS2 == true);
-                listBox_serviceCS3.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsCS3 == true);
+                listBox_serviceCS.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsCS == true);
+                listBox_serviceSP.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsSPHD == true);
                 listBox_serviceOther.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsOther == true);
                 listBox_serviceAll.ItemsSource = selectedList;
 

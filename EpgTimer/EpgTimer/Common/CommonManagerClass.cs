@@ -892,34 +892,32 @@ namespace EpgTimer
             return string.Join(",", retText);
         }
 
-        public static String ConvertNetworkNameText(ushort originalNetworkID, bool IsSimple = false)
+        public static string ConvertNetworkNameText(ushort originalNetworkID, bool IsSimple = false)
         {
-            String retText = "";
             if (ChSet5.IsDttv(originalNetworkID) == true)
             {
-                retText = "地デジ";
+                return "地デジ";
             }
             else if (ChSet5.IsBS(originalNetworkID) == true)
             {
-                retText = "BS";
+                return "BS";
             }
             else if (ChSet5.IsCS1(originalNetworkID) == true)
             {
-                retText = IsSimple == true ? "CS" : "CS1";
+                return IsSimple == true ? "CS" : "CS1";
             }
             else if (ChSet5.IsCS2(originalNetworkID) == true)
             {
-                retText = IsSimple == true ? "CS" : "CS2";
+                return IsSimple == true ? "CS" : "CS2";
             }
-            else if (ChSet5.IsCS3(originalNetworkID) == true)
+            else if (ChSet5.IsSPHD(originalNetworkID) == true)
             {
-                retText = IsSimple == true ? "CS" : "CS3";
+                return "スカパー";
             }
             else
             {
-                retText = "その他";
+                return "その他";
             }
-            return retText;
         }
 
         static String ConvertValueText(int val, string[] textList, string errText = "不明")
@@ -997,17 +995,18 @@ namespace EpgTimer
         public static List<CustomEpgTabInfo> CreateDefaultTabInfo()
         {
             //再表示の際の認識用に、負の仮番号を与えておく。
-            var setInfo = new List<CustomEpgTabInfo>
+            var setInfo = new[]
             {
                 new CustomEpgTabInfo(){ID = -1, TabName = "地デジ"},
                 new CustomEpgTabInfo(){ID = -2, TabName = "BS"},
                 new CustomEpgTabInfo(){ID = -3, TabName = "CS"},
-                new CustomEpgTabInfo(){ID = -4, TabName = "その他"},
+                new CustomEpgTabInfo(){ID = -4, TabName = "スカパー"},
+                new CustomEpgTabInfo(){ID = -5, TabName = "その他"},
             };
 
             foreach (ChSet5Item info in ChSet5.ChListSelected)
             {
-                setInfo[info.IsDttv ? 0 : info.IsBS ? 1 : info.IsCS ? 2 : 3].ViewServiceList.Add(info.Key);
+                setInfo[info.IsDttv ? 0 : info.IsBS ? 1 : info.IsCS ? 2 : info.IsSPHD ? 3 : 4].ViewServiceList.Add(info.Key);
             }
 
             return setInfo.Where(info => info.ViewServiceList.Count != 0).ToList();

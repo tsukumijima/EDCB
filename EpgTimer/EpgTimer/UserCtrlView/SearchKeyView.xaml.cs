@@ -246,8 +246,8 @@ namespace EpgTimer
 
                 button_dttv_on.IsEnabled = serviceList.Any(item => item.ServiceInfo.IsDttv == true);
                 button_bs_on.IsEnabled = serviceList.Any(item => item.ServiceInfo.IsBS == true);
-                button_cs_on.IsEnabled = serviceList.Any(item => item.ServiceInfo.IsCS1 == true || item.ServiceInfo.IsCS2 == true);
-                button_cs3_on.Visibility = serviceList.Any(item => item.ServiceInfo.IsCS3 == true) ? Visibility.Visible : Visibility.Collapsed;
+                button_cs_on.IsEnabled = serviceList.Any(item => item.ServiceInfo.IsCS == true);
+                button_sp_on.Visibility = serviceList.Any(item => item.ServiceInfo.IsSPHD == true) ? Visibility.Visible : Visibility.Collapsed;
                 button_1seg_on.Visibility = serviceList.Any(item => item.ServiceInfo.PartialFlag == true) ? Visibility.Visible : Visibility.Collapsed;
 
                 comboBox_free.SelectedIndex = key.freeCAFlag % 3;
@@ -320,11 +320,11 @@ namespace EpgTimer
         }
         private void button_cs_on_Click(object sender, RoutedEventArgs e)
         {
-            SelectService(item => (item.IsCS1 == true || item.IsCS2 == true) && item.IsVideo == true);
+            SelectService(item => item.IsCS == true && item.IsVideo == true);
         }
-        private void button_cs3_on_Click(object sender, RoutedEventArgs e)
+        private void button_sp_on_Click(object sender, RoutedEventArgs e)
         {
-            SelectService(item => item.IsCS3 == true && item.IsVideo == true);
+            SelectService(item => item.IsSPHD == true && item.IsVideo == true);
         }
         private void button_dttv_on_Click(object sender, RoutedEventArgs e)
         {

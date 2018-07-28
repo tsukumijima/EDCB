@@ -36,8 +36,8 @@ namespace EpgTimer
 
             //ネットワーク種別優先かつ限定受信を分離したID順ソート。可能なら地上波はリモコンID優先にする。
             return ret.OrderBy(item => (
-                (ulong)(item.IsDttv ? 0 : item.IsBS ? 1 : item.IsCS ? 2 : 3) << 60 |
-                (ulong)(item.IsDttv ? (item.PartialFlag ? 1 : 0) : item.ONID) << 32 |
+                (ulong)(item.IsDttv ? 0 : item.IsBS ? 1 : item.IsCS ? 2 : item.IsSPHD ? 3 : 4) << 60 |
+                (ulong)(item.IsDttv ? (item.PartialFlag ? 1 : 0) : item.IsOther ? item.ONID : 0) << 32 |
                 (ulong)(item.IsDttv ? (item.RemoconID() + 255) % 256 : item.BSQuickCh()) << 16 |
                 (ulong)(item.IsDttv ? 0xFFFF : 0x03FF) & item.SID));
         }
@@ -82,7 +82,7 @@ namespace EpgTimer
         }
         public static bool IsCS(UInt16 ONID)
         {
-            return IsCS1(ONID) || IsCS2(ONID) || IsCS3(ONID);
+            return IsCS1(ONID) || IsCS2(ONID);
         }
         public static bool IsCS1(UInt16 ONID)
         {
@@ -92,13 +92,17 @@ namespace EpgTimer
         {
             return ONID == 0x0007;
         }
-        public static bool IsCS3(UInt16 ONID)
+        public static bool IsSP(UInt16 ONID)//iEPG用
+        {
+            return IsSPHD(ONID) || ONID == 0x0001 || ONID == 0x0003;
+        }
+        public static bool IsSPHD(UInt16 ONID)
         {
             return ONID == 0x000A;
         }
         public static bool IsOther(UInt16 ONID)
         {
-            return IsDttv(ONID) == false && IsBS(ONID) == false && IsCS(ONID) == false;
+            return IsDttv(ONID) == false && IsBS(ONID) == false && IsCS(ONID) == false && IsSPHD(ONID) == false;
         }
 
         private static Encoding fileEncoding = Encoding.GetEncoding(932);
@@ -213,9 +217,7 @@ namespace EpgTimer
         public bool IsDttv { get { return ChSet5.IsDttv(ONID); } }
         public bool IsBS { get { return ChSet5.IsBS(ONID); } }
         public bool IsCS { get { return ChSet5.IsCS(ONID); } }
-        public bool IsCS1 { get { return ChSet5.IsCS1(ONID); } }
-        public bool IsCS2 { get { return ChSet5.IsCS2(ONID); } }
-        public bool IsCS3 { get { return ChSet5.IsCS3(ONID); } }
+        public bool IsSPHD { get { return ChSet5.IsSPHD(ONID); } }
         public bool IsOther { get { return ChSet5.IsOther(ONID); } }
 
         public EpgServiceInfo ToInfo()

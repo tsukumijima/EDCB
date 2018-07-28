@@ -27,7 +27,8 @@ namespace EpgTimer
                         ushort.TryParse(station.Substring(3), NumberStyles.HexNumber, null, out sid);
                     }
                     else if (ChSet5.IsBS(info.ONID) && station.StartsWith("BSDT", StringComparison.Ordinal) ||
-                             ChSet5.IsCS(info.ONID) && station.StartsWith("CSDT", StringComparison.Ordinal))
+                             ChSet5.IsCS(info.ONID) && station.StartsWith("CSDT", StringComparison.Ordinal) ||
+                             ChSet5.IsSP(info.ONID) && station.StartsWith("SPTV", StringComparison.Ordinal))
                     {
                         ushort.TryParse(station.Substring(4), out sid);
                     }

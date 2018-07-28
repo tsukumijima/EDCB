@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              xmlns:my="clr-namespace:EpgTimer" d:DataContext="{d:DesignInstance my:CustomEpgTabInfo}"
-             d:DesignHeight="500" d:DesignWidth="650">
+             d:DesignHeight="500" d:DesignWidth="700">
     <UserControl.Resources>
         <!-- デザイン時用。これが無いと、このビューを組み込んだコントロールでデザイナがエラーになる。 -->
         <Style TargetType="{x:Type ListViewItem}" BasedOn="{StaticResource {x:Static GridView.GridViewItemContainerStyleKey}}"/>
@@ -105,7 +105,7 @@
                                         <EventSetter Event="SelectionChanged" Handler="listBox_service_SelectionChanged"/>
                                     </Style>
                                 </TabControl.Resources>
-                                <TabItem Header="地デジ" Name="tab_serviceDttv">
+                                <TabItem Header="地デジ">
                                     <ListView Name="listBox_serviceDttv" >
                                         <ListView.View>
                                             <GridView>
@@ -116,7 +116,7 @@
                                         </ListView.View>
                                     </ListView>
                                 </TabItem>
-                                <TabItem Header="BS" Name="tab_serviceBS">
+                                <TabItem Header="BS">
                                     <ListView  Name="listBox_serviceBS" >
                                         <ListView.View>
                                             <GridView>
@@ -126,7 +126,7 @@
                                         </ListView.View>
                                     </ListView>
                                 </TabItem>
-                                <TabItem Header="CS" Name="tab_serviceCS">
+                                <TabItem Header="CS">
                                     <ListView  Name="listBox_serviceCS" >
                                         <ListView.View>
                                             <GridView>
@@ -136,8 +136,8 @@
                                         </ListView.View>
                                     </ListView>
                                 </TabItem>
-                                <TabItem Header="CS3" Name="tab_serviceCS3">
-                                    <ListView  Name="listBox_serviceCS3" >
+                                <TabItem Header="スカパー">
+                                    <ListView  Name="listBox_serviceSP" >
                                         <ListView.View>
                                             <GridView>
                                                 <GridViewColumn Header="サービス名" DisplayMemberBinding="{Binding Path=ServiceName}" />
@@ -146,7 +146,7 @@
                                         </ListView.View>
                                     </ListView>
                                 </TabItem>
-                                <TabItem Header="その他" Name="tab_serviceOther" >
+                                <TabItem Header="その他">
                                     <ListView Name="listBox_serviceOther" >
                                         <ListView.View>
                                             <GridView>
