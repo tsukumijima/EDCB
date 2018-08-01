@@ -104,7 +104,7 @@
                         <CheckBox Content="BS" Margin="20,0,0,0" Name="checkBox_bs"/>
                         <CheckBox Content="CS1" Margin="12,0,0,0" Name="checkBox_cs1"/>
                         <CheckBox Content="CS2" Margin="12,0,0,0" Name="checkBox_cs2"/>
-                        <CheckBox Content="CS3" Margin="12,0,0,0" Name="checkBox_cs3"/>
+                        <CheckBox Content="スカパー" Margin="12,0,0,0" Name="checkBox_sp"/>
                     </DockPanel>
                     <TextBlock Text="※詳細情報は取得できないが、短時間で取得可能になります&#10;　 (地デジは対象外)" Margin="0,4,0,0" />
                     <DockPanel Margin="0,10,0,0" >
@@ -130,7 +130,7 @@
                             </GridViewColumn>
                             <GridViewColumn Header="開始時間" DisplayMemberBinding="{Binding ViewTime}" />
                             <GridViewColumn Header="曜日" DisplayMemberBinding="{Binding WeekDay}" />
-                            <GridViewColumn Header="種別(BS,CS1,2,3)" DisplayMemberBinding="{Binding ViewBasicOnly}" />
+                            <GridViewColumn Header="種別(BS,CS1,2,SP)" DisplayMemberBinding="{Binding ViewBasicOnly}" />
                         </GridView>
                     </ListView.View>
                 </ListView>

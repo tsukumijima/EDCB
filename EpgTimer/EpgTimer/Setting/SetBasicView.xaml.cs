@@ -151,7 +151,7 @@ namespace EpgTimer.Setting
             checkBox_bs.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "BSBasicOnly", true, SettingPath.CommonIniPath);
             checkBox_cs1.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CS1BasicOnly", true, SettingPath.CommonIniPath);
             checkBox_cs2.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CS2BasicOnly", true, SettingPath.CommonIniPath);
-            checkBox_cs3.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CS3BasicOnly", false, SettingPath.CommonIniPath);
+            checkBox_sp.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CS3BasicOnly", false, SettingPath.CommonIniPath);
             textBox_EpgCapTimeOut.Text = IniFileHandler.GetPrivateProfileInt("EPGCAP", "EpgCapTimeOut", 10, SettingPath.BonCtrlIniPath).ToString();
             checkBox_EpgCapSaveTimeOut.IsChecked = IniFileHandler.GetPrivateProfileBool("EPGCAP", "EpgCapSaveTimeOut", false, SettingPath.BonCtrlIniPath);
             checkBox_timeSync.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "TimeSync", false, SettingPath.TimerSrvIniPath);
@@ -166,7 +166,7 @@ namespace EpgTimer.Setting
                 item.BSBasicOnly = (bool)checkBox_bs.IsChecked;
                 item.CS1BasicOnly = (bool)checkBox_cs1.IsChecked;
                 item.CS2BasicOnly = (bool)checkBox_cs2.IsChecked;
-                item.CS3BasicOnly = (bool)checkBox_cs3.IsChecked;
+                item.SPBasicOnly = (bool)checkBox_sp.IsChecked;
                 listView_time.Items.Add(item);
             }
             else
@@ -177,12 +177,12 @@ namespace EpgTimer.Setting
                     item.Time = IniFileHandler.GetPrivateProfileString("EPG_CAP", i.ToString(), "", SettingPath.TimerSrvIniPath);
                     item.IsSelected = IniFileHandler.GetPrivateProfileBool("EPG_CAP", i.ToString() + "Select", false, SettingPath.TimerSrvIniPath);
 
-                    // 取得種別(bit0(LSB)=BS,bit1=CS1,bit2=CS2,bit3=CS3)。負値のときは共通設定に従う
+                    // 取得種別(bit0(LSB)=BS,bit1=CS1,bit2=CS2,bit3=スカパー)。負値のときは共通設定に従う
                     int flags = IniFileHandler.GetPrivateProfileInt("EPG_CAP", i.ToString() + "BasicOnlyFlags", -1, SettingPath.TimerSrvIniPath);
                     item.BSBasicOnly = flags >= 0 ? (flags & 1) != 0 : (bool)checkBox_bs.IsChecked;
                     item.CS1BasicOnly = flags >= 0 ? (flags & 2) != 0 : (bool)checkBox_cs1.IsChecked;
                     item.CS2BasicOnly = flags >= 0 ? (flags & 4) != 0 : (bool)checkBox_cs2.IsChecked;
-                    item.CS3BasicOnly = flags >= 0 ? (flags & 8) != 0 : (bool)checkBox_cs3.IsChecked;
+                    item.SPBasicOnly = flags >= 0 ? (flags & 8) != 0 : (bool)checkBox_sp.IsChecked;
                     listView_time.Items.Add(item);
                 }
             }
@@ -247,7 +247,7 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "BSBasicOnly", checkBox_bs.IsChecked, SettingPath.CommonIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "CS1BasicOnly", checkBox_cs1.IsChecked, SettingPath.CommonIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "CS2BasicOnly", checkBox_cs2.IsChecked, SettingPath.CommonIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "CS3BasicOnly", checkBox_cs3.IsChecked, SettingPath.CommonIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "CS3BasicOnly", checkBox_sp.IsChecked, SettingPath.CommonIniPath);
             IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapTimeOut", textBox_EpgCapTimeOut.Text, SettingPath.BonCtrlIniPath);
             IniFileHandler.WritePrivateProfileString("EPGCAP", "EpgCapSaveTimeOut", checkBox_EpgCapSaveTimeOut.IsChecked, SettingPath.BonCtrlIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "TimeSync", checkBox_timeSync.IsChecked, SettingPath.TimerSrvIniPath);
@@ -269,7 +269,7 @@ namespace EpgTimer.Setting
                 var item = listView_time.Items[i] as EpgCaptime;
                 IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString(), item.Time, SettingPath.TimerSrvIniPath);
                 IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString() + "Select", item.IsSelected, SettingPath.TimerSrvIniPath);
-                int flags = (item.BSBasicOnly ? 1 : 0) | (item.CS1BasicOnly ? 2 : 0) | (item.CS2BasicOnly ? 4 : 0) | (item.CS3BasicOnly ? 8 : 0);
+                int flags = (item.BSBasicOnly ? 1 : 0) | (item.CS1BasicOnly ? 2 : 0) | (item.CS2BasicOnly ? 4 : 0) | (item.SPBasicOnly ? 8 : 0);
                 IniFileHandler.WritePrivateProfileString("EPG_CAP", i.ToString() + "BasicOnlyFlags", flags, SettingPath.TimerSrvIniPath);
             }
 
@@ -331,7 +331,7 @@ namespace EpgTimer.Setting
                     item.BSBasicOnly = (bool)checkBox_bs.IsChecked;
                     item.CS1BasicOnly = (bool)checkBox_cs1.IsChecked;
                     item.CS2BasicOnly = (bool)checkBox_cs2.IsChecked;
-                    item.CS3BasicOnly = (bool)checkBox_cs3.IsChecked;
+                    item.SPBasicOnly = (bool)checkBox_sp.IsChecked;
                     listView_time.ScrollIntoViewLast(item);
                 }
             }
@@ -365,9 +365,9 @@ namespace EpgTimer.Setting
         public bool BSBasicOnly { get; set; }
         public bool CS1BasicOnly { get; set; }
         public bool CS2BasicOnly { get; set; }
-        public bool CS3BasicOnly { get; set; }
+        public bool SPBasicOnly { get; set; }
         public string ViewTime { get { return Time.Substring(0, 5); } }//曜日情報は削除
-        public string ViewBasicOnly { get { return (BSBasicOnly ? "基" : "詳") + "," + (CS1BasicOnly ? "基" : "詳") + "," + (CS2BasicOnly ? "基" : "詳") + "," + (CS3BasicOnly ? "基" : "詳"); } }
+        public string ViewBasicOnly { get { return (BSBasicOnly ? "基" : "詳") + "," + (CS1BasicOnly ? "基" : "詳") + "," + (CS2BasicOnly ? "基" : "詳") + "," + (SPBasicOnly ? "基" : "詳"); } }
         public string WeekDay
         {
             get
