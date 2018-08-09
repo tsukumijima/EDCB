@@ -44,7 +44,8 @@ namespace EpgTimer.EpgView
                 text.Foreground = CommonManager.Instance.EpgServiceFontColor;
                 service1.Children.Add(text);
 
-                text = ViewUtil.GetPanelTextBlock(ChSet5.IsDttv(info.ONID) ? (info.remote_control_key_id != 0 ? "地デジ " + info.remote_control_key_id.ToString() : "ServiceID:" + info.SID.ToString()) : CommonManager.ReplaceUrl(info.network_name) + " " + (info.SID & 0x03FF).ToString());
+                int chnum = ChSet5.ChNumber(info.Create64Key());
+                text = ViewUtil.GetPanelTextBlock((ChSet5.IsDttv(info.ONID) ? (chnum != 0 ? "地デジ " : "ServiceID:") : CommonManager.ReplaceUrl(info.network_name) + " ") + (chnum != 0 ? chnum : info.SID).ToString());
                 text.Margin = new Thickness(1, 0, 1, 2);
                 text.Foreground = CommonManager.Instance.EpgServiceFontColor;
                 service1.Children.Add(text);

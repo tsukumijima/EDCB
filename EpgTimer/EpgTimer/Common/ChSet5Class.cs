@@ -18,7 +18,7 @@ namespace EpgTimer
                 return chList ?? new Dictionary<UInt64, ChSet5Item>();
             }
         }
-        public static void Clear() { chList = null; chListOrderByIndex = null; }
+        public static void Clear() { chList = null; chListOrderByIndex = null; bsmin = null; }
 
         public static IEnumerable<ChSet5Item> ChListSelected
         {
@@ -41,14 +41,19 @@ namespace EpgTimer
                 (ulong)(item.IsDttv ? (item.RemoconID() + 255) % 256 : item.BSQuickCh()) << 16 |
                 (ulong)(item.IsDttv ? 0xFFFF : 0x03FF) & item.SID));
         }
+        private static Dictionary<ushort, ushort> bsmin = null;
         private static int BSQuickCh(this ChSet5Item item)
         {
             //BSの連動放送のチャンネルをくくる
-            //スターチャンネルをまとめて、かつ放送大学ラジオもまとめつつ230番台を順に並べるのは難しい。
             if (item.IsBS == false) return 0;
-            int ch = item.SID / 10;
-            int offset = ch >= 40 && ch < 60 ? 30 : ch >= 70 && ch < 90 ? 60 : 0;
-            return ch - offset;
+            if (bsmin == null)
+            {
+                bsmin = (chListOrderByIndex ?? new List<ChSet5Item>()).GroupBy(d => d.TSID, d => d.SID)
+                    .ToDictionary(d => d.Key, d => d.Min());
+            }
+            ushort ret = 0;
+            bsmin.TryGetValue(item.TSID, out ret);
+            return ret;
         }
 
         public static void SetRemoconID(Dictionary<ulong, EpgServiceAllEventInfo> infoList)
@@ -66,6 +71,14 @@ namespace EpgTimer
             byte ret = 0;
             if (item.IsDttv) Settings.Instance.RemoconIDList.TryGetValue(item.TSID, out ret);
             return ret;
+        }
+        public static int ChNumber(this ChSet5Item item)
+        {
+            return item.IsDttv ? item.RemoconID() : item.SID & 0x3FF;
+        }
+        public static int ChNumber(ulong key)
+        {
+            return new ChSet5Item { ONID = (ushort)(key >> 32), TSID = (ushort)(key >> 16), SID = (ushort)key }.ChNumber();
         }
 
         public static bool IsVideo(UInt16 ServiceType)

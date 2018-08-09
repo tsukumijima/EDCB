@@ -429,9 +429,10 @@ namespace EpgTimer
         }
         public static String Convert64KeyString(UInt64 Key)
         {
+            int chnum = ChSet5.ChNumber(Key);
             return ConvertEpgIDString("OriginalNetworkID", Key >> 32) + "\r\n" +
             ConvertEpgIDString("TransportStreamID", Key >> 16) + "\r\n" +
-            ConvertEpgIDString("ServiceID", Key);
+            ConvertEpgIDString("ServiceID", Key) + (chnum == 0 ? "" : " [" + chnum + "ch]");
         }
         private static String ConvertEpgIDString(String Title, UInt64 id)
         {
