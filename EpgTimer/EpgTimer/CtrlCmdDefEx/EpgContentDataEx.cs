@@ -53,7 +53,7 @@ namespace EpgTimer
         }
         public override string ToString()
         {
-            return Data.IsCategory ? ContentName : "  " + SubName;
+            return Data.IsCategory ? ContentName ?? "" : "  " + SubName;
         }
     }
 }
