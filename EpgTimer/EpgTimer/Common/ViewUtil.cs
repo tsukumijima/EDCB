@@ -693,7 +693,7 @@ namespace EpgTimer
         {
             foreach (var sc in System.Windows.Forms.Screen.AllScreens)
             {
-                if (sc.Bounds.Contains((int)win.Left, (int)win.Top) == true)
+                if (sc.WorkingArea.Contains((int)(win.Left + Math.Min(win.Width - 5, 50)), (int)(win.Top + Math.Min(win.Height - 5, 10))) == true)
                 {
                     if (sc.WorkingArea.Contains((int)(win.Left + 100), (int)(win.Top + 100)) == true)
                     {
@@ -702,8 +702,8 @@ namespace EpgTimer
                     break;
                 }
             }
-            win.Left = double.IsNaN(win.Left) == true ? double.NaN : 100;
-            win.Top = double.IsNaN(win.Top) == true ? double.NaN : 100;
+            win.Left = double.NaN;
+            win.Top = double.NaN;
         }
 
         public static List<string> GetFolderList(ListBox box)
