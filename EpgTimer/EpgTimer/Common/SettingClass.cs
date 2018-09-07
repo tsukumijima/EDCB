@@ -666,7 +666,7 @@ namespace EpgTimer
             UseCustomEpgView = false;
             CustomEpgTabList = new List<CustomEpgTabInfo>();
             MinHeight = 2;
-            MinimumHeight = 0;
+            MinimumHeight = 0.6;
             ServiceWidth = 150;
             ScrollSize = 240;
             FontName = System.Drawing.SystemFonts.DefaultFont.Name;
@@ -693,7 +693,7 @@ namespace EpgTimer
             TunerFontName = System.Drawing.SystemFonts.DefaultFont.Name;
             TunerFontSize = 12;
             TunerMinHeight = 2;
-            TunerMinimumLine = 0;
+            TunerMinimumLine = 0.6;
             TunerDragScroll = 1.5;
             TunerScrollSize = 240;
             TunerMouseScrollAuto = false;
@@ -848,7 +848,7 @@ namespace EpgTimer
             ShowTray = true;
             MinHide = true;
             MouseScrollAuto = false;
-            NoStyle = 0;
+            NoStyle = 1;
             NoSendClose = 0;
             CautionManyChange = true;
             CautionManyNum = 10;
