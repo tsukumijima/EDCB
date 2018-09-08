@@ -23,12 +23,12 @@ namespace EpgTimer
         }
         public virtual void GetSizeFromWindow(Window wnd, bool noMinimized = true)
         {
-            if (wnd.WindowState == WindowState.Normal)
+            if (wnd.RestoreBounds.IsEmpty == false)
             {
-                Top = wnd.Top;
-                Left = wnd.Left;
-                if (wnd.Width >= 1) Width = wnd.Width;
-                if (wnd.Height >= 1) Height = wnd.Height;
+                Top = wnd.RestoreBounds.Top;
+                Left = wnd.RestoreBounds.Left;
+                if (wnd.Width >= 1) Width = wnd.RestoreBounds.Width;
+                if (wnd.Height >= 1) Height = wnd.RestoreBounds.Height;
             }
             if (noMinimized == false || wnd.WindowState != WindowState.Minimized) LastWindowState = wnd.WindowState;
         }
