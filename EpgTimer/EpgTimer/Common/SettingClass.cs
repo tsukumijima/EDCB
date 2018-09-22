@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Serialization;
@@ -957,133 +958,143 @@ namespace EpgTimer
         public static void LoadFromXmlFile(bool nwMode = false)
         {
             string path = GetSettingPath();
-            try
+            for (int retry = 0; ;)
             {
-                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
-                {
-                    //読み込んで逆シリアル化する
-                    Instance = (Settings)(new XmlSerializer(typeof(Settings)).Deserialize(fs));
-                }
-            }
-            catch (FileNotFoundException) { }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-                MessageBox.Show("現在の設定ファイルは次の名前で保存されます。\r\n" + path + ".err",
-                    "設定ファイル読込みエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 try
                 {
-                    try { File.Replace(path, path + ".err", null); }
-                    catch (FileNotFoundException) { File.Move(path, path + ".err"); }
-                }
-                catch (Exception ex2) { MessageBox.Show(ex2.Message + "\r\n" + ex2.StackTrace); }
-            }
-
-            try
-            {
-                nwMode |= Instance.ForceNWMode;
-
-                // タイミング合わせにくいので、メニュー系のデータチェックは
-                // MenuManager側のワークデータ作成時に実行する。
-
-                Instance.SetCustomEpgTabInfoID();
-                Instance.SearchPresetList.FixUp();
-
-                //互換用コード。検索プリセット対応。DefSearchKeyの吸収があるので旧CS仮対応コードより前。
-                if (Instance.verSaved < 20170717)
-                {
-                    Instance.SearchPresetList[0].Data = Instance.DefSearchKey;
-                }
-
-                if (Instance.verSaved < 20170512)
-                {
-                    //互換用コード。旧CS仮対応コード(+0x70)も変換する。
-                    foreach (var info in Instance.CustomEpgTabList)
+                    using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                     {
-                        info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
-                        EpgContentData.FixNibble(info.ViewContentList);
-                        EpgContentData.FixNibble(info.SearchKey.contentList);
-                        info.ViewContentKindList = null;
+                        //読み込んで逆シリアル化する
+                        Instance = (Settings)(new XmlSerializer(typeof(Settings)).Deserialize(fs));
                     }
-                    EpgContentData.FixNibble(Instance.SearchPresetList[0].Data.contentList);
-
-                    //互換用コード。カラム名の変更追従。
-                    var objk = new EpgAutoDataItem();
-                    Instance.AutoAddEpgColumn.ForEach(c =>
+                    break;
+                }
+                catch (IOException)
+                {
+                    //FileNotFoundExceptionを含むので注意(File.Replace()の内部でNotFoundになる瞬間がある)
+                    if (++retry > 4)
                     {
-                        if      (c.Tag == "AndKey")         c.Tag = CommonUtil.NameOf(() => objk.EventName);
-                        else if (c.Tag == "NetworkKey")     c.Tag = CommonUtil.NameOf(() => objk.NetworkName);
-                        else if (c.Tag == "ServiceKey")     c.Tag = CommonUtil.NameOf(() => objk.ServiceName);
-                    });
-                    var objm = new ManualAutoAddDataItem();
-                    Instance.AutoAddManualColumn.ForEach(c =>
+                        break;
+                    }
+                    Thread.Sleep(170);
+                }
+                catch (Exception ex)
+                {
+                    //内容が異常など
+                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                    MessageBox.Show("現在の設定ファイルは次の名前で保存されます。\r\n" + path + ".err",
+                        "設定ファイル読込みエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    try
                     {
-                        if      (c.Tag == "Title")          c.Tag = CommonUtil.NameOf(() => objm.EventName);
-                        else if (c.Tag == "Time")           c.Tag = CommonUtil.NameOf(() => objm.StartTime);
-                        else if (c.Tag == "StationName")    c.Tag = CommonUtil.NameOf(() => objm.ServiceName);
-                    });
-                }
-
-                //色設定関係
-                Instance.SetColorSetting();
-
-                if (Instance.ViewButtonList.Count == 0)
-                {
-                    Instance.ViewButtonList.AddRange(GetViewButtonDefIDs(nwMode));
-                }
-                if (Instance.TaskMenuList.Count == 0)
-                {
-                    Instance.TaskMenuList.AddRange(GetTaskMenuDefIDs(nwMode));
-                }
-                if (Instance.ReserveListColumn.Count == 0)
-                {
-                    var obj = new ReserveItem();
-                    Instance.ReserveListColumn.AddRange(GetDefaultColumn(typeof(ReserveView)));
-                    Instance.ResColumnHead = CommonUtil.NameOf(() => obj.StartTime);
-                    Instance.ResSortDirection = ListSortDirection.Ascending;
-                }
-                if (Instance.RecInfoListColumn.Count == 0)
-                {
-                    var obj = new RecInfoItem();
-                    Instance.RecInfoListColumn.AddRange(GetDefaultColumn(typeof(RecInfoView)));
-                    Instance.RecInfoColumnHead = CommonUtil.NameOf(() => obj.StartTime);
-                    Instance.RecInfoSortDirection = ListSortDirection.Descending;
-                }
-                if (Instance.AutoAddEpgColumn.Count == 0)
-                {
-                    Instance.AutoAddEpgColumn.AddRange(GetDefaultColumn(typeof(EpgAutoAddView)));
-                }
-                if (Instance.AutoAddManualColumn.Count == 0)
-                {
-                    Instance.AutoAddManualColumn.AddRange(GetDefaultColumn(typeof(ManualAutoAddView)));
-                }
-                if (Instance.EpgListColumn.Count == 0)
-                {
-                    var obj = new SearchItem();
-                    Instance.EpgListColumn.AddRange(GetDefaultColumn(typeof(EpgListMainView)));
-                    Instance.EpgListColumnHead = CommonUtil.NameOf(() => obj.StartTime);
-                    Instance.EpgListSortDirection = ListSortDirection.Ascending;
-                }
-                if (Instance.SearchWndColumn.Count == 0)
-                {
-                    var obj = new SearchItem();
-                    Instance.SearchWndColumn.AddRange(GetDefaultColumn(typeof(SearchWindow)));
-                    Instance.SearchColumnHead = CommonUtil.NameOf(() => obj.StartTime);
-                    Instance.SearchSortDirection = ListSortDirection.Ascending;
-                }
-                if (Instance.InfoSearchWndColumn.Count == 0)
-                {
-                    var obj = new InfoSearchItem();
-                    Instance.InfoSearchWndColumn.AddRange(GetDefaultColumn(typeof(InfoSearchWindow)));
-                    Instance.InfoSearchColumnHead = CommonUtil.NameOf(() => obj.StartTime);
-                    Instance.InfoSearchSortDirection = ListSortDirection.Ascending;
-                }
-                if (Instance.RecInfoDropExcept.Count == 0)
-                {
-                    Instance.RecInfoDropExcept = RecInfoDropExceptDefault.ToList();
+                        try { File.Replace(path, path + ".err", null); }
+                        catch (FileNotFoundException) { File.Move(path, path + ".err"); }
+                    }
+                    catch (Exception ex2) { MessageBox.Show(ex2.Message + "\r\n" + ex2.StackTrace); }
+                    break;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+
+            nwMode |= Instance.ForceNWMode;
+
+            // タイミング合わせにくいので、メニュー系のデータチェックは
+            // MenuManager側のワークデータ作成時に実行する。
+
+            Instance.SetCustomEpgTabInfoID();
+            Instance.SearchPresetList.FixUp();
+
+            //互換用コード。検索プリセット対応。DefSearchKeyの吸収があるので旧CS仮対応コードより前。
+            if (Instance.verSaved < 20170717)
+            {
+                Instance.SearchPresetList[0].Data = Instance.DefSearchKey;
+            }
+
+            if (Instance.verSaved < 20170512)
+            {
+                //互換用コード。旧CS仮対応コード(+0x70)も変換する。
+                foreach (var info in Instance.CustomEpgTabList)
+                {
+                    info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
+                    EpgContentData.FixNibble(info.ViewContentList);
+                    EpgContentData.FixNibble(info.SearchKey.contentList);
+                    info.ViewContentKindList = null;
+                }
+                EpgContentData.FixNibble(Instance.SearchPresetList[0].Data.contentList);
+
+                //互換用コード。カラム名の変更追従。
+                var objk = new EpgAutoDataItem();
+                Instance.AutoAddEpgColumn.ForEach(c =>
+                {
+                    if (c.Tag == "AndKey") c.Tag = CommonUtil.NameOf(() => objk.EventName);
+                    else if (c.Tag == "NetworkKey") c.Tag = CommonUtil.NameOf(() => objk.NetworkName);
+                    else if (c.Tag == "ServiceKey") c.Tag = CommonUtil.NameOf(() => objk.ServiceName);
+                });
+                var objm = new ManualAutoAddDataItem();
+                Instance.AutoAddManualColumn.ForEach(c =>
+                {
+                    if (c.Tag == "Title") c.Tag = CommonUtil.NameOf(() => objm.EventName);
+                    else if (c.Tag == "Time") c.Tag = CommonUtil.NameOf(() => objm.StartTime);
+                    else if (c.Tag == "StationName") c.Tag = CommonUtil.NameOf(() => objm.ServiceName);
+                });
+            }
+
+            //色設定関係
+            Instance.SetColorSetting();
+
+            if (Instance.ViewButtonList.Count == 0)
+            {
+                Instance.ViewButtonList.AddRange(GetViewButtonDefIDs(nwMode));
+            }
+            if (Instance.TaskMenuList.Count == 0)
+            {
+                Instance.TaskMenuList.AddRange(GetTaskMenuDefIDs(nwMode));
+            }
+            if (Instance.ReserveListColumn.Count == 0)
+            {
+                var obj = new ReserveItem();
+                Instance.ReserveListColumn.AddRange(GetDefaultColumn(typeof(ReserveView)));
+                Instance.ResColumnHead = CommonUtil.NameOf(() => obj.StartTime);
+                Instance.ResSortDirection = ListSortDirection.Ascending;
+            }
+            if (Instance.RecInfoListColumn.Count == 0)
+            {
+                var obj = new RecInfoItem();
+                Instance.RecInfoListColumn.AddRange(GetDefaultColumn(typeof(RecInfoView)));
+                Instance.RecInfoColumnHead = CommonUtil.NameOf(() => obj.StartTime);
+                Instance.RecInfoSortDirection = ListSortDirection.Descending;
+            }
+            if (Instance.AutoAddEpgColumn.Count == 0)
+            {
+                Instance.AutoAddEpgColumn.AddRange(GetDefaultColumn(typeof(EpgAutoAddView)));
+            }
+            if (Instance.AutoAddManualColumn.Count == 0)
+            {
+                Instance.AutoAddManualColumn.AddRange(GetDefaultColumn(typeof(ManualAutoAddView)));
+            }
+            if (Instance.EpgListColumn.Count == 0)
+            {
+                var obj = new SearchItem();
+                Instance.EpgListColumn.AddRange(GetDefaultColumn(typeof(EpgListMainView)));
+                Instance.EpgListColumnHead = CommonUtil.NameOf(() => obj.StartTime);
+                Instance.EpgListSortDirection = ListSortDirection.Ascending;
+            }
+            if (Instance.SearchWndColumn.Count == 0)
+            {
+                var obj = new SearchItem();
+                Instance.SearchWndColumn.AddRange(GetDefaultColumn(typeof(SearchWindow)));
+                Instance.SearchColumnHead = CommonUtil.NameOf(() => obj.StartTime);
+                Instance.SearchSortDirection = ListSortDirection.Ascending;
+            }
+            if (Instance.InfoSearchWndColumn.Count == 0)
+            {
+                var obj = new InfoSearchItem();
+                Instance.InfoSearchWndColumn.AddRange(GetDefaultColumn(typeof(InfoSearchWindow)));
+                Instance.InfoSearchColumnHead = CommonUtil.NameOf(() => obj.StartTime);
+                Instance.InfoSearchSortDirection = ListSortDirection.Ascending;
+            }
+            if (Instance.RecInfoDropExcept.Count == 0)
+            {
+                Instance.RecInfoDropExcept = RecInfoDropExceptDefault.ToList();
+            }
         }
 
         /// <summary>設定ファイルセーブ関数</summary>
@@ -1105,8 +1116,27 @@ namespace EpgTimer
                     //シリアル化して書き込む
                     new XmlSerializer(typeof(Settings)).Serialize(fs, Instance);
                 }
-                try { File.Replace(path + ".back", path, null); }
-                catch (FileNotFoundException) { File.Move(path + ".back", path); }
+                for (int retry = 0; ;)
+                {
+                    try
+                    {
+                        File.Replace(path + ".back", path, null);
+                        break;
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        File.Move(path + ".back", path);
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        if (++retry > 4)
+                        {
+                            throw;
+                        }
+                        Thread.Sleep(200 * retry);
+                    }
+                }
             }
             catch (Exception ex) { if (notifyException) MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
