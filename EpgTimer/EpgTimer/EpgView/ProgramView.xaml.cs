@@ -126,17 +126,13 @@ namespace EpgTimer.EpgView
 
         public ProgramViewItem GetProgramViewData(Point cursorPos)
         {
-            try
+            foreach (var childPanel in canvas.Children.OfType<EpgViewPanel>())
             {
-                foreach (var childPanel in canvas.Children.OfType<EpgViewPanel>())
+                if (childPanel.Items != null && Canvas.GetLeft(childPanel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(childPanel) + childPanel.Width)
                 {
-                    if (childPanel.Items != null && Canvas.GetLeft(childPanel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(childPanel) + childPanel.Width)
-                    {
-                        return childPanel.Items.OfType<ProgramViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
-                    }
+                    return childPanel.Items.OfType<ProgramViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
 
             return null;
         }

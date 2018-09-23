@@ -25,14 +25,10 @@ namespace EpgTimer
             textBox_name.SetReadOnlyWithEffect(chgMode == PresetEdit.Delete);
         }
 
-        public void SetName(String name)
+        public string PresetName
         {
-            textBox_name.Text = name;
-        }
-
-        public String GetName()
-        {
-            return textBox_name.Text;
+            get { return textBox_name.Text; }
+            set { textBox_name.Text = value; }
         }
     }
 }

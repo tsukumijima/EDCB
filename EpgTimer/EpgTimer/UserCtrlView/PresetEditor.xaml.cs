@@ -99,7 +99,7 @@ namespace EpgTimer
 
                 var setting = new AddPresetWindow { Owner = CommonUtil.GetTopWindow(this) };
                 setting.SetMode(mode, this.txt_title.Text);
-                if (mode != PresetEdit.Add) setting.SetName(item.DisplayName);
+                if (mode != PresetEdit.Add) setting.PresetName = item.DisplayName;
                 if (setting.ShowDialog() == true)
                 {
                     int index = comboBox_preSet.SelectedIndex;
@@ -107,11 +107,11 @@ namespace EpgTimer
                     {
                         case PresetEdit.Add:
                             index = Items.Count(it => it.IsCustom == false);
-                            var newInfo = new S { DisplayName = setting.GetName(), ID = 0, Data = dView.GetData() };
+                            var newInfo = new S { DisplayName = setting.PresetName, ID = 0, Data = dView.GetData() };
                             comboBox_preSet.Items.Insert(index, newInfo);
                             break;
                         case PresetEdit.Change:
-                            item.DisplayName = setting.GetName();
+                            item.DisplayName = setting.PresetName;
                             item.Data = dView.GetData();
                             break;
                         case PresetEdit.Delete:

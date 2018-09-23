@@ -45,51 +45,46 @@ namespace EpgTimer
         private PresetEditor<RecPresetItem> preEdit = new PresetEditor<RecPresetItem>();
         private ComboBox comboBox_preSet;
 
-        private bool initLoad = false;
         public RecSettingView()
         {
             InitializeComponent();
 
-            try
+            if (CommonManager.Instance.NWMode == true)
             {
-                if (CommonManager.Instance.NWMode == true)
-                {
-                    preEdit.button_add.IsEnabled = false;
-                    preEdit.button_chg.IsEnabled = false;
-                    preEdit.button_del.IsEnabled = false;
-                    preEdit.button_add.ToolTip = "EpgTimerNWからは変更出来ません";
-                    preEdit.button_chg.ToolTip = preEdit.button_add.ToolTip;
-                    preEdit.button_del.ToolTip = preEdit.button_add.ToolTip;
-                }
-
-                recSetting = Settings.Instance.RecPresetList[0].Data.DeepClone();
-
-                comboBox_recMode.ItemsSource = CommonManager.RecModeList;
-                comboBox_tuijyu.ItemsSource = CommonManager.YesNoList;
-                comboBox_pittari.ItemsSource = CommonManager.YesNoList;
-                comboBox_priority.ItemsSource = CommonManager.PriorityList;
-
-                recEndModeRadioBtns = new RadioBtnSelect(radioButton_non, radioButton_standby, radioButton_suspend, radioButton_shutdown);
-
-                comboBox_tuner.ItemsSource = new List<TunerSelectInfo> { new TunerSelectInfo("自動", 0) }
-                    .Concat(CommonManager.Instance.DB.TunerReserveList.Values
-                    .Where(info => info.tunerID != 0xFFFFFFFF)
-                    .Select(info => new TunerSelectInfo(info.tunerName, info.tunerID)));
-                comboBox_tuner.SelectedIndex = 0;
-
-                stackPanel_PresetEdit.Children.Clear();
-                stackPanel_PresetEdit.Children.Add(preEdit);
-                preEdit.Set(this, PresetSelectChanged, PresetEdited, "録画プリセット", SetRecPresetWindow.SettingWithDialog);
-                comboBox_preSet = preEdit.comboBox_preSet;
-
-                var bx = new BoxExchangeEditor(null, listView_recFolder, true, true, true);
-                bx.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_recFolderChg);
-                bx.targetBoxAllowDoubleClick(bx.TargetBox, (sender, e) => button_recFolderChg.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
-                button_recFolderDel.Click += new RoutedEventHandler(bx.button_Delete_Click);
-
-                button_bat.Click += ViewUtil.OpenFileNameDialog(textBox_bat, false, "", ".bat", true);
+                preEdit.button_add.IsEnabled = false;
+                preEdit.button_chg.IsEnabled = false;
+                preEdit.button_del.IsEnabled = false;
+                preEdit.button_add.ToolTip = "EpgTimerNWからは変更出来ません";
+                preEdit.button_chg.ToolTip = preEdit.button_add.ToolTip;
+                preEdit.button_del.ToolTip = preEdit.button_add.ToolTip;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+
+            recSetting = Settings.Instance.RecPresetList[0].Data.DeepClone();
+
+            comboBox_recMode.ItemsSource = CommonManager.RecModeList;
+            comboBox_tuijyu.ItemsSource = CommonManager.YesNoList;
+            comboBox_pittari.ItemsSource = CommonManager.YesNoList;
+            comboBox_priority.ItemsSource = CommonManager.PriorityList;
+
+            recEndModeRadioBtns = new RadioBtnSelect(radioButton_non, radioButton_standby, radioButton_suspend, radioButton_shutdown);
+
+            comboBox_tuner.ItemsSource = new List<TunerSelectInfo> { new TunerSelectInfo("自動", 0) }
+                .Concat(CommonManager.Instance.DB.TunerReserveList.Values
+                .Where(info => info.tunerID != 0xFFFFFFFF)
+                .Select(info => new TunerSelectInfo(info.tunerName, info.tunerID)));
+            comboBox_tuner.SelectedIndex = 0;
+
+            stackPanel_PresetEdit.Children.Clear();
+            stackPanel_PresetEdit.Children.Add(preEdit);
+            preEdit.Set(this, PresetSelectChanged, PresetEdited, "録画プリセット", SetRecPresetWindow.SettingWithDialog);
+            comboBox_preSet = preEdit.comboBox_preSet;
+
+            var bx = new BoxExchangeEditor(null, listView_recFolder, true, true, true);
+            bx.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_recFolderChg);
+            bx.targetBoxAllowDoubleClick(bx.TargetBox, (sender, e) => button_recFolderChg.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
+            button_recFolderDel.Click += new RoutedEventHandler(bx.button_Delete_Click);
+
+            button_bat.Click += ViewUtil.OpenFileNameDialog(textBox_bat, false, "", ".bat", true);
         }
 
         public void SetData(object data) { SetDefSetting(data as RecSettingData); }
@@ -190,11 +185,6 @@ namespace EpgTimer
 
         public RecSettingData GetRecSetting()
         {
-            if (initLoad == false)
-            {
-                return recSetting.DeepClone();
-            }
-
             var setInfo = new RecSettingData();
 
             setInfo.RecMode = (byte)comboBox_recMode.SelectedIndex;
@@ -253,15 +243,6 @@ namespace EpgTimer
             }
             catch { }
             return 0;
-        }
-
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (initLoad == false)
-            {
-                UpdateView();
-                initLoad = true;
-            }
         }
 
         private bool OnUpdatingView = false;
@@ -354,8 +335,8 @@ namespace EpgTimer
                 setting.SetDefSetting(selectInfo);
                 if (setting.ShowDialog() == true)
                 {
-                    setting.GetSetting(selectInfo);
-                    listView_recFolder.Items.Refresh();
+                    listView_recFolder.SelectedItem = 
+                        listView_recFolder.Items[listView_recFolder.SelectedIndex] = setting.GetSetting();
                     listView_recFolder.FitColumnWidth();
                 }
             }

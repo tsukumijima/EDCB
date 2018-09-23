@@ -56,9 +56,9 @@ namespace EpgTimer
                 textBox_recNameOption.Text = info.Info.RecNamePlugIn.Length <= pluginName.Length + 1 ? "" : info.Info.RecNamePlugIn.Substring(pluginName.Length + 1);
             }
         }
-        public RecFileSetInfoView GetSetting(RecFileSetInfoView info = null)
+        public RecFileSetInfoView GetSetting()
         {
-            info = info ?? new RecFileSetInfoView(new RecFileSetInfo());
+            var info = new RecFileSetInfoView(new RecFileSetInfo());
             var recFolder = SettingPath.CheckFolder(textBox_recFolder.Text);
             info.Info.RecFolder = recFolder == "" ? "!Default" : recFolder;
             info.Info.WritePlugIn = comboBox_writePlugIn.SelectedItem as string ?? "";
