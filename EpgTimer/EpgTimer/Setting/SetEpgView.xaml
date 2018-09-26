@@ -566,12 +566,6 @@
                             <CheckBox Content="'秒'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoSecond}" />
                             <CheckBox Content="長さの'秒'" Margin="12,0,0,0"  IsChecked="{Binding RecInfoNoDurSecond}" />
                         </StackPanel >
-                        <StackPanel Orientation="Horizontal" >
-                            <Label Content="番組情報・エラーログのキャッシュ" ToolTip="起動中、取得したテキストデータを保持します。(キャッシュしない場合、必要時に毎回EpgTimerSrvから取得します。)" />
-                            <CheckBox Content="する　（" Margin="12,0,0,0" IsChecked="{Binding RecInfoExtraDataCache}" />
-                            <CheckBox Content="不要データを削除する　" Margin="12,0,0,0" IsChecked="{Binding RecInfoExtraDataCacheOptimize}" IsEnabled="{Binding RecInfoExtraDataCache}"/>
-                            <CheckBox Content="再接続時も保持する　）" Margin="12,0,0,0" Name="checkBox_CacheKeepConnect" IsChecked="{Binding RecInfoExtraDataCacheKeepConnect}" IsEnabled="{Binding RecInfoExtraDataCache}"/>
-                        </StackPanel >
                         <GroupBox Header="ドロップ・スクランブル未解除" Margin="0,6,0,6">
                             <Grid Margin="6,6,6,0">
                                 <DockPanel>

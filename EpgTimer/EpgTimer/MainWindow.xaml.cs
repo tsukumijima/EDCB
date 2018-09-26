@@ -654,7 +654,6 @@ namespace EpgTimer
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.PlugInFile);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
             CommonManager.Instance.DB.ReloadReserveInfo(true);
-            CommonManager.Instance.DB.ClearRecFileAppend(true);
             CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
             CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
             if (Settings.Instance.NgAutoEpgLoadNW == false)
@@ -1478,40 +1477,37 @@ namespace EpgTimer
                 new BlackoutWindow(this).showWindow("情報の強制更新");
                 DBManager DB = CommonManager.Instance.DB;
 
+                //録画済み一覧のクリア。InfoSearchWindowは予約情報の更新部分でUpdateInfo()が実行される。
+                DB.ClearRecFileAppend();
+                DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
+                recInfoView.UpdateInfo();
+                RecInfoDescWindow.UpdatesInfo();
+
                 //誤って変更しないよう、一度Srv側のリストを読み直す
-                if (DB.ReloadEpgAutoAddInfo(true) == ErrCode.CMD_SUCCESS)
+                if (DB.ReloadEpgAutoAddInfo(true) == ErrCode.CMD_SUCCESS && DB.EpgAutoAddList.Count != 0)
                 {
-                    if (DB.EpgAutoAddList.Count != 0)
-                    {
-                        CommonManager.CreateSrvCtrl().SendChgEpgAutoAdd(DB.EpgAutoAddList.Values.ToList());
-                    }
+                    CommonManager.CreateSrvCtrl().SendChgEpgAutoAdd(DB.EpgAutoAddList.Values.ToList());
                 }
                 //追加データもクリアしておく。
                 DB.ClearEpgAutoAddDataAppend();
 
                 //EPG自動登録とは独立
-                if (DB.ReloadManualAutoAddInfo(true) == ErrCode.CMD_SUCCESS)
+                if (DB.ReloadManualAutoAddInfo(true) == ErrCode.CMD_SUCCESS && DB.ManualAutoAddList.Count != 0)
                 {
-                    if (DB.ManualAutoAddList.Count != 0)
-                    {
-                        CommonManager.CreateSrvCtrl().SendChgManualAdd(DB.ManualAutoAddList.Values.ToList());
-                    }
+                    CommonManager.CreateSrvCtrl().SendChgManualAdd(DB.ManualAutoAddList.Values.ToList());
                 }
 
                 //上の二つが空リストでなくても、予約情報の更新がされない場合もある
-                if (DB.ReloadReserveInfo(true) == ErrCode.CMD_SUCCESS)
+                if (DB.ReloadReserveInfo(true) == ErrCode.CMD_SUCCESS && DB.ReserveList.Count != 0)
                 {
-                    if (DB.ReserveList.Count != 0)
-                    {
-                        //予約一覧は一つでも更新をかければ、再構築される。
-                        CommonManager.CreateSrvCtrl().SendChgReserve(new List<ReserveData> { DB.ReserveList.Values.First() });
-                    }
-                    else
-                    {
-                        //更新しない場合でも、再描画だけはかけておく
-                        RefreshAllViewsReserveInfo();
-                        UpdateReserveTab();
-                    }
+                    //予約一覧は一つでも更新をかければ、再構築される。
+                    CommonManager.CreateSrvCtrl().SendChgReserve(new List<ReserveData> { DB.ReserveList.Values.First() });
+                }
+                else
+                {
+                    //更新しない場合でも、再描画だけはかけておく
+                    RefreshAllViewsReserveInfo();
+                    UpdateReserveTab();
                 }
                 StatusManager.StatusNotifySet("情報の強制更新を実行(F5)");
             }

@@ -35,10 +35,6 @@ namespace EpgTimer.Setting
             {
                 stackPanel_epgArchivePeriod.IsEnabled = false;
             }
-            else
-            {
-                checkBox_CacheKeepConnect.IsEnabled = false;
-            }
 
             listBox_tab.KeyDown += ViewUtil.KeyDown_Enter(button_tab_chg);
             SelectableItem.Set_CheckBox_PreviewChanged(listBox_tab);

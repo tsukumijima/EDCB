@@ -553,9 +553,6 @@ namespace EpgTimer
         public bool DisplayPresetOnSearch { get; set; }
         public bool ForceNWMode { get; set; }
         public string SettingFolderPathNW { get; set; }
-        public bool RecInfoExtraDataCache { get; set; }
-        public bool RecInfoExtraDataCacheOptimize { get; set; }
-        public bool RecInfoExtraDataCacheKeepConnect { get; set; }
         public bool UpdateTaskText { get; set; }
         public bool DisplayStatus { get; set; }
         public bool DisplayStatusNotify { get; set; }
@@ -869,9 +866,6 @@ namespace EpgTimer
             DisplayPresetOnSearch = false;
             ForceNWMode = false;
             SettingFolderPathNW = "";
-            RecInfoExtraDataCache = true;
-            RecInfoExtraDataCacheOptimize = true;
-            RecInfoExtraDataCacheKeepConnect = false;
             UpdateTaskText = false;
             DisplayStatus = false;
             DisplayStatusNotify = false;

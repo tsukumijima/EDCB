@@ -302,11 +302,6 @@ namespace EpgTimer
         {
             if (master == null) return null;
 
-            if (recFileAppendList == null)
-            {
-                recFileAppendList = new Dictionary<uint, RecFileInfoAppend>();
-            }
-
             RecFileInfoAppend retv = null;
             if (recFileAppendList.TryGetValue(master.ID, out retv) == false)
             {
@@ -334,11 +329,6 @@ namespace EpgTimer
         }
         public void ReadRecFileAppend(IEnumerable<RecFileInfo> rlist = null)
         {
-            if (recFileAppendList == null)
-            {
-                recFileAppendList = new Dictionary<uint, RecFileInfoAppend>();
-            }
-
             var list = (rlist ?? RecFileInfo.Values).Where(info => recFileAppendList.ContainsKey(info.ID) == false).ToList();
             if (list.Count == 0) return;
 
@@ -358,34 +348,18 @@ namespace EpgTimer
                 recFileAppendList[item.ID] = new RecFileInfoAppend(item, false);
             }
         }
-        public void ClearRecFileAppend(bool connect = false)
+        public void ClearRecFileAppend()
         {
-            if (recFileAppendList == null) return;
-
-            if (Settings.Instance.RecInfoExtraDataCache == false ||
-                connect == true && Settings.Instance.RecInfoExtraDataCacheKeepConnect == false)
-            {
-                recFileAppendList = null;
-            }
-            else if (connect == false && Settings.Instance.RecInfoExtraDataCacheOptimize == true)
-            {
-                //Appendリストにあるが、有効でないデータ(通信エラーなどで仮登録されたもの)を削除。
-                var delList = recFileAppendList.Where(item => item.Value.IsValid == false).Select(item => item.Key).ToList();
-                delList.ForEach(key => recFileAppendList.Remove(key));
-
-                //現在の録画情報リストにないデータを削除。
-                var delList2 = recFileAppendList.Keys.Where(key => RecFileInfo.ContainsKey(key) == false).ToList();
-                delList2.ForEach(key => recFileAppendList.Remove(key));
-            }
+            recFileAppendList = new Dictionary<uint, RecFileInfoAppend>();
         }
         public void ResetRecFileErrInfo()
         {
-            if (recFileAppendList == null) return;
             foreach (RecFileInfoAppend data in recFileAppendList.Values) data.SetUpdateNotify();
         }
 
         public DBManager()
         {
+            ClearRecFileAppend();
             ServiceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
             ReserveList = new Dictionary<uint, ReserveData>();
             TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
@@ -575,7 +549,9 @@ namespace EpgTimer
 
                 list.ForEach(info => RecFileInfo[info.ID] = info);
 
-                ClearRecFileAppend();
+                //無効データ(通信エラーなどで仮登録されたもの)と録画結果一覧に無いデータを削除して再構築。
+                recFileAppendList = recFileAppendList.Where(item => item.Value.IsValid == true && RecFileInfo.ContainsKey(item.Key) == true).ToDictionary(item => item.Key, item => item.Value);
+
                 return ret;
             });
         }
