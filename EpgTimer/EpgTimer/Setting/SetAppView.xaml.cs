@@ -249,6 +249,7 @@ namespace EpgTimer.Setting
             checkBox_back_priority.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "BackPriority", true, SettingPath.TimerSrvIniPath);
             checkBox_fixedTunerPriority.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "FixedTunerPriority", true, SettingPath.TimerSrvIniPath);
             text_RecInfo2RegExp.Text = IniFileHandler.GetPrivateProfileString("SET", "RecInfo2RegExp", "", SettingPath.TimerSrvIniPath);
+            checkBox_RetryOtherTuners.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RetryOtherTuners", false, SettingPath.TimerSrvIniPath);
             checkBox_CommentAutoAdd.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CommentAutoAdd", false, SettingPath.TimerSrvIniPath);
             checkBox_recInfoFolderOnly.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecInfoFolderOnly", true, SettingPath.TimerSrvIniPath);
             checkBox_autoDelRecInfo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "AutoDelRecInfo", false, SettingPath.TimerSrvIniPath);
@@ -358,6 +359,7 @@ namespace EpgTimer.Setting
             //2 予約管理情報
             IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "FixedTunerPriority", checkBox_fixedTunerPriority.IsChecked, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "RetryOtherTuners", checkBox_RetryOtherTuners.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "CommentAutoAdd", checkBox_CommentAutoAdd.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolderOnly", checkBox_recInfoFolderOnly.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecInfo2RegExp", text_RecInfo2RegExp.Text, "", SettingPath.TimerSrvIniPath);
