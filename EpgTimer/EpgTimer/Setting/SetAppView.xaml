@@ -29,9 +29,14 @@
                 </StackPanel>
                 <StackPanel Margin="0,6,12,0" Name="grid_srvResident">
                     <CheckBox Content="EpgTimerSrvを常駐させる" Name="checkBox_srvResident" />
-                    <CheckBox Content="タスクトレイアイコンを表示する" Margin="18,4,0,0" Name="checkBox_srvShowTray" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvResident}" />
-                    <CheckBox Content="開始準備で点滅させる" Margin="36,4,0,0" Name="checkBox_blinkPreRec" />
-                    <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="18,4,0,0" Name="checkBox_srvNoBalloonTip" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvResident}" />
+                    <StackPanel Margin="18,0,0,0" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvResident}">
+                        <CheckBox Content="タスクトレイアイコンを表示する" Margin="0,4,0,0" Name="checkBox_srvShowTray" />
+                        <StackPanel Margin="18,0,0,0" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvShowTray}">
+                            <CheckBox Content="ツールチップに次の予約を表示する" Margin="0,4,0,0" Name="checkBox_NotifyTipStyle" />
+                            <CheckBox Content="開始準備で点滅させる" Margin="0,4,0,0" Name="checkBox_blinkPreRec" />
+                        </StackPanel>
+                        <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="0,4,0,0" Name="checkBox_srvNoBalloonTip" />
+                    </StackPanel>
                 </StackPanel>
                 <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTip="※設定項目は、この設定画面と重複します。"/>
                 <StackPanel Margin="0,4,12,0" >

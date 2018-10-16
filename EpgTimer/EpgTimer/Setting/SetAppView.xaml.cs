@@ -69,11 +69,6 @@ namespace EpgTimer.Setting
                 checkBox_srvSaveDebugLog.IsEnabled = false;
                 grid_tsExt.IsEnabled = false;
             }
-            else
-            {
-                checkBox_srvShowTray.Click += SetIsEnabledBlinkPreRec;
-                checkBox_srvShowTray.IsEnabledChanged += (sender, e) => SetIsEnabledBlinkPreRec(null, null);
-            }
 
             //0 全般
             button_srvSetting.Click += (sender, e) => CommonManager.OpenSrvSetting();
@@ -193,10 +188,10 @@ namespace EpgTimer.Setting
         public void LoadSetting()
         {
             //0 全般
-            int residentMode = IniFileHandler.GetPrivateProfileInt("SET", "ResidentMode", 0, SettingPath.TimerSrvIniPath);
+            int residentMode = IniFileHandler.GetPrivateProfileInt("SET", "ResidentMode", 2, SettingPath.TimerSrvIniPath);
             checkBox_srvResident.IsChecked = residentMode >= 1;
             checkBox_srvShowTray.IsChecked = residentMode >= 2;
-            SetIsEnabledBlinkPreRec(null, null);
+            checkBox_NotifyTipStyle.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "NotifyTipStyle", false, SettingPath.TimerSrvIniPath);
             checkBox_blinkPreRec.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "BlinkPreRec", false, SettingPath.TimerSrvIniPath);
             checkBox_srvNoBalloonTip.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "NoBalloonTip", false, SettingPath.TimerSrvIniPath);
 
@@ -311,6 +306,7 @@ namespace EpgTimer.Setting
             //0 全般
             IniFileHandler.WritePrivateProfileString("SET", "ResidentMode",
                 checkBox_srvResident.IsChecked == false ? 0 : checkBox_srvShowTray.IsChecked == false ? 1 : 2, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "NotifyTipStyle", checkBox_NotifyTipStyle.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "BlinkPreRec", checkBox_blinkPreRec.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "NoBalloonTip", checkBox_srvNoBalloonTip.IsChecked, SettingPath.TimerSrvIniPath);
 
@@ -524,10 +520,6 @@ namespace EpgTimer.Setting
             textBox_chk_folder.SetReadOnlyWithEffect(!chkEnabled);
             button_chk_del.IsEnabled = chkEnabled;
             button_chk_add.IsEnabled = chkEnabled;
-        }
-        private void SetIsEnabledBlinkPreRec(object sender, RoutedEventArgs e)
-        {
-            checkBox_blinkPreRec.IsEnabled = (bool)checkBox_srvShowTray.IsEnabled && (bool)checkBox_srvShowTray.IsChecked;
         }
     }
 }
