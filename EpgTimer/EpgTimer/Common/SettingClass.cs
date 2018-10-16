@@ -843,7 +843,7 @@ namespace EpgTimer
             AutoSaveNotifyLog = 0;
             NotifyLogMax = 100;
             NotifyLogEpgTimer = false;
-            ShowTray = true;
+            ShowTray = false;
             MinHide = true;
             MouseScrollAuto = false;
             NoStyle = 1;
