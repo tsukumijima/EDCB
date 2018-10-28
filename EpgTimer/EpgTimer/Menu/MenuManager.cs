@@ -700,16 +700,7 @@ namespace EpgTimer
                     var menuItem = new MenuItem();
                     menuItem.IsChecked = chkList.Contains(autoAdd) && (info is ReserveData ? (info as ReserveData).IsAutoAdded : true);
 
-                    if (autoAdd is EpgAutoAddData)
-                    {
-                        menuItem.Header = "キーワード予約 : " + (autoAdd.DataTitle == "" ? "(空白)" : autoAdd.DataTitle);
-                    }
-                    else
-                    {
-                        var view = new ManualAutoAddDataItem(autoAdd as ManualAutoAddData);
-                        menuItem.Header = "プログラム自動 : " + string.Format("({0}){1} {2}", view.DayOfWeek, view.StartTimeShort, view.EventName == "" ? "(空白)" : view.EventName);
-                    }
-
+                    menuItem.Header = new InfoSearchItem(autoAdd).ViewItemName + " : " + ToMenuString(autoAdd);
                     SetLimitLenHeader(menuItem, null, false, 42, 28);
                     var header = menuItem.Header as Label;
                     header.Content = MenuUtil.ToAccessKeyForm(header.Content as string).Insert(7, "(_" + ToAccessKey(idx++) + ")");
@@ -727,6 +718,16 @@ namespace EpgTimer
                     menu.Items.Add(menuItem);
                 });
             }
+        }
+        private string ToMenuString(IRecWorkMainData data)
+        {
+            string s = (data.DataTitle == "" ? "(空白)" : data.DataTitle);
+            if (data is ManualAutoAddData)
+            {
+                var view = new ManualAutoAddDataItem(data as ManualAutoAddData);
+                s = string.Format("({0}){1} {2}", view.DayOfWeek, view.StartTimeShort, s);
+            }
+            return s;
         }
 
         public bool CtxmGenerateShowReserveDialogMenuItems(MenuItem menu, IEnumerable<AutoAddData> list)

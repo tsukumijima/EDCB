@@ -1428,7 +1428,7 @@ namespace EpgTimer
                         {
                             RefreshAllViewsReserveInfo(UpdateViewMode.ReserveInfoNoAutoAdd);
                         }
-                        StatusManager.StatusNotifyAppend("プログラム予約登録データ更新 < ");
+                        StatusManager.StatusNotifyAppend("プログラム自動予約データ更新 < ");
                     }
                     break;
                 case UpdateNotifyItem.IniFile:

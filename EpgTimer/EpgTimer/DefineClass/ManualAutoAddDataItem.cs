@@ -90,7 +90,7 @@ namespace EpgTimer
 
             view += ConvertRecSettingText() + "\r\n\r\n";
 
-            view += "プログラム予約ID : " + string.Format("{0} (0x{0:X})", DisplayID);
+            view += "プログラム自動予約ID : " + string.Format("{0} (0x{0:X})", DisplayID);
             return view;
         }
     }

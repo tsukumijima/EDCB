@@ -34,7 +34,7 @@ namespace EpgTimer
         private static List<Type> dTypes = new List<Type> { typeof(ReserveData), typeof(RecFileInfo), typeof(EpgAutoAddData), typeof(ManualAutoAddData), typeof(DummyType) };
         private static List<Type> vTypes = new List<Type> { typeof(ReserveItem), typeof(RecInfoItem), typeof(EpgAutoDataItem), typeof(ManualAutoAddDataItem), typeof(DummyType) };
 
-        private static List<string> viewItemNames = new List<string> { "予約", "録画済み", "キーワード予約", "プログラム予約", "" };
+        private static List<string> viewItemNames = new List<string> { "予約", "録画済み", "キーワード予約", "プログラム自動", "" };
         public static List<string> ViewTypeNameList() { return viewItemNames.Take(viewItemNames.Count - 1).ToList(); }
         public string ViewItemName { get { return viewItemNames[tIdx]; } }
 

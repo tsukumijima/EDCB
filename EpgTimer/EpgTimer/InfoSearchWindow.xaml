@@ -25,7 +25,7 @@
                             <CheckBox Margin="0,0,12,0" Content="予約" IsChecked="{Binding ReserveInfo}" />
                             <CheckBox Margin="0,0,12,0" Content="録画結果" IsChecked="{Binding RecInfo}" />
                             <CheckBox Margin="0,0,12,0" Content="キーワード予約" IsChecked="{Binding EpgAutoAddInfo}" />
-                            <CheckBox Margin="0,0,12,0" Content="プログラム予約" IsChecked="{Binding ManualAutoAddInfo}" />
+                            <CheckBox Margin="0,0,12,0" Content="プログラム自動予約" IsChecked="{Binding ManualAutoAddInfo}" />
                         </WrapPanel>
                     </GroupBox>
                     <WrapPanel Margin="6,0,0,0" >
