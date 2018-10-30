@@ -30,6 +30,8 @@ namespace EpgTimer
         public static RoutedUICommand Delete { get; private set; }
         public static RoutedUICommand Delete2 { get; private set; }
         public static RoutedUICommand DeleteAll { get; private set; }
+        public static RoutedUICommand RestoreItem { get; private set; }
+        public static RoutedUICommand RestoreClear { get; private set; }
         public static RoutedUICommand AdjustReserve { get; private set; }
         public static RoutedUICommand ShowDialog { get; private set; }
         public static RoutedUICommand ShowAddDialog { get; private set; }
@@ -98,6 +100,7 @@ namespace EpgTimer
         public static RoutedUICommand ChgKeyEnabledMenu { get; private set; }
         public static RoutedUICommand ChgOnPresetMenu { get; private set; }
         public static RoutedUICommand ChgResModeMenu { get; private set; }
+        public static RoutedUICommand RestoreMenu { get; private set; }
         public static RoutedUICommand OpenFolderMenu { get; private set; }
         public static RoutedUICommand ViewMenu { get; private set; }
         public static RoutedUICommand Separator { get; private set; }

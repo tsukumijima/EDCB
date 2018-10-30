@@ -61,6 +61,7 @@ namespace EpgTimer
             var cm_ChgResModeMenu = new CtxmItemData("予約モード変更(仮)", EpgCmdsEx.ChgResModeMenu);
             cm_ChgResModeMenu.Items.Add(new CtxmItemData("EPG予約(_E)", EpgCmds.ChgResMode, 0));
             cm_ChgResModeMenu.Items.Add(new CtxmItemData("プログラム予約(_P)", EpgCmds.ChgResMode, 1));
+            cm_ChgResModeMenu.Items.Add(new CtxmItemData(cm_Separator));
 
             ////録画モード
             var cm_ChgRecmodeMenu = new CtxmItemData("録画モード(仮)", EpgCmdsEx.ChgRecmodeMenu);
@@ -140,7 +141,11 @@ namespace EpgTimer
 
             CtxmData ctmd = DefCtxmData[CtxmCode.EditChgMenu];
             ctmd.Items = cm_ChangeMenu.Items;
-            
+
+            //アイテムの復元サブメニュー
+            var cm_RestoreMenu = new CtxmItemData("アイテムの復元(仮)", EpgCmdsEx.RestoreMenu);
+            cm_RestoreMenu.Items.Add(new CtxmItemData("履歴をクリア(_R)", EpgCmds.RestoreClear));
+
             //ビューモードサブメニュー
             var cm_ViewMenu = new CtxmItemData("表示モード(仮)", EpgCmdsEx.ViewMenu);
             for (int i = 0; i <= 2; i++)
@@ -177,6 +182,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("変更(_C)", cm_ChangeMenu));
             ctmd.Items.Add(new CtxmItemData("コピーを追加", EpgCmds.CopyItem));
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
+            ctmd.Items.Add(new CtxmItemData("アイテムの復元", cm_RestoreMenu));
             ctmd.Items.Add(new CtxmItemData("新規プログラム予約...", EpgCmds.ShowAddDialog));
             ctmd.Items.Add(new CtxmItemData("チューナー画面へジャンプ", EpgCmds.JumpTuner));
             ctmd.Items.Add(new CtxmItemData("番組表へジャンプ", EpgCmds.JumpTable));
@@ -194,6 +200,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("変更(_C)", cm_ChangeMenu));
             ctmd.Items.Add(new CtxmItemData("コピーを追加", EpgCmds.CopyItem));
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
+            ctmd.Items.Add(new CtxmItemData("アイテムの復元", cm_RestoreMenu));
             ctmd.Items.Add(new CtxmItemData("新規プログラム予約...", EpgCmds.ShowAddDialog));
             ctmd.Items.Add(new CtxmItemData("予約一覧へジャンプ", EpgCmds.JumpReserve));
             ctmd.Items.Add(new CtxmItemData("番組表へジャンプ", EpgCmds.JumpTable));
@@ -226,6 +233,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
             ctmd.Items.Add(new CtxmItemData("予約ごと削除", EpgCmds.Delete2));
             ctmd.Items.Add(new CtxmItemData("予約を自動登録に合わせる", EpgCmds.AdjustReserve));
+            ctmd.Items.Add(new CtxmItemData("アイテムの復元", cm_RestoreMenu));
             ctmd.Items.Add(new CtxmItemData("次の予約(予約一覧)へジャンプ", EpgCmds.JumpReserve));
             ctmd.Items.Add(new CtxmItemData("次の予約(チューナー画面)へジャンプ", EpgCmds.JumpTuner));
             ctmd.Items.Add(new CtxmItemData("次の予約(番組表)へジャンプ", EpgCmds.JumpTable));
@@ -248,6 +256,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
             ctmd.Items.Add(new CtxmItemData("予約ごと削除", EpgCmds.Delete2));
             ctmd.Items.Add(new CtxmItemData("予約を自動登録に合わせる", EpgCmds.AdjustReserve));
+            ctmd.Items.Add(new CtxmItemData("アイテムの復元", cm_RestoreMenu));
             ctmd.Items.Add(new CtxmItemData("次の予約(予約一覧)へジャンプ", EpgCmds.JumpReserve));
             ctmd.Items.Add(new CtxmItemData("次の予約(チューナー画面)へジャンプ", EpgCmds.JumpTuner));
             ctmd.Items.Add(new CtxmItemData("次の予約(番組表)へジャンプ", EpgCmds.JumpTable));
@@ -268,6 +277,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("変更(_C)", cm_ChangeMenu));
             ctmd.Items.Add(new CtxmItemData("コピーを追加", EpgCmds.CopyItem));
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
+            ctmd.Items.Add(new CtxmItemData("アイテムの復元", cm_RestoreMenu));
             ctmd.Items.Add(new CtxmItemData("予約一覧へジャンプ", EpgCmds.JumpReserve));
             ctmd.Items.Add(new CtxmItemData("チューナー画面へジャンプ", EpgCmds.JumpTuner));
             ctmd.Items.Add(new CtxmItemData("番組表(標準モード)へジャンプ", EpgCmds.JumpTable));
@@ -288,6 +298,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("変更(_C)", cm_ChangeMenu));
             ctmd.Items.Add(new CtxmItemData("コピーを追加", EpgCmds.CopyItem));
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
+            ctmd.Items.Add(new CtxmItemData("アイテムの復元", cm_RestoreMenu));
             ctmd.Items.Add(new CtxmItemData("予約一覧へジャンプ", EpgCmds.JumpReserve));
             ctmd.Items.Add(new CtxmItemData("チューナー画面へジャンプ", EpgCmds.JumpTuner));
             ctmd.Items.Add(new CtxmItemData("番組表へジャンプ", EpgCmds.JumpTable));
@@ -309,6 +320,7 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("ダイアログ表示...", EpgCmds.ShowDialog));
             ctmd.Items.Add(new CtxmItemData("有効・無効/プロテクト切替え", EpgCmds.ChgOnOff));
             ctmd.Items.Add(new CtxmItemData("削除", EpgCmds.Delete));
+            ctmd.Items.Add(new CtxmItemData("アイテムの復元", cm_RestoreMenu));
             ctmd.Items.Add(new CtxmItemData(cm_Separator));
             ctmd.Items.Add(new CtxmItemData("番組名/ANDキーワードをコピー", EpgCmds.CopyTitle));
             ctmd.Items.Add(new CtxmItemData("番組名/ANDキーワードをネットで検索", EpgCmds.SearchTitle));
@@ -632,16 +644,45 @@ namespace EpgTimer
         public void CtxmGenerateChgResModeAutoAddItems(MenuItem menu, IAutoAddTargetData info)
         {
             //クリア
-            for (int i = menu.Items.Count - 1; i >= 2; i--) menu.Items.RemoveAt(i);
+            int sPos = 2;//セパレータ位置
+            for (int i = menu.Items.Count - 1; i > sPos; i--) menu.Items.RemoveAt(i);
 
             if (menu.IsEnabled == false || info == null) return;
 
             CtxmGenerateChgAutoAddMenuItem(menu, info, EpgCmds.ChgResMode, true, false);
 
-            if (menu.Items.Count > 2)
+            (menu.Items[sPos] as UIElement).Visibility = menu.Items.Count - 1 > sPos ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void CtxmGenerateRestoreMenuItems(MenuItem menu)
+        {
+            //クリア
+            object menuReset = menu.Items[menu.Items.Count - 1];
+            menu.Items.Clear();
+
+            for (int i = 0; i < CmdHistorys.Count; i++)
             {
-                menu.Items.Insert(2, new Separator());
+                List<IRecWorkMainData> list = CmdHistorys.Historys[i].Items;
+                var menuItem = new MenuItem();
+                var s = string.Format((CmdHistorys.Historys[i].Command == EpgCmds.Delete ? "削除した{0}を復元" : "変更前の{0}を新規追加") + "(_{1}) : {2}"
+                            , new InfoSearchItem(list[0]).ViewItemName, ToAccessKey(i, 16), MenuUtil.ToAccessKeyForm(ToMenuString(list[0])))
+                            + (list.Count > 1 ? " ほか" + (list.Count - 1) : "");
+                menuItem.Header = CommonUtil.LimitLenString(s, 45, 31); // 長すぎる場合は省略
+                if (list.Count >= 2 || (menuItem.Header as string).Length != s.Length)
+                {
+                    s = string.Join("\r\n", list.Take(10).Select(item => ToMenuString(item)))
+                                    + (list.Count > 10 ? "\r\nほか" + (list.Count - 10) : "");
+                    menuItem.ToolTip = ViewUtil.GetTooltipBlockStandard(s);
+                }
+                menuItem.Command = EpgCmds.RestoreItem;
+                menuItem.CommandParameter = new EpgCmdParam(menu.CommandParameter as EpgCmdParam);
+                (menuItem.CommandParameter as EpgCmdParam).ID = i;
+                menuItem.Tag = menuItem.Command;
+                menu.Items.Add(menuItem);
             }
+            menu.IsEnabled = menu.Items.Count > 0;
+            menu.Items.Add(new Separator());
+            menu.Items.Add(menuReset);
         }
 
         public void CtxmGenerateTunerMenuItems(MenuItem menu)

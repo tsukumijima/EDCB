@@ -36,6 +36,7 @@ namespace EpgTimer
             new List<ICommand>{EpgCmds.Delete},
             new List<ICommand>{EpgCmds.Delete2},
             new List<ICommand>{EpgCmds.AdjustReserve},
+            new List<ICommand>{EpgCmdsEx.RestoreMenu},
             new List<ICommand>{EpgCmds.ProtectChange},
             new List<ICommand>{EpgCmds.ShowAddDialog},
 

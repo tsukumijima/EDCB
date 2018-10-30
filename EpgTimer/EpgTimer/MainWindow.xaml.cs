@@ -1030,6 +1030,7 @@ namespace EpgTimer
         public void RefreshMenu()
         {
             CommonManager.Instance.MM.ReloadWorkData();
+            if (Settings.Instance.MenuSet.RestoreNoUse == true) CmdHistorys.Clear();
             reserveView.RefreshMenu();
             tunerReserveView.RefreshMenu();
             recInfoView.RefreshMenu();

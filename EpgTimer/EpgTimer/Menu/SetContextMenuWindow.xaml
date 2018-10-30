@@ -41,6 +41,7 @@
                             <CheckBox Content="削除" />
                             <CheckBox Content="予約ごと削除" />
                             <CheckBox Content="予約を自動登録に合わせる" />
+                            <CheckBox Content="アイテムの復元" ToolTip="録画済み情報は対象外です。&#10;また、キーワード予約、プログラム自動予約の並び順は復元されません。" />
                             <CheckBox Content="プロテクト←→解除" />
                             <CheckBox Content="新規プログラム予約/自動登録..." />
                             <Separator Style="{StaticResource MiddleLine}" />
@@ -82,6 +83,7 @@
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageDelete}" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageDelete2}" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageAdjustRes}" />
+                            <CheckBox Content="無効にする" IsChecked="{Binding RestoreNoUse}" ToolTip="チェック時、削除・変更履歴を保持しません。&#10;また、現在の履歴はクリアされます。"/>
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
                             <Separator Style="{StaticResource MiddleLine}" />

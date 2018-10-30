@@ -114,6 +114,7 @@ namespace EpgTimer
         public bool NoMessageDeleteAll { get; set; }
         public bool NoMessageDelete2 { get; set; }
         public bool NoMessageAdjustRes { get; set; }
+        public bool RestoreNoUse { get; set; }
         public bool SetJunreToAutoAdd { get; set; }
         public bool SetJunreContentToAutoAdd { get; set; }        
         public bool CancelAutoAddOff { get; set; }
@@ -141,6 +142,7 @@ namespace EpgTimer
             NoMessageDeleteAll = false;
             NoMessageDelete2 = false;
             NoMessageAdjustRes = false;
+            RestoreNoUse = false;
             SetJunreToAutoAdd = true;
             SetJunreContentToAutoAdd = false;
             CancelAutoAddOff = false;

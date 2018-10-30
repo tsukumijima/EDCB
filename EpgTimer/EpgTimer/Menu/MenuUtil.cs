@@ -357,20 +357,40 @@ namespace EpgTimer
         public static bool ReserveChangeResModeAutoAdded(List<ReserveData> itemList, AutoAddData autoAdd)
         {
             if (ReserveDelete(itemList, false) == false) return false;
-            return AutoAddChange(CommonUtil.ToList(autoAdd), false, false, false);
+            return AutoAddChange(CommonUtil.ToList(autoAdd), false, false, true, true);
         }
 
-        public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true)
+        public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true, bool noHistory = false)
         {
             if (CheckReserveOnRec(itemlist, "変更") == false) return false;
-            return ReserveCmdSend(itemlist, CommonManager.CreateSrvCtrl().SendChgReserve, "予約変更", cautionMany);
+
+            List<ReserveData> rhist = null;
+            if (Settings.Instance.MenuSet.RestoreNoUse == false && noHistory == false)
+            {
+                //変更時は一応Send前に元データを確保
+                rhist = itemlist.Where(item => CommonManager.Instance.DB.ReserveList.ContainsKey(item.ReserveID)).Select(item => CommonManager.Instance.DB.ReserveList[item.ReserveID]).DeepClone();
+            }
+
+            bool ret = ReserveCmdSend(itemlist, CommonManager.CreateSrvCtrl().SendChgReserve, "予約変更", cautionMany);
+
+            if (rhist != null && ret == true)
+            {
+                CmdHistorys.Add(EpgCmdsEx.ChgMenu, rhist);
+            }
+            return ret;
         }
 
-        public static bool ReserveDelete(List<ReserveData> itemlist, bool cautionMany = true)
+        public static bool ReserveDelete(List<ReserveData> itemlist, bool cautionMany = true, bool noHistory = false)
         {
             if (CheckReserveOnRec(itemlist, "削除") == false) return false;
             List<uint> list = itemlist.Select(item => item.ReserveID).ToList();
-            return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelReserve, "予約削除", cautionMany);
+            bool ret = ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelReserve, "予約削除", cautionMany);
+
+            if (Settings.Instance.MenuSet.RestoreNoUse == false && noHistory == false && ret == true)
+            {
+                CmdHistorys.Add(EpgCmds.Delete, itemlist.DeepClone());
+            }
+            return ret;
         }
 
         public static bool CheckReserveOnRec(List<ReserveData> itemlist, string description)
@@ -438,31 +458,31 @@ namespace EpgTimer
             itemlist.ForEach(item => item.searchInfo.notKey = Clipboard.GetText());
             return AutoAddChange(itemlist);
         }
-        public static bool AutoAddAdd(IEnumerable<AutoAddData> itemlist)
+        public static bool AutoAddAdd(IEnumerable<AutoAddData> itemlist, bool cautionMany = true)
         {
-            return AutoAddCmdSend(itemlist, 0);
+            return AutoAddCmdSend(itemlist, 0, cautionMany: cautionMany);
         }
         public static bool AutoAddChange(IEnumerable<AutoAddData> itemlist, bool cautionMany = true)
         {
             return AutoAddChange(itemlist, Settings.Instance.SyncResAutoAddChange, cautionMany);
         }
-        public static bool AutoAddChange(IEnumerable<AutoAddData> itemlist, bool SyncChange, bool cautionMany = true, bool isViewOrder = true)
+        public static bool AutoAddChange(IEnumerable<AutoAddData> itemlist, bool SyncChange, bool cautionMany = true, bool isViewOrder = true, bool noHistory = false)
         {
             if (SyncChange == true)
             {
                 //操作前にリストを作成する
                 List<ReserveData> deleteList = Settings.Instance.SyncResAutoAddChgNewRes == false ? null : new List<ReserveData>();
                 List<ReserveData> syncList = AutoAddSyncChangeList(itemlist, false, deleteList);
-                return AutoAddCmdSend(itemlist, 1, deleteList, syncList, cautionMany, isViewOrder);
+                return AutoAddCmdSend(itemlist, 1, deleteList, syncList, cautionMany, isViewOrder, noHistory);
             }
             else
             {
-                return AutoAddCmdSend(itemlist, 1, null, null, cautionMany, isViewOrder);
+                return AutoAddCmdSend(itemlist, 1, null, null, cautionMany, isViewOrder, noHistory);
             }
         }
         public static bool AutoAddChangeSyncReserve(IEnumerable<AutoAddData> itemlist)
         {
-            return ReserveChange(AutoAddSyncChangeList(itemlist, true), false);
+            return ReserveChange(AutoAddSyncChangeList(itemlist, true), false, true);
         }
         private static List<ReserveData> AutoAddSyncChangeList(IEnumerable<AutoAddData> itemlist, bool SyncAll, List<ReserveData> deleteList = null)
         {
@@ -558,21 +578,32 @@ namespace EpgTimer
         }
 
         private static bool AutoAddCmdSend(IEnumerable<AutoAddData> itemlist, int mode,
-            List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true)
+            List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true, bool noHistory = false)
         {
+            if (itemlist.Any() == false) return true;
             //一時的に予約情報更新を遅延させる
-            return (bool)ViewUtil.MainWindow.ActionWaitResNotify(() => AutoAddCmdSendWork(itemlist, mode, delReserveList, chgReserveList, cautionMany, isViewOrder));
+            return (bool)ViewUtil.MainWindow.ActionWaitResNotify(() => AutoAddCmdSendWork(itemlist, mode, delReserveList, chgReserveList, cautionMany, isViewOrder, noHistory));
         }
 
         //mode 0:追加、1:変更、2:削除
         private static bool AutoAddCmdSendWork(IEnumerable<AutoAddData> itemlist, int mode,
-            List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true)
+            List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true, bool noHistory = false)
         {
             var message = "自動予約登録の" + (new List<string> { "追加", "変更", "削除" }[(int)mode]);
             if (cautionMany == true && CautionManyMessage(itemlist.Count(), message) == false) return false;
 
             var epgList = itemlist.OfType<EpgAutoAddData>().ToList();
             var manualList = itemlist.OfType<ManualAutoAddData>().ToList();
+
+            List<EpgAutoAddData> ehist = null;
+            List<ManualAutoAddData> mhist = null;
+            noHistory |= Settings.Instance.MenuSet.RestoreNoUse;
+            if (mode == 1 && noHistory == false)
+            {
+                //変更時は、一応Send・並び順変更前に元データを確保。
+                ehist = epgList.Where(item => CommonManager.Instance.DB.EpgAutoAddList.ContainsKey(item.dataID)).Select(item => CommonManager.Instance.DB.EpgAutoAddList[item.dataID]).DeepClone();
+                mhist = manualList.Where(item => CommonManager.Instance.DB.ManualAutoAddList.ContainsKey(item.dataID)).Select(item => CommonManager.Instance.DB.ManualAutoAddList[item.dataID]).DeepClone();
+            }
 
             if (isViewOrder == true)
             {
@@ -585,22 +616,32 @@ namespace EpgTimer
             }
 
             var cmd = CommonManager.CreateSrvCtrl();//これは単なる表記の省略
+            bool ret = false, retE = false, retM = false;
             switch (mode)
             {
                 case 0:
                     return ReserveCmdSend(epgList, cmd.SendAddEpgAutoAdd, "キーワード予約の追加", false)
                         && ReserveCmdSend(manualList, cmd.SendAddManualAdd, "プログラム自動予約の追加", false);
                 case 1:
-                    return (delReserveList == null ? true : ReserveDelete(delReserveList, false))
-                        && ReserveCmdSend(epgList, cmd.SendChgEpgAutoAdd, "キーワード予約の変更", false)
-                        && ReserveCmdSend(manualList, cmd.SendChgManualAdd, "プログラム自動予約の変更", false)
-                        && (chgReserveList == null ? true : ReserveChange(chgReserveList, false));
+                    ret = (delReserveList == null ? true : ReserveDelete(delReserveList, false, true))
+                        && (retE = ReserveCmdSend(epgList, cmd.SendChgEpgAutoAdd, "キーワード予約の変更", false))
+                        && (retM = ReserveCmdSend(manualList, cmd.SendChgManualAdd, "プログラム自動予約の変更", false))
+                        && (chgReserveList == null ? true : ReserveChange(chgReserveList, false, true));
+                    break;
                 case 2:
-                    return ReserveCmdSend(epgList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelEpgAutoAdd, "キーワード予約の削除", false)
-                        && ReserveCmdSend(manualList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelManualAdd, "プログラム自動予約の削除", false)
-                        && (delReserveList == null ? true : ReserveDelete(delReserveList, false));
+                    ret = (retE = ReserveCmdSend(epgList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelEpgAutoAdd, "キーワード予約の削除", false))
+                        && (retM = ReserveCmdSend(manualList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelManualAdd, "プログラム自動予約の削除", false))
+                        && (delReserveList == null ? true : ReserveDelete(delReserveList, false, true));
+                    break;
             }
-            return false;
+            if (noHistory == false && (retE == true || retM == true))
+            {
+                var list = new List<AutoAddData>();
+                if (retE == true) list.AddRange(ehist ?? epgList.DeepClone());
+                if (retM == true) list.AddRange(mhist ?? manualList.DeepClone());
+                CmdHistorys.Add(mode == 1 ? EpgCmdsEx.ChgMenu : EpgCmds.Delete, list);
+            }
+            return ret;
         }
 
         private static bool AutoAddOrderAutoSave<T>(ref List<T> list, bool changeID) where T : AutoAddData
@@ -673,6 +714,16 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return false;
+        }
+
+        public static bool RecWorkMainDataAdd(IEnumerable<IRecWorkMainData> itemlist, bool cautionMany = true)
+        {
+            var listAutoAdd = itemlist.OfType<AutoAddData>().ToList();
+            var listReserve = itemlist.OfType<ReserveData>().ToList();
+
+            if (cautionMany == true && CautionManyMessage(listAutoAdd.Count + listReserve.Count, "項目の追加") == false) return false;
+
+            return AutoAddAdd(listAutoAdd, false) && ReserveAdd(listReserve, false);
         }
 
         private static bool ReserveCmdSend<T>(List<T> list, Func<List<T>, ErrCode> cmdSend, string description = "", bool cautionMany = true, string msg_other = null)

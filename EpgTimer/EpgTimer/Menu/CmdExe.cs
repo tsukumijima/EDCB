@@ -109,6 +109,8 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.Delete2, new cmdOption(mc_Delete2, null, cmdExeType.MultiItem));
             cmdList.Add(EpgCmds.DeleteAll, new cmdOption(mc_Delete, null, cmdExeType.AllItem));
             cmdList.Add(EpgCmds.AdjustReserve, new cmdOption(mc_AdjustReserve, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.RestoreItem, new cmdOption(mc_RestoreItem, null, cmdExeType.Direct, needItem: false));
+            cmdList.Add(EpgCmds.RestoreClear, new cmdOption(mc_RestoreClear, null, cmdExeType.Direct, needItem: false));
             cmdList.Add(EpgCmds.ShowDialog, new cmdOption(mc_ShowDialog, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.ShowAddDialog, new cmdOption(mc_ShowAddDialog, null, cmdExeType.NoSetItem, false, false, true));
             cmdList.Add(EpgCmds.ShowAutoAddDialog, new cmdOption(mc_ShowAutoAddDialog, null, cmdExeType.SingleItem));
@@ -142,6 +144,7 @@ namespace EpgTimer
             cmdList.Add(EpgCmdsEx.ChgMenu, new cmdOption(null));//メニュー用
             cmdList.Add(EpgCmdsEx.ShowAutoAddDialogMenu, new cmdOption(null));//メニュー用
             cmdList.Add(EpgCmdsEx.ShowReserveDialogMenu, new cmdOption(null));//メニュー用
+            cmdList.Add(EpgCmdsEx.RestoreMenu, new cmdOption(null, needItem: false));//メニュー用
             cmdList.Add(EpgCmdsEx.OpenFolderMenu, new cmdOption(null));//メニュー用
             cmdList.Add(EpgCmdsEx.ViewMenu, new cmdOption(null, needItem: false));//メニュー用
         }
@@ -296,6 +299,29 @@ namespace EpgTimer
         }
         protected virtual void mc_Delete2(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_AdjustReserve(object sender, ExecutedRoutedEventArgs e) { }
+        protected virtual void mc_RestoreItem(object sender, ExecutedRoutedEventArgs e)
+        {
+            int count = 0;
+            int id = CmdExeUtil.ReadIdData(e);
+            try//Historysは操作以外で削除されないが、直接実行なので念のため
+            {
+                count = CmdHistorys.Historys[id].Items.Count;
+                IsCommandExecuted = true == MenuUtil.RecWorkMainDataAdd(CmdHistorys.Historys[id].Items);
+                if (IsCommandExecuted == true) CmdHistorys.Historys.RemoveAt(id);
+            }
+            catch { }
+            StatusManager.StatusNotifySet(IsCommandExecuted, GetCmdMessageFormat("アイテムの復元", count));
+        }
+        protected virtual void mc_RestoreClear(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (MessageBox.Show("履歴をクリアします。\r\nよろしいですか?", "アイテムの復元"
+                    , MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+            {
+                CmdHistorys.Clear();
+                IsCommandExecuted = true;
+            }
+            StatusManager.StatusNotifySet(IsCommandExecuted, "アイテムの復元履歴をクリア");
+        }
         protected virtual void mc_ShowDialog(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_ShowAddDialog(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_JumpReserve(object sender, ExecutedRoutedEventArgs e)
@@ -499,6 +525,10 @@ namespace EpgTimer
                     if (menu.Tag == EpgCmds.InfoSearchRecTag || menu.Tag == EpgCmds.SearchRecTag || menu.Tag == EpgCmds.CopyRecTag)
                     {
                         menu.IsEnabled = mcs_getRecTag() != null;
+                    }
+                    else if (menu.Tag == EpgCmdsEx.RestoreMenu)
+                    {
+                        mm.CtxmGenerateRestoreMenuItems(menu);
                     }
 
                     //コマンド集に応じた処理
