@@ -332,7 +332,7 @@
                                 <CheckBox Margin="12,0,0,0" Content="表示項目タブ" IsChecked="{Binding EpgNameTabEnabled}" ToolTip="非表示の時は「番組表」タブの右クリックメニューから表示項目を変更します"/>
                                 <CheckBox Margin="12,0,0,0" Content="表示モード切り替えタブ" IsChecked="{Binding EpgViewModeTabEnabled}" />
                             </StackPanel>
-                            <CheckBox Margin="0,4,0,0" Content="表示項目タブのコンテキストメニューで、「表示」に切り替えたタブへ移動する" IsChecked="{Binding EpgTabMoveCheckEnabled}"/>
+                            <CheckBox Margin="0,4,0,0" Content="表示項目タブの右クリックメニューで、「表示」に切り替えたタブへ移動する" IsChecked="{Binding EpgTabMoveCheckEnabled}"/>
                         </StackPanel>
                         <GroupBox Margin="0,18,0,0">
                             <GroupBox.Header>

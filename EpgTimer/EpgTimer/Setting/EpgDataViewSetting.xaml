@@ -67,7 +67,7 @@
                                 <ColumnDefinition Width="6" />
                                 <ColumnDefinition Width="7*" />
                             </Grid.ColumnDefinitions>
-                            <Label Grid.ColumnSpan="3" Content="表示サービス (同一TSでSIDを逆順にすると結合)" />
+                            <Label Grid.ColumnSpan="3" Content="表示サービス (同一TSIDでSIDを逆順にすると結合)" ToolTip="複数のサービスをサブチャンネルとして1サービスの幅で表示出来ます。&#10;ただし、CSでは同一TSIDに複数のサービスが存在するため、&#10;意図せず結合されてしまうことがあるので注意してください。&#10;(その場合は並び順を適当に調整する)&#10;なお、リストボックスでは並び変え補助の右クリックメニューが使用出来ます。"/>
                             <my:ListSearchView x:Name="searchService" Grid.Row="2" TargetListBox="{Binding ElementName=listBox_serviceView}" />
                             <ListView Grid.Row="4" Name="listBox_serviceView" VerticalAlignment="Stretch" SelectionChanged="listBox_serviceView_SelectionChanged" >
                                 <ListView.View>
