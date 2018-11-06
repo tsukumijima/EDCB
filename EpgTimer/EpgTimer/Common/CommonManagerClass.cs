@@ -1082,7 +1082,7 @@ namespace EpgTimer
                         break;
                     case ".bat":
                         dlg.DefaultExt = ".bat";
-                        dlg.Filter = "batch Files(*.bat;*.ps1)|*.bat;*.ps1|all Files(*.*)|*.*";
+                        dlg.Filter = "batch Files(*.bat;*.ps1;*.lua)|*.bat;*.ps1;*.lua|all Files(*.*)|*.*";
                         break;
                     default:
                         dlg.Filter = "all Files|*.*";
