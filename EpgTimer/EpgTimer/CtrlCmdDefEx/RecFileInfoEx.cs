@@ -23,37 +23,16 @@ namespace EpgTimer
             {
                 switch ((RecEndStatus)RecStatus)
                 {
-                    case RecEndStatus.NORMAL:           //正常終了
+                    case RecEndStatus.NORMAL:           //終了・録画終了
+                    case RecEndStatus.CHG_TIME:         //開始時間が変更されました
+                    case RecEndStatus.NEXT_START_END:   //次の予約開始のためにキャンセルされました
+                    case RecEndStatus.NO_RECMODE:       //無効扱いでした(現在未使用)
                         return RecEndStatusBasic.DEFAULT;
-                    case RecEndStatus.OPEN_ERR:         //チューナーのオープンができなかった
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.ERR_END:          //録画中にエラーが発生した
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.NEXT_START_END:   //次の予約開始のため終了
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.START_ERR:        //開始時間が過ぎていた
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.CHG_TIME:         //開始時間が変更された
-                        return RecEndStatusBasic.DEFAULT;
-                    case RecEndStatus.NO_TUNER:         //チューナーが足りなかった
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.NO_RECMODE:       //無効扱いだった
-                        return RecEndStatusBasic.DEFAULT;
-                    case RecEndStatus.NOT_FIND_PF:      //p/fに番組情報確認できなかった
+                    case RecEndStatus.ERR_END:          //録画中にキャンセルされた可能性があります
+                    case RecEndStatus.END_SUBREC:       //録画終了（空き容量不足で別フォルダへの保存が発生）
+                    case RecEndStatus.NOT_START_HEAD:   //一部のみ録画が実行された可能性があります
                         return RecEndStatusBasic.WARN;
-                    case RecEndStatus.NOT_FIND_6H:      //6時間番組情報確認できなかった
-                        return RecEndStatusBasic.WARN;
-                    case RecEndStatus.END_SUBREC:       //サブフォルダへの録画が発生した
-                        return RecEndStatusBasic.WARN;
-                    case RecEndStatus.ERR_RECSTART:     //録画開始に失敗した
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.NOT_START_HEAD:   //一部のみ録画された
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.ERR_CH_CHG:       //チャンネル切り替えに失敗した
-                        return RecEndStatusBasic.ERR;
-                    case RecEndStatus.ERR_END2:         //録画中にエラーが発生した(Writeでexception)
-                        return RecEndStatusBasic.ERR;
-                    default:                            //状況不明
+                    default:                            //前記以外その他、状況不明含む
                         return RecEndStatusBasic.ERR;
                 }
             }
