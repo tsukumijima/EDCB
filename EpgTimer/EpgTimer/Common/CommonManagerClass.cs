@@ -1224,7 +1224,7 @@ namespace EpgTimer
                 TVTestCtrl.StartStreamingPlay(null, data.ReserveID);
             }
         }
-        public void FilePlay(String filePath)
+        public void FilePlay(string filePath)
         {
             try
             {
@@ -1238,45 +1238,44 @@ namespace EpgTimer
                 {
                     //録画フォルダと保存・共有フォルダが異なる場合($FileNameExt$運用など)で、
                     //コマンドラインの一部になるときは、ファイルの確認を未チェックとする。
-                    String path = GetRecPath(filePath);
-                    String cmdLine = Settings.Instance.FilePlayCmd == "" ? "$FilePath$" : Settings.Instance.FilePlayCmd;
-                    bool chkExist = cmdLine.Contains("$FilePath$") == true && cmdLine.Contains("$FileNameExt$") == false;
-
-                    String title = "録画ファイルの再生";
-                    String msg1 = "録画ファイルが見つかりません。\r\n\r\n" + filePath;
-                    String msg2 = "再生アプリが見つかりません。\r\n設定を確認してください。\r\n\r\n" + Settings.Instance.FilePlayExe;
+                    string path = GetRecPath(filePath);
+                    string playExe = Settings.Instance.FilePlayExe;
+                    string cmdLine = string.IsNullOrWhiteSpace(Settings.Instance.FilePlayCmd) == true ? "$FilePath$" : Settings.Instance.FilePlayCmd;
 
                     if (File.Exists(path) == false)
                     {
-                        if (chkExist == true)
+                        if (cmdLine.Contains("$FilePath$") == true && cmdLine.Contains("$FileNameExt$") == false)
                         {
-                            MessageBox.Show(msg1, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("録画ファイルが見つかりません。\r\n\r\n" + path, "録画ファイルの再生", MessageBoxButton.OK, MessageBoxImage.Information);
                             return;
                         }
                         path = filePath;
                     }
 
+                    //再生アプリ指定でコマンドラインとなる場合に、ファイル名のみのときは""を補う
+                    string mark = cmdLine.Trim() == "$FilePath$" ? "\"" : "";
                     //'$'->'\t'は再帰的な展開を防ぐため
                     cmdLine = cmdLine.Replace("$FileNameExt$", Path.GetFileName(path).Replace('$', '\t'));
                     cmdLine = cmdLine.Replace("$FilePath$", path).Replace('\t', '$');
 
-                    if (Settings.Instance.FilePlayExe.Length == 0)
+                    if (string.IsNullOrWhiteSpace(playExe) == true)
                     {
+                        cmdLine = cmdLine.Replace("\"", "");//必要無いのに両端に""が付与されている時は削除する
                         if (File.Exists(cmdLine) == false)
                         {
-                            MessageBox.Show(msg1, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("録画ファイルが見つかりません。\r\n\r\n" + cmdLine, "録画ファイルの再生", MessageBoxButton.OK, MessageBoxImage.Information);
                             return;
                         }
                         using (Process.Start(cmdLine)) { }
                     }
                     else
                     {
-                        if (File.Exists(Settings.Instance.FilePlayExe) == false)
+                        if (File.Exists(playExe) == false)
                         {
-                            MessageBox.Show(msg2, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("再生アプリが見つかりません。\r\n設定を確認してください。\r\n\r\n" + playExe, "録画ファイルの再生", MessageBoxButton.OK, MessageBoxImage.Information);
                             return;
                         }
-                        using (Process.Start(Settings.Instance.FilePlayExe, cmdLine)) { }
+                        using (Process.Start(playExe, mark + cmdLine + mark)) { }
                     }
                 }
             }

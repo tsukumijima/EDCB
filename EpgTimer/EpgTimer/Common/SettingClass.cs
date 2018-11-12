@@ -792,7 +792,7 @@ namespace EpgTimer
             NwTvModeTCP = false;
             FilePlay = true;
             FilePlayExe = "";
-            FilePlayCmd = "\"$FilePath$\"";
+            FilePlayCmd = "";
             FilePlayOnAirWithExe = true;
             OpenFolderWithFileDialog = false;
             IEpgStationList = new List<IEPGStationInfo>();
