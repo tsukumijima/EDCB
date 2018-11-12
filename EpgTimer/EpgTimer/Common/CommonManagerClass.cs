@@ -1117,8 +1117,7 @@ namespace EpgTimer
             string base_nw = "";
             if (checkNWPath == true && Instance.NWMode == true && path != "" && path.StartsWith("\\\\", StringComparison.Ordinal) == false)
             {
-                //可能ならUNCパスをサーバ側のパスに戻す。
-                //複数の共有フォルダ使ってる場合はとりあえず諦める。(サーバ側で要逆変換)
+                //NWモードのとき、可能ならサーバ側のローカルパスをUNCとして扱う。
                 string path_src = path.TrimEnd('\\');
                 string path_nw = GetRecPath(path_src).TrimEnd('\\');
 
@@ -1146,6 +1145,7 @@ namespace EpgTimer
             if (path != null && tbox.IsEnabled == true && tbox.IsReadOnly == false)
             {
                 //他のドライブに変ったりしたときは何もしない
+                //また、複数の共有フォルダ使ってる場合はとりあえず諦める。(サーバ側で要逆変換)
                 if (base_nw != "" && path.StartsWith(base_nw, StringComparison.Ordinal) == true)
                 {
                     path = path.Replace(base_nw, base_src);
@@ -1160,7 +1160,7 @@ namespace EpgTimer
             try
             {
                 if (String.IsNullOrWhiteSpace(path) == true) return "";
-                if (Instance.NWMode != true) return path;
+                if (Instance.NWMode == false || path.StartsWith("\\\\", StringComparison.Ordinal) == true) return path;
                 CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref nwPath);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
