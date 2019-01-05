@@ -133,10 +133,9 @@ namespace EpgTimer
             var xs = new System.Xml.Serialization.XmlSerializer(typeof(EpgSearchKeyInfo));
             var SearchKey2String = new Func<EpgAutoAddData, string>(epgdata =>
             {
-                var ms = new MemoryStream();
-                xs.Serialize(ms, epgdata.searchInfo);
-                ms.Seek(0, SeekOrigin.Begin);
-                return new StreamReader(ms).ReadToEnd();
+                var sr = new StringWriter();
+                xs.Serialize(sr, epgdata.searchInfo);
+                return sr.ToString();
             });
 
             //並べ替えによるID変更もあるので、内容ベースでAppendを再利用する。
