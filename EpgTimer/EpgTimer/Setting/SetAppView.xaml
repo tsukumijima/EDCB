@@ -160,7 +160,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="録画用アプリ" />
-                        <TextBox Margin="24,0,0,0" Name="textBox_appWakeTime" Width="42" />
+                        <TextBox Margin="24,0,0,0" Width="42" Text="{Binding RecAppWakeTime, Converter={StaticResource vcheck},ConverterParameter='max,0'}" />
                         <Label Content="分前に起動する" />
                         <Label Content="プロセス優先度" Margin="24,0,0,0" />
                         <ComboBox Name="comboBox_process" Width="160" />
@@ -190,13 +190,13 @@
                     </Grid>
                     <CheckBox Margin="16,0,0,4" Content="同一ファイル名が存在した場合に上書きする" Name="checkBox_appOverWrite" />
                     <StackPanel Orientation="Horizontal" Margin="16,-4,0,4" >
-                        <CheckBox Content="録画用アプリ起動時に録画先フォルダへのアクセスを発生させる[試験的]" Name="checkBox_wakeUpHdd" ToolTip="EpgTimerが実行中であれば、録画するHDDのスリープ解除を試みます。&#10;EpgTimerは予約録画開始準備の通知を受け、録画フォルダに一時ファイルを作成・削除します。&#10;同じフォルダに録画中または情報保持期間内にアクセスの記録があれば何もしませんが、&#10;判定は録画先フォルダのみで行い、ドライブの確認を行いません。"/>
+                        <CheckBox Content="録画用アプリ起動時に録画先フォルダへのアクセスを発生させる[試験的]" IsChecked="{Binding WakeUpHdd}" ToolTip="EpgTimerが実行中であれば、録画するHDDのスリープ解除を試みます。&#10;EpgTimerは予約録画開始準備の通知を受け、録画フォルダに一時ファイルを作成・削除します。&#10;同じフォルダに録画中または情報保持期間内にアクセスの記録があれば何もしませんが、&#10;判定は録画先フォルダのみで行い、ドライブの確認を行いません。"/>
                         <StackPanel Orientation="Horizontal" ToolTip="録画用アプリの起動時間×2＋1分より大きい値を設定してください。&#10;それ以下に設定すると、情報の保持効果が不十分または失われます。">
                             <TextBlock Text=" ( 情報保持期間 "/>
-                            <TextBox Name="textBox_noWakeUpHddMin" Width="42" />
+                            <TextBox Width="42" Text="{Binding NoWakeUpHddMin, Converter={StaticResource vcheck},ConverterParameter='max,0'}"/>
                             <TextBlock Text=" 分" Margin="0,0,12,0" />
                         </StackPanel>
-                        <CheckBox Content="複数同時開始時のみ )" Name="checkBox_onlyWakeUpHddOverlap" ToolTip="1分以内の同時開始予約または複数フォルダへの書き出しがある場合のみ実行します" />
+                        <CheckBox Content="複数同時開始時のみ )" IsChecked="{Binding WakeUpHddOverlapNum, Converter={StaticResource convert}}" ToolTip="1分以内の同時開始予約または複数フォルダへの書き出しがある場合のみ実行します" />
                     </StackPanel>
                 </StackPanel>
             </Grid>

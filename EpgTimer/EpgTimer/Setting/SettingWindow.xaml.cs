@@ -110,6 +110,7 @@ namespace EpgTimer
                 setAppView.SaveSetting();
                 setEpgView.SaveSetting();
                 setOtherAppView.SaveSetting();
+                ((Settings)DataContext).SaveIniOptions();
 
                 Settings.Instance.ShallowCopyDynamicSettingsTo((Settings)DataContext);
                 Settings.Instance = (Settings)DataContext;
@@ -121,6 +122,7 @@ namespace EpgTimer
                 }
                 CommonManager.Instance.ReloadCustContentColorList();
                 CommonManager.ReloadReplaceDictionary();
+                if (Settings.Instance.WakeUpHdd == false) CommonManager.WakeUpHDDLogClear();
                 ItemFontCache.Clear();
 
                 ViewUtil.MainWindow.SaveData(true);

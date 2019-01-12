@@ -142,7 +142,8 @@ namespace EpgTimer
             }
 
             ChSet5.Clear();
-            Settings.Instance.ReloadOtherOptions();
+            Settings.Instance.LoadIniOptions();
+            if (Settings.Instance.WakeUpHdd == false) CommonManager.WakeUpHDDLogClear();
             return err;
         }
 
@@ -565,30 +566,17 @@ namespace EpgTimer
         public bool TrimSortTitle { get; set; }
         public bool KeepReserveWindow { get; set; }
         public PicUpTitle PicUpTitleWork { get; set; }
+
+        //WakeUpHDD関係
         [XmlIgnore]
-        public bool WakeUpHdd 
-        {
-            get { return IniFileHandler.GetPrivateProfileInt("SET", "WakeUpHdd", 0, SettingPath.TimerSrvIniPath) == 1; }
-            set { IniFileHandler.WritePrivateProfileString("SET", "WakeUpHdd", value, SettingPath.TimerSrvIniPath); }
-        }
+        public Int32 RecAppWakeTime { get; set; }
         [XmlIgnore]
-        public Int32 NoWakeUpHddMin
-        {
-            get { return IniFileHandler.GetPrivateProfileInt("SET", "NoWakeUpHddMin", 30, SettingPath.TimerSrvIniPath); }
-            set { IniFileHandler.WritePrivateProfileString("SET", "NoWakeUpHddMin", value, SettingPath.TimerSrvIniPath); }
-        }
+        public bool WakeUpHdd { get; set; }
         [XmlIgnore]
-        public Int32 WakeUpHddOverlapNum
-        {
-            get { return IniFileHandler.GetPrivateProfileInt("SET", "WakeUpHddOverlapNum", 0, SettingPath.TimerSrvIniPath); }
-            set { IniFileHandler.WritePrivateProfileString("SET", "WakeUpHddOverlapNum", value, SettingPath.TimerSrvIniPath); }
-        }
+        public Int32 NoWakeUpHddMin { get; set; }
         [XmlIgnore]
-        public Int32 RecAppWakeTime
-        {
-            get { return IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath); }
-            set { IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", value, SettingPath.TimerSrvIniPath); }
-        }
+        public Int32 WakeUpHddOverlapNum { get; set; }
+        
         //デフォルトマージン
         [XmlIgnore]
         public int DefStartMargin { get; set; }
@@ -604,11 +592,7 @@ namespace EpgTimer
                 if (recPresetList == null) recPresetList = RecPresetItem.LoadPresetList();
                 return recPresetList;
             }
-            set
-            {
-                recPresetList = value;
-                RecPresetItem.SavePresetList(recPresetList);
-            }
+            set { recPresetList = value; }
         }
 
         private List<string> defRecFolders = null;
@@ -633,28 +617,55 @@ namespace EpgTimer
                 }
                 return defRecFolders;
             }
-            set
-            {
-                defRecFolders = value;
-                if (defRecFolders == null) return;
+            set { defRecFolders = value; }
+        }
+        public void SaveDefRecFolders()
+        {
+            if (defRecFolders == null) return;
 
-                int recFolderCount = defRecFolders.Count == 1 && defRecFolders[0].Equals(SettingPath.SettingFolderPath, StringComparison.OrdinalIgnoreCase) == true ? 0 : defRecFolders.Count;
-                IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
-                IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
-                
-                for (int i = 0; i < recFolderCount; i++)
-                {
-                    IniFileHandler.WritePrivateProfileString("SET", "RecFolderPath" + i.ToString(), defRecFolders[i], SettingPath.CommonIniPath);
-                }
+            int recFolderCount = defRecFolders.Count == 1 && defRecFolders[0].Equals(SettingPath.SettingFolderPath, StringComparison.OrdinalIgnoreCase) == true ? 0 : defRecFolders.Count;
+            IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
+            IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
+
+            for (int i = 0; i < recFolderCount; i++)
+            {
+                IniFileHandler.WritePrivateProfileString("SET", "RecFolderPath" + i.ToString(), defRecFolders[i], SettingPath.CommonIniPath);
             }
         }
 
-        public void ReloadOtherOptions()
+        public void LoadIniOptions()
         {
             DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
             DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
-            RecPresetList = null;
-            DefRecFolders = null;
+            RecAppWakeTime = IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath);
+            WakeUpHdd = IniFileHandler.GetPrivateProfileBool("SET", "WakeUpHdd", false, SettingPath.TimerSrvIniPath);
+            NoWakeUpHddMin = IniFileHandler.GetPrivateProfileInt("SET", "NoWakeUpHddMin", 30, SettingPath.TimerSrvIniPath);
+            WakeUpHddOverlapNum = IniFileHandler.GetPrivateProfileInt("SET", "WakeUpHddOverlapNum", 0, SettingPath.TimerSrvIniPath);
+            recPresetList = null;
+            defRecFolders = null;
+        }
+        public void SaveIniOptions()
+        {
+            IniFileHandler.WritePrivateProfileString("SET", "StartMargin", DefStartMargin, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "EndMargin", DefEndMargin, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", RecAppWakeTime, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "WakeUpHdd", WakeUpHdd, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "NoWakeUpHddMin", NoWakeUpHddMin, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "WakeUpHddOverlapNum", WakeUpHddOverlapNum, SettingPath.TimerSrvIniPath);
+            RecPresetItem.SavePresetList(recPresetList);
+            SaveDefRecFolders();
+        }
+        private void DeepCopyXmlIgnoreSettingsTo(Settings other)
+        {
+            other.SeparateFixedTuners = SeparateFixedTuners;
+            other.DefStartMargin = DefStartMargin;
+            other.DefEndMargin = DefEndMargin;
+            other.RecAppWakeTime = RecAppWakeTime;
+            other.WakeUpHdd = WakeUpHdd;
+            other.NoWakeUpHddMin = NoWakeUpHddMin;
+            other.WakeUpHddOverlapNum = WakeUpHddOverlapNum;
+            other.recPresetList = recPresetList.DeepClone();
+            other.defRecFolders = defRecFolders == null ? null : defRecFolders.ToList();
         }
 
         public Settings()
@@ -882,16 +893,12 @@ namespace EpgTimer
 
         public Settings DeepCloneStaticSettings()
         {
-            //[XmlIgnore]絡みは何らかの形でフォローが入る
             var xs = new XmlSerializer(typeof(Settings));
             var ms = new MemoryStream();
             xs.Serialize(ms, this);
             ms.Seek(0, SeekOrigin.Begin);
             var other = (Settings)xs.Deserialize(ms);
-            other.DefStartMargin = DefStartMargin;
-            other.DefEndMargin = DefEndMargin;
-            other.recPresetList = recPresetList.DeepClone();
-            other.defRecFolders = defRecFolders == null ? null : defRecFolders.ToList();
+            DeepCopyXmlIgnoreSettingsTo(other);
             return other;
         }
         public void ShallowCopyDynamicSettingsTo(Settings dest)

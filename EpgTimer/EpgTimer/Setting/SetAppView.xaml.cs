@@ -234,12 +234,6 @@ namespace EpgTimer.Setting
             checkBox_appOverWrite.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecOverWrite", false, SettingPath.TimerSrvIniPath);
             comboBox_process.SelectedIndex = IniFileHandler.GetPrivateProfileInt("SET", "ProcessPriority", 3, SettingPath.TimerSrvIniPath);
             
-            //これらはiniファイルのパラメータと同じ扱い
-            textBox_appWakeTime.Text = Settings.Instance.RecAppWakeTime.ToString();
-            checkBox_wakeUpHdd.IsChecked = Settings.Instance.WakeUpHdd;
-            textBox_noWakeUpHddMin.Text = Settings.Instance.NoWakeUpHddMin.ToString();
-            checkBox_onlyWakeUpHddOverlap.IsChecked = Settings.Instance.WakeUpHddOverlapNum >= 1;
-
             //2 予約管理情報
             checkBox_back_priority.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "BackPriority", true, SettingPath.TimerSrvIniPath);
             checkBox_fixedTunerPriority.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "FixedTunerPriority", true, SettingPath.TimerSrvIniPath);
@@ -333,8 +327,6 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoFileStreaming", checkBox_ng_fileStreaming.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoShareFile", checkBox_ng_shareFile.IsChecked, SettingPath.TimerSrvIniPath);
 
-            IniFileHandler.WritePrivateProfileString("SET", "StartMargin", settings.DefStartMargin, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "EndMargin", settings.DefEndMargin, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecMinWake", checkBox_appMin.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecView", checkBox_appView.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "DropLog", checkBox_appDrop.IsChecked, SettingPath.TimerSrvIniPath);
@@ -344,13 +336,6 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "KeepDisk", checkBox_appKeepDisk.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecOverWrite", checkBox_appOverWrite.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "ProcessPriority", comboBox_process.SelectedIndex, SettingPath.TimerSrvIniPath);
-
-            //これらはiniファイルのパラメータと同じ扱い
-            Settings.Instance.RecAppWakeTime = MenuUtil.MyToNumerical(textBox_appWakeTime, Convert.ToInt32, Int32.MaxValue, 0, Settings.Instance.RecAppWakeTime); 
-            Settings.Instance.WakeUpHdd = checkBox_wakeUpHdd.IsChecked == true;
-            if (Settings.Instance.WakeUpHdd == false) CommonManager.WakeUpHDDLogClear();
-            Settings.Instance.NoWakeUpHddMin = MenuUtil.MyToNumerical(textBox_noWakeUpHddMin, Convert.ToInt32, Int32.MaxValue, 0, Settings.Instance.NoWakeUpHddMin);
-            Settings.Instance.WakeUpHddOverlapNum = checkBox_onlyWakeUpHddOverlap.IsChecked == true ? 1 : 0;
 
             //2 予約管理情報
             IniFileHandler.WritePrivateProfileString("SET", "BackPriority", checkBox_back_priority.IsChecked, SettingPath.TimerSrvIniPath);
