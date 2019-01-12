@@ -213,6 +213,7 @@
                         <CheckBox Margin="0,0,0,4" Content="優先度が同じで時間が重なった場合、後の予約を優先する" Name="checkBox_back_priority" />
                         <CheckBox Margin="0,0,0,4" Content="優先度が同じ場合、チューナー強制指定された予約を先に割り当てる" Name="checkBox_fixedTunerPriority" />
                         <CheckBox Margin="0,0,0,4" Content="チューナーの起動に失敗したとき、ほかのチューナーで再試行する" Name="checkBox_RetryOtherTuners" />
+                        <CheckBox Margin="0,0,0,4" Content="キーワード予約でチューナー強制指定が異なるものは重複予約する" IsChecked="{Binding SeparateFixedTuners}" ToolTip="このオプションは、EpgTimerSrvの設定画面では次のように表記されています。&#10;「チューナー強制指定の値が異なるものを重複予約できるようにする」"/>
                         <DockPanel Margin="0,0,0,4" Name="grid_AppReserveIgnore">
                             <Label Content="同一番組無効登録の判定で無視する文字列" ToolTip="キーワード予約の「同一番組名の録画結果があれば無効で登録する」の、&#10;比較の際に削除する文字列を正規表現で指定する。&#10;例 : \[[再無生]\]　→　[再]と[無]と[生]を無視"/>
                             <TextBox Width="120" Name="text_RecInfo2RegExp"/>

@@ -360,9 +360,9 @@ namespace EpgTimer
             return AutoAddChange(CommonUtil.ToList(autoAdd), false, false, true, true);
         }
 
-        public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true, bool noHistory = false)
+        public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true, bool noHistory = false, bool noChkOnRec = false)
         {
-            if (CheckReserveOnRec(itemlist, "変更") == false) return false;
+            if (noChkOnRec == false && CheckReserveOnRec(itemlist, "変更") == false) return false;
 
             List<ReserveData> rhist = null;
             if (Settings.Instance.MenuSet.RestoreNoUse == false && noHistory == false)
@@ -380,9 +380,9 @@ namespace EpgTimer
             return ret;
         }
 
-        public static bool ReserveDelete(List<ReserveData> itemlist, bool cautionMany = true, bool noHistory = false)
+        public static bool ReserveDelete(List<ReserveData> itemlist, bool cautionMany = true, bool noHistory = false, bool noChkOnRec = false)
         {
-            if (CheckReserveOnRec(itemlist, "削除") == false) return false;
+            if (noChkOnRec == false && CheckReserveOnRec(itemlist, "削除") == false) return false;
             List<uint> list = itemlist.Select(item => item.ReserveID).ToList();
             bool ret = ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelReserve, "予約削除", cautionMany);
 
@@ -490,8 +490,12 @@ namespace EpgTimer
 
             foreach (AutoAddData data in itemlist)
             {
+                //変更前のTunerIDを参照する。
+                //プログラム自動登録では重複予約されないが、EpgTimer側の扱いは同じにしておく。
+                uint TunerID = (AutoAddData.AutoAddList(data.GetType(), (uint)data.DataID) ?? data).RecSettingInfo.TunerID;
                 IEnumerable<ReserveData> list = SyncAll == true ?
-                    data.GetReserveList() : data.GetReserveList().Where(info => info.IsAutoAdded == true);
+                    data.GetReserveList() : data.GetReserveList().Where(info => info.IsAutoAdded == true &&
+                    (Settings.Instance.SeparateFixedTuners == false || info.RecSetting.TunerID == TunerID));
                 foreach (ReserveData resinfo in list)
                 {
                     if (syncDict.ContainsKey(resinfo.ReserveID) == false)
@@ -563,8 +567,12 @@ namespace EpgTimer
 
         private static List<ReserveData> AutoAddSyncModifyReserveList(List<ReserveData> reslist, IEnumerable<AutoAddData> itemlist)
         {
-            var epgAutoList = reslist.ToDictionary(info => info.ReserveID, info => info.GetEpgAutoAddList(true).Select(item => item.DataID).ToList());
-            var manualAutoList = reslist.ToDictionary(info => info.ReserveID, info => info.GetManualAutoAddList(true).Select(item => item.DataID).ToList());
+            //変更前TunerID参照
+            List<ReserveData> reslist_org = reslist.Select(info => CommonManager.Instance.DB.ReserveList.ContainsKey(info.ReserveID) == false ? info : CommonManager.Instance.DB.ReserveList[info.ReserveID]).ToList();
+            var autoIDList = new Func<ReserveData, IEnumerable<AutoAddData>, List<ulong>>((info, autoList) =>
+                autoList.Where(item => Settings.Instance.SeparateFixedTuners == false || item.RecSettingInfo.TunerID == info.RecSettingInfo.TunerID).Select(item => item.DataID).ToList());
+            var epgAutoList = reslist_org.ToDictionary(info => info.ReserveID, info => autoIDList(info, info.GetEpgAutoAddList(true)));
+            var manualAutoList = reslist_org.ToDictionary(info => info.ReserveID, info => autoIDList(info, info.GetManualAutoAddList(true)));
 
             foreach (AutoAddData data in itemlist)
             {
@@ -615,6 +623,13 @@ namespace EpgTimer
                 }
             }
 
+            if (delReserveList != null || chgReserveList != null)
+            {
+                //予約の連動操作がある場合は、直近の予約の有無を先に確認する
+                var chkResList = (delReserveList ?? new List<ReserveData>()).Concat((chgReserveList ?? new List<ReserveData>())).ToList();
+                if (CheckReserveOnRec(chkResList, "連動処理") == false) return false;
+            }
+
             var cmd = CommonManager.CreateSrvCtrl();//これは単なる表記の省略
             bool ret = false, retE = false, retM = false;
             switch (mode)
@@ -623,15 +638,16 @@ namespace EpgTimer
                     return ReserveCmdSend(epgList, cmd.SendAddEpgAutoAdd, "キーワード予約の追加", false)
                         && ReserveCmdSend(manualList, cmd.SendAddManualAdd, "プログラム自動予約の追加", false);
                 case 1:
-                    ret = (delReserveList == null ? true : ReserveDelete(delReserveList, false, true))
+                    //ReserveDelete()、ReserveChange()とも自動予約登録の処理後に実施したいが、処理の前後関係の都合上先に実施する。
+                    ret = (delReserveList == null ? true : ReserveDelete(delReserveList, false, true, true))
+                        && (chgReserveList == null ? true : ReserveChange(chgReserveList, false, true, true))
                         && (retE = ReserveCmdSend(epgList, cmd.SendChgEpgAutoAdd, "キーワード予約の変更", false))
-                        && (retM = ReserveCmdSend(manualList, cmd.SendChgManualAdd, "プログラム自動予約の変更", false))
-                        && (chgReserveList == null ? true : ReserveChange(chgReserveList, false, true));
+                        && (retM = ReserveCmdSend(manualList, cmd.SendChgManualAdd, "プログラム自動予約の変更", false));
                     break;
                 case 2:
                     ret = (retE = ReserveCmdSend(epgList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelEpgAutoAdd, "キーワード予約の削除", false))
                         && (retM = ReserveCmdSend(manualList.Select(item => (uint)item.DataID).ToList(), cmd.SendDelManualAdd, "プログラム自動予約の削除", false))
-                        && (delReserveList == null ? true : ReserveDelete(delReserveList, false, true));
+                        && (delReserveList == null ? true : ReserveDelete(delReserveList, false, true, true));
                     break;
             }
             if (noHistory == false && (retE == true || retM == true))

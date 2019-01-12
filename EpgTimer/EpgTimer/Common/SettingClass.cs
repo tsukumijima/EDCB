@@ -567,6 +567,9 @@ namespace EpgTimer
         public bool KeepReserveWindow { get; set; }
         public PicUpTitle PicUpTitleWork { get; set; }
 
+        [XmlIgnore]
+        public bool SeparateFixedTuners { get; set; }
+
         //WakeUpHDD関係
         [XmlIgnore]
         public Int32 RecAppWakeTime { get; set; }
@@ -635,6 +638,7 @@ namespace EpgTimer
 
         public void LoadIniOptions()
         {
+            SeparateFixedTuners = IniFileHandler.GetPrivateProfileBool("SET", "SeparateFixedTuners", false, SettingPath.TimerSrvIniPath);
             DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
             DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
             RecAppWakeTime = IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath);
@@ -646,6 +650,7 @@ namespace EpgTimer
         }
         public void SaveIniOptions()
         {
+            IniFileHandler.WritePrivateProfileString("SET", "SeparateFixedTuners", SeparateFixedTuners, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "StartMargin", DefStartMargin, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "EndMargin", DefEndMargin, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", RecAppWakeTime, SettingPath.TimerSrvIniPath);
