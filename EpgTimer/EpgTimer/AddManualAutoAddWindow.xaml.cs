@@ -85,6 +85,12 @@ namespace EpgTimer
             this.Title = ViewUtil.WindowTitleText(textBox_title.Text, "プログラム自動予約登録");
         }
 
+        protected override bool ReloadInfoData()
+        {
+            recSettingView.RefreshView();
+            return true;
+        }
+
         public override AutoAddData GetData()
         {
             try

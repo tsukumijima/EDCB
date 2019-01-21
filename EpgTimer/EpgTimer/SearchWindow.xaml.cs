@@ -317,6 +317,7 @@ namespace EpgTimer
             //表示の更新は見えてれば実行する。
             if (RefreshReserveInfoFlg == true && this.IsVisible == true && (this.WindowState != WindowState.Minimized || this.IsActive == true))
             {
+                recSettingView.RefreshView();
                 RefreshReserveInfo();
                 RefreshReserveInfoFlg = false;
             }

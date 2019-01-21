@@ -163,6 +163,7 @@ namespace EpgTimer
 
         protected override bool ReloadInfoData()
         {
+            recSettingView.RefreshView();
             CheckMultiReserve();
             UpdateErrStatus();
             return true;

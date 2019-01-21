@@ -81,13 +81,14 @@ namespace EpgTimer
         }
         protected override void ReloadInfo()
         {
-            //再検索はCtrlCmdを使うので、アクティブウィンドウでだけ実行させる。
             if (InfoCheckFlg == true && this.IsVisible == true && (this.WindowState != WindowState.Minimized || this.IsActive == true))
             {
+                //eventInfo更新は必要なときだけ
                 if (ReloadInfoFlg == true && eventInfo != null)
                 {
                     SetData(MenuUtil.SearchEventInfoLikeThat(eventInfo, true));
                 }
+                recSettingView.RefreshView();
                 CheckData(false);
                 ReloadInfoFlg = false;
                 InfoCheckFlg = false;

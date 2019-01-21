@@ -1440,9 +1440,10 @@ namespace EpgTimer
                             err = IniFileHandler.UpdateSrvProfileIni();
                             RefreshAllViewsReserveInfo();
                             notifyLogWindowUpdate = true;
+                            SetRecPresetWindow.UpdatesInfo();
                             SettingWindow.UpdatesInfo("別画面/PCでの設定更新");
                             TrayManager.UpdateInfo();
-                            StatusManager.StatusNotifyAppend("EpgTimerSrv設定変更に伴う画面更新 < ");
+                            StatusManager.StatusNotifyAppend("別画面/PCでの設定更新に伴う画面更新 < ");
                         }
                     }
                     break;

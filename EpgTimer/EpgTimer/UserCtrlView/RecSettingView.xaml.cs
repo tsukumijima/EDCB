@@ -282,6 +282,24 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             OnUpdatingView = false;
         }
+        public void RefreshView()
+        {
+            if (checkBox_margineDef.IsChecked == true)
+            {
+                textBox_margineStart.Text = Settings.Instance.DefStartMargin.ToString();
+                textBox_margineEnd.Text = Settings.Instance.DefEndMargin.ToString();
+            }
+            if (checkBox_serviceMode.IsChecked == true)
+            {
+                checkBox_serviceCaption.IsChecked = Settings.Instance.DefServiceCaption;
+                checkBox_serviceData.IsChecked = Settings.Instance.DefServiceData;
+            }
+            if (checkBox_suspendDef.IsChecked == true)
+            {
+                recEndModeRadioBtns.Value = Settings.Instance.DefRecEndMode;
+                checkBox_reboot.IsChecked = Settings.Instance.DefRebootFlg == 1;
+            }
+        }
 
         private void checkBox_margineDef_Checked(object sender, RoutedEventArgs e)
         {

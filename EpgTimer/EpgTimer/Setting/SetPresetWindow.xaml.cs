@@ -127,5 +127,12 @@ namespace EpgTimer
             button_ok.ToolTip = button_ok.IsEnabled == false ? "EpgTimerNWからは変更出来ません" : null;
             base.SetSettingMode(title ?? "録画プリセット設定", chgMode);
         }
+        public static void UpdatesInfo()
+        {
+            foreach (var win in Application.Current.Windows.OfType<SetRecPresetWindow>())
+            {
+                win.DataView.RefreshView();
+            }
+        }
     }
 }
