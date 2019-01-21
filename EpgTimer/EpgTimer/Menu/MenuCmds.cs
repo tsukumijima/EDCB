@@ -119,6 +119,7 @@ namespace EpgTimer
             AddCommand(EpgCmdsEx.ShowReserveDialogMenu, isEnable: false);
             AddCommand(EpgCmdsEx.ChgMarginStartMenu, isEnable: false, isSave: false);
             AddCommand(EpgCmdsEx.ChgMarginEndMenu, isEnable: false, isSave: false);
+            AddCommand(EpgCmdsEx.ChgRecEndMenu, isEnable: false, isSave: false);
             AddCommand(EpgCmdsEx.RestoreMenu);
             AddCommand(EpgCmdsEx.OpenFolderMenu, isEnable: false);
             AddCommand(EpgCmdsEx.ViewMenu);

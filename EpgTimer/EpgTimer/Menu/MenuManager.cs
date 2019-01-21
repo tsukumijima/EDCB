@@ -121,6 +121,22 @@ namespace EpgTimer
             cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginStart) menu.Command = EpgCmds.ChgMarginEnd; });
             cm_ChgMarginEndMenu.Items.ForEach(menu => { if (menu.Command == EpgCmds.ChgMarginValue) menu.ID = 2; });
 
+            ////録画後動作
+            var cm_ChgRecEndMenu = new CtxmItemData("録画後動作(仮)", EpgCmdsEx.ChgRecEndMenu);
+            cm_ChgRecEndMenu.Items.Add(new CtxmItemData("デフォルトに変更(_I)", EpgCmds.ChgRecEndMode, -1));
+            cm_ChgRecEndMenu.Items.Add(new CtxmItemData(cm_Separator));
+            for (int i = 0; i <= 3; i++)
+            {
+                cm_ChgRecEndMenu.Items.Add(new CtxmItemData(string.Format("{0}(_{1})"
+                    , CommonManager.ConvertRecEndModeText(i), i), EpgCmds.ChgRecEndMode, i));
+            }
+            cm_ChgRecEndMenu.Items.Add(new CtxmItemData(cm_Separator));
+            for (int i = 0; i <= 1; i++)
+            {
+                cm_ChgRecEndMenu.Items.Add(new CtxmItemData(string.Format("復帰後再起動{0}(_{1})"
+                    , CommonManager.ConvertYesNoText(i), i + 4), EpgCmds.ChgRecEndReboot, i));
+            }
+
             //予約変更サブメニュー登録
             var cm_ChangeMenu = new CtxmItemData("変更(仮)", EpgCmdsEx.ChgMenu);
             cm_ChangeMenu.Items.Add(new CtxmItemData("ダイアログ表示...", EpgCmds.ShowDialog));
@@ -138,6 +154,7 @@ namespace EpgTimer
             cm_ChangeMenu.Items.Add(new CtxmItemData("チューナー", cm_ChgTunerMenu));
             cm_ChangeMenu.Items.Add(new CtxmItemData("開始マージン", cm_ChgMarginStartMenu));
             cm_ChangeMenu.Items.Add(new CtxmItemData("終了マージン", cm_ChgMarginEndMenu));
+            cm_ChangeMenu.Items.Add(new CtxmItemData("録画後動作", cm_ChgRecEndMenu));
 
             CtxmData ctmd = DefCtxmData[CtxmCode.EditChgMenu];
             ctmd.Items = cm_ChangeMenu.Items;

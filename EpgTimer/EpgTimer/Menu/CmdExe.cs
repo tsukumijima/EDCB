@@ -102,6 +102,8 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.ChgMarginStart, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgMarginEnd, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgMarginValue, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgRecEndMode, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgRecEndReboot, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgKeyEnabled, new cmdOption(mc_ChangeKeyEnabled, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgOnOffKeyEnabled, new cmdOption(mc_ChangeOnOffKeyEnabled, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.CopyItem, new cmdOption(mc_CopyItem, null, cmdExeType.MultiItem));
@@ -486,6 +488,24 @@ namespace EpgTimer
             {
                 return MenuUtil.ChangeMarginValue(infoList, CmdExeUtil.ReadIdData(e, 0, 2) == 1, this.Owner);
             }
+            else if (e.Command == EpgCmds.ChgRecEndMode)
+            {
+                var val = CmdExeUtil.ReadIdData(e);
+                infoList.ForEach(info =>
+                {
+                    info.RebootFlag = val < 0 ? Settings.Instance.DefRebootFlg : info.RebootFlagActual;//先にやる
+                    info.SetSuspendMode(val < 0, val);
+                });
+            }
+            else if (e.Command == EpgCmds.ChgRecEndReboot)
+            {
+                var val = (byte)CmdExeUtil.ReadIdData(e, 0, 1);
+                infoList.ForEach(info =>
+                {
+                    info.RebootFlag = val;
+                    info.SetSuspendMode(false, info.RecEndModeActual);
+                });
+            }
             return true;
         }
         public override void SupportContextMenuLoading(object sender, RoutedEventArgs e)
@@ -748,6 +768,19 @@ namespace EpgTimer
                     bool def = recSettings.All(info => info.IsMarginDefault == true);
                     subMenu.Header = string.Format("終了マージン(_E) : {0} 秒{1}", value == int.MaxValue ? "*" : value.ToString(), def ? " (デフォルト)" : "");
                 }
+                else if (subMenu.Tag == EpgCmdsEx.ChgRecEndMenu)
+                {
+                    int mode = recSettings.All(info => info.RecEndModeActual == recSettings[0].RecEndModeActual) ? recSettings[0].RecEndModeActual : int.MaxValue;
+                    byte reboot = recSettings.All(info => info.RebootFlag == recSettings[0].RebootFlag) ? recSettings[0].RebootFlag : byte.MaxValue;
+                    bool def = recSettings.All(info => info.RecEndIsDefault == true);
+                    subMenu.Header = string.Format("録画後動作(_W) : {0} / {1}{2}", mode == int.MaxValue ? "*" : CommonManager.ConvertRecEndModeText(mode),
+                        reboot == byte.MaxValue ? "*" : "再起動" + CommonManager.ConvertYesNoText(reboot), def ? " (デフォルト)" : "");
+                    SetCheckmarkSubMenus(subMenu, mode);
+                    foreach (var item in subMenu.Items.OfType<MenuItem>().Where(item => item.Command == EpgCmds.ChgRecEndReboot))
+                    {
+                        item.IsChecked = ((item.CommandParameter as EpgCmdParam).ID == reboot);
+                    }
+                }
             }
         }
 
@@ -779,6 +812,8 @@ namespace EpgTimer
             cmdMessage.Add(EpgCmds.ChgMarginStart, "録画マージンを変更");
             cmdMessage.Add(EpgCmds.ChgMarginEnd, "録画マージンを変更");
             cmdMessage.Add(EpgCmds.ChgMarginValue, "録画マージンを変更");
+            cmdMessage.Add(EpgCmds.ChgRecEndMode, "録画後動作を変更");
+            cmdMessage.Add(EpgCmds.ChgRecEndReboot, "録画後動作を変更");
             cmdMessage.Add(EpgCmds.ChgKeyEnabled, "有効/無効を変更");
             cmdMessage.Add(EpgCmds.ChgOnOffKeyEnabled, "有効/無効切替を実行");
             cmdMessage.Add(EpgCmds.Delete, "削除を実行");

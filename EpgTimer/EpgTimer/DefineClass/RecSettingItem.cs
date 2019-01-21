@@ -125,6 +125,24 @@ namespace EpgTimer
                 return CommonManager.ConvertTunerText(RecSettingInfo.TunerID);
             }
         }
+        public virtual string RecEndMode
+        {
+            get
+            {
+                if (RecSettingInfo == null) return "";
+                //
+                return (RecSettingInfo.RecEndIsDefault ? "*" : "") + CommonManager.ConvertRecEndModeText(RecSettingInfo.RecEndModeActual);
+            }
+        }
+        public virtual string Reboot
+        {
+            get
+            {
+                if (RecSettingInfo == null) return "";
+                //
+                return (RecSettingInfo.RecEndIsDefault ? "*" : "") + CommonManager.ConvertYesNoText(RecSettingInfo.RebootFlagActual);
+            }
+        }
         public virtual string BatFilePath
         {
             get

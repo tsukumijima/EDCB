@@ -136,6 +136,16 @@
                 <GridViewColumnHeader Content="チューナー強制" Uid="TunerID"/>
             </GridViewColumn.Header>
         </GridViewColumn>
+        <GridViewColumn DisplayMemberBinding="{Binding RecEndMode}">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="録画後動作" Uid="RecEndMode" ToolTip="*=デフォルト設定"/>
+            </GridViewColumn.Header>
+        </GridViewColumn>
+        <GridViewColumn DisplayMemberBinding="{Binding Reboot}">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="復帰後再起動" Uid="Reboot" ToolTip="*=デフォルト設定"/>
+            </GridViewColumn.Header>
+        </GridViewColumn>
         <GridViewColumn DisplayMemberBinding="{Binding BatFilePath}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="録画後実行bat" Uid="BatFilePath" />
