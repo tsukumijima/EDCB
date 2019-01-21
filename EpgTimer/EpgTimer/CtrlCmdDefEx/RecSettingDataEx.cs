@@ -41,7 +41,7 @@ namespace EpgTimer
                 && PartialRecFolder.EqualsTo(other.PartialRecFolder)
                 && (PittariFlag == other.PittariFlag || IsManual == true)//プログラム予約時
                 && Priority == other.Priority
-                && (RebootFlag == other.RebootFlag || SuspendMode == 0)//動作後設定デフォルト時
+                && (RebootFlag == other.RebootFlag || RecEndIsDefault)//動作後設定デフォルト時
                 && RecFolderList.EqualsTo(other.RecFolderList)
                 && (RecMode == other.RecMode || RecMode == 5 || other.RecMode == 5)
                 && (ServiceMode == other.ServiceMode || ((ServiceMode | other.ServiceMode) & 0x0F) == 0)//字幕等データ設定デフォルト時
@@ -114,11 +114,11 @@ namespace EpgTimer
         }
         public bool ServiceCaptionActual
         {
-            get { return ServiceModeIsDefault == false ? ServiceCaption : IniFileHandler.GetPrivateProfileInt("SET", "Caption", 1, SettingPath.EdcbIniPath) != 0; }
+            get { return ServiceModeIsDefault ? Settings.Instance.DefServiceCaption : ServiceCaption; }
         }
         public bool ServiceDataActual
         {
-            get { return ServiceModeIsDefault == false ? ServiceData : IniFileHandler.GetPrivateProfileInt("SET", "Data", 0, SettingPath.EdcbIniPath) != 0; }
+            get { return ServiceModeIsDefault ? Settings.Instance.DefServiceData : ServiceData; }
         }
 
         //録画後動作モードの補助。ToRecEndMode()はRecEndMode自体の範囲修正にも使用している。
@@ -126,15 +126,16 @@ namespace EpgTimer
         private static byte ToSuspendMode(int val) { return (byte)((1 <= val && val <= 3) ? val : 4); }
         public void SetSuspendMode(bool isDefault, int recEndMode = 0)
         {
-            SuspendMode = (byte)(isDefault == true ? 0 : ToSuspendMode(recEndMode));
+            SuspendMode = isDefault ? (byte)0 : ToSuspendMode(recEndMode);
         }
+        public bool RecEndIsDefault { get { return SuspendMode == 0; } }
         public int RecEndModeActual
         {
-            get { return ToRecEndMode(SuspendMode != 0 ? SuspendMode : IniFileHandler.GetPrivateProfileInt("SET", "RecEndMode", 2, SettingPath.TimerSrvIniPath)); }
+            get { return ToRecEndMode(RecEndIsDefault ? Settings.Instance.DefRecEndMode : SuspendMode); }
         }
         public byte RebootFlagActual
         {
-            get { return SuspendMode != 0 ? RebootFlag : (byte)IniFileHandler.GetPrivateProfileInt("SET", "Reboot", 0, SettingPath.TimerSrvIniPath); }
+            get { return RecEndIsDefault ? Settings.Instance.DefRebootFlg : RebootFlag; }
         }
     }
 }

@@ -739,12 +739,14 @@ namespace EpgTimer
                 else if (subMenu.Tag == EpgCmdsEx.ChgMarginStartMenu)
                 {
                     int value = recSettings.All(info => info.StartMarginActual == recSettings[0].StartMarginActual) ? recSettings[0].StartMarginActual : int.MaxValue;
-                    subMenu.Header = string.Format("開始マージン(_S) : {0} 秒", value == int.MaxValue ? "*" : value.ToString());
+                    bool def = recSettings.All(info => info.IsMarginDefault == true);
+                    subMenu.Header = string.Format("開始マージン(_S) : {0} 秒{1}", value == int.MaxValue ? "*" : value.ToString(), def ? " (デフォルト)" : "");
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgMarginEndMenu)
                 {
                     int value = recSettings.All(info => info.EndMarginActual == recSettings[0].EndMarginActual) ? recSettings[0].EndMarginActual : int.MaxValue;
-                    subMenu.Header = string.Format("終了マージン(_E) : {0} 秒", value == int.MaxValue ? "*" : value.ToString());
+                    bool def = recSettings.All(info => info.IsMarginDefault == true);
+                    subMenu.Header = string.Format("終了マージン(_E) : {0} 秒{1}", value == int.MaxValue ? "*" : value.ToString(), def ? " (デフォルト)" : "");
                 }
             }
         }

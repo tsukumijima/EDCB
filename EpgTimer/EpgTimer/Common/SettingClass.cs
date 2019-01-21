@@ -580,11 +580,19 @@ namespace EpgTimer
         [XmlIgnore]
         public Int32 WakeUpHddOverlapNum { get; set; }
         
-        //デフォルトマージン
+        //録画設定関係(デフォルトマージン等)
         [XmlIgnore]
         public int DefStartMargin { get; set; }
         [XmlIgnore]
         public int DefEndMargin { get; set; }
+        [XmlIgnore]
+        public bool DefServiceCaption { get; set; }
+        [XmlIgnore]
+        public bool DefServiceData { get; set; }
+        [XmlIgnore]
+        public int DefRecEndMode { get; set; }
+        [XmlIgnore]
+        public byte DefRebootFlg { get; set; }
 
         private List<RecPresetItem> recPresetList = null;
         [XmlIgnore]
@@ -641,6 +649,10 @@ namespace EpgTimer
             SeparateFixedTuners = IniFileHandler.GetPrivateProfileBool("SET", "SeparateFixedTuners", false, SettingPath.TimerSrvIniPath);
             DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
             DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
+            DefServiceCaption = IniFileHandler.GetPrivateProfileBool("SET", "Caption", true, SettingPath.EdcbIniPath);
+            DefServiceData = IniFileHandler.GetPrivateProfileBool("SET", "Data", false, SettingPath.EdcbIniPath);
+            DefRecEndMode = IniFileHandler.GetPrivateProfileInt("SET", "RecEndMode", 2, SettingPath.TimerSrvIniPath);
+            DefRebootFlg = (byte)IniFileHandler.GetPrivateProfileInt("SET", "Reboot", 0, SettingPath.TimerSrvIniPath);
             RecAppWakeTime = IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath);
             WakeUpHdd = IniFileHandler.GetPrivateProfileBool("SET", "WakeUpHdd", false, SettingPath.TimerSrvIniPath);
             NoWakeUpHddMin = IniFileHandler.GetPrivateProfileInt("SET", "NoWakeUpHddMin", 30, SettingPath.TimerSrvIniPath);
@@ -653,6 +665,10 @@ namespace EpgTimer
             IniFileHandler.WritePrivateProfileString("SET", "SeparateFixedTuners", SeparateFixedTuners, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "StartMargin", DefStartMargin, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "EndMargin", DefEndMargin, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "RecEndMode", DefRecEndMode, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "Reboot", DefRebootFlg, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "Caption", DefServiceCaption, SettingPath.EdcbIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "Data", DefServiceData, SettingPath.EdcbIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", RecAppWakeTime, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "WakeUpHdd", WakeUpHdd, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "NoWakeUpHddMin", NoWakeUpHddMin, SettingPath.TimerSrvIniPath);
@@ -665,6 +681,10 @@ namespace EpgTimer
             other.SeparateFixedTuners = SeparateFixedTuners;
             other.DefStartMargin = DefStartMargin;
             other.DefEndMargin = DefEndMargin;
+            other.DefServiceCaption = DefServiceCaption;
+            other.DefServiceData = DefServiceData;
+            other.DefRecEndMode = DefRecEndMode;
+            other.DefRebootFlg = DefRebootFlg;
             other.RecAppWakeTime = RecAppWakeTime;
             other.WakeUpHdd = WakeUpHdd;
             other.NoWakeUpHddMin = NoWakeUpHddMin;

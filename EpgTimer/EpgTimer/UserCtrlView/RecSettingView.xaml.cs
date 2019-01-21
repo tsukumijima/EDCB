@@ -272,7 +272,7 @@ namespace EpgTimer
                 listView_recFolder.FitColumnWidth();
 
                 checkBox_suspendDef.IsChecked = null;//切り替え時のイベント発生のために必要
-                checkBox_suspendDef.IsChecked = recSetting.SuspendMode == 0;
+                checkBox_suspendDef.IsChecked = recSetting.RecEndIsDefault;
                 checkBox_margineDef.IsChecked = null;//切り替え時のイベント発生のために必要
                 checkBox_margineDef.IsChecked = recSetting.IsMarginDefault;
                 checkBox_continueRec.IsChecked = (recSetting.ContinueRecFlag == 1);
@@ -313,7 +313,7 @@ namespace EpgTimer
         {
             RecSettingData recSet = recSetting.DeepClone();
             recSet.SetSuspendMode(checkBox_suspendDef.IsChecked == true, recEndMode);
-            if (recSet.SuspendMode == 0 && OnUpdatingView == false)
+            if (recSet.RecEndIsDefault == true && OnUpdatingView == false)
             {
                 recEndMode = recEndModeRadioBtns.Value;
                 recSetting.RebootFlag = (byte)(checkBox_reboot.IsChecked == true ? 1 : 0);

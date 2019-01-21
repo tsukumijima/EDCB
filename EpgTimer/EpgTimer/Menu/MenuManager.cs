@@ -102,7 +102,7 @@ namespace EpgTimer
             
             ////開始マージン
             var cm_ChgMarginStartMenu = new CtxmItemData("開始マージン(仮)", EpgCmdsEx.ChgMarginStartMenu);
-            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("マージン設定をデフォルトに変更(_I)", EpgCmds.ChgMarginStart, 0));
+            cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("デフォルトに変更(_I)", EpgCmds.ChgMarginStart, 0));
             cm_ChgMarginStartMenu.Items.Add(new CtxmItemData("指定値へ変更(_S)...", EpgCmds.ChgMarginValue, 1));
             cm_ChgMarginStartMenu.Items.Add(new CtxmItemData(cm_Separator));
             int idx = 0;

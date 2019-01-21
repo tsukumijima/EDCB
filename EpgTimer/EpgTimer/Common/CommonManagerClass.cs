@@ -60,6 +60,7 @@ namespace EpgTimer
 
         public static readonly string[] DayOfWeekArray = new string[] { "日", "月", "火", "水", "木", "金", "土" };
         public static readonly string[] RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
+        public static readonly string[] RecEndModeList = new string[] { "何もしない", "スタンバイ", "休止", "シャットダウン" };
         public static readonly string[] YesNoList = new string[] { "しない", "する" };
         public static readonly string[] PriorityList = new string[] { "1 (低)", "2", "3", "4", "5 (高)" };
         public static readonly Dictionary<char, List<KeyValuePair<string, string>>> ReplaceUrlDictionary = CreateReplaceDictionary(",０,0,１,1,２,2,３,3,４,4,５,5,６,6,７,7,８,8,９,9" +
@@ -917,6 +918,11 @@ namespace EpgTimer
         public static String ConvertRecModeText(int val)
         {
             return ConvertValueText(val, RecModeList);
+        }
+
+        public static String ConvertRecEndModeText(int val)
+        {
+            return ConvertValueText(val, RecEndModeList);
         }
 
         public static String ConvertYesNoText(int val)

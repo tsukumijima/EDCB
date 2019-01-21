@@ -115,7 +115,7 @@
                         <RadioButton Content="スタンバイ" Margin="0,0,12,6" />
                         <RadioButton Content="休止" Margin="0,0,12,6" />
                         <RadioButton Content="シャットダウン" Margin="0,0,12,6" />
-                        <CheckBox Content="復帰後再起動する" Margin="12,0,12,6" Name="checkBox_reboot" />
+                        <CheckBox Content="復帰後再起動する" Margin="12,0,12,6" IsChecked="{Binding DefIsReboot}" />
                     </WrapPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="復帰処理開始時間　　　録画開始" />
@@ -126,15 +126,14 @@
                 <GroupBox Grid.Row="1" Header="録画後動作の抑制条件" Margin="0,0,0,4" >
                     <DockPanel Margin="6,4,0,0" >
                         <StackPanel Name="grid_AppCancelMain">
-                            <Label Content="指定プロセスが起動している場合(前方一致)"/>
+                            <DockPanel Margin="0,0,0,4">
+                                <Button Content="削除" DockPanel.Dock="Right" Name="button_process_del" />
+                                <Label Content="指定プロセスが起動している場合(前方一致)"/>
+                            </DockPanel>
                             <DockPanel Margin="0,0,0,4" Name="grid_AppCancelMainInput">
                                 <Button DockPanel.Dock="Right" Content="追加" Name="button_process_add" />
                                 <Button DockPanel.Dock="Right" Margin="4,0,4,0"  Content="開く" Name="button_process_open"/>
                                 <TextBox Name="textBox_process" />
-                            </DockPanel>
-                            <DockPanel Margin="0,0,0,4">
-                                <Button Content="削除" DockPanel.Dock="Right" Name="button_process_del" />
-                                <Grid/>
                             </DockPanel>
                             <StackPanel Orientation="Horizontal" >
                                 <TextBox Name="textBox_ng_min" Width="42" />
@@ -152,6 +151,11 @@
                     </DockPanel>
                 </GroupBox>
                 <StackPanel Grid.Row="2" Name="grid_AppRec">
+                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                        <Label Content="指定サービス対象データのデフォルト" />
+                        <CheckBox Content="字幕を含める" Margin="24,0,0,0" IsChecked="{Binding DefServiceCaption}" />
+                        <CheckBox Content="データカルーセルを含める" Margin="12,0,0,0" IsChecked="{Binding DefServiceData}" />
+                    </StackPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="録画マージンのデフォルト　　　開始(秒)" />
                         <TextBox Width="42" Text="{Binding DefStartMargin}"/>

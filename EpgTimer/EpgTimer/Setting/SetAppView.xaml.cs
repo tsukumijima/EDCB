@@ -200,9 +200,7 @@ namespace EpgTimer.Setting
             textBox_tsExt.Text = SettingPath.CheckTSExtension(IniFileHandler.GetPrivateProfileString("SET", "TSExt", ".ts", SettingPath.TimerSrvIniPath));
 
             //1 録画動作
-            recEndModeRadioBtns = new RadioBtnSelect(panel_recEndMode);
-            recEndModeRadioBtns.Value = IniFileHandler.GetPrivateProfileInt("SET", "RecEndMode", 2, SettingPath.TimerSrvIniPath);
-            checkBox_reboot.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "Reboot", false, SettingPath.TimerSrvIniPath);
+            recEndModeRadioBtns = new RadioBtnSelect(panel_recEndMode, settings.DefRecEndMode);
             textBox_pcWakeTime.Text = IniFileHandler.GetPrivateProfileInt("SET", "WakeTime", 5, SettingPath.TimerSrvIniPath).ToString();
 
             listBox_process.Items.Clear();
@@ -307,10 +305,9 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "SaveNotifyLog", checkBox_srvSaveNotifyLog.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "SaveDebugLog", checkBox_srvSaveDebugLog.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "TSExt", SettingPath.CheckTSExtension(textBox_tsExt.Text), SettingPath.TimerSrvIniPath);
-           
+
             //1 録画動作
-            IniFileHandler.WritePrivateProfileString("SET", "RecEndMode", recEndModeRadioBtns.Value, -1, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "Reboot", checkBox_reboot.IsChecked, SettingPath.TimerSrvIniPath);
+            if (recEndModeRadioBtns.Value != -1) settings.DefRecEndMode = recEndModeRadioBtns.Value;
             IniFileHandler.WritePrivateProfileString("SET", "WakeTime", textBox_pcWakeTime.Text, SettingPath.TimerSrvIniPath);
 
             List<String> ngProcessList = listBox_process.Items.OfType<string>().ToList();

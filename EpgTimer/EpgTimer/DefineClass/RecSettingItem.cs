@@ -190,10 +190,9 @@ namespace EpgTimer
                                   " 終了 " + RecSettingInfo.EndMarginActual.ToString()
                      + (RecSettingInfo.IsMarginDefault == true ? " (デフォルト)" : "") + "\r\n";
 
-            view += "録画後動作 : "
-                + new string[] { "何もしない", "スタンバイ", "休止", "シャットダウン" }[RecSettingInfo.RecEndModeActual]
+            view += "録画後動作 : " + CommonManager.ConvertRecEndModeText(RecSettingInfo.RecEndModeActual)
                 + (RecSettingInfo.RebootFlagActual == 1 ? " 復帰後再起動する" : "")
-                + (RecSettingInfo.SuspendMode == 0 ? " (デフォルト)" : "") + "\r\n";
+                + (RecSettingInfo.RecEndIsDefault == true ? " (デフォルト)" : "") + "\r\n";
 
             if (RecSettingInfo.PartialRecFlag == 0)
             {
