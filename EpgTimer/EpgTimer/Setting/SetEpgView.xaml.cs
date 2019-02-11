@@ -132,7 +132,7 @@ namespace EpgTimer.Setting
             int epgArcHour = IniFileHandler.GetPrivateProfileInt("SET", "EpgArchivePeriodHour", 0, SettingPath.TimerSrvIniPath);
             double epgArcDay = IniFileHandler.GetPrivateProfileDouble("SET", "EpgArchivePeriodDay", 0, SettingPath.TimerSrvIniPath);
             epgArcDay = (int)(epgArcDay * 24) == epgArcHour ? epgArcDay : epgArcHour / 24d;
-            textBox_epgArchivePeriod.Text = Math.Min(Math.Max(epgArcDay, 0), 14).ToString();
+            textBox_epgArchivePeriod.Text = Math.Min(Math.Max(epgArcDay, 0), 20000).ToString();
 
             listBox_tab.Items.Clear();
             listBox_tab.Items.AddItems(settings.CustomEpgTabList.Select(info => new CustomEpgTabInfoView(info)));
@@ -155,7 +155,7 @@ namespace EpgTimer.Setting
             //番組表
             settings.EpgPopupMode = epgPopupRadioBtns.Value;
 
-            double epgArcDay = MenuUtil.MyToNumerical(textBox_epgArchivePeriod, Convert.ToDouble, 14, 0, 0);
+            double epgArcDay = MenuUtil.MyToNumerical(textBox_epgArchivePeriod, Convert.ToDouble, 20000, 0, 0);
             IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodHour", (int)(epgArcDay * 24), SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodDay", epgArcDay, SettingPath.TimerSrvIniPath);
             IsChangeEpgArcLoadSetting = Settings.Instance.EpgLoadArcInfo != settings.EpgLoadArcInfo;
