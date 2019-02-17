@@ -49,8 +49,7 @@ namespace EpgTimer
             if (dataList.Count == 0) return null;
 
             EpgEventInfo info = null;
-            if (dataList[0].StartTime + TimeSpan.FromSeconds(dataList[0].DurationSecond)
-                    >= DateTime.UtcNow.AddHours(9) - TimeSpan.FromDays((Settings.Instance.EpgNoDisplayOld == true ? Settings.Instance.EpgNoDisplayOldDays : 15)))
+            if (dataList[0].IsOver(DateTime.UtcNow.AddHours(9).AddDays(-Settings.Instance.EpgNoDisplayOldDays).Date) == false)
             {
                 info = new EpgEventInfo();
                 info.original_network_id = dataList[0].OriginalNetworkID;
@@ -58,6 +57,7 @@ namespace EpgTimer
                 info.service_id = dataList[0].ServiceID;
                 info.event_id = dataList[0].EventID;
                 info.start_time = dataList[0].StartTime;
+                info.durationSec = dataList[0].DurationSecond;
                 info.StartTimeFlag = 1;
             }
             return info == null ? null : new SearchItem(info);

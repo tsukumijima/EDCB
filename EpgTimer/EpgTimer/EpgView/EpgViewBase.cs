@@ -45,10 +45,25 @@ namespace EpgTimer.EpgView
                     ErrCode err = CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg()), ref list);
                     if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得") == false) return false;
 
+                    var list2 = new List<EpgEventInfo>();
+                    if (Settings.Instance.EpgNoDisplayOldDays > 0 && err == ErrCode.CMD_SUCCESS)
+                    {
+                        var pram = new SearchPgParam();
+                        pram.keyList = CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg());
+                        pram.enumStart = DateTime.UtcNow.AddHours(9).AddDays(-1 - Settings.Instance.EpgNoDisplayOldDays).Date.ToFileTime();
+                        pram.enumEnd = long.MaxValue;
+                        CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2);
+                    }
+
                     //サービス毎のリストに変換
-                    serviceDic = list.GroupBy(info => info.Create64Key())
-                        .Where(gr => ChSet5.ChList.ContainsKey(gr.Key) == true)
-                        .ToDictionary(gr => gr.Key, gr => new EpgServiceAllEventInfo(ChSet5.ChList[gr.Key].ToInfo(), gr.ToList()));
+                    var sList = list.GroupBy(info => info.Create64Key()).Where(gr => ChSet5.ChList.ContainsKey(gr.Key) == true)
+                        .Select(gr => new EpgServiceEventInfo { serviceInfo = ChSet5.ChList[gr.Key].ToInfo(), eventList = gr.ToList() }).ToList();
+                    var sList2 = list2.GroupBy(info => info.Create64Key()).Where(gr => ChSet5.ChList.ContainsKey(gr.Key) == true)
+                        .Select(gr => new EpgServiceEventInfo { serviceInfo = ChSet5.ChList[gr.Key].ToInfo(), eventList = gr.ToList() }).ToList();
+                    serviceDic = EpgServiceAllEventInfo.CreateEpgServicDictionary(sList, sList2);
+
+                    //リモコンIDの登録
+                    ChSet5.SetRemoconID(serviceDic, true);
                 }
 
                 //並び順はViewServiceListによる。eventListはこの後すぐ作り直すのでとりあえずそのままもらう。
@@ -56,7 +71,7 @@ namespace EpgTimer.EpgView
                     .Where(id => serviceDic.ContainsKey(id) == true).Select(id => serviceDic[id])
                     .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList }).ToList();
 
-                var keyTime = DateTime.UtcNow.AddHours(9).AddDays(-Settings.Instance.EpgNoDisplayOldDays);
+                var keyTime = DateTime.UtcNow.AddHours(9).AddDays(-Settings.Instance.EpgNoDisplayOldDays).Date;
                 var viewContentMatchingHash = new HashSet<UInt32>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
                 foreach (EpgServiceEventInfo item in ServiceEventList)
                 {
@@ -67,8 +82,8 @@ namespace EpgTimer.EpgView
                         //自動登録されたりするので、サービス別番組表では表示させる
                             //&& (eventInfo.IsGroupMainEvent == true)
 
-                        //過去番組表示抑制
-                        && (Settings.Instance.EpgNoDisplayOld == false || eventInfo.IsOver(keyTime) == false)
+                        //表示抑制
+                        && (eventInfo.IsOver(keyTime) == false)
 
                         //ジャンル絞り込み
                         && (ViewUtil.ContainsContent(eventInfo, viewContentMatchingHash, EpgTabInfo.ViewNotContentFlag) == true)

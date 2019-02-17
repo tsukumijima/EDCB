@@ -116,11 +116,10 @@
                                                 <TextBox Name="textBox_epgArchivePeriod" Width="55" />
                                                 <Label Content="日前まで保存する (最大2万日)" ToolTip="15日以上を設定しているとき、EpgTimerSrv側で設定変更すると「2万日前まで保存」に変化するので注意してください。&#10;なお、EpgTimerの番組表では過去2週間分程度しか表示されません。"/>
                                             </StackPanel>
-                                            <CheckBox Content="過去の番組情報を表示しない" IsChecked="{Binding EpgLoadArcInfo, Converter={StaticResource invert}}" Margin="0,2,0,2" ToolTip="過去の番組情報を読み込まないようにします。&#10;・過去の番組情報を読み込んでいると、番組データの不整合のため表示が乱れる場合があります。&#10;・検索による絞り込みを使用している場合は、元々過去の番組情報は読み込まれていません。" />
-                                            <StackPanel Orientation="Horizontal" ToolTip="前2つのオプションとは関係なく、強制的に表示を制限します。" >
-                                                <CheckBox Content="番組表の表示を" IsChecked="{Binding EpgNoDisplayOld}" />
-                                                <TextBox Text="{Binding EpgNoDisplayOldDays}" Width="55" Margin="6,0,0,0"/>
-                                                <Label Content="日前までに制限する"/>
+                                            <StackPanel Orientation="Horizontal" >
+                                                <Label Content="初期表示"/>
+                                                <TextBox Text="{Binding EpgNoDisplayOldDays}" Width="55" />
+                                                <Label Content="日前から"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>

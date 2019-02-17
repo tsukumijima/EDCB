@@ -56,15 +56,15 @@ namespace EpgTimer
             return ret;
         }
 
-        public static void SetRemoconID(Dictionary<ulong, EpgServiceAllEventInfo> infoList)
+        public static void SetRemoconID(Dictionary<ulong, EpgServiceAllEventInfo> infoList, bool addOnly = false)
         {
-            Settings.Instance.RemoconIDList.Clear();
+            if (addOnly == false) Settings.Instance.RemoconIDList.Clear();
             foreach (EpgServiceInfo info in infoList.Select(info => info.Value.serviceInfo)
                                                     .Where(info => info.remote_control_key_id != 0))
             {
                 Settings.Instance.RemoconIDList[info.TSID] = info.remote_control_key_id;
             }
-            Settings.SaveToXmlFile(false);
+            if (addOnly == false) Settings.SaveToXmlFile(false);
         }
         public static byte RemoconID(this ChSet5Item item)
         {

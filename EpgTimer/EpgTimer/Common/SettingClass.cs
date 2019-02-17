@@ -415,8 +415,6 @@ namespace EpgTimer
         public bool EpgExtInfoTooltip { get; set; }
         public bool EpgGradation { get; set; }
         public bool EpgGradationHeader { get; set; }
-        public bool EpgLoadArcInfo { get; set; }
-        public bool EpgNoDisplayOld { get; set; }
         public double EpgNoDisplayOldDays { get; set; }
         public bool EpgChangeBorderWatch { get; set; }
         public bool EpgChangeBorderOnRec { get; set; }
@@ -774,8 +772,6 @@ namespace EpgTimer
             EpgExtInfoTooltip = true;
             EpgGradation = true;
             EpgGradationHeader = true;
-            EpgLoadArcInfo = false;
-            EpgNoDisplayOld = false;
             EpgNoDisplayOldDays = 1;
             EpgChangeBorderWatch = false;
             EpgChangeBorderOnRec = false;

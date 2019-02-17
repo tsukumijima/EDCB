@@ -22,7 +22,7 @@ namespace EpgTimer
             //過去番組はアーカイブを優先する
             if (this.eventList.Count != 0 && this.eventArcList.Count != 0)
             {
-                var timeSet = new HashSet<DateTime>(eventArcList.Select(data => data.PgStartTime));//無いはずだが時間未定(PgStartTime=DateTime.MinValue)は吸収
+                var timeSet = new HashSet<DateTime>(eventArcList.Where(data => data.StartTimeFlag != 0).Select(data => data.PgStartTime));//無いはずだが時間未定をリファレンスから除外
                 var addList = eventList.Where(data => timeSet.Contains(data.PgStartTime) == false);//時間未定(PgStartTime=DateTime.MaxValue)は通過する。
                 this.eventMergeList = eventArcList.Concat(addList).ToList();
             }
@@ -30,6 +30,28 @@ namespace EpgTimer
             {
                 this.eventMergeList = this.eventList.Count != 0 ? eventList : this.eventArcList;
             }
+        }
+
+        public static Dictionary<UInt64, EpgServiceAllEventInfo> CreateEpgServicDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2)
+        {
+            var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+            foreach (EpgServiceEventInfo info in list)
+            {
+                UInt64 id = info.serviceInfo.Create64Key();
+                //対応する過去番組情報があれば付加する
+                int i = list2.FindIndex(info2 => id == info2.serviceInfo.Create64Key());
+                serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, info.eventList, i < 0 ? new List<EpgEventInfo>() : list2[i].eventList);
+            }
+            //過去番組情報が残っていればサービスリストに加える
+            foreach (EpgServiceEventInfo info in list2)
+            {
+                UInt64 id = info.serviceInfo.Create64Key();
+                if (serviceDic.ContainsKey(id) == false)
+                {
+                    serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
+                }
+            }
+            return serviceDic;
         }
     }
 
@@ -427,26 +449,13 @@ namespace EpgTimer
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
 
                 var list2 = new List<EpgServiceEventInfo>();
-                if (Settings.Instance.EpgLoadArcInfo == true)
+                if (Settings.Instance.EpgNoDisplayOldDays > 0)
                 {
-                    try { CommonManager.CreateSrvCtrl().SendEnumPgArcAll(ref list2); } catch { }
+                    try { CommonManager.CreateSrvCtrl().SendEnumPgArc(new List<long> { 0xFFFFFFFFFFFF, 0xFFFFFFFFFFFF, DateTime.UtcNow.AddHours(9).AddDays(-1 - Settings.Instance.EpgNoDisplayOldDays).Date.ToFileTime(), long.MaxValue }, ref list2); } catch { }
                 }
-                foreach (EpgServiceEventInfo info in list)
-                {
-                    UInt64 id = info.serviceInfo.Create64Key();
-                    //対応する過去番組情報があれば付加する
-                    int i = list2.FindIndex(info2 => id == info2.serviceInfo.Create64Key());
-                    ServiceEventList[id] = new EpgServiceAllEventInfo(info.serviceInfo, info.eventList, i < 0 ? new List<EpgEventInfo>() : list2[i].eventList);
-                }
-                //過去番組情報が残っていればサービスリストに加える
-                foreach (EpgServiceEventInfo info in list2)
-                {
-                    UInt64 id = info.serviceInfo.Create64Key();
-                    if (ServiceEventList.ContainsKey(id) == false)
-                    {
-                        ServiceEventList[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
-                    }
-                }
+
+                //複合リストの作成
+                ServiceEventList = EpgServiceAllEventInfo.CreateEpgServicDictionary(list, list2);
 
                 //リモコンIDの登録
                 ChSet5.SetRemoconID(ServiceEventList);
