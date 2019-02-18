@@ -275,7 +275,7 @@ namespace EpgTimer
         {
             UpdatePopupPosition(popInfo);
 
-            Popup.Width = Math.Max(popInfo.Width, PopWidth);
+            Popup.Width = Math.Max(popInfo.Width, PopWidth) + PopPanel.WidthMarginRight;
             if (popInfo.TopPos < scroll.ContentVerticalOffset)
             {
                 Popup.MinHeight = Math.Max(0, popInfo.TopPos + popInfo.Height - scroll.ContentVerticalOffset);
@@ -312,7 +312,7 @@ namespace EpgTimer
             PopPanel.PopUpMode = true;
             PopPanel.SetBorderStyleFromSettings();
             PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.Data) as PanelItem;
-            PopPanel.Item.Width = PopWidth - PopPanel.WidthMarginRight;
+            PopPanel.Item.Width = Popup.Width - PopPanel.WidthMarginRight;
             PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderHeight(9999), Popup.MinHeight);
             Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;
             UpdatePopupReDraw();

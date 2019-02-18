@@ -22,7 +22,7 @@ namespace EpgTimer.EpgView
         protected override bool PopOnClick { get { return Settings.Instance.EpgPopupMode != 0; } }
         protected override FrameworkElement Popup { get { return popupItem; } }
         protected override ViewPanel PopPanel { get { return popupItemPanel; } }
-        protected override double PopWidth { get { return Settings.Instance.ServiceWidth * Settings.Instance.EpgPopupWidth + PopPanel.WidthMarginRight; } }
+        protected override double PopWidth { get { return Settings.Instance.ServiceWidth * Settings.Instance.EpgPopupWidth; } }
 
         private List<ReserveViewItem> reserveList = null;
         private List<Rectangle> rectBorder = new List<Rectangle>();
