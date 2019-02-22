@@ -12,11 +12,11 @@ namespace EpgTimer
     /// </summary>
     public partial class RecInfoDescWindow : RecInfoDescWindowBase
     {
-        protected override UInt64 DataID { get { return recInfo == null ? 0 : recInfo.ID; } }
+        protected override UInt64 DataID { get { return recInfo.ID; } }
         protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return CommonManager.Instance.DB.RecFileInfo.Select(d => new KeyValuePair<UInt64, object>(d.Key, d.Value)); } }
         protected override DataItemViewBase DataView { get { return mainWindow.recInfoView; } }
 
-        private RecFileInfo recInfo = null;
+        private RecFileInfo recInfo = new RecFileInfo();
         private CmdExeRecinfo mc;
 
         public RecInfoDescWindow(RecFileInfo info = null)
@@ -32,11 +32,11 @@ namespace EpgTimer
                 mc.SetFuncGetDataList(isAll => CommonUtil.ToList(recInfo));
 
                 //コマンド集に無いもの,変更するもの
-                mc.AddReplaceCommand(EpgCmds.Play, (sender, e) => CommonManager.Instance.FilePlay(recInfo.RecFilePath), (sender, e) => e.CanExecute = recInfo != null);
+                mc.AddReplaceCommand(EpgCmds.Play, (sender, e) => CommonManager.Instance.FilePlay(recInfo.RecFilePath), (sender, e) => e.CanExecute = recInfo.ID != 0);
                 mc.AddReplaceCommand(EpgCmds.Cancel, (sender, e) => this.Close());
                 mc.AddReplaceCommand(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1));
                 mc.AddReplaceCommand(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1));
-                mc.AddReplaceCommand(EpgCmds.DeleteInDialog, info_del, (sender, e) => e.CanExecute = recInfo != null && recInfo.ProtectFlag == 0);
+                mc.AddReplaceCommand(EpgCmds.DeleteInDialog, info_del, (sender, e) => e.CanExecute = recInfo.ID != 0 && recInfo.ProtectFlag == 0);
                 mc.AddReplaceCommand(EpgCmds.ChgOnOffCheck, (sender, e) => EpgCmds.ProtectChange.Execute(null, this));
 
                 //コマンド集からコマンドを登録
@@ -70,20 +70,23 @@ namespace EpgTimer
 
         protected override bool ReloadInfoData()
         {
-            if (recInfo == null) return false;
+            if (recInfo.ID == 0) return false;
 
+            RecFileInfo info;
             CommonManager.Instance.DB.ReloadRecFileInfo();
-            CommonManager.Instance.DB.RecFileInfo.TryGetValue(recInfo.ID, out recInfo);
-            ChangeData(recInfo);
+            CommonManager.Instance.DB.RecFileInfo.TryGetValue(recInfo.ID, out info);
+            if (info == null) recInfo.ID = 0;
+            ChangeData(info ?? recInfo);
             return true;
         }
 
         public override void ChangeData(object data)
         {
-            var info = data as RecFileInfo;
-            chk_key.DataContext = new RecInfoItem(info);
-            label_Msg.Visibility = info != null ? Visibility.Hidden : Visibility.Visible;
-            if (info == null) return;
+            var info = data as RecFileInfo ?? new RecFileInfo();//nullデータを受け付ける
+            DataContext = new RecInfoItem(info);
+
+            //Appendデータが無くなる場合を考慮し、テキストはrecInfoと連動させない
+            if (recInfo == data) return;
 
             recInfo = info;
             this.Title = ViewUtil.WindowTitleText(recInfo.Title, "録画情報");
