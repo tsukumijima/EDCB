@@ -18,7 +18,8 @@ namespace EpgTimer
         private List<CheckBox> chbxList;
 
         static AddManualAutoAddWindow()
-        { 
+        {
+            //追加時の選択用
             mainWindow.autoAddView.manualAutoAddView.ViewUpdated += AddManualAutoAddWindow.UpdatesViewSelection;
         }
         public AddManualAutoAddWindow(ManualAutoAddData data = null, AutoAddMode mode = AutoAddMode.NewAdd)

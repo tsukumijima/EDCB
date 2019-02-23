@@ -29,6 +29,7 @@ namespace EpgTimer
 
         static ChgReserveWindow()
         {
+            //追加予約の選択と重複予約の変更時の選択継続用
             mainWindow.reserveView.ViewUpdated += ChgReserveWindow.UpdatesViewSelection;
             mainWindow.tunerReserveView.ViewUpdated += ChgReserveWindow.UpdatesViewSelection;
             SearchWindow.ViewReserveUpdated += ChgReserveWindow.UpdatesViewSelection;
@@ -492,7 +493,7 @@ namespace EpgTimer
             }
         }
 
-        protected override DataItemViewBase DataView { get { return mainWindow.tunerReserveView.IsVisible == true ? mainWindow.tunerReserveView : base.DataView; } }
+        protected override DataItemViewBase DataView { get { return base.DataView ?? (mainWindow.reserveView.IsVisible == true ? (DataItemViewBase)mainWindow.reserveView : mainWindow.tunerReserveView.IsVisible == true ? mainWindow.tunerReserveView : null); } }
         protected override UInt64 DataID { get { return reserveInfo == null ? 0 : reserveInfo.ReserveID; } }
         protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return CommonManager.Instance.DB.ReserveList.OrderBy(d => d.Value.StartTimeActual).Select(d => new KeyValuePair<UInt64, object>(d.Key, d.Value)); } }
 
@@ -566,7 +567,7 @@ namespace EpgTimer
             get
             {
                 DataItemViewBase view = mainWindow.epgView.ActiveView;
-                return view != null && view.IsVisible == true ? view : mainWindow.reserveView.IsVisible == true ? mainWindow.reserveView : DataViewSearch;
+                return DataViewSearch ?? (view != null && view.IsVisible == true ? view : null);
             }
         }
         protected int SearchWinHash = 0;
@@ -581,7 +582,7 @@ namespace EpgTimer
                     SearchWinHash = 0;
                     return null;
                 }
-                return win.IsVisible == true ? win.DataListView : null;
+                return win.IsVisible == true && win.WindowState != WindowState.Minimized ? win.DataListView : null;
             }
 
         }

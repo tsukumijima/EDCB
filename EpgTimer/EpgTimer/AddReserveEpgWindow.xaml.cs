@@ -22,6 +22,7 @@ namespace EpgTimer
 
         static AddReserveEpgWindow()
         {
+            //重複予約の変更時の選択継続用(無視するなら不要)
             SearchWindow.ViewReserveUpdated += AddReserveEpgWindow.UpdatesViewSelection;
             EpgViewBase.ViewReserveUpdated += AddReserveEpgWindow.UpdatesViewSelection;
         }
@@ -36,8 +37,8 @@ namespace EpgTimer
             this.CommandBindings.Add(new CommandBinding(EpgCmds.AddInDialog, reserve_add, (sender, e) => e.CanExecute = AddEnabled));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.ChangeInDialog, reserve_chg, (sender, e) => e.CanExecute = KeepWin == true && AddEnabled && chgEnabled));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.DeleteInDialog, reserve_del, (sender, e) => e.CanExecute = KeepWin == true && AddEnabled && chgEnabled));
-            this.CommandBindings.Add(new CommandBinding(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1), (sender, e) => e.CanExecute = KeepWin == true));
-            this.CommandBindings.Add(new CommandBinding(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1), (sender, e) => e.CanExecute = KeepWin == true));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1), (sender, e) => e.CanExecute = KeepWin == true && (DataView is EpgViewBase || DataViewSearch != null || DataRefList.Any())));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1), (sender, e) => e.CanExecute = KeepWin == true && (DataView is EpgViewBase || DataViewSearch != null || DataRefList.Any())));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Search, (sender, e) => MoveViewEpgTarget(), (sender, e) => e.CanExecute = KeepWin == true && DataView is EpgViewBase));
 
             //ボタンの設定
@@ -195,7 +196,7 @@ namespace EpgTimer
             if (KeepWin == false) this.Close();
         }
 
-        protected override UInt64 DataID { get { return DataView is ReserveView || eventInfo == null ? 0 : eventInfo.CurrentPgUID(); } }
+        protected override UInt64 DataID { get { return eventInfo == null ? 0 : eventInfo.CurrentPgUID(); } }
         protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList
         {
             get
@@ -208,11 +209,7 @@ namespace EpgTimer
         {
             //番組表では「前へ」「次へ」の移動の時だけ追従させる。mode=2はアクティブ時の自動追尾
             var style = JumpItemStyle.MoveTo | (mode < 2 ? JumpItemStyle.PanelNoScroll : JumpItemStyle.None);
-            if (DataView is ReserveView)
-            {
-                if (mode == 2) DataView.MoveToItem(DataID, style);//予約一覧での選択解除
-            }
-            else if (DataView is EpgMainViewBase)
+            if (DataView is EpgMainViewBase)
             {
                 if (mode != 2) DataView.MoveToProgramItem(eventInfo, style);
             }
@@ -223,6 +220,10 @@ namespace EpgTimer
             else if (DataView is SearchWindow.AutoAddWinListView)
             {
                 if (mode != 0) DataView.MoveToItem(DataID, style);//リスト番組表と同様
+            }
+            else if (mainWindow.reserveView.IsVisible == true)
+            {
+                if (mode == 2) mainWindow.reserveView.MoveToItem(0, style);//予約一覧での選択解除
             }
         }
     }

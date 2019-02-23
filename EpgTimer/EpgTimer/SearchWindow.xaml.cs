@@ -22,6 +22,7 @@ namespace EpgTimer
 
         static SearchWindow()
         {
+            //追加時の選択用
             mainWindow.autoAddView.epgAutoAddView.ViewUpdated += SearchWindow.UpdatesViewSelection;
         }
         public SearchWindow(EpgAutoAddData data = null, AutoAddMode mode = AutoAddMode.Find)
