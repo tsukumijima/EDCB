@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace EpgTimer.EpgView
@@ -24,8 +23,6 @@ namespace EpgTimer.EpgView
         protected override ViewPanel PopPanel { get { return popupItemPanel; } }
         protected override double PopWidth { get { return Settings.Instance.ServiceWidth * Settings.Instance.EpgPopupWidth; } }
 
-        private List<ReserveViewItem> reserveList = null;
-        private List<Rectangle> rectBorder = new List<Rectangle>();
         private ReserveViewItem popInfoRes = null;
 
         protected override bool IsTooltipEnabled { get { return Settings.Instance.EpgToolTip == true; } }
@@ -38,38 +35,31 @@ namespace EpgTimer.EpgView
             base.scroll = scrollViewer;
             base.cnvs = canvas;
 
-            epgViewPanel.ReplaceDictionaryNormal = CommonManager.ReplaceDictionaryNormal;
-            epgViewPanel.ReplaceDictionaryTitle = CommonManager.ReplaceDictionaryTitle;
             epgViewPanel.Background = CommonManager.Instance.EpgBackColor;
-            epgViewPanel.ExtInfoMode = Settings.Instance.EpgExtInfoTable;
+            epgViewPanel.SetBorderStyleFromSettings();
             epgViewPanel.Height = ViewUtil.GetScreenHeightMax();
             epgViewPanel.Width = ViewUtil.GetScreenWidthMax();
-            epgViewPanel.SetBorderStyleFromSettings();
-
-            popupItemPanel.ReplaceDictionaryNormal = epgViewPanel.ReplaceDictionaryNormal;
-            popupItemPanel.ReplaceDictionaryTitle = epgViewPanel.ReplaceDictionaryTitle;
-            Canvas.SetLeft(popupItemPanel, 0);
         }
 
         public override void ClearInfo()
         {
             base.ClearInfo();
-            reserveList = null;
-            rectBorder.ForEach(item => canvas.Children.Remove(item));
-            rectBorder.Clear();
+            ClearReserveViewPanel();
             ClearEpgViewPanel();
+            //デフォルト状態に戻す
+            canvas.Children.Add(epgViewPanel);
         }
-        private void ClearEpgViewPanel()
+        private void ClearReserveViewPanel() { ClearPanel(typeof(Rectangle)); }
+        private void ClearEpgViewPanel() { ClearPanel(typeof(EpgViewPanel)); }
+        private void ClearPanel(Type t)
         {
             for (int i = 0; i < canvas.Children.Count; i++)
             {
-                if (canvas.Children[i] is EpgViewPanel)
+                if (canvas.Children[i].GetType() == t)
                 {
                     canvas.Children.RemoveAt(i--);
                 }
             }
-            //デフォルト状態に戻す
-            canvas.Children.Add(epgViewPanel);
         }
 
         protected override void PopupClear()
@@ -81,7 +71,7 @@ namespace EpgTimer.EpgView
         {
             ProgramViewItem popInfo = GetProgramViewData(cursorPos);
             ReserveViewItem lastPopInfoRes = popInfoRes;
-            popInfoRes = reserveList == null ? null : reserveList.Find(pg => pg.IsPicked(cursorPos));
+            popInfoRes = GetReserveViewData(cursorPos);
 
             if (Settings.Instance.EpgPopupMode == 2 && popInfoRes == null && (
                 onClick == false && !(lastPopInfoRes == null && popInfo == lastPopInfo) ||
@@ -95,12 +85,8 @@ namespace EpgTimer.EpgView
 
             return popInfo;
         }
-        protected override void SetPopup(PanelItem item)
+        protected override void SetPopupItemEx(PanelItem item)
         {
-            //この番組だけのEpgViewPanelをつくる
-            PopPanel.ExtInfoMode = Settings.Instance.EpgExtInfoPopup;
-            SetPopPanel(item);
-
             popupItemBorder.Visibility = Visibility.Collapsed;
             popupItemFillOnly.Visibility = Visibility.Collapsed;
             if (popInfoRes != null)
@@ -124,17 +110,15 @@ namespace EpgTimer.EpgView
                 Settings.Instance.EpgExtInfoTooltip == true ? EventInfoTextMode.All : EventInfoTextMode.BasicText));
         }
 
+        public ReserveViewItem GetReserveViewData(Point cursorPos)
+        {
+            return canvas.Children.OfType<Rectangle>().Select(rs => rs.Tag).OfType<ReserveViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
+        }
         public ProgramViewItem GetProgramViewData(Point cursorPos)
         {
-            foreach (var childPanel in canvas.Children.OfType<EpgViewPanel>())
-            {
-                if (childPanel.Items != null && Canvas.GetLeft(childPanel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(childPanel) + childPanel.Width)
-                {
-                    return childPanel.Items.OfType<ProgramViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
-                }
-            }
-
-            return null;
+            return canvas.Children.OfType<EpgViewPanel>()
+                .Where(panel => panel.Items != null && Canvas.GetLeft(panel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(panel) + panel.Width)
+                .SelectMany(panel => panel.Items).OfType<ProgramViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
         }
 
         private void SetReserveBorderColor(ReserveViewItem info, Rectangle rect, Rectangle fillOnlyRect = null)
@@ -144,39 +128,30 @@ namespace EpgTimer.EpgView
             rect.StrokeThickness = 3;
             (fillOnlyRect ?? rect).Fill = info.BackColor;
         }
-        public void SetReserveList(List<ReserveViewItem> resList)
+        public void SetReserveList(IEnumerable<ReserveViewItem> reserveList)
         {
             try
             {
-                reserveList = resList;
-                rectBorder.ForEach(item => canvas.Children.Remove(item));
-                rectBorder.Clear();
+                ClearReserveViewPanel();
 
-                foreach (ReserveViewItem info in reserveList)
+                var AddRect = new Func<ReserveViewItem, int, object, Rectangle>((info, zIdx, tag) =>
                 {
                     var rect = new Rectangle();
                     rect.Width = info.Width;
                     rect.Height = info.Height;
                     rect.IsHitTestVisible = false;
+                    rect.Tag = tag;
                     Canvas.SetLeft(rect, info.LeftPos);
                     Canvas.SetTop(rect, info.TopPos);
-                    Canvas.SetZIndex(rect, 10);
+                    Canvas.SetZIndex(rect, zIdx);
                     canvas.Children.Add(rect);
-                    rectBorder.Add(rect);
+                    return rect;
+                });
 
-                    var fillOnlyRect = Settings.Instance.ReserveRectFillWithShadow ? null : new Rectangle();
-                    if (fillOnlyRect != null)
-                    {
-                        fillOnlyRect.Width = info.Width;
-                        fillOnlyRect.Height = info.Height;
-                        fillOnlyRect.IsHitTestVisible = false;
-                        Canvas.SetLeft(fillOnlyRect, info.LeftPos);
-                        Canvas.SetTop(fillOnlyRect, info.TopPos);
-                        Canvas.SetZIndex(fillOnlyRect, 9);
-                        canvas.Children.Add(fillOnlyRect);
-                        rectBorder.Add(fillOnlyRect);
-                    }
-
+                foreach (ReserveViewItem info in reserveList)
+                {
+                    var rect = AddRect(info, 10, info);
+                    var fillOnlyRect = Settings.Instance.ReserveRectFillWithShadow ? null : AddRect(info, 9, null);
                     SetReserveBorderColor(info, rect, fillOnlyRect);
                 }
 
@@ -202,14 +177,11 @@ namespace EpgTimer.EpgView
                 foreach (var programList in programGroupList)
                 {
                     var item = new EpgViewPanel();
-                    item.ReplaceDictionaryNormal = epgViewPanel.ReplaceDictionaryNormal;
-                    item.ReplaceDictionaryTitle = epgViewPanel.ReplaceDictionaryTitle;
                     item.Background = epgViewPanel.Background;
                     item.SetBorderStyleFromSettings();
                     item.Height = height;
                     item.Width = programList.Width;
                     Canvas.SetLeft(item, totalWidth);
-                    item.ExtInfoMode = epgViewPanel.ExtInfoMode;
                     item.Items = programList.Data;
                     item.InvalidateVisual();
                     canvas.Children.Add(item);

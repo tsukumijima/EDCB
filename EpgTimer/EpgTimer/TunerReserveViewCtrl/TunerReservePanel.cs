@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace EpgTimer.TunerReserveViewCtrl
@@ -18,15 +17,17 @@ namespace EpgTimer.TunerReserveViewCtrl
         {
             var ItemFontNormal = ItemFontCache.ItemFont(Settings.Instance.TunerFontName, false);
             var ItemFontTitle = ItemFontCache.ItemFont(Settings.Instance.TunerFontNameService, Settings.Instance.TunerFontBoldService);
+            var DictionaryTitle = Settings.Instance.ApplyReplacePatternTuner ? CommonManager.ReplaceDictionaryTitle : null;
+
+            bool recSettingInfo = PopUpMode == true ? Settings.Instance.TunerPopupRecinfo : false;
+            bool noWrap = PopUpMode == true ? false : Settings.Instance.TunerServiceNoWrap;
 
             double sizeTitle = Settings.Instance.TunerFontSizeService;
             double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, Settings.Instance.TunerFontSize));
             double sizeNormal = Settings.Instance.TunerFontSize;
-            double indentTitle = ExtInfoMode == true ? 0 : sizeMin * 1.7;
+            double indentTitle = recSettingInfo == true ? 0 : sizeMin * 1.7;
             double indentNormal = Settings.Instance.TunerTitleIndent ? indentTitle : 0;
             Brush colorNormal = CommonManager.Instance.CustTunerTextColor;
-
-            bool noWrap = PopUpMode == true ? false : Settings.Instance.TunerServiceNoWrap;
 
             //録画中のものを後で描画する
             Items = Items.Cast<TunerReserveViewItem>().OrderBy(info => info.Data.IsOnRec()).ToList();
@@ -39,7 +40,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                 double useHeight = 0;
 
                 //追加情報の表示
-                if (ExtInfoMode == true)
+                if (recSettingInfo == true)
                 {
                     var resItem = new ReserveItem(info.Data);
                     string text = info.Status;
@@ -58,13 +59,13 @@ namespace EpgTimer.TunerReserveViewCtrl
 
                 //サービス名
                 string serviceName = info.Data.StationName + "(" + CommonManager.ConvertNetworkNameText(info.Data.OriginalNetworkID) + ")";
-                serviceName = CommonManager.ReplaceText(serviceName, ReplaceDictionaryTitle);
+                serviceName = CommonManager.ReplaceText(serviceName, DictionaryTitle);
                 useHeight += sizeTitle / 3 + RenderText(textDrawList, serviceName, ItemFontTitle, sizeTitle, drawRect, indentTitle, useHeight, info.ServiceColor, noWrap);
 
                 //番組名
                 if (useHeight < drawRect.Height)
                 {
-                    string title = CommonManager.ReplaceText(info.Data.Title.TrimEnd(), ReplaceDictionaryTitle);
+                    string title = CommonManager.ReplaceText(info.Data.Title.TrimEnd(), DictionaryTitle);
                     if (title != "") useHeight += sizeNormal / 3 + RenderText(textDrawList, title, ItemFontNormal, sizeNormal, drawRect, indentNormal, useHeight, colorNormal);
                 }
 

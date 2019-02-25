@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace EpgTimer.TunerReserveViewCtrl
 {
@@ -40,8 +39,6 @@ namespace EpgTimer.TunerReserveViewCtrl
         {
             try
             {
-                reserveViewPanel.ReplaceDictionaryTitle = Settings.Instance.ApplyReplacePatternTuner ? CommonManager.ReplaceDictionaryTitle : null;
-                PopPanel.ReplaceDictionaryTitle = reserveViewPanel.ReplaceDictionaryTitle;
                 reserveViewPanel.SetBorderStyleFromSettings();
                 canvas.Width = ViewUtil.SnapsToDevicePixelsX(width + reserveViewPanel.WidthMarginRight, 2);//右端のチューナ列の線を描画するため+1。他の+1も同じ。;
                 canvas.Height = ViewUtil.SnapsToDevicePixelsY(height + reserveViewPanel.HeightMarginBottom, 2);
@@ -61,11 +58,6 @@ namespace EpgTimer.TunerReserveViewCtrl
             if (reserveViewPanel.Items == null) return null;
 
             return reserveViewPanel.Items.FirstOrDefault(pg => pg.IsPicked(cursorPos));
-        }
-        protected override void SetPopup(PanelItem item)
-        {
-            PopPanel.ExtInfoMode = Settings.Instance.TunerPopupRecinfo;
-            SetPopPanel(item);
         }
 
         protected override PanelItem GetTooltipItem(Point cursorPos)

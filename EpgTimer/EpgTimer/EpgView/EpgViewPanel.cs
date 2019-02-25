@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace EpgTimer.EpgView
@@ -18,6 +17,10 @@ namespace EpgTimer.EpgView
         {
             var ItemFontNormal = ItemFontCache.ItemFont(Settings.Instance.FontName, false);
             var ItemFontTitle = ItemFontCache.ItemFont(Settings.Instance.FontNameTitle, Settings.Instance.FontBoldTitle);
+            var DictionaryNormal = CommonManager.ReplaceDictionaryNormal;
+            var DictionaryTitle = CommonManager.ReplaceDictionaryTitle;
+
+            bool extraInfo = PopUpMode == true ? Settings.Instance.EpgExtInfoPopup : Settings.Instance.EpgExtInfoTable;
 
             double sizeTitle = Settings.Instance.FontSizeTitle;
             double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, Settings.Instance.FontSize));
@@ -42,15 +45,15 @@ namespace EpgTimer.EpgView
                 if (info.Data.ShortInfo != null)
                 {
                     //タイトル
-                    string title = CommonManager.ReplaceText(info.Data.ShortInfo.event_name.TrimEnd(), ReplaceDictionaryTitle);
+                    string title = CommonManager.ReplaceText(info.Data.ShortInfo.event_name.TrimEnd(), DictionaryTitle);
                     useHeight = sizeTitle / 3 + RenderText(textDrawList, title, ItemFontTitle, sizeTitle, drawRect, indentTitle, 0, colorTitle);
                     
                     //説明
                     if (useHeight < drawRect.Height)
                     {
                         string detail = info.Data.ShortInfo.text_char.TrimEnd('\r', '\n');
-                        detail += ExtInfoMode == false || info.Data.ExtInfo == null ? "" : "\r\n\r\n" + info.Data.ExtInfo.text_char;
-                        detail = CommonManager.ReplaceText(detail.TrimEnd(), ReplaceDictionaryNormal);
+                        detail += extraInfo == false || info.Data.ExtInfo == null ? "" : "\r\n\r\n" + info.Data.ExtInfo.text_char;
+                        detail = CommonManager.ReplaceText(detail.TrimEnd(), DictionaryNormal);
                         if (detail != "") useHeight += sizeNormal / 3 + RenderText(textDrawList, detail, ItemFontNormal, sizeNormal, drawRect, indentNormal, useHeight, colorNormal);
                     }
                 }

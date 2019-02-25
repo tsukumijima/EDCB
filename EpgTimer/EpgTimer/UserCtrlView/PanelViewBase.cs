@@ -14,11 +14,7 @@ namespace EpgTimer
     {
         public IEnumerable<PanelItem> Items { get; set; }
         public PanelItem Item { get { return Items == null ? null : Items.FirstOrDefault(); } set { Items = CommonUtil.ToList(value); } }
-        public bool ExtInfoMode { get; set; }
         public bool PopUpMode { get; set; }
-
-        public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal { get; set; }
-        public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle { get; set; }
 
         public double MaxRenderHeight { get; protected set; }
         protected void SaveMaxRenderHeight(double val) { MaxRenderHeight = Math.Max(MaxRenderHeight, val); }
@@ -273,6 +269,9 @@ namespace EpgTimer
         // PopUpの初期化
         protected void SetPopupItem(PanelItem popInfo)
         {
+            PopPanel.PopUpMode = true;
+            PopPanel.SetBorderStyleFromSettings();
+
             UpdatePopupPosition(popInfo);
 
             Popup.Width = Math.Max(popInfo.Width, PopWidth) + PopPanel.WidthMarginRight;
@@ -285,8 +284,15 @@ namespace EpgTimer
                 Popup.MinHeight = Math.Max(0, Math.Min(scroll.ContentVerticalOffset + scroll.ViewportHeight - popInfo.TopPos - PopPanel.HeightMarginBottom, popInfo.Height));
             }
 
-            SetPopup(popInfo);
+            PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.Data) as PanelItem;
+            PopPanel.Item.Width = Popup.Width - PopPanel.WidthMarginRight;
+            PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderHeight(9999), Popup.MinHeight);
+            Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;
+            SetPopupItemEx(popInfo);
+
+            UpdatePopupReDraw();
         }
+        protected virtual void SetPopupItemEx(PanelItem popInfo) { }
         // PopUp が画面内に収まるように調整する
         protected void UpdatePopupPosition(PanelItem popInfo)
         {
@@ -304,17 +310,6 @@ namespace EpgTimer
             // 上にはみ出てる場合はscrollエリアの上端から表示する
             Canvas.SetTop(Popup, Math.Max(top, scroll.ContentVerticalOffset));
 
-            UpdatePopupReDraw();
-        }
-        protected virtual void SetPopup(PanelItem popInfo) { }
-        protected virtual void SetPopPanel(PanelItem popInfo)
-        {
-            PopPanel.PopUpMode = true;
-            PopPanel.SetBorderStyleFromSettings();
-            PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.Data) as PanelItem;
-            PopPanel.Item.Width = Popup.Width - PopPanel.WidthMarginRight;
-            PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderHeight(9999), Popup.MinHeight);
-            Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;
             UpdatePopupReDraw();
         }
         protected virtual void UpdatePopupReDraw()
