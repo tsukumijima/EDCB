@@ -184,9 +184,13 @@ namespace EpgTimer.EpgView
 
             param.ID = 0;//実際は設定するまでもなく、初期値0。
             BlackoutWindow.NowJumpTable = true;
-            new BlackoutWindow(ViewUtil.MainWindow).showWindow(ViewUtil.MainWindow.tabItem_epg.Header.ToString());
-
             mc_ViewChgMode(sender, e);
+
+            //EPG画面でのフォーカス対策。若干ウィンドウの表示タイミングが微妙だが、とりあえずこれで解決する。
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                new BlackoutWindow(ViewUtil.MainWindow).showWindow(ViewUtil.MainWindow.tabItem_epg.Header.ToString());
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         public void UpdateMenu(bool refesh = true)
