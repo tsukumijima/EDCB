@@ -20,6 +20,9 @@ namespace EpgTimer
         private ListViewController<SearchItem> lstCtrl;
         private CmdExeReserve mc; //予約系コマンド集
 
+        private bool ArcSearch = false;
+        private bool Searched = false;
+
         static SearchWindow()
         {
             //追加時の選択用
@@ -116,6 +119,11 @@ namespace EpgTimer
                 recSettingView.SelectedPresetChanged += SetRecSettingTabHeader;
                 recSettingTabHeader.MouseRightButtonUp += recSettingView.OpenPresetSelectMenuOnMouseEvent;
 
+                //過去番組検索
+                searchKeyView.checkBox_noArcSearch.IsChecked = !Settings.Instance.ArcSearch;
+                searchKeyView.checkBox_noArcSearch.Checked += (sender, e) => { if (Searched) SearchPg(); };
+                searchKeyView.checkBox_noArcSearch.Unchecked += (sender, e) => { if (Searched) SearchPg(); };
+
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
             }
@@ -185,22 +193,40 @@ namespace EpgTimer
         {
             if (addSearchLog == true) searchKeyView.AddSearchLog();
 
-            //CommonManager.Instance.DB.ReloadRecFileInfo();//現状でも要Reloadな状況はあるが、とりあえず今は保留
             lstCtrl.ReloadInfoData(dataList =>
             {
                 EpgSearchKeyInfo key = GetSearchKey();
                 key.keyDisabledFlag = 0; //無効解除
                 var list = new List<EpgEventInfo>();
-
                 CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(key), ref list);
 
-                dataList.AddRange(list.ToSearchList(true));
+                ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false && Settings.Instance.EpgNoDisplayOldDays > 0;
+                if (ArcSearch == true)
+                {
+                    var pram = new SearchPgParam();
+                    pram.keyList = CommonUtil.ToList(key);
+                    pram.enumStart = ViewUtil.EpgKeyTime().AddDays(-1).ToFileTime();
+                    pram.enumEnd = long.MaxValue;
+                    var list2 = new List<EpgEventInfo>();
+                    CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2);
+
+                    //EpgServiceAllEventInfoなどを使ってマージする
+                    var sList = list.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
+                    var sList2 = list2.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
+                    list = EpgServiceAllEventInfo.CreateEpgServicDictionary(sList, sList2).Values.SelectMany(info => info.eventMergeList).ToList();
+
+                    //起動直後用。実際には過去検索して無くても必要な場合があるが、あまり重要ではないので無視する。
+                    CommonManager.Instance.DB.ReloadRecFileInfo();
+                }
+
+                dataList.AddRange(list.ToSearchList(true, ArcSearch == true ? (DateTime?)ViewUtil.EpgKeyTime() : null));
                 return true;
             });
 
             UpdateStatus();
             SetRecSettingTabHeader(false);
             SetWindowTitle();
+            Searched = true;
         }
         public override void SetWindowTitle()
         {
@@ -300,6 +326,7 @@ namespace EpgTimer
             lstCtrl.SaveViewDataToSettings();
             base.WriteWindowSaveData();
             Settings.Instance.SearchWndTabsHeight = grid_Tabs.Height.Value;
+            Settings.Instance.ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false;
         }
 
         private bool RefreshReserveInfoFlg = false;
@@ -323,6 +350,13 @@ namespace EpgTimer
                 recSettingView.RefreshView();
                 RefreshReserveInfo();
                 RefreshReserveInfoFlg = false;
+            }
+        }
+        public static void UpdatesRecinfo()
+        {
+            foreach (var win in Application.Current.Windows.OfType<SearchWindow>())
+            {
+                if (win.ArcSearch == true) win.UpdateInfo(false);
             }
         }
     }

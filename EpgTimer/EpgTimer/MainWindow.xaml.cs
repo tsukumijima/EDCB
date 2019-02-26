@@ -1404,7 +1404,7 @@ namespace EpgTimer
                         CommonManager.Instance.DB.ReloadRecFileInfo(true);
                         recInfoView.UpdateInfo();
                         epgView.UpdateReserveInfo();
-                        //SearchWindow.UpdatesInfo(false);//今は保留
+                        SearchWindow.UpdatesRecinfo();
                         AddReserveEpgWindow.UpdatesInfo(false);
                         InfoSearchWindow.UpdatesInfo();
                         RecInfoDescWindow.UpdatesInfo();

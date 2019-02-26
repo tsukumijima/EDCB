@@ -380,11 +380,11 @@ namespace EpgTimer
         //{
         //    return list.Any(info => item != null && item.IsReserved == true);
         //}
-        public static List<SearchItem> ToSearchList(this IEnumerable<EpgEventInfo> eventList, bool isExceptEnded = false)
+        public static List<SearchItem> ToSearchList(this IEnumerable<EpgEventInfo> eventList, bool isExceptEnded = false, DateTime? keyTime = null)
         {
             if (eventList == null) return new List<SearchItem>();
             //
-            var list = eventList.Where(info => isExceptEnded == false || info.IsOver() == false)
+            var list = eventList.Where(info => isExceptEnded == false || info.IsOver(keyTime) == false)
                                 .Select(info => new SearchItem(info)).ToList();
             list.SetReserveData();
             return list;

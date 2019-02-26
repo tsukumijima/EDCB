@@ -81,10 +81,11 @@
                             <Button Content="全クリア" Name="button_date_clear"/>
                             <Button Content="削除" Name="button_date_del" Margin="0,4,0,0" />
                         </StackPanel>
-                        <StackPanel Margin="0,4,0,0" Grid.Row="5" Orientation="Horizontal">
+                        <DockPanel Margin="0,4,0,0" Grid.Row="5" >
+                            <CheckBox Content="終了済み除外" Name="checkBox_noArcSearch" DockPanel.Dock="Right" ToolTip="番組表と同じ期間で検索します。&#10; ※このオプションは全体共通で、個別には保存されません。&#10; [設定]-[各画面の設定]-[番組表]-[基本]の、過去の番組情報-初期表示の日数を参照。"/>
                             <RadioButton Content="曜日毎" Name="radioButton_week" Margin="0,0,12,0" IsChecked="True"/>
                             <RadioButton Content="期間" />
-                        </StackPanel>
+                        </DockPanel>
                         <Grid Grid.Row="6" Margin="10,4,0,0">
                             <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_week, Converter={StaticResource invert}}">
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4" >

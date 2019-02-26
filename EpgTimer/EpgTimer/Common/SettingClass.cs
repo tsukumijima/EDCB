@@ -564,6 +564,7 @@ namespace EpgTimer
         public bool TrimSortTitle { get; set; }
         public bool KeepReserveWindow { get; set; }
         public PicUpTitle PicUpTitleWork { get; set; }
+        public bool ArcSearch { get; set; }//暫定
 
         [XmlIgnore]
         public bool SeparateFixedTuners { get; set; }
@@ -910,6 +911,7 @@ namespace EpgTimer
             TrimSortTitle = false;
             KeepReserveWindow = false;
             PicUpTitleWork = new PicUpTitle();
+            ArcSearch = false;
         }
 
         public Settings DeepCloneStaticSettings()
@@ -958,6 +960,7 @@ namespace EpgTimer
             dest.SettingFolderPathNW = SettingFolderPathNW;
             dest.AndKeyList = AndKeyList;
             dest.NotKeyList = NotKeyList;
+            dest.ArcSearch = ArcSearch;
         }
 
         private static Settings _instance;

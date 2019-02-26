@@ -274,6 +274,7 @@ namespace EpgTimer
             stackPanel_PresetEdit.Visibility = chgMode == int.MaxValue ? Visibility.Collapsed : Visibility.Visible;
             Button_clearAndKey.ToolTip = chgMode == int.MaxValue ? SearchKeyView.ClearButtonTooltip : null;
             Button_clearNotKey.ToolTip = Button_clearAndKey.ToolTip;
+            checkBox_noArcSearch.IsEnabled = chgMode != int.MaxValue;
         }
 
         private void button_content_add_Click(object sender, RoutedEventArgs e)
