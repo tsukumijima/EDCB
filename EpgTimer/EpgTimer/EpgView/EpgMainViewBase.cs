@@ -14,6 +14,8 @@ namespace EpgTimer.EpgView
     {
         protected Dictionary<UInt64, ProgramViewItem> programList = new Dictionary<UInt64, ProgramViewItem>();
         protected List<ReserveViewItem> reserveList = new List<ReserveViewItem>();
+        protected List<ReserveViewItem> recinfoList = new List<ReserveViewItem>();
+        protected IEnumerable<ReserveViewItem> dataItemList { get { return recinfoList.Concat(reserveList); } }
         protected List<DateTime> timeList = new List<DateTime>();
         protected DispatcherTimer nowViewTimer;
         protected Line nowLine = null;
@@ -30,7 +32,7 @@ namespace EpgTimer.EpgView
             base.InitCommand();
 
             //コマンド集の初期化の続き
-            mc.SetFuncGetDataList(isAll => isAll == true ? reserveList.GetDataList() : reserveList.GetHitDataList(clickPos));
+            mc.SetFuncGetDataList(isAll => isAll == true ? dataItemList.GetDataList() : dataItemList.GetHitDataList(clickPos));
             mc.SetFuncGetEpgEventList(() => 
             {
                 ProgramViewItem hitItem = programView.GetProgramViewData(clickPos);
@@ -122,7 +124,7 @@ namespace EpgTimer.EpgView
             double duration = resInfo.DurationSecond + StartMargin + EndMargin;
 
             var resItem = new ReserveViewItem(resInfo);
-            reserveList.Add(resItem);
+            (resInfo is ReserveData ? reserveList : recinfoList).Add(resItem);
 
             //予約情報から番組情報を特定し、枠表示位置を再設定する
             refPgItem = null;
@@ -151,6 +153,27 @@ namespace EpgTimer.EpgView
                 resItem.TopPos = Settings.Instance.MinHeight * (index * 60 + (startTime - chkStartTime).TotalMinutes);
             }
             return resItem;
+        }
+
+        protected IEnumerable<ReserveData> CombinedReserveList()
+        {
+            return CommonManager.Instance.DB.RecFileInfo.Values
+                    .Where(item => programList.ContainsKey(item.CurrentPgUID()) || item.EventID == 0xFFFF)
+                    .Select(item => new ReserveDataEnd
+                    {
+                        //ReserveID = item.ID;
+                        StartTime = item.StartTime,
+                        DurationSecond = item.DurationSecond,
+                        OriginalNetworkID = item.OriginalNetworkID,
+                        TransportStreamID = item.TransportStreamID,
+                        ServiceID = item.ServiceID,
+                        EventID = item.EventID,
+                        //Title = item.Title,
+                        //StationName = item.ServiceName,
+                        //Comment = item.Comment,
+                        //RecFileNameList = CommonUtil.ToList(item.RecFilePath),
+                        //RecSetting.RecFolderList =,
+                    }).Concat(CommonManager.Instance.DB.ReserveList.Values);
         }
 
         /// <summary>表示スクロールイベント呼び出し</summary>

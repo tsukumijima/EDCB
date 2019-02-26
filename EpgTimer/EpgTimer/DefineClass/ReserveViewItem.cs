@@ -3,6 +3,11 @@ using System.Windows.Media;
 
 namespace EpgTimer
 {
+    public class ReserveDataEnd : ReserveData
+    {
+        public override Int32 StartMarginResActual { get { return 0; } }
+        public override Int32 EndMarginResActual { get { return 0; } }
+    }
     public class ReserveViewItem : PanelItem<ReserveData>
     {
         public ReserveViewItem(ReserveData info) : base(info) { }
@@ -14,6 +19,10 @@ namespace EpgTimer
                 if (Data.IsEnabled == false)
                 {
                     return CommonManager.Instance.CustEpgResFillColorList[2];
+                }
+                if (Data is ReserveDataEnd)
+                {
+                    return CommonManager.Instance.CustEpgResFillColorList[9];
                 }
                 if (Data.OverlapMode == 2)
                 {
@@ -50,6 +59,10 @@ namespace EpgTimer
                 if (Data.IsEnabled == false)
                 {
                     return CommonManager.Instance.CustEpgResColorList[2];
+                }
+                if (Data is ReserveDataEnd)
+                {
+                    return CommonManager.Instance.CustEpgResColorList[9];
                 }
                 if (Data.OverlapMode == 2)
                 {

@@ -231,6 +231,7 @@ namespace EpgTimer.EpgView
         }
         protected bool ReloadReserveInfoData()
         {
+            CommonManager.Instance.DB.ReloadRecFileInfo();//起動直後用
             ReloadReserveViewItem();
             return true;
         }

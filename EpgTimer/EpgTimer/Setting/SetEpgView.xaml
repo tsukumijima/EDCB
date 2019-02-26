@@ -290,7 +290,8 @@
                                 <Label Name="label_EpgReserve2" Content="通常(プログラム)" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
                                 <Label Content="録画中" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
                                 <Label Content="視聴中" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
-                                <Label Content="無効" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="録画済み" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
+                                <Label Content="無効" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" />
                                 <Label Content="チューナー不足" HorizontalAlignment="Left" Margin="12,90,0,0" VerticalAlignment="Top" />
                                 <Label Content="一部実行" HorizontalAlignment="Left" Margin="390,90,0,0" VerticalAlignment="Top" />
                                 <Label Content="自動予約登録不明※" HorizontalAlignment="Left" Margin="12,120,0,0" VerticalAlignment="Top" ToolTip="[動作設定]-[予約情報管理]画面参照" />
@@ -299,7 +300,8 @@
                                 <ComboBox Margin="488,4,0,0" Tag="1" />
                                 <ComboBox Margin="166,34,0,0" Tag="7" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
                                 <ComboBox Margin="488,34,0,0" Tag="8" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
-                                <ComboBox Margin="166,64,0,0" Tag="2" />
+                                <ComboBox Margin="166,64,0,0" Tag="9" />
+                                <ComboBox Margin="488,64,0,0" Tag="2" />
                                 <ComboBox Margin="166,94,0,0" Tag="3" />
                                 <ComboBox Margin="488,94,0,0" Tag="4" />
                                 <ComboBox Margin="166,124,0,0" Tag="5" />
@@ -308,7 +310,8 @@
                                 <Button Margin="614,4,0,0" Tag="1" />
                                 <Button Margin="292,34,0,0" Tag="7" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
                                 <Button Margin="614,34,0,0" Tag="8" IsEnabled="{Binding EpgChangeBorderOnRec}"/>
-                                <Button Margin="292,64,0,0" Tag="2" />
+                                <Button Margin="292,64,0,0" Tag="9" />
+                                <Button Margin="614,64,0,0" Tag="2" />
                                 <Button Margin="292,94,0,0" Tag="3" />
                                 <Button Margin="614,94,0,0" Tag="4" />
                                 <Button Margin="292,124,0,0" Tag="5" />
@@ -767,14 +770,17 @@
                                 <Label Content="放送中" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
                                 <Label Content="録画中" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
                                 <Label Content="視聴中" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="録画済み" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
                                 <ComboBox Margin="166,4,0,0" Tag="0" />
                                 <ComboBox Margin="488,4,0,0" Tag="2" />
                                 <ComboBox Margin="166,34,0,0" Tag="1" />
                                 <ComboBox Margin="488,34,0,0" Tag="3" />
+                                <ComboBox Margin="166,64,0,0" Tag="4" />
                                 <Button Margin="292,4,0,0" Tag="0" />
                                 <Button Margin="614,4,0,0" Tag="2" />
                                 <Button Margin="292,34,0,0" Tag="1" />
                                 <Button Margin="614,34,0,0" Tag="3" />
+                                <Button Margin="292,64,0,0" Tag="4" />
                             </Grid>
                         </GroupBox>
                     </StackPanel>

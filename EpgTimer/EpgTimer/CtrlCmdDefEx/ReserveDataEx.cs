@@ -57,11 +57,11 @@ namespace EpgTimer
         {
             get { return (UInt32)Math.Max(0, DurationSecond + StartMarginResActual + EndMarginResActual); }
         }
-        public Int32 StartMarginResActual
+        public virtual Int32 StartMarginResActual
         {
             get { return (Int32)Math.Max(-DurationSecond, RecSetting.StartMarginActual); }
         }
-        public Int32 EndMarginResActual
+        public virtual Int32 EndMarginResActual
         {
             get { return (Int32)Math.Max(-DurationSecond, RecSetting.EndMarginActual); }
         }

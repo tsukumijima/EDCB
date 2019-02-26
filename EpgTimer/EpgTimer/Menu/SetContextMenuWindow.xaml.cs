@@ -40,7 +40,7 @@ namespace EpgTimer
             new List<ICommand>{EpgCmds.ProtectChange},
             new List<ICommand>{EpgCmds.ShowAddDialog},
 
-            new List<ICommand>{EpgCmds.JumpReserve},
+            new List<ICommand>{EpgCmds.JumpReserve, EpgCmds.JumpRecInfo},
             new List<ICommand>{EpgCmds.JumpTuner},
             new List<ICommand>{EpgCmds.JumpTable},
             new List<ICommand>{EpgCmds.JumpListView},

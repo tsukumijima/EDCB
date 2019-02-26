@@ -77,6 +77,7 @@ namespace EpgTimer
 
                 //コマンド集を振り替えるもの
                 mc.AddReplaceCommand(EpgCmds.JumpReserve, (sender, e) => mc_JumpTab(CtxmCode.ReserveView));
+                mc.AddReplaceCommand(EpgCmds.JumpRecInfo, (sender, e) => mc_JumpTab(CtxmCode.RecInfoView));
                 mc.AddReplaceCommand(EpgCmds.JumpTuner, (sender, e) => mc_JumpTab(CtxmCode.TunerReserveView));
                 mc.AddReplaceCommand(EpgCmds.JumpTable, (sender, e) => mc_JumpTab(CtxmCode.EpgView));
 
@@ -184,6 +185,7 @@ namespace EpgTimer
         {
             if (addSearchLog == true) searchKeyView.AddSearchLog();
 
+            //CommonManager.Instance.DB.ReloadRecFileInfo();//現状でも要Reloadな状況はあるが、とりあえず今は保留
             lstCtrl.ReloadInfoData(dataList =>
             {
                 EpgSearchKeyInfo key = GetSearchKey();

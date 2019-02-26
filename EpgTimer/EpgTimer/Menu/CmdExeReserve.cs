@@ -23,6 +23,7 @@ namespace EpgTimer
         protected bool HasList { get { return _getSearchList != null; } }
         protected bool IsMultiReserve { get { return eventList.Count != 0 && eventListEx.Count == 0; } }
         protected IAutoAddTargetData headData = null;//メニューオープン時に使用
+        protected IAutoAddTargetData headDataRec = null;//録画済みデータの場合
         protected IAutoAddTargetData headDataEv = null;//番組情報優先先頭データ。headDataは予約情報優先。
         protected List<EpgEventInfo> eventList = new List<EpgEventInfo>();
         protected List<EpgEventInfo> eventListEx = new List<EpgEventInfo>();//reserveData(dataList)とかぶらないもの
@@ -45,6 +46,10 @@ namespace EpgTimer
             }
             else
             {
+                //終了済み録画データの処理
+                headDataRec = dataList.FirstOrDefault(data => data is ReserveDataEnd);
+                dataList.RemoveAll(data => data is ReserveDataEnd);
+
                 eventList = _getEpgEventList == null ? null : _getEpgEventList();
                 eventList = eventList == null ? new List<EpgEventInfo>() : eventList.OfType<EpgEventInfo>().ToList();
                 eventListEx = new List<EpgEventInfo>();
@@ -65,6 +70,7 @@ namespace EpgTimer
         {
             base.ClearData();
             headData = null;
+            headDataRec = null;
             headDataEv = null;
             eventList.Clear();
             eventListEx.Clear();
@@ -169,6 +175,10 @@ namespace EpgTimer
         protected override ReserveData mcs_GetNextReserve()
         {
             return headData as ReserveData;
+        }
+        protected override RecFileInfo mcs_GetRecInfoItem()
+        {
+            return MenuUtil.GetRecFileInfo(HasList == true ? headDataEv : headDataRec);
         }
         protected override void mc_ToAutoadd(object sender, ExecutedRoutedEventArgs e)
         {
@@ -307,7 +317,18 @@ namespace EpgTimer
                 mcs_chgMenuOpening(menu);
                 mcs_SetSingleMenuEnabled(menu, headData is ReserveData);
             }
-            else if (menu.Tag == EpgCmds.JumpReserve || menu.Tag == EpgCmds.JumpTuner)
+            else if (menu.Tag == EpgCmds.JumpReserve)
+            {
+                mcs_ctxmLoading_jumpTabRes(menu);
+                menu.Visibility = mcs_GetNextReserve() != null || headDataEv == null || headDataEv.IsOver() == false ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else if (menu.Tag == EpgCmds.JumpRecInfo)
+            {
+                //予約状況によってはJumpReserveと両方表示する場合もある
+                menu.IsEnabled = mcs_GetRecInfoItem() != null;
+                menu.Visibility = menu.IsEnabled || headDataEv != null && headDataEv.IsOver() == true ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else if (menu.Tag == EpgCmds.JumpTuner)
             {
                 mcs_ctxmLoading_jumpTabRes(menu);
             }

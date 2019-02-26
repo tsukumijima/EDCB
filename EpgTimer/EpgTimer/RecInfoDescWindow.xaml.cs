@@ -73,7 +73,6 @@ namespace EpgTimer
             if (recInfo.ID == 0) return false;
 
             RecFileInfo info;
-            CommonManager.Instance.DB.ReloadRecFileInfo();
             CommonManager.Instance.DB.RecFileInfo.TryGetValue(recInfo.ID, out info);
             if (info == null) recInfo.ID = 0;
             ChangeData(info ?? recInfo);

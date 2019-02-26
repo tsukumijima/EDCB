@@ -1401,8 +1401,11 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.RecInfo:
                     {
-                        CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
+                        CommonManager.Instance.DB.ReloadRecFileInfo(true);
                         recInfoView.UpdateInfo();
+                        epgView.UpdateReserveInfo();
+                        //SearchWindow.UpdatesInfo(false);//今は保留
+                        AddReserveEpgWindow.UpdatesInfo(false);
                         InfoSearchWindow.UpdatesInfo();
                         RecInfoDescWindow.UpdatesInfo();
                         StatusManager.StatusNotifyAppend("録画済みデータ更新 < ");

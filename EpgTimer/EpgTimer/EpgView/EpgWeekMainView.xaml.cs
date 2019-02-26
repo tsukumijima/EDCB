@@ -48,27 +48,29 @@ namespace EpgTimer
             try
             {
                 reserveList.Clear();
+                recinfoList.Clear();
 
                 UInt64 selectID = GetSelectID(true);
-                foreach (ReserveData info in CommonManager.Instance.DB.ReserveList.Values)
+                foreach (ReserveData info in CombinedReserveList())
                 {
                     if (selectID == info.Create64Key())
                     {
+                        //離れたプログラム予約など範囲外は除外。
+                        int dayPos = dayList.BinarySearch(GetViewDay(info.StartTime));
+                        if (dayPos < 0) continue;
+
                         ProgramViewItem dummy = null;
                         ReserveViewItem resItem = AddReserveViewItem(info, ref dummy);
                         if (resItem != null)
                         {
                             //横位置の設定
                             resItem.Width = Settings.Instance.ServiceWidth;
-                            resItem.LeftPos = resItem.Width * dayList.BinarySearch(GetViewDay(info.StartTime));
-
-                            //範囲外は削除する。日を追加するのは簡単だが、viewCustNeedTimeOnly==trueで時間の方を追加するのが面倒すぎる。
-                            if (resItem.LeftPos < 0) reserveList.Remove(resItem);
+                            resItem.LeftPos = resItem.Width * dayPos;
                         }
                     }
                 }
 
-                epgProgramView.SetReserveList(reserveList);
+                epgProgramView.SetReserveList(dataItemList);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

@@ -320,9 +320,9 @@ namespace EpgTimer
 
     public class Settings
     {
-        //ver履歴 20170512、20170717
+        //ver履歴 20170512、20170717、20190217
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20170717; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20190217; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -1024,6 +1024,19 @@ namespace EpgTimer
             Instance.SetCustomEpgTabInfoID();
             Instance.SearchPresetList.FixUp();
 
+            //互換用コード。録画結果へジャンプ対応
+            if (Instance.verSaved < 20190217)
+            {
+                //全体メニューのみ番組表へジャンプと同じ設定で追加する。個別設定はさわらない。
+                MenuSettingData.CmdSaveData data = Instance.MenuSet.EasyMenuItems.FirstOrDefault(item => item.Name == EpgCmds.JumpReserve.Name);
+                if (data != null)
+                {
+                    data = data.DeepClone();
+                    data.Name = EpgCmds.JumpRecInfo.Name;
+                    Instance.MenuSet.EasyMenuItems.Add(data);
+                }
+            }
+
             //互換用コード。検索プリセット対応。DefSearchKeyの吸収があるので旧CS仮対応コードより前。
             if (Instance.verSaved < 20170717)
             {
@@ -1447,7 +1460,7 @@ namespace EpgTimer
             _FillList(ContentCustColorList, 0xFFFFFFFF, num);
 
             //番組表の予約枠色
-            num = 9;
+            num = 10;
             if (EpgResColorList.Count < num)
             {
                 var defColors = new string[]{
@@ -1460,6 +1473,7 @@ namespace EpgTimer
                         ,"Purple"           //重複EPG予約
                         ,"Lime"             //録画中
                         ,"Lime"             //視聴中
+                        ,"Green"            //録画済み
                     };
                 _FillList(EpgResColorList, defColors);
             }
@@ -1545,7 +1559,7 @@ namespace EpgTimer
             _FillList(ResBackCustColors, 0xFFFFFFFF, num);
 
             //予約状態列文字色
-            num = 4;
+            num = 5;
             if (StatColors.Count < num)
             {
                 var defColors = new List<string>{
@@ -1553,6 +1567,7 @@ namespace EpgTimer
                         ,"OrangeRed"//録画中
                         ,"LimeGreen"//放送中
                         ,"OrangeRed"//視聴中
+                        ,"Green"    //録画済み
                     };
                 _FillList(StatColors, defColors);
             }

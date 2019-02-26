@@ -88,6 +88,7 @@ namespace EpgTimer
         public Dictionary<UInt32, TunerReserveInfo> TunerReserveList { get; private set; }
         //public RecSettingData DefaultRecSetting { get; private set; }
         public Dictionary<UInt32, RecFileInfo> RecFileInfo { get; private set; }
+        public Dictionary<UInt64, List<RecFileInfo>> RecFileUIDList { get; private set; }//録画結果のUIDはかぶることがある
         public List<String> RecNamePlugInList { get; private set; }
         public List<String> WritePlugInList { get; private set; }
         public Dictionary<UInt32, ManualAutoAddData> ManualAutoAddList { get; private set; }
@@ -396,6 +397,7 @@ namespace EpgTimer
             TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
             //DefaultRecSetting = null;
             RecFileInfo = new Dictionary<uint, RecFileInfo>();
+            RecFileUIDList = new Dictionary<UInt64, List<RecFileInfo>>();
             RecNamePlugInList = new List<string>();
             WritePlugInList = new List<string>();
             ManualAutoAddList = new Dictionary<uint, ManualAutoAddData>();
@@ -560,12 +562,16 @@ namespace EpgTimer
             return ReloadWork(UpdateNotifyItem.RecInfo, immediately, noRaiseChanged, ret =>
             {
                 RecFileInfo = new Dictionary<uint, RecFileInfo>();
+                RecFileUIDList = new Dictionary<UInt64, List<RecFileInfo>>();
                 var list = new List<RecFileInfo>();
 
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumRecInfoBasic(ref list); } catch { ret = ErrCode.CMD_ERR; }
                 if (ret != ErrCode.CMD_SUCCESS) return ret;
 
                 list.ForEach(info => RecFileInfo[info.ID] = info);
+
+                //追加の検索用リスト
+                RecFileUIDList = list.GroupBy(item => item.CurrentPgUID()).ToDictionary(gr => gr.Key, gr => gr.ToList());
 
                 //無効データ(通信エラーなどで仮登録されたもの)と録画結果一覧に無いデータを削除して再構築。
                 recFileAppendList = recFileAppendList.Where(item => item.Value.IsValid == true && RecFileInfo.ContainsKey(item.Key) == true).ToDictionary(item => item.Key, item => item.Value);

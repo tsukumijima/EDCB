@@ -61,8 +61,9 @@ namespace EpgTimer
             try
             {
                 reserveList.Clear();
+                recinfoList.Clear();
 
-                var serviceReserveList = CommonManager.Instance.DB.ReserveList.Values.ToLookup(data => data.Create64Key());
+                var serviceReserveList = CombinedReserveList().ToLookup(data => data.Create64Key());
                 int mergePos = 0;
                 int mergeNum = 0;
                 int servicePos = -1;
@@ -105,7 +106,7 @@ namespace EpgTimer
                     }
                 }
 
-                epgProgramView.SetReserveList(reserveList);
+                epgProgramView.SetReserveList(dataItemList);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

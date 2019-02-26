@@ -54,7 +54,7 @@ namespace EpgTimer
 
         public virtual void AddReplaceCommand(ICommand icmd, ExecutedRoutedEventHandler exe, CanExecuteRoutedEventHandler canExe = null) { }
         public virtual void ResetCommandBindings(UIElement cTrgView, UIElement cTrgMenu = null) { }
-        public virtual SearchItem GetJumpTabItem(CtxmCode trg_code = CtxmCode.EpgView) { return null; }
+        public virtual object GetJumpTabItem(CtxmCode trg_code = CtxmCode.EpgView) { return null; }
         public virtual Int32 EpgInfoOpenMode { get; set; }
         public virtual void SupportContextMenuLoading(object sender, RoutedEventArgs e) { }
     }
@@ -118,6 +118,7 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.ShowAutoAddDialog, new cmdOption(mc_ShowAutoAddDialog, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.ShowReserveDialog, new cmdOption(mc_ShowReserveDialog, null, cmdExeType.MultiItem));
             cmdList.Add(EpgCmds.JumpReserve, new cmdOption(mc_JumpReserve, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.JumpRecInfo, new cmdOption(mc_JumpRecInfo, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpTuner, new cmdOption(mc_JumpTuner, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpTable, new cmdOption(mc_JumpTable, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.JumpListView, new cmdOption(null, null, cmdExeType.SingleItem));//個別に指定
@@ -330,6 +331,10 @@ namespace EpgTimer
         {
             mcs_JumpTab(CtxmCode.ReserveView);
         }
+        protected virtual void mc_JumpRecInfo(object sender, ExecutedRoutedEventArgs e)
+        {
+            mcs_JumpTab(CtxmCode.RecInfoView);
+        }
         protected virtual void mc_JumpTuner(object sender, ExecutedRoutedEventArgs e)
         {
             mcs_JumpTab(CtxmCode.TunerReserveView);
@@ -343,8 +348,14 @@ namespace EpgTimer
             MenuUtil.JumpTab(mcs_GetJumpTabItem(trg_code), trg_code);
             IsCommandExecuted = true;
         }
-        protected virtual SearchItem mcs_GetJumpTabItem(CtxmCode trg_code)
+        protected virtual object mcs_GetJumpTabItem(CtxmCode trg_code)
         {
+            if (trg_code == CtxmCode.RecInfoView)
+            {
+                RecFileInfo data = mcs_GetRecInfoItem();
+                return data == null ? null : new RecInfoItem(data);
+            }
+
             SearchItem item = mcs_GetSearchItem();
             if (item == null) return null;
 
@@ -356,9 +367,9 @@ namespace EpgTimer
 
             return item;
         }
-        public override SearchItem GetJumpTabItem(CtxmCode trg_code = CtxmCode.EpgView)
+        public override object GetJumpTabItem(CtxmCode trg_code = CtxmCode.EpgView)
         {
-            SearchItem retv = null;
+            object retv = null;
             var cmdPrm = new cmdOption((s, e) => retv = mcs_GetJumpTabItem(trg_code), null, cmdExeType.SingleItem);
             GetExecute(cmdPrm)(null, null);
             return retv;
@@ -369,6 +380,7 @@ namespace EpgTimer
             return data == null ? null : new ReserveItem(data);
         }
         protected virtual ReserveData mcs_GetNextReserve() { return null; }
+        protected virtual RecFileInfo mcs_GetRecInfoItem() { return null; }
         protected virtual void mc_ShowAutoAddDialog(object sender, ExecutedRoutedEventArgs e)
         {
             IsCommandExecuted = true == MenuUtil.OpenChangeAutoAddDialog(CmdExeUtil.ReadObjData(e) as Type, (uint)CmdExeUtil.ReadIdData(e));
