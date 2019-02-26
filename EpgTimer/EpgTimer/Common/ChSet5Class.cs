@@ -20,6 +20,20 @@ namespace EpgTimer
         }
         public static void Clear() { chList = null; chListOrderByIndex = null; bsmin = null; }
 
+        public static ChSet5Item ChItem(UInt64 key, bool noNullReturn = false, bool IgnoreTSID = false)
+        {
+            return ChItemMask(key, noNullReturn, (UInt64)(IgnoreTSID == false ? 0 : 0x0000FFFF0000UL));
+        }
+        public static ChSet5Item ChItemMask(UInt64 key, bool noNullReturn, UInt64 orMask)
+        {
+            ChSet5Item item = null;
+            if (ChList.TryGetValue(key, out item) == false && orMask != 0)
+            {
+                item = chListOrderByIndex.FirstOrDefault(ch => (ch.Key | orMask) == (key | orMask));
+            }
+            return item ?? (noNullReturn ? new ChSet5Item { Key = key } : null);
+        }
+
         public static IEnumerable<ChSet5Item> ChListSelected
         {
             get { return GetSortedChList(Settings.Instance.ShowEpgCapServiceOnly == false); }
@@ -78,7 +92,7 @@ namespace EpgTimer
         }
         public static int ChNumber(ulong key)
         {
-            return new ChSet5Item { ONID = (ushort)(key >> 32), TSID = (ushort)(key >> 16), SID = (ushort)key }.ChNumber();
+            return new ChSet5Item { Key = key }.ChNumber();
         }
 
         public static bool IsVideo(UInt16 ServiceType)
@@ -214,8 +228,11 @@ namespace EpgTimer
     public class ChSet5Item
     {
         public ChSet5Item() { }
-
-        public UInt64 Key { get { return CommonManager.Create64Key(ONID, TSID, SID); } }
+        public UInt64 Key
+        {
+            get { return CommonManager.Create64Key(ONID, TSID, SID); }
+            set { ONID = (ushort)(value >> 32); TSID = (ushort)(value >> 16); SID = (ushort)value; }
+        }
         public UInt16 ONID { get; set; }
         public UInt16 TSID { get; set; }
         public UInt16 SID { get; set; }

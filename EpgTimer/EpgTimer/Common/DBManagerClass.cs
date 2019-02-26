@@ -51,6 +51,16 @@ namespace EpgTimer
                     serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
                 }
             }
+            //過去番組情報用の補正
+            foreach (EpgServiceAllEventInfo info in serviceDic.Values)
+            {
+                EpgServiceInfo eInfo = info.serviceInfo;
+                if (eInfo.TSID != ChSet5.ChItem(eInfo.Create64Key(), true, true).TSID)
+                {
+                    eInfo.service_name = "[廃]" + eInfo.service_name;
+                }
+                info.eventMergeList.ForEach(data => data.ServiceName = eInfo.service_name);
+            }
             return serviceDic;
         }
     }

@@ -125,7 +125,7 @@ namespace EpgTimer
 
                 data.title = textBox_title.Text;
 
-                ChSet5Item chItem = comboBox_service.SelectedItem as ChSet5Item;
+                var chItem = comboBox_service.SelectedItem as ChSet5Item;
                 data.stationName = chItem.ServiceName;
                 data.originalNetworkID = chItem.ONID;
                 data.transportStreamID = chItem.TSID;
@@ -182,12 +182,9 @@ namespace EpgTimer
 
             textBox_title.Text = data.title;
 
-            UInt64 key = data.Create64Key();
+            comboBox_service.SelectedItem = ChSet5.ChItem(data.Create64Key());
+            if (comboBox_service.SelectedItem == null) comboBox_service.SelectedIndex = 0;
 
-            if (ChSet5.ChList.ContainsKey(key) == true)
-            {
-                comboBox_service.SelectedItem = ChSet5.ChList[key];
-            }
             recSettingView.SetDefSetting(data.recSetting);
 
             return true;

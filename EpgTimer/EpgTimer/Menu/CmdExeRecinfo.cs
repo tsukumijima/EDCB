@@ -49,7 +49,7 @@ namespace EpgTimer
             if (dataList.Count == 0) return null;
 
             EpgEventInfo info = null;
-            if (dataList[0].IsOver(DateTime.UtcNow.AddHours(9).AddDays(-Settings.Instance.EpgNoDisplayOldDays).Date) == false)
+            if (dataList[0].IsOver(ViewUtil.EpgKeyTime()) == false)
             {
                 info = new EpgEventInfo();
                 info.original_network_id = dataList[0].OriginalNetworkID;

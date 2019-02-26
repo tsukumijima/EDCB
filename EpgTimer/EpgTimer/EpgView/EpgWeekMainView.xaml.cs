@@ -80,7 +80,7 @@ namespace EpgTimer
             try
             {
                 //表示していたサービスがあれば維持
-                comboBox_service.ItemsSource = serviceEventListOrderAdjust.Select(item => new ComboItem(item.serviceInfo.Create64Key(), item.serviceInfo.service_name));
+                comboBox_service.ItemsSource = serviceListOrderAdjust.Select(info => new ComboItem(info.Create64Key(), info.service_name));
                 comboBox_service.SelectedValue = RestoreState.selectID ?? GetSelectID();
                 if (comboBox_service.SelectedIndex < 0) comboBox_service.SelectedIndex = 0;
 
@@ -160,7 +160,7 @@ namespace EpgTimer
                 if (alternativeSelect == false || comboBox_service.Items.Count == 0) return 0;
                 idx = 0;
             }
-            return ((ComboItem)comboBox_service.Items[idx]).Key;
+            return (UInt64)comboBox_service.SelectedValue;
         }
 
         public override int MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)

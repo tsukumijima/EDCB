@@ -44,15 +44,9 @@ namespace EpgTimer
         {
             get
             {
-                if (EventInfo != null)
-                {
-                    UInt64 serviceKey = EventInfo.Create64Key();
-                    if (ChSet5.ChList.ContainsKey(serviceKey) == true)
-                    {
-                        return ChSet5.ChList[serviceKey].ServiceName;
-                    }
-                }
-                return "";
+                if (EventInfo == null) return "";
+                //
+                return EventInfo.ServiceName;
             }
         }
         public virtual string NetworkName

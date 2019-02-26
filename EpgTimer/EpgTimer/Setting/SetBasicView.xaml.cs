@@ -254,10 +254,8 @@ namespace EpgTimer.Setting
 
             foreach (ServiceViewItem info in listView_service.Items)
             {
-                if (ChSet5.ChList.ContainsKey(info.Key) == true)//変更中に更新される場合があるため
-                {
-                    ChSet5.ChList[info.Key].EpgCapFlag = info.IsSelected;
-                }
+                //変更中に更新される場合があるため
+                ChSet5.ChItem(info.Key, true).EpgCapFlag = info.IsSelected;
             }
 
             IniFileHandler.WritePrivateProfileString("EPG_CAP", "Count", listView_time.Items.Count, SettingPath.TimerSrvIniPath);

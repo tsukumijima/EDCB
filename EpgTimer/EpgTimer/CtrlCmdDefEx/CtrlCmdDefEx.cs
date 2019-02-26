@@ -22,9 +22,9 @@ namespace EpgTimer
         UInt64 Create64PgKey();
         UInt64 CurrentPgUID();
         bool IsSamePg(IAutoAddTargetData data);
-        bool IsOnAir(DateTime? time);
-        bool IsOver(DateTime? time);
-        int OnTime(DateTime? time);
+        bool IsOnAir(DateTime? time = null);
+        bool IsOver(DateTime? time = null);
+        int OnTime(DateTime? time = null);
         List<EpgAutoAddData> SearchEpgAutoAddList(bool? IsEnabled = null, bool ByFazy = false);
         List<ManualAutoAddData> SearchManualAutoAddList(bool? IsEnabled = null);
         List<EpgAutoAddData> GetEpgAutoAddList(bool? IsEnabled = null);
@@ -144,12 +144,7 @@ namespace EpgTimer
             resInfo.StartTime = epgInfo.start_time;
             resInfo.StartTimeEpg = epgInfo.start_time;
             resInfo.DurationSecond = epgInfo.PgDurationSecond;
-
-            UInt64 key = epgInfo.Create64Key();
-            if (ChSet5.ChList.ContainsKey(key) == true)
-            {
-                resInfo.StationName = ChSet5.ChList[key].ServiceName;
-            }
+            resInfo.StationName = epgInfo.ServiceName;
             resInfo.OriginalNetworkID = epgInfo.original_network_id;
             resInfo.TransportStreamID = epgInfo.transport_stream_id;
             resInfo.ServiceID = epgInfo.service_id;
@@ -178,11 +173,6 @@ namespace EpgTimer
             int shift_day = (direction >= 0 ? 1 : -1);
             hour = (ushort)((int)hour + -1 * shift_day * 24);
             weekFlg = (byte)((weekFlg + 7 + shift_day) % 7);
-        }
-
-        public static UInt64 Create64Key(this EpgServiceInfo obj)
-        {
-            return CommonManager.Create64Key(obj.ONID, obj.TSID, obj.SID);
         }
 
         public static UInt64 Create64Key(this EpgEventData obj)

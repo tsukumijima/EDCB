@@ -949,7 +949,7 @@ namespace EpgTimer
         }
     }
 
-    public class EpgServiceInfo : ICtrlCmdReadWrite
+    public partial class EpgServiceInfo : ICtrlCmdReadWrite
     {
         public ushort ONID;
         public ushort TSID;

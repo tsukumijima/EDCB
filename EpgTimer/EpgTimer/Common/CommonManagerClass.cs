@@ -634,12 +634,22 @@ namespace EpgTimer
 
             string retText = "";
 
-            UInt64 key = eventInfo.Create64Key();
-            if (ChSet5.ChList.ContainsKey(key) == true)
+            var ConvertChInfoText = new Func<UInt64, string>(key =>
             {
-                retText += ChSet5.ChList[key].ServiceName + "(" + ChSet5.ChList[key].NetworkName + ")" + "\r\n";
-            }
+                ChSet5Item ch = ChSet5.ChItem(key, true);
+                if (string.IsNullOrEmpty(ch.ServiceName) == false)
+                {
+                    return ch.ServiceName + "(" + ch.NetworkName + ")";
+                }
+                else
+                {
+                    return ConvertEpgIDString("OriginalNetworkID", ch.ONID) + " "
+                            + ConvertEpgIDString("TransportStreamID", ch.TSID) + " "
+                            + ConvertEpgIDString("ServiceID", ch.SID);
+                }
+            });
 
+            retText += ConvertChInfoText(eventInfo.Create64Key()) + "\r\n";
             retText += ConvertTimeText(eventInfo) + "\r\n";
 
             string extText = "";
@@ -768,20 +778,8 @@ namespace EpgTimer
                     retText += "イベントリレーあり：\r\n";
                     foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
                     {
-                        retText += "→ ";
-                        ChSet5Item chInfo;
-                        if (ChSet5.ChList.TryGetValue(info.Create64Key(), out chInfo) == true)
-                        {
-                            retText += chInfo.ServiceName + "(" + chInfo.NetworkName + ")" + " ";
-                        }
-                        else
-                        {
-                            retText += ConvertEpgIDString("OriginalNetworkID", info.original_network_id) + " ";
-                            retText += ConvertEpgIDString("TransportStreamID", info.transport_stream_id) + " ";
-                            retText += ConvertEpgIDString("ServiceID", info.service_id) + " ";
-                        }
                         var relayInfo = MenuUtil.SearchEventInfo(info.Create64PgKey());//過去番組は見つからないこともあるが構わない
-                        retText += ConvertEpgIDString(" EventID", info.event_id) + " " + (relayInfo == null ? "" : relayInfo.DataTitle) + "\r\n";
+                        retText += "→ " + ConvertChInfoText(info.Create64Key()) + " " + ConvertEpgIDString(" EventID", info.event_id) + " " + (relayInfo == null ? "" : relayInfo.DataTitle) + "\r\n";
                     }
                     retText += "\r\n";
                 }

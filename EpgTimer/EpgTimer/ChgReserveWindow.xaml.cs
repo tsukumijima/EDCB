@@ -230,12 +230,8 @@ namespace EpgTimer
                 textBox_title.Text = null;
                 Dispatcher.BeginInvoke(new Action(() => textBox_title.Text = resInfo.Title), DispatcherPriority.Render);
 
-                comboBox_service.SelectedIndex = 0;
-                ChSet5Item ch;
-                if (ChSet5.ChList.TryGetValue(resInfo.Create64Key(), out ch) == true)
-                {
-                    comboBox_service.SelectedItem = ch;
-                }
+                comboBox_service.SelectedItem = ChSet5.ChItem(resInfo.Create64Key());
+                if (comboBox_service.SelectedItem == null) comboBox_service.SelectedIndex = 0;
 
                 DateTime startTime = resInfo.StartTime;
                 DateTime endTime = resInfo.StartTime.AddSeconds(resInfo.DurationSecond);

@@ -29,6 +29,7 @@ namespace EpgTimer.EpgView
                 if (IsEpgLoaded == true) return true;
                 if (CommonManager.Instance.IsConnected == false) return false;
 
+                var keyTime = ViewUtil.EpgKeyTime();
                 Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic;
                 if (EpgTabInfo.SearchMode == false)
                 {
@@ -46,20 +47,18 @@ namespace EpgTimer.EpgView
                     if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得") == false) return false;
 
                     var list2 = new List<EpgEventInfo>();
-                    if (Settings.Instance.EpgNoDisplayOldDays > 0 && err == ErrCode.CMD_SUCCESS)
+                    if (Settings.Instance.EpgNoDisplayOldDays > 0)
                     {
                         var pram = new SearchPgParam();
                         pram.keyList = CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg());
-                        pram.enumStart = DateTime.UtcNow.AddHours(9).AddDays(-1 - Settings.Instance.EpgNoDisplayOldDays).Date.ToFileTime();
+                        pram.enumStart = keyTime.AddDays(-1).ToFileTime();
                         pram.enumEnd = long.MaxValue;
                         CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2);
                     }
 
                     //サービス毎のリストに変換
-                    var sList = list.GroupBy(info => info.Create64Key()).Where(gr => ChSet5.ChList.ContainsKey(gr.Key) == true)
-                        .Select(gr => new EpgServiceEventInfo { serviceInfo = ChSet5.ChList[gr.Key].ToInfo(), eventList = gr.ToList() }).ToList();
-                    var sList2 = list2.GroupBy(info => info.Create64Key()).Where(gr => ChSet5.ChList.ContainsKey(gr.Key) == true)
-                        .Select(gr => new EpgServiceEventInfo { serviceInfo = ChSet5.ChList[gr.Key].ToInfo(), eventList = gr.ToList() }).ToList();
+                    var sList = list.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
+                    var sList2 = list2.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
                     serviceDic = EpgServiceAllEventInfo.CreateEpgServicDictionary(sList, sList2);
 
                     //リモコンIDの登録
@@ -71,7 +70,6 @@ namespace EpgTimer.EpgView
                     .Where(id => serviceDic.ContainsKey(id) == true).Select(id => serviceDic[id])
                     .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList }).ToList();
 
-                var keyTime = DateTime.UtcNow.AddHours(9).AddDays(-Settings.Instance.EpgNoDisplayOldDays).Date;
                 var viewContentMatchingHash = new HashSet<UInt32>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
                 foreach (EpgServiceEventInfo item in ServiceEventList)
                 {
@@ -120,23 +118,23 @@ namespace EpgTimer.EpgView
         protected CustomEpgTabInfo viewInfo { get { return viewData.EpgTabInfo; } }
         protected virtual bool viewCustNeedTimeOnly { get { return viewInfo.NeedTimeOnlyBasic; } }
         protected List<EpgServiceEventInfo> serviceEventList { get { return viewData.ServiceEventList; } }
-        protected List<EpgServiceEventInfo> serviceEventListOrderAdjust
+        protected List<EpgServiceInfo> serviceListOrderAdjust
         {
             get
             {
-                var grpList = new SortedList<ulong, EpgServiceEventInfo>();
-                var ordered = new List<EpgServiceEventInfo>();
+                var grpList = new SortedList<ulong, EpgServiceInfo>();
+                var ordered = new List<EpgServiceInfo>();
                 var back = new EpgServiceInfo();
-                viewData.ServiceEventList.ForEach(info =>
+                foreach (EpgServiceInfo info in serviceEventList.Select(item => item.serviceInfo))
                 {
-                    if (info.serviceInfo.ONID != back.ONID || info.serviceInfo.TSID != back.TSID || info.serviceInfo.SID > back.SID)
+                    if (info.ONID != back.ONID || info.TSID != back.TSID || info.SID > back.SID)
                     {
                         ordered.AddRange(grpList.Values);
                         grpList.Clear();
-                        back = info.serviceInfo;
+                        back = info;
                     }
-                    grpList[info.serviceInfo.SID] = info;
-                });
+                    grpList[info.SID] = info;
+                }
                 ordered.AddRange(grpList.Values);
                 return ordered;
             }
