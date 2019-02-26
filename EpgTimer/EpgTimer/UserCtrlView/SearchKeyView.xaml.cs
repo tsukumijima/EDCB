@@ -379,12 +379,12 @@ namespace EpgTimer
             //これはダイアログの設定なので即座に反映
             Settings.Instance.SetWithoutSearchKeyWord = (checkBox_setWithoutSearchKeyWord.IsChecked == true);
         }
-    }
 
-    public class DateItem
-    {
-        public DateItem(EpgSearchDateInfo info) { DateInfo = info; }
-        public EpgSearchDateInfo DateInfo { get; private set; }
-        public override string ToString() { return CommonManager.ConvertTimeText(DateInfo); }
+        private class DateItem
+        {
+            public DateItem(EpgSearchDateInfo info) { DateInfo = info; }
+            public EpgSearchDateInfo DateInfo { get; private set; }
+            public override string ToString() { return CommonManager.ConvertTimeText(DateInfo); }
+        }
     }
 }

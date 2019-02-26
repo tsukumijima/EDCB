@@ -20,7 +20,7 @@ namespace EpgTimer
                 {
                     if ((dayOfWeekFlag & 0x01) != 0)
                     {
-                        view += "日月火水木金土"[i];
+                        view += CommonManager.DayOfWeekArray[i];
                     }
                     dayOfWeekFlag >>= 1;
                 }

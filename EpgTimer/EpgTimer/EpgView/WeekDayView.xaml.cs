@@ -24,12 +24,11 @@ namespace EpgTimer.EpgView
 
         public void SetDay(List<DateTime> dayList)
         {
-            try
             {
                 stackPanel_day.Children.Clear();
                 foreach (DateTime time in dayList)
                 {
-                    var item = ViewUtil.GetPanelTextBlock(time.ToString("M/d\r\n(ddd)"));
+                    var item = ViewUtil.GetPanelTextBlock(time.ToString("M\\/d\r\n(ddd)"));
                     item.Width = Settings.Instance.ServiceWidth - 1;
 
                     Color backgroundColor;
@@ -56,7 +55,6 @@ namespace EpgTimer.EpgView
                     stackPanel_day.Children.Add(item);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
     }
 }

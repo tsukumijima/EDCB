@@ -58,7 +58,7 @@ namespace EpgTimer
             NotifyLogList = new List<NotifySrvInfo>();
         }
 
-        public static readonly string[] DayOfWeekArray = new string[] { "日", "月", "火", "水", "木", "金", "土" };
+        public static readonly string[] DayOfWeekArray = Enumerable.Range(0, 7).Select(i => (new DateTime(2000, 1, 2 + i)).ToString("ddd")).ToArray();
         public static readonly string[] RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
         public static readonly string[] RecEndModeList = new string[] { "何もしない", "スタンバイ", "休止", "シャットダウン" };
         public static readonly string[] YesNoList = new string[] { "しない", "する" };
@@ -596,13 +596,13 @@ namespace EpgTimer
             if (Settings.Instance.LaterTimeUse == true)
             {
                 var time28 = new DateTime28(time, isUse28, ref_start);
-                return (isNoDay == true ? "" : time28.DateTimeMod.ToString((isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")))
-                + time28.HourMod.ToString("00:") + time.ToString(isNoSecond == true ? "mm" : "mm:ss");
+                return (isNoDay == true ? "" : time28.DateTimeMod.ToString((isNoYear == true ? "MM\\/dd(ddd) " : "yyyy\\/MM\\/dd(ddd) ")))
+                + time28.HourMod.ToString("00\\:") + time.ToString(isNoSecond == true ? "mm" : "mm\\:ss");
             }
             else
             {
                 return time.ToString((isNoDay == true ? "" :
-                (isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")) + (isNoSecond == true ? "HH:mm" : "HH:mm:ss"));
+                (isNoYear == true ? "MM\\/dd(ddd) " : "yyyy\\/MM\\/dd(ddd) ")) + (isNoSecond == true ? "HH\\:mm" : "HH\\:mm\\:ss"));
             }
         }
         public static String ConvertDurationText(uint duration, bool isNoSecond)

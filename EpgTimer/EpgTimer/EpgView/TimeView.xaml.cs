@@ -27,7 +27,6 @@ namespace EpgTimer.EpgView
 
         public void SetTime(List<DateTime> timeList, bool weekMode, bool tunerMode = false)
         {
-            try
             {
                 stackPanel_time.Children.Clear();
                 bool? use28 = Settings.Instance.LaterTimeUse == true ? null : (bool?)false;
@@ -51,7 +50,7 @@ namespace EpgTimer.EpgView
                         item.Height = 60 * Settings.Instance.MinHeight - item.Margin.Top - item.Margin.Bottom;
                         if (weekMode == false)
                         {
-                            item.Inlines.Add(new Run(time.ToString("M/d\r\n")));
+                            item.Inlines.Add(new Run(time.ToString("M\\/d\r\n")));
                             if (item.Height >= h3L)
                             {
                                 var color = time.DayOfWeek == DayOfWeek.Sunday ? Brushes.Red : time.DayOfWeek == DayOfWeek.Saturday ? Brushes.Blue : item.Foreground;
@@ -68,12 +67,11 @@ namespace EpgTimer.EpgView
                         item.Foreground = time.DayOfWeek == DayOfWeek.Sunday ? Brushes.Red : time.DayOfWeek == DayOfWeek.Saturday ? Brushes.Blue : CommonManager.Instance.TunerTimeFontColor;
                         item.Background = CommonManager.Instance.TunerTimeBackColor;
                         item.Height = 60 * Settings.Instance.TunerMinHeight - item.Margin.Top - item.Margin.Bottom;
-                        item.Text = time.ToString("M/d\r\n" + (item.Height >= h3L ? "(ddd)\r\n" : ""))
+                        item.Text = time.ToString("M\\/d\r\n" + (item.Height >= h3L ? "(ddd)\r\n" : ""))
                                                             + (item.Height >= h6L ? "\r\n" : "") + HourMod;
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
     }
 }

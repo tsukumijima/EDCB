@@ -27,7 +27,6 @@ namespace EpgTimer.EpgView
 
         public void SetTime(List<DateTime> timeList)
         {
-            try
             {
                 ClearInfo();
                 if (timeList.Any() != true) return;
@@ -37,7 +36,7 @@ namespace EpgTimer.EpgView
                 {
                     var day = new Button();
                     day.Padding = new Thickness(1);
-                    day.Content = itemTime.ToString("M/d(ddd)");
+                    day.Content = itemTime.ToString("M\\/d(ddd)");
                     if (itemTime.DayOfWeek == DayOfWeek.Saturday)
                     {
                         day.Foreground = Brushes.Blue;
@@ -66,7 +65,6 @@ namespace EpgTimer.EpgView
                 columnDefinition.MinWidth = uniformGrid_time.Children.Count * 15;
                 columnDefinition.MaxWidth = uniformGrid_time.Children.Count * 40;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         void button_time_Click(object sender, RoutedEventArgs e)
