@@ -946,6 +946,31 @@ namespace EpgTimer
             return null;
         }
 
+        public static EpgEventInfo GetPgInfo(IAutoAddTargetData item, bool isSrv = false)
+        {
+            //まずは手持ちのデータを探す
+            EpgEventInfo pg = SearchEventInfo(item.CurrentPgUID());
+            if (pg != null || isSrv == false) return pg;
+
+            //過去番組情報を探してみる
+            var arcList = new List<EpgServiceEventInfo>();
+            if (CommonManager.CreateSrvCtrl().SendEnumPgArc(new List<long> { 0, (long)item.Create64Key(),
+                    item.PgStartTime.ToFileTimeUtc(), item.PgStartTime.ToFileTimeUtc() + 1 }, ref arcList) == ErrCode.CMD_SUCCESS &&
+                arcList.Count > 0)
+            {
+                return arcList[0].eventList.FirstOrDefault();
+            }
+
+            //現在番組情報も探してみる ※EPGデータ未読み込み時で、録画直後の場合
+            var list = new List<EpgEventInfo>();
+            if (CommonManager.CreateSrvCtrl().SendGetPgInfoList(CommonUtil.ToList(item.Create64PgKey()), ref list) == ErrCode.CMD_SUCCESS)
+            {
+                return list.FirstOrDefault();
+            }
+
+            return null;
+        }
+
         public static EpgEventInfo SearchEventInfo(UInt64 uid, Dictionary<UInt64, EpgEventInfo> currentList = null)
         {
             EpgEventInfo data;
