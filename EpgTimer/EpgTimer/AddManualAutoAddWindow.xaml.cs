@@ -156,13 +156,9 @@ namespace EpgTimer
 
             checkBox_keyDisabled.IsChecked = data.IsEnabled == false;
 
-            UInt32 hh = data.startTime / (60 * 60);
-            UInt32 mm = (data.startTime % (60 * 60)) / 60;
-            UInt32 ss = data.startTime % 60;
-
-            comboBox_startHH.SelectedIndex = (int)hh;
-            comboBox_startMM.SelectedIndex = (int)mm;
-            comboBox_startSS.SelectedIndex = (int)ss;
+            comboBox_startHH.SelectedIndex = (int)(data.startTime / (60 * 60));
+            comboBox_startMM.SelectedIndex = (int)((data.startTime % (60 * 60)) / 60);
+            comboBox_startSS.SelectedIndex = (int)(data.startTime % 60);
 
             //深夜時間帯の処理も含む
             UInt32 endTime = data.startTime + data.durationSecond;
@@ -172,13 +168,9 @@ namespace EpgTimer
                 //正規のデータであれば、必ず0～23時台かつstartTimeより小さくなる。
                 endTime -= 24 * 60 * 60;
             }
-            hh = endTime / (60 * 60);
-            mm = (endTime % (60 * 60)) / 60;
-            ss = endTime % 60;
-
-            comboBox_endHH.SelectedIndex = (int)hh;
-            comboBox_endMM.SelectedIndex = (int)mm;
-            comboBox_endSS.SelectedIndex = (int)ss;
+            comboBox_endHH.SelectedIndex = (int)(endTime / (60 * 60));
+            comboBox_endMM.SelectedIndex = (int)((endTime % (60 * 60)) / 60);
+            comboBox_endSS.SelectedIndex = (int)(endTime % 60);
 
             textBox_title.Text = data.title;
 
