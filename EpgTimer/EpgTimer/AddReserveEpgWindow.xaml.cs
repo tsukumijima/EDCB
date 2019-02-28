@@ -89,7 +89,7 @@ namespace EpgTimer
                 //eventInfo更新は必要なときだけ
                 if (ReloadInfoFlg == true && eventInfo != null)
                 {
-                    SetData(MenuUtil.SearchEventInfoLikeThat(eventInfo, true));
+                    SetData(MenuUtil.SearchEventInfoLikeThat(eventInfo));
                 }
                 recSettingView.RefreshView();
                 CheckData(false);

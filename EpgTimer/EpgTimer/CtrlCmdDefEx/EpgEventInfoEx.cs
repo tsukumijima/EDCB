@@ -43,12 +43,13 @@ namespace EpgTimer
             get { return EventGroupInfo == null || EventGroupInfo.eventDataList.Any(data => data.Create64Key() == this.Create64Key()); }
         }
         /// <summary>サービス2やサービス3の結合されているもののメインイベント取得 </summary>
-        public EpgEventInfo GetGroupMainEvent()
+        public EpgEventInfo GetGroupMainEvent(Dictionary<UInt64, EpgEventInfo> currentList = null)
         {
             if (IsGroupMainEvent == true) return this;
             if (EventGroupInfo.group_type != 1) return null;
-            return EventGroupInfo.eventDataList.Select(data => MenuUtil.SearchEventInfo(data.Create64PgKey()))
-                                    .FirstOrDefault(data => data != null && data.IsGroupMainEvent == true);
+            return EventGroupInfo.eventDataList.Select(data =>
+                MenuUtil.SearchEventInfo(CommonManager.CurrentPgUID(data.Create64PgKey(), PgStartTime), currentList))
+                .FirstOrDefault(data => data != null && data.IsGroupMainEvent == true);
         }
     }
 

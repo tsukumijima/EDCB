@@ -15,10 +15,16 @@ namespace EpgTimer.EpgView
             EpgTabInfo = new CustomEpgTabInfo();
             ClearEventList();
         }
+        public void ClearEventList()
+        {
+            ServiceEventList = new List<EpgServiceEventInfo>();
+            EventUIDList = new Dictionary<UInt64, EpgEventInfo>();
+            IsEpgLoaded = false;
+        }
         public CustomEpgTabInfo EpgTabInfo { get; set; }
         public bool IsEpgLoaded { get; private set; }
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
-        public void ClearEventList() { ServiceEventList = new List<EpgServiceEventInfo>(); IsEpgLoaded = false; }
+        public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }
         public event Action<int> ViewSettingClick = (param) => { };
         public void ViewSetting(int param) { ViewSettingClick(param); }
 
@@ -70,6 +76,7 @@ namespace EpgTimer.EpgView
                     .Where(id => serviceDic.ContainsKey(id) == true).Select(id => serviceDic[id])
                     .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList }).ToList();
 
+                EventUIDList = new Dictionary<ulong, EpgEventInfo>();
                 var viewContentMatchingHash = new HashSet<UInt32>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
                 foreach (EpgServiceEventInfo item in ServiceEventList)
                 {
@@ -86,6 +93,7 @@ namespace EpgTimer.EpgView
                         //ジャンル絞り込み
                         && (ViewUtil.ContainsContent(eventInfo, viewContentMatchingHash, EpgTabInfo.ViewNotContentFlag) == true)
                     );
+                    item.eventList.ForEach(data => EventUIDList[data.CurrentPgUID()] = data);
                 }
 
                 IsEpgLoaded = true;
@@ -284,8 +292,8 @@ namespace EpgTimer.EpgView
             else if (target.EventInfo != null)
             {
                 EpgEventInfo info = target.EventInfo;
-                //録画結果でevent_idを持っていないもの(未放送時間帯を録画など)は結局番組を見つけられないので、過去番組は探さない。
-                info = info.event_id != 0xFFFF ? info : MenuUtil.SearchEventInfoLikeThat(info);
+                //録画結果でevent_idを持っていないもの(未放送時間帯を録画など)は結局番組を見つけられない。
+                info = info.event_id != 0xFFFF ? info : MenuUtil.SearchEventInfoLikeThat(info, serviceEventList);
                 return MoveToProgramItem(info, style, dryrun) >= 0;
             }
             return false;

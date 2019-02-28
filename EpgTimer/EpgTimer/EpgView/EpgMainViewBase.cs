@@ -134,7 +134,7 @@ namespace EpgTimer.EpgView
                 EpgEventInfo epgInfo = resInfo.ReserveEventInfo();
                 if (epgInfo != null)
                 {
-                    EpgEventInfo epgRefInfo = epgInfo.GetGroupMainEvent();
+                    EpgEventInfo epgRefInfo = epgInfo.GetGroupMainEvent(viewData.EventUIDList);
                     if (epgRefInfo != null)
                     {
                         programList.TryGetValue(epgRefInfo.CurrentPgUID(), out refPgItem);
@@ -229,6 +229,7 @@ namespace EpgTimer.EpgView
         }
         public override int MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
+            target = target == null ? null : target.GetGroupMainEvent(viewData.EventUIDList);
             return MoveToItem(target == null ? 0 : target.CurrentPgUID(), style, dryrun);
         }
 

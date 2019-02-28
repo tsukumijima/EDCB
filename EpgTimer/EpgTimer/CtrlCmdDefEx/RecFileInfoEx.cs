@@ -53,7 +53,7 @@ namespace EpgTimer
         public EpgEventInfo SearchEventInfo()
         {
             //それらしいものを選んでみる
-            return MenuUtil.SearchEventInfoLikeThat(this, true);
+            return MenuUtil.SearchEventInfoLikeThat(this);
         }
 
         //AppendData 関係。ID(元データ)に対して一意の情報なので、データ自体はDB側。

@@ -946,44 +946,53 @@ namespace EpgTimer
             return null;
         }
 
-        public static EpgEventInfo SearchEventInfo(UInt64 pgKey)
+        public static EpgEventInfo SearchEventInfo(UInt64 uid, Dictionary<UInt64, EpgEventInfo> currentList = null)
         {
-            if (CommonManager.Instance.DB.ServiceEventList.ContainsKey(pgKey >> 16) == false) return null;
-            //
-            UInt16 eventID = (ushort)pgKey;
-            return CommonManager.Instance.DB.ServiceEventList[pgKey >> 16].eventList.Find(info => info.event_id == eventID);
+            EpgEventInfo data;
+            (currentList ?? CommonManager.Instance.DB.EventUIDList).TryGetValue(uid, out data);
+            return data;
         }
 
-        public static EpgEventInfo SearchEventInfoLikeThat(IAutoAddTargetData item, bool includeArc = false)
+        public static EpgEventInfo SearchEventInfoLikeThat(IAutoAddTargetData item, List<EpgServiceEventInfo> currentList = null)
         {
-            double dist = double.MaxValue;
-            EpgEventInfo eventPossible = null;
+            //とりあえずいったんUID検索はしてみる。
+            EpgEventInfo eventPossible = SearchEventInfo(item.CurrentPgUID());
+            if (eventPossible != null) return eventPossible;
 
+            List<EpgEventInfo> eventList = new List<EpgEventInfo>();
             UInt64 key = item.Create64Key();
-            var eventDic = CommonManager.Instance.DB.ServiceEventList;
-            if (eventDic.ContainsKey(key) == true)
+            if (currentList != null)
             {
-                var eList = includeArc == true ? eventDic[key].eventMergeList : eventDic[key].eventList;
-                foreach (EpgEventInfo eventChkInfo in eList)
-                {
-                    //itemが調べている番組に完全に含まれているならそれを選択する
-                    double overlapLength = CulcOverlapLength(item.PgStartTime, item.PgDurationSecond,
-                                                            eventChkInfo.start_time, eventChkInfo.durationSec);
-                    if (overlapLength > 0 && overlapLength == item.PgDurationSecond)
-                    {
-                        eventPossible = eventChkInfo;
-                        break;
-                    }
+                EpgServiceEventInfo sInfo = currentList.Find(info => info.serviceInfo.Create64Key() == key);
+                if (sInfo != null) eventList = sInfo.eventList;
+            }
+            else
+            {
+                EpgServiceAllEventInfo sInfo;
+                CommonManager.Instance.DB.ServiceEventList.TryGetValue(key, out sInfo);
+                if (sInfo != null) eventList = sInfo.eventMergeList;
+            }
 
-                    //開始時間が最も近いものを選ぶ。同じ差なら時間が前のものを選ぶ
-                    double dist1 = Math.Abs((item.PgStartTime - eventChkInfo.start_time).TotalSeconds);
-                    if (overlapLength >= 0 && (dist > dist1 ||
-                        dist == dist1 && (eventPossible == null || item.PgStartTime > eventChkInfo.start_time)))
-                    {
-                        dist = dist1;
-                        eventPossible = eventChkInfo;
-                        if (dist == 0) break;
-                    }
+            double dist = double.MaxValue;
+            foreach (EpgEventInfo eventChkInfo in eventList)
+            {
+                //itemが調べている番組に完全に含まれているならそれを選択する
+                double overlapLength = CulcOverlapLength(item.PgStartTime, item.PgDurationSecond,
+                                                        eventChkInfo.start_time, eventChkInfo.durationSec);
+                if (overlapLength > 0 && overlapLength == item.PgDurationSecond)
+                {
+                    eventPossible = eventChkInfo;
+                    break;
+                }
+
+                //開始時間が最も近いものを選ぶ。同じ差なら時間が前のものを選ぶ
+                double dist1 = Math.Abs((item.PgStartTime - eventChkInfo.start_time).TotalSeconds);
+                if (overlapLength >= 0 && (dist > dist1 ||
+                    dist == dist1 && (eventPossible == null || item.PgStartTime > eventChkInfo.start_time)))
+                {
+                    dist = dist1;
+                    eventPossible = eventChkInfo;
+                    if (dist == 0) break;
                 }
             }
 

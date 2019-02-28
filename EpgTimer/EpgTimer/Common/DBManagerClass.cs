@@ -84,6 +84,7 @@ namespace EpgTimer
         Dictionary<UInt32, EpgAutoAddDataAppend> epgAutoAddAppendList = null;
 
         public Dictionary<UInt64, EpgServiceAllEventInfo> ServiceEventList { get; private set; }
+        public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }//検索用インデックス
         public Dictionary<UInt32, ReserveData> ReserveList { get; private set; }
         public Dictionary<UInt32, TunerReserveInfo> TunerReserveList { get; private set; }
         //public RecSettingData DefaultRecSetting { get; private set; }
@@ -259,8 +260,7 @@ namespace EpgTimer
             {
                 if (ServiceEventList.Count != 0 && IsNotifyRegistered(UpdateNotifyItem.EpgData) == false || Settings.Instance.NoReserveEventList == true)
                 {
-                    reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID,
-                        rs => rs.IsEpgReserve == true ? MenuUtil.SearchEventInfo(rs.Create64PgKey()) : rs.SearchEventInfoLikeThat());
+                    reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID, rs => rs.SearchEventInfoLikeThat());
                 }
                 else
                 {
@@ -393,6 +393,7 @@ namespace EpgTimer
         {
             ClearRecFileAppend();
             ServiceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
+            EventUIDList = new Dictionary<ulong, EpgEventInfo>();
             ReserveList = new Dictionary<uint, ReserveData>();
             TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
             //DefaultRecSetting = null;
@@ -455,6 +456,7 @@ namespace EpgTimer
             return ReloadWork(UpdateNotifyItem.EpgData, immediately, noRaiseChanged, ret =>
             {
                 ServiceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
+                EventUIDList = new Dictionary<ulong, EpgEventInfo>();
 
                 var list = new List<EpgServiceEventInfo>();
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumPgAll(ref list); } catch { ret = ErrCode.CMD_ERR; }
@@ -466,14 +468,20 @@ namespace EpgTimer
                     try { CommonManager.CreateSrvCtrl().SendEnumPgArc(new List<long> { 0xFFFFFFFFFFFF, 0xFFFFFFFFFFFF, DateTime.UtcNow.AddHours(9).AddDays(-1 - Settings.Instance.EpgNoDisplayOldDays).Date.ToFileTime(), long.MaxValue }, ref list2); } catch { }
                 }
 
-                //複合リストの作成
+                //リストの作成
                 ServiceEventList = EpgServiceAllEventInfo.CreateEpgServicDictionary(list, list2);
+                foreach (var info in ServiceEventList.Values)
+                {
+                    //通常あり得ないがUID被りは後優先。
+                    info.eventMergeList.ForEach(data => EventUIDList[data.CurrentPgUID()] = data);
+                }
 
                 //リモコンIDの登録
                 ChSet5.SetRemoconID(ServiceEventList);
 
                 reserveEventList = null;
                 reserveEventListCache = null;
+
                 return ret;
             });
         }
