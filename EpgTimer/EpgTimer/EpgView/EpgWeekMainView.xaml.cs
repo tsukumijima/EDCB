@@ -17,9 +17,14 @@ namespace EpgTimer
         protected override bool viewCustNeedTimeOnly { get { return viewInfo.NeedTimeOnlyWeek; } }
         private List<DateTime> dayList = new List<DateTime>();
 
-        protected class EpgViewStateWeek : EpgViewState { public ulong? selectID = null; }
-        public override EpgViewState GetViewState() { return new EpgViewStateWeek { viewMode = viewMode, selectID = GetSelectID() }; }
-        protected EpgViewStateWeek RestoreState { get { return restoreState as EpgViewStateWeek ?? new EpgViewStateWeek(); } }
+        protected class StateWeekMain : StateMainBase
+        {
+            public ulong? selectID = null;
+            public StateWeekMain() { }
+            public StateWeekMain(EpgWeekMainView view) : base(view) { selectID = view.GetSelectID(); }
+        }
+        public override EpgViewState GetViewState() { return new StateWeekMain(this); }
+        protected new StateWeekMain RestoreState { get { return restoreState as StateWeekMain ?? new StateWeekMain(); } }
 
         public EpgWeekMainView()
         {
@@ -101,7 +106,7 @@ namespace EpgTimer
                 epgProgramView.ClearInfo();
                 timeList.Clear();
                 programList.Clear();
-                NowLineDelete();
+                ReDrawNowLine();
                 dayList.Clear();
 
                 UInt64 selectID = GetSelectID(true);

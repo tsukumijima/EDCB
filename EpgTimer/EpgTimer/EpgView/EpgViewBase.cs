@@ -115,7 +115,12 @@ namespace EpgTimer.EpgView
         protected bool RefreshMenuFlg = true;
 
         protected EpgViewState restoreState = null;
-        public virtual EpgViewState GetViewState() { return null; }
+        public class StateBase : EpgViewState
+        {
+            public StateBase() { }
+            public StateBase(EpgViewBase view) { viewMode = view.viewMode; }
+        }
+        public virtual EpgViewState GetViewState() { return new StateBase(this); }
         public virtual void SetViewState(EpgViewState data) { restoreState = data; }
 
         //表示形式間で番組表定義と番組リストを共有する

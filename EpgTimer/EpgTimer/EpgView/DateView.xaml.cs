@@ -12,7 +12,7 @@ namespace EpgTimer.EpgView
     /// </summary>
     public partial class DateView : UserControl
     {
-        public event RoutedEventHandler TimeButtonClick = null;
+        public event Action<DateTime, bool> TimeButtonClick = (time, isDayMove) => { };
 
         public DateView()
         {
@@ -27,51 +27,54 @@ namespace EpgTimer.EpgView
 
         public void SetTime(List<DateTime> timeList)
         {
+            ClearInfo();
+            if (timeList.Any() == false) return;
+
+            DateTime itemTime = timeList.First().AddHours(23).Date;
+            while (itemTime <= timeList.Last())
             {
-                ClearInfo();
-                if (timeList.Any() != true) return;
+                var day = new Button();
+                day.Padding = new Thickness(1);
+                day.Content = itemTime.ToString("M\\/d(ddd)");
+                if (itemTime.DayOfWeek == DayOfWeek.Saturday) day.Foreground = Brushes.Blue;
+                if (itemTime.DayOfWeek == DayOfWeek.Sunday) day.Foreground = Brushes.Red;
+                day.Tag = itemTime;
+                day.Click += (sender, e) => TimeButtonClick((DateTime)((Button)sender).Tag, true);//itemTimeはC#4以下でNG
+                uniformGrid_day.Children.Add(day);
 
-                DateTime itemTime = timeList.First().Date;
-                while (itemTime <= timeList.Last())
+                for (int i = 0; i <= 18; i += 6)
                 {
-                    var day = new Button();
-                    day.Padding = new Thickness(1);
-                    day.Content = itemTime.ToString("M\\/d(ddd)");
-                    if (itemTime.DayOfWeek == DayOfWeek.Saturday)
-                    {
-                        day.Foreground = Brushes.Blue;
-                    }
-                    else if (itemTime.DayOfWeek == DayOfWeek.Sunday)
-                    {
-                        day.Foreground = Brushes.Red;
-                    }
-                    day.DataContext = itemTime;
-                    day.Click += new RoutedEventHandler(button_time_Click);
-                    uniformGrid_day.Children.Add(day);
-
-                    for (int i = 6; i <= 18; i += 6)
-                    {
-                        var hour = new Button();
-                        hour.Padding = new Thickness(1);
-                        hour.Content = i.ToString();
-                        hour.DataContext = itemTime.AddHours(i);
-                        hour.Click += new RoutedEventHandler(button_time_Click);
-                        uniformGrid_time.Children.Add(hour);
-                    }
-
-                    itemTime += TimeSpan.FromDays(1);
+                    var hour = new Button();
+                    hour.Padding = new Thickness(1);
+                    hour.Content = new TextBlock { Text = i.ToString() };
+                    hour.Tag = itemTime.AddHours(i);
+                    hour.Click += (sender, e) => TimeButtonClick((DateTime)((Button)sender).Tag, false);
+                    uniformGrid_time.Children.Add(hour);
                 }
-            
-                columnDefinition.MinWidth = uniformGrid_time.Children.Count * 15;
-                columnDefinition.MaxWidth = uniformGrid_time.Children.Count * 40;
+
+                itemTime += TimeSpan.FromDays(1);
             }
+            //columnDefinition.MinWidth = uniformGrid_time.Children.Count * 10;//scrollあるので効かない
+            columnDefinition.MaxWidth = uniformGrid_time.Children.Count * 30;
         }
 
-        void button_time_Click(object sender, RoutedEventArgs e)
+        public void SetNow(DateTime time)
         {
-            if (TimeButtonClick != null)
+            var DayBtns = uniformGrid_day.Children.OfType<Button>();
+            var TimeBtns = uniformGrid_time.Children.OfType<Button>();
+            foreach (Button btn in DayBtns)
             {
-                TimeButtonClick(sender, e);
+                btn.FontWeight = (DateTime)(btn.Tag) == time.Date ? FontWeights.Bold : FontWeights.Normal ;
+            }
+            foreach (Button btn in TimeBtns)
+            {
+                (btn.Content as TextBlock).TextDecorations = (DateTime)(btn.Tag) <= time && time < ((DateTime)(btn.Tag)).AddHours(6) ? TextDecorations.Underline : null;
+            }
+            var time_first = TimeBtns.FirstOrDefault();
+            if (time_first != null && time < (DateTime)time_first.Tag)
+            {
+                DayBtns.First().FontWeight = FontWeights.Bold;
+                (time_first.Content as TextBlock).TextDecorations = TextDecorations.Underline;
             }
         }
     }

@@ -16,21 +16,21 @@ namespace EpgTimer
     public partial class EpgListMainView : EpgViewBase
     {
         private static int? lastActivateClass = null;
-        protected class EpgViewStateList : EpgViewState
+
+        protected class StateListMain : StateBase
         {
             public HashSet<ulong> selectID = null;
             public ListViewSelectedKeeper selectList = null;
+            public StateListMain() { }
+            public StateListMain(EpgListMainView view) : base(view)
+            {
+                selectID = view.GetSelectID();
+                selectList = new ListViewSelectedKeeper(null, false, item => (item as SearchItem).KeyID);
+                selectList.StoreListViewSelected(view.listView_event);
+            }
         }
-        public override EpgViewState GetViewState()
-        {
-            var ret = new EpgViewStateList();
-            ret.viewMode = viewMode;
-            ret.selectID = GetSelectID();
-            ret.selectList = new ListViewSelectedKeeper(null, false, item => (item as SearchItem).KeyID);
-            ret.selectList.StoreListViewSelected(listView_event);
-            return ret;
-        }
-        protected EpgViewStateList RestoreState { get { return restoreState as EpgViewStateList ?? new EpgViewStateList(); } }
+        public override EpgViewState GetViewState() { return new StateListMain(this); }
+        protected StateListMain RestoreState { get { return restoreState as StateListMain ?? new StateListMain(); } }
 
         private ListViewController<SearchItem> lstCtrl;
         private List<ServiceViewItem> serviceList = new List<ServiceViewItem>();

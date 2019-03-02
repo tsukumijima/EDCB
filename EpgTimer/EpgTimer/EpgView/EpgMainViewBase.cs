@@ -4,21 +4,27 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using System.Windows.Media;
 
 namespace EpgTimer.EpgView
 {
     public class EpgMainViewBase : EpgViewBase
     {
+        protected class StateMainBase : StateBase
+        {
+            public DateTime? time;
+            public StateMainBase() { }
+            public StateMainBase(EpgMainViewBase view) : base(view) { time = view.GetScrollTime(); }
+        }
+        public override EpgViewState GetViewState() { return new StateMainBase(this); }
+        protected StateMainBase RestoreState { get { return restoreState as StateMainBase ?? new StateMainBase(); } }
+
         protected Dictionary<UInt64, ProgramViewItem> programList = new Dictionary<UInt64, ProgramViewItem>();
         protected List<ReserveViewItem> reserveList = new List<ReserveViewItem>();
         protected List<ReserveViewItem> recinfoList = new List<ReserveViewItem>();
         protected IEnumerable<ReserveViewItem> dataItemList { get { return recinfoList.Concat(reserveList); } }
         protected List<DateTime> timeList = new List<DateTime>();
         protected DispatcherTimer nowViewTimer;
-        protected Line nowLine = null;
         protected Point clickPos;
 
         private ProgramView programView = null;
@@ -55,16 +61,16 @@ namespace EpgTimer.EpgView
             timeView = tv;
             horizontalViewScroll = hv;
 
-            programView.ScrollChanged += new ScrollChangedEventHandler(epgProgramView_ScrollChanged);
+            programView.ScrollChanged += epgProgramView_ScrollChanged;
             programView.LeftDoubleClick += (sender, cursorPos) => EpgCmds.ShowDialog.Execute(null, cmdMenu);
             programView.MouseClick += (sender, cursorPos) => clickPos = cursorPos;
-            programView.RightClick += new ProgramView.PanelViewClickHandler(epgProgramView_RightClick);
-            
+            programView.RightClick += epgProgramView_RightClick;
+
             nowViewTimer = new DispatcherTimer(DispatcherPriority.Normal);
             nowViewTimer.Tick += (sender, e) => ReDrawNowLine();
-            this.Unloaded += (sender, e) => nowViewTimer.Stop();
+            this.Unloaded += (sender, e) => nowViewTimer.Stop();//アンロード時にReDrawNowLine()しないパスがある。
 
-            button_now.Click += new RoutedEventHandler((sender, e) => MoveNowTime());
+            button_now.Click += (sender, e) => MoveNowTime();
         }
 
         protected override void UpdateStatusData(int mode = 0)
@@ -242,67 +248,44 @@ namespace EpgTimer.EpgView
         /// <summary>表示位置を現在の時刻にスクロールする</summary>
         protected void MoveNowTime()
         {
-            try
-            {
-                int idx = timeList.BinarySearch(GetViewTime(DateTime.UtcNow.AddHours(9)));
-                double pos = ((idx < 0 ? ~idx : idx) - 1) * 60 * Settings.Instance.MinHeight - 120;
-                programView.scrollViewer.ScrollToVerticalOffset(Math.Max(0, pos));
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            MoveTime(RestoreState.time ?? GetViewTime(DateTime.UtcNow.AddHours(9)), RestoreState.time == null ? -120 : 0);
+        }
+        protected void MoveTime(DateTime time, int offset = 0)
+        {
+            int idx = timeList.BinarySearch(time.AddSeconds(1));
+            double pos = ((idx < 0 ? ~idx : idx) - 1) * 60 * Settings.Instance.MinHeight + offset;
+            programView.scrollViewer.ScrollToVerticalOffset(Math.Max(0, pos));
+        }
+        protected DateTime GetScrollTime()
+        {
+            if (timeList.Any() == false) return DateTime.MinValue;
+            var idx = (int)(programView.scrollViewer.VerticalOffset / 60 / Settings.Instance.MinHeight);
+            return timeList[Math.Max(0, Math.Min(idx, timeList.Count - 1))];
         }
         /// <summary>現在ライン表示</summary>
         protected virtual void ReDrawNowLine()
         {
-            try
-            {
-                nowViewTimer.Stop();
-
-                if (timeList.Count == 0) return;
-
-                DateTime nowTime = GetViewTime(DateTime.UtcNow.AddHours(9));
-                int idx = timeList.BinarySearch(nowTime.Date.AddHours(nowTime.Hour));
-                double posY = (idx < 0 ? ~idx * 60 : (idx * 60 + nowTime.Minute)) * Settings.Instance.MinHeight;
-
-                if (nowLine == null) NowLineGenerate();
-
-                nowLine.X1 = 0;
-                nowLine.Y1 = posY;
-                nowLine.X2 = programView.epgViewPanel.Width;
-                nowLine.Y2 = posY;
-
-                nowViewTimer.Interval = TimeSpan.FromSeconds(60 - nowTime.Second);
-                nowViewTimer.Start();
-            }
-            catch { }
-        }
-        protected virtual void NowLineGenerate()
-        {
-            nowLine = new Line();
-            Canvas.SetZIndex(nowLine, 15);
-            nowLine.Stroke = Brushes.Red;
-            nowLine.StrokeThickness = 3;
-            nowLine.Opacity = 0.7;
-            nowLine.Effect = new System.Windows.Media.Effects.DropShadowEffect() { BlurRadius = 10 };
-            nowLine.IsHitTestVisible = false;
-            this.programView.canvas.Children.Add(nowLine);
-        }
-        protected virtual void NowLineDelete()
-        {
             nowViewTimer.Stop();
-            this.programView.canvas.Children.Remove(nowLine);
-            nowLine = null;
+            programView.nowLine.Visibility = Visibility.Hidden;
+            if (this.IsVisible == false || timeList.Any() == false) return;
+
+            DateTime nowTime = GetViewTime(DateTime.UtcNow.AddHours(9));
+            int idx = timeList.BinarySearch(nowTime.Date.AddHours(nowTime.Hour));
+            double posY = (idx < 0 ? ~idx * 60 : (idx * 60 + nowTime.Minute)) * Settings.Instance.MinHeight;
+
+            programView.nowLine.X1 = 0;
+            programView.nowLine.Y1 = posY;
+            programView.nowLine.X2 = programView.epgViewPanel.Width;
+            programView.nowLine.Y2 = posY;
+            programView.nowLine.Visibility = Visibility.Visible;
+
+            nowViewTimer.Interval = TimeSpan.FromSeconds(60 - nowTime.Second);
+            nowViewTimer.Start();
         }
 
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (this.IsVisible == false)
-            {
-                nowViewTimer.Stop();
-            }
-            else if (nowLine != null)
-            {
-                ReDrawNowLine();
-            }
+            ReDrawNowLine();
             base.UserControl_IsVisibleChanged(sender, e);
         }
     }

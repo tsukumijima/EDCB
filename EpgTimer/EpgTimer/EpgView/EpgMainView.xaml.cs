@@ -13,46 +13,15 @@ namespace EpgTimer
     /// </summary>
     public partial class EpgMainView : EpgMainViewBase
     {
-        public override EpgViewState GetViewState() { return new EpgViewState { viewMode = viewMode }; }
-
         public EpgMainView()
         {
             InitializeComponent();
             SetControls(epgProgramView, timeView, serviceView.scrollViewer, button_now);
 
-            dateView.TimeButtonClick += new RoutedEventHandler(epgDateView_TimeButtonClick);
+            epgProgramView.ScrollChanged += (sender, e) => dateView.SetNow(GetScrollTime());
+            dateView.TimeButtonClick += (time, isDayMove) => MoveTime(time + TimeSpan.FromHours(isDayMove ? GetScrollTime().Hour : 0));
 
             base.InitCommand();
-        }
-
-        /// <summary>表示位置変更</summary>
-        void epgDateView_TimeButtonClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var time = (DateTime)((Button)sender).DataContext;
-
-                if (timeList.Count < 1 || time < timeList.First())
-                {
-                    epgProgramView.scrollViewer.ScrollToTop();
-                }
-                else if (time >= timeList.Last())
-                {
-                    epgProgramView.scrollViewer.ScrollToBottom();
-                }
-                else
-                {
-                    for (int i = 0; i < timeList.Count; i++)
-                    {
-                        if (time <= timeList[i])
-                        {
-                            epgProgramView.scrollViewer.ScrollToVerticalOffset(i * 60 * Settings.Instance.MinHeight);
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         /// <summary>予約情報の再描画</summary>
@@ -122,7 +91,7 @@ namespace EpgTimer
                 epgProgramView.ClearInfo();
                 timeList.Clear();
                 programList.Clear();
-                NowLineDelete();
+                ReDrawNowLine();
 
                 if (serviceEventList.Count == 0) return;
 

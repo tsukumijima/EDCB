@@ -20,6 +20,11 @@
                 <Rectangle x:Name="popupItemBorder" />
                 <Rectangle x:Name="popupItemFillOnly" />
             </Grid>
+            <Line Canvas.ZIndex="15" IsHitTestVisible="False" Name="nowLine" Opacity="0.7" Stroke="Red" StrokeThickness="3" Visibility="Hidden">
+                <Line.Effect>
+                    <DropShadowEffect BlurRadius="10" />
+                </Line.Effect>
+            </Line>
         </Canvas>
     </ScrollViewer>
 
