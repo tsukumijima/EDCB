@@ -54,7 +54,7 @@ namespace EpgTimer
                         mergeNum = mergePos + 1 - i;
                         servicePos++;
                     }
-                    var key = serviceEventList[mergePos].serviceInfo.Create64Key();
+                    var key = serviceEventList[mergePos].serviceInfo.Key;
                     if (serviceReserveList.Contains(key) == true)
                     {
                         foreach (var info in serviceReserveList[key])
@@ -161,7 +161,7 @@ namespace EpgTimer
                                 bool findNext = false;
                                 foreach (EpgEventData data in eventInfo.EventGroupInfo.eventDataList)
                                 {
-                                    if (nextInfo.Create64Key() == data.Create64Key())
+                                    if (nextInfo.Key == data.Create64Key())
                                     {
                                         widthSpan++;
                                         findNext = true;

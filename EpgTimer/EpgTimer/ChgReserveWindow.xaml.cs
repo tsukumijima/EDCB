@@ -261,9 +261,9 @@ namespace EpgTimer
             try
             {
                 resInfo.Title = textBox_title.Text;
-                var ch = comboBox_service.SelectedItem as ChSet5Item;
+                var ch = comboBox_service.SelectedItem as EpgServiceInfo;
 
-                resInfo.StationName = ch.ServiceName;
+                resInfo.StationName = ch.service_name;
                 resInfo.OriginalNetworkID = ch.ONID;
                 resInfo.TransportStreamID = ch.TSID;
                 resInfo.ServiceID = ch.SID;

@@ -353,6 +353,7 @@ namespace EpgTimer
 
         static CommonManager()
         {
+            ServiceTypeList[0x00] = "";
             ServiceTypeList[0x01] = "デジタルTVサービス";
             ServiceTypeList[0x02] = "デジタル音声サービス";
             ServiceTypeList[0xA1] = "臨時映像サービス";
@@ -648,10 +649,10 @@ namespace EpgTimer
 
             var ConvertChInfoText = new Func<UInt64, string>(key =>
             {
-                ChSet5Item ch = ChSet5.ChItem(key, true);
-                if (string.IsNullOrEmpty(ch.ServiceName) == false)
+                EpgServiceInfo ch = ChSet5.ChItem(key, true);
+                if (string.IsNullOrEmpty(ch.service_name) == false)
                 {
-                    return ch.ServiceName + "(" + ch.NetworkName + ")";
+                    return ch.service_name + "(" + ch.network_name + ")";
                 }
                 else
                 {
@@ -1002,21 +1003,17 @@ namespace EpgTimer
         public static List<CustomEpgTabInfo> CreateDefaultTabInfo()
         {
             //再表示の際の認識用に、負の仮番号を与えておく。
+            List<UInt64>[] spKeyList = EpgServiceInfo.SPKeyList.Select(key => new List<UInt64> { key }).ToArray();
             var setInfo = new[]
             {
-                new CustomEpgTabInfo(){ID = -1, TabName = "地デジ"},
-                new CustomEpgTabInfo(){ID = -2, TabName = "BS"},
-                new CustomEpgTabInfo(){ID = -3, TabName = "CS"},
-                new CustomEpgTabInfo(){ID = -4, TabName = "スカパー"},
-                new CustomEpgTabInfo(){ID = -5, TabName = "その他"},
+                new CustomEpgTabInfo(){ID = -1, TabName = "地デジ", ViewServiceList = spKeyList[0]},
+                new CustomEpgTabInfo(){ID = -2, TabName = "BS", ViewServiceList = spKeyList[1]},
+                new CustomEpgTabInfo(){ID = -3, TabName = "CS", ViewServiceList = spKeyList[2]},
+                new CustomEpgTabInfo(){ID = -4, TabName = "スカパー", ViewServiceList = spKeyList[3]},
+                new CustomEpgTabInfo(){ID = -5, TabName = "その他", ViewServiceList = spKeyList[4]},
             };
-
-            foreach (ChSet5Item info in ChSet5.ChListSelected)
-            {
-                setInfo[info.IsDttv ? 0 : info.IsBS ? 1 : info.IsCS ? 2 : info.IsSPHD ? 3 : 4].ViewServiceList.Add(info.Key);
-            }
-
-            return setInfo.Where(info => info.ViewServiceList.Count != 0).ToList();
+            var check = new HashSet<int>(ChSet5.ChList.Values.Select(info => info.IsDttv ? -1 : info.IsBS ? -2 : info.IsCS ? -3 : info.IsSPHD ? -4 : -5));
+            return setInfo.Where(info => check.Contains(info.ID)).ToList();
         }
 
         static void h_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

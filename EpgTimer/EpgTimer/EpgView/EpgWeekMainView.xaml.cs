@@ -87,7 +87,7 @@ namespace EpgTimer
             try
             {
                 //表示していたサービスがあれば維持
-                comboBox_service.ItemsSource = serviceListOrderAdjust.Select(info => new ComboItem(info.Create64Key(), info.service_name));
+                comboBox_service.ItemsSource = serviceListOrderAdjust.Select(info => new ComboItem(info.Key, info.service_name));
                 comboBox_service.SelectedValue = RestoreState.selectID ?? GetSelectID();
                 if (comboBox_service.SelectedIndex < 0) comboBox_service.SelectedIndex = 0;
 
@@ -113,7 +113,7 @@ namespace EpgTimer
                 if (selectID == 0) return;
 
                 //リストの作成
-                int idx = serviceEventList.FindIndex(item => item.serviceInfo.Create64Key() == selectID);
+                int idx = serviceEventList.FindIndex(item => item.serviceInfo.Key == selectID);
                 if (idx < 0) return;
 
                 serviceEventList[idx].eventList.ForEach(eventInfo =>
@@ -174,25 +174,25 @@ namespace EpgTimer
         public override int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             UInt64 key = CommonManager.Reverse64Key(id);
-            if (dryrun == true) return viewInfo.ViewServiceList.Contains(key) ? 1 : -1;
+            if (dryrun == true) return viewData.HasKey(key) ? 1 : -1;
             if (key != 0) ChangeViewService(key);
             return base.MoveToItem(id, style, dryrun);
         }
         public override int MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
+            if (dryrun == true) return target == null ? -1 : viewData.HasKey(target.Create64Key()) ? 1 : -1;
             if (target != null) ChangeViewService(target.Create64Key());
             return base.MoveToReserveItem(target, style);
         }
         public override int MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
+            if (dryrun == true) return target == null ? -1 : viewData.HasKey(target.Create64Key()) ? 1 : -1;
             if (target != null) ChangeViewService(target.Create64Key());
             return base.MoveToProgramItem(target, style);
         }
         public override int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
+            if (dryrun == true) return target == null ? -1 : viewData.HasKey(target.Create64Key()) ? 1 : -1;
             if (target != null) ChangeViewService(target.Create64Key());
             return base.MoveToRecInfoItem(target, style);
         }

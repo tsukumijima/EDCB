@@ -8,7 +8,7 @@ namespace EpgTimer
 {
     static class IEPGFileClass
     {
-        public static ReserveData TryLoadTVPID(string filePath, IDictionary<ulong, ChSet5Item> chList)
+        public static ReserveData TryLoadTVPID(string filePath, IDictionary<ulong, EpgServiceInfo> chList)
         {
             Dictionary<string, string> paramList = TryLoadParamList(filePath);
             if (paramList != null &&
@@ -18,17 +18,17 @@ namespace EpgTimer
             {
                 // 放送種別とサービスID
                 string station = paramList["station"];
-                foreach (ChSet5Item info in chList.Values)
+                foreach (EpgServiceInfo info in chList.Values)
                 {
                     ushort sid = 0;
-                    if (ChSet5.IsDttv(info.ONID) &&
+                    if (info.IsDttv &&
                         (station.StartsWith("DFS", StringComparison.Ordinal) || station.StartsWith("DOS", StringComparison.Ordinal)))
                     {
                         ushort.TryParse(station.Substring(3), NumberStyles.HexNumber, null, out sid);
                     }
-                    else if (ChSet5.IsBS(info.ONID) && station.StartsWith("BSDT", StringComparison.Ordinal) ||
-                             ChSet5.IsCS(info.ONID) && station.StartsWith("CSDT", StringComparison.Ordinal) ||
-                             ChSet5.IsSP(info.ONID) && station.StartsWith("SPTV", StringComparison.Ordinal))
+                    else if (info.IsBS && station.StartsWith("BSDT", StringComparison.Ordinal) ||
+                             info.IsCS && station.StartsWith("CSDT", StringComparison.Ordinal) ||
+                             info.IsSP && station.StartsWith("SPTV", StringComparison.Ordinal))
                     {
                         ushort.TryParse(station.Substring(4), out sid);
                     }
@@ -38,7 +38,7 @@ namespace EpgTimer
                         addInfo.OriginalNetworkID = info.ONID;
                         addInfo.TransportStreamID = info.TSID;
                         addInfo.ServiceID = info.SID;
-                        addInfo.StationName = info.ServiceName;
+                        addInfo.StationName = info.service_name;
                         // 開始時間と長さ
                         if (GetTimeValues(paramList, addInfo))
                         {
@@ -63,7 +63,7 @@ namespace EpgTimer
             return null;
         }
 
-        public static ReserveData TryLoadTVPI(string filePath, IDictionary<ulong, ChSet5Item> chList, IList<IEPGStationInfo> stationList)
+        public static ReserveData TryLoadTVPI(string filePath, IDictionary<ulong, EpgServiceInfo> chList, IList<IEPGStationInfo> stationList)
         {
             Dictionary<string, string> paramList = TryLoadParamList(filePath);
             if (paramList != null &&
@@ -78,14 +78,14 @@ namespace EpgTimer
                 {
                     if (string.Compare(staInfo.StationName, station, ci, CompareOptions.IgnoreWidth | CompareOptions.IgnoreCase) == 0)
                     {
-                        ChSet5Item info;
+                        EpgServiceInfo info;
                         if (chList.TryGetValue(staInfo.Key, out info))
                         {
                             var addInfo = new ReserveData();
                             addInfo.OriginalNetworkID = info.ONID;
                             addInfo.TransportStreamID = info.TSID;
                             addInfo.ServiceID = info.SID;
-                            addInfo.StationName = info.ServiceName;
+                            addInfo.StationName = info.service_name;
                             // 開始時間と長さ
                             if (GetTimeValues(paramList, addInfo))
                             {

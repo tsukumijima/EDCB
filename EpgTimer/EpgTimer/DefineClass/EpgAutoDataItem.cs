@@ -197,10 +197,10 @@ namespace EpgTimer
             foreach (ulong service1 in EpgAutoAddInfo.searchInfo.serviceList.Take(count == -1 ? countAll : count))
             {
                 if (view != "") { view += ", "; }
-                ChSet5Item chSet5Item1;
-                if (ChSet5.ChList.TryGetValue(service1, out chSet5Item1) == true)
+                EpgServiceInfo EpgServiceInfo1;
+                if (ChSet5.ChList.TryGetValue(service1, out EpgServiceInfo1) == true)
                 {
-                    view += chSet5Item1.ServiceName + (withNetwork == true ? "(" + CommonManager.ConvertNetworkNameText(chSet5Item1.ONID) + ")" : "");
+                    view += EpgServiceInfo1.service_name + (withNetwork == true ? "(" + CommonManager.ConvertNetworkNameText(EpgServiceInfo1.ONID) + ")" : "");
                 }
                 else
                 {

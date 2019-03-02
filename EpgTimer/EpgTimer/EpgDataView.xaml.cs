@@ -136,7 +136,7 @@ namespace EpgTimer
                 tabInfo = Settings.Instance.UseCustomEpgView == false ?
                     CommonManager.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
 
-                //とりあえず同じIDを探して表示してみる(中身は別物になってるかもしれないが、とりあえず表示を試みる)。
+                //とりあえず同じIDを探して表示してみる(中身は別物になってるかもしれないが、表示を試みる)。
                 //標準・カスタム切り替えの際は、標準番組表が負のIDを与えられているので、このコードは走らない。
                 foreach (CustomEpgTabInfo info in tabInfo.Where(info => info.IsVisible == true))
                 {
@@ -227,11 +227,11 @@ namespace EpgTimer
                     var infoList = Settings.Instance.UseCustomEpgView == false ?
                         CommonManager.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
                     return infoList.Where(info => info.IsVisible == true)
-                        .SelectMany(info => info.ViewServiceList).Contains(data.Create64Key());
+                        .SelectMany(info => CommonManager.Instance.DB.ExpandSpecialKey(info.ViewServiceList)).Contains(data.Create64Key());
                 }
                 var tab = Tabs.OrderBy(tb => tb.IsSelected ? 0 : 1).FirstOrDefault(tb =>
                 {
-                    bool ret = tb.Info.ViewServiceList.Contains(data.Create64Key());
+                    bool ret = tb.HasKey(data.Create64Key());
                     if (ret == true && tb.view != null && tb.IsEpgLoaded == true)
                     {
                         return tb.view.IsEnabledJumpTab(trg);
@@ -514,6 +514,7 @@ namespace EpgTimer
         EpgDataView.EpgDataViewInfo epgView;
         EpgViewData viewData = new EpgViewData();
         public bool IsEpgLoaded { get { return viewData.IsEpgLoaded; } }
+        public bool HasKey(UInt64 key) { return viewData.HasKey(key); }
         public CustomEpgTabInfo Info
         {
             get { return viewData.EpgTabInfo; }

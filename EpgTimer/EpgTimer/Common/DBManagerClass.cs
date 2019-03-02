@@ -38,15 +38,15 @@ namespace EpgTimer
             var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
             foreach (EpgServiceEventInfo info in list)
             {
-                UInt64 id = info.serviceInfo.Create64Key();
+                UInt64 id = info.serviceInfo.Key;
                 //対応する過去番組情報があれば付加する
-                int i = list2.FindIndex(info2 => id == info2.serviceInfo.Create64Key());
+                int i = list2.FindIndex(info2 => id == info2.serviceInfo.Key);
                 serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, info.eventList, i < 0 ? new List<EpgEventInfo>() : list2[i].eventList);
             }
             //過去番組情報が残っていればサービスリストに加える
             foreach (EpgServiceEventInfo info in list2)
             {
-                UInt64 id = info.serviceInfo.Create64Key();
+                UInt64 id = info.serviceInfo.Key;
                 if (serviceDic.ContainsKey(id) == false)
                 {
                     serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
@@ -56,7 +56,7 @@ namespace EpgTimer
             foreach (EpgServiceAllEventInfo info in serviceDic.Values)
             {
                 EpgServiceInfo eInfo = info.serviceInfo;
-                if (eInfo.TSID != ChSet5.ChItem(eInfo.Create64Key(), true, true).TSID)
+                if (eInfo.TSID != ChSet5.ChItem(eInfo.Key, true, true).TSID)
                 {
                     eInfo.service_name = "[廃]" + eInfo.service_name;
                 }
@@ -489,6 +489,34 @@ namespace EpgTimer
             });
         }
 
+        /// <summary>現在の取得データに合わせてデフォルト表示の番組情報を展開する</summary>
+        public List<UInt64> ExpandSpecialKey(IEnumerable<UInt64> keyList)
+        {
+            List<EpgServiceInfo> infoList = ((Settings.Instance.ShowEpgCapServiceOnly || ServiceEventList.Any() == false) ?
+                ChSet5.ChListSelected : ChSet5.GetSortedChList(ServiceEventList.Values.Select(info => info.serviceInfo))).ToList();
+
+            var exDic = new Dictionary<UInt64, UInt64[]>();
+            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceDttv, infoList.Where(info => info.IsDttv).Select(info => info.Key).ToArray());
+            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceBS, infoList.Where(info => info.IsBS).Select(info => info.Key).ToArray());
+            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceCS, infoList.Where(info => info.IsCS).Select(info => info.Key).ToArray());
+            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceCS3, infoList.Where(info => info.IsSPHD).Select(info => info.Key).ToArray());
+            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceOther, infoList.Where(info => info.IsOther).Select(info => info.Key).ToArray());
+
+            var exList = new List<UInt64>();
+            foreach (UInt64 key in keyList)
+            {
+                if(exDic.ContainsKey(key))//一応チェック
+                {
+                    exList.AddRange(exDic[key]);
+                }
+                else
+                {
+                    exList.Add(key);
+                }
+            }
+            return exList;
+        }
+
         //過去番組関係は別途調整する
         public ErrCode SearchPg(List<EpgSearchKeyInfo> key, ref Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic)
         {
@@ -517,7 +545,7 @@ namespace EpgTimer
                 foreach (var info in serviceDic.Values)
                 {
                     EpgServiceAllEventInfo eInfo;
-                    if (ServiceEventList.TryGetValue(info.serviceInfo.Create64Key(), out eInfo))
+                    if (ServiceEventList.TryGetValue(info.serviceInfo.Key, out eInfo))
                     {
                         info.serviceInfo = eInfo.serviceInfo;
                     }

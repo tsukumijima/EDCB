@@ -8,61 +8,66 @@ namespace EpgTimer
 {
     static class ChSet5
     {
-        private static List<ChSet5Item> chListOrderByIndex = null;
-        private static Dictionary<UInt64, ChSet5Item> chList = null;
-        public static Dictionary<UInt64, ChSet5Item> ChList
+        private static List<EpgServiceInfo> chListOrderByIndex = null;
+        private static Dictionary<UInt64, EpgServiceInfo> chList = null;
+        public static Dictionary<UInt64, EpgServiceInfo> ChList
         {
             get
             {
                 if (chList == null) LoadFile();
-                return chList ?? new Dictionary<UInt64, ChSet5Item>();
+                return chList ?? new Dictionary<UInt64, EpgServiceInfo>();
             }
         }
         public static void Clear() { chList = null; chListOrderByIndex = null; bsmin = null; }
 
-        public static ChSet5Item ChItem(UInt64 key, bool noNullReturn = false, bool IgnoreTSID = false)
+        public static EpgServiceInfo ChItem(UInt64 key, bool noNullReturn = false, bool IgnoreTSID = false)
         {
             return ChItemMask(key, noNullReturn, (UInt64)(IgnoreTSID == false ? 0 : 0x0000FFFF0000UL));
         }
-        public static ChSet5Item ChItemMask(UInt64 key, bool noNullReturn, UInt64 orMask)
+        public static EpgServiceInfo ChItemMask(UInt64 key, bool noNullReturn, UInt64 orMask)
         {
-            ChSet5Item item = null;
+            EpgServiceInfo item = null;
             if (ChList.TryGetValue(key, out item) == false && orMask != 0)
             {
                 item = chListOrderByIndex.FirstOrDefault(ch => (ch.Key | orMask) == (key | orMask));
             }
-            return item ?? (noNullReturn ? new ChSet5Item { Key = key } : null);
+            return item ?? (noNullReturn ? new EpgServiceInfo { Key = key } : null);
         }
 
-        public static IEnumerable<ChSet5Item> ChListSelected
+        public static IEnumerable<EpgServiceInfo> ChListSelected
         {
             get { return GetSortedChList(Settings.Instance.ShowEpgCapServiceOnly == false); }
         }
-        public static IEnumerable<ChSet5Item> ChListSorted
+        public static IEnumerable<EpgServiceInfo> ChListSorted
         {
             get { return GetSortedChList(); }
         }
-        private static IEnumerable<ChSet5Item> GetSortedChList(bool ignoreEpgCap = true)
+        private static IEnumerable<EpgServiceInfo> GetSortedChList(bool ignoreEpgCap = true)
         {
-            if (chListOrderByIndex == null && LoadFile() == false) return new List<ChSet5Item>();
-            IEnumerable<ChSet5Item> ret = chListOrderByIndex.Where(item => ignoreEpgCap || item.EpgCapFlag);
-            if (Settings.Instance.SortServiceList == false) return ret;
+            if (chListOrderByIndex == null && LoadFile() == false) return new List<EpgServiceInfo>();
+            return GetSortedChList(chListOrderByIndex, ignoreEpgCap);
+        }
+        public static IEnumerable<EpgServiceInfo> GetSortedChList(IEnumerable<EpgServiceInfo> list, bool ignoreEpgCap = true)
+        {
+            if (list == null) return new List<EpgServiceInfo>();
+            list = list.Where(item => ignoreEpgCap || item.EpgCapFlag);
+            if (Settings.Instance.SortServiceList == false) return list;
 
             //ネットワーク種別優先かつ限定受信を分離したID順ソート。可能なら地上波はリモコンID優先にする。
-            return ret.OrderBy(item => (
+            return list.OrderBy(item => (
                 (ulong)(item.IsDttv ? 0 : item.IsBS ? 1 : item.IsCS ? 2 : item.IsSPHD ? 3 : 4) << 60 |
                 (ulong)(item.IsDttv ? (item.PartialFlag ? 1 : 0) : item.IsOther ? item.ONID : 0) << 32 |
                 (ulong)(item.IsDttv ? (item.RemoconID() + 255) % 256 : item.BSQuickCh()) << 16 |
                 (ulong)(item.IsDttv ? 0xFFFF : 0x03FF) & item.SID));
         }
         private static Dictionary<ushort, ushort> bsmin = null;
-        private static int BSQuickCh(this ChSet5Item item)
+        private static int BSQuickCh(this EpgServiceInfo item)
         {
             //BSの連動放送のチャンネルをくくる
             if (item.IsBS == false) return 0;
             if (bsmin == null)
             {
-                bsmin = (chListOrderByIndex ?? new List<ChSet5Item>()).GroupBy(d => d.TSID, d => d.SID)
+                bsmin = (chListOrderByIndex ?? new List<EpgServiceInfo>()).GroupBy(d => d.TSID, d => d.SID)
                     .ToDictionary(d => d.Key, d => d.Min());
             }
             ushort ret = 0;
@@ -80,19 +85,19 @@ namespace EpgTimer
             }
             if (addOnly == false) Settings.SaveToXmlFile(false);
         }
-        public static byte RemoconID(this ChSet5Item item)
+        public static byte RemoconID(this EpgServiceInfo item)
         {
             byte ret = 0;
             if (item.IsDttv) Settings.Instance.RemoconIDList.TryGetValue(item.TSID, out ret);
             return ret;
         }
-        public static int ChNumber(this ChSet5Item item)
+        public static int ChNumber(this EpgServiceInfo item)
         {
             return item.IsDttv ? item.RemoconID() : item.SID & 0x3FF;
         }
         public static int ChNumber(ulong key)
         {
-            return new ChSet5Item { Key = key }.ChNumber();
+            return new EpgServiceInfo { Key = key }.ChNumber();
         }
 
         public static bool IsVideo(UInt16 ServiceType)
@@ -151,8 +156,8 @@ namespace EpgTimer
         {
             try
             {
-                chList = new Dictionary<UInt64, ChSet5Item>();
-                chListOrderByIndex = new List<ChSet5Item>();
+                chList = new Dictionary<UInt64, EpgServiceInfo>();
+                chListOrderByIndex = new List<EpgServiceInfo>();
                 for (string buff = reader.ReadLine(); buff != null; buff = reader.ReadLine())
                 {
                     if (buff.StartsWith(";", StringComparison.Ordinal))
@@ -162,15 +167,15 @@ namespace EpgTimer
                     else
                     {
                         string[] list = buff.Split('\t');
-                        var item = new ChSet5Item();
+                        var item = new EpgServiceInfo();
                         try
                         {
-                            item.ServiceName = list[0];
-                            item.NetworkName = list[1];
+                            item.service_name = list[0];
+                            item.network_name = list[1];
                             item.ONID = Convert.ToUInt16(list[2]);
                             item.TSID = Convert.ToUInt16(list[3]);
                             item.SID = Convert.ToUInt16(list[4]);
-                            item.ServiceType = Convert.ToUInt16(list[5]);
+                            item.service_type = Convert.ToByte(list[5]);
                             item.PartialFlag = Convert.ToInt32(list[6]) != 0;
                             item.EpgCapFlag = Convert.ToInt32(list[7]) != 0;
                             item.SearchFlag = Convert.ToInt32(list[8]) != 0;
@@ -202,15 +207,15 @@ namespace EpgTimer
                 //
                 using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, fileEncoding))
                 {
-                    foreach (ChSet5Item info in chListOrderByIndex)
+                    foreach (EpgServiceInfo info in chListOrderByIndex)
                     {
                         writer.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}",
-                            info.ServiceName,
-                            info.NetworkName,
+                            info.service_name,
+                            info.network_name,
                             info.ONID,
                             info.TSID,
                             info.SID,
-                            info.ServiceType,
+                            info.service_type,
                             info.PartialFlag == true ? 1 : 0,
                             info.EpgCapFlag == true ? 1 : 0,
                             info.SearchFlag == true ? 1 : 0);
@@ -225,50 +230,74 @@ namespace EpgTimer
         }
     }
 
-    public class ChSet5Item
+    public partial class EpgServiceInfo
     {
-        public ChSet5Item() { }
-        public UInt64 Key
-        {
-            get { return CommonManager.Create64Key(ONID, TSID, SID); }
-            set { ONID = (ushort)(value >> 32); TSID = (ushort)(value >> 16); SID = (ushort)value; }
-        }
-        public UInt16 ONID { get; set; }
-        public UInt16 TSID { get; set; }
-        public UInt16 SID { get; set; }
-        public UInt16 ServiceType { get; set; }
-        public bool PartialFlag { get; set; }
-        public String ServiceName { get; set; }
-        public String NetworkName { get; set; }
-        public bool EpgCapFlag { get; set; }
-        public bool SearchFlag { get; set; }
+        public bool PartialFlag { get { return partialReceptionFlag == 1; } set { partialReceptionFlag = (byte)(value ? 1 : 0); } }
+        public bool EpgCapFlag = false;
+        public bool SearchFlag = false;
 
-        public bool IsVideo { get { return ChSet5.IsVideo(ServiceType); } }
+        public bool IsVideo { get { return ChSet5.IsVideo(service_type); } }
         public bool IsDttv { get { return ChSet5.IsDttv(ONID); } }
         public bool IsBS { get { return ChSet5.IsBS(ONID); } }
         public bool IsCS { get { return ChSet5.IsCS(ONID); } }
+        public bool IsSP { get { return ChSet5.IsSP(ONID); } }
         public bool IsSPHD { get { return ChSet5.IsSPHD(ONID); } }
         public bool IsOther { get { return ChSet5.IsOther(ONID); } }
+        public override string ToString() { return service_name; }
 
-        public EpgServiceInfo ToInfo()
+        public UInt64 Key
         {
-            return new EpgServiceInfo
-            {
-                ONID = this.ONID,
-                TSID = this.TSID,
-                SID = this.SID,
-                network_name = this.NetworkName,
-                partialReceptionFlag = (byte)(this.PartialFlag ? 1 : 0),
-                remote_control_key_id = this.RemoconID(),
-                service_name = this.ServiceName,
-                service_provider_name = this.NetworkName,
-                service_type = (byte)this.ServiceType,
-                ts_name = this.NetworkName
-            };
+            get { return HasSPKey ? SPKey : CommonManager.Create64Key(ONID, TSID, SID); }
+            set { if (IsSPKey(value)) SPKey = value; else { ONID = (UInt16)(value >> 32); TSID = (UInt16)(value >> 16); SID = (UInt16)value; } }
         }
-        public override string ToString()
+
+        public static EpgServiceInfo FromKey(UInt64 key)
         {
-            return ServiceName;
+            if (IsSPKey(key)) return CreateSPInfo(key);
+
+            EpgServiceInfo info = ChSet5.ChItem(key, true, true);
+            if (info.Key != key)
+            {
+                //TSID移動前のチャンネルだった場合
+                info.TSID = (ushort)(key >> 16);
+            }
+            else if (string.IsNullOrEmpty(info.service_name))
+            {
+                //ChSet5で全く見つからず、キーだけが入って戻ってきた場合
+                info.network_name = CommonManager.ConvertNetworkNameText(info.ONID);
+                //info.partialReceptionFlag = 0;不明
+                info.remote_control_key_id = info.RemoconID();
+                info.service_name = "[不明]";
+                info.service_provider_name = info.network_name;
+                //info.service_type = 0x01;不明
+                info.ts_name = info.network_name;
+            }
+            return info;
+        }
+
+        public enum SpecialViewServices : UInt64
+        {
+            ViewServiceDttv = 0x1000000000000,
+            ViewServiceBS,
+            ViewServiceCS,
+            ViewServiceCS3,
+            ViewServiceOther,
+        }
+        public static IEnumerable<UInt64> SPKeyList { get { return Enum.GetValues(typeof(EpgServiceInfo.SpecialViewServices)).Cast<ulong>(); } }
+        public UInt64 SPKey = 0;
+        public static bool IsSPKey(UInt64 key) { return key >= (UInt64)SpecialViewServices.ViewServiceDttv; }
+        public bool HasSPKey { get { return IsSPKey(SPKey); } }
+
+        public static EpgServiceInfo CreateSPInfo(UInt64 key)
+        {
+            var networks = new UInt16[] { 0x7880, 0x0004, 0x0006, 0x000A, 0x0000 };
+            int idx = Math.Min((int)(key & 0xFFFFUL), networks.Length - 1);
+            var ret = new EpgServiceInfo();
+            ret.Key = key;
+            ret.ONID = networks[idx];
+            ret.network_name = CommonManager.ConvertNetworkNameText(ret.ONID, true);
+            ret.service_name = string.Format("[{0}:全サービス]", ret.network_name);
+            return ret;
         }
     }
 }

@@ -8,26 +8,24 @@ namespace EpgTimer
 {
     public class ServiceViewItem : SelectableItemNWMode
     {
-        public ServiceViewItem(ChSet5Item info)
-        {
-            ServiceInfo = info;
-        }
-        public readonly ChSet5Item ServiceInfo;
+        public ServiceViewItem(EpgServiceInfo info) { ServiceInfo = info; }
+        public ServiceViewItem(UInt64 key) { ServiceInfo = EpgServiceInfo.FromKey(key); }
+        public readonly EpgServiceInfo ServiceInfo;
         public UInt64 Key
         { 
             get { return ServiceInfo.Key; }
         }
         public String NetworkName
         {
-            get { return CommonManager.ConvertNetworkNameText(ServiceInfo.ONID); }
+            get { return CommonManager.ConvertNetworkNameText(ServiceInfo.ONID, ServiceInfo.HasSPKey); }
         }
         public String ServiceName
         { 
-            get { return ServiceInfo.ServiceName; }
+            get { return ServiceInfo.service_name; }
         }
         public String ServiceType
         {
-            get { return CommonManager.ServiceTypeList[(byte)ServiceInfo.ServiceType]; }
+            get { return CommonManager.ServiceTypeList[ServiceInfo.service_type]; }
         }
         public string IsVideo
         {
@@ -48,11 +46,33 @@ namespace EpgTimer
         }
         public string ConvertInfoText()
         {
-            return "ServiceName : " + ServiceName + "\r\n" +
-                "ServiceType : " + ServiceType + " (0x" + ServiceInfo.ServiceType.ToString("X2") + ")" + "\r\n" +
-                CommonManager.Convert64KeyString(ServiceInfo.Key) + "\r\n" +
+            string ret = "ServiceName : " + ServiceName + "\r\n";
+            if (ServiceInfo.HasSPKey)
+                return ret + "※検索による絞り込みでは使用出来ません。\r\n"
+                        + "　過去番組表で終了サービスを表示するには\r\n"
+                        + "　設定画面[基本設定][EPG取得]にある\r\n"
+                        + "　[EPG取得サービスのみ表示する]の\r\n"
+                        + "　チェックをオフにしてください。";
+            return ret + "ServiceType : " + ServiceType + " (0x" + ServiceInfo.service_type.ToString("X2") + ")" + "\r\n" +
+                CommonManager.Convert64KeyString(Key) + "\r\n" +
                 "PartialReception : " + (ServiceInfo.PartialFlag == true ? "ワンセグ" : "-") + " (0x" + (ServiceInfo.PartialFlag ? 1 : 0).ToString("X2") + ")";
         }
         public override string ToString() { return ServiceName; }
+
+        //BoxExchangeEditor用
+        public static ServiceViewItemComparer Comparator { get { return new ServiceViewItemComparer(); } }
+        public class ServiceViewItemComparer : EqualityComparer<object>
+        {
+            public override bool Equals(object x, object y)
+            {
+                return x is ServiceViewItem && y is ServiceViewItem && (x as ServiceViewItem).Key == (y as ServiceViewItem).Key;
+            }
+            public override bool Equals(object obj) { return Equals(this, obj); }
+            public override int GetHashCode(object obj)
+            {
+                return obj is ServiceViewItem == false ? 0 : (obj as ServiceViewItem).Key.GetHashCode();
+            }
+            public override int GetHashCode() { return GetHashCode(this); }
+        }
     }
 }

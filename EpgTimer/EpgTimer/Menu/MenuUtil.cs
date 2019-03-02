@@ -994,7 +994,7 @@ namespace EpgTimer
             }
             else if (currentList != null)
             {
-                EpgServiceEventInfo sInfo = currentList.Find(info => info.serviceInfo.Create64Key() == key);
+                EpgServiceEventInfo sInfo = currentList.Find(info => info.serviceInfo.Key == key);
                 if (sInfo != null) eventList = sInfo.eventList;
             }
             else

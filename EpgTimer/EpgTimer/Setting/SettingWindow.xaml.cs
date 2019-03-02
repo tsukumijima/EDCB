@@ -183,7 +183,7 @@ namespace EpgTimer
         }
         private static void CheckService(bool apply, ulong id, Action<ulong> SetNewId, ref string log)
         {
-            ChSet5Item item = ChSet5.ChItem(id, true, true);
+            EpgServiceInfo item = ChSet5.ChItem(id, true, true);
             if (item.Key != id)
             {
                 if (apply)
@@ -192,7 +192,7 @@ namespace EpgTimer
                 }
                 else if (log.Count(c => c == '\n') < 5)
                 {
-                    log += "  ID=0x" + id.ToString("X12") + " -> 0x" + item.Key.ToString("X12") + " (" + item.ServiceName + ")\r\n";
+                    log += "  ID=0x" + id.ToString("X12") + " -> 0x" + item.Key.ToString("X12") + " (" + item.service_name + ")\r\n";
                 }
                 else if (log.EndsWith(".\r\n", StringComparison.Ordinal) == false)
                 {

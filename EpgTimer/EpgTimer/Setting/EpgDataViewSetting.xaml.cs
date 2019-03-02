@@ -16,7 +16,7 @@ namespace EpgTimer
         private CustomEpgTabInfo info { get { return DataContext as CustomEpgTabInfo; } }
         private EpgSearchKeyInfo searchKey = new EpgSearchKeyInfo();
         private RadioBtnSelect viewModeRadioBtns;
-        private Dictionary<ulong, ServiceViewItem> servieceList;
+        private ServiceViewItem.ServiceViewItemComparer comparer = ServiceViewItem.Comparator;
 
         public EpgDataViewSetting()
         {
@@ -28,19 +28,31 @@ namespace EpgTimer
                 comboBox_timeH_week.ItemsSource = Enumerable.Range(0, 24);
                 info.StartTimeWeek = 4;
 
-                servieceList = ChSet5.ChList.Values.Select(item => new ServiceViewItem(item)).ToDictionary(item => item.Key, item => item);
-                var selectedList = ChSet5.ChListSelected.Select(item => servieceList[item.Key]).ToList();
-                listBox_serviceDttv.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsDttv == true);
-                listBox_serviceBS.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsBS == true);
-                listBox_serviceCS.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsCS == true);
-                listBox_serviceSP.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsSPHD == true);
-                listBox_serviceOther.ItemsSource = selectedList.Where(item => item.ServiceInfo.IsOther == true);
-                listBox_serviceAll.ItemsSource = selectedList;
-
-                foreach (TabItem tab in tab_ServiceList.Items)
+                foreach (var item in ChSet5.ChListSelected.Select(item => new ServiceViewItem(item)))
                 {
-                    tab.Visibility = ((ListView)tab.Content).Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+                    if (item.ServiceInfo.IsDttv) listBox_serviceDttv.Items.Add(item);
+                    if (item.ServiceInfo.IsBS) listBox_serviceBS.Items.Add(item);
+                    if (item.ServiceInfo.IsCS) listBox_serviceCS.Items.Add(item);
+                    if (item.ServiceInfo.IsSPHD) listBox_serviceSP.Items.Add(item);
+                    if (item.ServiceInfo.IsOther) listBox_serviceOther.Items.Add(item);
+                    listBox_serviceAll.Items.Add(item);
                 }
+
+                int i = 0;
+                var spItems = Enum.GetValues(typeof(EpgServiceInfo.SpecialViewServices)).Cast<ulong>().Select(id => new ServiceViewItem(id)).ToList();
+                var spItemsOther = spItems.ToList();
+                foreach (TabItem tab in tab_ServiceList.Items.OfType<TabItem>().Take(4))
+                {
+                    var listbox = (ListView)tab.Content;
+                    if (listbox.Items.Count != 0)
+                    {
+                        listbox.Items.Insert(0, spItems[i]);
+                        spItemsOther.Remove(spItems[i]);
+                    }
+                    tab.Visibility = listbox.Items.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+                    i++;
+                }
+                listBox_serviceOther.Items.InsertItems(0, spItemsOther);
 
                 listBox_jyanru.ItemsSource = CommonManager.ContentKindList;
 
@@ -70,8 +82,7 @@ namespace EpgTimer
             checkBox_isVisible.IsChecked = setInfo.IsVisible;
             viewModeRadioBtns.Value = setInfo.ViewMode;
 
-            listBox_serviceView.Items.AddItems(setInfo.ViewServiceList
-                .Where(id => servieceList.ContainsKey(id) == true).Select(id => servieceList[id]));
+            listBox_serviceView.Items.AddItems(setInfo.ViewServiceList.Select(id => new ServiceViewItem(id)));
             listBox_jyanruView.Items.AddItems(setInfo.ViewContentList.Select(data => CommonManager.ContentKindInfoForDisplay(data)));
         }
 
@@ -100,6 +111,7 @@ namespace EpgTimer
         private void listBox_Button_Set()
         {
             bxs = new BoxExchangeEditor(null, this.listBox_serviceView, true, true, true, true);
+            bxs.ItemComparer = comparer;
 
             //サービス選択関係はソースの ListView が複数あるので、全ての ListViewItem にイベントを追加する。
             foreach (TabItem tab in tab_ServiceList.Items)
@@ -116,7 +128,7 @@ namespace EpgTimer
                 try { bxs.SourceBox = ((sender as TabControl).SelectedItem as TabItem).Content as ListView; }
                 catch { bxs.SourceBox = null; }
             };
-            button_service_addAll.Click += new RoutedEventHandler(bxs.button_AddAll_Click);
+            button_service_addAll.Click += (sender, e) => button_AddAll();
             button_service_add.Click += new RoutedEventHandler(bxs.button_Add_Click);
             button_service_ins.Click += new RoutedEventHandler(bxs.button_Insert_Click);
             button_service_del.Click += new RoutedEventHandler(bxs.button_Delete_Click);
@@ -133,6 +145,13 @@ namespace EpgTimer
             button_jyanru_ins.Click += new RoutedEventHandler(bxj.button_Insert_Click);
             button_jyanru_del.Click += new RoutedEventHandler(bxj.button_Delete_Click);
             button_jyanru_delAll.Click += new RoutedEventHandler(bxj.button_DeleteAll_Click);
+        }
+
+        //特殊アイテムを全追加から外す
+        private void button_AddAll()
+        {
+            bxs.SourceBox.SelectAll();
+            bxs.bxAddItems(bxs.SourceBox.SelectedItemsList().Where(item => ((ServiceViewItem)item).ServiceInfo.HasSPKey == false), bxs.TargetBox);
         }
 
         List<Tuple<int, int>> sortList;
@@ -304,10 +323,10 @@ namespace EpgTimer
 
                 //サービスリストは表示順を保持する
                 var oldList = listBox_serviceView.Items.OfType<object>().ToList();
-                var newList = searchKey.serviceList.Where(sv => servieceList.ContainsKey((ulong)sv) == true).Select(sv => servieceList[(ulong)sv]).ToList();
+                var newList = searchKey.serviceList.Select(id => new ServiceViewItem((ulong)id)).ToList();
                 listBox_serviceView.UnselectAll();
-                listBox_serviceView.Items.RemoveItems(oldList.Where(sv => newList.Contains(sv) == false));
-                listBox_serviceView.Items.AddItems(newList.Where(sv => oldList.Contains(sv) == false));
+                listBox_serviceView.Items.RemoveItems(oldList.Where(sv => newList.Contains(sv, comparer) == false));
+                listBox_serviceView.Items.AddItems(newList.Where(sv => oldList.Contains(sv, comparer) == false));
 
                 //ジャンルリストの同期はオプションによる
                 if (tabInfo.SearchGenreNoSyncView == false)

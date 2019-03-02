@@ -22,6 +22,8 @@ namespace EpgTimer.EpgView
             IsEpgLoaded = false;
         }
         public CustomEpgTabInfo EpgTabInfo { get; set; }
+        public bool HasKey(UInt64 key) { return KeyList.Contains(key); }
+        public IEnumerable<UInt64> KeyList { get { return IsEpgLoaded ? ServiceEventList.Select(info => info.serviceInfo.Key) : CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList); } }
         public bool IsEpgLoaded { get; private set; }
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
         public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }
@@ -56,8 +58,8 @@ namespace EpgTimer.EpgView
                 }
 
                 //並び順はViewServiceListによる。eventListはこの後すぐ作り直すのでとりあえずそのままもらう。
-                ServiceEventList = EpgTabInfo.ViewServiceList.Distinct()
-                    .Where(id => serviceDic.ContainsKey(id) == true).Select(id => serviceDic[id])
+                ServiceEventList = CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList)
+                    .Distinct().Where(id => serviceDic.ContainsKey(id)).Select(id => serviceDic[id])
                     .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList.ToList() }).ToList();
 
                 EventUIDList = new Dictionary<ulong, EpgEventInfo>();

@@ -311,7 +311,7 @@ namespace EpgTimer
         {
             serviceList.ForEach(info => info.IsSelected = info.ServiceInfo.IsVideo);
         }
-        private void SelectService(Func<ChSet5Item, bool> predicate)
+        private void SelectService(Func<EpgServiceInfo, bool> predicate)
         {
             serviceList.FindAll(info => predicate(info.ServiceInfo)).ForEach(info => info.IsSelected = true);
         }

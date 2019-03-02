@@ -955,7 +955,7 @@ namespace EpgTimer
         public ushort TSID;
         public ushort SID;
         public byte service_type;
-        public byte partialReceptionFlag;
+        private byte partialReceptionFlag;
         public string service_provider_name;
         public string service_name;
         public string network_name;

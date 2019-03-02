@@ -125,8 +125,8 @@ namespace EpgTimer
 
                 data.title = textBox_title.Text;
 
-                var chItem = comboBox_service.SelectedItem as ChSet5Item;
-                data.stationName = chItem.ServiceName;
+                var chItem = comboBox_service.SelectedItem as EpgServiceInfo;
+                data.stationName = chItem.service_name;
                 data.originalNetworkID = chItem.ONID;
                 data.transportStreamID = chItem.TSID;
                 data.serviceID = chItem.SID;

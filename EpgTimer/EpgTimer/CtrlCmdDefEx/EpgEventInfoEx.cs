@@ -24,8 +24,8 @@ namespace EpgTimer
             {
                 if (serviceName == null)
                 {
-                    ChSet5Item item = ChSet5.ChItem(this.Create64Key(), true, true);
-                    serviceName = (transport_stream_id != item.TSID ? "[廃]" : "") + item.ServiceName;
+                    EpgServiceInfo item = ChSet5.ChItem(this.Create64Key(), true, true);
+                    serviceName = (transport_stream_id != item.TSID ? "[廃]" : "") + item.service_name;
                 }
                 return serviceName;
             }
@@ -50,47 +50,6 @@ namespace EpgTimer
             return EventGroupInfo.eventDataList.Select(data =>
                 MenuUtil.SearchEventInfo(CommonManager.CurrentPgUID(data.Create64PgKey(), PgStartTime), currentList))
                 .FirstOrDefault(data => data != null && data.IsGroupMainEvent == true);
-        }
-    }
-
-    public partial class EpgServiceInfo
-    {
-        public UInt64 Create64Key() { return CommonManager.Create64Key(ONID, TSID, SID); }
-
-        public ChSet5Item ToItem(bool chSetReference = true)
-        {
-            return (chSetReference ? ChSet5.ChItem(Create64Key()) : null)
-                    ?? new ChSet5Item
-                    {
-                        Key = Create64Key(),
-                        NetworkName = network_name,
-                        PartialFlag = partialReceptionFlag == 1,
-                        ServiceName = service_name,
-                        ServiceType = service_type,
-                    };
-        }
-
-        public static EpgServiceInfo FromKey(UInt64 key)
-        {
-            ChSet5Item item = ChSet5.ChItem(key, true, true);
-            EpgServiceInfo info = item.ToInfo();
-            if (item.Key != key)
-            {
-                //TSID移動前のチャンネルだった場合
-                info.TSID = (ushort)(key >> 16);
-            }
-            else if (string.IsNullOrEmpty(info.service_name))
-            {
-                //ChSet5で全く見つからず、キーだけが入って戻ってきた場合
-                info.network_name = CommonManager.ConvertNetworkNameText(item.ONID);
-                //info.partialReceptionFlag = 0;不明
-                info.remote_control_key_id = item.RemoconID();
-                info.service_name = "[不明]";
-                info.service_provider_name = info.network_name;
-                //info.service_type = 0x01;不明
-                info.ts_name = info.network_name;
-            }
-            return info;
         }
     }
 }
