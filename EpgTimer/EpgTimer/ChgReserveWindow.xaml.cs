@@ -444,7 +444,7 @@ namespace EpgTimer
                 }
                 else
                 {
-                    eventInfoNow = resInfo.SearchEventInfoLikeThat();
+                    eventInfoNow = resInfo.ReserveEventInfo(false);
                     if (eventInfoNow == null)
                     {
                         MessageBox.Show("変更可能な番組がありません。\r\n" +
@@ -474,18 +474,12 @@ namespace EpgTimer
                 if (resInfo.IsSamePg(resInfoDisplay) == true) return;
                 resInfoDisplay = resInfo;
 
-                EpgEventInfo eventInfo = null;
                 //EPGを自動で読み込んでない時でも、元がEPG予約ならその番組情報は表示させられるようにする
                 if (reserveInfo.IsEpgReserve == true && reserveInfo.IsSamePg(resInfo) == true)
                 {
-                    eventInfo = eventInfoNow ?? reserveInfo.ReserveEventInfo();
+                    resInfo = reserveInfo;
                 }
-                else
-                {
-                    eventInfo = eventInfoNow ?? resInfo.SearchEventInfoLikeThat();
-                }
-
-                richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(eventInfo);
+                richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(eventInfoNow ?? resInfo.ReserveEventInfo(false));
             }
         }
 

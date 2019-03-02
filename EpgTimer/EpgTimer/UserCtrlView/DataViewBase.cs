@@ -101,10 +101,11 @@ namespace EpgTimer
         {
             if (DataListBox == null || DataListBox.Items.Count == 0) return -1;
 
+            var items = DataListBox.Items.OfType<SearchItem>();
             if (target != null && target.IsEpgReserve == true)
             {
-                //重複予約が無ければ、target.CurrentPgUID()でMoveToItem()に投げられる。
-                var item = DataListBox.Items.OfType<SearchItem>().FirstOrDefault(d => d.IsReserved == true && d.ReserveInfo.ReserveID == target.ReserveID);
+                //重複予約には注意する。
+                var item = items.FirstOrDefault(d => d.IsReserved == true && d.ReserveInfo.ReserveID == target.ReserveID);
                 int idx = ViewUtil.ScrollToFindItem(item, DataListBox, style, dryrun);
                 if (dryrun == false) ItemIdx = idx;
                 return idx;
@@ -112,7 +113,7 @@ namespace EpgTimer
             else
             {
                 //プログラム予約だと見つからないので、それらしい番組へジャンプする。
-                return MoveToProgramItem(target == null ? null : target.SearchEventInfoLikeThat(), style, dryrun);
+                return MoveToProgramItem(target == null ? null : MenuUtil.SearchEventInfoLikeThat(target, null, items.GetEventList()), style, dryrun);
             }
         }
         public virtual int MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)

@@ -36,7 +36,7 @@ namespace EpgTimer.EpgView
                 if (CommonManager.Instance.IsConnected == false) return false;
 
                 var keyTime = ViewUtil.EpgKeyTime();
-                Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic;
+                Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic = null;
                 if (EpgTabInfo.SearchMode == false)
                 {
                     ErrCode err = CommonManager.Instance.DB.ReloadEpgData();
@@ -48,24 +48,8 @@ namespace EpgTimer.EpgView
                 else
                 {
                     //番組情報の検索
-                    var list = new List<EpgEventInfo>();
-                    ErrCode err = CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg()), ref list);
+                    ErrCode err = CommonManager.Instance.DB.SearchPg(CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg()), ref serviceDic);
                     if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得") == false) return false;
-
-                    var list2 = new List<EpgEventInfo>();
-                    if (Settings.Instance.EpgNoDisplayOldDays > 0)
-                    {
-                        var pram = new SearchPgParam();
-                        pram.keyList = CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg());
-                        pram.enumStart = keyTime.AddDays(-1).ToFileTime();
-                        pram.enumEnd = long.MaxValue;
-                        CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2);
-                    }
-
-                    //サービス毎のリストに変換
-                    var sList = list.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
-                    var sList2 = list2.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
-                    serviceDic = EpgServiceAllEventInfo.CreateEpgServicDictionary(sList, sList2);
 
                     //リモコンIDの登録
                     ChSet5.SetRemoconID(serviceDic, true);

@@ -252,7 +252,7 @@ namespace EpgTimer
             return reserveMultiList.Contains(master.ReserveID);
         }
 
-        public EpgEventInfo GetReserveEventList(ReserveData master)
+        public EpgEventInfo GetReserveEventList(ReserveData master, bool isSrv = true)
         {
             if (master == null) return null;
 
@@ -260,10 +260,12 @@ namespace EpgTimer
             {
                 if (ServiceEventList.Count != 0 && IsNotifyRegistered(UpdateNotifyItem.EpgData) == false || Settings.Instance.NoReserveEventList == true)
                 {
-                    reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID, rs => rs.SearchEventInfoLikeThat());
+                    reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID, rs => MenuUtil.SearchEventInfoLikeThat(rs));
                 }
                 else
                 {
+                    if (isSrv == false || master.IsManual) return null;
+
                     reserveEventList = new Dictionary<uint, EpgEventInfo>();
                     reserveEventListCache = reserveEventListCache ?? new Dictionary<ulong, EpgEventInfo>();
 
@@ -484,6 +486,43 @@ namespace EpgTimer
 
                 return ret;
             });
+        }
+
+        //過去番組関係は別途調整する
+        public ErrCode SearchPg(List<EpgSearchKeyInfo> key, ref Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic)
+        {
+            //番組情報の検索
+            var list = new List<EpgEventInfo>();
+            ErrCode err = ErrCode.CMD_SUCCESS;
+            try { err = CommonManager.CreateSrvCtrl().SendSearchPg(key, ref list); } catch { }
+            if (err == ErrCode.CMD_SUCCESS)
+            {
+                var list2 = new List<EpgEventInfo>();
+                if (Settings.Instance.EpgNoDisplayOldDays > 0)
+                {
+                    var pram = new SearchPgParam();
+                    pram.keyList = key;
+                    pram.enumStart = ViewUtil.EpgKeyTime().AddDays(-1).ToFileTime();
+                    pram.enumEnd = long.MaxValue;
+                    try { CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2); } catch { }
+                }
+
+                //サービス毎のリストに変換
+                var sList = list.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
+                var sList2 = list2.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
+                serviceDic = EpgServiceAllEventInfo.CreateEpgServicDictionary(sList, sList2);
+
+                //あればEPG取得データのEpgServiceInfoに差し替え
+                foreach (var info in serviceDic.Values)
+                {
+                    EpgServiceAllEventInfo eInfo;
+                    if (ServiceEventList.TryGetValue(info.serviceInfo.Key, out eInfo))
+                    {
+                        info.serviceInfo = eInfo.serviceInfo;
+                    }
+                }
+            }
+            return err;
         }
 
         /// <summary>予約情報の更新があれば再読み込みする</summary>

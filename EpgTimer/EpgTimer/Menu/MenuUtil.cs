@@ -338,7 +338,7 @@ namespace EpgTimer
             if (resMode == 0)//EPG予約へ変更
             {
                 list = itemlist.Where(item => item.ReserveMode == ReserveMode.KeywordAuto ||
-                    item.IsEpgReserve == false && item.SearchEventInfoLikeThat().ConvertToReserveData(ref item) == true).ToList();
+                    item.IsEpgReserve == false && item.ReserveEventInfo(false).ConvertToReserveData(ref item) == true).ToList();
             }
             else if (resMode == 1)//プログラム予約へ変更
             {
@@ -978,15 +978,19 @@ namespace EpgTimer
             return data;
         }
 
-        public static EpgEventInfo SearchEventInfoLikeThat(IAutoAddTargetData item, List<EpgServiceEventInfo> currentList = null)
+        public static EpgEventInfo SearchEventInfoLikeThat(IAutoAddTargetData item, List<EpgServiceEventInfo> currentList = null, List<EpgEventInfo> currentEventList = null)
         {
             //とりあえずいったんUID検索はしてみる。
             EpgEventInfo eventPossible = SearchEventInfo(item.CurrentPgUID());
             if (eventPossible != null) return eventPossible;
 
-            List<EpgEventInfo> eventList = new List<EpgEventInfo>();
+            var eventList = new List<EpgEventInfo>();
             UInt64 key = item.Create64Key();
-            if (currentList != null)
+            if (currentEventList != null)
+            {
+                eventList = currentEventList;
+            }
+            else if (currentList != null)
             {
                 EpgServiceEventInfo sInfo = currentList.Find(info => info.serviceInfo.Create64Key() == key);
                 if (sInfo != null) eventList = sInfo.eventList;

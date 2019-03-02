@@ -66,14 +66,9 @@ namespace EpgTimer
             get { return (Int32)Math.Max(-DurationSecond, RecSetting.EndMarginActual); }
         }
 
-        public EpgEventInfo ReserveEventInfo()
+        public EpgEventInfo ReserveEventInfo(bool isSrv = true)
         {
-            return CommonManager.Instance.DB.GetReserveEventList(this);
-        }
-
-        public EpgEventInfo SearchEventInfoLikeThat()
-        {
-            return MenuUtil.SearchEventInfoLikeThat(this);
+            return CommonManager.Instance.DB.GetReserveEventList(this, isSrv) ?? MenuUtil.SearchEventInfoLikeThat(this);
         }
 
         //AppendData 関係。ID(元データ)に対して一意の情報なので、データ自体はDB側。
@@ -105,7 +100,7 @@ namespace EpgTimer
         public override List<EpgAutoAddData> SearchEpgAutoAddList(bool? IsEnabled = null, bool ByFazy = false)
         {
             //プログラム予約の場合はそれっぽい番組を選んで、キーワード予約の検索にヒットしていたら選択する。
-            var info = IsEpgReserve == true ? this as IAutoAddTargetData : this.SearchEventInfoLikeThat();
+            var info = IsEpgReserve == true ? this as IAutoAddTargetData : this.ReserveEventInfo(false);
             return AutoAddTargetData.SearchEpgAutoAddHitList(info, IsEnabled, ByFazy);
         }
         public override List<EpgAutoAddData> GetEpgAutoAddList(bool? IsEnabled = null)

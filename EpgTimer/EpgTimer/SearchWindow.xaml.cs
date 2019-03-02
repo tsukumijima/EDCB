@@ -198,22 +198,18 @@ namespace EpgTimer
                 EpgSearchKeyInfo key = GetSearchKey();
                 key.keyDisabledFlag = 0; //無効解除
                 var list = new List<EpgEventInfo>();
-                CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(key), ref list);
 
                 ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false && Settings.Instance.EpgNoDisplayOldDays > 0;
-                if (ArcSearch == true)
+                if (ArcSearch == false)
                 {
-                    var pram = new SearchPgParam();
-                    pram.keyList = CommonUtil.ToList(key);
-                    pram.enumStart = ViewUtil.EpgKeyTime().AddDays(-1).ToFileTime();
-                    pram.enumEnd = long.MaxValue;
-                    var list2 = new List<EpgEventInfo>();
-                    CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2);
-
-                    //EpgServiceAllEventInfoなどを使ってマージする
-                    var sList = list.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
-                    var sList2 = list2.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
-                    list = EpgServiceAllEventInfo.CreateEpgServicDictionary(sList, sList2).Values.SelectMany(info => info.eventMergeList).ToList();
+                    CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(key), ref list);
+                }
+                else
+                {
+                    //番組情報の検索
+                    var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+                    CommonManager.Instance.DB.SearchPg(CommonUtil.ToList(key), ref serviceDic);
+                    list = serviceDic.Values.SelectMany(info => info.eventMergeList).ToList();
 
                     //起動直後用。実際には過去検索して無くても必要な場合があるが、あまり重要ではないので無視する。
                     CommonManager.Instance.DB.ReloadRecFileInfo();
