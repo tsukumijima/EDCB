@@ -130,7 +130,7 @@ namespace EpgTimer.EpgView
             double duration = resInfo.DurationSecond + StartMargin + EndMargin;
 
             var resItem = new ReserveViewItem(resInfo);
-            (resInfo is ReserveData ? reserveList : recinfoList).Add(resItem);
+            (resInfo is ReserveDataEnd ? recinfoList : reserveList).Add(resItem);
 
             //予約情報から番組情報を特定し、枠表示位置を再設定する
             refPgItem = null;
@@ -167,7 +167,7 @@ namespace EpgTimer.EpgView
                     .Where(item => programList.ContainsKey(item.CurrentPgUID()) || item.EventID == 0xFFFF)
                     .Select(item => new ReserveDataEnd
                     {
-                        //ReserveID = item.ID;
+                        ReserveID = item.ID,
                         StartTime = item.StartTime,
                         DurationSecond = item.DurationSecond,
                         OriginalNetworkID = item.OriginalNetworkID,
@@ -238,13 +238,27 @@ namespace EpgTimer.EpgView
             target = target == null ? null : target.GetGroupMainEvent(viewData.EventUIDList);
             return MoveToItem(target == null ? 0 : target.CurrentPgUID(), style, dryrun);
         }
+        public virtual int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        {
+            if (target == null) return -1;
+            int idx = recinfoList.FindIndex(item => item.Data.ReserveID == target.ID);
+            if (idx != -1 && dryrun == false) programView.ScrollToFindItem(recinfoList[idx], style);
+            if (dryrun == false) ItemIdx = idx;
+            return idx;
+        }
 
         protected int resIdx = -1;
         public override object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             return ViewUtil.MoveNextReserve(ref resIdx, programView, reserveList, ref clickPos, id, direction, move, style);
         }
-        
+
+        protected int recIdx = -1;
+        public override object MoveNextRecinfo(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            return MenuUtil.GetRecFileInfo(ViewUtil.MoveNextReserve(ref recIdx, programView, recinfoList, ref clickPos, id, direction, move, style) as ReserveDataEnd);
+        }
+
         /// <summary>表示位置を現在の時刻にスクロールする</summary>
         protected void MoveNowTime()
         {

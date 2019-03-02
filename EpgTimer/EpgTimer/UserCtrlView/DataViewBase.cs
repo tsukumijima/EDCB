@@ -141,5 +141,22 @@ namespace EpgTimer
             if (move == true) ItemIdx = ViewUtil.ScrollToFindItem(item, DataListBox, style);
             return item == null ? null : item.ReserveInfo;
         }
+        public virtual object MoveNextRecinfo(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        {
+            if (DataListBox == null || DataListBox.Items.Count == 0) return null;
+
+            var list = DataListBox.Items.OfType<SearchItem>().ToList();
+            var idx = id == 0 ? -1 : list.FindIndex(d => d.EventInfo.CurrentPgUID() == id);
+            idx = idx != -1 ? idx : DataListBox.SelectedIndex != -1 ? DataListBox.SelectedIndex : itemIdx;
+            idx++;
+
+            List<SearchItem> sList = list.Skip(idx).Concat(list.Take(idx)).ToList();
+            if (direction < 0) sList.Reverse(0, sList.Count - (idx == 0 ? 0 : 1));
+            object hit = null;
+            SearchItem item = sList.FirstOrDefault(info => (hit = MenuUtil.GetRecFileInfo(info.EventInfo)) != null);
+
+            if (move == true) ItemIdx = ViewUtil.ScrollToFindItem(item, DataListBox, style);
+            return hit;
+        }
     }
 }

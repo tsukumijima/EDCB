@@ -170,9 +170,16 @@ namespace EpgTimer
             return (UInt64)comboBox_service.SelectedValue;
         }
 
+        //実際には切り替えないと分からない
+        public override int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        {
+            UInt64 key = CommonManager.Reverse64Key(id);
+            if (dryrun == true) return viewInfo.ViewServiceList.Contains(key) ? 1 : -1;
+            if (key != 0) ChangeViewService(key);
+            return base.MoveToItem(id, style, dryrun);
+        }
         public override int MoveToReserveItem(ReserveData target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            //実際には切り替えないと分からない
             if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
             if (target != null) ChangeViewService(target.Create64Key());
             return base.MoveToReserveItem(target, style);
@@ -182,6 +189,12 @@ namespace EpgTimer
             if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
             if (target != null) ChangeViewService(target.Create64Key());
             return base.MoveToProgramItem(target, style);
+        }
+        public override int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        {
+            if (dryrun == true) return target == null ? -1 : viewInfo.ViewServiceList.IndexOf(target.Create64Key());
+            if (target != null) ChangeViewService(target.Create64Key());
+            return base.MoveToRecInfoItem(target, style);
         }
         protected void ChangeViewService(UInt64 id)
         {

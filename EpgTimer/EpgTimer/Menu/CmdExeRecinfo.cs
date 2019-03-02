@@ -51,14 +51,7 @@ namespace EpgTimer
             EpgEventInfo info = null;
             if (dataList[0].IsOver(ViewUtil.EpgKeyTime()) == false)
             {
-                info = new EpgEventInfo();
-                info.original_network_id = dataList[0].OriginalNetworkID;
-                info.transport_stream_id = dataList[0].TransportStreamID;
-                info.service_id = dataList[0].ServiceID;
-                info.event_id = dataList[0].EventID;
-                info.start_time = dataList[0].StartTime;
-                info.durationSec = dataList[0].DurationSecond;
-                info.StartTimeFlag = 1;
+                info = CtrlCmdDefEx.ConvertRecInfoToEpgEventInfo(dataList[0]);
             }
             return info == null ? null : new SearchItem(info);
         }

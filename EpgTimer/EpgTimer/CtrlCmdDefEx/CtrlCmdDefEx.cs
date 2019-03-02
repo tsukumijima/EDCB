@@ -151,6 +151,20 @@ namespace EpgTimer
             return true;
         }
 
+        public static EpgEventInfo ConvertRecInfoToEpgEventInfo(RecFileInfo recinfo)
+        {
+            return recinfo == null ? null : new EpgEventInfo
+            {
+                original_network_id = recinfo.OriginalNetworkID,
+                transport_stream_id = recinfo.TransportStreamID,
+                service_id = recinfo.ServiceID,
+                event_id = recinfo.EventID,
+                start_time = recinfo.StartTime,
+                durationSec = recinfo.DurationSecond,
+                StartTimeFlag = 1,
+            };
+        }
+
         public static void RegulateData(this EpgSearchDateInfo info)
         {
             //早い終了時間を翌日のものとみなす

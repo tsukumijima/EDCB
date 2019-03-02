@@ -5,18 +5,18 @@ using System.IO;
 
 namespace EpgTimer
 {
-    public class EpgServiceAllEventInfo //: EpgServiceEventInfo
+    public class EpgServiceAllEventInfo : EpgServiceEventInfo
     {
-        public readonly EpgServiceInfo serviceInfo;
-        public readonly List<EpgEventInfo> eventList;
         public readonly List<EpgEventInfo> eventArcList;
-        public readonly List<EpgEventInfo> eventMergeList;
+        public IEnumerable<EpgEventInfo> eventMergeList { get { return eventList.Concat(eventArcList); } }
+        //public readonly List<EpgEventInfo> eventMergeList;
         public EpgServiceAllEventInfo(EpgServiceInfo serviceInfo, List<EpgEventInfo> eventList = null, List<EpgEventInfo> eventArcList = null)
         {
             this.serviceInfo = serviceInfo;
             this.eventList = eventList ?? new List<EpgEventInfo>();
             this.eventArcList = eventArcList ?? new List<EpgEventInfo>();
 
+            /* 現在は重複情報は無いようなので、突き合わせは省略する。
             //基本情報のEPGデータだけ未更新だったりするときがあるようなので一応重複確認する
             //重複排除は開始時刻のみチェックなので、幾つかに分割されている場合などは不十分になる
             //過去番組はアーカイブを優先する
@@ -30,6 +30,7 @@ namespace EpgTimer
             {
                 this.eventMergeList = this.eventList.Count != 0 ? eventList : this.eventArcList;
             }
+            */
         }
 
         public static Dictionary<UInt64, EpgServiceAllEventInfo> CreateEpgServicDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2)
@@ -59,7 +60,7 @@ namespace EpgTimer
                 {
                     eInfo.service_name = "[廃]" + eInfo.service_name;
                 }
-                info.eventMergeList.ForEach(data => data.ServiceName = eInfo.service_name);
+                foreach (var data in info.eventMergeList) data.ServiceName = eInfo.service_name;
             }
             return serviceDic;
         }
@@ -475,7 +476,7 @@ namespace EpgTimer
                 foreach (var info in ServiceEventList.Values)
                 {
                     //通常あり得ないがUID被りは後優先。
-                    info.eventMergeList.ForEach(data => EventUIDList[data.CurrentPgUID()] = data);
+                    foreach (var data in info.eventMergeList) EventUIDList[data.CurrentPgUID()] = data;
                 }
 
                 //リモコンIDの登録
@@ -516,7 +517,7 @@ namespace EpgTimer
                 foreach (var info in serviceDic.Values)
                 {
                     EpgServiceAllEventInfo eInfo;
-                    if (ServiceEventList.TryGetValue(info.serviceInfo.Key, out eInfo))
+                    if (ServiceEventList.TryGetValue(info.serviceInfo.Create64Key(), out eInfo))
                     {
                         info.serviceInfo = eInfo.serviceInfo;
                     }

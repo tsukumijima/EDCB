@@ -118,22 +118,6 @@ namespace EpgTimer
 
             UpdateViewSelection(0);
         }
-        private void MoveViewEpgTarget()
-        {
-            if (DataView is EpgViewBase)
-            {
-                //BeginInvokeはフォーカス対応
-                MenuUtil.CheckJumpTab(new SearchItem(eventInfo), true);
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    DataView.MoveToProgramItem(eventInfo);
-                }), DispatcherPriority.Loaded);
-            }
-            else
-            {
-                UpdateViewSelection(3);
-            }
-        }
         private void CheckData(bool recSetChange = true)
         {
             List<ReserveData> list = GetReserveList();
@@ -215,11 +199,11 @@ namespace EpgTimer
             var style = JumpItemStyle.MoveTo | (mode < 2 ? JumpItemStyle.PanelNoScroll : JumpItemStyle.None);
             if (DataView is EpgMainViewBase)
             {
-                if (mode != 2) DataView.MoveToProgramItem(eventInfo, style);
+                if (mode != 2) DataView.MoveToItem(DataID, style);
             }
             else if (DataView is EpgListMainView)//mode=0で実行させると重複予約アイテムの選択が解除される。
             {
-                if (mode != 0 && mode != 2) DataView.MoveToProgramItem(eventInfo, style);
+                if (mode != 0 && mode != 2) DataView.MoveToItem(DataID, style);
             }
             else if (DataView is SearchWindow.AutoAddWinListView)
             {
@@ -228,6 +212,22 @@ namespace EpgTimer
             else if (mainWindow.reserveView.IsVisible == true)
             {
                 if (mode == 2) mainWindow.reserveView.MoveToItem(0, style);//予約一覧での選択解除
+            }
+        }
+        private void MoveViewEpgTarget()
+        {
+            if (DataView is EpgViewBase)
+            {
+                //BeginInvokeはフォーカス対応
+                MenuUtil.CheckJumpTab(new SearchItem(eventInfo), true);
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    DataView.MoveToItem(DataID);
+                }), DispatcherPriority.Loaded);
+            }
+            else
+            {
+                UpdateViewSelection(3);
             }
         }
     }

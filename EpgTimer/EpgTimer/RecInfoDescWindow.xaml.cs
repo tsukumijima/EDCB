@@ -4,9 +4,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace EpgTimer
 {
+    using EpgView;
+
     /// <summary>
     /// RecInfoDescWindow.xaml の相互作用ロジック
     /// </summary>
@@ -14,7 +17,7 @@ namespace EpgTimer
     {
         protected override UInt64 DataID { get { return recInfo.ID; } }
         protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return CommonManager.Instance.DB.RecFileInfo.Select(d => new KeyValuePair<UInt64, object>(d.Key, d.Value)); } }
-        protected override DataItemViewBase DataView { get { return mainWindow.recInfoView; } }
+        protected override DataItemViewBase DataView { get { return base.DataView ?? mainWindow.recInfoView; } }
 
         private RecFileInfo recInfo = new RecFileInfo();
         private CmdExeRecinfo mc;
@@ -36,6 +39,7 @@ namespace EpgTimer
                 mc.AddReplaceCommand(EpgCmds.Cancel, (sender, e) => this.Close());
                 mc.AddReplaceCommand(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1));
                 mc.AddReplaceCommand(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1));
+                mc.AddReplaceCommand(EpgCmds.Search, (sender, e) => MoveViewRecinfoTarget(), (sender, e) => e.CanExecute = DataView is EpgViewBase);
                 mc.AddReplaceCommand(EpgCmds.DeleteInDialog, info_del, (sender, e) => e.CanExecute = recInfo.ID != 0 && recInfo.ProtectFlag == 0);
                 mc.AddReplaceCommand(EpgCmds.ChgOnOffCheck, (sender, e) => EpgCmds.ProtectChange.Execute(null, this));
 
@@ -48,6 +52,7 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_cancel, EpgCmds.Cancel);
                 mBinds.SetCommandToButton(button_up, EpgCmds.BackItem);
                 mBinds.SetCommandToButton(button_down, EpgCmds.NextItem);
+                mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
                 mBinds.SetCommandToButton(button_del, EpgCmds.DeleteInDialog);
                 mBinds.AddInputCommand(EpgCmds.ProtectChange);//ショートカット登録
                 RefreshMenu();
@@ -85,16 +90,18 @@ namespace EpgTimer
             DataContext = new RecInfoItem(info);
 
             //Appendデータが無くなる場合を考慮し、テキストはrecInfoと連動させない
-            if (recInfo == data) return;
-
-            recInfo = info;
-            this.Title = ViewUtil.WindowTitleText(recInfo.Title, "録画情報");
-            if (recInfo.ProgramInfo == null)//.program.txtがない
+            if (recInfo != data)
             {
-                recInfo.ProgramInfo = CommonManager.ConvertProgramText(MenuUtil.GetPgInfo(recInfo, true), EventInfoTextMode.All);
+                recInfo = info;
+                this.Title = ViewUtil.WindowTitleText(recInfo.Title, "録画情報");
+                if (recInfo.ID != 0 && recInfo.ProgramInfo == null)//.program.txtがない
+                {
+                    recInfo.ProgramInfo = CommonManager.ConvertProgramText(MenuUtil.GetPgInfo(recInfo, true), EventInfoTextMode.All);
+                }
+                textBox_pgInfo.Text = recInfo.ProgramInfo;
+                textBox_errLog.Text = recInfo.ErrInfo;
             }
-            textBox_pgInfo.Text = recInfo.ProgramInfo;
-            textBox_errLog.Text = recInfo.ErrInfo;
+            UpdateViewSelection(0);
         }
 
         private void info_del(object sender, ExecutedRoutedEventArgs e)
@@ -102,6 +109,68 @@ namespace EpgTimer
             EpgCmds.Delete.Execute(e.Parameter, this);
             if (mc.IsCommandExecuted == true) MoveViewNextItem(1);
         }
+
+        protected override void UpdateViewSelection(int mode = 0)
+        {
+            //番組表では「前へ」「次へ」の移動の時だけ追従させる。mode=2はアクティブ時の自動追尾
+            var style = JumpItemStyle.MoveTo | (mode < 2 ? JumpItemStyle.PanelNoScroll : JumpItemStyle.None);
+            if (DataView is RecInfoView)
+            {
+                if (mode != 0) DataView.MoveToItem(DataID, style);
+            }
+            else if (DataView is EpgMainViewBase)
+            {
+                if (mode != 2) ((EpgMainViewBase)DataView).MoveToRecInfoItem(recInfo, style);
+            }
+            else if (DataView is EpgListMainView)
+            {
+                if (mode != 0 && mode != 2) DataView.MoveToItem(recInfo.CurrentPgUID(), style);
+            }
+            else if (DataView is SearchWindow.AutoAddWinListView)
+            {
+                if (mode != 0) DataView.MoveToItem(recInfo.CurrentPgUID(), style);
+            }
+        }
+        private void MoveViewRecinfoTarget()
+        {
+            //一覧以外では「前へ」「次へ」の移動の時に追従させる
+            if (DataView is EpgViewBase)
+            {
+                EpgEventInfo epgInfo = CtrlCmdDefEx.ConvertRecInfoToEpgEventInfo(recInfo);
+                //BeginInvokeはフォーカス対応
+                MenuUtil.CheckJumpTab(new SearchItem(epgInfo), true);
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (DataView is EpgMainViewBase)
+                    {
+                        ((EpgMainViewBase)DataView).MoveToRecInfoItem(recInfo);
+                    }
+                    else
+                    {
+                        DataView.MoveToItem(recInfo.CurrentPgUID());
+                    }
+                }), DispatcherPriority.Loaded);
+            }
+            else
+            {
+                UpdateViewSelection(3);
+            }
+        }
+        protected override void MoveViewNextItem(int direction, bool toRefData = false)
+        {
+            object NewData = null;
+            if (DataView is EpgViewBase || DataView is SearchWindow.AutoAddWinListView)
+            {
+                NewData = DataView.MoveNextRecinfo(direction, recInfo.CurrentPgUID(), true, JumpItemStyle.MoveTo);
+                if (NewData is RecFileInfo)
+                {
+                    ChangeData(NewData);
+                    return;
+                }
+                toRefData = true;
+            }
+            base.MoveViewNextItem(direction, toRefData);
+        }
     }
-    public class RecInfoDescWindowBase : AttendantDataWindow<RecInfoDescWindow> { }
+    public class RecInfoDescWindowBase : ReserveWindowBase<RecInfoDescWindow> { }
 }

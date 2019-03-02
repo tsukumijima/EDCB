@@ -58,7 +58,7 @@ namespace EpgTimer.EpgView
                 //並び順はViewServiceListによる。eventListはこの後すぐ作り直すのでとりあえずそのままもらう。
                 ServiceEventList = EpgTabInfo.ViewServiceList.Distinct()
                     .Where(id => serviceDic.ContainsKey(id) == true).Select(id => serviceDic[id])
-                    .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList }).ToList();
+                    .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList.ToList() }).ToList();
 
                 EventUIDList = new Dictionary<ulong, EpgEventInfo>();
                 var viewContentMatchingHash = new HashSet<UInt32>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));

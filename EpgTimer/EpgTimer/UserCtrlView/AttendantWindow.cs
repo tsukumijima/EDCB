@@ -193,9 +193,9 @@ namespace EpgTimer
         {
             if (DataView != null && DataView.IsVisible == true) DataView.MoveToItem(DataID);
         }
-        protected virtual void MoveViewNextItem(int direction)
+        protected virtual void MoveViewNextItem(int direction, bool toRefData = false)
         {
-            object NewData = DataView == null || DataView.IsVisible == false ? null : DataView.MoveNextItem(direction, DataID, true, JumpItemStyle.None);
+            object NewData = toRefData || DataView == null || DataView.IsVisible == false ? null : DataView.MoveNextItem(direction, DataID, true, JumpItemStyle.None);
             if (NewData == null)
             {
                 IEnumerable<KeyValuePair<UInt64, object>> idList = DataRefList;

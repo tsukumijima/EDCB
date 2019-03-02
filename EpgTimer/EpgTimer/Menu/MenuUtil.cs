@@ -953,14 +953,16 @@ namespace EpgTimer
             if (pg != null || isSrv == false) return pg;
 
             //過去番組情報を探してみる
-            var arcList = new List<EpgServiceEventInfo>();
-            if (CommonManager.CreateSrvCtrl().SendEnumPgArc(new List<long> { 0, (long)item.Create64Key(),
-                    item.PgStartTime.ToFileTimeUtc(), item.PgStartTime.ToFileTimeUtc() + 1 }, ref arcList) == ErrCode.CMD_SUCCESS &&
-                arcList.Count > 0)
+            if (item.PgStartTime > new DateTime(2001, 1, 1))
             {
-                return arcList[0].eventList.FirstOrDefault();
+                var arcList = new List<EpgServiceEventInfo>();
+                if (CommonManager.CreateSrvCtrl().SendEnumPgArc(new List<long> { 0, (long)item.Create64Key(),
+                    item.PgStartTime.ToFileTimeUtc(), item.PgStartTime.ToFileTimeUtc() + 1 }, ref arcList) == ErrCode.CMD_SUCCESS &&
+                    arcList.Count > 0)
+                {
+                    return arcList[0].eventList.FirstOrDefault();
+                }
             }
-
             //現在番組情報も探してみる ※EPGデータ未読み込み時で、録画直後の場合
             var list = new List<EpgEventInfo>();
             if (CommonManager.CreateSrvCtrl().SendGetPgInfoList(CommonUtil.ToList(item.Create64PgKey()), ref list) == ErrCode.CMD_SUCCESS)
@@ -999,7 +1001,7 @@ namespace EpgTimer
             {
                 EpgServiceAllEventInfo sInfo;
                 CommonManager.Instance.DB.ServiceEventList.TryGetValue(key, out sInfo);
-                if (sInfo != null) eventList = sInfo.eventMergeList;
+                if (sInfo != null) eventList = sInfo.eventMergeList.ToList();
             }
 
             double dist = double.MaxValue;
@@ -1057,10 +1059,15 @@ namespace EpgTimer
 
         public static RecFileInfo GetRecFileInfo(IAutoAddTargetData data)
         {
+            List<RecFileInfo> list = GetRecFileInfoList(data);
+            return list == null ? null : list.FirstOrDefault();
+        }
+        public static List<RecFileInfo> GetRecFileInfoList(IAutoAddTargetData data)
+        {
             if (data == null) return null;
             List<RecFileInfo> list = null;
             CommonManager.Instance.DB.RecFileUIDList.TryGetValue(data.CurrentPgUID(), out list);
-            return list == null ? null : list.FirstOrDefault();
+            return list ?? new List<RecFileInfo>();
         }
 
         public static void JumpTab(object target, CtxmCode trg_code)

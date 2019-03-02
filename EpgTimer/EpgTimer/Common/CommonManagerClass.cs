@@ -402,6 +402,11 @@ namespace EpgTimer
             }
             return Key16;
         }
+        public static UInt64 Reverse64Key(UInt64 key64)
+        {
+            UInt16 Key16 = (UInt16)(key64 >> 16);
+            return chKey64to16Dic.FirstOrDefault(item => item.Value == Key16).Key;
+        }
         public static UInt64 Create64Key(UInt16 ONID, UInt16 TSID, UInt16 SID)
         {
             return ((UInt64)ONID) << 32 | ((UInt64)TSID) << 16 | (UInt64)SID;

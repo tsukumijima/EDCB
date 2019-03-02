@@ -529,19 +529,20 @@ namespace EpgTimer
                 UpdateViewSelection(3);
             }
         }
-        protected override void MoveViewNextItem(int direction)
+        protected override void MoveViewNextItem(int direction, bool toRefData = false)
         {
             object NewData = null;
             if (DataView is EpgViewBase || DataView is SearchWindow.AutoAddWinListView)
             {
                 NewData = DataView.MoveNextReserve(direction, DataID, true, JumpItemStyle.None);
-                if (NewData != null)
+                if (NewData is ReserveData)
                 {
                     ChangeData(NewData);
                     return;
                 }
+                toRefData = true;
             }
-            base.MoveViewNextItem(direction);
+            base.MoveViewNextItem(direction,toRefData);
         }
     }
     public class ChgReserveWindowBase : ReserveWindowBase<ChgReserveWindow> { }

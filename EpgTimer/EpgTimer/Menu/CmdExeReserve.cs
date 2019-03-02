@@ -23,11 +23,12 @@ namespace EpgTimer
         protected bool HasList { get { return _getSearchList != null; } }
         protected bool IsMultiReserve { get { return eventList.Count != 0 && eventListEx.Count == 0; } }
         protected IAutoAddTargetData headData = null;//メニューオープン時に使用
-        protected IAutoAddTargetData headDataRec = null;//録画済みデータの場合
         protected IAutoAddTargetData headDataEv = null;//番組情報優先先頭データ。headDataは予約情報優先。
         protected List<EpgEventInfo> eventList = new List<EpgEventInfo>();
         protected List<EpgEventInfo> eventListEx = new List<EpgEventInfo>();//reserveData(dataList)とかぶらないもの
         protected List<EpgEventInfo> eventListAdd { get { return IsMultiReserve == true ? eventList : eventListEx; } }
+        protected RecFileInfo headDataRec = null;//録画済みデータの場合
+        protected List<RecFileInfo> recinfoList = new List<RecFileInfo>();
 
         public CmdExeReserve(UIElement owner) : base(owner) { }
         protected override void SetData(bool IsAllData = false)
@@ -43,11 +44,14 @@ namespace EpgTimer
                 eventListEx = searchList.GetNoReserveList();
                 headData = searchList.Count == 0 ? null : searchList[0].IsReserved == true ? searchList[0].ReserveInfo as IAutoAddTargetData : searchList[0].EventInfo;
                 headDataEv = searchList.Count == 0 ? null : searchList[0].EventInfo;
+                recinfoList = eventList.SelectMany(data => MenuUtil.GetRecFileInfoList(data)).ToList();
+                headDataRec = MenuUtil.GetRecFileInfo(eventList.FirstOrDefault());
             }
             else
             {
                 //終了済み録画データの処理
-                headDataRec = dataList.FirstOrDefault(data => data is ReserveDataEnd);
+                recinfoList = dataList.OfType<ReserveDataEnd>().SelectMany(data => MenuUtil.GetRecFileInfoList(data)).ToList();
+                headDataRec = recinfoList.FirstOrDefault();
                 dataList.RemoveAll(data => data is ReserveDataEnd);
 
                 eventList = _getEpgEventList == null ? null : _getEpgEventList();
@@ -65,6 +69,7 @@ namespace EpgTimer
             }
             eventList = eventList.Distinct().ToList();
             eventListEx = eventListEx.Distinct().ToList();
+            recinfoList = recinfoList.Distinct().ToList();
         }
         protected override void ClearData()
         {
@@ -74,6 +79,7 @@ namespace EpgTimer
             headDataEv = null;
             eventList.Clear();
             eventListEx.Clear();
+            recinfoList.Clear();
         }
         protected override object SelectSingleData(bool noChange = false)
         {
@@ -94,6 +100,10 @@ namespace EpgTimer
             if (dataList.Count != 0 && CmdExeUtil.ReadIdData(e) != 1)
             {
                 IsCommandExecuted = true == MenuUtil.OpenChangeReserveDialog(dataList[0], EpgInfoOpenMode);
+            }
+            else if (headDataRec != null && (eventListAdd.Count == 0 || eventListAdd[0].IsOver()))
+            {
+                IsCommandExecuted = true == MenuUtil.OpenRecInfoDialog(headDataRec);
             }
             else if (eventListAdd.Count != 0)
             {
@@ -157,8 +167,13 @@ namespace EpgTimer
         }
         protected override void mc_Delete(object sender, ExecutedRoutedEventArgs e)
         {
-            if (mcs_DeleteCheck(e) == false) return;
-            IsCommandExecuted = MenuUtil.ReserveDelete(dataList);
+            List<ReserveData> resList = dataList.ToList();
+            if (e.Command == EpgCmds.DeleteAll) recinfoList.Clear();
+            recinfoList = recinfoList.GetNoProtectedList();
+            dataList.AddRange(recinfoList.Select(info => new ReserveDataEnd { Title = "[録画済み] " + info.Title }));
+
+            if (mcs_DeleteCheck(e) == false || CmdExeRecinfo.mcs_DeleteCheckDelFile(recinfoList) == false) return;
+            IsCommandExecuted = MenuUtil.ReserveDelete(resList) && MenuUtil.RecinfoDelete(recinfoList);
         }
         protected override SearchItem mcs_GetSearchItem()
         {
@@ -178,7 +193,7 @@ namespace EpgTimer
         }
         protected override RecFileInfo mcs_GetRecInfoItem()
         {
-            return MenuUtil.GetRecFileInfo(HasList == true ? headDataEv : headDataRec);
+            return headDataRec;
         }
         protected override void mc_ToAutoadd(object sender, ExecutedRoutedEventArgs e)
         {
@@ -209,8 +224,16 @@ namespace EpgTimer
         }
         protected override void mc_Play(object sender, ExecutedRoutedEventArgs e)
         {
-            if (dataList.Count == 0) return;
-            CommonManager.Instance.FilePlay(dataList[0]);
+            if(CmdExeUtil.ReadIdData(e)==0)
+            {
+                if (dataList.Count == 0) return;
+                CommonManager.Instance.FilePlay(dataList[0]);
+            }
+            else
+            {
+                if (headDataRec == null) return;
+                CommonManager.Instance.FilePlay(headDataRec.RecFilePath);
+            }
             IsCommandExecuted = true;
         }
         protected override void mc_CopyTitle(object sender, ExecutedRoutedEventArgs e)
@@ -252,7 +275,7 @@ namespace EpgTimer
             var view = (menu.CommandParameter as EpgCmdParam).Code;
 
             //有効無効制御の追加分。予約データが無ければ無効
-            new List<ICommand> { EpgCmdsEx.ChgMenu, EpgCmds.CopyItem, EpgCmds.Delete, EpgCmds.DeleteAll, EpgCmds.Play, EpgCmds.SetRecTag }.ForEach(icmd =>
+            new List<ICommand> { EpgCmdsEx.ChgMenu, EpgCmds.CopyItem, EpgCmds.DeleteAll, EpgCmds.Play, EpgCmds.SetRecTag }.ForEach(icmd =>
             {
                 if (menu.Tag == icmd) menu.IsEnabled = dataList.Count != 0;
             });
@@ -317,6 +340,10 @@ namespace EpgTimer
                 mcs_chgMenuOpening(menu);
                 mcs_SetSingleMenuEnabled(menu, headData is ReserveData);
             }
+            else if(menu.Tag==EpgCmds.Delete)
+            {
+                menu.IsEnabled = dataList.Any() || recinfoList.GetNoProtectedList().Any();
+            }
             else if (menu.Tag == EpgCmds.JumpReserve)
             {
                 mcs_ctxmLoading_jumpTabRes(menu);
@@ -325,7 +352,7 @@ namespace EpgTimer
             else if (menu.Tag == EpgCmds.JumpRecInfo)
             {
                 //予約状況によってはJumpReserveと両方表示する場合もある
-                menu.IsEnabled = mcs_GetRecInfoItem() != null;
+                menu.IsEnabled = headDataRec != null;
                 menu.Visibility = menu.IsEnabled || headDataEv != null && headDataEv.IsOver() == true ? Visibility.Visible : Visibility.Collapsed;
             }
             else if (menu.Tag == EpgCmds.JumpTuner)
@@ -352,23 +379,33 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmds.Play)
             {
-                menu.IsEnabled = false;
-                var info = headData as ReserveData;
-                if (info != null && info.IsEnabled == true)
+                //予約状況によっては予約用と録画済み用の両方表示する場合もある
+                if ((menu.CommandParameter as EpgCmdParam).ID == 0)
                 {
-                    if (info.IsOnRec() == true)
+                    menu.IsEnabled = false;
+                    var info = headData as ReserveData;
+                    if (info != null && info.IsEnabled == true)
                     {
-                        menu.IsEnabled = true;
+                        if (info.IsOnRec() == true)
+                        {
+                            menu.IsEnabled = true;
+                        }
+                        else
+                        {
+                            menu.ToolTip = "まだ録画が開始されていません。";
+                        }
                     }
-                    else
-                    {
-                        menu.ToolTip = "まだ録画が開始されていません。";
-                    }
+                    menu.Visibility = menu.IsEnabled || (headDataEv is EpgEventInfo && !headDataEv.IsOver()) ? Visibility.Visible : Visibility.Collapsed;
+                }
+                else
+                {
+                    menu.IsEnabled = headDataRec != null;
+                    menu.Visibility = menu.IsEnabled || (headDataEv is EpgEventInfo && headDataEv.IsOver()) ? Visibility.Visible : Visibility.Collapsed;
                 }
             }
             else if (menu.Tag == EpgCmdsEx.OpenFolderMenu)
             {
-                mm.CtxmGenerateOpenFolderItems(menu, headData is ReserveData ? dataList[0].RecSetting : null);
+                mm.CtxmGenerateOpenFolderItems(menu, headData is ReserveData ? dataList[0].RecSetting : null, headDataRec != null ? headDataRec.RecFilePath : null);
             }
             else if (menu.Tag == EpgCmdsEx.ViewMenu)
             {
