@@ -4,6 +4,8 @@ using System.Linq;
 
 namespace EpgTimer
 {
+    //同じ文字列がListBoxで同じアイテム扱いになるのを回避するためのラッピングクラス。
+    //その上で重複管理用にはEqualityComparerを使う。
     public class StringItem
     {
         public StringItem() { }
@@ -15,7 +17,7 @@ namespace EpgTimer
         public static IEnumerable<StringItem> Items(string s) { return new List<StringItem> { new StringItem(s) }; }
         public static IEnumerable<StringItem> Items(IEnumerable<string> list) { return list.Select(s => new StringItem(s)); }
         public static Func<object, object> Cloner { get { return obj => new StringItem(obj as StringItem); } }
-        public static StringItemComparer Comparator { get { return new StringItemComparer(); } }
+        public static readonly StringItemComparer Comparator = new StringItemComparer();
 
         //重複アイテムの管理用
         public class StringItemComparer : EqualityComparer<object>
@@ -24,12 +26,10 @@ namespace EpgTimer
             {
                 return x is StringItem && y is StringItem && (x as StringItem).Value == (y as StringItem).Value;
             }
-            public override bool Equals(object obj) { return Equals(this, obj); }
             public override int GetHashCode(object obj)
             {
                 return obj is StringItem == false ? 0 : (obj as StringItem).Value.GetHashCode();
             }
-            public override int GetHashCode() { return GetHashCode(this); }
         }
     }
     static public class StringItemEx

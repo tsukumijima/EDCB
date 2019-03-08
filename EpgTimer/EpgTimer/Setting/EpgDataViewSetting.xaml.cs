@@ -16,7 +16,6 @@ namespace EpgTimer
         private CustomEpgTabInfo info { get { return DataContext as CustomEpgTabInfo; } }
         private EpgSearchKeyInfo searchKey = new EpgSearchKeyInfo();
         private RadioBtnSelect viewModeRadioBtns;
-        private ServiceViewItem.ServiceViewItemComparer comparer = ServiceViewItem.Comparator;
 
         public EpgDataViewSetting()
         {
@@ -111,7 +110,7 @@ namespace EpgTimer
         private void listBox_Button_Set()
         {
             bxs = new BoxExchangeEditor(null, this.listBox_serviceView, true, true, true, true);
-            bxs.ItemComparer = comparer;
+            bxs.ItemComparer = ServiceViewItem.Comparator;
 
             //サービス選択関係はソースの ListView が複数あるので、全ての ListViewItem にイベントを追加する。
             foreach (TabItem tab in tab_ServiceList.Items)
@@ -325,8 +324,8 @@ namespace EpgTimer
                 var oldList = listBox_serviceView.Items.OfType<object>().ToList();
                 var newList = searchKey.serviceList.Select(id => new ServiceViewItem((ulong)id)).ToList();
                 listBox_serviceView.UnselectAll();
-                listBox_serviceView.Items.RemoveItems(oldList.Where(sv => newList.Contains(sv, comparer) == false));
-                listBox_serviceView.Items.AddItems(newList.Where(sv => oldList.Contains(sv, comparer) == false));
+                listBox_serviceView.Items.RemoveItems(oldList.Where(sv => newList.Contains(sv, ServiceViewItem.Comparator) == false));
+                listBox_serviceView.Items.AddItems(newList.Where(sv => oldList.Contains(sv, ServiceViewItem.Comparator) == false));
 
                 //ジャンルリストの同期はオプションによる
                 if (tabInfo.SearchGenreNoSyncView == false)

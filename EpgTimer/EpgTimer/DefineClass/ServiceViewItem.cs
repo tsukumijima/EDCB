@@ -59,20 +59,18 @@ namespace EpgTimer
         }
         public override string ToString() { return ServiceName; }
 
-        //BoxExchangeEditor用
-        public static ServiceViewItemComparer Comparator { get { return new ServiceViewItemComparer(); } }
+        //BoxExchangeEditor用。Equalsをoverrideすると他に影響あるのでIEqualityComparerを使用する。
+        public static readonly ServiceViewItemComparer Comparator = new ServiceViewItemComparer();
         public class ServiceViewItemComparer : EqualityComparer<object>
         {
             public override bool Equals(object x, object y)
             {
                 return x is ServiceViewItem && y is ServiceViewItem && (x as ServiceViewItem).Key == (y as ServiceViewItem).Key;
             }
-            public override bool Equals(object obj) { return Equals(this, obj); }
             public override int GetHashCode(object obj)
             {
                 return obj is ServiceViewItem == false ? 0 : (obj as ServiceViewItem).Key.GetHashCode();
             }
-            public override int GetHashCode() { return GetHashCode(this); }
         }
     }
 }
