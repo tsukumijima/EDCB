@@ -15,7 +15,7 @@
         <DockPanel>
             <TabControl Name="dummyTab" DockPanel.Dock="Top" Visibility="Hidden" />
             <DockPanel>
-                <DockPanel Name="grid_viewMode">
+                <DockPanel Name="grid_viewMode" Background="Transparent">
                     <TextBlock Text="表示モード" DockPanel.Dock="Top" Margin="4,0,0,3" Foreground="DarkGray" >
                         <TextBlock.LayoutTransform>
                             <TransformGroup>
@@ -52,7 +52,6 @@
                         <TabItem Uid="1" DataContext="1週間" />
                         <TabItem Uid="2" DataContext="リスト表示" />
                     </TabControl>
-                    <Label VerticalAlignment="Stretch"/>
                 </DockPanel>
                 <Grid Name="grid_tab"/>
             </DockPanel>

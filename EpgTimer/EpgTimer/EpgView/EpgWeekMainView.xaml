@@ -16,8 +16,10 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ComboBox Grid.Column="1" Height="23" HorizontalAlignment="Left" Name="comboBox_service" Width="227" SelectedValuePath="Key" DisplayMemberPath="Value" SelectionChanged="comboBox_service_SelectionChanged"/>
-        <Button Grid.Column="1" Content="標準モード" Height="23" HorizontalAlignment="Left" Margin="233,0,0,0" Name="button_go_Main" Width="66" />
+        <DockPanel Grid.Column="1" Background="Transparent" MouseRightButtonUp="button_erea_MouseRightButtonUp" >
+            <ComboBox Height="23" Margin="15,0,0,0" HorizontalAlignment="Left" Name="comboBox_service" Width="227" SelectedValuePath="Key" DisplayMemberPath="Value" SelectionChanged="comboBox_service_SelectionChanged"/>
+            <Button Content="標準モード" Height="23" HorizontalAlignment="Left" Margin="6,0,0,0" Name="button_go_Main" Width="66" />
+        </DockPanel>
         <Button Grid.Row="1" Name="button_now" Content="現在" Padding="1" VerticalAlignment="Stretch" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
         <local:TimeView Grid.Row="2" x:Name="timeView" Margin="0,0,0,17" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
         <local:WeekDayView Grid.Column="1" Grid.Row="1" x:Name="weekDayView" Margin="0,0,17,0" MouseRightButtonUp="button_erea_MouseRightButtonUp" />

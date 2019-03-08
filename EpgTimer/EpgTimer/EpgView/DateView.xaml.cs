@@ -39,6 +39,7 @@ namespace EpgTimer.EpgView
                 if (itemTime.DayOfWeek == DayOfWeek.Saturday) day.Foreground = Brushes.Blue;
                 if (itemTime.DayOfWeek == DayOfWeek.Sunday) day.Foreground = Brushes.Red;
                 day.Tag = itemTime;
+                day.Height = 21;
                 day.Click += (sender, e) => TimeButtonClick((DateTime)((Button)sender).Tag, true);//itemTimeはC#4以下でNG
                 uniformGrid_day.Children.Add(day);
 
@@ -48,6 +49,7 @@ namespace EpgTimer.EpgView
                     hour.Padding = new Thickness(1);
                     hour.Content = new TextBlock { Text = i.ToString() };
                     hour.Tag = itemTime.AddHours(i);
+                    hour.Height = 21;
                     hour.Click += (sender, e) => TimeButtonClick((DateTime)((Button)sender).Tag, false);
                     uniformGrid_time.Children.Add(hour);
                 }
