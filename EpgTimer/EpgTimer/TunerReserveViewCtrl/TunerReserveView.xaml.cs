@@ -47,8 +47,8 @@ namespace EpgTimer.TunerReserveViewCtrl
                 reserveViewPanel.Items = reserveList;
                 reserveViewPanel.InvalidateVisual();
 
-                PopUpWork();
-                TooltipWork();
+                PopupClear();
+                TooltipClear();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

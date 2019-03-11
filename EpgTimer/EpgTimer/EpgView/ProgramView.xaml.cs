@@ -133,6 +133,8 @@ namespace EpgTimer.EpgView
             try
             {
                 ClearReserveViewPanel();
+                PopupClear();
+                TooltipClear();
 
                 var AddRect = new Func<ReserveViewItem, int, object, Rectangle>((info, zIdx, tag) =>
                 {
@@ -154,9 +156,6 @@ namespace EpgTimer.EpgView
                     var fillOnlyRect = Settings.Instance.ReserveRectFillWithShadow ? null : AddRect(info, 9, null);
                     SetReserveBorderColor(info, rect, fillOnlyRect);
                 }
-
-                PopUpWork();
-                TooltipWork();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
