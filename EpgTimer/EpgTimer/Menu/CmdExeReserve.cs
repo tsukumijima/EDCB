@@ -19,7 +19,7 @@ namespace EpgTimer
 
         public RecSettingView recSettingView { get; set; }
 
-        protected override int ItemCount { get { return dataList.Count + eventListEx.Count; } }
+        protected override int ItemCount { get { return dataList.Count  + eventListEx.Count + recinfoList.Count; } }
         protected bool HasList { get { return _getSearchList != null; } }
         protected bool IsMultiReserve { get { return eventList.Count != 0 && eventListEx.Count == 0; } }
         protected IAutoAddTargetData headData = null;//メニューオープン時に使用
@@ -117,7 +117,7 @@ namespace EpgTimer
         protected override void mc_ChangeOnOff(object sender, ExecutedRoutedEventArgs e)
         {
             //多数アイテム処理の警告。合計数に対して出すので、結構扱いづらい。
-            if (MenuUtil.CautionManyMessage(this.ItemCount, "簡易予約/有効←→無効") == false) return;
+            if (MenuUtil.CautionManyMessage(dataList.Count + eventListEx.Count, "簡易予約/有効←→無効") == false) return;
 
             bool ret1 = MenuUtil.ReserveChangeOnOff(dataList, this.recSettingView, false);
             var eList = dataList.Count == 0 ? eventListEx :
@@ -181,6 +181,10 @@ namespace EpgTimer
             {
                 return new ReserveItem(dataList[0]);
             }
+            else if (recinfoList.Count != 0)//予約情報優先
+            {
+                return new ReserveItem(CtrlCmdDefEx.ConvertRecInfoToReserveData(recinfoList[0]));
+            }
             else if (eventList.Count != 0)
             {
                 return new SearchItem(eventList[0]);
@@ -217,9 +221,13 @@ namespace EpgTimer
                 resData = dataList[0];
                 eventRefData = new ReserveItem(resData).EventInfo ?? (IBasicPgInfo)resData;
             }
+            else if(recinfoList.Count!=0)
+            {
+                eventRefData = recinfoList[0];
+            }
 
             var key = MenuUtil.SendAutoAddKey(eventRefData, CmdExeUtil.IsKeyGesture(e));
-            MenuUtil.SendAutoAdd(resData, CmdExeUtil.IsKeyGesture(e), key);
+            MenuUtil.SendAutoAdd(resData ?? eventRefData, CmdExeUtil.IsKeyGesture(e), key);
             IsCommandExecuted = true;
         }
         protected override void mc_Play(object sender, ExecutedRoutedEventArgs e)
@@ -239,8 +247,8 @@ namespace EpgTimer
         protected override void mc_CopyTitle(object sender, ExecutedRoutedEventArgs e)
         {
             //番組情報優先
-            MenuUtil.CopyTitle2Clipboard(headDataEv.DataTitle, CmdExeUtil.IsKeyGesture(e));
-            IsCommandExecuted = true; //itemCount!=0 だが、この条件はこの位置では常に満たされている。
+            MenuUtil.CopyTitle2Clipboard((headDataEv ?? headDataRec).DataTitle, CmdExeUtil.IsKeyGesture(e));
+            IsCommandExecuted = true; 
         }
         protected override void mc_CopyContent(object sender, ExecutedRoutedEventArgs e)
         {
@@ -252,17 +260,21 @@ namespace EpgTimer
             {
                 MenuUtil.CopyContent2Clipboard(dataList[0], CmdExeUtil.IsKeyGesture(e));
             }
+            else if (recinfoList.Count != 0)
+            {
+                MenuUtil.CopyContent2Clipboard(recinfoList[0], CmdExeUtil.IsKeyGesture(e));
+            }
             IsCommandExecuted = true;
         }
         protected override void mc_InfoSearchTitle(object sender, ExecutedRoutedEventArgs e)
         {
             //番組情報優先
-            IsCommandExecuted = true == MenuUtil.OpenInfoSearchDialog(headDataEv.DataTitle, CmdExeUtil.IsKeyGesture(e));
+            IsCommandExecuted = true == MenuUtil.OpenInfoSearchDialog((headDataEv ?? headDataRec).DataTitle, CmdExeUtil.IsKeyGesture(e));
         }
         protected override void mc_SearchTitle(object sender, ExecutedRoutedEventArgs e)
         {
             //番組情報優先
-            MenuUtil.SearchTextWeb(headDataEv.DataTitle, CmdExeUtil.IsKeyGesture(e));
+            MenuUtil.SearchTextWeb((headDataEv ?? headDataRec).DataTitle, CmdExeUtil.IsKeyGesture(e));
             IsCommandExecuted = true;
         }
         protected override void mc_SetRecTag(object sender, ExecutedRoutedEventArgs e)
@@ -293,6 +305,7 @@ namespace EpgTimer
             //switch使えないのでifで回す。
             if (menu.Tag == EpgCmds.ChgOnOff)
             {
+                menu.IsEnabled = dataList.Count + eventListEx.Count != 0;
                 menu.Header = view == CtxmCode.ReserveView || dataList.Count != 0 ? "予約←→無効" : "簡易予約";
                 //予約データの有無で切り替える。
                 if (dataList.Count == 0)
@@ -340,7 +353,7 @@ namespace EpgTimer
                 mcs_chgMenuOpening(menu);
                 mcs_SetSingleMenuEnabled(menu, headData is ReserveData);
             }
-            else if(menu.Tag==EpgCmds.Delete)
+            else if (menu.Tag == EpgCmds.Delete)
             {
                 menu.IsEnabled = dataList.Any() || recinfoList.GetNoProtectedList().Any();
             }
@@ -424,7 +437,7 @@ namespace EpgTimer
 
             string cmdMsg = cmdMessage[icmd];
 
-            int procCount = (icmd == EpgCmds.Add || icmd == EpgCmds.AddOnPreset) ? eventListAdd.Count : ItemCount;
+            int procCount = (icmd == EpgCmds.Add || icmd == EpgCmds.AddOnPreset) ? eventListAdd.Count : dataList.Count + eventListEx.Count;
             if (procCount == 0) return null;
 
             if (icmd == EpgCmds.ChgOnOff)

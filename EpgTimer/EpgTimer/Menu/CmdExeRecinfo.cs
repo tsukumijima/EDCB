@@ -48,12 +48,12 @@ namespace EpgTimer
         {
             if (dataList.Count == 0) return null;
 
-            EpgEventInfo info = null;
+            ReserveData data = null;
             if (dataList[0].IsOver(ViewUtil.EpgKeyTime()) == false)
             {
-                info = CtrlCmdDefEx.ConvertRecInfoToEpgEventInfo(dataList[0]);
+                data = CtrlCmdDefEx.ConvertRecInfoToReserveData(dataList[0]);
             }
-            return info == null ? null : new SearchItem(info);
+            return data == null ? null : new ReserveItem(data);
         }
         protected override void mcs_ctxmLoading_switch(ContextMenu ctxm, MenuItem menu)
         {

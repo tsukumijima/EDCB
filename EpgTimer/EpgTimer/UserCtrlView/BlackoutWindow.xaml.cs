@@ -13,8 +13,10 @@ namespace EpgTimer {
         /// </summary>
         public static object SelectedData = null;
         public static bool HasData { get { return SelectedData != null; } }
+        public static bool HasItemData { get { return SelectedItem != null; } }
 
         public static SearchItem SelectedItem { get { return SelectedData as SearchItem; } }
+        public static AutoAddTargetData ItemData { get { return HasItemData ? (AutoAddTargetData)SelectedItem.ReserveInfo ?? SelectedItem.EventInfo : null; } }
         public static bool HasReserveData { get { return SelectedItem != null && SelectedItem.ReserveInfo != null; } }
         public static bool HasProgramData { get { return SelectedItem != null && SelectedItem.EventInfo != null; } }
 
@@ -25,13 +27,6 @@ namespace EpgTimer {
         {
             SelectedData = null;
             NowJumpTable = false;
-        }
-
-        public static ulong Create64Key()
-        {
-            if (HasReserveData == true) return SelectedItem.ReserveInfo.Create64Key();
-            if (HasProgramData == true) return SelectedItem.EventInfo.Create64Key();
-            return 0;
         }
 
         public BlackoutWindow(Window owner0) {

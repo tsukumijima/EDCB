@@ -116,11 +116,12 @@ namespace EpgTimer
                 return MoveToProgramItem(target == null ? null : MenuUtil.SearchEventInfoLikeThat(target, null, items.GetEventList()), style, dryrun);
             }
         }
+        public virtual int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        {
+            return MoveToItem(target == null ? 0 : target.CurrentPgUID(), style, dryrun);
+        }
         public virtual int MoveToProgramItem(EpgEventInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
-            if (DataListBox == null || DataListBox.Items.Count == 0) return -1;
-
-            //過去番組表でイベントIDが重複している場合があるので開始時間も考慮する
             return MoveToItem(target == null ? 0 : target.CurrentPgUID(), style, dryrun);
         }
 

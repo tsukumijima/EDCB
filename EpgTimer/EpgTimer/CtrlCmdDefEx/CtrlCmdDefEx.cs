@@ -150,7 +150,7 @@ namespace EpgTimer
 
             return true;
         }
-
+        /*
         public static EpgEventInfo ConvertRecInfoToEpgEventInfo(RecFileInfo recinfo)
         {
             return recinfo == null ? null : new EpgEventInfo
@@ -162,6 +162,25 @@ namespace EpgTimer
                 start_time = recinfo.StartTime,
                 durationSec = recinfo.DurationSecond,
                 StartTimeFlag = 1,
+            };
+        }
+        */
+        public static ReserveDataEnd ConvertRecInfoToReserveData(RecFileInfo recinfo)
+        {
+            return recinfo == null ? null : new ReserveDataEnd
+            {
+                ReserveID = recinfo.ID,
+                StartTime = recinfo.StartTime,
+                DurationSecond = recinfo.DurationSecond,
+                OriginalNetworkID = recinfo.OriginalNetworkID,
+                TransportStreamID = recinfo.TransportStreamID,
+                ServiceID = recinfo.ServiceID,
+                EventID = recinfo.EventID,
+                //Title = recinfo.Title,
+                //StationName = recinfo.ServiceName,
+                //Comment = recinfo.Comment,
+                //RecFileNameList = CommonUtil.ToList(recinfo.RecFilePath),
+                //RecSetting.RecFolderList =,
             };
         }
 

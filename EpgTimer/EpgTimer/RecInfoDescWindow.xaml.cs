@@ -124,11 +124,11 @@ namespace EpgTimer
             }
             else if (DataView is EpgListMainView)
             {
-                if (mode != 0 && mode != 2) DataView.MoveToItem(recInfo.CurrentPgUID(), style);
+                if (mode != 0 && mode != 2) DataView.MoveToRecInfoItem(recInfo, style);
             }
             else if (DataView is SearchWindow.AutoAddWinListView)
             {
-                if (mode != 0) DataView.MoveToItem(recInfo.CurrentPgUID(), style);
+                if (mode != 0) DataView.MoveToRecInfoItem(recInfo, style);
             }
         }
         private void MoveViewRecinfoTarget()
@@ -136,19 +136,11 @@ namespace EpgTimer
             //一覧以外では「前へ」「次へ」の移動の時に追従させる
             if (DataView is EpgViewBase)
             {
-                EpgEventInfo epgInfo = CtrlCmdDefEx.ConvertRecInfoToEpgEventInfo(recInfo);
                 //BeginInvokeはフォーカス対応
-                MenuUtil.CheckJumpTab(new SearchItem(epgInfo), true);
+                MenuUtil.CheckJumpTab(new ReserveItem(CtrlCmdDefEx.ConvertRecInfoToReserveData(recInfo)), true);
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    if (DataView is EpgMainViewBase)
-                    {
-                        ((EpgMainViewBase)DataView).MoveToRecInfoItem(recInfo);
-                    }
-                    else
-                    {
-                        DataView.MoveToItem(recInfo.CurrentPgUID());
-                    }
+                    DataView.MoveToRecInfoItem(recInfo);
                 }), DispatcherPriority.Loaded);
             }
             else

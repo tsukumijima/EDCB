@@ -165,21 +165,8 @@ namespace EpgTimer.EpgView
         {
             return CommonManager.Instance.DB.RecFileInfo.Values
                     .Where(item => programList.ContainsKey(item.CurrentPgUID()) || item.EventID == 0xFFFF)
-                    .Select(item => new ReserveDataEnd
-                    {
-                        ReserveID = item.ID,
-                        StartTime = item.StartTime,
-                        DurationSecond = item.DurationSecond,
-                        OriginalNetworkID = item.OriginalNetworkID,
-                        TransportStreamID = item.TransportStreamID,
-                        ServiceID = item.ServiceID,
-                        EventID = item.EventID,
-                        //Title = item.Title,
-                        //StationName = item.ServiceName,
-                        //Comment = item.Comment,
-                        //RecFileNameList = CommonUtil.ToList(item.RecFilePath),
-                        //RecSetting.RecFolderList =,
-                    }).Concat(CommonManager.Instance.DB.ReserveList.Values);
+                    .Select(item => CtrlCmdDefEx.ConvertRecInfoToReserveData(item))
+                    .Concat(CommonManager.Instance.DB.ReserveList.Values);
         }
 
         /// <summary>表示スクロールイベント呼び出し</summary>
@@ -238,7 +225,7 @@ namespace EpgTimer.EpgView
             target = target == null ? null : target.GetGroupMainEvent(viewData.EventUIDList);
             return MoveToItem(target == null ? 0 : target.CurrentPgUID(), style, dryrun);
         }
-        public virtual int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        public override int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             if (target == null) return -1;
             int idx = recinfoList.FindIndex(item => item.Data.ReserveID == target.ID);

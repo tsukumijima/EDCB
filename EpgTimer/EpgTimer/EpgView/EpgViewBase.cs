@@ -256,7 +256,7 @@ namespace EpgTimer.EpgView
             ReloadInfo();
             ReloadReserveInfo();//ReloadInfo()が実行された場合は、こちらは素通りになる。
 
-            if (BlackoutWindow.HasData == true)
+            if (BlackoutWindow.HasItemData)
             {
                 //「番組表へジャンプ」の場合、またはオプションで指定のある場合に強調表示する。
                 var isMarking = (BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
@@ -278,16 +278,16 @@ namespace EpgTimer.EpgView
             if (target.ReserveInfo != null)
             {
                 ReloadReserveInfo();
-                return MoveToReserveItem(target.ReserveInfo, style, dryrun) >= 0;
+                if(target.ReserveInfo is ReserveDataEnd)
+                {
+                    return MoveToRecInfoItem(MenuUtil.GetRecFileInfo(target.ReserveInfo), style, dryrun) >= 0;
+                }
+                else
+                {
+                    return MoveToReserveItem(target.ReserveInfo, style, dryrun) >= 0;
+                }
             }
-            else if (target.EventInfo != null)
-            {
-                EpgEventInfo info = target.EventInfo;
-                //録画結果でevent_idを持っていないもの(未放送時間帯を録画など)は結局番組を見つけられない。
-                info = info.event_id != 0xFFFF ? info : MenuUtil.SearchEventInfoLikeThat(info, serviceEventList);
-                return MoveToProgramItem(info, style, dryrun) >= 0;
-            }
-            return false;
+            return MoveToProgramItem(target.EventInfo, style, dryrun) >= 0;
         }
     }
 }
