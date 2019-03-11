@@ -20,8 +20,11 @@ namespace EpgTimer
 
         private void text_SearchKey_KeyPress(object sender, KeyEventArgs e)
         {
-            e.Handled = e.Key == Key.Enter;
-            if (e.Handled == true && e.IsDown == true) button_Jump_Click(null, null);
+            if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter)
+            {
+                if (e.IsDown == true) button_Jump_Click(null, null);
+                e.Handled = true;//KeyUpでもEnterは阻止
+            };
         }
         private void button_Copy_Click(object sender, RoutedEventArgs e)
         {

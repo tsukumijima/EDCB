@@ -112,7 +112,14 @@ namespace EpgTimer
 
                 //その他のショートカット(検索ダイアログ固有の設定)。コマンドだとコンボボックスアイテムの処理と協調しにくいので‥。
                 //searchKeyView.InputBindings.Add(new InputBinding(EpgCmds.Search, new KeyGesture(Key.Enter)));
-                searchKeyView.KeyUp += (sender, e) => { if (e.Key == Key.Enter)button_search_Click(null, null); };
+                searchKeyView.KeyUp += (sender, e) =>
+                {
+                    if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && e.IsRepeat == false)
+                    {
+                        e.Handled = true;
+                        button_search_Click(null, null);
+                    };
+                };
                 listView_result.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, DataListView);
 
                 //録画設定タブ関係の設定

@@ -928,46 +928,36 @@ namespace EpgTimer
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (e.Handled && e.IsRepeat) return;
+
             if (Keyboard.Modifiers == ModifierKeys.Control)
             {
                 switch (e.Key)
                 {
                     case Key.D1:
-                        if (e.IsRepeat == false)
-                        {
-                            this.tabItem_reserve.IsSelected = true;
-                        }
-                        e.Handled = true;
+                        tabItem_reserve.IsSelected = true;
                         break;
                     case Key.D2:
-                        if (e.IsRepeat == false)
-                        {
-                            this.tabItem_tunerReserve.IsSelected = true;
-                        }
-                        e.Handled = true;
+                        tabItem_tunerReserve.IsSelected = true;
                         break;
                     case Key.D3:
-                        if (e.IsRepeat == false)
-                        {
-                            this.tabItem_recinfo.IsSelected = true;
-                        }
-                        e.Handled = true;
+                        tabItem_recinfo.IsSelected = true;
                         break;
                     case Key.D4:
-                        if (e.IsRepeat == false)
-                        {
-                            this.tabItem_AutoAdd.IsSelected = true;
-                        }
-                        e.Handled = true;
+                        tabItem_AutoAdd.IsSelected = true;
                         break;
                     case Key.D5:
-                        if (e.IsRepeat == false)
-                        {
-                            this.tabItem_epg.IsSelected = true;
-                        }
-                        e.Handled = true;
+                        tabItem_epg.IsSelected = true;
                         break;
+                    default:
+                        return;
                 }
+                e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.F5)
+            {
+                RefreshReserveInfo();
+                e.Handled = true;
             }
         }
 
@@ -1518,20 +1508,6 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
 
-        }
-
-        protected override void OnKeyDown(KeyEventArgs e)
-        {
-            if (Keyboard.Modifiers == ModifierKeys.None)
-            {
-                switch (e.Key)
-                {
-                    case Key.F5:
-                        RefreshReserveInfo();
-                        break;
-                }
-            }
-            base.OnKeyDown(e);
         }
 
         public void moveTo_tabItem(CtxmCode code)

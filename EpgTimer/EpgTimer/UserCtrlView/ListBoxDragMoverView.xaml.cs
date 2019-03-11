@@ -91,19 +91,11 @@ namespace EpgTimer
                 //Keygestureが先へ伝搬してくれないので、対処療法的だけど先に処理してしまうことにする。コマンドの意味無い‥。
                 listBox.PreviewKeyDown += new KeyEventHandler((sender, e) =>
                 {
-                    if (Keyboard.Modifiers == ModifierKeys.None)
+                    if (e.Handled == false && e.Key == Key.Escape && e.IsRepeat == false && _onDrag == true)
                     {
-                        switch (e.Key)
-                        {
-                            case Key.Escape:
-                                if (_onDrag == true)
-                                {
-                                    EpgCmds.DragCancel.Execute(null, null);
-                                    //this.listBox.Items.Refresh();//壊したバインディングを修復する。モタツキ感があるので放置する。
-                                    e.Handled = true;
-                                }
-                                break;
-                        }
+                        EpgCmds.DragCancel.Execute(null, null);
+                        //this.listBox.Items.Refresh();//壊したバインディングを修復する。モタツキ感があるので放置する。
+                        e.Handled = true;
                     }
                 });
             }

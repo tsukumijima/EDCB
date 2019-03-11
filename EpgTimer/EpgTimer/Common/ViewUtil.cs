@@ -310,7 +310,7 @@ namespace EpgTimer
         }
         public static void OnKyeMoveNextReserve(object sender, KeyEventArgs e, DataItemViewBase view)
         {
-            if (Keyboard.Modifiers != ModifierKeys.Control || view == null) return;
+            if (e.Handled || Keyboard.Modifiers != ModifierKeys.Control || view == null) return;
             //
             switch (e.Key)
             {
@@ -547,7 +547,7 @@ namespace EpgTimer
 
         public static void KeyDown_Escape_Close(object sender, KeyEventArgs e)
         {
-            if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Escape)
+            if (e.Handled == false && e.Key == Key.Escape && e.IsRepeat == false)
             {
                 e.Handled = true;
                 var win = CommonUtil.GetTopWindow(sender as Visual);
@@ -559,7 +559,7 @@ namespace EpgTimer
         {
             return new KeyEventHandler((sender, e) =>
             {
-                if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter)
+                if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && e.IsRepeat == false)
                 {
                     e.Handled = true;
                     if (btn != null) btn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

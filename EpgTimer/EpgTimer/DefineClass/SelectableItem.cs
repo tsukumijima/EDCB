@@ -52,7 +52,7 @@ namespace EpgTimer
             //キー操作(スペースキー)
             box.PreviewKeyDown += new KeyEventHandler((sender, e) =>
             {
-                if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Space)
+                if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Space && e.IsRepeat == false)
                 {
                     e.Handled = true;
                     (hdlr ?? SelectedItemsChange)();

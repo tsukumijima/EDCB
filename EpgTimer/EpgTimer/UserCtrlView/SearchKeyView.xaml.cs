@@ -154,7 +154,7 @@ namespace EpgTimer
         private void comboBox_KeyUp(object sender, KeyEventArgs e, List<string> log)
         {
             var box = sender as ComboBox;
-            if (e.Key == Key.Delete && box.IsDropDownOpen)
+            if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete && box.IsDropDownOpen)
             {
                 int i = box.SelectedIndex;
                 if (i >= 0)
@@ -163,6 +163,7 @@ namespace EpgTimer
                     box.SelectedIndex = Math.Min(i, box.Items.Count - 1);
                     SaveSearchLogSettings(box, log);
                 }
+                e.Handled = true;
             }
         }
         private void ClearSerchLog(ComboBox box, List<string> log)

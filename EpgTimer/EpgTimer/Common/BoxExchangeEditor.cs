@@ -57,7 +57,7 @@ namespace EpgTimer.BoxExchangeEdit
             //
             box.PreviewKeyDown += new KeyEventHandler((sender, e) =>
             {
-                if (Keyboard.Modifiers != ModifierKeys.None) return;
+                if (e.Handled || Keyboard.Modifiers != ModifierKeys.None) return;
                 //
                 switch (e.Key)
                 {
@@ -78,7 +78,7 @@ namespace EpgTimer.BoxExchangeEdit
             //
             box.PreviewKeyDown += new KeyEventHandler((sender, e) =>
             {
-                if (Keyboard.Modifiers != ModifierKeys.None) return;
+                if (e.Handled || Keyboard.Modifiers != ModifierKeys.None) return;
                 //
                 switch (e.Key)
                 {
@@ -111,17 +111,10 @@ namespace EpgTimer.BoxExchangeEdit
 
             box.KeyDown += new KeyEventHandler((sender, e) =>
             {
-                if (Keyboard.Modifiers != ModifierKeys.None) return;
-                //
-                switch (e.Key)
+                if (e.Handled == false && e.Key == Key.Escape && e.IsRepeat == false && box.SelectedIndex >= 0)
                 {
-                    case Key.Escape:
-                        if (box.SelectedIndex >= 0)
-                        {
-                            box.UnselectAll();
-                            e.Handled = true;
-                        }
-                        break;
+                    box.UnselectAll();
+                    e.Handled = true;
                 }
             });
         }
