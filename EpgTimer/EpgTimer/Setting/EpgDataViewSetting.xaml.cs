@@ -239,16 +239,12 @@ namespace EpgTimer
         /// <summary>映像のみ全追加</summary>
         private void button_service_addVideo_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                ListBox listBox = bxs.SourceBox;
-                if (listBox == null) return;
+            ListBox listBox = bxs.SourceBox;
+            if (listBox == null) return;
 
-                listBox.UnselectAll();
-                listBox.SelectedItemsAdd(listBox.Items.OfType<ServiceViewItem>().Where(info => info.ServiceInfo.IsVideo == true));
-                button_service_add.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            listBox.UnselectAll();
+            listBox.SelectedItemsAdd(listBox.Items.OfType<ServiceViewItem>().Where(info => info.ServiceInfo.IsVideo == true));
+            button_service_add.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         }
 
         private void listBox_serviceView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -296,17 +292,13 @@ namespace EpgTimer
 
         private void Display_ServiceView(ListBox srclistBox, TextBox targetBox)
         {
-            try
-            {
-                if (srclistBox == null || targetBox == null) return;
+            if (srclistBox == null || targetBox == null) return;
 
-                targetBox.Text = "";
-                if (srclistBox.SelectedItem == null) return;
+            targetBox.Text = "";
+            if (srclistBox.SelectedItem == null) return;
 
-                var info = (ServiceViewItem)srclistBox.SelectedItems[srclistBox.SelectedItems.Count - 1];
-                targetBox.Text = info.ConvertInfoText();
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            var info = (ServiceViewItem)srclistBox.SelectedItems[srclistBox.SelectedItems.Count - 1];
+            targetBox.Text = info.ConvertInfoText();
         }
 
         private void button_searchKey_Click(object sender, RoutedEventArgs e)
