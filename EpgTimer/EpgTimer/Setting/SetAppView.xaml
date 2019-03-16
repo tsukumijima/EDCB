@@ -115,7 +115,7 @@
                         <RadioButton Content="スタンバイ" Margin="0,0,12,6" />
                         <RadioButton Content="休止" Margin="0,0,12,6" />
                         <RadioButton Content="シャットダウン" Margin="0,0,12,6" />
-                        <CheckBox Content="復帰後再起動する" Margin="12,0,12,6" IsChecked="{Binding DefIsReboot}" />
+                        <CheckBox Content="復帰後再起動する" Margin="12,0,12,6" IsChecked="{Binding DefRebootFlg}" />
                     </WrapPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="復帰処理開始時間　　　録画開始" />
