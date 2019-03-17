@@ -357,7 +357,7 @@ namespace EpgTimer
         public static bool ReserveChangeResModeAutoAdded(List<ReserveData> itemList, AutoAddData autoAdd)
         {
             if (ReserveDelete(itemList, false) == false) return false;
-            return AutoAddChange(CommonUtil.ToList(autoAdd), false, false, true, true);
+            return AutoAddChange(autoAdd.IntoList(), false, false, true, true);
         }
 
         public static bool ReserveChange(List<ReserveData> itemlist, bool cautionMany = true, bool noHistory = false, bool noChkOnRec = false)
@@ -959,7 +959,7 @@ namespace EpgTimer
             if (item.PgStartTime >= CommonManager.Instance.DB.EventTimeMinArc)
             {
                 var arcList = new List<EpgServiceEventInfo>();
-                CommonManager.Instance.DB.LoadEpgArcData(item.PgStartTime, item.PgStartTime.AddSeconds(1), ref arcList, new List<UInt64> { item.Create64Key() });
+                CommonManager.Instance.DB.LoadEpgArcData(item.PgStartTime, item.PgStartTime.AddSeconds(1), ref arcList, item.Create64Key().IntoList());
                 if (arcList.Any()) return arcList[0].eventList.FirstOrDefault();
             }
 
@@ -967,7 +967,7 @@ namespace EpgTimer
             if (CommonManager.Instance.DB.IsEpgLoaded == false)
             {
                 var list = new List<EpgEventInfo>();
-                try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(new List<UInt64> { item.Create64PgKey() }, ref list); } catch { }
+                try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(item.Create64PgKey().IntoList(), ref list); } catch { }
                 return list.FirstOrDefault();
             }
 

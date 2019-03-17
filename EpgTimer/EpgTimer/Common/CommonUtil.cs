@@ -121,8 +121,8 @@ namespace EpgTimer
             return member.Member.Name;
         }
 
-        /// <summary>リストにして返す。(return new List&lt;T&gt; { item })</summary>
-        public static List<T> ToList<T>(T item)
+        /// <summary>リストに入れて返す。(return new List&lt;T&gt; { item })</summary>
+        public static List<T> IntoList<T>(this T item)
         {
             return new List<T> { item };
         }

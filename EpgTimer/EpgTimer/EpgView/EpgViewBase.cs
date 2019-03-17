@@ -51,7 +51,7 @@ namespace EpgTimer.EpgView
                 else
                 {
                     //番組情報の検索
-                    err = CommonManager.Instance.DB.SearchPgLists(CommonUtil.ToList(EpgTabInfo.GetSearchKeyReloadEpg()), ref serviceDic, newPeriod);
+                    err = CommonManager.Instance.DB.SearchPgLists(EpgTabInfo.GetSearchKeyReloadEpg().IntoList(), ref serviceDic, newPeriod);
                 }
                 if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得", err == ErrCode.CMD_ERR_BUSY ?
                                                         "EPGデータの読み込みを行える状態ではありません。\r\n(EPGデータ読み込み中など)" :

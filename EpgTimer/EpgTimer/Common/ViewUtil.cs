@@ -615,7 +615,7 @@ namespace EpgTimer
         ///<summary>最後のアイテムを選択してスクロールさせる。addItemがあればリストに追加する。</summary>
         public static void ScrollIntoViewLast(this ListBox box, object addItem = null)
         {
-            box.ScrollIntoViewLast(new List<object> { addItem });
+            box.ScrollIntoViewLast(addItem.IntoList());
         }
         ///<summary>addItemsを追加し、最後のアイテムを選択してスクロールさせる</summary>
         public static void ScrollIntoViewLast(this ListBox box, IEnumerable<object> addItems)

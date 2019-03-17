@@ -207,7 +207,7 @@ namespace EpgTimer
                 EpgViewPeriod period = IsJumpPanelOpened ? SearchPeriod : ArcSearch ? EpgViewPeriod.DefPeriod : null;
 
                 if (period != null) period.StrictLoad = true;
-                var list = CommonManager.Instance.DB.SearchPg(CommonUtil.ToList(key), period);
+                var list = CommonManager.Instance.DB.SearchPg(key.IntoList(), period);
                 dataList.AddRange(list.ToSearchList(period == null));
 
                 //起動直後用。実際には過去検索して無くても必要な場合があるが、あまり重要ではないので無視する。
@@ -468,7 +468,7 @@ namespace EpgTimer
             }
             else
             {
-                if (CmdExeUtil.CheckAllProcCancel(e, CommonUtil.ToList(autoAddData), true) == true)
+                if (CmdExeUtil.CheckAllProcCancel(e, autoAddData.IntoList(), true) == true)
                 { return -1; }
             }
 
@@ -497,7 +497,7 @@ namespace EpgTimer
                 {
                     if (code == 0)
                     {
-                        ret = MenuUtil.AutoAddAdd(CommonUtil.ToList(data));
+                        ret = MenuUtil.AutoAddAdd(data.IntoList());
                         if (ret == true)
                         {
                             //割り当てられたIDが欲しいだけなのでEpgTimer内のもろもろは再構築せず、Srvからデータだけ取得する。
@@ -507,7 +507,7 @@ namespace EpgTimer
                     }
                     else
                     {
-                        ret = MenuUtil.AutoAddChange(CommonUtil.ToList(data));
+                        ret = MenuUtil.AutoAddChange(data.IntoList());
                     }
                 }
             }
@@ -526,11 +526,11 @@ namespace EpgTimer
                 {
                     if (code == 2)
                     {
-                        ret = MenuUtil.AutoAddDelete(CommonUtil.ToList(autoAddData));
+                        ret = MenuUtil.AutoAddDelete(autoAddData.IntoList());
                     }
                     else
                     {
-                        ret = MenuUtil.AutoAddDelete(CommonUtil.ToList(autoAddData), true, true);
+                        ret = MenuUtil.AutoAddDelete(autoAddData.IntoList(), true, true);
                     }
 
                     if (ret == true)

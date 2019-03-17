@@ -13,7 +13,7 @@ namespace EpgTimer
     public class ViewPanel : Panel
     {
         public IEnumerable<PanelItem> Items { get; set; }
-        public PanelItem Item { get { return Items == null ? null : Items.FirstOrDefault(); } set { Items = CommonUtil.ToList(value); } }
+        public PanelItem Item { get { return Items == null ? null : Items.FirstOrDefault(); } set { Items = value.IntoList(); } }
         public bool PopUpMode { get; set; }
 
         public double MaxRenderHeight { get; protected set; }

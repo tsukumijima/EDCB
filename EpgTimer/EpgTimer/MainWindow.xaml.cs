@@ -1499,7 +1499,7 @@ namespace EpgTimer
                 if (DB.ReloadReserveInfo(true) == ErrCode.CMD_SUCCESS && DB.ReserveList.Count != 0)
                 {
                     //予約一覧は一つでも更新をかければ、再構築される。
-                    CommonManager.CreateSrvCtrl().SendChgReserve(new List<ReserveData> { DB.ReserveList.Values.First() });
+                    CommonManager.CreateSrvCtrl().SendChgReserve(DB.ReserveList.Values.First().IntoList());
                 }
                 else
                 {

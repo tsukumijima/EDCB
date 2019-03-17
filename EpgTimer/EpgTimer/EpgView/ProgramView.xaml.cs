@@ -162,7 +162,7 @@ namespace EpgTimer.EpgView
 
         public Rect SetProgramList(List<ProgramViewItem> programList, double width, double height)
         {
-            return SetProgramList(CommonUtil.ToList(new PanelItem<List<ProgramViewItem>>(programList) { Width = width }), height);
+            return SetProgramList(new PanelItem<List<ProgramViewItem>>(programList) { Width = width }.IntoList(), height);
         }
         public Rect SetProgramList(List<PanelItem<List<ProgramViewItem>>> programGroupList, double height)
         {

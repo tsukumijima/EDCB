@@ -32,7 +32,7 @@ namespace EpgTimer
 
                 //最初にコマンド集の初期化
                 mc = new CmdExeRecinfo(this);
-                mc.SetFuncGetDataList(isAll => CommonUtil.ToList(recInfo));
+                mc.SetFuncGetDataList(isAll => recInfo.IntoList());
 
                 //コマンド集に無いもの,変更するもの
                 mc.AddReplaceCommand(EpgCmds.Play, (sender, e) => CommonManager.Instance.FilePlay(recInfo.RecFilePath), (sender, e) => e.CanExecute = recInfo.ID != 0);

@@ -161,7 +161,7 @@ namespace EpgTimer
 
             if (proc == 0)
             {
-                ret = MenuUtil.ReserveAdd(CommonUtil.ToList(eventInfo), recSettingView);
+                ret = MenuUtil.ReserveAdd(eventInfo.IntoList(), recSettingView);
             }
             else
             {

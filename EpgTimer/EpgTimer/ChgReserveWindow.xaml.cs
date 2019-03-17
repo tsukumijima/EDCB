@@ -345,7 +345,7 @@ namespace EpgTimer
                     if (eventInfoNow != null && (reserveInfo.IsManual == true || reserveInfo.IsSamePg(eventInfoNow) == false))
                     {
                         //基本的にAddReserveEpgWindowと同じ処理内容
-                        if (MenuUtil.CheckReservable(CommonUtil.ToList(eventInfoNow)) == null) return;
+                        if (MenuUtil.CheckReservable(eventInfoNow.IntoList()) == null) return;
                         eventInfoNow.ToReserveData(ref resInfo);
                         resInfo.ReleaseAutoAdd();
                     }
@@ -363,12 +363,12 @@ namespace EpgTimer
                 {
                     resInfo.Comment = "";
                     oldset = new HashSet<uint>(CommonManager.Instance.DB.ReserveList.Keys);
-                    ret = MenuUtil.ReserveAdd(CommonUtil.ToList(resInfo));
+                    ret = MenuUtil.ReserveAdd(resInfo.IntoList());
                     StatusManager.StatusNotifySet(ret, "録画予約を追加");
                 }
                 else
                 {
-                    ret = MenuUtil.ReserveChange(CommonUtil.ToList(resInfo));
+                    ret = MenuUtil.ReserveChange(resInfo.IntoList());
                     StatusManager.StatusNotifySet(ret, "録画予約を変更");
                 }
                 if (ret == false) return;
@@ -397,7 +397,7 @@ namespace EpgTimer
         {
             if (CheckReserveChange(e, 2) == false) return;
 
-            bool ret = MenuUtil.ReserveDelete(CommonUtil.ToList(reserveInfo));
+            bool ret = MenuUtil.ReserveDelete(reserveInfo.IntoList());
             StatusManager.StatusNotifySet(ret, "録画予約を削除");
             if (ret == false) return;
 

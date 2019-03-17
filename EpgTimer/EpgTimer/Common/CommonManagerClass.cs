@@ -1003,7 +1003,7 @@ namespace EpgTimer
         public static List<CustomEpgTabInfo> CreateDefaultTabInfo()
         {
             //再表示の際の認識用に、負の仮番号を与えておく。
-            List<UInt64>[] spKeyList = EpgServiceInfo.SPKeyList.Select(key => new List<UInt64> { key }).ToArray();
+            List<UInt64>[] spKeyList = EpgServiceInfo.SPKeyList.Select(key => key.IntoList()).ToArray();
             var setInfo = new[]
             {
                 new CustomEpgTabInfo(){ID = -1, TabName = "地デジ", ViewServiceList = spKeyList[0]},

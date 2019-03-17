@@ -41,7 +41,7 @@ namespace EpgTimer.EpgView
             mc.SetFuncGetEpgEventList(() => 
             {
                 ProgramViewItem hitItem = programView.GetProgramViewData(clickPos);
-                return hitItem != null && hitItem.Data != null ? CommonUtil.ToList(hitItem.Data) : new List<EpgEventInfo>();
+                return hitItem != null && hitItem.Data != null ? new List<EpgEventInfo> { hitItem.Data } : new List<EpgEventInfo>();
             });
 
             //コマンド集からコマンドを登録
