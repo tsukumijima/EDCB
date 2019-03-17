@@ -12,17 +12,21 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <DockPanel Grid.Column="1" Background="Transparent" MouseRightButtonUp="button_erea_MouseRightButtonUp" >
+        <local:TimeJumpView Grid.ColumnSpan="2" x:Name="timeJumpView" Margin="0,1,0,5"/>
+        <local:TimeMoveView Grid.Row="1" x:Name="timeMoveView" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <DockPanel Grid.Row="1" Grid.Column="1" Background="Transparent" MouseRightButtonUp="button_erea_MouseRightButtonUp" >
             <ComboBox Height="23" Margin="15,0,0,0" HorizontalAlignment="Left" Name="comboBox_service" Width="227" SelectedValuePath="Key" DisplayMemberPath="Value" SelectionChanged="comboBox_service_SelectionChanged"/>
             <Button Content="標準モード" Height="23" HorizontalAlignment="Left" Margin="6,0,0,0" Name="button_go_Main" Width="66" />
         </DockPanel>
-        <Button Grid.Row="1" Name="button_now" Content="現在" Padding="1" VerticalAlignment="Stretch" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
-        <local:TimeView Grid.Row="2" x:Name="timeView" Margin="0,0,0,17" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
-        <local:WeekDayView Grid.Column="1" Grid.Row="1" x:Name="weekDayView" Margin="0,0,17,0" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
-        <local:ProgramView Grid.Column="1" Grid.Row="2" x:Name="epgProgramView" />
+        <Button Grid.Row="2" Content="初期&#10;表示" Padding="1" IsHitTestVisible="False" Visibility="Hidden"/>
+        <Button Grid.Row="2" Name="button_now" Content="現在" Padding="1" VerticalAlignment="Stretch" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <local:TimeView Grid.Row="3" x:Name="timeView" Margin="0,0,0,17" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <local:WeekDayView Grid.Column="1" Grid.Row="2" x:Name="weekDayView" Margin="0,0,17,0" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
+        <local:ProgramView Grid.Column="1" Grid.Row="3" x:Name="epgProgramView" />
     </Grid>
 </local:EpgMainViewBase>

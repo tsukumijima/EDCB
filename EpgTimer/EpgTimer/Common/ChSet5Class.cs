@@ -47,11 +47,11 @@ namespace EpgTimer
             if (chListOrderByIndex == null && LoadFile() == false) return new List<EpgServiceInfo>();
             return GetSortedChList(chListOrderByIndex, ignoreEpgCap);
         }
-        public static IEnumerable<EpgServiceInfo> GetSortedChList(IEnumerable<EpgServiceInfo> list, bool ignoreEpgCap = true)
+        public static IEnumerable<EpgServiceInfo> GetSortedChList(IEnumerable<EpgServiceInfo> list, bool ignoreEpgCap = true, bool forceSort = false)
         {
             if (list == null) return new List<EpgServiceInfo>();
             list = list.Where(item => ignoreEpgCap || item.EpgCapFlag);
-            if (Settings.Instance.SortServiceList == false) return list;
+            if (Settings.Instance.SortServiceList == false && forceSort == false) return list;
 
             //ネットワーク種別優先かつ限定受信を分離したID順ソート。可能なら地上波はリモコンID優先にする。
             return list.OrderBy(item => (
@@ -75,13 +75,16 @@ namespace EpgTimer
             return ret;
         }
 
-        public static void SetRemoconID(Dictionary<ulong, EpgServiceAllEventInfo> infoList, bool addOnly = false)
+        public static void SetRemoconID(IEnumerable<EpgServiceInfo> infoList, bool addOnly = false)
         {
             if (addOnly == false) Settings.Instance.RemoconIDList.Clear();
-            foreach (EpgServiceInfo info in infoList.Select(info => info.Value.serviceInfo)
-                                                    .Where(info => info.remote_control_key_id != 0))
+            foreach (EpgServiceInfo info in infoList.Where(info => info.remote_control_key_id != 0))
             {
-                Settings.Instance.RemoconIDList[info.TSID] = info.remote_control_key_id;
+                //登録済みを更新しない(過去データで上書きしない)
+                if (Settings.Instance.RemoconIDList.ContainsKey(info.TSID) == false)
+                {
+                    Settings.Instance.RemoconIDList.Add(info.TSID, info.remote_control_key_id);
+                }
             }
             if (addOnly == false) Settings.SaveToXmlFile(false);
         }

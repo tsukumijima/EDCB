@@ -956,20 +956,18 @@ namespace EpgTimer
             if (pg != null || isSrv == false) return pg;
 
             //過去番組情報を探してみる
-            if (item.PgStartTime > new DateTime(2001, 1, 1))
+            if (item.PgStartTime >= CommonManager.Instance.DB.EventTimeMinArc)
             {
                 var arcList = new List<EpgServiceEventInfo>();
-                if (CommonManager.CreateSrvCtrl().SendEnumPgArc(new List<long> { 0, (long)item.Create64Key(),
-                    item.PgStartTime.ToFileTimeUtc(), item.PgStartTime.ToFileTimeUtc() + 1 }, ref arcList) == ErrCode.CMD_SUCCESS &&
-                    arcList.Count > 0)
-                {
-                    return arcList[0].eventList.FirstOrDefault();
-                }
+                CommonManager.Instance.DB.LoadEpgArcData(item.PgStartTime, item.PgStartTime.AddSeconds(1), ref arcList, new List<UInt64> { item.Create64Key() });
+                if (arcList.Any()) return arcList[0].eventList.FirstOrDefault();
             }
+
             //現在番組情報も探してみる ※EPGデータ未読み込み時で、録画直後の場合
-            var list = new List<EpgEventInfo>();
-            if (CommonManager.CreateSrvCtrl().SendGetPgInfoList(CommonUtil.ToList(item.Create64PgKey()), ref list) == ErrCode.CMD_SUCCESS)
+            if (CommonManager.Instance.DB.IsEpgLoaded == false)
             {
+                var list = new List<EpgEventInfo>();
+                try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(new List<UInt64> { item.Create64PgKey() }, ref list); } catch { }
                 return list.FirstOrDefault();
             }
 

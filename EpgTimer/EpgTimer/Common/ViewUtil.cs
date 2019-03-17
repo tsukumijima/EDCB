@@ -209,11 +209,6 @@ namespace EpgTimer
             }
         }
 
-        public static DateTime EpgKeyTime()
-        {
-            return DateTime.UtcNow.AddHours(9).AddDays(-Settings.Instance.EpgNoDisplayOldDays).Date;
-        }
-
         //指定アイテムまでマーキング付で移動する。
         public static int JumpToListItem(object target, ListBox listBox, JumpItemStyle style = JumpItemStyle.None, bool dryrun = false)
         {

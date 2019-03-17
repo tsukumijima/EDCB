@@ -212,6 +212,7 @@ namespace EpgTimer
                     CommonManager.Instance.DB.ReloadReserveInfo(true);
                     CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
                     CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
+                    CommonManager.Instance.DB.ReloadEpgDatabaseInfo(true);
                     if (Settings.Instance.NgAutoEpgLoadNW == false)
                     {
                         CommonManager.Instance.DB.ReloadEpgData(false, true);
@@ -653,6 +654,7 @@ namespace EpgTimer
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.PlugInFile);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
+            CommonManager.Instance.DB.ReloadEpgDatabaseInfo(true);
             CommonManager.Instance.DB.ReloadReserveInfo(true);
             CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
             CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
@@ -1357,6 +1359,7 @@ namespace EpgTimer
 
                         //EpgDataは遅延実行される場合があるので、処理内容には注意する。
                         CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
+                        CommonManager.Instance.DB.ReloadEpgDatabaseInfo(true);
                         if (epgReload == true)
                         {
                             var err2 = CommonManager.Instance.DB.ReloadEpgData(false, true);

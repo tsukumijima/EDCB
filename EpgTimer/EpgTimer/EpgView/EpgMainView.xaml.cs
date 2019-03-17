@@ -16,13 +16,14 @@ namespace EpgTimer
         public EpgMainView()
         {
             InitializeComponent();
-            SetControls(epgProgramView, timeView, serviceView.scrollViewer, button_now);
-
-            //時間ジャンプボタン関係
-            dateView.TimeButtonClick += (time, isDayMove) => MoveTime(time + TimeSpan.FromHours(isDayMove ? GetScrollTime().Hour : 0));
-            nowViewTimer.Tick += (sender, e) => dateView.SetTodayMark();
+            SetControls(epgProgramView, timeView, serviceView.scrollViewer);
+            SetControlsPeriod(timeJumpView, timeMoveView, button_now);
 
             base.InitCommand();
+
+            //時間関係の設定の続き
+            dateView.TimeButtonClick += (time, isDayMove) => MoveTime(time + TimeSpan.FromHours(isDayMove ? GetScrollTime().Hour : 0));
+            nowViewTimer.Tick += (sender, e) => dateView.SetTodayMark();
         }
 
         //強制イベント用。ScrollChangedEventArgsがCreate出来ない(RaiseEvent出来ない)のでOverride対応
@@ -203,7 +204,7 @@ namespace EpgTimer
 
                 epgProgramView.SetProgramList(programGroupList, timeList.Count * 60 * Settings.Instance.MinHeight);
                 timeView.SetTime(timeList, false);
-                dateView.SetTime(timeList);
+                dateView.SetTime(timeList, ViewPeriod);
                 serviceView.SetService(primeServiceList);
 
                 ReDrawNowLine();

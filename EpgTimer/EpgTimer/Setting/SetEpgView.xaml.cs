@@ -155,7 +155,7 @@ namespace EpgTimer.Setting
 
             int epgArcDay = (int)MenuUtil.MyToNumerical(textBox_epgArchivePeriod, Convert.ToDouble, 20000, 0, 0);
             IniFileHandler.WritePrivateProfileString("SET", "EpgArchivePeriodHour", epgArcDay * 24, SettingPath.TimerSrvIniPath);
-            IsChangeEpgArcLoadSetting = Settings.Instance.EpgNoDisplayOldDays < settings.EpgNoDisplayOldDays;
+            IsChangeEpgArcLoadSetting = Settings.Instance.EpgArcDefaultDays < settings.EpgArcDefaultDays;
             
             settings.CustomEpgTabList = listBox_tab.Items.OfType<CustomEpgTabInfoView>().Select(item => item.Info).ToList();
             settings.SetCustomEpgTabInfoID();

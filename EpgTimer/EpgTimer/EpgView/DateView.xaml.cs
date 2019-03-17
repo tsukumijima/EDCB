@@ -27,14 +27,16 @@ namespace EpgTimer.EpgView
         }
 
         int span = 6;
-        public void SetTime(List<DateTime> timeList)
+        public void SetTime(List<DateTime> timeList, EpgViewPeriod period)
         {
             ClearInfo();
             if (timeList.Any() == false) return;
 
             span = 6;
-            DateTime itemTime = timeList.First().AddHours(span - 1).Date;
-            while (itemTime < timeList.Last())
+            DateTime start = CommonUtil.Max(timeList[0], period.Start);
+            DateTime end = CommonUtil.Min(timeList[timeList.Count - 1], period.End);
+
+            for (DateTime itemTime = start.Date; itemTime == start.Date || itemTime < end; itemTime += TimeSpan.FromDays(1))
             {
                 var day = new Button();
                 day.Padding = new Thickness(1);
@@ -58,7 +60,7 @@ namespace EpgTimer.EpgView
                     hour.Tag = time;
                     hour.Height = 21;
                     hour.Click += (sender, e) => TimeButtonClick((DateTime)((Button)sender).Tag, false);
-                    hour.IsEnabled = timeList.First().AddHours(-span) < time && time <= timeList.Last();
+                    hour.IsEnabled = start.AddHours(-span) < time && time <= end;
                     uGrid.Children.Add(hour);
                 }
 
@@ -76,8 +78,6 @@ namespace EpgTimer.EpgView
                 grid.Children.Add(uGrid);
                 grid.Children.Add(rect);
                 uniformGrid_main.Children.Add(grid);
-
-                itemTime += TimeSpan.FromDays(1);
             }
             columnDefinition.MaxWidth = uniformGrid_main.Children.Count * 120;
             SetTodayMark();

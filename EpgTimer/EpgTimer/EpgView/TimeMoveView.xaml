@@ -1,0 +1,9 @@
+﻿<UserControl x:Class="EpgTimer.EpgView.TimeMoveView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel Width="42" Height="42">
+        <Button Name="button_Panel" Content="↓" Padding="0" Width="14" Height="42" DockPanel.Dock="Left" />
+        <Button Name="button_Prev" Content="←" IsEnabled="False" Height="21" DockPanel.Dock="Top" ToolTip="" />
+        <Button Name="button_Next" Content="→" IsEnabled="False" Height="21" ToolTip="" />
+    </DockPanel>
+</UserControl>

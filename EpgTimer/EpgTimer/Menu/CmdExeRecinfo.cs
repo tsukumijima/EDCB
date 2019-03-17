@@ -49,7 +49,7 @@ namespace EpgTimer
             if (dataList.Count == 0) return null;
 
             ReserveData data = null;
-            if (dataList[0].IsOver(ViewUtil.EpgKeyTime()) == false)
+            if (CommonManager.Instance.DB.IsEventTimePossible(dataList[0].PgStartTime))
             {
                 data = dataList[0].ToReserveData();
             }

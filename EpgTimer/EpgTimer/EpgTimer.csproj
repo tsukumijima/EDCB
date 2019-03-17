@@ -83,6 +83,9 @@
     <Compile Include="AutoAddView.xaml.cs">
       <DependentUpon>AutoAddView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="EpgView\TimeMoveView.xaml.cs">
+      <DependentUpon>TimeMoveView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Menu\CmdHistory.cs" />
     <Compile Include="DefineClass\TextBoxWithReadOnlyEffect.cs" />
     <Compile Include="DefineClass\InfoSearchSetting.cs" />
@@ -175,6 +178,9 @@
       <DependentUpon>SetOtherAppView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\TVTestCtrlClass.cs" />
+    <Compile Include="EpgView\TimeJumpView.xaml.cs">
+      <DependentUpon>TimeJumpView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UserCtrlView\SuspendCheckWindow.xaml.cs">
       <DependentUpon>SuspendCheckWindow.xaml</DependentUpon>
     </Compile>
@@ -275,6 +281,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="EpgView\TimeMoveView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="UserCtrlView\BlackoutWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -318,6 +328,10 @@
     <Page Include="Setting\SetOtherAppView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EpgView\TimeJumpView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="UserCtrlView\SuspendCheckWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

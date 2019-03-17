@@ -29,10 +29,13 @@ namespace EpgTimer
         public EpgWeekMainView()
         {
             InitializeComponent();
-            SetControls(epgProgramView, timeView, weekDayView.scrollViewer, button_now);
-            nowViewTimer.Tick += (sender, e) => weekDayView.SetTodayMark();
+            SetControls(epgProgramView, timeView, weekDayView.scrollViewer);
+            SetControlsPeriod(timeJumpView, timeMoveView, button_now);
 
             base.InitCommand();
+
+            //時間関係の設定の続き
+            nowViewTimer.Tick += (sender, e) => weekDayView.SetTodayMark();
 
             //コマンド集の初期化の続き、ボタンの設定
             mBinds.SetCommandToButton(button_go_Main, EpgCmds.ViewChgMode, 0);

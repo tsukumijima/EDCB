@@ -114,12 +114,18 @@
                                             <StackPanel Name="stackPanel_epgArchivePeriod" Orientation="Horizontal" >
                                                 <Label Content="EPG取得後も" />
                                                 <TextBox Name="textBox_epgArchivePeriod" Width="55" />
-                                                <Label Content="日前まで保存する (最大2万日)" ToolTip="15日以上を設定しているとき、EpgTimerSrv側で設定変更すると「2万日前まで保存」に変化するので注意してください。&#10;なお、EpgTimerの番組表では過去2週間分程度しか表示されません。"/>
+                                                <Label Content="日前まで保存する (最大2万日)" ToolTip="15日以上を設定しているとき、EpgTimerSrv側で設定変更すると「2万日前まで保存」に変化するので注意してください。"/>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" >
-                                                <Label Content="初期表示"/>
-                                                <TextBox Text="{Binding EpgNoDisplayOldDays}" Width="55" />
+                                                <Label Content="番組表の初期表示"/>
+                                                <TextBox Width="39" Text="{Binding EpgArcDefaultDays, Converter={StaticResource vcheck},ConverterParameter='366,0'}" />
                                                 <Label Content="日前から"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Label Content="過去番組表の表示(移動)日数"/>
+                                                <TextBox Width="39" Text="{Binding EpgArcTabWeeks, Converter={StaticResource vcheck},ConverterParameter='53,0'}" ToolTip="表示のみ小数点以下が反映されます。"/>
+                                                <Label Content="週間"/>
+                                                <CheckBox Content="日曜起点" Margin="15,0,0,0" IsChecked="{Binding EpgArcStartSunday}" ToolTip="(開発注)このオプションを有効にしても、アーカイブファイルのアライメントは考慮されません。"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>

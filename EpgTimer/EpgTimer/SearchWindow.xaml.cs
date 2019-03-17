@@ -127,9 +127,7 @@ namespace EpgTimer
                 recSettingTabHeader.MouseRightButtonUp += recSettingView.OpenPresetSelectMenuOnMouseEvent;
 
                 //過去番組検索
-                searchKeyView.checkBox_noArcSearch.IsChecked = !Settings.Instance.ArcSearch;
-                searchKeyView.checkBox_noArcSearch.Checked += (sender, e) => { if (Searched) SearchPg(); };
-                searchKeyView.checkBox_noArcSearch.Unchecked += (sender, e) => { if (Searched) SearchPg(); };
+                SetSearchPeriod();
 
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
@@ -204,31 +202,24 @@ namespace EpgTimer
             {
                 EpgSearchKeyInfo key = GetSearchKey();
                 key.keyDisabledFlag = 0; //無効解除
-                var list = new List<EpgEventInfo>();
 
-                ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false && Settings.Instance.EpgNoDisplayOldDays > 0;
-                if (ArcSearch == false)
-                {
-                    CommonManager.CreateSrvCtrl().SendSearchPg(CommonUtil.ToList(key), ref list);
-                }
-                else
-                {
-                    //番組情報の検索
-                    var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
-                    CommonManager.Instance.DB.SearchPg(CommonUtil.ToList(key), ref serviceDic);
-                    list = serviceDic.Values.SelectMany(info => info.eventMergeList).ToList();
+                ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false && Settings.Instance.EpgArcDefaultDays > 0;
+                EpgViewPeriod period = IsJumpPanelOpened ? SearchPeriod : ArcSearch ? EpgViewPeriod.DefPeriod : null;
 
-                    //起動直後用。実際には過去検索して無くても必要な場合があるが、あまり重要ではないので無視する。
-                    CommonManager.Instance.DB.ReloadRecFileInfo();
-                }
+                if (period != null) period.StrictLoad = true;
+                var list = CommonManager.Instance.DB.SearchPg(CommonUtil.ToList(key), period);
+                dataList.AddRange(list.ToSearchList(period == null));
 
-                dataList.AddRange(list.ToSearchList(true, ArcSearch == true ? (DateTime?)ViewUtil.EpgKeyTime() : null));
+                //起動直後用。実際には過去検索して無くても必要な場合があるが、あまり重要ではないので無視する。
+                if (ArcSearch) CommonManager.Instance.DB.ReloadRecFileInfo();
+
                 return true;
             });
 
             UpdateStatus();
             SetRecSettingTabHeader(false);
             SetWindowTitle();
+            RefreshMoveButtonStatus();
             Searched = true;
         }
         public override void SetWindowTitle()
@@ -351,6 +342,7 @@ namespace EpgTimer
             if (RefreshReserveInfoFlg == true && this.IsVisible == true && (this.WindowState != WindowState.Minimized || this.IsActive == true))
             {
                 recSettingView.RefreshView();
+                RefreshMoveButtonStatus();
                 RefreshReserveInfo();
                 RefreshReserveInfoFlg = false;
             }
@@ -361,6 +353,57 @@ namespace EpgTimer
             {
                 if (win.ArcSearch == true) win.UpdateInfo(false);
             }
+        }
+
+        //過去番組移動関係
+        private bool IsJumpPanelOpened { get{ return panel_timeJump.Visibility == Visibility.Visible; }}
+        private EpgViewPeriod SearchPeriod { get { return timeJumpView.GetDate(); } }
+        private void SetSearchPeriod()
+        {
+            searchKeyView.checkBox_noArcSearch.IsChecked = !Settings.Instance.ArcSearch;
+            searchKeyView.checkBox_noArcSearch.Checked += (sender, e) => { if (Searched) SearchPg(); };
+            searchKeyView.checkBox_noArcSearch.Unchecked += (sender, e) => { if (Searched) SearchPg(); };
+            timeJumpView.SetSearchMode();
+            timeJumpView.JumpDateClick += pr => SearchPg();
+            timeJumpView.DateChanged += RefreshMoveButtonStatus;
+            button_Panel.Click += (sender, e) => button_Panel_Click();
+            button_Prev.Click += (sender, e) => button_Time_Click(MoveTimeTarget(-1));
+            button_Next.Click += (sender, e) => button_Time_Click(MoveTimeTarget(1));
+            button_Reset.Click += (sender, e) => button_Time_Click(EpgViewPeriod.DefPeriod);
+            button_Prev.ToolTipOpening += (sender, e) => button_Time_Tooltip(button_Prev, e, -1);
+            button_Next.ToolTipOpening += (sender, e) => button_Time_Tooltip(button_Next, e, 1);
+            button_Reset.ToolTipOpening += (sender, e) => button_Reset.ToolTip = EpgViewPeriod.DefPeriod.ConvertText();
+        }
+        private void button_Panel_Click()
+        {
+            panel_timeJump.Visibility = IsJumpPanelOpened ? Visibility.Collapsed : Visibility.Visible;
+            button_Panel.Content = IsJumpPanelOpened ? "↑" : "↓";
+            RefreshMoveButtonStatus();
+        }
+        private void button_Time_Click(EpgViewPeriod period)
+        {
+            timeJumpView.SetDate(period);
+            SearchPg();
+        }
+        private void button_Time_Tooltip(Button btn, ToolTipEventArgs e, int mode)
+        {
+            e.Handled = !btn.IsEnabled;
+            btn.ToolTip = MoveTimeTarget(mode).ConvertText(DateTime.MaxValue);
+        }
+        private EpgViewPeriod MoveTimeTarget(int mode)
+        {
+            EpgViewPeriod pr = timeJumpView.GetDate();
+            if (pr.Equals(EpgViewPeriod.DefPeriod)) pr.Days = EpgViewPeriod.InitMoveDays;
+            pr.Start += TimeSpan.FromDays(mode * (int)pr.Days);
+            return pr;
+        }
+        private void RefreshMoveButtonStatus()
+        {
+            searchKeyView.checkBox_noArcSearch.IsEnabled = !IsJumpPanelOpened;
+            if (IsJumpPanelOpened == false) return;
+            button_Prev.IsEnabled = SearchPeriod.Start > CommonManager.Instance.DB.EventTimeMin;
+            button_Next.IsEnabled = SearchPeriod.End < EpgViewPeriod.DefPeriod.End;
+            timeJumpView.SetDate(null, CommonManager.Instance.DB.EventTimeMin);
         }
     }
     public class SearchWindowBase : AutoAddWindow<SearchWindow, EpgAutoAddData>

@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="EpgTimer.EpgView.TimeJumpView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d">
+    <DockPanel PreviewKeyDown="TextBoxOnKeyDown">
+        <Button Name="button_jumpDate" Content="設定" Width="42" ToolTip="" ToolTipOpening="DateTooltip" />
+        <TextBlock Name="text_calendar" Text="表示期間" Margin="15,0,0,0" />
+        <DatePicker Name="picker_start" Margin="5,0" Width="120" ToolTip="" ToolTipOpening="DateTooltip" />
+        <TextBlock Text="から" />
+        <TextBox Name="text_days" Width="42" Margin="5,0"  ToolTip="" ToolTipOpening="DateTooltip" />
+        <TextBlock Text="日間" Margin="0,0,15,0"/>
+        <TextBlock Text="**" Name="label_Limit" ToolTip="期間内であってもサービスにより番組データが存在しない場合があります。"/>
+    </DockPanel>
+
+</UserControl>

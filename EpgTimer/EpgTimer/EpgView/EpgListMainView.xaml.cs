@@ -30,7 +30,7 @@ namespace EpgTimer
             }
         }
         public override EpgViewState GetViewState() { return new StateListMain(this); }
-        protected StateListMain RestoreState { get { return restoreState as StateListMain ?? new StateListMain(); } }
+        protected new StateListMain RestoreState { get { return restoreState as StateListMain ?? new StateListMain(); } }
 
         private ListViewController<SearchItem> lstCtrl;
         private List<ServiceViewItem> serviceList = new List<ServiceViewItem>();
@@ -53,6 +53,9 @@ namespace EpgTimer
 
             //ステータス変更の設定
             lstCtrl.SetSelectionChangedEventHandler((sender, e) => this.UpdateStatus(1));
+
+            //過去番組移動ボタン関係
+            SetControlsPeriod(timeJumpView, timeMoveView, button_now);
 
             base.InitCommand();
 
@@ -113,6 +116,7 @@ namespace EpgTimer
 
                 UpdateEventList(true);
                 ReloadReserveInfoFlg = false;//リストビューでは処理済みになる
+                MoveNowTime();
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
@@ -180,6 +184,12 @@ namespace EpgTimer
             if (listView_event.SelectedItem == null) return;
             //
             richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText(listView_event.SelectedItem as SearchItem);
+        }
+
+        protected override void MoveNowTime()
+        {
+            listView_event.SelectedIndex = lstCtrl.dataList.FindIndex(item => item.EventInfo.PgStartTime >= DateTime.UtcNow.AddHours(9));
+            listView_event.ScrollIntoView(listView_event.SelectedItem);
         }
 
         public override void SaveViewData()

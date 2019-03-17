@@ -415,12 +415,14 @@ namespace EpgTimer
         public bool EpgExtInfoTooltip { get; set; }
         public bool EpgGradation { get; set; }
         public bool EpgGradationHeader { get; set; }
-        public double EpgNoDisplayOldDays { get; set; }
         public bool EpgChangeBorderWatch { get; set; }
         public bool EpgChangeBorderOnRec { get; set; }
         public bool EpgNameTabEnabled { get; set; }
         public bool EpgViewModeTabEnabled { get; set; }
         public bool EpgTabMoveCheckEnabled { get; set; }
+        public int EpgArcDefaultDays { get; set; }
+        public double EpgArcTabWeeks { get; set; }
+        public bool EpgArcStartSunday { get; set; }
         public SerializableDictionary<ulong, byte> RemoconIDList { get; set; }
         public string ResColumnHead { get; set; }
         public ListSortDirection ResSortDirection { get; set; }
@@ -773,12 +775,14 @@ namespace EpgTimer
             EpgExtInfoTooltip = true;
             EpgGradation = true;
             EpgGradationHeader = true;
-            EpgNoDisplayOldDays = 1;
             EpgChangeBorderWatch = false;
             EpgChangeBorderOnRec = false;
             EpgNameTabEnabled = true;
             EpgViewModeTabEnabled = false;
             EpgTabMoveCheckEnabled = true;
+            EpgArcDefaultDays = 1;
+            EpgArcTabWeeks = 1;
+            EpgArcStartSunday = false;
             RemoconIDList = new SerializableDictionary<ulong, byte>();
             ResColumnHead = "";
             ResSortDirection = ListSortDirection.Ascending;

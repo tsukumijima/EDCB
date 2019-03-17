@@ -7,33 +7,15 @@ namespace EpgTimer
 {
     public class EpgServiceAllEventInfo : EpgServiceEventInfo
     {
-        public readonly List<EpgEventInfo> eventArcList;
-        public IEnumerable<EpgEventInfo> eventMergeList { get { return eventList.Concat(eventArcList); } }
-        //public readonly List<EpgEventInfo> eventMergeList;
+        public List<EpgEventInfo> eventArcList;
+        public IEnumerable<EpgEventInfo> eventMergeList { get { return eventArcList.Concat(eventList); } }
         public EpgServiceAllEventInfo(EpgServiceInfo serviceInfo, List<EpgEventInfo> eventList = null, List<EpgEventInfo> eventArcList = null)
         {
             this.serviceInfo = serviceInfo;
             this.eventList = eventList ?? new List<EpgEventInfo>();
             this.eventArcList = eventArcList ?? new List<EpgEventInfo>();
-
-            /* 現在は重複情報は無いようなので、突き合わせは省略する。
-            //基本情報のEPGデータだけ未更新だったりするときがあるようなので一応重複確認する
-            //重複排除は開始時刻のみチェックなので、幾つかに分割されている場合などは不十分になる
-            //過去番組はアーカイブを優先する
-            if (this.eventList.Count != 0 && this.eventArcList.Count != 0)
-            {
-                var timeSet = new HashSet<DateTime>(eventArcList.Where(data => data.StartTimeFlag != 0).Select(data => data.PgStartTime));//無いはずだが時間未定をリファレンスから除外
-                var addList = eventList.Where(data => timeSet.Contains(data.PgStartTime) == false);//時間未定(PgStartTime=DateTime.MaxValue)は通過する。
-                this.eventMergeList = eventArcList.Concat(addList).ToList();
-            }
-            else
-            {
-                this.eventMergeList = this.eventList.Count != 0 ? eventList : this.eventArcList;
-            }
-            */
         }
-
-        public static Dictionary<UInt64, EpgServiceAllEventInfo> CreateEpgServicDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2)
+        public static Dictionary<UInt64, EpgServiceAllEventInfo> CreateEpgServiceDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2, bool reuseEvent = false)
         {
             var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
             foreach (EpgServiceEventInfo info in list)
@@ -51,16 +33,6 @@ namespace EpgTimer
                 {
                     serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
                 }
-            }
-            //過去番組情報用の補正
-            foreach (EpgServiceAllEventInfo info in serviceDic.Values)
-            {
-                EpgServiceInfo eInfo = info.serviceInfo;
-                if (eInfo.TSID != ChSet5.ChItem(eInfo.Key, true, true).TSID)
-                {
-                    eInfo.service_name = "[廃]" + eInfo.service_name;
-                }
-                foreach (var data in info.eventMergeList) data.ServiceName = eInfo.service_name;
             }
             return serviceDic;
         }
@@ -86,6 +58,11 @@ namespace EpgTimer
 
         public Dictionary<UInt64, EpgServiceAllEventInfo> ServiceEventList { get; private set; }
         public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }//検索用インデックス
+        public DateTime EventTimeMin { get { return CommonUtil.Min(EventTimeMinArc, EventTimeMinCurrent); } }
+        public DateTime EventTimeMinArc { get; private set; }
+        public DateTime EventTimeMaxArc { get; private set; }
+        private DateTime EventTimeBaseArc; //現在読み込まれている過去番組期間の開始
+        private DateTime EventTimeMinCurrent;
         public Dictionary<UInt32, ReserveData> ReserveList { get; private set; }
         public Dictionary<UInt32, TunerReserveInfo> TunerReserveList { get; private set; }
         //public RecSettingData DefaultRecSetting { get; private set; }
@@ -259,7 +236,7 @@ namespace EpgTimer
 
             if (reserveEventList == null)
             {
-                if (ServiceEventList.Count != 0 && IsNotifyRegistered(UpdateNotifyItem.EpgData) == false || Settings.Instance.NoReserveEventList == true)
+                if (IsEpgLoaded || Settings.Instance.NoReserveEventList == true)
                 {
                     reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID, rs => MenuUtil.SearchEventInfoLikeThat(rs));
                 }
@@ -397,6 +374,10 @@ namespace EpgTimer
             ClearRecFileAppend();
             ServiceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
             EventUIDList = new Dictionary<ulong, EpgEventInfo>();
+            EventTimeMinArc = DateTime.MaxValue;
+            EventTimeMaxArc = DateTime.MinValue;
+            EventTimeBaseArc = DateTime.MaxValue;
+            EventTimeMinCurrent = DateTime.MaxValue;
             ReserveList = new Dictionary<uint, ReserveData>();
             TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
             //DefaultRecSetting = null;
@@ -406,6 +387,15 @@ namespace EpgTimer
             WritePlugInList = new List<string>();
             ManualAutoAddList = new Dictionary<uint, ManualAutoAddData>();
             EpgAutoAddList = new Dictionary<uint, EpgAutoAddData>();
+        }
+
+        public bool IsEpgLoaded { get { return EventTimeMinCurrent != DateTime.MaxValue; } }
+        public bool IsEventTimePossible(DateTime time)
+        {
+            //3項目は、過去番組データが無く現在データも読み込まれていない場合で通信に問題がある場合も含む。
+            //なお、データ収集の方法によってはEventTimeMinCurrent<EventTimeMinArcの可能性もゼロではないが、
+            //稀なケースと思われるので無視する。
+            return EventTimeMin <= time || IsEpgLoaded == false && EventTimeMinArc == DateTime.MaxValue;
         }
 
         /// <summary>データの更新があったことを通知</summary>
@@ -419,6 +409,12 @@ namespace EpgTimer
                 epgAutoAddAppendList = null;//検索数が変わる。
                 reserveEventList = null;
                 reserveEventListCache = null;
+                EventTimeMinCurrent = DateTime.MaxValue;
+            }
+            else if(notify == UpdateNotifyItem.EpgDatabaseInfo)
+            {
+                EventTimeMinArc = DateTime.MaxValue;
+                EventTimeMaxArc = DateTime.MinValue;
             }
         }
         public bool IsNotifyRegistered(UpdateNotifyItem notify)
@@ -460,41 +456,98 @@ namespace EpgTimer
             {
                 ServiceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
                 EventUIDList = new Dictionary<ulong, EpgEventInfo>();
+                EventTimeBaseArc = DateTime.MaxValue;
 
                 var list = new List<EpgServiceEventInfo>();
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumPgAll(ref list); } catch { ret = ErrCode.CMD_ERR; }
-                if (ret != ErrCode.CMD_SUCCESS) return ret;
+                //SendEnumPgAll()は番組情報未取得状態でCMD_ERRを返す。従来エラー扱いだったが、取得数0の成功とみなす
+                if (ret != ErrCode.CMD_SUCCESS && ret != ErrCode.CMD_ERR) return ret;
 
                 var list2 = new List<EpgServiceEventInfo>();
-                if (Settings.Instance.EpgNoDisplayOldDays > 0)
-                {
-                    try { CommonManager.CreateSrvCtrl().SendEnumPgArc(new List<long> { 0xFFFFFFFFFFFF, 0xFFFFFFFFFFFF, DateTime.UtcNow.AddHours(9).AddDays(-1 - Settings.Instance.EpgNoDisplayOldDays).Date.ToFileTime(), long.MaxValue }, ref list2); } catch { }
-                }
+                EventTimeBaseArc = EpgViewPeriod.DefPeriod.StartLoad;
+                LoadEpgArcData(EventTimeBaseArc, DateTime.MaxValue, ref list2);
 
                 //リストの作成
-                ServiceEventList = EpgServiceAllEventInfo.CreateEpgServicDictionary(list, list2);
-                foreach (var info in ServiceEventList.Values)
+                EventTimeMinCurrent = list.SelectMany(info => info.eventList).Min(data => data.PgStartTime);
+                ServiceEventList = EpgServiceAllEventInfo.CreateEpgServiceDictionary(list, list2);
+                CorrectServiceInfo(ServiceEventList.Values);
+                foreach (var data in ServiceEventList.Values.SelectMany(info => info.eventMergeList))
                 {
-                    //通常あり得ないがUID被りは後優先。
-                    foreach (var data in info.eventMergeList) EventUIDList[data.CurrentPgUID()] = data;
+                    EventUIDList[data.CurrentPgUID()] = data;//通常あり得ないがUID被りは後優先。
                 }
 
                 //リモコンIDの登録
-                ChSet5.SetRemoconID(ServiceEventList);
+                ChSet5.SetRemoconID(ServiceEventList.Select(item => item.Value.serviceInfo));
 
                 reserveEventList = null;
                 reserveEventListCache = null;
 
+                return ErrCode.CMD_SUCCESS;
+            });
+        }
+        public ErrCode ReloadEpgDatabaseInfo(bool immediately = false, bool noRaiseChanged = false)
+        {
+            return ReloadWork(UpdateNotifyItem.EpgDatabaseInfo, immediately, noRaiseChanged, ret =>
+            {
+                var mm = new List<long>();
+                try { ret = CommonManager.CreateSrvCtrl().SendGetPgArcMinMax(new List<long> { 0xFFFFFFFFFFFF, 0xFFFFFFFFFFFF }, ref mm); } catch { ret = ErrCode.CMD_ERR; }
+                if (ret != ErrCode.CMD_SUCCESS) return ret;
+
+                //全過去番組情報の最小開始時間
+                EventTimeMinArc = mm[0] != long.MaxValue ? DateTime.FromFileTimeUtc(mm[0]) : DateTime.MaxValue;
+                EventTimeMaxArc = mm[1] != long.MinValue ? DateTime.FromFileTimeUtc(mm[1]) : DateTime.MinValue;
+
                 return ret;
             });
         }
+        //過去番組情報用の補正
+        public void CorrectServiceInfo(IEnumerable<EpgServiceEventInfo> list, bool reUseData = false)
+        {
+            //データ未ロード時は再利用不可
+            reUseData &= IsEpgLoaded;
+
+            foreach (EpgServiceEventInfo info in list)
+            {
+                //あれば取得EPGデータのEpgServiceInfo、EventInfoに差し替え
+                EpgServiceAllEventInfo refInfo;
+                if (reUseData && ServiceEventList.TryGetValue(info.serviceInfo.Key, out refInfo))
+                {
+                    info.serviceInfo = refInfo.serviceInfo;
+                }
+                else if (info.serviceInfo.TSID != ChSet5.ChItem(info.serviceInfo.Key, true, true).TSID)
+                {
+                    info.serviceInfo.service_name = "[廃]" + info.serviceInfo.service_name;
+                }
+
+                new List<List<EpgEventInfo>> { info.eventList, info is EpgServiceAllEventInfo ? (info as EpgServiceAllEventInfo).eventArcList : new List<EpgEventInfo>() }
+                .ForEach(eventList =>
+                {
+                    for (int i = 0; i < eventList.Count; i++)
+                    {
+                        EpgEventInfo refData;
+                        if (reUseData && EventUIDList.TryGetValue(eventList[i].CurrentPgUID(), out refData))
+                        {
+                            eventList[i] = refData;
+                        }
+                        else
+                        {
+                            eventList[i].ServiceName = info.serviceInfo.service_name;
+                        }
+                    }
+                });
+            }
+        }
 
         /// <summary>現在の取得データに合わせてデフォルト表示の番組情報を展開する</summary>
-        public List<UInt64> ExpandSpecialKey(IEnumerable<UInt64> keyList)
+        public List<UInt64> ExpandSpecialKey(List<UInt64> keyList, IEnumerable<EpgServiceInfo> additionalInfo = null)
         {
-            List<EpgServiceInfo> infoList = ((Settings.Instance.ShowEpgCapServiceOnly || ServiceEventList.Any() == false) ?
-                ChSet5.ChListSelected : ChSet5.GetSortedChList(ServiceEventList.Values.Select(info => info.serviceInfo))).ToList();
+            if (keyList.All(key => !EpgServiceInfo.IsSPKey(key))) return keyList;
 
+            var list1 = Settings.Instance.ShowEpgCapServiceOnly ? ChSet5.ChListSelected :
+                 (ServiceEventList.Any() ? ServiceEventList.Values.Select(info => info.serviceInfo) : ChSet5.ChList.Values)
+                    .Concat(additionalInfo ?? Enumerable.Empty<EpgServiceInfo>());
+
+            List<EpgServiceInfo> infoList = ChSet5.GetSortedChList(list1.Distinct(), true, true).ToList();
             var exDic = new Dictionary<UInt64, UInt64[]>();
             exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceDttv, infoList.Where(info => info.IsDttv).Select(info => info.Key).ToArray());
             exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceBS, infoList.Where(info => info.IsBS).Select(info => info.Key).ToArray());
@@ -514,43 +567,124 @@ namespace EpgTimer
                     exList.Add(key);
                 }
             }
-            return exList;
+            return exList.Distinct().ToList();
         }
 
-        //過去番組関係は別途調整する
-        public ErrCode SearchPg(List<EpgSearchKeyInfo> key, ref Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic)
+        public ErrCode LoadEpgData(ref Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic, EpgViewPeriod period = null, IEnumerable<ulong> keys = null)
         {
-            //番組情報の検索
-            var list = new List<EpgEventInfo>();
-            ErrCode err = ErrCode.CMD_SUCCESS;
-            try { err = CommonManager.CreateSrvCtrl().SendSearchPg(key, ref list); } catch { }
-            if (err == ErrCode.CMD_SUCCESS)
+            ErrCode err = ReloadEpgData();
+            if (err != ErrCode.CMD_SUCCESS) return err;
+
+            bool noCurrent = period != null && IsEpgLoaded && period.End <= EventTimeMinCurrent;
+            bool noArc = period == null || EventTimeBaseArc != DateTime.MaxValue && period.End <= EventTimeBaseArc;
+
+            serviceDic = ServiceEventList.ToDictionary(item => item.Key,
+                item => new EpgServiceAllEventInfo(item.Value.serviceInfo
+                , noCurrent ? null : PeriodApplied(item.Value.eventList, period.StrictLoad ? period : null)
+                , noArc ? null : PeriodApplied(item.Value.eventArcList, period.StrictLoad ? period : null)));
+
+            var list = new List<EpgServiceEventInfo>();
+            if (period != null && period.StartLoad < EventTimeBaseArc)
             {
-                var list2 = new List<EpgEventInfo>();
-                if (Settings.Instance.EpgNoDisplayOldDays > 0)
-                {
-                    var pram = new SearchPgParam();
-                    pram.keyList = key;
-                    pram.enumStart = ViewUtil.EpgKeyTime().AddDays(-1).ToFileTime();
-                    pram.enumEnd = long.MaxValue;
-                    try { CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2); } catch { }
-                }
+                err = LoadEpgArcData(period.StartLoad, period.End, ref list, keys);
+                if (err != ErrCode.CMD_SUCCESS) return err;
 
-                //サービス毎のリストに変換
-                var sList = list.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
-                var sList2 = list2.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
-                serviceDic = EpgServiceAllEventInfo.CreateEpgServicDictionary(sList, sList2);
+                //リモコンIDの登録、サービス名の補正
+                ChSet5.SetRemoconID(list.Select(info => info.serviceInfo), true);
+                CorrectServiceInfo(list);
 
-                //あればEPG取得データのEpgServiceInfoに差し替え
-                foreach (var info in serviceDic.Values)
+                foreach (EpgServiceEventInfo info in list)
                 {
-                    EpgServiceAllEventInfo eInfo;
-                    if (ServiceEventList.TryGetValue(info.serviceInfo.Key, out eInfo))
+                    UInt64 id = info.serviceInfo.Key;
+                    if (serviceDic.ContainsKey(id))
                     {
-                        info.serviceInfo = eInfo.serviceInfo;
+                        info.eventList.AddRange(serviceDic[id].eventArcList);
+                        serviceDic[id].eventArcList = info.eventList;
+                    }
+                    else
+                    {
+                        serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
                     }
                 }
             }
+
+            //イベントリストが空の場合もあるが、そのまま返す。
+            return err;
+        }
+        /// <summary>SPKeyが無ければ指定サービスのみ過去EPGを読み込む</summary>
+        public ErrCode LoadEpgArcData(DateTime start, DateTime end, ref List<EpgServiceEventInfo> list, IEnumerable<ulong> keys = null)
+        {
+            try
+            {
+                List<long> keyList;
+                if (keys == null || keys.Any(key => EpgServiceInfo.IsSPKey(key)))
+                {
+                    keyList = new List<long> { 0xFFFFFFFFFFFF, 0xFFFFFFFFFFFF };
+                }
+                else
+                {
+                    keyList = keys.Select(key => new List<long> { 0, (long)key }).SelectMany(lst => lst).ToList();
+                }
+                //EDCB系の時刻は、UTCじゃないけどUTC扱いなので
+                keyList.Add(start.ToFileTimeUtc());
+                keyList.Add(end == DateTime.MaxValue ? long.MaxValue : end.ToFileTimeUtc());
+
+                return CommonManager.CreateSrvCtrl().SendEnumPgArc(keyList, ref list);
+            }
+            catch { return ErrCode.CMD_ERR; }
+        }
+        private List<EpgEventInfo> PeriodApplied(List<EpgEventInfo> list, EpgViewPeriod period)
+        {
+            if (period == null) return list.ToList();
+            bool needNow = period.End >= DateTime.UtcNow.AddHours(9);
+            return list.FindAll(d => needNow && d.StartTimeFlag == 0 || period.Contains(d.PgStartTime));
+        }
+
+        //過去番組も含めた検索
+        public List<EpgEventInfo> SearchPg(List<EpgSearchKeyInfo> key, EpgViewPeriod period = null)
+        {
+            //サービス名の補正など行うためにSearchPgLists()から作成する。
+            Dictionary<UInt64, EpgServiceAllEventInfo> dic = null;
+            SearchPgLists(key, ref dic, period);
+            return dic == null ? new List<EpgEventInfo>() : dic.Values.SelectMany(info => info.eventMergeList).ToList();
+        }
+        public ErrCode SearchPgLists(List<EpgSearchKeyInfo> key, ref Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic, EpgViewPeriod period = null)
+        {
+            ErrCode err = ErrCode.CMD_SUCCESS;
+
+            //Epgデータ未取得時、SendSearchPg()の最古データは取得してみないと分からない。
+            var list = new List<EpgEventInfo>();
+            bool noSearchCurrent = period != null && IsEpgLoaded && period.End <= EventTimeMinCurrent;
+            if (noSearchCurrent == false)
+            {
+                try { err = CommonManager.CreateSrvCtrl().SendSearchPg(key, ref list); } catch { err = ErrCode.CMD_ERR; }
+                if (err != ErrCode.CMD_SUCCESS) return err;
+                if (period != null && period.StrictLoad) list = PeriodApplied(list, period);
+            }
+
+            var list2 = new List<EpgEventInfo>();
+            bool noSearchArc = period == null || EventTimeMaxArc != DateTime.MinValue && period.StartLoad > EventTimeMaxArc;
+            if (noSearchArc == false)
+            {
+                try
+                {
+                    var pram = new SearchPgParam();
+                    pram.keyList = key;
+                    pram.enumStart = period.StartLoad.ToFileTimeUtc();
+                    pram.enumEnd = period.End == DateTime.MaxValue ? long.MaxValue : period.End.ToFileTimeUtc();
+                    CommonManager.CreateSrvCtrl().SendSearchPgArc(pram, ref list2);
+                }
+                catch { }
+            }
+
+            //サービス毎のリストに変換
+            var sList = list.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
+            var sList2 = list2.GroupBy(info => info.Create64Key()).Select(gr => new EpgServiceEventInfo { serviceInfo = EpgServiceInfo.FromKey(gr.Key), eventList = gr.ToList() }).ToList();
+            serviceDic = EpgServiceAllEventInfo.CreateEpgServiceDictionary(sList, sList2);
+
+            //サービス名の補正、イベントデータの再使用
+            CorrectServiceInfo(serviceDic.Values, period == null || EventTimeBaseArc < period.End || EventTimeMinCurrent < period.End);
+
             return err;
         }
 
