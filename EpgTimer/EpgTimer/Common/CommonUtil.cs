@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Windows.Media;
 using System.IO;
@@ -25,15 +26,6 @@ namespace EpgTimer
             public uint cbSize;
             public uint dwTime;
         }
-
-        public static int NumBits(long bits)
-        {
-            bits = (bits & 0x55555555) + (bits >> 1 & 0x55555555);
-            bits = (bits & 0x33333333) + (bits >> 2 & 0x33333333);
-            bits = (bits & 0x0f0f0f0f) + (bits >> 4 & 0x0f0f0f0f);
-            bits = (bits & 0x00ff00ff) + (bits >> 8 & 0x00ff00ff);
-            return (int)((bits & 0x0000ffff) + (bits >> 16 & 0x0000ffff));
-        }
         
         public static int GetIdleTimeSec()
         {
@@ -52,6 +44,18 @@ namespace EpgTimer
                 IdleTicks = unchecked(GetTickCount() - LastInputInfo.dwTime);
             }
             return (int)(IdleTicks / 1000);
+        }
+
+        public static T Max<T>(params T[] args) { return args.Max(); }
+        public static T Min<T>(params T[] args) { return args.Min(); }
+
+        public static int NumBits(long bits)
+        {
+            bits = (bits & 0x55555555) + (bits >> 1 & 0x55555555);
+            bits = (bits & 0x33333333) + (bits >> 2 & 0x33333333);
+            bits = (bits & 0x0f0f0f0f) + (bits >> 4 & 0x0f0f0f0f);
+            bits = (bits & 0x00ff00ff) + (bits >> 8 & 0x00ff00ff);
+            return (int)((bits & 0x0000ffff) + (bits >> 16 & 0x0000ffff));
         }
 
         /// <summary>ショートカットの作成</summary>
@@ -151,6 +155,5 @@ namespace EpgTimer
             }
             return s;
         }
-
     }
 }

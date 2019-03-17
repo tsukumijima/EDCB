@@ -184,6 +184,7 @@ namespace EpgTimer.EpgView
             mc_ViewChgMode(sender, e);
 
             //EPG画面でのフォーカス対策。若干ウィンドウの表示タイミングが微妙だが、とりあえずこれで解決する。
+            //切替え自体は上のmc_ViewChgMode()が行っており、このコードはスプラッシュを表示するだけ。
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 new BlackoutWindow(ViewUtil.MainWindow).showWindow(ViewUtil.MainWindow.tabItem_epg.Header.ToString());

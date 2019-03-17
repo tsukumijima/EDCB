@@ -28,8 +28,7 @@ namespace EpgTimer.EpgView
             {
                 var service1 = new StackPanel();
                 service1.Width = Settings.Instance.ServiceWidth - 1;
-                service1.Margin = new Thickness(0, 1, 1, 1);
-                service1.Background = CommonManager.Instance.EpgServiceBackColor;
+                service1.VerticalAlignment = VerticalAlignment.Center;
                 service1.MouseLeftButtonDown += (sender, e) =>
                 {
                     if (e.ClickCount != 2) return;
@@ -51,7 +50,12 @@ namespace EpgTimer.EpgView
                 service1.Children.Add(text);
 
                 service1.ToolTip = Settings.Instance.EpgServiceNameTooltip != true ? null : ViewUtil.ServiceHeaderToToolTip(service1);
-                stackPanel_service.Children.Add(service1);
+
+                var grid1 = new Grid();
+                grid1.Background = CommonManager.Instance.EpgServiceBackColor;
+                grid1.Margin = new Thickness(0, 1, 1, 1);
+                grid1.Children.Add(service1);
+                stackPanel_service.Children.Add(grid1);
             }
         }
     }

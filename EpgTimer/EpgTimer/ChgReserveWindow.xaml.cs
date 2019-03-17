@@ -346,7 +346,7 @@ namespace EpgTimer
                     {
                         //基本的にAddReserveEpgWindowと同じ処理内容
                         if (MenuUtil.CheckReservable(CommonUtil.ToList(eventInfoNow)) == null) return;
-                        eventInfoNow.ConvertToReserveData(ref resInfo);
+                        eventInfoNow.ToReserveData(ref resInfo);
                         resInfo.ReleaseAutoAdd();
                     }
                 }
@@ -453,7 +453,7 @@ namespace EpgTimer
                     }
                     else
                     {
-                        SetReserveTimeInfo(CtrlCmdDefEx.ConvertEpgToReserveData(eventInfoNow));
+                        SetReserveTimeInfo(eventInfoNow.ToReserveData());
                     }
                 }
             }

@@ -120,7 +120,7 @@ namespace EpgTimer
                         button_search_Click(null, null);
                     };
                 };
-                listView_result.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, DataListView);
+                listView_result.PreviewKeyDown += (sender, e) => ViewUtil.OnKeyMoveNextReserve(sender, e, DataListView);
 
                 //録画設定タブ関係の設定
                 recSettingView.SelectedPresetChanged += SetRecSettingTabHeader;

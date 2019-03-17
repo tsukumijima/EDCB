@@ -32,7 +32,7 @@ namespace EpgTimer
             grid_viewMode.PreviewMouseRightButtonUp += EpgTabContextMenuOpen;
 
             //コマンドだと細かく設定しないといけないパターンなのでこの辺りで一括指定
-            this.PreviewKeyDown += (sender, e) => ViewUtil.OnKyeMoveNextReserve(sender, e, ActiveView);
+            this.PreviewKeyDown += (sender, e) => ViewUtil.OnKeyMoveNextReserve(sender, e, ActiveView);
         }
 
         /// <summary>選択されている番組表を返す</summary>

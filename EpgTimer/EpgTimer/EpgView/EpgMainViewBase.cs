@@ -47,6 +47,7 @@ namespace EpgTimer.EpgView
 
             //コマンド集からコマンドを登録
             mc.ResetCommandBindings(this, cmdMenu);
+            this.IsVisibleChanged += (sender, e) => ReDrawNowLine();
         }
         protected override void RefreshMenuInfo()
         {
@@ -79,10 +80,7 @@ namespace EpgTimer.EpgView
                 + ViewUtil.ConvertReserveStatus(reserveList.GetDataList(), "　予約");
         }
 
-        protected virtual DateTime GetViewTime(DateTime time)
-        {
-            return time;
-        }
+        protected virtual DateTime GetViewTime(DateTime time) { return time; }
 
         /// <summary>番組の縦表示位置設定</summary>
         protected virtual void SetProgramViewItemVertical()
@@ -121,14 +119,6 @@ namespace EpgTimer.EpgView
             int index = timeList.BinarySearch(chkStartTime);
             if (index < 0) return null;
 
-            //EPG予約の場合は番組の外側に予約枠が飛び出さないようなマージンを作成。
-            double StartMargin = resInfo.IsEpgReserve == false ? resInfo.StartMarginResActual : Math.Min(0, resInfo.StartMarginResActual);
-            double EndMargin = resInfo.IsEpgReserve == false ? resInfo.EndMarginResActual : Math.Min(0, resInfo.EndMarginResActual);
-
-            //duationがマイナスになる場合は後で処理される
-            startTime = startTime.AddSeconds(-StartMargin);
-            double duration = resInfo.DurationSecond + StartMargin + EndMargin;
-
             var resItem = new ReserveViewItem(resInfo);
             (resInfo is ReserveDataEnd ? recinfoList : reserveList).Add(resItem);
 
@@ -148,13 +138,21 @@ namespace EpgTimer.EpgView
                 }
             }
 
-            if (resInfo.IsEpgReserve == true && refPgItem != null && resInfo.DurationSecond != 0)
+            //EPG予約の場合は番組の外側に予約枠が飛び出さないようなマージンを作成。
+            double StartMargin = resInfo.IsEpgReserve == false ? resInfo.StartMarginResActual : Math.Min(0, resInfo.StartMarginResActual);
+            double EndMargin = resInfo.IsEpgReserve == false ? resInfo.EndMarginResActual : Math.Min(0, resInfo.EndMarginResActual);
+
+            //duationがマイナスになる場合は後で処理される
+            double duration = resInfo.DurationSecond + StartMargin + EndMargin;
+
+            if (resInfo.IsEpgReserve && resInfo.DurationSecond != 0)
             {
                 resItem.Height = Math.Max(refPgItem.Height * duration / resInfo.DurationSecond, ViewUtil.PanelMinimumHeight);
                 resItem.TopPos = refPgItem.TopPos + Math.Min(refPgItem.Height - resItem.Height, refPgItem.Height * (-StartMargin) / resInfo.DurationSecond);
             }
             else
             {
+                startTime = startTime.AddSeconds(-StartMargin);
                 resItem.Height = Math.Max(duration * Settings.Instance.MinHeight / 60, ViewUtil.PanelMinimumHeight);
                 resItem.TopPos = Settings.Instance.MinHeight * (index * 60 + (startTime - chkStartTime).TotalMinutes);
             }
@@ -163,14 +161,13 @@ namespace EpgTimer.EpgView
 
         protected IEnumerable<ReserveData> CombinedReserveList()
         {
-            return CommonManager.Instance.DB.RecFileInfo.Values
-                    .Where(item => programList.ContainsKey(item.CurrentPgUID()) || item.EventID == 0xFFFF)
-                    .Select(item => CtrlCmdDefEx.ConvertRecInfoToReserveData(item))
-                    .Concat(CommonManager.Instance.DB.ReserveList.Values);
+            Func<IAutoAddTargetData, bool> InDic = r => viewData.EventUIDList.ContainsKey(r.CurrentPgUID()) || (UInt16)r.CurrentPgUID() == 0xFFFF;
+            return CommonManager.Instance.DB.RecFileInfo.Values.Where(r => InDic(r)).Select(r => r.ToReserveData())
+                    .Concat(CommonManager.Instance.DB.ReserveList.Values.Where(r => InDic(r)));
         }
 
         /// <summary>表示スクロールイベント呼び出し</summary>
-        protected void epgProgramView_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        protected virtual void epgProgramView_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             programView.view_ScrollChanged(programView.scrollViewer, timeView.scrollViewer, horizontalViewScroll);
         }
@@ -254,8 +251,10 @@ namespace EpgTimer.EpgView
         protected void MoveTime(DateTime time, int offset = 0)
         {
             int idx = timeList.BinarySearch(time.AddSeconds(1));
-            double pos = ((idx < 0 ? ~idx : idx) - 1) * 60 * Settings.Instance.MinHeight + offset;
-            programView.scrollViewer.ScrollToVerticalOffset(Math.Max(0, pos));
+            double pos = Math.Max(0, ((idx < 0 ? ~idx : idx) - 1) * 60 * Settings.Instance.MinHeight + offset);
+            double back = programView.scrollViewer.VerticalOffset;
+            programView.scrollViewer.ScrollToVerticalOffset(pos);
+            if (pos == back) epgProgramView_ScrollChanged(null, null);//ScrollChangedEventArgsがCreate出来ない(RaiseEvent出来ない)ので
         }
         protected DateTime GetScrollTime()
         {
@@ -263,6 +262,7 @@ namespace EpgTimer.EpgView
             var idx = (int)(programView.scrollViewer.VerticalOffset / 60 / Settings.Instance.MinHeight);
             return timeList[Math.Max(0, Math.Min(idx, timeList.Count - 1))];
         }
+
         /// <summary>現在ライン表示</summary>
         protected virtual void ReDrawNowLine()
         {
@@ -282,12 +282,6 @@ namespace EpgTimer.EpgView
 
             nowViewTimer.Interval = TimeSpan.FromSeconds(60 - nowTime.Second);
             nowViewTimer.Start();
-        }
-
-        protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            ReDrawNowLine();
-            base.UserControl_IsVisibleChanged(sender, e);
         }
     }
 }

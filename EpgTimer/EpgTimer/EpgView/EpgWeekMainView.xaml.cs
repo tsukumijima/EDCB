@@ -30,6 +30,7 @@ namespace EpgTimer
         {
             InitializeComponent();
             SetControls(epgProgramView, timeView, weekDayView.scrollViewer, button_now);
+            nowViewTimer.Tick += (sender, e) => weekDayView.SetTodayMark();
 
             base.InitCommand();
 

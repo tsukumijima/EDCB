@@ -73,6 +73,7 @@ namespace EpgTimer
 
             //その他の設定
             SelectableItem.Set_CheckBox_PreviewChanged(listBox_service, listBox_service_Click_SelectChange);
+            this.IsVisibleChanged += (sender, e) => { if (IsVisible) lastActivateClass = this.GetHashCode(); };
         }
         protected override void RefreshMenuInfo()
         {
@@ -179,15 +180,6 @@ namespace EpgTimer
             if (listView_event.SelectedItem == null) return;
             //
             richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText(listView_event.SelectedItem as SearchItem);
-        }
-
-        protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            base.UserControl_IsVisibleChanged(sender, e);
-            if (IsVisible == true)
-            {
-                lastActivateClass = this.GetHashCode();
-            }
         }
 
         public override void SaveViewData()

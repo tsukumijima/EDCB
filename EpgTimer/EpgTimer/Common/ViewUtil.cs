@@ -19,7 +19,7 @@ namespace EpgTimer
         public static MainWindow MainWindow { get { return (MainWindow)Application.Current.MainWindow; } }
         private static Matrix deviceMatrix = new Matrix();
         public static Matrix DeviceMatrix
-        { 
+        {
             get
             {
                 var mw = MainWindow;//主にデザイン画面のエラー対策
@@ -153,7 +153,7 @@ namespace EpgTimer
         }
         public static void AddTimeList(ICollection<DateTime> timeList, DateTime startTime, DateTime lastTime)
         {
-            var chkStartTime = startTime.Date.AddHours(startTime.Hour); ;
+            var chkStartTime = startTime.Date.AddHours(startTime.Hour);
             while (chkStartTime <= lastTime)
             {
                 timeList.Add(chkStartTime);
@@ -308,7 +308,7 @@ namespace EpgTimer
             if (move == true) itemIdx = idx;
             return viewItem == null ? null : viewItem.Data;
         }
-        public static void OnKyeMoveNextReserve(object sender, KeyEventArgs e, DataItemViewBase view)
+        public static void OnKeyMoveNextReserve(object sender, KeyEventArgs e, DataItemViewBase view)
         {
             if (e.Handled || Keyboard.Modifiers != ModifierKeys.Control || view == null) return;
             //
@@ -683,7 +683,7 @@ namespace EpgTimer
 
         public static void RenameHeader(this IEnumerable<GridViewColumn> list, string uid, object title, string tag = null)
         {
-            foreach(var item in list)
+            foreach (var item in list)
             {
                 var header = item.Header as GridViewColumnHeader;
                 if (header != null && header.Uid == uid)
@@ -729,7 +729,7 @@ namespace EpgTimer
         public static StackPanel ServiceHeaderToToolTip(StackPanel panel)
         {
             var tip = new StackPanel();
-            foreach(TextBlock tb in panel.Children)
+            foreach (TextBlock tb in panel.Children)
             {
                 tip.Children.Add(GetPanelTextBlock(tb.Text));
             }

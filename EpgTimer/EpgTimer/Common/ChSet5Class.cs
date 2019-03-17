@@ -20,9 +20,9 @@ namespace EpgTimer
         }
         public static void Clear() { chList = null; chListOrderByIndex = null; bsmin = null; }
 
-        public static EpgServiceInfo ChItem(UInt64 key, bool noNullReturn = false, bool IgnoreTSID = false)
+        public static EpgServiceInfo ChItem(UInt64 key, bool noNullReturn = false, bool TryIgnoreTSID = false)
         {
-            return ChItemMask(key, noNullReturn, (UInt64)(IgnoreTSID == false ? 0 : 0x0000FFFF0000UL));
+            return ChItemMask(key, noNullReturn, (UInt64)(TryIgnoreTSID == false ? 0 : 0x0000FFFF0000UL));
         }
         public static EpgServiceInfo ChItemMask(UInt64 key, bool noNullReturn, UInt64 orMask)
         {

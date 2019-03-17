@@ -730,7 +730,7 @@ namespace EpgTimer
             retText += "\r\n";
 
             //音声
-            retText += "音声 :\r\n";
+            retText += "音声 :";
             if (eventInfo.AudioInfo != null)
             {
                 foreach (EpgAudioComponentInfoData info in eventInfo.AudioInfo.componentList)

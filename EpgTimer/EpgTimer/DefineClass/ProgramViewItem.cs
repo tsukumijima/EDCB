@@ -55,5 +55,4 @@ namespace EpgTimer
         public override Brush BackColor { get { return ViewUtil.EpgDataContentBrush(Data); } }
         public override Brush BorderBrush { get { return CommonManager.Instance.EpgBorderColor; } }
     }
-
 }

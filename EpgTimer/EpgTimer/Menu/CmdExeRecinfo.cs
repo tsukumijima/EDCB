@@ -51,7 +51,7 @@ namespace EpgTimer
             ReserveData data = null;
             if (dataList[0].IsOver(ViewUtil.EpgKeyTime()) == false)
             {
-                data = CtrlCmdDefEx.ConvertRecInfoToReserveData(dataList[0]);
+                data = dataList[0].ToReserveData();
             }
             return data == null ? null : new ReserveItem(data);
         }

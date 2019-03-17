@@ -38,7 +38,7 @@ namespace EpgTimer.EpgView
                 info.TitleDrawErr = sizeTitle > drawRect.Height;
 
                 //分
-                string min = info.Data.StartTimeFlag == 0 ? "？" : info.Data.start_time.Minute.ToString("d02");
+                string min = info.Data.StartTimeFlag == 0 ? "？" : info.Data.start_time.ToString("mm");
                 double useHeight = sizeNormal / 3 + RenderText(textDrawList, min, ItemFontTitle, sizeMin, drawRect, 0, 0, colorTitle);
                 
                 //番組情報
@@ -47,7 +47,7 @@ namespace EpgTimer.EpgView
                     //タイトル
                     string title = CommonManager.ReplaceText(info.Data.ShortInfo.event_name.TrimEnd(), DictionaryTitle);
                     useHeight = sizeTitle / 3 + RenderText(textDrawList, title, ItemFontTitle, sizeTitle, drawRect, indentTitle, 0, colorTitle);
-                    
+
                     //説明
                     if (useHeight < drawRect.Height)
                     {

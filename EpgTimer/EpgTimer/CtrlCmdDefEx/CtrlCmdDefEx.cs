@@ -126,15 +126,15 @@ namespace EpgTimer
                 && src.WritePlugIn.Equals(dest.WritePlugIn, StringComparison.OrdinalIgnoreCase) == true;
         }
 
-        public static ReserveData ConvertEpgToReserveData(EpgEventInfo epgInfo)
+        public static ReserveData ToReserveData(this EpgEventInfo epgInfo)
         {
             if (epgInfo == null) return null;
             var resInfo = new ReserveData();
-            epgInfo.ConvertToReserveData(ref resInfo);
+            epgInfo.ToReserveData(ref resInfo);
             return resInfo;
         }
 
-        public static bool ConvertToReserveData(this EpgEventInfo epgInfo, ref ReserveData resInfo)
+        public static bool ToReserveData(this EpgEventInfo epgInfo, ref ReserveData resInfo)
         {
             if (epgInfo == null || resInfo == null) return false;
 
@@ -151,7 +151,7 @@ namespace EpgTimer
             return true;
         }
         /*
-        public static EpgEventInfo ConvertRecInfoToEpgEventInfo(RecFileInfo recinfo)
+        public static EpgEventInfo ToEpgEventInfo(this RecFileInfo recinfo)
         {
             return recinfo == null ? null : new EpgEventInfo
             {
@@ -165,7 +165,7 @@ namespace EpgTimer
             };
         }
         */
-        public static ReserveDataEnd ConvertRecInfoToReserveData(RecFileInfo recinfo)
+        public static ReserveDataEnd ToReserveData(this RecFileInfo recinfo)
         {
             return recinfo == null ? null : new ReserveDataEnd
             {

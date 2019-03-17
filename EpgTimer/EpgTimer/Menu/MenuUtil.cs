@@ -154,7 +154,7 @@ namespace EpgTimer
         /// <summary>
         /// 変換エラーの場合、デフォルト値を返し、テキストボックスの内容をデフォルト値に置き換える。
         /// </summary>
-        public static T MyToNumerical<T>(TextBox box, Func<string, T> converter, T defValue = default(T))
+        public static T MyToNumerical<T>(TextBox box, Func<string, T> converter, T defValue = default(T), bool setdef = true)
         {
             try
             {
@@ -162,15 +162,15 @@ namespace EpgTimer
             }
             catch
             {
-                box.Text = defValue.ToString();
+                if (setdef == true) box.Text = defValue.ToString();
                 return defValue;
             }
         }
-        public static T MyToNumerical<T>(TextBox box, Func<string, T> converter, T max, T min, T defValue = default(T)) where T : IComparable
+        public static T MyToNumerical<T>(TextBox box, Func<string, T> converter, T max, T min, T defValue = default(T), bool setdef = true) where T : IComparable
         {
             try
             {
-                T val = MyToNumerical(box, converter, defValue);
+                T val = MyToNumerical(box, converter, defValue, setdef);
                 if (val.CompareTo(min) < 0)
                 {
                     box.Text = min.ToString();
@@ -185,7 +185,7 @@ namespace EpgTimer
             }
             catch
             {
-                box.Text = defValue.ToString();
+                if (setdef == true) box.Text = defValue.ToString();
                 return defValue;
             }
         }
@@ -212,7 +212,7 @@ namespace EpgTimer
             foreach (EpgEventInfo item in itemlist)
             {
                 var resInfo = new ReserveData();
-                item.ConvertToReserveData(ref resInfo);
+                item.ToReserveData(ref resInfo);
                 resInfo.RecSetting = setInfo;//setInfoはコピーしなくても大丈夫。
                 list.Add(resInfo);
             }
@@ -338,7 +338,7 @@ namespace EpgTimer
             if (resMode == 0)//EPG予約へ変更
             {
                 list = itemlist.Where(item => item.ReserveMode == ReserveMode.KeywordAuto ||
-                    item.IsEpgReserve == false && item.ReserveEventInfo(false).ConvertToReserveData(ref item) == true).ToList();
+                    item.IsEpgReserve == false && item.ReserveEventInfo(false).ToReserveData(ref item) == true).ToList();
             }
             else if (resMode == 1)//プログラム予約へ変更
             {
@@ -924,7 +924,10 @@ namespace EpgTimer
             try
             {
                 if (RecInfoDescWindow.ChangeDataLastUsedWindow(info) != null) return true;
-                new RecInfoDescWindow(info).Show();
+
+                //番組表でのダブルクリック時のフォーカス対策
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new RecInfoDescWindow(info).Show()));
+
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }

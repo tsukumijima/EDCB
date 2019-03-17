@@ -2,17 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              MinWidth="30" MinHeight="30">
-    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" >
         <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition />
-            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Name="columnDefinition" Width="*" />
             </Grid.ColumnDefinitions>
-            <UniformGrid Grid.Row="0" Name="uniformGrid_day" Rows="1" />
-            <UniformGrid Grid.Row="1" Name="uniformGrid_time" Rows="1" />
+            <UniformGrid Name="uniformGrid_main" Rows="1" />
         </Grid>
     </ScrollViewer>
 </UserControl>

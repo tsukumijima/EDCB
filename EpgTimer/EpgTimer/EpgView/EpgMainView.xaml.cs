@@ -18,10 +18,18 @@ namespace EpgTimer
             InitializeComponent();
             SetControls(epgProgramView, timeView, serviceView.scrollViewer, button_now);
 
-            epgProgramView.ScrollChanged += (sender, e) => dateView.SetNow(GetScrollTime());
+            //時間ジャンプボタン関係
             dateView.TimeButtonClick += (time, isDayMove) => MoveTime(time + TimeSpan.FromHours(isDayMove ? GetScrollTime().Hour : 0));
+            nowViewTimer.Tick += (sender, e) => dateView.SetTodayMark();
 
             base.InitCommand();
+        }
+
+        //強制イベント用。ScrollChangedEventArgsがCreate出来ない(RaiseEvent出来ない)のでOverride対応
+        protected override void epgProgramView_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            base.epgProgramView_ScrollChanged(sender, e);
+            dateView.SetScrollTime(GetScrollTime());
         }
 
         /// <summary>予約情報の再描画</summary>
@@ -203,6 +211,5 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
-
     }
 }

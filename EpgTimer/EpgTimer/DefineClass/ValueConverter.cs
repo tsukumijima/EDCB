@@ -7,7 +7,7 @@ namespace EpgTimer
 {
     public class BoolConverter : IValueConverter
     {
-        protected virtual bool ToBool(object v) { return v is bool ? (bool)v : (v ?? 0).ToString() != "0"; }
+        protected virtual bool ToBool(object v) { return v is bool ? (bool)v : v is Visibility ? (Visibility)v == Visibility.Visible : (v ?? 0).ToString() != "0"; }
         public virtual object Convert(object v, Type t, object p, System.Globalization.CultureInfo c)
         {
             if (t == typeof(Visibility)) return ToBool(v) ? Visibility.Visible : p == null ? Visibility.Hidden : Visibility.Collapsed;

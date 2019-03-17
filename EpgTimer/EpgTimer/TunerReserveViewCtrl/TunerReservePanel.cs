@@ -54,7 +54,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                 else
                 {
                     //分のみ
-                    RenderText(textDrawList, info.Data.StartTime.Minute.ToString("d02"), ItemFontNormal, sizeMin, drawRect, 0, 0, info.ServiceColor);
+                    RenderText(textDrawList, info.Data.StartTime.ToString("mm"), ItemFontNormal, sizeMin, drawRect, 0, 0, info.ServiceColor);
                 }
 
                 //サービス名

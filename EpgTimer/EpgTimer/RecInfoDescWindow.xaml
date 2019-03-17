@@ -21,7 +21,7 @@
             </Grid>
         </WrapPanel>
         <Grid Grid.Row="1">
-            <TextBlock VerticalAlignment="Top" Margin="130,3,0,0" Foreground="Blue" Text="※録画情報は既に削除されています" ToolTip="別ウィンドウによる操作などにより削除されました" Visibility="{Binding Path=KeyID, Converter={StaticResource invert}}" />
+            <TextBlock VerticalAlignment="Top" Margin="130,3,0,0" Foreground="Blue" Text="※録画情報がありません" ToolTip="別ウィンドウによる操作などにより削除されました" Visibility="{Binding Path=KeyID, Converter={StaticResource invert}}" />
             <TabControl >
                 <TabItem Header="番組情報" >
                     <TextBox Name="textBox_pgInfo" IsReadOnly="True" TextWrapping="Wrap" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" />

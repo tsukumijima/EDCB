@@ -183,7 +183,7 @@ namespace EpgTimer
             }
             else if (recinfoList.Count != 0)//予約情報優先
             {
-                return new ReserveItem(CtrlCmdDefEx.ConvertRecInfoToReserveData(recinfoList[0]));
+                return new ReserveItem(recinfoList[0].ToReserveData());
             }
             else if (eventList.Count != 0)
             {
@@ -205,7 +205,7 @@ namespace EpgTimer
             IBasicPgInfo eventRefData = null;
             if (eventList.Count != 0)
             {
-                resData = CtrlCmdDefEx.ConvertEpgToReserveData(eventList[0]);
+                resData = eventList[0].ToReserveData();
                 if (dataList.Count != 0)
                 {
                     resData.RecSetting = dataList[0].RecSetting.DeepClone();
