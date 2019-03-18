@@ -278,7 +278,7 @@ namespace EpgTimer
             return info;
         }
 
-        public enum SpecialViewServices : UInt64
+        public enum SpecialViewServices : ulong
         {
             ViewServiceDttv = 0x1000000000000,
             ViewServiceBS,
