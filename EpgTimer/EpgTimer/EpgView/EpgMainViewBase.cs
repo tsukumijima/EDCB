@@ -79,6 +79,8 @@ namespace EpgTimer.EpgView
         }
 
         protected virtual DateTime GetViewTime(DateTime time) { return time; }
+        protected virtual DateTime LimitedStart(IBasicPgInfo info) { return info.PgStartTime; }
+        protected virtual uint LimitedDuration(IBasicPgInfo info) { return info.PgDurationSecond; }
 
         /// <summary>番組の縦表示位置設定</summary>
         protected virtual void SetProgramViewItemVertical()
@@ -89,7 +91,7 @@ namespace EpgTimer.EpgView
                 var timeSet = new HashSet<DateTime>();
                 foreach (ProgramViewItem item in programList.Values)
                 {
-                    ViewUtil.AddTimeList(timeSet, GetViewTime(item.Data.start_time), item.Data.PgDurationSecond);
+                    ViewUtil.AddTimeList(timeSet, GetViewTime(LimitedStart(item.Data)), LimitedDuration(item.Data));
                 }
                 timeList.AddRange(timeSet.OrderBy(time => time));
             }
@@ -97,7 +99,7 @@ namespace EpgTimer.EpgView
             //縦位置を設定
             foreach (ProgramViewItem item in programList.Values)
             {
-                ViewUtil.SetItemVerticalPos(timeList, item, GetViewTime(item.Data.start_time), item.Data.durationSec, Settings.Instance.MinHeight, viewCustNeedTimeOnly);
+                ViewUtil.SetItemVerticalPos(timeList, item, GetViewTime(LimitedStart(item.Data)), LimitedDuration(item.Data), Settings.Instance.MinHeight, viewCustNeedTimeOnly);
             }
 
             //最低表示行数を適用。また、最低表示高さを確保して、位置も調整する。
@@ -109,8 +111,11 @@ namespace EpgTimer.EpgView
 
         protected virtual ReserveViewItem AddReserveViewItem(ReserveData resInfo, ref ProgramViewItem refPgItem, bool SearchEvent = false)
         {
+            //LimitedStart()の関係で判定出来ないものを除外
+            if (timeList.Any() == false || resInfo.IsManual && resInfo.IsOver(timeList[0])) return null;
+
             //マージン適用前
-            DateTime startTime = GetViewTime(resInfo.StartTime);
+            DateTime startTime = GetViewTime(LimitedStart(resInfo));
             DateTime chkStartTime = startTime.Date.AddHours(startTime.Hour);
 
             //離れた時間のプログラム予約など、番組表が無いので表示不可
@@ -140,16 +145,18 @@ namespace EpgTimer.EpgView
             double StartMargin = resInfo.IsEpgReserve == false ? resInfo.StartMarginResActual : Math.Min(0, resInfo.StartMarginResActual);
             double EndMargin = resInfo.IsEpgReserve == false ? resInfo.EndMarginResActual : Math.Min(0, resInfo.EndMarginResActual);
 
-            //duationがマイナスになる場合は後で処理される
-            double duration = resInfo.DurationSecond + StartMargin + EndMargin;
-
             if (resInfo.IsEpgReserve && resInfo.DurationSecond != 0)
             {
+                //duationがマイナスになる場合は後で処理される
+                double duration = resInfo.DurationSecond + StartMargin + EndMargin;
                 resItem.Height = Math.Max(refPgItem.Height * duration / resInfo.DurationSecond, ViewUtil.PanelMinimumHeight);
                 resItem.TopPos = refPgItem.TopPos + Math.Min(refPgItem.Height - resItem.Height, refPgItem.Height * (-StartMargin) / resInfo.DurationSecond);
             }
             else
             {
+                double adj = (LimitedStart(resInfo) - resInfo.PgStartTime).TotalSeconds;
+                StartMargin = Math.Min(0, StartMargin + adj);
+                double duration = resInfo.DurationSecond + StartMargin + EndMargin - adj;
                 startTime = startTime.AddSeconds(-StartMargin);
                 resItem.Height = Math.Max(duration * Settings.Instance.MinHeight / 60, ViewUtil.PanelMinimumHeight);
                 resItem.TopPos = Settings.Instance.MinHeight * (index * 60 + (startTime - chkStartTime).TotalMinutes);

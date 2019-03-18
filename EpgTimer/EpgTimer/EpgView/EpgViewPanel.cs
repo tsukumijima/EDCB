@@ -38,14 +38,14 @@ namespace EpgTimer.EpgView
                 info.TitleDrawErr = sizeTitle > drawRect.Height;
 
                 //分
-                string min = info.Data.StartTimeFlag == 0 ? "？" : info.Data.start_time.ToString("mm");
+                string min = info.Data.StartTimeFlag == 0 ? "？" : info.Data.start_time.ToString(info.DrawHours ? "HH\\:mm" : "mm");
                 double useHeight = sizeNormal / 3 + RenderText(textDrawList, min, ItemFontTitle, sizeMin, drawRect, 0, 0, colorTitle);
                 
                 //番組情報
                 if (info.Data.ShortInfo != null)
                 {
-                    //タイトル
-                    string title = CommonManager.ReplaceText(info.Data.ShortInfo.event_name.TrimEnd(), DictionaryTitle);
+                    //タイトル、info.DrawHoursの際の追加インデントは仮。1行目だけインデント変えるのは面倒そうなので、フォント毎に「00:」相当のスペース文字数を調べるか
+                    string title = (info.DrawHours ? "　 " : "") + CommonManager.ReplaceText(info.Data.ShortInfo.event_name.TrimEnd(), DictionaryTitle);
                     useHeight = sizeTitle / 3 + RenderText(textDrawList, title, ItemFontTitle, sizeTitle, drawRect, indentTitle, 0, colorTitle);
 
                     //説明

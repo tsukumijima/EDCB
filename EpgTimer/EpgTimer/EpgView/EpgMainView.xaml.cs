@@ -33,6 +33,15 @@ namespace EpgTimer
             dateView.SetScrollTime(GetScrollTime());
         }
 
+        protected override DateTime LimitedStart(IBasicPgInfo info)
+        {
+            return CommonUtil.Max(info.PgStartTime, ViewPeriod.Start);
+        }
+        protected override uint LimitedDuration(IBasicPgInfo info)
+        {
+            return (uint)(info.PgDurationSecond - (LimitedStart(info) - info.PgStartTime).TotalSeconds);
+        }
+
         /// <summary>予約情報の再描画</summary>
         protected override void ReloadReserveViewItem()
         {
@@ -186,6 +195,7 @@ namespace EpgTimer
 
                         //continueが途中にあるので登録はこの位置
                         var viewItem = new ProgramViewItem(eventInfo);
+                        viewItem.DrawHours = eventInfo.start_time != LimitedStart(eventInfo);
                         programList[eventInfo.CurrentPgUID()] = viewItem;
                         programGroupList.Last().Data.Add(viewItem);
 
@@ -198,7 +208,7 @@ namespace EpgTimer
                 //縦位置の設定
                 if (viewCustNeedTimeOnly == false && programList.Count != 0)
                 {
-                    ViewUtil.AddTimeList(timeList, programList.Values.Min(item => item.Data.start_time), 0);
+                    ViewUtil.AddTimeList(timeList, programList.Values.Min(item => LimitedStart(item.Data)), 0);
                 }
                 SetProgramViewItemVertical();
 

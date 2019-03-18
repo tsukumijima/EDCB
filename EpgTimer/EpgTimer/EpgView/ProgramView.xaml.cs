@@ -87,6 +87,7 @@ namespace EpgTimer.EpgView
         }
         protected override void SetPopupItemEx(PanelItem item)
         {
+            (PopPanel.Item as ProgramViewItem).DrawHours = (item as ProgramViewItem).DrawHours;
             popupItemBorder.Visibility = Visibility.Collapsed;
             popupItemFillOnly.Visibility = Visibility.Collapsed;
             if (popInfoRes != null)

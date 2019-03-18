@@ -52,6 +52,7 @@ namespace EpgTimer
     public class ProgramViewItem : PanelItem<EpgEventInfo>
     {
         public ProgramViewItem(EpgEventInfo info) : base(info) { }
+        public bool DrawHours { get; set; }
         public override Brush BackColor { get { return ViewUtil.EpgDataContentBrush(Data); } }
         public override Brush BorderBrush { get { return CommonManager.Instance.EpgBorderColor; } }
     }
