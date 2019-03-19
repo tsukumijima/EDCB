@@ -34,16 +34,22 @@ namespace EpgTimer.EpgView
         public EpgViewPeriod Period = EpgViewPeriod.DefPeriod;
         public bool IsDefPeriod = true;
 
-        public bool ReloadEpgData(EpgViewPeriod newPeriod = null)
+        public bool ReloadEpgData(EpgViewPeriod newPeriod = null, bool noMsg = false)
         {
             try
             {
                 newPeriod = newPeriod ?? EpgViewPeriod.DefPeriod;
                 if (Period.Equals(newPeriod) == true && IsEpgLoaded == true) return true;
+
+                if (CommonManager.Instance.WaitingSrvReady == true)
+                {
+                    StatusManager.StatusNotifySet("EpgTimerSrv準備完了待ち");
+                    return false;
+                }
                 if (CommonManager.Instance.IsConnected == false) return false;
 
                 ErrCode err;
-                Dictionary <UInt64, EpgServiceAllEventInfo> serviceDic = null;
+                var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
                 if (EpgTabInfo.SearchMode == false)
                 {
                     err = CommonManager.Instance.DB.LoadEpgData(ref serviceDic, newPeriod, EpgTabInfo.ViewServiceList);
@@ -53,9 +59,10 @@ namespace EpgTimer.EpgView
                     //番組情報の検索
                     err = CommonManager.Instance.DB.SearchPgLists(EpgTabInfo.GetSearchKeyReloadEpg().IntoList(), ref serviceDic, newPeriod);
                 }
-                if (CommonManager.CmdErrMsgTypical(err, "EPGデータの取得", err == ErrCode.CMD_ERR_BUSY ?
-                                                        "EPGデータの読み込みを行える状態ではありません。\r\n(EPGデータ読み込み中など)" :
-                                                        "エラーが発生しました。\r\nEPGデータが読み込まれていない可能性があります。") == false) return false;
+                if ((noMsg && err != ErrCode.CMD_SUCCESS) 
+                    || CommonManager.CmdErrMsgTypical(err, "EPGデータの取得", err == ErrCode.CMD_ERR_BUSY ?
+                    "EPGデータの読み込みを行える状態ではありません。\r\n(EPGデータ読み込み中など)" :
+                    "エラーが発生しました。\r\nEPGデータが読み込まれていない可能性があります。") == false) return false;
 
                 //並び順はViewServiceListによる。eventListはこの後すぐ作り直すのでとりあえずそのままもらう。
                 ServiceEventList = CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList, serviceDic.Values.Select(info => info.serviceInfo))
@@ -348,7 +355,7 @@ namespace EpgTimer.EpgView
         protected override bool ReloadInfoData()
         {
             EpgViewPeriod newPeriod = RestoreState.isDefPeriod == true ? EpgViewPeriod.DefPeriod : RestoreState.period ?? ViewPeriod;
-            if (!viewData.ReloadEpgData(newPeriod)) return false;
+            if (!viewData.ReloadEpgData(newPeriod, !this.IsVisible)) return false;
             ViewPeriod = DataPeriod.DeepClone();
             RefreshMoveButtonStatus();
 

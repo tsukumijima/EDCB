@@ -27,7 +27,8 @@ namespace EpgTimer
         public static EpgServiceInfo ChItemMask(UInt64 key, bool noNullReturn, UInt64 orMask)
         {
             EpgServiceInfo item = null;
-            if (ChList.TryGetValue(key, out item) == false && orMask != 0)
+            if ((chListOrderByIndex != null || LoadFile() != false) &&
+                    ChList.TryGetValue(key, out item) == false && orMask != 0)
             {
                 item = chListOrderByIndex.FirstOrDefault(ch => (ch.Key | orMask) == (key | orMask));
             }

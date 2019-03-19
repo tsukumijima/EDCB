@@ -24,6 +24,7 @@ namespace EpgTimer
         public System.Net.IPAddress NWConnectedIP { get; set; }
         public uint NWConnectedPort { get; set; }
         public bool IsConnected { get { return NWMode == false || Instance.NWConnectedIP != null; } }
+        public bool WaitingSrvReady { get; set; }
 
         MenuManager _mm;
         public MenuManager MM
@@ -56,6 +57,7 @@ namespace EpgTimer
             TVTestCtrl = new TVTestCtrlClass();
             NWMode = false;
             NotifyLogList = new List<NotifySrvInfo>();
+            WaitingSrvReady = false;
         }
 
         public static readonly string[] DayOfWeekArray = Enumerable.Range(0, 7).Select(i => (new DateTime(2000, 1, 2 + i)).ToString("ddd")).ToArray();

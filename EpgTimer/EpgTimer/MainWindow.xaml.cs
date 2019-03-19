@@ -119,6 +119,7 @@ namespace EpgTimer
                             Environment.Exit(0);
                         }
                         //EpgTimerSrvを自分で起動させた場合、後でUpdateNotifyItem.EpgDataが来るので、初期フラグをリセットする。
+                        CommonManager.Instance.WaitingSrvReady = true;
                         CommonManager.Instance.DB.ResetUpdateNotify(UpdateNotifyItem.EpgData);
                     }
                 }
@@ -1358,6 +1359,7 @@ namespace EpgTimer
                         err = CommonManager.Instance.DB.ReloadReserveRecFileNameList(true);
 
                         //EpgDataは遅延実行される場合があるので、処理内容には注意する。
+                        CommonManager.Instance.WaitingSrvReady = false;
                         CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
                         CommonManager.Instance.DB.ReloadEpgDatabaseInfo(true);
                         if (epgReload == true)
