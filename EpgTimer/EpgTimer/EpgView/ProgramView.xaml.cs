@@ -37,8 +37,8 @@ namespace EpgTimer.EpgView
 
             epgViewPanel.Background = CommonManager.Instance.EpgBackColor;
             epgViewPanel.SetBorderStyleFromSettings();
-            epgViewPanel.Height = ViewUtil.GetScreenHeightMax();
-            epgViewPanel.Width = ViewUtil.GetScreenWidthMax();
+            epgViewPanel.Height = SystemParameters.VirtualScreenHeight;
+            epgViewPanel.Width = SystemParameters.VirtualScreenWidth;
         }
 
         public override void ClearInfo()
@@ -190,8 +190,8 @@ namespace EpgTimer.EpgView
 
                 canvas.Width = ViewUtil.SnapsToDevicePixelsX(totalWidth + epgViewPanel.WidthMarginRight, 2);
                 canvas.Height = height;
-                epgViewPanel.Width = Math.Max(canvas.Width, ViewUtil.SnapsToDevicePixelsX(ViewUtil.GetScreenWidthMax()));
-                epgViewPanel.Height = Math.Max(canvas.Height, ViewUtil.SnapsToDevicePixelsY(ViewUtil.GetScreenHeightMax()));
+                epgViewPanel.Width = Math.Max(canvas.Width, ViewUtil.SnapsToDevicePixelsX(SystemParameters.VirtualScreenWidth));
+                epgViewPanel.Height = Math.Max(canvas.Height, ViewUtil.SnapsToDevicePixelsY(SystemParameters.VirtualScreenHeight));
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             return new Rect(0, 0, canvas.Width, canvas.Height);

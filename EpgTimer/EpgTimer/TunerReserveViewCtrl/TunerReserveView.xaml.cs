@@ -31,8 +31,8 @@ namespace EpgTimer.TunerReserveViewCtrl
             base.scroll = scrollViewer;
             base.cnvs = canvas;
 
-            reserveViewPanel.Height = ViewUtil.GetScreenHeightMax();
-            reserveViewPanel.Width = ViewUtil.GetScreenWidthMax();
+            reserveViewPanel.Height = SystemParameters.VirtualScreenHeight;
+            reserveViewPanel.Width = SystemParameters.VirtualScreenWidth;
         }
 
         public void SetReserveList(List<TunerReserveViewItem> reserveList, double width, double height)
@@ -42,8 +42,8 @@ namespace EpgTimer.TunerReserveViewCtrl
                 reserveViewPanel.SetBorderStyleFromSettings();
                 canvas.Width = ViewUtil.SnapsToDevicePixelsX(width + reserveViewPanel.WidthMarginRight, 2);//右端のチューナ列の線を描画するため+1。他の+1も同じ。;
                 canvas.Height = ViewUtil.SnapsToDevicePixelsY(height + reserveViewPanel.HeightMarginBottom, 2);
-                reserveViewPanel.Width = Math.Max(canvas.Width, ViewUtil.SnapsToDevicePixelsX(ViewUtil.GetScreenWidthMax()));
-                reserveViewPanel.Height = Math.Max(canvas.Height, ViewUtil.SnapsToDevicePixelsY(ViewUtil.GetScreenHeightMax()));
+                reserveViewPanel.Width = Math.Max(canvas.Width, ViewUtil.SnapsToDevicePixelsX(SystemParameters.VirtualScreenWidth));
+                reserveViewPanel.Height = Math.Max(canvas.Height, ViewUtil.SnapsToDevicePixelsY(SystemParameters.VirtualScreenHeight));
                 reserveViewPanel.Items = reserveList;
                 reserveViewPanel.InvalidateVisual();
 

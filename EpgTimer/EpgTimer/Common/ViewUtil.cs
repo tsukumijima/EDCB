@@ -636,15 +636,6 @@ namespace EpgTimer
             return element == null ? null : lb.ContainerFromElement(element);
         }
 
-        public static double GetScreenHeightMax()
-        {
-            return System.Windows.Forms.Screen.AllScreens.Max(sc => sc.WorkingArea.Height);
-        }
-        public static double GetScreenWidthMax()
-        {
-            return System.Windows.Forms.Screen.AllScreens.Max(sc => sc.WorkingArea.Width);
-        }
-
         public static int SingleWindowCheck(Type t, bool closeWindow = false)
         {
             var wList = Application.Current.Windows.OfType<Window>().Where(w => w.GetType() == t);

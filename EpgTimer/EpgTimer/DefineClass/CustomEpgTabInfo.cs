@@ -12,6 +12,7 @@ namespace EpgTimer
             ViewContentKindList = new List<UInt16>();
             ViewContentList = new List<EpgContentData>();
             ViewNotContentFlag = false;
+            EpgSettingIndex = 0;
             ViewMode = 0;
             NeedTimeOnlyBasic = false;
             NeedTimeOnlyWeek = false;
@@ -24,6 +25,7 @@ namespace EpgTimer
             IsVisible = true;
         }
         public string TabName { get; set; }
+        public int EpgSettingIndex { get; set; }
         public override string ToString() { return TabName; }
         public int ViewMode { get; set; }
         public bool NeedTimeOnlyBasic { get; set; }

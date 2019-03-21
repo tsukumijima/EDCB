@@ -114,6 +114,9 @@ namespace EpgTimer
             return false;
         }
 
+        [DllImport("user32.dll")]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
         /// <summary>ƒƒ“ƒo–¼‚ğ•Ô‚·B</summary>
         public static string NameOf<T>(Expression<Func<T>> e)
         {

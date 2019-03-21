@@ -18,27 +18,26 @@ namespace EpgTimer
     {
         public static bool ReadOnly { get; set; }
 
-        [DllImport("KERNEL32.DLL", CharSet = CharSet.Unicode)]
-        public static extern uint
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern uint
           GetPrivateProfileString(string lpAppName,
           string lpKeyName, string lpDefault,
           StringBuilder lpReturnedString, uint nSize,
           string lpFileName);
 
-        [DllImport("KERNEL32.DLL",
-            EntryPoint = "GetPrivateProfileStringA")]
-        public static extern uint
+        [DllImport("kernel32.dll", EntryPoint = "GetPrivateProfileStringA")]
+        private static extern uint
           GetPrivateProfileStringByByteArray(string lpAppName,
           string lpKeyName, string lpDefault,
           byte[] lpReturnedString, uint nSize,
           string lpFileName);
         
-        [DllImport("KERNEL32.DLL", CharSet = CharSet.Unicode)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         public static extern int
           GetPrivateProfileInt(string lpAppName,
           string lpKeyName, int nDefault, string lpFileName);
 
-        [DllImport("KERNEL32.DLL", CharSet = CharSet.Unicode)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         private static extern uint WritePrivateProfileString(
           string lpAppName,
           string lpKeyName,
@@ -1201,6 +1200,9 @@ namespace EpgTimer
             var info = typeof(Settings).GetProperty(propertyName);
             return (info == null ? null : info.GetValue(this, null));
         }
+
+        public static string DefaultFontName
+        { get { return SystemFonts.MenuFontFamily.FamilyNames[System.Windows.Markup.XmlLanguage.GetLanguage("ja-JP")]; } }
 
         public RecPresetItem RecPreset(Int32 presetID)
         {

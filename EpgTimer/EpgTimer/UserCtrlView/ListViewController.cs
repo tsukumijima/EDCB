@@ -45,7 +45,7 @@ namespace EpgTimer
         {
             //フォントなどの設定、無いときはSystemではなくListViewのデフォルトになるようにする。
             if (listView == null) return;
-            listView.FontFamily = new FontFamily(Settings.Instance.FontNameListView + "," + System.Drawing.SystemFonts.MessageBoxFont.Name);
+            listView.FontFamily = new FontFamily(Settings.Instance.FontNameListView + "," + Settings.DefaultFontName);
             listView.FontSize = Settings.Instance.FontSizeListView;
             listView.FontWeight = Settings.Instance.FontBoldListView == true ? FontWeights.Bold : FontWeights.Normal;
         }

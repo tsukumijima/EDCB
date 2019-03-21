@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 namespace EpgTimer.EpgView
@@ -53,8 +54,9 @@ namespace EpgTimer.EpgView
                     item.VerticalAlignment = VerticalAlignment.Center;
                     item.FontWeight = FontWeights.Bold;
 
-                    var grid = new Grid();
+                    var grid = new UniformGrid();
                     grid.Background = Settings.Instance.EpgGradationHeader ? (Brush)ColorDef.GradientBrush(backgroundColor, 0.8, 1.2) : new SolidColorBrush(backgroundColor);
+                    grid.Background.Freeze();
                     grid.Margin = new Thickness(0, 1, 1, 1);
                     grid.Tag = time;
                     grid.Children.Add(item);
@@ -67,7 +69,7 @@ namespace EpgTimer.EpgView
         public void SetTodayMark()
         {
             var date = DateTime.UtcNow.AddHours(9).Date;
-            var grid = stackPanel_day.Children.OfType<Grid>().FirstOrDefault(grd => (DateTime)grd.Tag == date);
+            var grid = stackPanel_day.Children.OfType<UniformGrid>().FirstOrDefault(grd => (DateTime)grd.Tag == date);
             rect_day.Visibility = grid == null ? Visibility.Collapsed : Visibility.Visible;
             if (grid != null)
             {

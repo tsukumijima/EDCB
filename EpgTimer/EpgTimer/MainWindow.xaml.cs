@@ -443,7 +443,7 @@ namespace EpgTimer
             TrayManager.Tray.ContextMenuList = Settings.Instance.TaskMenuList.Select(info =>
             {
                 if (buttonList.ContainsKey(info) == false) return new KeyValuePair<string, EventHandler>(null, null);
-                string id = info;
+                string id = info;//CS4対応のキャプチャ
                 return new KeyValuePair<string, EventHandler>(buttonList[id].Content as string, (sender, e) => CommonButtons_Click(id));
             }).ToList();
             TrayManager.Tray.ForceHideBalloonTipSec = Settings.Instance.ForceHideBalloonTipSec;
@@ -1544,7 +1544,7 @@ namespace EpgTimer
                     return;
             }
             BlackoutWindow.NowJumpTable = true;
-            new BlackoutWindow(this).showWindow(tab.Header as string);
+            new BlackoutWindow(this).showWindow(tab.Header as string ?? tab.Tag as string);
             this.Focus();//チューナー画面やEPG画面でのフォーカス対策。とりあえずこれで解決する。
             tab.IsSelected = false;//必ずOnVisibleChanged()を発生させるため。
             tab.IsSelected = true;
