@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -101,16 +102,19 @@ namespace EpgTimer
             }
             AllClosing = false;
         }
+        //フォーカス関係はOnClosed()でないと意図通り動かないが、RestoreBounds()はOnClosingでないと取れない。
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            WriteWindowSaveData();
+            base.OnClosing(e);
+        }
         protected override void OnClosed(EventArgs e)
         {
             //フォーカスがおかしくなるときがあるので、とりあえずの対応
             if (Application.Current.Windows.OfType<AttendantWindow>().Any() != true)
             {
-                mainWindow.Activate();
+                if (mainWindow.IsLoaded) mainWindow.Activate();
             }
-
-            WriteWindowSaveData();
-
             if (AllClosing == false)
             {
                 if (XMLSaveOnClose == true)
