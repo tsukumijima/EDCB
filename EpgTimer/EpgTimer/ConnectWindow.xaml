@@ -5,7 +5,7 @@
     <StackPanel Margin="12" >
         <WrapPanel Margin="4,0,0,0" >
             <TextBlock Text="プリセット" />
-            <ComboBox VerticalAlignment="Stretch" Margin="6,0,0,0" Name="cmb_preset" Width="120" IsEditable="True" SelectionChanged="cmb_preset_SelectionChanged" />
+            <ComboBox VerticalAlignment="Stretch" Margin="6,0,0,0" Name="cmb_preset" Width="120" IsEditable="True" SelectionChanged="btn_reload_Click" />
             <Button Content="再読込" Margin="12,0,0,0" Name="btn_reload" Click="btn_reload_Click" />
             <Button Content="追加・変更" Margin="6,0,0,0" Name="btn_add" Click="btn_add_Click" />
             <Button Content="削除" Margin="6,0,0,0" Name="btn_delete" Click="btn_delete_Click" />

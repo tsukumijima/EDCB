@@ -97,17 +97,9 @@ namespace EpgTimer
             return preset;
         }
 
-        private void cmb_preset_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            SetSetting(cmb_preset.SelectedItem as NWPresetItem);
-        }
         private int FindCmbPresetItem(NWPresetItem preset, bool ignoreName = true)
         {
             return cmb_preset.Items.OfType<NWPresetItem>().ToList().FindLastIndex(item => item.EqualsTo(preset, ignoreName));
-        }
-        private int FindCmbPresetItem(string name)
-        {
-            return cmb_preset.Items.OfType<NWPresetItem>().ToList().FindLastIndex(item => item.Name == name);
         }
 
         private void btn_reload_Click(object sender, RoutedEventArgs e)
@@ -121,7 +113,7 @@ namespace EpgTimer
             NWPresetItem newitem = GetSetting();
             newitem.Name = cmb_preset.Text.Trim();
 
-            int pos = FindCmbPresetItem(cmb_preset.Text.Trim());
+            int pos = cmb_preset.SelectedIndex;
             if (pos >= 0)
             {
                 cmb_preset.Items[pos] = newitem;
@@ -137,7 +129,7 @@ namespace EpgTimer
         {
             if (IsCmbTextInvalid() == true) return;//デフォルトアイテム
 
-            int pos = FindCmbPresetItem(cmb_preset.Text.Trim());
+            int pos = cmb_preset.SelectedIndex;
             if (pos >= 0)
             {
                 cmb_preset.Items.RemoveAt(pos);
@@ -146,7 +138,7 @@ namespace EpgTimer
         }
         private bool IsCmbTextInvalid()
         {
-            return cmb_preset.Text == null || cmb_preset.Text.Trim() == "" || cmb_preset.Text.Trim() == DefPresetStr;
+            return string.IsNullOrWhiteSpace(cmb_preset.Text) || cmb_preset.Text.Trim() == DefPresetStr;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
