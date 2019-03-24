@@ -115,6 +115,18 @@ namespace EpgTimer
                         int i = 0;
                         foreach (EpgAutoAddData item in srcList)
                         {
+                            //イベントの再利用。再利用不可の場合でもサービス名の修正は現在番組なので不用。
+                            if (IsEpgLoaded)
+                            {
+                                for (int j = 0; j < list_list[i].Count; j++)
+                                {
+                                    EpgEventInfo refData;
+                                    if (EventUIDList.TryGetValue(list_list[i][j].CurrentPgUID(), out refData))
+                                    {
+                                        list_list[i][j] = refData;
+                                    }
+                                }
+                            }
                             dict[item.dataID] = new EpgAutoAddDataAppend(list_list[i++]);
                         }
                     }
