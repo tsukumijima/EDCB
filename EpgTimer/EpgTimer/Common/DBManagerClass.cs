@@ -598,7 +598,7 @@ namespace EpgTimer
             var list = new List<EpgServiceEventInfo>();
             if (period != null && period.StartLoad < EventTimeBaseArc)
             {
-                err = LoadEpgArcData(period.StartLoad, period.End, ref list, keys);
+                err = LoadEpgArcData(period.StartLoad, CommonUtil.Min(period.End, EventTimeBaseArc), ref list, keys);
                 if (err != ErrCode.CMD_SUCCESS) return err;
 
                 //リモコンIDの登録、サービス名の補正
