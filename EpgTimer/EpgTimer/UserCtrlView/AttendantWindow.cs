@@ -10,7 +10,7 @@ namespace EpgTimer
     //Pinの相手はメインウィンドウ限定
     public class AttendantWindow : Window
     {
-        protected static MainWindow mainWindow { get { return ViewUtil.MainWindow; } }
+        protected static MainWindow mainWindow { get { return CommonManager.MainWindow; } }
         protected bool XMLSaveOnClose = false;
 
         protected virtual void WriteWindowSaveData()

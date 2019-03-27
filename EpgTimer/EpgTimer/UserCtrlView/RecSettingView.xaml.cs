@@ -125,7 +125,7 @@ namespace EpgTimer
             if (CommonManager.Instance.NWMode == false)
             {
                 CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate();
-                ViewUtil.MainWindow.RefreshAllViewsReserveInfo(MainWindow.UpdateViewMode.ReserveInfoNoTuner);
+                CommonManager.MainWindow.RefreshAllViewsReserveInfo(MainWindow.UpdateViewMode.ReserveInfoNoTuner);
             }
             SetCustomPresetDisplayName();
 

@@ -589,8 +589,7 @@ namespace EpgTimer
             List<ReserveData> delReserveList = null, List<ReserveData> chgReserveList = null, bool cautionMany = true, bool isViewOrder = true, bool noHistory = false)
         {
             if (itemlist.Any() == false) return true;
-            //一時的に予約情報更新を遅延させる
-            return (bool)ViewUtil.MainWindow.ActionWaitResNotify(() => AutoAddCmdSendWork(itemlist, mode, delReserveList, chgReserveList, cautionMany, isViewOrder, noHistory));
+            return AutoAddCmdSendWork(itemlist, mode, delReserveList, chgReserveList, cautionMany, isViewOrder, noHistory);
         }
 
         //mode 0:追加、1:変更、2:削除
@@ -665,7 +664,7 @@ namespace EpgTimer
             //並べ替え不要
             if (list.Count == 0) return true;
 
-            var autoView = ViewUtil.MainWindow.autoAddView;
+            var autoView = CommonManager.MainWindow.autoAddView;
             var view = (list[0] is EpgAutoAddData) ? (AutoAddListView)autoView.epgAutoAddView : autoView.manualAutoAddView;
 
             if (changeID == true)
@@ -1075,11 +1074,11 @@ namespace EpgTimer
         {
             if (target == null) return;
             BlackoutWindow.SelectedData = target;
-            ViewUtil.MainWindow.moveTo_tabItem(trg_code);
+            CommonManager.MainWindow.moveTo_tabItem(trg_code);
         }
         public static bool CheckJumpTab(SearchItem target, bool switchTab = false)
         {
-            return ViewUtil.MainWindow.epgView.SearchJumpTargetProgram(target, !switchTab);
+            return CommonManager.MainWindow.epgView.SearchJumpTargetProgram(target, !switchTab);
         }
     }
 }

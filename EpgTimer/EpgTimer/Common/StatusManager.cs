@@ -13,7 +13,7 @@ namespace EpgTimer
         {
             var param = new StatusBarObj();
             CmdGetStatusbar.Execute(param, target);
-            return param.sbar ?? ViewUtil.MainWindow.statusBar;
+            return param.sbar ?? CommonManager.MainWindow.statusBar;
         }
         public static void RegisterStatusbar(StatusView status_bar, UIElement target)
         {

@@ -16,13 +16,12 @@ namespace EpgTimer
 
     public static class ViewUtil
     {
-        public static MainWindow MainWindow { get { return (MainWindow)Application.Current.MainWindow; } }
         private static Matrix deviceMatrix = new Matrix();
         public static Matrix DeviceMatrix
         {
             get
             {
-                var mw = MainWindow;//主にデザイン画面のエラー対策
+                var mw = CommonManager.MainWindow;//主にデザイン画面のエラー対策
                 if (mw != null)
                 {
                     var ps = PresentationSource.FromVisual(mw);

@@ -23,7 +23,7 @@ namespace EpgTimer
     {
         No = 0, //なし
         EpgData = 1, //EPGデータ更新
-        EpgDatabaseInfo = 0x10000000 | EpgData, //EPGアーカイブの情報更新s、EpgTimer内部でのみ使用。
+        EpgDatabaseInfo = 0x10000000 | EpgData, //EPGアーカイブの情報更新、EpgTimer内部でのみ使用。
         ReserveInfo = 2, //予約情報更新
         ReserveName = 0x10000000 | ReserveInfo, //予約名のみ更新、EpgTimer内部でのみ使用。
         RecInfo = 3, //録画結果更新
@@ -42,16 +42,13 @@ namespace EpgTimer
         EpgCapEnd = 108,
     };
 
-    public enum EpgViewMode : uint
+    //MainWindowへ処理を依頼
+    public enum MainProcItem : uint
     {
-        Unknown = 0, //無効
-        BS = 1, //BS
-        CS = 2, //CS
-        Dttv = 3, //地デジ
-        Other = 4, //その他
-        Custom = 5, //カスタム
+        EpgDataLoaded, //EPGデータ更新
+        ReserveInfo, //予約情報更新
     };
-    
+
     public enum EventInfoTextMode : uint
     {
         All = 0, //番組情報全て

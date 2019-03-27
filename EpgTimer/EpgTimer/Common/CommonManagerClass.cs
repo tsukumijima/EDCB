@@ -17,6 +17,8 @@ namespace EpgTimer
 {
     class CommonManager
     {
+        public static MainWindow MainWindow { get { return (MainWindow)Application.Current.MainWindow; } }
+
         public DBManager DB { get; private set; }
         public TVTestCtrlClass TVTestCtrl { get; private set; }
         public List<NotifySrvInfo> NotifyLogList { get; private set; }

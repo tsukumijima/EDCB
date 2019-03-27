@@ -45,7 +45,7 @@ namespace EpgTimer
             Direct//完全に独立して実行、IsCommandCancelも使わない
         }
 
-        protected static MainWindow mainWindow { get { return ViewUtil.MainWindow; } }
+        protected static MainWindow mainWindow { get { return CommonManager.MainWindow; } }
         protected static MenuManager mm { get { return CommonManager.Instance.MM; } }
 
         public virtual void SetFuncGetDataList(Func<bool, IEnumerable<object>> f) { }

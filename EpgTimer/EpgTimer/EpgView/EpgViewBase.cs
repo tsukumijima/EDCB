@@ -217,7 +217,7 @@ namespace EpgTimer.EpgView
             //切替え自体は上のmc_ViewChgMode()が行っており、このコードはスプラッシュを表示するだけ。
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                new BlackoutWindow(ViewUtil.MainWindow).showWindow(ViewUtil.MainWindow.tabItem_epg.Header.ToString());
+                new BlackoutWindow(CommonManager.MainWindow).showWindow(CommonManager.MainWindow.tabItem_epg.Header.ToString());
             }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
 

@@ -413,10 +413,10 @@ namespace EpgTimer
                 switch (menu.Tag as edvCmds?)
                 {
                     case edvCmds.Setting:
-                        ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgSetting);
+                        CommonManager.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgSetting);
                         return;
                     case edvCmds.TabSetting:
-                        ViewUtil.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgTabSetting, menu.Uid);
+                        CommonManager.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.EpgTabSetting, menu.Uid);
                         return;
                     case edvCmds.ResetAll:
                         this.UpdateSetting(true);

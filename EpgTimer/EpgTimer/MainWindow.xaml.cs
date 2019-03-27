@@ -187,14 +187,7 @@ namespace EpgTimer
                 SetInfoSearchButtonTooltip(buttonList["予約情報検索"]);
 
                 //EpgDataは遅延実行される場合があるので、データ取得後の処理を登録
-                CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgData] = () =>
-                {
-                    reserveView.UpdateInfo();
-                    SearchWindow.UpdatesInfo(false);
-                    InfoSearchWindow.UpdatesInfo();
-                    AddReserveEpgWindow.UpdatesInfo();
-                    ChgReserveWindow.UpdatesInfo();
-                };
+                CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgData] = () => MainProc(MainProcItem.EpgDataLoaded);
 
                 if (CommonManager.Instance.NWMode == false)
                 {
@@ -264,7 +257,7 @@ namespace EpgTimer
                     SettingWindow.SettingMode.Default;
 
                     var menuSet = new MenuItem { Header = (tab.Header as string ?? tab.Tag as string) + "の画面設定(_O)..." };
-                    menuSet.Click += (s2, e2) => ViewUtil.MainWindow.OpenSettingDialog(mode);
+                    menuSet.Click += (s2, e2) => OpenSettingDialog(mode);
                     var ctxm = new ContextMenu { IsOpen = true };
                     ctxm.Items.Add(menuSet);
 
@@ -1381,18 +1374,15 @@ namespace EpgTimer
                     }
                     break;
                 case UpdateNotifyItem.ReserveInfo:
-                    if (WaitResNotify == true)
-                    {
-                        resNotifyWaiting.Add(status);
-                    }
-                    else
+                    //頻繁に来るときがあるので間引く
+                    MainProc(MainProcItem.ReserveInfo, () =>
                     {
                         err = CommonManager.Instance.DB.ReloadReserveInfo(true);
                         RefreshAllViewsReserveInfo();
                         UpdateReserveTab();
                         TrayManager.UpdateInfo();
                         StatusManager.StatusNotifyAppend("予約データ更新 < ");
-                    }
+                    });
                     break;
                 case UpdateNotifyItem.RecInfo:
                     {
@@ -1451,23 +1441,29 @@ namespace EpgTimer
             if (notifyLogWindowUpdate == true) NotifyLogWindow.UpdatesInfo();
         }
 
-        //自動予約登録変更時に頻繁に送られてくる予約情報更新を間引く。
-        private bool WaitResNotify = false;
-        private List<NotifySrvInfo> resNotifyWaiting = new List<NotifySrvInfo>();
-        public object ActionWaitResNotify(Func<object> work)
+        private Dictionary<MainProcItem, Action> mainProc = new Dictionary<MainProcItem, Action>();
+        public void MainProc(MainProcItem notifyID, Action work = null)
         {
-            WaitResNotify = true;
+            mainProc[notifyID] = work;
+
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                WaitResNotify = false;
-                foreach (var gr in resNotifyWaiting.GroupBy(st => st.notifyID))
+                foreach (var proc in mainProc)
                 {
-                    try { NotifyStatus(gr.First()); }
-                    catch { }
+                    switch (proc.Key)
+                    {
+                        case MainProcItem.EpgDataLoaded:
+                            reserveView.UpdateInfo();
+                            SearchWindow.UpdatesInfo(false);
+                            InfoSearchWindow.UpdatesInfo();
+                            AddReserveEpgWindow.UpdatesInfo();
+                            ChgReserveWindow.UpdatesInfo();
+                            break;
+                    }
+                    if (proc.Value != null) proc.Value();
                 }
-                resNotifyWaiting.Clear();
-            }), DispatcherPriority.Background);
-            return work();
+                mainProc.Clear();
+            }));
         }
 
         void RefreshReserveInfo()
