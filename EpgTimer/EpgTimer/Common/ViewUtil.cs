@@ -46,15 +46,16 @@ namespace EpgTimer
             return (mode == 0 ? Math.Floor : mode == 1 ? Math.Round : (Func<double, double>)Math.Ceiling)(v * m) / m;
         }
 
-        public static Brush EpgDataContentBrush(EpgEventInfo EventInfo)
+        public static Brush EpgDataContentBrush(EpgEventInfo EventInfo, int EpgSettingIndex = 0)
         {
             if (EventInfo == null) return null;
-            if (EventInfo.ContentInfo == null) return CommonManager.Instance.CustContentColorList[0x10];
 
-            return EpgDataContentBrush(EventInfo.ContentInfo.nibbleList);
+            var nibbleList = (EventInfo.ContentInfo ?? new EpgContentInfo()).nibbleList;
+            return EpgDataContentBrush(nibbleList, EpgSettingIndex);
         }
-        public static Brush EpgDataContentBrush(List<EpgContentData> nibbleList)
+        public static Brush EpgDataContentBrush(List<EpgContentData> nibbleList, int EpgSettingIndex = 0)
         {
+            List<Brush> colorList = Settings.BrushCache.Epg[EpgSettingIndex].ContentColorList;
             if (nibbleList != null)
             {
                 //0x0C,0D(将来用)は、設定UIは無いが色設定データ自体はあるので他と同様に扱う。
@@ -70,45 +71,46 @@ namespace EpgTimer
                         //CSのコード置き換え。通常は一般のジャンル情報も付いているので、効果は薄いかも。
                         switch (info.user_nibble_1)
                         {
-                            case 0x00: return CommonManager.Instance.CustContentColorList[0x01];//スポーツ(CS)→スポーツ
-                            case 0x01: return CommonManager.Instance.CustContentColorList[0x06];//洋画(CS)→映画
-                            case 0x02: return CommonManager.Instance.CustContentColorList[0x06];//邦画(CS)→映画
-                            case 0x03: return CommonManager.Instance.CustContentColorList[0x0F];//その他(CS)→その他
-                            default: return CommonManager.Instance.CustContentColorList[0x0F];//将来用→その他
+                            case 0x00: return colorList[0x01];//スポーツ(CS)→スポーツ
+                            case 0x01: return colorList[0x06];//洋画(CS)→映画
+                            case 0x02: return colorList[0x06];//邦画(CS)→映画
+                            case 0x03: return colorList[0x0F];//その他(CS)→その他
+                            default: return colorList[0x0F];//将来用→その他
                         }
                     }
-                    return CommonManager.Instance.CustContentColorList[info.content_nibble_level_1];
+                    return colorList[info.content_nibble_level_1];
                 }
             }
-            return CommonManager.Instance.CustContentColorList[0x10];
+            return colorList[0x10];
         }
 
         public static Brush ReserveErrBrush(ReserveData ReserveData)
         {
+            int idx = 0;
             if (ReserveData != null)
             {
                 if (ReserveData.IsEnabled == false)
                 {
-                    return CommonManager.Instance.ResBackColor[1];
+                    idx = 1;
                 }
-                if (ReserveData.OverlapMode == 2)
+                else if (ReserveData.OverlapMode == 2)
                 {
-                    return CommonManager.Instance.ResBackColor[2];
+                    idx = 2;
                 }
-                if (ReserveData.OverlapMode == 1)
+                else if (ReserveData.OverlapMode == 1)
                 {
-                    return CommonManager.Instance.ResBackColor[3];
+                    idx = 3;
                 }
-                if (ReserveData.IsAutoAddInvalid == true)
+                else if (ReserveData.IsAutoAddInvalid == true)
                 {
-                    return CommonManager.Instance.ResBackColor[4];
+                    idx = 4;
                 }
-                if (ReserveData.IsMultiple == true)
+                else if (ReserveData.IsMultiple == true)
                 {
-                    return CommonManager.Instance.ResBackColor[5];
+                    idx = 5;
                 }
             }
-            return CommonManager.Instance.ResBackColor[0];
+            return Settings.BrushCache.ResBackColor[idx];
         }
 
         public static void SetSpecificChgAppearance(Control obj)

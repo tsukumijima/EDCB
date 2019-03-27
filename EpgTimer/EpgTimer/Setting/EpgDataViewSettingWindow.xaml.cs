@@ -1,22 +1,23 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System.Windows;
 
 namespace EpgTimer
 {
     /// <summary>EpgDataViewSettingWindow.xaml の相互作用ロジック</summary>
     public partial class EpgDataViewSettingWindow : Window
     {
-        public EpgDataViewSettingWindow(CustomEpgTabInfo setInfo = null)
+        public EpgDataViewSettingWindow(CustomEpgTabInfo setInfo = null, List<EpgSetting> setList = null)
         {
             InitializeComponent();
             button_ok.Click += new RoutedEventHandler((sender, e) => DialogResult = true);
             button_cancel.Click += new RoutedEventHandler((sender, e) => DialogResult = false);
             checkBox_tryEpgSetting.Visibility = Visibility.Hidden;
-            SetDefSetting(setInfo ?? new CustomEpgTabInfo());
+            SetDefSetting(setInfo ?? new CustomEpgTabInfo(), setList);
         }
         /// <summary>デフォルト表示の設定値</summary>
-        public void SetDefSetting(CustomEpgTabInfo setInfo)
+        public void SetDefSetting(CustomEpgTabInfo setInfo, List<EpgSetting> setList = null)
         {
-            epgDataViewSetting.SetSetting(setInfo);
+            epgDataViewSetting.SetSetting(setInfo, setList);
         }
         /// <summary>設定値の取得</summary>
         public CustomEpgTabInfo GetSetting()

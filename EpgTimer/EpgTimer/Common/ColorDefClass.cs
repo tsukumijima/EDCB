@@ -68,15 +68,6 @@ namespace EpgTimer
             brush.Freeze();
             return brush;
         }
-        public static SolidColorBrush CustColorBrush(string name, uint cust = 0, byte a = 0xFF, int opacity = 100)
-        {
-            Color c = (name == "カスタム" ? ColorDef.FromUInt(cust) : ColorDef.ColorFromName(name));
-            a = name == "カスタム" ? c.A : a;
-            var brush = (c.A != 0 && (a != 0xFF || opacity != 100)) ?
-                new SolidColorBrush(Color.FromArgb((byte)(a * opacity / 100), c.R, c.G, c.B)) : new SolidColorBrush(c);
-            brush.Freeze();
-            return brush;
-        }
 
         //単純なRGB差。本当はlabとかいろいろあるけど今はこれで構わない
         public static double ColorDiff(Color c1, Color c2)

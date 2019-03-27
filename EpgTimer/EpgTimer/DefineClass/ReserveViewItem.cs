@@ -11,80 +11,82 @@ namespace EpgTimer
         {
             get
             {
+                int idx = 0;
                 if (Data.IsEnabled == false)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[2];
+                    idx = 2;
                 }
-                if (Data is ReserveDataEnd)
+                else if (Data is ReserveDataEnd)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[9];
+                    idx = 9;
                 }
-                if (Data.OverlapMode == 2)
+                else if (Data.OverlapMode == 2)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[3];
+                    idx = 3;
                 }
-                if (Settings.Instance.EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
+                else if (this.EpgStyle().EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[Data.IsWatchMode ? 8 : 7];
+                    idx = Data.IsWatchMode ? 8 : 7;
                 }
-                if (Data.OverlapMode == 1)
+                else if (Data.OverlapMode == 1)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[4];
+                    idx = 4;
                 }
-                if (Data.IsAutoAddInvalid == true)
+                else if (Data.IsAutoAddInvalid)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[5];
+                    idx = 5;
                 }
-                if (Data.IsMultiple == true)
+                else if (Data.IsMultiple)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[6];
+                    idx = 6;
                 }
-                if (Settings.Instance.EpgChangeBorderWatch == false && Data.IsManual == true ||
-                        Settings.Instance.EpgChangeBorderWatch == true && Data.IsWatchMode == true)
+                else if (this.EpgStyle().EpgChangeBorderWatch == false && Data.IsManual == true ||
+                        this.EpgStyle().EpgChangeBorderWatch == true && Data.IsWatchMode == true)
                 {
-                    return CommonManager.Instance.CustEpgResFillColorList[1];
+                    idx = 1;
                 }
-                return CommonManager.Instance.CustEpgResFillColorList[0];
+                return this.EpgBrushCache().ResFillColorList[idx];
             }
         }
         public override Brush BorderBrush
         {
             get
             {
+                int idx = 0;
                 if (Data.IsEnabled == false)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[2];
+                    idx = 2;
                 }
-                if (Data is ReserveDataEnd)
+                else if (Data is ReserveDataEnd)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[9];
+                    idx = 9;
                 }
-                if (Data.OverlapMode == 2)
+                else if (Data.OverlapMode == 2)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[3];
+                    idx = 3;
                 }
-                if (Settings.Instance.EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
+                else if (this.EpgStyle().EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[Data.IsWatchMode ? 8 : 7];
+                    idx = Data.IsWatchMode ? 8 : 7;
                 }
-                if (Data.OverlapMode == 1)
+                else if (Data.OverlapMode == 1)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[4];
+                    idx = 4;
                 }
-                if (Data.IsAutoAddInvalid == true)
+                else if (Data.IsAutoAddInvalid)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[5];
+                    idx = 5;
                 }
-                if (Data.IsMultiple == true)
+                else if (Data.IsMultiple)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[6];
+                    idx = 6;
                 }
-                if (Settings.Instance.EpgChangeBorderWatch == false && Data.IsManual == true ||
-                        Settings.Instance.EpgChangeBorderWatch == true && Data.IsWatchMode == true)
+                else if (this.EpgStyle().EpgChangeBorderWatch == false && Data.IsManual == true ||
+                        this.EpgStyle().EpgChangeBorderWatch == true && Data.IsWatchMode == true)
                 {
-                    return CommonManager.Instance.CustEpgResColorList[1];
+                    idx = 1;
                 }
-                return CommonManager.Instance.CustEpgResColorList[0];
+                return this.EpgBrushCache().ResColorList[idx];
             }
         }
     }
@@ -98,20 +100,21 @@ namespace EpgTimer
         {
             get
             {
-                if (Data.IsOnRec() == true)
+                int idx = 0;
+                if (Data.IsOnRec())
                 {
-                    return CommonManager.Instance.TunerResBorderColor[Data.IsWatchMode ? 4 : 3];
+                    idx = Data.IsWatchMode ? 4 : 3;
                 }
-                if (Data.IsEnabled == false)
+                else if (Data.IsEnabled == false)
                 {
-                    return CommonManager.Instance.TunerResBorderColor[2];
+                    idx = 2;
                 }
-                if (Settings.Instance.TunerChangeBorderWatch == false && Data.IsManual == true ||
+                else if (Settings.Instance.TunerChangeBorderWatch == false && Data.IsManual == true ||
                         Settings.Instance.TunerChangeBorderWatch == true && Data.IsWatchMode == true)
                 {
-                    return CommonManager.Instance.TunerResBorderColor[1];
+                    idx = 1;
                 }
-                return CommonManager.Instance.TunerResBorderColor[0];
+                return Settings.BrushCache.TunerResBorderColor[idx];
             }
         }
         public Brush ServiceColor
@@ -120,9 +123,9 @@ namespace EpgTimer
             {
                 if (Settings.Instance.TunerColorModeUse == true)
                 {
-                    return CommonManager.Instance.CustTunerServiceColorPri[Data.RecSetting.Priority - 1];
+                    return Settings.BrushCache.CustTunerServiceColorPri[Data.RecSetting.Priority - 1];
                 }
-                return CommonManager.Instance.CustTunerServiceColor;
+                return Settings.BrushCache.CustTunerServiceColor;
             }
         }
         public string Status

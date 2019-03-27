@@ -52,9 +52,9 @@ namespace EpgTimer
         }
         public void RefreshView()
         {
-            tunerReserveView.reserveViewPanel.Background = CommonManager.Instance.TunerBackColor;
-            tunerReserveTimeView.Background = CommonManager.Instance.TunerTimeBorderColor;
-            tunerReserveNameView.Background = CommonManager.Instance.TunerNameBorderColor;
+            tunerReserveView.reserveViewPanel.Background = Settings.BrushCache.TunerBackColor;
+            tunerReserveTimeView.Background = Settings.BrushCache.TunerTimeBorderColor;
+            tunerReserveNameView.Background = Settings.BrushCache.TunerNameBorderColor;
         }
 
         /// <summary>表示スクロールイベント呼び出し</summary>

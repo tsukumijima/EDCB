@@ -15,26 +15,33 @@ namespace EpgTimer
             this.eventList = eventList ?? new List<EpgEventInfo>();
             this.eventArcList = eventArcList ?? new List<EpgEventInfo>();
         }
-        public static Dictionary<UInt64, EpgServiceAllEventInfo> CreateEpgServiceDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2, bool reuseEvent = false)
+        public static Dictionary<UInt64, EpgServiceAllEventInfo> CreateEpgServiceDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2 = null)
         {
-            var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+            var dic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+            if (list == null) return dic;
             foreach (EpgServiceEventInfo info in list)
             {
-                UInt64 id = info.serviceInfo.Key;
-                //対応する過去番組情報があれば付加する
-                int i = list2.FindIndex(info2 => id == info2.serviceInfo.Key);
-                serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, info.eventList, i < 0 ? new List<EpgEventInfo>() : list2[i].eventList);
+                dic[info.serviceInfo.Key] = new EpgServiceAllEventInfo(info.serviceInfo, info.eventList);
             }
-            //過去番組情報が残っていればサービスリストに加える
+            AddArcEpgServiceDictionary(dic, list2);
+            return dic;
+        }
+        public static void AddArcEpgServiceDictionary(Dictionary<UInt64, EpgServiceAllEventInfo> dic, List<EpgServiceEventInfo> list2)
+        {
+            if (list2 == null) return;
             foreach (EpgServiceEventInfo info in list2)
             {
                 UInt64 id = info.serviceInfo.Key;
-                if (serviceDic.ContainsKey(id) == false)
+                if (dic.ContainsKey(id))
                 {
-                    serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
+                    dic[id].eventArcList = dic[id].eventArcList.Count == 0 ? info.eventList : 
+                                            info.eventList.Concat(dic[id].eventArcList).ToList();
+                }
+                else
+                {
+                    dic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
                 }
             }
-            return serviceDic;
         }
     }
 
@@ -485,15 +492,11 @@ namespace EpgTimer
                 //SendEnumPgAll()は番組情報未取得状態でCMD_ERRを返す。従来エラー扱いだったが、取得数0の成功とみなす
                 if (ret != ErrCode.CMD_SUCCESS && ret != ErrCode.CMD_ERR) return ret;
 
-                var list2 = new List<EpgServiceEventInfo>();
-                EventTimeBaseArc = EpgViewPeriod.DefPeriod.StartLoad;
-                LoadEpgArcData(EventTimeBaseArc, DateTime.MaxValue, ref list2);
-
                 //リストの作成
                 EventTimeMinCurrent = list.SelectMany(info => info.eventList).Min(data => data.PgStartTime);
-                ServiceEventList = EpgServiceAllEventInfo.CreateEpgServiceDictionary(list, list2);
-                CorrectServiceInfo(ServiceEventList.Values);
-                foreach (var data in ServiceEventList.Values.SelectMany(info => info.eventMergeList))
+                ServiceEventList = EpgServiceAllEventInfo.CreateEpgServiceDictionary(list);
+                CorrectServiceInfo(list);
+                foreach (var data in list.SelectMany(info => info.eventList))
                 {
                     EventUIDList[data.CurrentPgUID()] = data;//通常あり得ないがUID被りは後優先。
                 }
@@ -602,32 +605,55 @@ namespace EpgTimer
 
             serviceDic = ServiceEventList.ToDictionary(item => item.Key,
                 item => new EpgServiceAllEventInfo(item.Value.serviceInfo
-                , noCurrent ? null : PeriodApplied(item.Value.eventList, period.StrictLoad ? period : null)
-                , noArc ? null : PeriodApplied(item.Value.eventArcList, period.StrictLoad ? period : null)));
+                , noCurrent ? null : item.Value.eventList, noArc ? null : item.Value.eventArcList));
 
             var list = new List<EpgServiceEventInfo>();
             if (period != null && period.StartLoad < EventTimeBaseArc)
             {
-                err = LoadEpgArcData(period.StartLoad, CommonUtil.Min(period.End, EventTimeBaseArc), ref list, keys);
+                EpgViewPeriod prLoad = new EpgViewPeriod(period.StartLoad, CommonUtil.Min(period.End, EventTimeBaseArc));
+
+                //DB更新の判定
+                DateTime EventTimeBaseArcMin = Settings.Instance.EpgSettingList.Min(set => new EpgViewPeriodDef(set).DefPeriod.StartLoad);
+                bool addDB = prLoad.End > EventTimeBaseArcMin;
+                if (addDB)
+                {
+                    prLoad.Start = Settings.Instance.PrebuildEpg ? CommonUtil.Min(EventTimeBaseArcMin, prLoad.Start) : prLoad.Start;
+                    prLoad.End = EventTimeBaseArc;
+                }
+
+                err = LoadEpgArcData(prLoad.Start, prLoad.End, ref list, addDB ? null : keys);
                 if (err != ErrCode.CMD_SUCCESS) return err;
 
                 //リモコンIDの登録、サービス名の補正
                 ChSet5.SetRemoconID(list.Select(info => info.serviceInfo), true);
                 CorrectServiceInfo(list);
+                EpgServiceAllEventInfo.AddArcEpgServiceDictionary(serviceDic, list);
 
-                foreach (EpgServiceEventInfo info in list)
+                //DB更新。EventTimeBaseArcが毎回固定でなくて良いなら、この回の取得を全てキャッシュする手もある。
+                ReloadWork(UpdateNotifyItem.EpgDataAdd, addDB, false, ret =>
                 {
-                    UInt64 id = info.serviceInfo.Key;
-                    if (serviceDic.ContainsKey(id))
+                    EventTimeBaseArc = CommonUtil.Max(EventTimeBaseArcMin, prLoad.Start);
+                    if (prLoad.Start < EventTimeBaseArcMin)
                     {
-                        info.eventList.AddRange(serviceDic[id].eventArcList);
-                        serviceDic[id].eventArcList = info.eventList;
+                        foreach (var info in list)
+                        {
+                            info.eventList = info.eventList.FindAll(d => d.start_time >= EventTimeBaseArc);
+                        }
                     }
-                    else
+                    EpgServiceAllEventInfo.AddArcEpgServiceDictionary(ServiceEventList, list);
+                    foreach (var data in list.SelectMany(info => info.eventList))
                     {
-                        serviceDic[id] = new EpgServiceAllEventInfo(info.serviceInfo, new List<EpgEventInfo>(), info.eventList);
+                        EventUIDList[data.CurrentPgUID()] = data;//通常あり得ないがUID被りは後優先。
                     }
-                }
+                    return ret;
+                });
+            }
+
+            //必要なら期間を適用。未適用でもリストは再作成される。
+            foreach (var info in serviceDic.Values)
+            {
+                info.eventList = PeriodApplied(info.eventList, period.StrictLoad ? period : null);
+                info.eventArcList = PeriodApplied(info.eventArcList, period.StrictLoad ? period : null);
             }
 
             //イベントリストが空の場合もあるが、そのまま返す。

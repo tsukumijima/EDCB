@@ -7,7 +7,11 @@ using System.Windows.Input;
 
 namespace EpgTimer.EpgView
 {
-    public class EpgViewData
+    public interface IEpgViewDataSet
+    {
+        void SetViewData(EpgViewData data);
+    }
+    public class EpgViewData : IEpgSettingAccess
     {
         //表示形式間で番組表定義と番組リストを共有する
         //EpgTimerNWで検索絞り込みを使用時に多少効果があるくらいだが‥
@@ -24,21 +28,39 @@ namespace EpgTimer.EpgView
             IsEpgLoaded = false;
         }
         public EpgDataView.EpgDataViewInterface viewFunc { get; set; }
-        public CustomEpgTabInfo EpgTabInfo { get; set; }
+        private CustomEpgTabInfo epgTabInfo;
+        public CustomEpgTabInfo EpgTabInfo
+        {
+            get { return epgTabInfo; }
+            set
+            {
+                epgTabInfo = value;
+                EpgSettingIndex = epgTabInfo.EpgSettingIndex;
+                ReplaceDictionaryNormal = CommonManager.GetReplaceDictionaryNormal(this.EpgStyle());
+                ReplaceDictionaryTitle = CommonManager.GetReplaceDictionaryTitle(this.EpgStyle());
+                DefPeriod = new EpgViewPeriodDef(this.EpgStyle());
+                Period = DefPeriod.DefPeriod;
+            }
+        }
         public bool HasKey(UInt64 key) { return KeyList.Contains(key); }
         public IEnumerable<UInt64> KeyList { get { return IsEpgLoaded ? ServiceEventList.Select(info => info.serviceInfo.Key) : CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList); } }
         public bool IsEpgLoaded { get; private set; }
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
         public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }
 
-        public EpgViewPeriod Period = EpgViewPeriod.DefPeriod;
+        public int EpgSettingIndex { get; private set; }
+        public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal { get; private set; }
+        public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle { get; private set; }
+
+        public EpgViewPeriodDef DefPeriod;
+        public EpgViewPeriod Period;
         public bool IsDefPeriod = true;
 
         public bool ReloadEpgData(EpgViewPeriod newPeriod = null, bool noMsg = false)
         {
             try
             {
-                newPeriod = newPeriod ?? EpgViewPeriod.DefPeriod;
+                newPeriod = newPeriod ?? DefPeriod.DefPeriod;
                 if (Period.Equals(newPeriod) == true && IsEpgLoaded == true) return true;
 
                 if (CommonManager.Instance.WaitingSrvReady == true)
@@ -91,7 +113,7 @@ namespace EpgTimer.EpgView
 
                 IsEpgLoaded = true;
                 Period = newPeriod.DeepClone();
-                IsDefPeriod = Period.Equals(EpgViewPeriod.DefPeriod);
+                IsDefPeriod = Period.Equals(DefPeriod.DefPeriod);
                 return true;
             }
             catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
@@ -101,7 +123,7 @@ namespace EpgTimer.EpgView
 
     public class EpgViewState { public int viewMode; }
 
-    public class EpgViewBase : DataItemViewBase
+    public class EpgViewBase : DataItemViewBase, IEpgSettingAccess, IEpgViewDataSet
     {
         public static event ViewUpdatedHandler ViewReserveUpdated = null;
 
@@ -136,14 +158,20 @@ namespace EpgTimer.EpgView
         protected int viewMode = 0;//最初に設定した後は固定するコード。
         public void SetViewData(EpgViewData data, int mode)
         {
-            viewData = data;
             viewMode = mode;
-            ViewPeriod = viewData.Period;
+            SetViewData(data);
+        }
+        public virtual void SetViewData(EpgViewData data)
+        {
+            viewData = data;
+            ViewPeriod = DataPeriod.DeepClone(); ;
         }
         protected CustomEpgTabInfo viewInfo { get { return viewData.EpgTabInfo; } }
         protected virtual bool viewCustNeedTimeOnly { get { return viewInfo.NeedTimeOnlyBasic; } }
+        public int EpgSettingIndex { get { return viewData.EpgSettingIndex; } }
         protected bool IsDataDefPeriod { get { return viewData.IsDefPeriod; } }
-        protected EpgViewPeriod ViewPeriod = EpgViewPeriod.DefPeriod;
+        protected EpgViewPeriodDef DefPeriod { get { return viewData.DefPeriod; } }
+        protected EpgViewPeriod ViewPeriod = new EpgViewPeriod();
         protected EpgViewPeriod DataPeriod { get { return viewData.Period; } }
         protected bool IsJumpPanelOpened { get { return viewFunc.IsJumpPanelOpened; } set { viewFunc.IsJumpPanelOpened = value; } }
         protected List<EpgServiceEventInfo> serviceEventList { get { return viewData.ServiceEventList; } }
@@ -186,6 +214,9 @@ namespace EpgTimer.EpgView
 
             //コマンド集を振り替えるもの
             mc.AddReplaceCommand(EpgCmds.JumpTable, mc_JumpTable);
+
+            //過去番組関係
+            ViewPeriod = DefPeriod.DefPeriod;
         }
 
         //表示設定関係
@@ -236,7 +267,7 @@ namespace EpgTimer.EpgView
         }
         protected virtual void RefreshMenuInfo()
         {
-            mc.EpgInfoOpenMode = Settings.Instance.EpgInfoOpenMode;
+            mc.EpgInfoOpenMode = this.EpgStyle().EpgInfoOpenMode;
         }
 
         /// 保存関係
@@ -254,6 +285,7 @@ namespace EpgTimer.EpgView
             buttonNow = bn;
 
             jumpPanel.JumpDateClick += JumpDate;
+            jumpPanel.SetViewData(viewData);
             movePanel.OpenToggleClick += MovePanel_OpenToggleClick;
             movePanel.MoveButtonClick += MovePanel_MoveButtonClick;
             movePanel.MoveButtonToolTipOpen += MovePanel_MoveButtonTooltip;
@@ -274,9 +306,9 @@ namespace EpgTimer.EpgView
         protected EpgViewPeriod MoveTimeTarget(int mode)
         {
             var start = ViewPeriod.Start;
-            if (Settings.Instance.EpgArcStartSunday && start.DayOfWeek != DayOfWeek.Sunday)
+            if (this.EpgStyle().EpgArcStartSunday && start.DayOfWeek != DayOfWeek.Sunday)
             {
-                start += TimeSpan.FromDays(mode * (mode < 0 ? EpgViewPeriod.InitDays : ViewPeriod.Days));
+                start += TimeSpan.FromDays(mode * (mode < 0 ? DefPeriod.InitDays : ViewPeriod.Days));
                 var offset = (int)start.DayOfWeek;
                 if (offset != 0)
                 {
@@ -285,18 +317,18 @@ namespace EpgTimer.EpgView
             }
             else
             {
-                start += TimeSpan.FromDays(mode * (mode < 0 ? EpgViewPeriod.InitMoveDays : ViewPeriod.MoveDays));
+                start += TimeSpan.FromDays(mode * (mode < 0 ? DefPeriod.InitMoveDays : ViewPeriod.MoveDays));
             }
-            return start >= EpgViewPeriod.InitStart ? EpgViewPeriod.DefPeriod : new EpgViewPeriod(start);
+            return start >= DefPeriod.InitStart ? DefPeriod.DefPeriod : new EpgViewPeriod(start, DefPeriod.InitDays);
         }
         public void MovePanel_MoveButtonTooltip(Button btn, ToolTipEventArgs e, int mode)
         {
             e.Handled = !btn.IsEnabled;
-            btn.ToolTip = MoveTimeTarget(mode).ConvertText();
+            btn.ToolTip = MoveTimeTarget(mode).ConvertText(DefPeriod.DefPeriod.End);
         }
         public void JumpDate(EpgViewPeriod period = null)
         {
-            period = period ?? EpgViewPeriod.DefPeriod;
+            period = period ?? DefPeriod.DefPeriod;
             if (period.Equals(ViewPeriod)) return;
             ViewPeriod = period.DeepClone();
             UpdateInfo(true);
@@ -304,12 +336,12 @@ namespace EpgTimer.EpgView
         protected virtual void RefreshMoveButtonStatus()
         {
             buttonNow.Content = IsDataDefPeriod ? "現在" : "初期\r\n表示";
-            buttonNow.ToolTip = IsDataDefPeriod ? "現在時刻へスクロール" : EpgViewPeriod.DefPeriod.ConvertText();
+            buttonNow.ToolTip = IsDataDefPeriod ? "現在時刻へスクロール" : DefPeriod.DefPeriod.ConvertText(DefPeriod.DefPeriod.End);
             buttonNow.Tag = IsDataDefPeriod ? null : "jump";
 
             movePanel.SetButtonEnabled(
                 ViewPeriod.Start > CommonManager.Instance.DB.EventTimeMin,
-                ViewPeriod.End < (IsDataDefPeriod ? ViewPeriod.End : EpgViewPeriod.DefPeriod.End),
+                ViewPeriod.End < (IsDataDefPeriod ? ViewPeriod.End : DefPeriod.DefPeriod.End),
                 IsJumpPanelOpened);
 
             jumpPanel.Visibility = IsJumpPanelOpened ? Visibility.Visible : Visibility.Collapsed;
@@ -354,7 +386,7 @@ namespace EpgTimer.EpgView
         /// <summary>EPGデータ更新</summary>
         protected override bool ReloadInfoData()
         {
-            EpgViewPeriod newPeriod = RestoreState.isDefPeriod == true ? EpgViewPeriod.DefPeriod : RestoreState.period ?? ViewPeriod;
+            EpgViewPeriod newPeriod = RestoreState.isDefPeriod == true ? DefPeriod.DefPeriod : RestoreState.period ?? ViewPeriod;
             if (!viewData.ReloadEpgData(newPeriod, !this.IsVisible)) return false;
             ViewPeriod = DataPeriod.DeepClone();
             RefreshMoveButtonStatus();
@@ -385,7 +417,7 @@ namespace EpgTimer.EpgView
             if (BlackoutWindow.HasItemData)
             {
                 //「番組表へジャンプ」の場合、またはオプションで指定のある場合に強調表示する。
-                var isMarking = (BlackoutWindow.NowJumpTable || Settings.Instance.DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
+                var isMarking = (BlackoutWindow.NowJumpTable || this.EpgStyle().DisplayNotifyEpgChange) ? JumpItemStyle.JumpTo : JumpItemStyle.None;
                 bool mgs = MoveToItem(BlackoutWindow.SelectedItem, isMarking) == false && BlackoutWindow.NowJumpTable == true;
                 StatusManager.StatusNotifySet(mgs == false ? "" : "アイテムが見つかりませんでした < 番組表へジャンプ");
             }
@@ -397,13 +429,13 @@ namespace EpgTimer.EpgView
         protected EpgViewPeriod SearchJumpPeriod(DateTime time)
         {
             if (DataPeriod.Contains(time) == true) return DataPeriod;
-            if (EpgViewPeriod.DefPeriod.Contains(time) == true) return EpgViewPeriod.DefPeriod;
+            if (DefPeriod.DefPeriod.Contains(time) == true) return DefPeriod.DefPeriod;
 
             //見つからない場合はそのまま
             if (CommonManager.Instance.DB.IsEventTimePossible(time) == false)
             { return DataPeriod; }
 
-            return new EpgViewPeriod(time - TimeSpan.FromDays(Settings.Instance.EpgArcStartSunday ? (int)time.DayOfWeek : 0));
+            return new EpgViewPeriod(time - TimeSpan.FromDays(this.EpgStyle().EpgArcStartSunday ? (int)time.DayOfWeek : 0), DefPeriod.InitDays);
         }
         public bool IsEnabledJumpTab(SearchItem target)
         {

@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace EpgTimer.EpgView
 {
-    public partial class TimeJumpView : UserControl
+    public partial class TimeJumpView : UserControl, IEpgSettingAccess, IEpgViewDataSet
     {
         public event Action<EpgViewPeriod> JumpDateClick = period => { };
         public event Action DateChanged = () => { };
@@ -24,7 +24,7 @@ namespace EpgTimer.EpgView
         public EpgViewPeriod GetDate() { return GetDate(false); }
         private EpgViewPeriod GetDate(bool setDef)
         {
-            var start = picker_start.SelectedDate ?? EpgViewPeriod.InitStart;
+            var start = picker_start.SelectedDate ?? prdef.InitStart;
             double days = MenuUtil.MyToNumerical(text_days, Convert.ToDouble, 366, 0, 7, setDef);
             return new EpgViewPeriod(start, days);
         }
@@ -32,10 +32,26 @@ namespace EpgTimer.EpgView
         public TimeJumpView()
         {
             InitializeComponent();
-            SetDate(EpgViewPeriod.DefPeriod, EpgViewPeriod.InitStart);
+
             button_jumpDate.Click += (sender, e) => JumpDateClick(GetDate(true));
             picker_start.SelectedDateChanged += (sender, e) => DateChanged();
             text_days.TextChanged += (sender, e) => DateChanged();
+
+            //デフォルト値
+            prdef = new EpgViewPeriodDef(Settings.Instance.EpgSettingList[0]);
+            SetDate(prdef.DefPeriod, prdef.InitStart);
+        }
+        private EpgViewPeriodDef prdef;
+        public int EpgSettingIndex { get; private set; }
+        public void SetViewData(EpgViewData data)
+        {
+            EpgSettingIndex = data.EpgSettingIndex;
+            RefreshPeriod();
+            SetDate(prdef.DefPeriod, prdef.InitStart);
+        }
+        public void RefreshPeriod()
+        {
+            prdef = new EpgViewPeriodDef(this.EpgStyle());
         }
 
         protected void TextBoxOnKeyDown(object sender, KeyEventArgs e)
@@ -61,7 +77,7 @@ namespace EpgTimer.EpgView
             button_jumpDate.Visibility = Visibility.Collapsed;
             text_calendar.Text = "検索期間";
             modeText = "検索";
-            SetDate(EpgViewPeriod.DefPeriod, EpgViewPeriod.InitStart);
+            SetDate(prdef.DefPeriod, prdef.InitStart);
         }
     }
 }

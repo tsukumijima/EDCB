@@ -10,23 +10,23 @@ namespace EpgTimer.EpgView
     /// <summary>
     /// ProgramView.xaml の相互作用ロジック
     /// </summary>
-    public partial class ProgramView : PanelViewBase
+    public partial class ProgramView : PanelViewBase, IEpgSettingAccess, IEpgViewDataSet
     {
-        protected override bool IsSingleClickOpen { get { return Settings.Instance.EpgInfoSingleClick; } }
-        protected override double DragScroll { get { return Settings.Instance.DragScroll; } }
-        protected override bool IsMouseScrollAuto { get { return Settings.Instance.MouseScrollAuto; } }
-        protected override double ScrollSize { get { return Settings.Instance.ScrollSize; } }
-        protected override bool IsPopEnabled { get { return Settings.Instance.EpgPopup == true; } }
-        protected override bool PopOnOver { get { return Settings.Instance.EpgPopupMode != 1; } }
-        protected override bool PopOnClick { get { return Settings.Instance.EpgPopupMode != 0; } }
+        protected override bool IsSingleClickOpen { get { return this.EpgStyle().EpgInfoSingleClick; } }
+        protected override double DragScroll { get { return this.EpgStyle().DragScroll; } }
+        protected override bool IsMouseScrollAuto { get { return this.EpgStyle().MouseScrollAuto; } }
+        protected override double ScrollSize { get { return this.EpgStyle().ScrollSize; } }
+        protected override bool IsPopEnabled { get { return this.EpgStyle().EpgPopup == true; } }
+        protected override bool PopOnOver { get { return this.EpgStyle().EpgPopupMode != 1; } }
+        protected override bool PopOnClick { get { return this.EpgStyle().EpgPopupMode != 0; } }
         protected override FrameworkElement Popup { get { return popupItem; } }
         protected override ViewPanel PopPanel { get { return popupItemPanel; } }
-        protected override double PopWidth { get { return Settings.Instance.ServiceWidth * Settings.Instance.EpgPopupWidth; } }
+        protected override double PopWidth { get { return this.EpgStyle().ServiceWidth * this.EpgStyle().EpgPopupWidth; } }
 
         private ReserveViewItem popInfoRes = null;
 
-        protected override bool IsTooltipEnabled { get { return Settings.Instance.EpgToolTip == true; } }
-        protected override int TooltipViweWait { get { return Settings.Instance.EpgToolTipViewWait; } }
+        protected override bool IsTooltipEnabled { get { return this.EpgStyle().EpgToolTip == true; } }
+        protected override int TooltipViweWait { get { return this.EpgStyle().EpgToolTipViewWait; } }
 
         public ProgramView()
         {
@@ -35,10 +35,18 @@ namespace EpgTimer.EpgView
             base.scroll = scrollViewer;
             base.cnvs = canvas;
 
-            epgViewPanel.Background = CommonManager.Instance.EpgBackColor;
-            epgViewPanel.SetBorderStyleFromSettings();
             epgViewPanel.Height = SystemParameters.VirtualScreenHeight;
             epgViewPanel.Width = SystemParameters.VirtualScreenWidth;
+        }
+
+        protected EpgViewData viewData;
+        public int EpgSettingIndex { get; private set; }
+        public void SetViewData(EpgViewData data)
+        {
+            viewData = data;
+            EpgSettingIndex = data.EpgSettingIndex;
+            popupItemPanel.SetViewData(data);
+            epgViewPanel.SetViewData(data);
         }
 
         public override void ClearInfo()
@@ -73,7 +81,7 @@ namespace EpgTimer.EpgView
             ReserveViewItem lastPopInfoRes = popInfoRes;
             popInfoRes = GetReserveViewData(cursorPos);
 
-            if (Settings.Instance.EpgPopupMode == 2 && popInfoRes == null && (
+            if (this.EpgStyle().EpgPopupMode == 2 && popInfoRes == null && (
                 onClick == false && !(lastPopInfoRes == null && popInfo == lastPopInfo) ||
                 onClick == true && lastPopInfo != null)) return null;
 
@@ -88,13 +96,14 @@ namespace EpgTimer.EpgView
         protected override void SetPopupItemEx(PanelItem item)
         {
             (PopPanel.Item as ProgramViewItem).DrawHours = (item as ProgramViewItem).DrawHours;
+            (PopPanel.Item as ProgramViewItem).EpgSettingIndex = (item as ProgramViewItem).EpgSettingIndex;
             popupItemBorder.Visibility = Visibility.Collapsed;
             popupItemFillOnly.Visibility = Visibility.Collapsed;
             if (popInfoRes != null)
             {
                 popupItemBorder.Visibility = Visibility.Visible;
-                if (Settings.Instance.ReserveRectFillWithShadow == false) popupItemFillOnly.Visibility = Visibility.Visible;
-                SetReserveBorderColor(popInfoRes, popupItemBorder, Settings.Instance.ReserveRectFillWithShadow ? null : popupItemFillOnly);
+                if (this.EpgStyle().ReserveRectFillWithShadow == false) popupItemFillOnly.Visibility = Visibility.Visible;
+                SetReserveBorderColor(popInfoRes, popupItemBorder, this.EpgStyle().ReserveRectFillWithShadow ? null : popupItemFillOnly);
             }
         }
 
@@ -105,10 +114,10 @@ namespace EpgTimer.EpgView
         protected override void SetTooltip(PanelItem toolInfo)
         {
             var info = toolInfo as ProgramViewItem;
-            if (info.TitleDrawErr == false && Settings.Instance.EpgToolTipNoViewOnly == true) return;
+            if (info.TitleDrawErr == false && this.EpgStyle().EpgToolTipNoViewOnly == true) return;
 
             Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(CommonManager.ConvertProgramText(info.Data,
-                Settings.Instance.EpgExtInfoTooltip == true ? EventInfoTextMode.All : EventInfoTextMode.BasicText));
+                this.EpgStyle().EpgExtInfoTooltip == true ? EventInfoTextMode.All : EventInfoTextMode.BasicText));
         }
 
         public ReserveViewItem GetReserveViewData(Point cursorPos)
@@ -154,7 +163,7 @@ namespace EpgTimer.EpgView
                 foreach (ReserveViewItem info in reserveList)
                 {
                     var rect = AddRect(info, 10, info);
-                    var fillOnlyRect = Settings.Instance.ReserveRectFillWithShadow ? null : AddRect(info, 9, null);
+                    var fillOnlyRect = this.EpgStyle().ReserveRectFillWithShadow ? null : AddRect(info, 9, null);
                     SetReserveBorderColor(info, rect, fillOnlyRect);
                 }
             }
@@ -177,8 +186,7 @@ namespace EpgTimer.EpgView
                 foreach (var programList in programGroupList)
                 {
                     var item = new EpgViewPanel();
-                    item.Background = epgViewPanel.Background;
-                    item.SetBorderStyleFromSettings();
+                    item.SetViewData(viewData);
                     item.Height = height;
                     item.Width = programList.Width;
                     Canvas.SetLeft(item, totalWidth);

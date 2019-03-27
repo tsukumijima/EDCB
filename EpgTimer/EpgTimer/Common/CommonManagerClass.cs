@@ -443,13 +443,16 @@ namespace EpgTimer
             return string.Format("{0} : {1} (0x{1:X4})", Title, (UInt16)id);
         }
 
-        public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal;
-        public static Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryTitle;
-        public static void ReloadReplaceDictionary()
+        public static Dictionary<char, List<KeyValuePair<string, string>>> GetReplaceDictionaryNormal(EpgSetting set = null)
         {
-            ReplaceDictionaryTitle = CreateReplaceDictionary(Settings.Instance.EpgReplacePatternTitle, Settings.Instance.EpgReplacePatternTitleDef);
-            ReplaceDictionaryNormal = Settings.Instance.ShareEpgReplacePatternTitle == true ? ReplaceDictionaryTitle :
-                                     CreateReplaceDictionary(Settings.Instance.EpgReplacePattern, Settings.Instance.EpgReplacePatternDef);
+            set = set ?? Settings.Instance.EpgSettingList[0];
+            return set.ShareEpgReplacePatternTitle == true ? GetReplaceDictionaryTitle(set) :
+                                     CreateReplaceDictionary(set.EpgReplacePattern, set.EpgReplacePatternDef);
+        }
+        public static Dictionary<char, List<KeyValuePair<string, string>>> GetReplaceDictionaryTitle(EpgSetting set = null)
+        {
+            set = set ?? Settings.Instance.EpgSettingList[0];
+            return CreateReplaceDictionary(set.EpgReplacePatternTitle, set.EpgReplacePatternTitleDef);
         }
         private static Dictionary<char, List<KeyValuePair<string, string>>> CreateReplaceDictionary(string pattern, bool useDefDic)
         {
@@ -1285,118 +1288,6 @@ namespace EpgTimer
                         using (Process.Start(playExe, mark + cmdLine + mark)) { }
                     }
                 }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-        }
-
-        //色関係の設定
-        public List<Brush> CustContentColorList { get; private set; }
-        public List<Brush> CustEpgResColorList { get; private set; }
-        public List<Brush> CustEpgResFillColorList { get; private set; }
-        public Brush CustTitle1Color { get; private set; }
-        public Brush CustTitle2Color { get; private set; }
-        public Brush CustTunerServiceColor { get; private set; }
-        public Brush CustTunerTextColor { get; private set; }
-        public List<Brush> CustTunerServiceColorPri { get; private set; }
-        public Brush TunerBackColor { get; private set; }
-        public Brush TunerTimeFontColor { get; private set; }
-        public Brush TunerTimeBackColor { get; private set; }
-        public Brush TunerTimeBorderColor { get; private set; }
-        public Brush TunerNameFontColor { get; private set; }
-        public Brush TunerNameBackColor { get; private set; }
-        public Brush TunerNameBorderColor { get; private set; }
-        public List<Brush> TunerResBorderColor { get; private set; }
-        public List<Brush> CustTimeColorList { get; private set; }
-        public Brush EpgServiceBackColor { get; private set; }
-        public Brush EpgBackColor { get; private set; }
-        public Brush EpgBorderColor { get; private set; }
-        public Brush EpgServiceFontColor { get; private set; }
-        public Brush EpgServiceBorderColor { get; private set; }
-        public Brush EpgTimeFontColor { get; private set; }
-        public Brush EpgTimeBorderColor { get; private set; }
-        public Brush EpgWeekdayBorderColor { get; private set; }
-        public List<Brush> ResBackColor { get; private set; }
-        public Brush ListDefForeColor { get; private set; }
-        public List<Brush> RecModeForeColor { get; private set; }
-        public List<Brush> ResStatusColor { get; private set; }
-        public List<Brush> RecEndBackColor { get; private set; }
-
-        //ReloadCustContentColorList()用のコンバートメソッド
-        private static void SimpleColorSet(List<Brush> listBrush, List<string> listName, List<uint> listCust, int start = 0, int end = 0)
-        {
-            if (end <= 0) end = listName.Count;
-            for (int i = start; i < end; i++) listBrush.Add(ColorDef.CustColorBrush(listName[i], listCust[i]));
-        }
-        public void ReloadCustContentColorList()
-        {
-            try
-            {
-                CustContentColorList = new List<Brush>();
-                CustEpgResColorList = new List<Brush>();
-                CustEpgResFillColorList = new List<Brush>();
-                CustTunerServiceColorPri = new List<Brush>();
-                CustTimeColorList = new List<Brush>();
-                TunerResBorderColor = new List<Brush>();
-                ResBackColor = new List<Brush>();
-                RecModeForeColor = new List<Brush>();
-                ResStatusColor = new List<Brush>();
-                RecEndBackColor = new List<Brush>();
-
-                SolidColorBrush brush;
-                for (int i = 0; i < Settings.Instance.ContentColorList.Count; i++)
-                {
-                    brush = ColorDef.CustColorBrush(Settings.Instance.ContentColorList[i], Settings.Instance.ContentCustColorList[i]);
-                    CustContentColorList.Add(Settings.Instance.EpgGradation ? (Brush)ColorDef.GradientBrush(brush.Color) : brush);
-                }
-                
-                //0→50で塗りつぶしの不透明度が上がる
-                int fillOpacity = Math.Min(Settings.Instance.ReserveRectFillOpacity, 50) * 2;
-                //50→100で枠の不透明度が下がる
-                int strokeOpacity = Math.Min(100 - Settings.Instance.ReserveRectFillOpacity, 50) * 2;
-
-                for (int i = 0; i < Settings.Instance.EpgResColorList.Count; i++)
-                {
-                    CustEpgResColorList.Add(ColorDef.CustColorBrush(Settings.Instance.EpgResColorList[i], Settings.Instance.EpgResCustColorList[i], 0xA0, strokeOpacity));
-                    CustEpgResFillColorList.Add(ColorDef.CustColorBrush(Settings.Instance.EpgResColorList[i], Settings.Instance.EpgResCustColorList[i], 0xA0, fillOpacity));
-                }
-                CustTitle1Color = ColorDef.CustColorBrush(Settings.Instance.TitleColor1, Settings.Instance.TitleCustColor1);
-                CustTitle2Color = ColorDef.CustColorBrush(Settings.Instance.TitleColor2, Settings.Instance.TitleCustColor2);
-
-                CustTunerServiceColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[0], Settings.Instance.TunerServiceCustColors[0]);
-                CustTunerTextColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[1], Settings.Instance.TunerServiceCustColors[1]);
-                SimpleColorSet(CustTunerServiceColorPri, Settings.Instance.TunerServiceColors, Settings.Instance.TunerServiceCustColors, 2, 2 + 5);
-                TunerBackColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 0], Settings.Instance.TunerServiceCustColors[7 + 0]);
-                TunerTimeFontColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 2], Settings.Instance.TunerServiceCustColors[7 + 2]);
-                TunerTimeBackColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 3], Settings.Instance.TunerServiceCustColors[7 + 3]);
-                TunerTimeBorderColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 4], Settings.Instance.TunerServiceCustColors[7 + 4]);
-                TunerNameFontColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 5], Settings.Instance.TunerServiceCustColors[7 + 5]);
-                TunerNameBackColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 6], Settings.Instance.TunerServiceCustColors[7 + 6]);
-                TunerNameBorderColor = ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 7], Settings.Instance.TunerServiceCustColors[7 + 7]);
-                SimpleColorSet(TunerResBorderColor, Settings.Instance.TunerServiceColors, Settings.Instance.TunerServiceCustColors, 7 + 8, 7 + 8 + 4);
-                TunerResBorderColor.Insert(0, ColorDef.CustColorBrush(Settings.Instance.TunerServiceColors[7 + 1], Settings.Instance.TunerServiceCustColors[7 + 1]));
-
-                for (int i = 0; i < Settings.Instance.EpgEtcColors.Count; i++)
-                {
-                    brush = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[i], Settings.Instance.EpgEtcCustColors[i]);
-                    CustTimeColorList.Add(Settings.Instance.EpgGradationHeader ? (Brush)ColorDef.GradientBrush(brush.Color) : brush);
-                }
-
-                brush = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[4], Settings.Instance.EpgEtcCustColors[4]);
-                EpgServiceBackColor = Settings.Instance.EpgGradationHeader ? (Brush)ColorDef.GradientBrush(brush.Color, 1.0, 2.0) : brush;
-                EpgBackColor = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[5], Settings.Instance.EpgEtcCustColors[5]);
-                EpgBorderColor = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[6], Settings.Instance.EpgEtcCustColors[6]);
-                EpgServiceFontColor = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[7], Settings.Instance.EpgEtcCustColors[7]);
-                EpgServiceBorderColor = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[8], Settings.Instance.EpgEtcCustColors[8]);
-                EpgTimeFontColor = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[9], Settings.Instance.EpgEtcCustColors[9]);
-                EpgTimeBorderColor = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[10], Settings.Instance.EpgEtcCustColors[10]);
-                EpgWeekdayBorderColor = ColorDef.CustColorBrush(Settings.Instance.EpgEtcColors[11], Settings.Instance.EpgEtcCustColors[11]);
-
-                ListDefForeColor = ColorDef.CustColorBrush(Settings.Instance.ListDefColor, Settings.Instance.ListDefCustColor);
-
-                SimpleColorSet(RecModeForeColor, Settings.Instance.RecModeFontColors, Settings.Instance.RecModeFontCustColors);
-                SimpleColorSet(ResBackColor, Settings.Instance.ResBackColors, Settings.Instance.ResBackCustColors);
-                SimpleColorSet(ResStatusColor, Settings.Instance.StatColors, Settings.Instance.StatCustColors);
-                SimpleColorSet(RecEndBackColor, Settings.Instance.RecEndColors, Settings.Instance.RecEndCustColors);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }

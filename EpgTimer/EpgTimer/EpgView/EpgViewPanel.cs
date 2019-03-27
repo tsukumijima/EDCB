@@ -6,29 +6,39 @@ using System.Windows.Media;
 
 namespace EpgTimer.EpgView
 {
-    class EpgViewPanel : ViewPanel
+    class EpgViewPanel : ViewPanel, IEpgSettingAccess, IEpgViewDataSet
     {
+        protected EpgViewData viewData;
+        public int EpgSettingIndex { get; private set; }
+        public void SetViewData(EpgViewData data)
+        {
+            viewData = data;
+            EpgSettingIndex = data.EpgSettingIndex;
+            Background = this.EpgBrushCache().BackColor;
+            SetBorderStyleFromSettings();
+        }
+
         public override void SetBorderStyleFromSettings()
         {
-            SetBorderStyle(Settings.Instance.EpgBorderLeftSize, Settings.Instance.EpgBorderTopSize, new Thickness(3, 0, 3, Settings.Instance.FontSize * 0.8));
+            SetBorderStyle(this.EpgStyle().EpgBorderLeftSize, this.EpgStyle().EpgBorderTopSize, new Thickness(3, 0, 3, this.EpgStyle().FontSize * 0.8));
         }
 
         protected override void CreateDrawTextListMain(List<List<Tuple<Brush, GlyphRun>>> textDrawLists)
         {
-            var ItemFontNormal = ItemFontCache.ItemFont(Settings.Instance.FontName, false);
-            var ItemFontTitle = ItemFontCache.ItemFont(Settings.Instance.FontNameTitle, Settings.Instance.FontBoldTitle);
-            var DictionaryNormal = CommonManager.ReplaceDictionaryNormal;
-            var DictionaryTitle = CommonManager.ReplaceDictionaryTitle;
+            var ItemFontNormal = ItemFontCache.ItemFont(this.EpgStyle().FontName, false);
+            var ItemFontTitle = ItemFontCache.ItemFont(this.EpgStyle().FontNameTitle, this.EpgStyle().FontBoldTitle);
+            var DictionaryNormal = viewData.ReplaceDictionaryNormal;
+            var DictionaryTitle = viewData.ReplaceDictionaryTitle;
 
-            bool extraInfo = PopUpMode == true ? Settings.Instance.EpgExtInfoPopup : Settings.Instance.EpgExtInfoTable;
+            bool extraInfo = PopUpMode == true ? this.EpgStyle().EpgExtInfoPopup : this.EpgStyle().EpgExtInfoTable;
 
-            double sizeTitle = Settings.Instance.FontSizeTitle;
-            double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, Settings.Instance.FontSize));
-            double sizeNormal = Settings.Instance.FontSize;
+            double sizeTitle = this.EpgStyle().FontSizeTitle;
+            double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, this.EpgStyle().FontSize));
+            double sizeNormal = this.EpgStyle().FontSize;
             double indentTitle = sizeMin * 1.7;
-            double indentNormal = Settings.Instance.EpgTitleIndent ? indentTitle : 0;
-            Brush colorTitle = CommonManager.Instance.CustTitle1Color;
-            Brush colorNormal = CommonManager.Instance.CustTitle2Color;
+            double indentNormal = this.EpgStyle().EpgTitleIndent ? indentTitle : 0;
+            Brush colorTitle = this.EpgBrushCache().TitleColor;
+            Brush colorNormal = this.EpgBrushCache().NormalColor;
 
             foreach (ProgramViewItem info in Items)
             {

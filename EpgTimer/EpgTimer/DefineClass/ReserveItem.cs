@@ -166,18 +166,19 @@ namespace EpgTimer
         {
             get
             {
+                int idx = 0;
                 if (ReserveInfo != null)
                 {
                     if (ReserveInfo.IsOnRec() == true)
                     {
-                        return CommonManager.Instance.ResStatusColor[ReserveInfo.IsWatchMode ? 3 : 1];
+                        idx = ReserveInfo.IsWatchMode ? 3 : 1;
                     }
-                    if (ReserveInfo.IsOnAir() == true)
+                    else if (ReserveInfo.IsOnAir() == true)
                     {
-                        return CommonManager.Instance.ResStatusColor[2];
+                        idx = 2;
                     }
                 }
-                return CommonManager.Instance.ResStatusColor[0];
+                return Settings.BrushCache.ResStatusColor[idx];
             }
         }
     }

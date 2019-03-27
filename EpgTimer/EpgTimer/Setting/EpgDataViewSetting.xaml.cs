@@ -72,7 +72,7 @@ namespace EpgTimer
         /// デフォルト表示の設定値
         /// </summary>
         /// <param name="setInfo"></param>
-        public void SetSetting(CustomEpgTabInfo setInfo)
+        public void SetSetting(CustomEpgTabInfo setInfo, List<EpgSetting> setList = null)
         {
             DataContext = setInfo.DeepClone();
             searchKey = setInfo.SearchKey.DeepClone();
@@ -80,6 +80,13 @@ namespace EpgTimer
             textBox_tabName.Text = setInfo.TabName;
             checkBox_isVisible.IsChecked = setInfo.IsVisible;
             viewModeRadioBtns.Value = setInfo.ViewMode;
+
+            setList = setList ?? Settings.Instance.EpgSettingList;
+            cmb_design.SelectedValuePath = CommonUtil.NameOf(() => setList[0].ID);
+            cmb_design.DisplayMemberPath = CommonUtil.NameOf(() => setList[0].Name);
+            cmb_design.ItemsSource = setList;
+            cmb_design.SelectedIndex = setList.FindIndex(set => set.ID == setInfo.EpgSettingID);
+            if (cmb_design.SelectedIndex < 0) cmb_design.SelectedIndex = 0;
 
             listBox_serviceView.Items.AddItems(setInfo.ViewServiceList.Select(id => new ServiceViewItem(id)));
             listBox_jyanruView.Items.AddItems(setInfo.ViewContentList.Select(data => CommonManager.ContentKindInfoForDisplay(data)));
@@ -94,6 +101,11 @@ namespace EpgTimer
             info.TabName = textBox_tabName.IsEnabled == true ? textBox_tabName.Text : info.TabName;
             info.IsVisible = checkBox_isVisible.IsEnabled == true ? checkBox_isVisible.IsChecked == true : info.IsVisible;
             info.ViewMode = viewModeRadioBtns.Value;
+            if (cmb_design.SelectedIndex >= 0)
+            {
+                info.EpgSettingIndex = cmb_design.SelectedIndex;
+                info.EpgSettingID = (int)cmb_design.SelectedValue;
+            }
 
             info.SearchKey = searchKey.DeepClone();
             info.SearchKey.serviceList.Clear();//不要なので削除

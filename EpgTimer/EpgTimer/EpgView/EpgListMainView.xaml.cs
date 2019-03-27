@@ -129,6 +129,7 @@ namespace EpgTimer
                 {
                     dataList.AddRange(item.eventList.Where(e => e.IsGroupMainEvent == true).ToSearchList(viewInfo.FilterEnded));
                 }
+                dataList.ForEach(d => d.EpgSettingIndex = viewInfo.EpgSettingIndex);
                 return true;
             });
 

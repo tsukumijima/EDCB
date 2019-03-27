@@ -17,7 +17,8 @@ namespace EpgTimer.TunerReserveViewCtrl
         {
             var ItemFontNormal = ItemFontCache.ItemFont(Settings.Instance.TunerFontName, false);
             var ItemFontTitle = ItemFontCache.ItemFont(Settings.Instance.TunerFontNameService, Settings.Instance.TunerFontBoldService);
-            var DictionaryTitle = Settings.Instance.ApplyReplacePatternTuner ? CommonManager.ReplaceDictionaryTitle : null;
+            EpgSetting set = Settings.Instance.EpgSettingList.FirstOrDefault(s => s.ApplyReplacePatternTuner);
+            var DictionaryTitle = set != null ? CommonManager.GetReplaceDictionaryTitle(set) : null;
 
             bool recSettingInfo = PopUpMode == true ? Settings.Instance.TunerPopupRecinfo : false;
             bool noWrap = PopUpMode == true ? false : Settings.Instance.TunerServiceNoWrap;
@@ -27,7 +28,7 @@ namespace EpgTimer.TunerReserveViewCtrl
             double sizeNormal = Settings.Instance.TunerFontSize;
             double indentTitle = recSettingInfo == true ? 0 : sizeMin * 1.7;
             double indentNormal = Settings.Instance.TunerTitleIndent ? indentTitle : 0;
-            Brush colorNormal = CommonManager.Instance.CustTunerTextColor;
+            Brush colorNormal = Settings.BrushCache.CustTunerTextColor;
 
             //録画中のものを後で描画する
             Items = Items.Cast<TunerReserveViewItem>().OrderBy(info => info.Data.IsOnRec()).ToList();

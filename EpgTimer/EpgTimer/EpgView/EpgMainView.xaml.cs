@@ -25,6 +25,11 @@ namespace EpgTimer
             dateView.TimeButtonClick += (time, isDayMove) => MoveTime(time + TimeSpan.FromHours(isDayMove ? GetScrollTime().Hour : 0));
             nowViewTimer.Tick += (sender, e) => dateView.SetTodayMark();
         }
+        public override void SetViewData(EpgViewData data)
+        {
+            base.SetViewData(data);
+            serviceView.SetViewData(viewData);
+        }
 
         //強制イベント用。ScrollChangedEventArgsがCreate出来ない(RaiseEvent出来ない)のでOverride対応
         protected override void epgProgramView_ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -86,8 +91,8 @@ namespace EpgTimer
                                 {
                                     refPgItem = null;
                                 }
-                                resItem.Width = refPgItem != null ? refPgItem.Width : Settings.Instance.ServiceWidth / mergeNum;
-                                resItem.LeftPos = Settings.Instance.ServiceWidth * (servicePos + (double)((mergeNum + i - mergePos - 1) / 2) / mergeNum);
+                                resItem.Width = refPgItem != null ? refPgItem.Width : this.EpgStyle().ServiceWidth / mergeNum;
+                                resItem.LeftPos = this.EpgStyle().ServiceWidth * (servicePos + (double)((mergeNum + i - mergePos - 1) / 2) / mergeNum);
                             }
                         }
                     }
@@ -157,7 +162,7 @@ namespace EpgTimer
                         if (--groupSpan <= 0)
                         {
                             groupSpan = spanCheckNum;
-                            programGroupList.Add(new PanelItem<List<ProgramViewItem>>(new List<ProgramViewItem>()) { Width = Settings.Instance.ServiceWidth * groupSpan });
+                            programGroupList.Add(new PanelItem<List<ProgramViewItem>>(new List<ProgramViewItem>()) { Width = this.EpgStyle().ServiceWidth * groupSpan });
                         }
                         primeServiceList.Add(serviceEventList[mergePos].serviceInfo);
                     }
@@ -194,14 +199,14 @@ namespace EpgTimer
                         }
 
                         //continueが途中にあるので登録はこの位置
-                        var viewItem = new ProgramViewItem(eventInfo);
+                        var viewItem = new ProgramViewItem(eventInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex };
                         viewItem.DrawHours = eventInfo.start_time != LimitedStart(eventInfo);
                         programList[eventInfo.CurrentPgUID()] = viewItem;
                         programGroupList.Last().Data.Add(viewItem);
 
                         //横位置の設定
-                        viewItem.Width = Settings.Instance.ServiceWidth * widthSpan / mergeNum;
-                        viewItem.LeftPos = Settings.Instance.ServiceWidth * (servicePos + (double)((mergeNum + i - mergePos - 1) / 2) / mergeNum);
+                        viewItem.Width = this.EpgStyle().ServiceWidth * widthSpan / mergeNum;
+                        viewItem.LeftPos = this.EpgStyle().ServiceWidth * (servicePos + (double)((mergeNum + i - mergePos - 1) / 2) / mergeNum);
                     }
                 }
 
@@ -212,7 +217,7 @@ namespace EpgTimer
                 }
                 SetProgramViewItemVertical();
 
-                epgProgramView.SetProgramList(programGroupList, timeList.Count * 60 * Settings.Instance.MinHeight);
+                epgProgramView.SetProgramList(programGroupList, timeList.Count * 60 * this.EpgStyle().MinHeight);
                 timeView.SetTime(timeList, false);
                 dateView.SetTime(timeList, ViewPeriod);
                 serviceView.SetService(primeServiceList);

@@ -685,6 +685,18 @@ namespace EpgTimer
         }
     }
 
+    public class EpgViewPeriodDef
+    {
+        private EpgSetting EpgStyle;
+        public EpgViewPeriodDef(EpgSetting epgStyle) { EpgStyle = epgStyle; }
+
+        //番組表の初期状態
+        public EpgViewPeriod DefPeriod { get { return new EpgViewPeriod(InitStart, DateTime.UtcNow.AddHours(9).Date.AddDays(8)); } }
+        public DateTime InitStart { get { return DateTime.UtcNow.AddHours(9).Date.AddDays(-EpgStyle.EpgArcDefaultDays); } }
+        public double InitDays { get { return 7 * EpgStyle.EpgArcTabWeeks; } }
+        public double InitMoveDays { get { return ToMoveDays(InitDays); } }
+        public static double ToMoveDays(double days) { return days < 7 ? 7 : days - days % 7; }//Floorは使わない
+    }
     public class EpgViewPeriod : IDeepCloneObj
     {
         public DateTime Start { get; set; }
@@ -702,27 +714,18 @@ namespace EpgTimer
         }
         public bool StrictLoad { get; set; }
         public double Days { get; set; }
-        public double MoveDays { get { return ToMoveDays(Days); } }
-
-        //番組表の初期状態
-        public static EpgViewPeriod DefPeriod { get { return new EpgViewPeriod(InitStart, DateTime.UtcNow.AddHours(9).Date.AddDays(8)); } }
-        public static DateTime InitStart { get { return DateTime.UtcNow.AddHours(9).Date.AddDays(-Settings.Instance.EpgArcDefaultDays); } }
-        public static double InitDays { get { return 7 * Settings.Instance.EpgArcTabWeeks; } }
-        public static double InitMoveDays { get { return ToMoveDays(InitDays); } }
+        public double MoveDays { get { return EpgViewPeriodDef.ToMoveDays(Days); } }
 
         public EpgViewPeriod() { }
-        public EpgViewPeriod(DateTime start) { Start = start.Date; Days = InitDays; }
         public EpgViewPeriod(DateTime start, DateTime end) { Start = start.Date; End = end; }
         public EpgViewPeriod(DateTime start, double period) { Start = start.Date; Days = period; }
         public EpgViewPeriod(EpgViewPeriod data) { Start = data.Start.Date; Days = data.Days; }
         public bool Contains(DateTime time) { return Start <= time && time < End; }
 
-        private static double ToMoveDays(double days) { return days < 7 ? 7 : days - days % 7; }//Floorは使わない
-
-        public string ConvertText(DateTime? endTime = null)
+        public string ConvertText(DateTime endTime)
         {
             var start = Start.ToString("yyyy\\/MM\\/dd(ddd)");
-            var end = End >= (endTime ?? DefPeriod.End) ? "以降全て" : End.AddSeconds(-1).ToString("～MM\\/dd(ddd)");
+            var end = End >= endTime ? "以降全て" : End.AddSeconds(-1).ToString("～MM\\/dd(ddd)");
             return string.Format("{0}{1}", start, end);
         }
 

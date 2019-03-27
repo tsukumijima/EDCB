@@ -45,8 +45,6 @@ namespace EpgTimer
             IniFileHandler.ReadOnly = CommonManager.Instance.NWMode;
 
             CommonManager.Instance.MM.ReloadWorkData();
-            CommonManager.Instance.ReloadCustContentColorList();
-            CommonManager.ReloadReplaceDictionary();
             Settings.Instance.LoadIniOptions();
 
             if (CheckCmdLine() && Settings.Instance.ExitAfterProcessingArgs)
@@ -188,6 +186,7 @@ namespace EpgTimer
 
                 //EpgDataは遅延実行される場合があるので、データ取得後の処理を登録
                 CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgData] = () => MainProc(MainProcItem.EpgDataLoaded);
+                CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgDataAdd] = () => MainProc(MainProcItem.EpgDataAddLoaded);
 
                 if (CommonManager.Instance.NWMode == false)
                 {
@@ -988,10 +987,6 @@ namespace EpgTimer
             {
                 CommonManager.Instance.DB.ResetRecFileErrInfo();
             }
-            if (setting.setEpgView.IsChangeEpgArcLoadSetting == true)
-            {
-                CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
-            }
             if (Settings.Instance.NgAutoEpgLoadNW == false)
             {
                 CommonManager.Instance.DB.ReloadEpgData(false, true);
@@ -1464,6 +1459,12 @@ namespace EpgTimer
                             if (mainProc.ContainsKey(MainProcItem.EpgDataLoaded)) continue;
                             reserveView.UpdateInfo();
                             InfoSearchWindow.UpdatesInfo();
+                            ChgReserveWindow.UpdatesInfo();
+                            break;
+                        case MainProcItem.EpgDataAddLoaded:
+                            if (mainProc.ContainsKey(MainProcItem.ReserveInfo)) continue;
+                            if (mainProc.ContainsKey(MainProcItem.EpgDataLoaded)) continue;
+                            if (mainProc.ContainsKey(MainProcItem.EpgDataSearch)) continue;
                             ChgReserveWindow.UpdatesInfo();
                             break;
                     }

@@ -21,11 +21,11 @@ namespace EpgTimer
         public virtual Brush ForeColor
         {
             //番組表へジャンプ時の強調表示
-            get { return NowJumpingTable == 1 ? Brushes.Red : CommonManager.Instance.ListDefForeColor; }
+            get { return NowJumpingTable == 1 ? Brushes.Red : Settings.BrushCache.ListDefForeColor; }
         }
         public virtual Brush BackColor
         {
-            get { return NowJumpingTable == 2 ? Brushes.Red : CommonManager.Instance.ResBackColor[0]; }
+            get { return NowJumpingTable == 2 ? Brushes.Red : Settings.BrushCache.ResBackColor[0]; }
         }
         public virtual Brush BorderBrush { get { return null; } }
     }

@@ -5,11 +5,12 @@ using System.Windows.Media;
 
 namespace EpgTimer
 {
-    public class SearchItem : RecSettingItem
+    public class SearchItem : RecSettingItem, IEpgSettingAccess
     {
         protected EpgEventInfo eventInfo = null;
         public virtual EpgEventInfo EventInfo { get { return eventInfo; } set { eventInfo = value; } }
         public ReserveData ReserveInfo { get; set; }
+        public int EpgSettingIndex { get; set; }
 
         public SearchItem() { }
         public SearchItem(EpgEventInfo item) { eventInfo = item; }
@@ -313,22 +314,23 @@ namespace EpgTimer
         {
             get
             {
+                int idx = 0;
                 if (EventInfo != null)
                 {
                     if (IsReserved == true)
                     {
                         return new ReserveItem(ReserveInfo).StatusColor;
                     }
-                    if (EventInfo.IsOnAir() == true)
+                    else if (EventInfo.IsOnAir() == true)
                     {
-                        return CommonManager.Instance.ResStatusColor[2];
+                        idx = 2;
                     }
-                    if (MenuUtil.GetRecFileInfo(EventInfo) != null)
+                    else if (MenuUtil.GetRecFileInfo(EventInfo) != null)
                     {
-                        return CommonManager.Instance.ResStatusColor[4];//色は放映中を優先する
+                        idx = 4;//色は放映中を優先する
                     }
                 }
-                return CommonManager.Instance.ResStatusColor[0];
+                return Settings.BrushCache.ResStatusColor[idx];
             }
         }
         public override Brush ForeColor
@@ -338,7 +340,7 @@ namespace EpgTimer
                 //番組表へジャンプ時の強調表示
                 if (NowJumpingTable != 0 || ReserveInfo == null) return base.ForeColor;
                 //
-                return CommonManager.Instance.RecModeForeColor[ReserveInfo.RecSetting.RecMode];
+                return Settings.BrushCache.RecModeForeColor[ReserveInfo.RecSetting.RecMode];
             }
         }
         public override Brush BackColor
@@ -354,7 +356,7 @@ namespace EpgTimer
         }
         public override Brush BorderBrush
         {
-            get { return ViewUtil.EpgDataContentBrush(EventInfo); }
+            get { return ViewUtil.EpgDataContentBrush(EventInfo, EpgSettingIndex); }
         }
     }
 

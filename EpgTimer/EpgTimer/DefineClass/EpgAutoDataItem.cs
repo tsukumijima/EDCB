@@ -76,7 +76,7 @@ namespace EpgTimer
                 if (NowJumpingTable != 0 || Data.IsEnabled == true) return base.ForeColor;
                 //
                 //無効の場合
-                return CommonManager.Instance.RecModeForeColor[5];
+                return Settings.BrushCache.RecModeForeColor[5];
             }
         }
         public override Brush BackColor
@@ -87,7 +87,7 @@ namespace EpgTimer
                 if (NowJumpingTable != 0 || Data.IsEnabled == true) return base.BackColor;
                 //
                 //無効の場合
-                return CommonManager.Instance.ResBackColor[1];
+                return Settings.BrushCache.ResBackColor[1];
             }
         }
     }

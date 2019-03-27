@@ -86,18 +86,19 @@ namespace EpgTimer
                 long drops = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Drops : RecInfo.DropsCritical;
                 long scrambles = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Scrambles : RecInfo.ScramblesCritical;
 
+                int idx = 0;
                 if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
                     || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
                 {
-                    return CommonManager.Instance.RecEndBackColor[1];
+                    idx = 1;
                 }
-                if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
+                else if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
                     || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
                     || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
                 {
-                    return CommonManager.Instance.RecEndBackColor[2];
+                    idx = 2;
                 }
-                return CommonManager.Instance.RecEndBackColor[0];
+                return Settings.BrushCache.RecEndBackColor[idx];
             }
         }
         public override string ConvertInfoText(object param = null)

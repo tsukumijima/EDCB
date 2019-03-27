@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace EpgTimer
 {
-    public class PanelItem
+    public class PanelItem : IEpgSettingAccess
     {
         public double Width { get; set; }
         public double Height { get; set; }
@@ -23,6 +23,7 @@ namespace EpgTimer
         public PanelItem(object info) { Data = info; }
         public object Data { get; protected set; }
         public bool TitleDrawErr { get; set; }
+        public int EpgSettingIndex { get; set; }
         public virtual Brush BackColor { get { return null; } }
         public virtual Brush BorderBrush { get { return null; } }
     }
@@ -53,7 +54,7 @@ namespace EpgTimer
     {
         public ProgramViewItem(EpgEventInfo info) : base(info) { }
         public bool DrawHours { get; set; }
-        public override Brush BackColor { get { return ViewUtil.EpgDataContentBrush(Data); } }
-        public override Brush BorderBrush { get { return CommonManager.Instance.EpgBorderColor; } }
+        public override Brush BackColor { get { return ViewUtil.EpgDataContentBrush(Data, EpgSettingIndex); } }
+        public override Brush BorderBrush { get { return this.EpgBrushCache().BorderColor; } }
     }
 }

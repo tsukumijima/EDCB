@@ -40,6 +40,11 @@ namespace EpgTimer
             //コマンド集の初期化の続き、ボタンの設定
             mBinds.SetCommandToButton(button_go_Main, EpgCmds.ViewChgMode, 0);
         }
+        public override void SetViewData(EpgViewData data)
+        {
+            base.SetViewData(data);
+            weekDayView.SetViewData(viewData);
+        }
 
         //週間番組表での時刻表現用のメソッド。
         protected override DateTime GetViewTime(DateTime time)
@@ -73,7 +78,7 @@ namespace EpgTimer
                         if (resItem != null)
                         {
                             //横位置の設定
-                            resItem.Width = Settings.Instance.ServiceWidth;
+                            resItem.Width = this.EpgStyle().ServiceWidth;
                             resItem.LeftPos = resItem.Width * dayPos;
                         }
                     }
@@ -123,7 +128,7 @@ namespace EpgTimer
                 serviceEventList[idx].eventList.ForEach(eventInfo =>
                 {
                     //無いはずだが、ToDictionary()にせず、一応保険。
-                    programList[eventInfo.CurrentPgUID()] = new ProgramViewItem(eventInfo);
+                    programList[eventInfo.CurrentPgUID()] = new ProgramViewItem(eventInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex };
                 });
 
                 //日付リスト構築
@@ -132,7 +137,7 @@ namespace EpgTimer
                 //横位置の設定
                 foreach (ProgramViewItem item in programList.Values)
                 {
-                    item.Width = Settings.Instance.ServiceWidth;
+                    item.Width = this.EpgStyle().ServiceWidth;
                     item.LeftPos = item.Width * dayList.BinarySearch(GetViewDay(item.Data.start_time));
                 }
 
@@ -144,8 +149,8 @@ namespace EpgTimer
                 SetProgramViewItemVertical();
 
                 epgProgramView.SetProgramList(programList.Values.ToList(),
-                    dayList.Count * Settings.Instance.ServiceWidth,
-                    timeList.Count * 60 * Settings.Instance.MinHeight);
+                    dayList.Count * this.EpgStyle().ServiceWidth,
+                    timeList.Count * 60 * this.EpgStyle().MinHeight);
 
                 timeView.SetTime(timeList, true);
                 weekDayView.SetDay(dayList);

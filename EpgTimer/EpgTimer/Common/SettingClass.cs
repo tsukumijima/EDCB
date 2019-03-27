@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Windows.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
@@ -317,23 +318,149 @@ namespace EpgTimer
         }
     }
 
-    public class Settings
+    public class EpgSetting : IDeepCloneObj
     {
-        //ver履歴 20170512、20170717、20190217
-        private int verSaved = 0;
-        public int SettingFileVer { get { return 20190217; } set { verSaved = value; } }
+        public int ID { get; set; }
+        private string name = "";
+        public string Name
+        {
+            get { return string.IsNullOrWhiteSpace(name) == false ? name : ("パターン" + (1 + ID).ToString()); }
+            set { name = value; }
+        }
 
-        public bool UseCustomEpgView { get; set; }
-        public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
-        public double MinHeight { get; set; }
-        public double MinimumHeight { get; set; }
-        public double ServiceWidth { get; set; }
-        public double ScrollSize { get; set; }
-        public string FontName { get; set; }
-        public double FontSize { get; set; }
         public string FontNameTitle { get; set; }
         public double FontSizeTitle { get; set; }
         public bool FontBoldTitle { get; set; }
+        public string FontName { get; set; }
+        public double FontSize { get; set; }
+        public string TitleColor1 { get; set; }
+        public string TitleColor2 { get; set; }
+        public UInt32 TitleCustColor1 { get; set; }
+        public UInt32 TitleCustColor2 { get; set; }
+        public double ScrollSize { get; set; }
+        public bool MouseScrollAuto { get; set; }
+        public double ServiceWidth { get; set; }
+        public bool EpgServiceNameTooltip { get; set; }
+        public double MinHeight { get; set; }
+        public double DragScroll { get; set; }
+        public double MinimumHeight { get; set; }
+        public double EpgBorderLeftSize { get; set; }
+        public double EpgBorderTopSize { get; set; }
+        public bool EpgPopup { get; set; }
+        public int EpgPopupMode { get; set; }
+        public double EpgPopupWidth { get; set; }
+        public bool EpgToolTip { get; set; }
+        public bool EpgToolTipNoViewOnly { get; set; }
+        public int EpgToolTipViewWait { get; set; }
+        public bool EpgExtInfoTable { get; set; }
+        public bool EpgExtInfoPopup { get; set; }
+        public bool EpgExtInfoTooltip { get; set; }
+        public bool EpgInfoSingleClick { get; set; }
+        public Int32 EpgInfoOpenMode { get; set; }
+        public bool EpgTitleIndent { get; set; }
+        public bool DisplayNotifyEpgChange { get; set; }
+        public bool EpgGradation { get; set; }
+        public bool EpgGradationHeader { get; set; }
+        public int EpgArcDefaultDays { get; set; }
+        public double EpgArcTabWeeks { get; set; }
+        public bool EpgArcStartSunday { get; set; }
+        public string EpgReplacePatternTitle { get; set; }
+        public string EpgReplacePattern { get; set; }
+        public bool EpgReplacePatternTitleDef { get; set; }
+        public bool EpgReplacePatternDef { get; set; }
+        public bool ApplyReplacePatternTuner { get; set; }
+        public bool ShareEpgReplacePatternTitle { get; set; }
+        public bool EpgChangeBorderWatch { get; set; }
+        public bool EpgChangeBorderOnRec { get; set; }
+        public List<string> ContentColorList { get; set; }
+        public List<UInt32> ContentCustColorList { get; set; }
+        public List<string> EpgResColorList { get; set; }
+        public List<UInt32> EpgResCustColorList { get; set; }
+        public List<string> EpgEtcColors { get; set; }
+        public List<UInt32> EpgEtcCustColors { get; set; }
+        public int ReserveRectFillOpacity { get; set; }
+        public bool ReserveRectFillWithShadow { get; set; }
+
+        public static EpgSetting DefSetting { get { var ret = new EpgSetting(); ret.Reset(); return ret; } }
+
+        public EpgSetting() { ID = 0; Init(); }
+        public void Reset() { Init(); Settings.SetColorSettingEpg(this); }
+        public void Init()
+        {
+            FontNameTitle = Settings.DefaultFontName;
+            FontSizeTitle = 12;
+            FontBoldTitle = true;
+            FontName = Settings.DefaultFontName;
+            FontSize = 12;
+            TitleColor1 = "Black";
+            TitleColor2 = "Black";
+            TitleCustColor1 = 0xFFFFFFFF;
+            TitleCustColor2 = 0xFFFFFFFF;
+            ScrollSize = 240;
+            MouseScrollAuto = false;
+            ServiceWidth = 150;
+            EpgServiceNameTooltip = false;
+            MinHeight = 2;
+            DragScroll = 1.5;
+            MinimumHeight = 0.6;
+            EpgBorderLeftSize = 1;
+            EpgBorderTopSize = 0.5;
+            EpgPopup = true;
+            EpgPopupMode = 0;
+            EpgPopupWidth = 1;
+            EpgToolTip = false;
+            EpgToolTipNoViewOnly = true;
+            EpgToolTipViewWait = 1500;
+            EpgExtInfoTable = false;
+            EpgExtInfoPopup = false;
+            EpgExtInfoTooltip = true;
+            EpgInfoSingleClick = false;
+            EpgInfoOpenMode = 0;
+            EpgTitleIndent = true;
+            DisplayNotifyEpgChange = false;
+            EpgGradation = true;
+            EpgGradationHeader = true;
+            EpgArcDefaultDays = 1;
+            EpgArcTabWeeks = 1;
+            EpgArcStartSunday = false;
+            EpgReplacePatternTitle = "";
+            EpgReplacePattern = "";
+            EpgReplacePatternTitleDef = false;
+            EpgReplacePatternDef = false;
+            ApplyReplacePatternTuner = false;
+            ShareEpgReplacePatternTitle = false;
+            EpgChangeBorderWatch = false;
+            EpgChangeBorderOnRec = false;
+            ContentColorList = new List<string>();
+            ContentCustColorList = new List<uint>();
+            EpgResColorList = new List<string>();
+            EpgResCustColorList = new List<uint>();
+            EpgEtcColors = new List<string>();
+            EpgEtcCustColors = new List<uint>();
+            ReserveRectFillOpacity = 0;
+            ReserveRectFillWithShadow = true;
+        }
+        public object DeepCloneObj()
+        {
+            var other = (EpgSetting)MemberwiseClone();
+            other.ContentColorList = ContentColorList.ToList();
+            other.ContentCustColorList = ContentCustColorList.ToList();
+            other.EpgResColorList = EpgResColorList.ToList();
+            other.EpgResCustColorList = EpgResCustColorList.ToList();
+            other.EpgEtcColors = EpgEtcColors.ToList();
+            other.EpgEtcCustColors = EpgEtcCustColors.ToList();
+            return other;
+        }
+    }
+    public class Settings
+    {
+        //ver履歴 20170512、20170717、20190217、20190321
+        private int verSaved = 0;
+        public int SettingFileVer { get { return 20190321; } set { verSaved = value; } }
+
+        public bool UseCustomEpgView { get; set; }
+        public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
+        public IndexSafeList<EpgSetting> EpgSettingList { get; set; }
         public bool NoToolTip { get; set; }
         public double ToolTipWidth { get; set; }
         public bool NoBallonTips { get; set; }
@@ -344,21 +471,8 @@ namespace EpgTimer
         public bool SortServiceList { get; set; }
         public bool ExitAfterProcessingArgs { get; set; }
         public bool RecinfoErrCriticalDrops { get; set; }
-        public double DragScroll { get; set; }
-        public List<string> ContentColorList { get; set; }
-        public List<UInt32> ContentCustColorList { get; set; }
-        public List<string> EpgResColorList { get; set; }
-        public List<UInt32> EpgResCustColorList { get; set; }
-        public List<string> EpgEtcColors { get; set; }
-        public List<UInt32> EpgEtcCustColors { get; set; }
-        public int ReserveRectFillOpacity { get; set; }
-        public bool ReserveRectFillWithShadow { get; set; }
         public Int32 ReserveToolTipMode { get; set; }
         public Int32 ReserveEpgInfoOpenMode { get; set; }
-        public string TitleColor1 { get; set; }
-        public string TitleColor2 { get; set; }
-        public UInt32 TitleCustColor1 { get; set; }
-        public UInt32 TitleCustColor2 { get; set; }
         public string TunerFontNameService { get; set; }
         public double TunerFontSizeService { get; set; }
         public bool TunerFontBoldService { get; set; }
@@ -389,39 +503,13 @@ namespace EpgTimer
         public bool TunerDisplayOffReserve { get; set; }
         public Int32 TunerToolTipMode { get; set; }
         public Int32 TunerEpgInfoOpenMode { get; set; }
-        public bool EpgServiceNameTooltip { get; set; }
-        public double EpgBorderLeftSize { get; set; }
-        public double EpgBorderTopSize { get; set; }
-        public bool EpgTitleIndent { get; set; }
-        public string EpgReplacePattern { get; set; }
-        public string EpgReplacePatternTitle { get; set; }
-        public bool EpgReplacePatternDef { get; set; }
-        public bool EpgReplacePatternTitleDef { get; set; }
-        public bool ApplyReplacePatternTuner { get; set; }
-        public bool ShareEpgReplacePatternTitle { get; set; }
         public string FontReplacePatternEdit { get; set; }
         public double FontSizeReplacePattern { get; set; }
         public bool FontBoldReplacePattern { get; set; }
         public bool ReplacePatternEditFontShare { get; set; }
-        public bool EpgToolTip { get; set; }
-        public bool EpgToolTipNoViewOnly { get; set; }
-        public int EpgToolTipViewWait { get; set; }
-        public bool EpgPopup { get; set; }
-        public int EpgPopupMode { get; set; }
-        public double EpgPopupWidth { get; set; }
-        public bool EpgExtInfoTable { get; set; }
-        public bool EpgExtInfoPopup { get; set; }
-        public bool EpgExtInfoTooltip { get; set; }
-        public bool EpgGradation { get; set; }
-        public bool EpgGradationHeader { get; set; }
-        public bool EpgChangeBorderWatch { get; set; }
-        public bool EpgChangeBorderOnRec { get; set; }
         public bool EpgNameTabEnabled { get; set; }
         public bool EpgViewModeTabEnabled { get; set; }
         public bool EpgTabMoveCheckEnabled { get; set; }
-        public int EpgArcDefaultDays { get; set; }
-        public double EpgArcTabWeeks { get; set; }
-        public bool EpgArcStartSunday { get; set; }
         public SerializableDictionary<ulong, byte> RemoconIDList { get; set; }
         public string ResColumnHead { get; set; }
         public ListSortDirection ResSortDirection { get; set; }
@@ -505,8 +593,6 @@ namespace EpgTimer
         public List<uint> ResBackCustColors { get; set; }
         public List<string> StatColors { get; set; }
         public List<uint> StatCustColors { get; set; }
-        public bool EpgInfoSingleClick { get; set; }
-        public Int32 EpgInfoOpenMode { get; set; }
         public UInt32 ExecBat { get; set; }
         public UInt32 SuspendChk { get; set; }
         public UInt32 SuspendChkTime { get; set; }
@@ -532,7 +618,6 @@ namespace EpgTimer
         public bool NotifyLogEpgTimer { get; set; }
         public bool ShowTray { get; set; }
         public bool MinHide { get; set; }
-        public bool MouseScrollAuto { get; set; }
         public int NoStyle { get; set; }
         public int NoSendClose { get; set; }
         public bool CautionManyChange { get; set; }
@@ -543,7 +628,6 @@ namespace EpgTimer
         public bool SyncResAutoAddChgNewRes { get; set; }
         public bool SyncResAutoAddChgKeepRecTag { get; set; }
         public bool SyncResAutoAddDelete { get; set; }
-        public bool DisplayNotifyEpgChange { get; set; }
         public double DisplayNotifyJumpTime { get; set; }
         public bool DisplayReserveAutoAddMissing { get; set; }
         public bool DisplayReserveMultiple { get; set; }
@@ -695,19 +779,23 @@ namespace EpgTimer
 
         public Settings()
         {
-            ResetColorSetting();
-            
+            //カラー関係
+            TunerServiceColors = new List<string>();
+            TunerServiceCustColors = new List<uint>();
+            RecEndColors = new List<string>();
+            RecEndCustColors = new List<uint>();
+            ListDefColor = "カスタム";
+            ListDefCustColor = 0xFF042271;
+            RecModeFontColors = new List<string>();
+            RecModeFontCustColors = new List<uint>();
+            ResBackColors = new List<string>();
+            ResBackCustColors = new List<uint>();
+            StatColors = new List<string>();
+            StatCustColors = new List<uint>();
+
             UseCustomEpgView = false;
             CustomEpgTabList = new List<CustomEpgTabInfo>();
-            MinHeight = 2;
-            MinimumHeight = 0.6;
-            ServiceWidth = 150;
-            ScrollSize = 240;
-            FontName = System.Drawing.SystemFonts.DefaultFont.Name;
-            FontSize = 12;
-            FontNameTitle = System.Drawing.SystemFonts.DefaultFont.Name;
-            FontSizeTitle = 12;
-            FontBoldTitle = true;
+            EpgSettingList = new IndexSafeList<EpgSetting>();
             NoToolTip = false;
             ToolTipWidth = 400;
             NoBallonTips = false;
@@ -718,13 +806,12 @@ namespace EpgTimer
             SortServiceList = true;
             ExitAfterProcessingArgs = false;
             RecinfoErrCriticalDrops = false;
-            DragScroll = 1.5;
             ReserveToolTipMode = 0;
             ReserveEpgInfoOpenMode = 0;
-            TunerFontNameService = System.Drawing.SystemFonts.DefaultFont.Name;
+            TunerFontNameService = DefaultFontName;
             TunerFontSizeService = 12;
             TunerFontBoldService = true;
-            TunerFontName = System.Drawing.SystemFonts.DefaultFont.Name;
+            TunerFontName = DefaultFontName;
             TunerFontSize = 12;
             TunerMinHeight = 2;
             TunerMinimumLine = 0.6;
@@ -749,39 +836,13 @@ namespace EpgTimer
             TunerDisplayOffReserve = false;
             TunerToolTipMode = 0;
             TunerEpgInfoOpenMode = 0;
-            EpgServiceNameTooltip = false;
-            EpgBorderLeftSize = 1;
-            EpgBorderTopSize = 0.5;
-            EpgTitleIndent = true;
-            EpgReplacePattern = "";
-            EpgReplacePatternTitle = "";
-            EpgReplacePatternDef = false;
-            EpgReplacePatternTitleDef = false;
-            ApplyReplacePatternTuner = false;
-            ShareEpgReplacePatternTitle = false;
             FontReplacePatternEdit = "";
             FontSizeReplacePattern = 12;
             FontBoldReplacePattern = false;
             ReplacePatternEditFontShare = false;
-            EpgToolTip = false;
-            EpgToolTipNoViewOnly = true;
-            EpgToolTipViewWait = 1500;
-            EpgPopup = true;
-            EpgPopupMode = 0;
-            EpgPopupWidth = 1;
-            EpgExtInfoTable = false;
-            EpgExtInfoPopup = false;
-            EpgExtInfoTooltip = true;
-            EpgGradation = true;
-            EpgGradationHeader = true;
-            EpgChangeBorderWatch = false;
-            EpgChangeBorderOnRec = false;
             EpgNameTabEnabled = true;
             EpgViewModeTabEnabled = false;
             EpgTabMoveCheckEnabled = true;
-            EpgArcDefaultDays = 1;
-            EpgArcTabWeeks = 1;
-            EpgArcStartSunday = false;
             RemoconIDList = new SerializableDictionary<ulong, byte>();
             ResColumnHead = "";
             ResSortDirection = ListSortDirection.Ascending;
@@ -851,11 +912,9 @@ namespace EpgTimer
             ChkSrvRegistInterval = 5;
             TvTestOpenWait = 2000;
             TvTestChgBonWait = 2000;
-            FontNameListView = System.Drawing.SystemFonts.MessageBoxFont.Name;
+            FontNameListView = DefaultFontName;
             FontSizeListView = 12;
             FontBoldListView = false;
-            EpgInfoSingleClick = false;
-            EpgInfoOpenMode = 0;
             ExecBat = 0;
             SuspendChk = 0;
             SuspendChkTime = 15;
@@ -881,7 +940,6 @@ namespace EpgTimer
             NotifyLogEpgTimer = false;
             ShowTray = false;
             MinHide = true;
-            MouseScrollAuto = false;
             NoStyle = 1;
             NoSendClose = 0;
             CautionManyChange = true;
@@ -892,7 +950,6 @@ namespace EpgTimer
             SyncResAutoAddChgNewRes = false;
             SyncResAutoAddChgKeepRecTag = false;
             SyncResAutoAddDelete = false;
-            DisplayNotifyEpgChange = false;
             DisplayNotifyJumpTime = 3;
             DisplayReserveAutoAddMissing = false;
             DisplayReserveMultiple = true;
@@ -979,11 +1036,28 @@ namespace EpgTimer
                 }
                 return _instance;
             }
-            set { _instance = value; }
+            set
+            {
+                _instance = value;
+                _brushCache = null;
+            }
         }
 
-        /// <summary>設定ファイルロード関数</summary>
-        public static void LoadFromXmlFile(bool nwMode = false)
+        private static SettingsBrushCache _brushCache;
+        public static SettingsBrushCache BrushCache
+        {
+            get
+            {
+                if (_brushCache == null)
+                {
+                    _brushCache = new SettingsBrushCache();
+                }
+                return _brushCache;
+            }
+        }
+
+    /// <summary>設定ファイルロード関数</summary>
+    public static void LoadFromXmlFile(bool nwMode = false)
         {
             string path = GetSettingPath();
             for (int retry = 0; ;)
@@ -1030,6 +1104,22 @@ namespace EpgTimer
             Instance.SetCustomEpgTabInfoID();
             Instance.SearchPresetList.FixUp();
 
+            //互換用コード。番組表ごとのデザイン対応
+            if (Instance.verSaved < 20190321)
+            {
+                try
+                {
+                    var xdr = System.Xml.Linq.XDocument.Load(path).Root;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var xe = i == 0 ? xdr : xdr.Element("EpgSetting" + i.ToString());
+                        if (xe == null) continue;
+                        Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
+                        Instance.EpgSettingList[i].ID = i;
+                    }
+                }
+                catch { }
+            }
             //互換用コード。録画結果へジャンプ対応
             if (Instance.verSaved < 20190217)
             {
@@ -1402,120 +1492,80 @@ namespace EpgTimer
             return null;
         }
 
-        private void ResetColorSetting()
-        {
-            ContentColorList = new List<string>();
-            ContentCustColorList = new List<uint>();
-            EpgResColorList = new List<string>();
-            EpgResCustColorList = new List<uint>();
-            EpgEtcColors = new List<string>();
-            EpgEtcCustColors = new List<uint>();
-            ReserveRectFillOpacity = 0;
-            ReserveRectFillWithShadow = true;
-            TitleColor1 = "Black";
-            TitleColor2 = "Black";
-            TitleCustColor1 = 0xFFFFFFFF;
-            TitleCustColor2 = 0xFFFFFFFF;
-            TunerServiceColors = new List<string>();
-            TunerServiceCustColors = new List<uint>();
-            RecEndColors = new List<string>();
-            RecEndCustColors = new List<uint>();
-            ListDefColor = "カスタム";
-            ListDefCustColor = 0xFF042271;
-            RecModeFontColors = new List<string>();
-            RecModeFontCustColors = new List<uint>();
-            ResBackColors = new List<string>();
-            ResBackCustColors = new List<uint>();
-            StatColors = new List<string>();
-            StatCustColors = new List<uint>();
-        }
         //色リストの初期化用
         private static void _FillList<T>(List<T> list, T val, int num)
         {
-            if (list.Count < num) list.AddRange(Enumerable.Repeat(val, num - list.Count));
+            _FillList(list, Enumerable.Repeat(val, num).ToArray());
         }
-        private static void _FillList<T>(List<T> list, IEnumerable<T> val)
+        private static void _FillList<T>(List<T> list, T[] val)
         {
-            if (list.Count < val.Count()) list.AddRange(val.Skip(list.Count));
+            if (list.Count < val.Length) list.AddRange(val.Skip(list.Count));
+            if (list.Count > val.Length) list.RemoveRange(val.Length, list.Count - val.Length);
         }
-        private void SetColorSetting()
+        public static void SetColorSettingEpg(EpgSetting set)
         {
-            int num;
-            //番組表の背景色
-            num = 17;//番組表17色。過去に16色時代があった。
-            if (ContentColorList.Count < num)
-            {
-                var defColors = new string[]{
-                        "LightYellow"
-                        ,"Lavender"
-                        ,"LavenderBlush"
-                        ,"MistyRose"
-                        ,"Honeydew"
-                        ,"LightCyan"
-                        ,"PapayaWhip"
-                        ,"Pink"
-                        ,"LightYellow"
-                        ,"PapayaWhip"
-                        ,"AliceBlue"
-                        ,"AliceBlue"
-                        ,"White"
-                        ,"White"
-                        ,"White"
-                        ,"WhiteSmoke"
-                        ,"White"
-                    };
-                _FillList(ContentColorList, defColors);
-            }
-            _FillList(ContentCustColorList, 0xFFFFFFFF, num);
+            //番組表の背景色17色。過去に16色時代があった。
+            _FillList(set.ContentColorList, new[]{
+                    "LightYellow"
+                    ,"Lavender"
+                    ,"LavenderBlush"
+                    ,"MistyRose"
+                    ,"Honeydew"
+                    ,"LightCyan"
+                    ,"PapayaWhip"
+                    ,"Pink"
+                    ,"LightYellow"
+                    ,"PapayaWhip"
+                    ,"AliceBlue"
+                    ,"AliceBlue"
+                    ,"White"
+                    ,"White"
+                    ,"White"
+                    ,"WhiteSmoke"
+                    ,"White"
+                });
+            _FillList(set.ContentCustColorList, 0xFFFFFFFF, set.ContentColorList.Count);
 
             //番組表の予約枠色
-            num = 10;
-            if (EpgResColorList.Count < num)
-            {
-                var defColors = new string[]{
-                        "Lime"              //通常
-                        ,"Lime"             //通常(プログラム予約)
-                        ,"Black"            //無効
-                        ,"Red"              //チューナ不足
-                        ,"Yellow"           //一部実行
-                        ,"Blue"             //自動予約登録不明
-                        ,"Purple"           //重複EPG予約
-                        ,"Lime"             //録画中
-                        ,"Lime"             //視聴中
-                        ,"Green"            //録画済み
-                    };
-                _FillList(EpgResColorList, defColors);
-            }
-            _FillList(EpgResCustColorList, 0xFFFFFFFF, num);
+            _FillList(set.EpgResColorList, new[]{
+                    "Lime"              //通常
+                    ,"Lime"             //通常(プログラム予約)
+                    ,"Black"            //無効
+                    ,"Red"              //チューナ不足
+                    ,"Yellow"           //一部実行
+                    ,"Blue"             //自動予約登録不明
+                    ,"Purple"           //重複EPG予約
+                    ,"Lime"             //録画中
+                    ,"Lime"             //視聴中
+                    ,"Green"            //録画済み
+                });
+            _FillList(set.EpgResCustColorList, 0xFFFFFFFF, set.EpgResColorList.Count);
 
             //番組表の時間軸のデフォルトの背景色、その他色
-            num = 12;
-            if (EpgEtcColors.Count < num)
-            {
-                var defColors = new string[]{
-                        "MediumPurple"      //00-05時
-                        ,"LightSeaGreen"    //06-11時
-                        ,"LightSalmon"      //12-17時
-                        ,"CornflowerBlue"   //18-23時
-                        ,"LightSlateGray"   //サービス背景色
-                        ,"DarkGray"         //番組表背景色
-                        ,"DarkGray"         //番組枠色
-                        ,"White"            //サービス文字
-                        ,"Silver"           //サービス枠色
-                        ,"White"            //時間文字色
-                        ,"White"            //時間枠色
-                        ,"LightSlateGray"   //一週間モード日付枠色
-                    };
-                _FillList(EpgEtcColors, defColors);
-            }
-            _FillList(EpgEtcCustColors, 0xFFFFFFFF, num);
+            _FillList(set.EpgEtcColors, new[]{
+                    "MediumPurple"      //00-05時
+                    ,"LightSeaGreen"    //06-11時
+                    ,"LightSalmon"      //12-17時
+                    ,"CornflowerBlue"   //18-23時
+                    ,"LightSlateGray"   //サービス背景色
+                    ,"DarkGray"         //番組表背景色
+                    ,"DarkGray"         //番組枠色
+                    ,"White"            //サービス文字
+                    ,"Silver"           //サービス枠色
+                    ,"White"            //時間文字色
+                    ,"White"            //時間枠色
+                    ,"LightSlateGray"   //一週間モード日付枠色
+                });
+            _FillList(set.EpgEtcCustColors, 0xFFFFFFFF, set.EpgEtcColors.Count);
+        }
+        public void SetColorSetting()
+        {
+            if (EpgSettingList.Count == 0) EpgSettingList.Add(new EpgSetting());
+            EpgSettingList.ForEach(set => SetColorSettingEpg(set));
 
             //チューナー画面各色、保存名はServiceColorsだが他も含む。
-            num = 2 + 5 + 12;//固定色2+優先度色5+追加の画面色
-            if (TunerServiceColors.Count < num)
-            {
-                var defColors = Enumerable.Repeat("Black", 7)
-                    .Concat(new string[]{
+            _FillList(TunerServiceColors, Enumerable.Repeat("Black", 7)//固定色2 + 優先度色5 + 追加の画面色
+                    .Concat(new[]{
                         "DarkGray"          //チューナ画面背景色
                         ,"LightGray"        //予約枠色
                         ,"Black"            //時間文字色
@@ -1528,59 +1578,216 @@ namespace EpgTimer
                         ,"Black"            //予約枠色(無効)
                         ,"OrangeRed"        //予約枠色(録画中)
                         ,"OrangeRed"        //予約枠色(視聴中)
-                    });
-                _FillList(TunerServiceColors, defColors);
-            }
-            _FillList(TunerServiceCustColors, 0xFFFFFFFF, num);
+                }).ToArray());
+            _FillList(TunerServiceCustColors, 0xFFFFFFFF, TunerServiceColors.Count);
 
             //録画済み一覧背景色
-            num = 3;
-            if (RecEndColors.Count < num)
-            {
-                var defColors = new string[]{
+            _FillList(RecEndColors, new[]{
                         "White"         //デフォルト
                         ,"LightPink"    //エラー
                         ,"LightYellow"  //ワーニング
-                    };
-                _FillList(RecEndColors, defColors);
-            }
-            _FillList(RecEndCustColors, 0xFFFFFFFF, num);
+                    });
+            _FillList(RecEndCustColors, 0xFFFFFFFF, RecEndColors.Count);
 
             //録画モード別予約文字色
-            num = 6;
-            _FillList(RecModeFontColors, ListDefColor, num);//そのときのデフォルト色をあてる
-            _FillList(RecModeFontCustColors, ListDefCustColor, num);
+            _FillList(RecModeFontColors, ListDefColor, 6);//そのときのデフォルト色をあてる
+            _FillList(RecModeFontCustColors, ListDefCustColor, RecModeFontColors.Count);
 
             //状態別予約背景色
-            num = 6;
-            if (ResBackColors.Count < num)
-            {
-                var defColors = new string[]{
+            _FillList(ResBackColors, new[]{
                         "White"         //通常
                         ,"LightGray"    //無効
                         ,"LightPink"    //チューナー不足
                         ,"LightYellow"  //一部実行
                         ,"LightBlue"    //自動予約登録不明
                         ,"Thistle"      //重複EPG予約
-                    };
-                _FillList(ResBackColors, defColors);
-            }
-            _FillList(ResBackCustColors, 0xFFFFFFFF, num);
+                    });
+            _FillList(ResBackCustColors, 0xFFFFFFFF, ResBackColors.Count);
 
             //予約状態列文字色
-            num = 5;
-            if (StatColors.Count < num)
-            {
-                var defColors = new List<string>{
+            _FillList(StatColors, new[]{
                         "Blue"      //予約中
                         ,"OrangeRed"//録画中
                         ,"LimeGreen"//放送中
                         ,"OrangeRed"//視聴中
                         ,"Green"    //録画済み
-                    };
-                _FillList(StatColors, defColors);
+                    });
+            _FillList(StatCustColors, 0xFFFFFFFF, StatColors.Count);
+        }
+
+        public class EpgColorList
+        {
+            public List<Brush> ContentColorList { get; private set; }
+            public List<Brush> ResColorList { get; private set; }
+            public List<Brush> ResFillColorList { get; private set; }
+            public List<Brush> TimeColorList { get; private set; }
+            public Brush TitleColor { get; private set; }
+            public Brush NormalColor { get; private set; }
+            public Brush ServiceBackColor { get; private set; }
+            public Brush BackColor { get; private set; }
+            public Brush BorderColor { get; private set; }
+            public Brush ServiceFontColor { get; private set; }
+            public Brush ServiceBorderColor { get; private set; }
+            public Brush TimeFontColor { get; private set; }
+            public Brush TimeBorderColor { get; private set; }
+            public Brush WeekdayBorderColor { get; private set; }
+
+            public EpgColorList(int idx)
+            {
+                EpgSetting set = Instance.EpgSettingList[idx];
+
+                ContentColorList = new List<Brush>();
+                ResColorList = new List<Brush>();
+                ResFillColorList = new List<Brush>();
+                TimeColorList = new List<Brush>();
+
+                SolidColorBrush brush;
+                for (int i = 0; i < set.ContentColorList.Count; i++)
+                {
+                    brush = BrushCache.CustColorBrush(set.ContentColorList[i], set.ContentCustColorList[i]);
+                    ContentColorList.Add(set.EpgGradation ? (Brush)ColorDef.GradientBrush(brush.Color) : brush);
+                }
+
+                //0→50で塗りつぶしの不透明度が上がる
+                int fillOpacity = Math.Min(set.ReserveRectFillOpacity, 50) * 2;
+                //50→100で枠の不透明度が下がる
+                int strokeOpacity = Math.Min(100 - set.ReserveRectFillOpacity, 50) * 2;
+
+                for (int i = 0; i < set.EpgResColorList.Count; i++)
+                {
+                    ResColorList.Add(BrushCache.CustColorBrush(set.EpgResColorList[i], set.EpgResCustColorList[i], 0xA0, strokeOpacity));
+                    ResFillColorList.Add(BrushCache.CustColorBrush(set.EpgResColorList[i], set.EpgResCustColorList[i], 0xA0, fillOpacity));
+                }
+                for (int i = 0; i < set.EpgEtcColors.Count; i++)
+                {
+                    brush = BrushCache.CustColorBrush(set.EpgEtcColors[i], set.EpgEtcCustColors[i]);
+                    TimeColorList.Add(set.EpgGradationHeader ? (Brush)ColorDef.GradientBrush(brush.Color) : brush);
+                }
+
+                TitleColor = BrushCache.CustColorBrush(set.TitleColor1, set.TitleCustColor1);
+                NormalColor = BrushCache.CustColorBrush(set.TitleColor2, set.TitleCustColor2);
+                brush = BrushCache.CustColorBrush(set.EpgEtcColors[4], set.EpgEtcCustColors[4]);
+                ServiceBackColor = set.EpgGradationHeader ? (Brush)ColorDef.GradientBrush(brush.Color, 1.0, 2.0) : brush;
+                BackColor = BrushCache.CustColorBrush(set.EpgEtcColors[5], set.EpgEtcCustColors[5]);
+                BorderColor = BrushCache.CustColorBrush(set.EpgEtcColors[6], set.EpgEtcCustColors[6]);
+                ServiceFontColor = BrushCache.CustColorBrush(set.EpgEtcColors[7], set.EpgEtcCustColors[7]);
+                ServiceBorderColor = BrushCache.CustColorBrush(set.EpgEtcColors[8], set.EpgEtcCustColors[8]);
+                TimeFontColor = BrushCache.CustColorBrush(set.EpgEtcColors[9], set.EpgEtcCustColors[9]);
+                TimeBorderColor = BrushCache.CustColorBrush(set.EpgEtcColors[10], set.EpgEtcCustColors[10]);
+                WeekdayBorderColor = BrushCache.CustColorBrush(set.EpgEtcColors[11], set.EpgEtcCustColors[11]);
             }
-            _FillList(StatCustColors, 0xFFFFFFFF, num);
+        }
+        public class SettingsBrushCache
+        {
+            public class EpgColorCache
+            {
+                private Dictionary<int, EpgColorList> Data = new Dictionary<int, EpgColorList>();
+                public EpgColorList this[int idx]
+                {
+                    get
+                    {
+                        EpgColorList ret;
+                        if (Data.TryGetValue(idx, out ret) == false)
+                        {
+                            ret = new EpgColorList(idx);
+                            Data.Add(idx, ret);
+                        }
+                        return ret;
+                    }
+                }
+            }
+
+            //主に色関係の設定
+            public EpgColorCache Epg { get; private set; }
+
+            public Brush CustTunerServiceColor { get; private set; }
+            public Brush CustTunerTextColor { get; private set; }
+            public List<Brush> CustTunerServiceColorPri { get; private set; }
+            public Brush TunerBackColor { get; private set; }
+            public Brush TunerTimeFontColor { get; private set; }
+            public Brush TunerTimeBackColor { get; private set; }
+            public Brush TunerTimeBorderColor { get; private set; }
+            public Brush TunerNameFontColor { get; private set; }
+            public Brush TunerNameBackColor { get; private set; }
+            public Brush TunerNameBorderColor { get; private set; }
+            public List<Brush> TunerResBorderColor { get; private set; }
+            public List<Brush> ResBackColor { get; private set; }
+            public Brush ListDefForeColor { get; private set; }
+            public List<Brush> RecModeForeColor { get; private set; }
+            public List<Brush> ResStatusColor { get; private set; }
+            public List<Brush> RecEndBackColor { get; private set; }
+
+            //キャッシュ
+            private Dictionary<uint, SolidColorBrush> SolidBrushCache = new Dictionary<uint, SolidColorBrush>();
+
+            //SettingsBrushCache()用のコンバートメソッド
+            public SolidColorBrush CustColorBrush(string name, uint cust = 0, byte a = 0xFF, int opacity = 100)
+            {
+                Color c = (name == "カスタム" ? ColorDef.FromUInt(cust) : ColorDef.ColorFromName(name));
+                a = name == "カスタム" ? c.A : a;
+                c = c.A != 0 && (a != 0xFF || opacity != 100) ? Color.FromArgb((byte)(a * opacity / 100), c.R, c.G, c.B) : c;
+
+                SolidColorBrush brush;
+                if (SolidBrushCache.TryGetValue(ColorDef.ToUInt(c), out brush) == false)
+                {
+                    brush = new SolidColorBrush(c);
+                    brush.Freeze();
+                    SolidBrushCache.Add(ColorDef.ToUInt(c), brush);
+                }
+                return brush;
+            }
+            private void SimpleColorSet(List<Brush> listBrush, List<string> listName, List<uint> listCust, int start = 0, int end = 0)
+            {
+                if (end <= 0) end = listName.Count;
+                for (int i = start; i < end; i++) listBrush.Add(CustColorBrush(listName[i], listCust[i]));
+            }
+            public SettingsBrushCache()
+            {
+                Epg = new EpgColorCache();
+
+                CustTunerServiceColorPri = new List<Brush>();
+                TunerResBorderColor = new List<Brush>();
+                ResBackColor = new List<Brush>();
+                RecModeForeColor = new List<Brush>();
+                ResStatusColor = new List<Brush>();
+                RecEndBackColor = new List<Brush>();
+
+                CustTunerServiceColor = CustColorBrush(Instance.TunerServiceColors[0], Instance.TunerServiceCustColors[0]);
+                CustTunerTextColor = CustColorBrush(Instance.TunerServiceColors[1], Instance.TunerServiceCustColors[1]);
+                SimpleColorSet(CustTunerServiceColorPri, Instance.TunerServiceColors, Instance.TunerServiceCustColors, 2, 2 + 5);
+                TunerBackColor = CustColorBrush(Instance.TunerServiceColors[7 + 0], Instance.TunerServiceCustColors[7 + 0]);
+                TunerTimeFontColor = CustColorBrush(Instance.TunerServiceColors[7 + 2], Instance.TunerServiceCustColors[7 + 2]);
+                TunerTimeBackColor = CustColorBrush(Instance.TunerServiceColors[7 + 3], Instance.TunerServiceCustColors[7 + 3]);
+                TunerTimeBorderColor = CustColorBrush(Instance.TunerServiceColors[7 + 4], Instance.TunerServiceCustColors[7 + 4]);
+                TunerNameFontColor = CustColorBrush(Instance.TunerServiceColors[7 + 5], Instance.TunerServiceCustColors[7 + 5]);
+                TunerNameBackColor = CustColorBrush(Instance.TunerServiceColors[7 + 6], Instance.TunerServiceCustColors[7 + 6]);
+                TunerNameBorderColor = CustColorBrush(Instance.TunerServiceColors[7 + 7], Instance.TunerServiceCustColors[7 + 7]);
+                SimpleColorSet(TunerResBorderColor, Instance.TunerServiceColors, Instance.TunerServiceCustColors, 7 + 8, 7 + 8 + 4);
+                TunerResBorderColor.Insert(0, CustColorBrush(Instance.TunerServiceColors[7 + 1], Instance.TunerServiceCustColors[7 + 1]));
+
+                ListDefForeColor = CustColorBrush(Instance.ListDefColor, Instance.ListDefCustColor);
+
+                SimpleColorSet(RecModeForeColor, Instance.RecModeFontColors, Instance.RecModeFontCustColors);
+                SimpleColorSet(ResBackColor, Instance.ResBackColors, Instance.ResBackCustColors);
+                SimpleColorSet(ResStatusColor, Instance.StatColors, Instance.StatCustColors);
+                SimpleColorSet(RecEndBackColor, Instance.RecEndColors, Instance.RecEndCustColors);
+            }
+        }
+    }
+
+    public interface IEpgSettingAccess
+    {
+        int EpgSettingIndex { get; }
+    }
+    public static class EpgCacheAccess
+    {
+        public static EpgSetting EpgStyle(this IEpgSettingAccess item)
+        {
+            return Settings.Instance.EpgSettingList[item.EpgSettingIndex];
+        }
+        public static Settings.EpgColorList EpgBrushCache(this IEpgSettingAccess item)
+        {
+            return Settings.BrushCache.Epg[item.EpgSettingIndex];
         }
     }
 }

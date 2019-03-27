@@ -30,6 +30,8 @@
                 </StackPanel>
                 <RadioButton Content="リスト表示モード" Margin="14,12,0,0" />
                 <CheckBox Content="終了済みの番組は表示しない" Margin="28,6,0,0" IsChecked="{Binding FilterEnded}" />
+                <Label Content="デザイン" Margin="0,12,0,0" />
+                <ComboBox Margin="28,6,0,0" Width="140" Name="cmb_design" HorizontalAlignment="Left"/>
             </StackPanel>
         </TabItem>
         <TabItem Header="表示条件" >

@@ -120,8 +120,6 @@ namespace EpgTimer
                 {
                     ChSet5.SaveFile();
                 }
-                CommonManager.Instance.ReloadCustContentColorList();
-                CommonManager.ReloadReplaceDictionary();
                 if (Settings.Instance.WakeUpHdd == false) CommonManager.WakeUpHDDLogClear();
                 ItemFontCache.Clear();
 

@@ -60,6 +60,12 @@ namespace EpgTimer.EpgView
             mm.CtxmGenerateContextMenu(cmdMenu, CtxmCode.EpgView, false);
         }
 
+        public override void SetViewData(EpgViewData data)
+        {
+            base.SetViewData(data);
+            programView.SetViewData(viewData);
+            timeView.SetViewData(viewData);
+        }
         public void SetControls(ProgramView pv, TimeView tv, ScrollViewer hv)
         {
             programView = pv;
@@ -99,14 +105,14 @@ namespace EpgTimer.EpgView
             //縦位置を設定
             foreach (ProgramViewItem item in programList.Values)
             {
-                ViewUtil.SetItemVerticalPos(timeList, item, GetViewTime(LimitedStart(item.Data)), LimitedDuration(item.Data), Settings.Instance.MinHeight, viewCustNeedTimeOnly);
+                ViewUtil.SetItemVerticalPos(timeList, item, GetViewTime(LimitedStart(item.Data)), LimitedDuration(item.Data), this.EpgStyle().MinHeight, viewCustNeedTimeOnly);
             }
 
             //最低表示行数を適用。また、最低表示高さを確保して、位置も調整する。
-            ViewUtil.ModifierMinimumLine(programList.Values, Settings.Instance.MinimumHeight, Settings.Instance.FontSizeTitle, Settings.Instance.EpgBorderTopSize);
+            ViewUtil.ModifierMinimumLine(programList.Values, this.EpgStyle().MinimumHeight, this.EpgStyle().FontSizeTitle, this.EpgStyle().EpgBorderTopSize);
 
             //必要時間リストの修正。番組長の関係や、最低表示行数の適用で下に溢れた分を追加する。
-            ViewUtil.AdjustTimeList(programList.Values, timeList, Settings.Instance.MinHeight);
+            ViewUtil.AdjustTimeList(programList.Values, timeList, this.EpgStyle().MinHeight);
         }
 
         protected virtual ReserveViewItem AddReserveViewItem(ReserveData resInfo, ref ProgramViewItem refPgItem, bool SearchEvent = false)
@@ -122,7 +128,7 @@ namespace EpgTimer.EpgView
             int index = timeList.BinarySearch(chkStartTime);
             if (index < 0) return null;
 
-            var resItem = new ReserveViewItem(resInfo);
+            var resItem = new ReserveViewItem(resInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex };
             (resInfo is ReserveDataEnd ? recinfoList : reserveList).Add(resItem);
 
             //予約情報から番組情報を特定し、枠表示位置を再設定する
@@ -158,8 +164,8 @@ namespace EpgTimer.EpgView
                 StartMargin = Math.Min(0, StartMargin + adj);
                 double duration = resInfo.DurationSecond + StartMargin + EndMargin - adj;
                 startTime = startTime.AddSeconds(-StartMargin);
-                resItem.Height = Math.Max(duration * Settings.Instance.MinHeight / 60, ViewUtil.PanelMinimumHeight);
-                resItem.TopPos = Settings.Instance.MinHeight * (index * 60 + (startTime - chkStartTime).TotalMinutes);
+                resItem.Height = Math.Max(duration * this.EpgStyle().MinHeight / 60, ViewUtil.PanelMinimumHeight);
+                resItem.TopPos = this.EpgStyle().MinHeight * (index * 60 + (startTime - chkStartTime).TotalMinutes);
             }
             return resItem;
         }
@@ -206,7 +212,7 @@ namespace EpgTimer.EpgView
         {
             if (programList.Count == 0) return null;
 
-            var list = programList.Values.OrderBy(item => (int)(item.LeftPos / Settings.Instance.ServiceWidth) * 1e6 + item.TopPos + item.Width / Settings.Instance.ServiceWidth / 100).ToList();
+            var list = programList.Values.OrderBy(item => (int)(item.LeftPos / this.EpgStyle().ServiceWidth) * 1e6 + item.TopPos + item.Width / this.EpgStyle().ServiceWidth / 100).ToList();
             int idx = list.FindIndex(item => item.Data.CurrentPgUID() == id);
             idx = ViewUtil.GetNextIdx(ItemIdx, idx, list.Count, direction);
             if (move == true) programView.ScrollToFindItem(list[idx], style);
@@ -264,7 +270,7 @@ namespace EpgTimer.EpgView
         protected void MoveTime(DateTime time, int offset = 0)
         {
             int idx = timeList.BinarySearch(time.AddSeconds(1));
-            double pos = Math.Max(0, ((idx < 0 ? ~idx : idx) - 1) * 60 * Settings.Instance.MinHeight + offset);
+            double pos = Math.Max(0, ((idx < 0 ? ~idx : idx) - 1) * 60 * this.EpgStyle().MinHeight + offset);
             double back = programView.scrollViewer.VerticalOffset;
             programView.scrollViewer.ScrollToVerticalOffset(pos);
             if (pos == back) epgProgramView_ScrollChanged(null, null);//ScrollChangedEventArgsがCreate出来ない(RaiseEvent出来ない)ので
@@ -272,7 +278,7 @@ namespace EpgTimer.EpgView
         protected DateTime GetScrollTime()
         {
             if (timeList.Any() == false) return DateTime.MinValue;
-            var idx = (int)(programView.scrollViewer.VerticalOffset / 60 / Settings.Instance.MinHeight);
+            var idx = (int)(programView.scrollViewer.VerticalOffset / 60 / this.EpgStyle().MinHeight);
             return timeList[Math.Max(0, Math.Min(idx, timeList.Count - 1))];
         }
         protected override void SetJumpState() { restoreState = new StateMainBase { scrollTime = GetScrollTime(), isJumpDate = true }; }
@@ -289,7 +295,7 @@ namespace EpgTimer.EpgView
             if (ViewPeriod.StartLoad <= now)
             {
                 int idx = timeList.BinarySearch(GetViewTime(now).Date.AddHours(now.Hour));
-                double posY = (idx < 0 ? ~idx * 60 : (idx * 60 + now.Minute)) * Settings.Instance.MinHeight;
+                double posY = (idx < 0 ? ~idx * 60 : (idx * 60 + now.Minute)) * this.EpgStyle().MinHeight;
 
                 programView.nowLine.X1 = 0;
                 programView.nowLine.Y1 = posY;

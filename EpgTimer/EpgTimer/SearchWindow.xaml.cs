@@ -20,6 +20,7 @@ namespace EpgTimer
         private ListViewController<SearchItem> lstCtrl;
         private CmdExeReserve mc; //予約系コマンド集
 
+        private EpgViewPeriodDef prdef;
         private bool ArcSearch = false;
         private bool Searched = false;
 
@@ -203,8 +204,8 @@ namespace EpgTimer
                 EpgSearchKeyInfo key = GetSearchKey();
                 key.keyDisabledFlag = 0; //無効解除
 
-                ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false && Settings.Instance.EpgArcDefaultDays > 0;
-                EpgViewPeriod period = IsJumpPanelOpened ? SearchPeriod : ArcSearch ? EpgViewPeriod.DefPeriod : null;
+                ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false && Settings.Instance.EpgSettingList[0].EpgArcDefaultDays > 0;
+                EpgViewPeriod period = IsJumpPanelOpened ? SearchPeriod : ArcSearch ? prdef.DefPeriod : null;
 
                 if (period != null) period.StrictLoad = true;
                 var list = CommonManager.Instance.DB.SearchPg(key.IntoList(), period);
@@ -334,6 +335,7 @@ namespace EpgTimer
             //再検索はCtrlCmdを使うので、アクティブウィンドウでだけ実行させる。
             if (ReloadInfoFlg == true && this.IsActive == true)
             {
+                RefreshPeriod();
                 SearchPg();
                 ReloadInfoFlg = false;
                 RefreshReserveInfoFlg = false;
@@ -341,6 +343,7 @@ namespace EpgTimer
             //表示の更新は見えてれば実行する。
             if (RefreshReserveInfoFlg == true && this.IsVisible == true && (this.WindowState != WindowState.Minimized || this.IsActive == true))
             {
+                RefreshPeriod();
                 recSettingView.RefreshView();
                 RefreshMoveButtonStatus();
                 RefreshReserveInfo();
@@ -360,6 +363,7 @@ namespace EpgTimer
         private EpgViewPeriod SearchPeriod { get { return timeJumpView.GetDate(); } }
         private void SetSearchPeriod()
         {
+            RefreshPeriod();
             searchKeyView.checkBox_noArcSearch.IsChecked = !Settings.Instance.ArcSearch;
             searchKeyView.checkBox_noArcSearch.Checked += (sender, e) => { if (Searched) SearchPg(); };
             searchKeyView.checkBox_noArcSearch.Unchecked += (sender, e) => { if (Searched) SearchPg(); };
@@ -369,10 +373,18 @@ namespace EpgTimer
             button_Panel.Click += (sender, e) => button_Panel_Click();
             button_Prev.Click += (sender, e) => button_Time_Click(MoveTimeTarget(-1));
             button_Next.Click += (sender, e) => button_Time_Click(MoveTimeTarget(1));
-            button_Reset.Click += (sender, e) => button_Time_Click(EpgViewPeriod.DefPeriod);
+            button_Reset.Click += (sender, e) => button_Time_Click(prdef.DefPeriod);
             button_Prev.ToolTipOpening += (sender, e) => button_Time_Tooltip(button_Prev, e, -1);
             button_Next.ToolTipOpening += (sender, e) => button_Time_Tooltip(button_Next, e, 1);
-            button_Reset.ToolTipOpening += (sender, e) => button_Reset.ToolTip = EpgViewPeriod.DefPeriod.ConvertText();
+            button_Reset.ToolTipOpening += (sender, e) => button_Reset.ToolTip = prdef.DefPeriod.ConvertText(prdef.DefPeriod.End);
+        }
+        private void RefreshPeriod()
+        {
+            prdef = new EpgViewPeriodDef(Settings.Instance.EpgSettingList[0]);
+            timeJumpView.RefreshPeriod();
+            EpgViewPeriod pr = timeJumpView.GetDate();
+            if (pr.Equals(prdef.DefPeriod) == false) pr.Days = prdef.InitMoveDays;
+            timeJumpView.SetDate(pr);
         }
         private void button_Panel_Click()
         {
@@ -393,7 +405,7 @@ namespace EpgTimer
         private EpgViewPeriod MoveTimeTarget(int mode)
         {
             EpgViewPeriod pr = timeJumpView.GetDate();
-            if (pr.Equals(EpgViewPeriod.DefPeriod)) pr.Days = EpgViewPeriod.InitMoveDays;
+            if (pr.Equals(prdef.DefPeriod)) pr.Days = prdef.InitMoveDays;
             pr.Start += TimeSpan.FromDays(mode * (int)pr.Days);
             return pr;
         }
@@ -402,7 +414,7 @@ namespace EpgTimer
             searchKeyView.checkBox_noArcSearch.IsEnabled = !IsJumpPanelOpened;
             if (IsJumpPanelOpened == false) return;
             button_Prev.IsEnabled = SearchPeriod.Start > CommonManager.Instance.DB.EventTimeMin;
-            button_Next.IsEnabled = SearchPeriod.End < EpgViewPeriod.DefPeriod.End;
+            button_Next.IsEnabled = SearchPeriod.End < prdef.DefPeriod.End;
             timeJumpView.SetDate(null, CommonManager.Instance.DB.EventTimeMin);
         }
     }

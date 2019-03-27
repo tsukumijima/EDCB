@@ -159,4 +159,15 @@ namespace EpgTimer
             return s;
         }
     }
+
+    /// <summary>indexガード付きリスト</summary>
+    public class IndexSafeList<T> : List<T>
+    {
+        public new T this[int index]
+        {
+            get { return Count != 0 ? base[Check(index) ? index : 0] : default(T); }
+            set { if (Check(index)) base[index] = value; }
+        }
+        protected bool Check(int index) { return 0 <= index && index < Count; }
+    }
 }

@@ -27,16 +27,16 @@ namespace EpgTimer.TunerReserveViewCtrl
                 var tuner1 = new StackPanel();
                 tuner1.Width = info.Width - 1;
                 tuner1.Margin = new Thickness(0, 1, 1, 1);
-                tuner1.Background = CommonManager.Instance.TunerNameBackColor;
+                tuner1.Background = Settings.BrushCache.TunerNameBackColor;
 
                 var text = ViewUtil.GetPanelTextBlock(info.Data.tunerName);
                 text.Margin = new Thickness(1, 0, 1, 0);
-                text.Foreground = CommonManager.Instance.TunerNameFontColor;
+                text.Foreground = Settings.BrushCache.TunerNameFontColor;
                 tuner1.Children.Add(text);
 
                 text = ViewUtil.GetPanelTextBlock("ID: " + info.Data.tunerID.ToString("X8"));
                 text.Margin = new Thickness(1, 0, 1, 2);
-                text.Foreground = CommonManager.Instance.TunerNameFontColor;
+                text.Foreground = Settings.BrushCache.TunerNameFontColor;
                 tuner1.Children.Add(text);
 
                 tuner1.ToolTip = Settings.Instance.TunerNameTooltip != true ? null : ViewUtil.ServiceHeaderToToolTip(tuner1)                    ;

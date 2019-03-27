@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace EpgTimer
@@ -20,6 +21,36 @@ namespace EpgTimer
         }
     }
     public class BoolInverter : BoolConverter { protected override bool ToBool(object v) { return !base.ToBool(v); } }
+
+    public class RadioButtonTagConverter : IValueConverter
+    {
+        public virtual object Convert(object v, Type t, object p, System.Globalization.CultureInfo c)
+        {
+            var btn = p as RadioButton;
+            return v == null || p == null ? false : btn.Tag as string == v.ToString();
+        }
+        public virtual object ConvertBack(object v, Type t, object p, System.Globalization.CultureInfo c)
+        {
+            var btn = p as RadioButton;
+            int ret;
+            return (v as bool?) == true && int.TryParse(btn.Tag as string, out ret) ? (object)ret : null;
+        }
+
+        //設定用のメソッド
+        private static RadioButtonTagConverter radioButtonCnv = new RadioButtonTagConverter();
+        public static void SetBindingButton(RadioButton btn, string path)
+        {
+            var binding = new Binding(path) { Converter = radioButtonCnv, ConverterParameter = btn };
+            btn.SetBinding(RadioButton.IsCheckedProperty, binding);
+        }
+        public static void SetBindingButtons(string path, Panel pnl)
+        {
+            foreach (var btn in pnl.Children.OfType<RadioButton>())
+            {
+                SetBindingButton(btn, path);
+            }
+        }
+    }
 
     //ValidationRuleはパラメータ渡すのが面倒なので代用
     //パラメータは、カンマ区切りで、最大値、最小値
