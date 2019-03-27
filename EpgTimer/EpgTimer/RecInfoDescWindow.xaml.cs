@@ -96,7 +96,7 @@ namespace EpgTimer
                 this.Title = ViewUtil.WindowTitleText(recInfo.Title, "録画情報");
                 if (recInfo.ID != 0 && recInfo.ProgramInfo == null)//.program.txtがない
                 {
-                    recInfo.ProgramInfo = CommonManager.ConvertProgramText(MenuUtil.GetPgInfo(recInfo, true), EventInfoTextMode.All);
+                    recInfo.ProgramInfo = CommonManager.ConvertProgramText(recInfo.GetPgInfo(), EventInfoTextMode.All);
                 }
                 textBox_pgInfo.Text = recInfo.ProgramInfo;
                 textBox_errLog.Text = recInfo.ErrInfo;

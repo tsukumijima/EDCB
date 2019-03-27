@@ -293,7 +293,7 @@ namespace EpgTimer
                         string ret = new ReserveItem(ReserveInfo).Status;
                         return ret == "" ? "予" : ret;
                     }
-                    if (MenuUtil.GetRecFileInfo(eventInfo) != null)
+                    if (MenuUtil.GetRecFileInfo(EventInfo) != null)
                     {
                         return "済";//放映中でも「済」なら優先する
                     }
@@ -323,7 +323,7 @@ namespace EpgTimer
                     {
                         return CommonManager.Instance.ResStatusColor[2];
                     }
-                    if (MenuUtil.GetRecFileInfo(eventInfo) != null)
+                    if (MenuUtil.GetRecFileInfo(EventInfo) != null)
                     {
                         return CommonManager.Instance.ResStatusColor[4];//色は放映中を優先する
                     }

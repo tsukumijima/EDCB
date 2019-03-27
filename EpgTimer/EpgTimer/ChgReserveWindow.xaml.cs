@@ -167,6 +167,7 @@ namespace EpgTimer
             recSettingView.RefreshView();
             CheckMultiReserve();
             UpdateErrStatus();
+            RefreshProgramTab(true);
             return true;
         }
 
@@ -436,25 +437,29 @@ namespace EpgTimer
                 var resInfo = new ReserveData();
                 GetReserveTimeInfo(ref resInfo);
 
-                //EPGデータが読込まれていない場合も考慮し、先に判定する。
-                if (reserveInfo.IsEpgReserve == true && reserveInfo.IsSamePg(resInfo) == true)
+                if (reserveInfo.IsSamePg(resInfo))
                 {
-                    //EPG予約で、元の状態に戻る場合
-                    textBox_title.Text = reserveInfo.Title;
+                    //元プログラム予約でも番組が見つかる可能性がある
+                    resInfo = reserveInfo;
+
+                    //EPGデータが読込まれていない場合も考慮し、先に判定する。
+                    if (reserveInfo.IsEpgReserve)
+                    {
+                        //EPG予約で、元の状態に戻る場合
+                        textBox_title.Text = reserveInfo.Title;
+                        return;
+                    }
+                }
+                eventInfoNow = resInfo.GetPgInfo();
+                if (eventInfoNow == null)
+                {
+                    MessageBox.Show("変更可能な番組がありません。\r\n" +
+                                    "EPGの期間外か、EPGデータが読み込まれていません。");
+                    SetResModeProgram(true);
                 }
                 else
                 {
-                    eventInfoNow = resInfo.ReserveEventInfo(false);
-                    if (eventInfoNow == null)
-                    {
-                        MessageBox.Show("変更可能な番組がありません。\r\n" +
-                                        "EPGの期間外か、EPGデータが読み込まれていません。");
-                        SetResModeProgram(true);
-                    }
-                    else
-                    {
-                        SetReserveTimeInfo(eventInfoNow.ToReserveData());
-                    }
+                    SetReserveTimeInfo(eventInfoNow.ToReserveData());
                 }
             }
         }
@@ -465,22 +470,23 @@ namespace EpgTimer
             if (sender != e.OriginalSource) return;
 
             selectedTab = tabControl.SelectedIndex != -1 ? tabControl.SelectedIndex : selectedTab;
-            if (tabItem_program.IsSelected)
+            if (tabItem_program.IsSelected) RefreshProgramTab();
+        }
+        private void RefreshProgramTab(bool force = false)
+        {
+            var resInfo = new ReserveData();
+            GetReserveTimeInfo(ref resInfo);
+
+            //描画軽減。人の操作では気にするほどのことはないが、保険。
+            if (force = false && resInfo.IsSamePg(resInfoDisplay)) return;
+            resInfoDisplay = resInfo;
+
+            //EPGを自動で読み込んでない時でも、元と同じならその番組情報は表示させられるようにする
+            if (reserveInfo.IsSamePg(resInfo))
             {
-                var resInfo = new ReserveData();
-                GetReserveTimeInfo(ref resInfo);
-
-                //描画軽減。人の操作では気にするほどのことはないが、保険。
-                if (resInfo.IsSamePg(resInfoDisplay) == true) return;
-                resInfoDisplay = resInfo;
-
-                //EPGを自動で読み込んでない時でも、元がEPG予約ならその番組情報は表示させられるようにする
-                if (reserveInfo.IsEpgReserve == true && reserveInfo.IsSamePg(resInfo) == true)
-                {
-                    resInfo = reserveInfo;
-                }
-                richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(eventInfoNow ?? resInfo.ReserveEventInfo(false));
+                resInfo = reserveInfo;
             }
+            richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(eventInfoNow ?? resInfo.GetPgInfo());
         }
 
         protected override DataItemViewBase DataView { get { return base.DataView ?? (mainWindow.reserveView.IsVisible == true ? (DataItemViewBase)mainWindow.reserveView : mainWindow.tunerReserveView.IsVisible == true ? mainWindow.tunerReserveView : null); } }

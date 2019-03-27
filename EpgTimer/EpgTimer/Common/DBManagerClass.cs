@@ -244,27 +244,27 @@ namespace EpgTimer
 
         public EpgEventInfo GetReserveEventList(ReserveData master, bool isSrv = true)
         {
-            if (master == null) return null;
+            if (master == null || master.ReserveID == 0) return null;
 
             if (reserveEventList == null)
             {
                 if (IsEpgLoaded || Settings.Instance.NoReserveEventList == true)
                 {
-                    reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID, rs => MenuUtil.SearchEventInfoLikeThat(rs));
+                    reserveEventList = ReserveList.Values.ToDictionary(rs => rs.ReserveID,
+                        rs => rs.IsEpgReserve ? MenuUtil.GetPgInfoUid(rs.CurrentPgUID()) : MenuUtil.GetPgInfoLikeThat(rs));
                 }
                 else
                 {
-                    if (isSrv == false || master.IsManual) return null;
-
                     reserveEventList = new Dictionary<uint, EpgEventInfo>();
                     reserveEventListCache = reserveEventListCache ?? new Dictionary<ulong, EpgEventInfo>();
 
                     //要求はしないが、有効なデータが既に存在していればキーワード予約の追加データを参照する。
-                    bool useAppend = epgAutoAddAppendList != null && updateEpgAutoAddAppend == false 
+                    bool useAppend = epgAutoAddAppendList != null && updateEpgAutoAddAppend == false
                         && updateEpgAutoAddAppendReserveInfo == false;
 
+                    //プログラム予約はここで探しても精度低いので諦める
                     var trgList = new List<ReserveData>();
-                    foreach (ReserveData data in ReserveList.Values)
+                    foreach (ReserveData data in ReserveList.Values.Where(r => r.IsEpgReserve))
                     {
                         EpgEventInfo info = null;
                         ulong key = data.Create64PgKey();
@@ -282,8 +282,7 @@ namespace EpgTimer
                                 }
                             }
                         }
-                        if (info == null) reserveEventListCache.TryGetValue(key, out info);
-                        if (info != null)
+                        if (info != null || reserveEventListCache.TryGetValue(key, out info))
                         {
                             reserveEventList[data.ReserveID] = info;
                         }
@@ -293,13 +292,12 @@ namespace EpgTimer
                         }
                     }
 
-                    var pgIDset = trgList.ToLookup(data => data.Create64PgKey(), data => data.ReserveID);
-                    if (pgIDset.Any() == true)
+                    if (isSrv == true && trgList.Any())
                     {
+                        var pgIDset = trgList.ToLookup(data => data.Create64PgKey(), data => data.ReserveID);
                         var keys = pgIDset.Select(lu => lu.Key).ToList();
                         var list = new List<EpgEventInfo>();
-                        try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(keys, ref list); }
-                        catch { }
+                        try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(keys, ref list); } catch { }
 
                         foreach (EpgEventInfo info in list)
                         {
@@ -320,6 +318,18 @@ namespace EpgTimer
             EpgEventInfo retv;
             reserveEventList.TryGetValue(master.ReserveID, out retv);
             return retv;
+        }
+        public void AddReserveEventCache(ReserveData res, EpgEventInfo info)
+        {
+            if (info == null || res == null || res is ReserveDataEnd || res.ReserveID == 0) return;
+
+            //キャッシュが無い場合は生成
+            EpgEventInfo cacheInfo = GetReserveEventList(res);
+            if (reserveEventList == null || info.IsSamePg(cacheInfo)) return;
+
+            reserveEventListCache = reserveEventListCache ?? new Dictionary<ulong, EpgEventInfo>();
+            reserveEventListCache[info.Create64PgKey()] = info;
+            reserveEventList[res.ReserveID] = info;
         }
 
         public RecFileInfoAppend GetRecFileAppend(RecFileInfo master, bool UpdateDB = false)

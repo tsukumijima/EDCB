@@ -38,6 +38,31 @@ namespace EpgTimer
             }
         }
 
+        public EpgEventInfo GetPgInfo(bool isSrv = true)
+        {
+            //まずは手持ちのデータを探す
+            EpgEventInfo pg = MenuUtil.GetPgInfoUidAll(CurrentPgUID());
+            if (pg != null || isSrv == false) return pg;
+
+            //過去番組情報を探してみる
+            if (PgStartTime >= CommonManager.Instance.DB.EventTimeMinArc)
+            {
+                var arcList = new List<EpgServiceEventInfo>();
+                CommonManager.Instance.DB.LoadEpgArcData(PgStartTime, PgStartTime.AddSeconds(1), ref arcList, Create64Key().IntoList());
+                if (arcList.Any()) return arcList[0].eventList.FirstOrDefault();
+            }
+
+            //現在番組情報も探してみる ※EPGデータ未読み込み時で、録画直後の場合
+            if (CommonManager.Instance.DB.IsEpgLoaded == false)
+            {
+                var list = new List<EpgEventInfo>();
+                try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(Create64PgKey().IntoList(), ref list); } catch { }
+                return list.FirstOrDefault();
+            }
+
+            return null;
+        }
+
         public override List<EpgAutoAddData> SearchEpgAutoAddList(bool? IsEnabled = null, bool ByFazy = false)
         {
             //EpgTimerSrv側のSearch()をEpgTimerで実装してないので、簡易な推定によるもの

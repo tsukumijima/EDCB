@@ -32,7 +32,7 @@ namespace EpgTimer
 
         public static void CopyContent2Clipboard(ReserveData resInfo, bool NotToggle = false)
         {
-            EpgEventInfo info = resInfo == null ? null : resInfo.ReserveEventInfo();
+            EpgEventInfo info = resInfo == null ? null : resInfo.GetPgInfo();
             CopyContent2Clipboard(info, NotToggle);
         }
 
@@ -338,7 +338,7 @@ namespace EpgTimer
             if (resMode == 0)//EPG予約へ変更
             {
                 list = itemlist.Where(item => item.ReserveMode == ReserveMode.KeywordAuto ||
-                    item.IsEpgReserve == false && item.ReserveEventInfo(false).ToReserveData(ref item) == true).ToList();
+                    item.IsManual && item.GetPgInfo().ToReserveData(ref item) == true).ToList();
             }
             else if (resMode == 1)//プログラム予約へ変更
             {
@@ -948,54 +948,43 @@ namespace EpgTimer
             return null;
         }
 
-        public static EpgEventInfo GetPgInfo(IAutoAddTargetData item, bool isSrv = false)
-        {
-            //まずは手持ちのデータを探す
-            EpgEventInfo pg = SearchEventInfo(item.CurrentPgUID());
-            if (pg != null || isSrv == false) return pg;
-
-            //過去番組情報を探してみる
-            if (item.PgStartTime >= CommonManager.Instance.DB.EventTimeMinArc)
-            {
-                var arcList = new List<EpgServiceEventInfo>();
-                CommonManager.Instance.DB.LoadEpgArcData(item.PgStartTime, item.PgStartTime.AddSeconds(1), ref arcList, item.Create64Key().IntoList());
-                if (arcList.Any()) return arcList[0].eventList.FirstOrDefault();
-            }
-
-            //現在番組情報も探してみる ※EPGデータ未読み込み時で、録画直後の場合
-            if (CommonManager.Instance.DB.IsEpgLoaded == false)
-            {
-                var list = new List<EpgEventInfo>();
-                try { CommonManager.CreateSrvCtrl().SendGetPgInfoList(item.Create64PgKey().IntoList(), ref list); } catch { }
-                return list.FirstOrDefault();
-            }
-
-            return null;
-        }
-
-        public static EpgEventInfo SearchEventInfo(UInt64 uid, Dictionary<UInt64, EpgEventInfo> currentList = null)
+        public static EpgEventInfo GetPgInfoUid(UInt64 uid, Dictionary<UInt64, EpgEventInfo> currentList = null)
         {
             EpgEventInfo data;
             (currentList ?? CommonManager.Instance.DB.EventUIDList).TryGetValue(uid, out data);
             return data;
         }
-
-        public static EpgEventInfo SearchEventInfoLikeThat(IAutoAddTargetData item, List<EpgServiceEventInfo> currentList = null, List<EpgEventInfo> currentEventList = null)
+        public static EpgEventInfo GetPgInfoUidAll(UInt64 uid)
         {
-            //とりあえずいったんUID検索はしてみる。
-            EpgEventInfo eventPossible = SearchEventInfo(item.CurrentPgUID());
-            if (eventPossible != null) return eventPossible;
+            //EPGが読み込まれているときなど
+            EpgEventInfo hit = GetPgInfoUid(uid);
+            if (hit != null) return hit;
 
+            //検索番組表の情報も探す
+            foreach (EpgView.EpgViewData viewData in CommonManager.MainWindow.epgView.GetAllEpgEventList())
+            {
+                if (viewData.IsEpgLoaded == false || viewData.EpgTabInfo.SearchMode == false) continue;
+                if (viewData.EventUIDList.TryGetValue(uid, out hit)) break;
+            }
+            return hit;
+        }
+
+        public static EpgEventInfo GetPgInfoLikeThat(IAutoAddTargetData trg, IEnumerable<EpgServiceEventInfo> currentList = null, IEnumerable<EpgEventInfo> currentEventList = null)
+        {
             var eventList = new List<EpgEventInfo>();
-            UInt64 key = item.Create64Key();
+            UInt64 key = trg.Create64Key();
             if (currentEventList != null)
             {
-                eventList = currentEventList;
+                eventList = currentEventList.Where(info => info.Create64Key() == key).ToList();
             }
             else if (currentList != null)
             {
-                EpgServiceEventInfo sInfo = currentList.Find(info => info.serviceInfo.Key == key);
-                if (sInfo != null) eventList = sInfo.eventList;
+                EpgServiceEventInfo sInfo = currentList.FirstOrDefault(info => info.serviceInfo.Key == key);
+                if (sInfo != null)
+                {
+                    var sAllInfo = sInfo as EpgServiceAllEventInfo;
+                    eventList = sAllInfo != null ? sAllInfo.eventMergeList.ToList() : sInfo.eventList;
+                }
             }
             else
             {
@@ -1004,30 +993,55 @@ namespace EpgTimer
                 if (sInfo != null) eventList = sInfo.eventMergeList.ToList();
             }
 
+            EpgEventInfo hit = null;
+            
+            //イベントベースで見つかるならそれを返す
+            if ((UInt16)trg.Create64PgKey() != 0xFFFF)
+            {
+                UInt64 PgUID = trg.CurrentPgUID();
+                hit = eventList.Find(pg => pg.CurrentPgUID() == PgUID);
+                if (hit != null) return hit;
+            }
+
             double dist = double.MaxValue;
             foreach (EpgEventInfo eventChkInfo in eventList)
             {
                 //itemが調べている番組に完全に含まれているならそれを選択する
-                double overlapLength = CulcOverlapLength(item.PgStartTime, item.PgDurationSecond,
+                double overlapLength = CulcOverlapLength(trg.PgStartTime, trg.PgDurationSecond,
                                                         eventChkInfo.start_time, eventChkInfo.durationSec);
-                if (overlapLength > 0 && overlapLength == item.PgDurationSecond)
+                if (overlapLength > 0 && overlapLength == trg.PgDurationSecond)
                 {
-                    eventPossible = eventChkInfo;
+                    hit = eventChkInfo;
                     break;
                 }
 
                 //開始時間が最も近いものを選ぶ。同じ差なら時間が前のものを選ぶ
-                double dist1 = Math.Abs((item.PgStartTime - eventChkInfo.start_time).TotalSeconds);
+                double dist1 = Math.Abs((trg.PgStartTime - eventChkInfo.start_time).TotalSeconds);
                 if (overlapLength >= 0 && (dist > dist1 ||
-                    dist == dist1 && (eventPossible == null || item.PgStartTime > eventChkInfo.start_time)))
+                    dist == dist1 && (hit == null || trg.PgStartTime > eventChkInfo.start_time)))
                 {
                     dist = dist1;
-                    eventPossible = eventChkInfo;
+                    hit = eventChkInfo;
                     if (dist == 0) break;
                 }
             }
+            return hit;
+        }
+        public static EpgEventInfo GetPgInfoLikeThatAll(IAutoAddTargetData trg)
+        {
+            //EPGが読み込まれているときなど
+            EpgEventInfo hit = GetPgInfoLikeThat(trg);
+            if (hit != null) return hit;
 
-            return eventPossible;
+            //検索番組表の情報も探す
+            foreach (EpgView.EpgViewData viewData in CommonManager.MainWindow.epgView.GetAllEpgEventList())
+            {
+                if (viewData.IsEpgLoaded == false || viewData.EpgTabInfo.SearchMode == false) continue;
+                if (viewData.EventUIDList.TryGetValue(trg.CurrentPgUID(), out hit)) break;
+                hit = GetPgInfoLikeThat(trg, viewData.ServiceEventList);
+                if (hit != null) break;
+            }
+            return hit;
         }
 
         /// <summary>重複してない場合は負数が返る。</summary>

@@ -113,7 +113,7 @@ namespace EpgTimer
             else
             {
                 //プログラム予約だと見つからないので、それらしい番組へジャンプする。
-                return MoveToProgramItem(target == null ? null : MenuUtil.SearchEventInfoLikeThat(target, null, items.GetEventList()), style, dryrun);
+                return MoveToProgramItem(target == null ? null : MenuUtil.GetPgInfoLikeThat(target, null, items.GetEventList()), style, dryrun);
             }
         }
         public virtual int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)

@@ -14,15 +14,17 @@ namespace EpgTimer
         public override ulong DisplayID { get { return KeyID; } }
         public override object DataObj { get { return ReserveInfo; } }
 
+        private bool initEventInfo = false;
         public override EpgEventInfo EventInfo
         {
             get
             {
-                if (eventInfo == null)
+                if (initEventInfo == false)
                 {
                     if (ReserveInfo != null)
                     {
-                        eventInfo = ReserveInfo.ReserveEventInfo();
+                        eventInfo = ReserveInfo.GetPgInfo();
+                        initEventInfo = true;
                     }
                 }
                 return eventInfo;

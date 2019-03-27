@@ -46,6 +46,7 @@ namespace EpgTimer
     public enum MainProcItem : uint
     {
         EpgDataLoaded, //EPGデータ更新
+        EpgDataSearch, //EPG表示用データの一部更新
         ReserveInfo, //予約情報更新
     };
 

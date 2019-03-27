@@ -169,7 +169,7 @@ namespace EpgTimer
         {
             return recinfo == null ? null : new ReserveDataEnd
             {
-                ReserveID = recinfo.ID,
+                //ReserveID = recinfo.ID,副作用が多いので0固定
                 StartTime = recinfo.StartTime,
                 DurationSecond = recinfo.DurationSecond,
                 OriginalNetworkID = recinfo.OriginalNetworkID,

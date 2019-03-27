@@ -420,10 +420,10 @@ namespace EpgTimer
         {
             return ((UInt64)ONID) << 48 | ((UInt64)TSID) << 32 | ((UInt64)SID) << 16 | (UInt64)EventID;
         }
-        public static UInt64 CurrentPgUID(UInt64 key, DateTime startTime)
+        public static UInt64 CurrentPgUID(UInt64 key64Pg, DateTime startTime)
         {
             return (UInt64)(startTime.Ticks) & 0xFFFFFF0000000000 //分解能約1日
-                | ((UInt32)Create16Key(key >> 16)) << 16 | (UInt16)key;
+                | ((UInt32)Create16Key(key64Pg >> 16)) << 16 | (UInt16)key64Pg;
         }
 
         public static String Convert64PGKeyString(UInt64 Key)
@@ -797,7 +797,7 @@ namespace EpgTimer
                     {
                         //Epgデータが無いときや過去番組は探せない場合がある
                         UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
-                        var relayInfo = MenuUtil.SearchEventInfo(key);
+                        var relayInfo = MenuUtil.GetPgInfoUidAll(key);
                         retText += "→ " + ConvertChInfoText(info.Create64Key()) + " " + ConvertEpgIDString(" EventID", info.event_id) + " " + (relayInfo == null ? "" : relayInfo.DataTitle) + "\r\n";
                     }
                     retText += "\r\n";

@@ -1459,6 +1459,13 @@ namespace EpgTimer
                             AddReserveEpgWindow.UpdatesInfo();
                             ChgReserveWindow.UpdatesInfo();
                             break;
+                        case MainProcItem.EpgDataSearch:
+                            if (mainProc.ContainsKey(MainProcItem.ReserveInfo)) continue;
+                            if (mainProc.ContainsKey(MainProcItem.EpgDataLoaded)) continue;
+                            reserveView.UpdateInfo();
+                            InfoSearchWindow.UpdatesInfo();
+                            ChgReserveWindow.UpdatesInfo();
+                            break;
                     }
                     if (proc.Value != null) proc.Value();
                 }

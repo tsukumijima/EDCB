@@ -130,8 +130,8 @@ namespace EpgTimer.EpgView
             programList.TryGetValue(resInfo.CurrentPgUID(), out refPgItem);
             if (refPgItem == null && SearchEvent == true)
             {
-                EpgEventInfo epgInfo = resInfo.ReserveEventInfo();
-                if (epgInfo != null)
+                EpgEventInfo epgInfo;
+                if (viewData.EventUIDList.TryGetValue(resInfo.CurrentPgUID(), out epgInfo))
                 {
                     EpgEventInfo epgRefInfo = epgInfo.GetGroupMainEvent(viewData.EventUIDList);
                     if (epgRefInfo != null)
@@ -145,7 +145,7 @@ namespace EpgTimer.EpgView
             double StartMargin = resInfo.IsEpgReserve == false ? resInfo.StartMarginResActual : Math.Min(0, resInfo.StartMarginResActual);
             double EndMargin = resInfo.IsEpgReserve == false ? resInfo.EndMarginResActual : Math.Min(0, resInfo.EndMarginResActual);
 
-            if (resInfo.IsEpgReserve && resInfo.DurationSecond != 0)
+            if (resInfo.IsEpgReserve && resInfo.DurationSecond != 0 && refPgItem != null)
             {
                 //duationがマイナスになる場合は後で処理される
                 double duration = resInfo.DurationSecond + StartMargin + EndMargin;
@@ -230,7 +230,8 @@ namespace EpgTimer.EpgView
         public override int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             if (target == null) return -1;
-            int idx = recinfoList.FindIndex(item => item.Data.ReserveID == target.ID);
+            UInt64 id = target.CurrentPgUID();
+            int idx = recinfoList.FindIndex(item => item.Data.CurrentPgUID() == id);
             if (idx != -1 && dryrun == false) programView.ScrollToFindItem(recinfoList[idx], style);
             if (dryrun == false) ItemIdx = idx;
             return idx;

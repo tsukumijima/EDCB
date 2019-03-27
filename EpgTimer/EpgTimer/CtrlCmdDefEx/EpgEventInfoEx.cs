@@ -49,7 +49,7 @@ namespace EpgTimer
             if (IsGroupMainEvent == true) return this;
             if (EventGroupInfo.group_type != 1) return null;
             return EventGroupInfo.eventDataList.Select(data =>
-                MenuUtil.SearchEventInfo(CommonManager.CurrentPgUID(data.Create64PgKey(), PgStartTime), currentList))
+                MenuUtil.GetPgInfoUid(CommonManager.CurrentPgUID(data.Create64PgKey(), PgStartTime), currentList))
                 .FirstOrDefault(data => data != null && data.IsGroupMainEvent == true);
         }
     }

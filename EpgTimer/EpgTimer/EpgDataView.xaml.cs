@@ -245,6 +245,12 @@ namespace EpgTimer
             return false;
         }
 
+        /// <summary>表示番組表のデータ情報を全て取得する</summary>
+        public List<EpgViewData> GetAllEpgEventList()
+        {
+            return Tabs.Select(tb => tb.viewData).ToList();
+        }
+
         //表示切り替えタブ関係
         private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -523,7 +529,7 @@ namespace EpgTimer
     {
         //共有データ。
         EpgDataView.EpgDataViewInfo epgView;
-        EpgViewData viewData = new EpgViewData();
+        public EpgViewData viewData = new EpgViewData();
         public bool IsEpgLoaded { get { return viewData.IsEpgLoaded; } }
         public bool HasKey(UInt64 key) { return viewData.HasKey(key); }
         public CustomEpgTabInfo Info

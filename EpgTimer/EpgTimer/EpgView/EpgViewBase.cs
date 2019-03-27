@@ -363,6 +363,12 @@ namespace EpgTimer.EpgView
             ReloadProgramViewItem();
             if (ReloadReserveInfoFlg == true) ReloadReserveInfoFlg = !ReloadReserveInfoData();
             restoreState = null;
+
+            if (viewData.EpgTabInfo.SearchMode && Settings.Instance.NgAutoEpgLoadNW && Settings.Instance.PrebuildEpg == false
+                && ViewPeriod.End > DateTime.UtcNow.AddDays(9) && CommonManager.Instance.DB.ReserveList.Values.Any(r => r.IsManual))
+            {
+                CommonManager.MainWindow.MainProc(MainProcItem.EpgDataSearch);
+            }
             return true;
         }
         protected virtual void ReloadProgramViewItem() { }

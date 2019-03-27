@@ -3,11 +3,6 @@ using System.Windows.Media;
 
 namespace EpgTimer
 {
-    public class ReserveDataEnd : ReserveData
-    {
-        public override Int32 StartMarginResActual { get { return 0; } }
-        public override Int32 EndMarginResActual { get { return 0; } }
-    }
     public class ReserveViewItem : PanelItem<ReserveData>
     {
         public ReserveViewItem(ReserveData info) : base(info) { }
