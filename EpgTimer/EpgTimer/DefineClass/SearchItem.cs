@@ -292,7 +292,7 @@ namespace EpgTimer
                     if (IsReserved == true)
                     {
                         string ret = new ReserveItem(ReserveInfo).Status;
-                        return ret == "" ? "予" : ret;
+                        return ret != "" ? ret : ReserveInfo.IsWatchMode ? "視" : "予";
                     }
                     if (MenuUtil.GetRecFileInfo(EventInfo) != null)
                     {

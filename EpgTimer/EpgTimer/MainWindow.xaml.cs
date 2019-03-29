@@ -1328,7 +1328,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.RecStart:
                     NotifyWork();
-                    RefreshAllViewsReserveInfo();
+                    RefreshAllViewsReserveInfo(UpdateViewMode.ReserveInfoNoAutoAdd);
                     break;
                 case UpdateNotifyItem.RecEnd:
                 case UpdateNotifyItem.RecTuijyu:

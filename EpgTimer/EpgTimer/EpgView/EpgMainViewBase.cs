@@ -128,7 +128,7 @@ namespace EpgTimer.EpgView
             int index = timeList.BinarySearch(chkStartTime);
             if (index < 0) return null;
 
-            var resItem = new ReserveViewItem(resInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex };
+            var resItem = new ReserveViewItem(resInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex, ViewMode = viewMode };
             (resInfo is ReserveDataEnd ? recinfoList : reserveList).Add(resItem);
 
             //予約情報から番組情報を特定し、枠表示位置を再設定する

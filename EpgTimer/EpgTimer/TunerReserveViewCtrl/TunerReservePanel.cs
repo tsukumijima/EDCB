@@ -12,6 +12,13 @@ namespace EpgTimer.TunerReserveViewCtrl
         {
             SetBorderStyle(Settings.Instance.TunerBorderLeftSize, Settings.Instance.TunerBorderTopSize, new Thickness(2, 0, 2, Settings.Instance.TunerFontSize * 0.8));
         }
+        protected override Pen BorderPen(PanelItem info)
+        {
+            if (((ReserveViewItem)info).Data.IsWatchMode == false) return null;
+            var pen = new Pen(info.BackColor, borderMax) { DashStyle = Settings.BrushCache.TunerDashStyle };
+            pen.Freeze();
+            return pen;
+        }
 
         protected override void CreateDrawTextListMain(List<List<Tuple<Brush, GlyphRun>>> textDrawLists)
         {

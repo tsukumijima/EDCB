@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
@@ -370,8 +371,7 @@ namespace EpgTimer
         public bool EpgReplacePatternDef { get; set; }
         public bool ApplyReplacePatternTuner { get; set; }
         public bool ShareEpgReplacePatternTitle { get; set; }
-        public bool EpgChangeBorderWatch { get; set; }
-        public bool EpgChangeBorderOnRec { get; set; }
+        public bool EpgChangeBorderOnRecWeekOnly { get; set; }
         public List<string> ContentColorList { get; set; }
         public List<UInt32> ContentCustColorList { get; set; }
         public List<string> EpgResColorList { get; set; }
@@ -429,8 +429,7 @@ namespace EpgTimer
             EpgReplacePatternDef = false;
             ApplyReplacePatternTuner = false;
             ShareEpgReplacePatternTitle = false;
-            EpgChangeBorderWatch = false;
-            EpgChangeBorderOnRec = false;
+            EpgChangeBorderOnRecWeekOnly = true;
             ContentColorList = new List<string>();
             ContentCustColorList = new List<uint>();
             EpgResColorList = new List<string>();
@@ -497,7 +496,6 @@ namespace EpgTimer
         public int TunerPopupMode { get; set; }
         public bool TunerPopupRecinfo { get; set; }
         public double TunerPopupWidth { get; set; }
-        public bool TunerChangeBorderWatch { get; set; }
         public bool TunerInfoSingleClick { get; set; }
         public bool TunerColorModeUse { get; set; }
         public bool TunerDisplayOffReserve { get; set; }
@@ -831,7 +829,6 @@ namespace EpgTimer
             TunerPopupRecinfo = false;
             TunerInfoSingleClick = false;
             TunerPopupWidth = 1;
-            TunerChangeBorderWatch = false;
             TunerColorModeUse = false;
             TunerDisplayOffReserve = false;
             TunerToolTipMode = 0;
@@ -1528,15 +1525,15 @@ namespace EpgTimer
 
             //番組表の予約枠色
             _FillList(set.EpgResColorList, new[]{
-                    "Lime"              //通常
+                    "Lime"              //通常(EPG予約)
                     ,"Lime"             //通常(プログラム予約)
                     ,"Black"            //無効
                     ,"Red"              //チューナ不足
                     ,"Yellow"           //一部実行
                     ,"Blue"             //自動予約登録不明
                     ,"Purple"           //重複EPG予約
-                    ,"Lime"             //録画中
-                    ,"Lime"             //視聴中
+                    ,"Lime"             //録画中(EPG予約)
+                    ,"Lime"             //録画中(プログラム予約)
                     ,"Green"            //録画済み
                 });
             _FillList(set.EpgResCustColorList, 0xFFFFFFFF, set.EpgResColorList.Count);
@@ -1567,7 +1564,7 @@ namespace EpgTimer
             _FillList(TunerServiceColors, Enumerable.Repeat("Black", 7)//固定色2 + 優先度色5 + 追加の画面色
                     .Concat(new[]{
                         "DarkGray"          //チューナ画面背景色
-                        ,"LightGray"        //予約枠色
+                        ,"LightGray"        //予約枠色(EPG予約)
                         ,"Black"            //時間文字色
                         ,"AliceBlue"        //時間背景色
                         ,"LightSlateGray"   //時間枠色
@@ -1576,8 +1573,8 @@ namespace EpgTimer
                         ,"LightSlateGray"   //チューナー名枠色
                         ,"LightGray"        //予約枠色(プログラム予約)
                         ,"Black"            //予約枠色(無効)
-                        ,"OrangeRed"        //予約枠色(録画中)
-                        ,"OrangeRed"        //予約枠色(視聴中)
+                        ,"OrangeRed"        //予約枠色(録画中)(EPG予約)
+                        ,"OrangeRed"        //予約枠色(録画中)(プログラム予約)
                 }).ToArray());
             _FillList(TunerServiceCustColors, 0xFFFFFFFF, TunerServiceColors.Count);
 
@@ -1699,10 +1696,11 @@ namespace EpgTimer
 
             //主に色関係の設定
             public EpgColorCache Epg { get; private set; }
+            public DropShadowEffect EpgBlurEffect { get; private set; }
+            public DoubleCollection EpgDashArray { get; private set; }
 
-            public Brush CustTunerServiceColor { get; private set; }
+            public List<Brush> CustTunerServiceColor { get; private set; }
             public Brush CustTunerTextColor { get; private set; }
-            public List<Brush> CustTunerServiceColorPri { get; private set; }
             public Brush TunerBackColor { get; private set; }
             public Brush TunerTimeFontColor { get; private set; }
             public Brush TunerTimeBackColor { get; private set; }
@@ -1711,6 +1709,7 @@ namespace EpgTimer
             public Brush TunerNameBackColor { get; private set; }
             public Brush TunerNameBorderColor { get; private set; }
             public List<Brush> TunerResBorderColor { get; private set; }
+            public DashStyle TunerDashStyle { get; private set; }
             public List<Brush> ResBackColor { get; private set; }
             public Brush ListDefForeColor { get; private set; }
             public List<Brush> RecModeForeColor { get; private set; }
@@ -1745,16 +1744,23 @@ namespace EpgTimer
             {
                 Epg = new EpgColorCache();
 
-                CustTunerServiceColorPri = new List<Brush>();
+                EpgBlurEffect = new DropShadowEffect() { BlurRadius = 10 };
+                EpgBlurEffect.Freeze();
+                EpgDashArray = new DoubleCollection() { 2.5, 2 };
+                EpgDashArray.Freeze();
+
+                CustTunerServiceColor = new List<Brush>();
                 TunerResBorderColor = new List<Brush>();
+                TunerDashStyle = new DashStyle(new double[] { 1, 4.5 }, 0);
+                TunerDashStyle.Freeze();
                 ResBackColor = new List<Brush>();
                 RecModeForeColor = new List<Brush>();
                 ResStatusColor = new List<Brush>();
                 RecEndBackColor = new List<Brush>();
 
-                CustTunerServiceColor = CustColorBrush(Instance.TunerServiceColors[0], Instance.TunerServiceCustColors[0]);
                 CustTunerTextColor = CustColorBrush(Instance.TunerServiceColors[1], Instance.TunerServiceCustColors[1]);
-                SimpleColorSet(CustTunerServiceColorPri, Instance.TunerServiceColors, Instance.TunerServiceCustColors, 2, 2 + 5);
+                CustTunerServiceColor.Add(CustColorBrush(Instance.TunerServiceColors[0], Instance.TunerServiceCustColors[0]));
+                SimpleColorSet(CustTunerServiceColor, Instance.TunerServiceColors, Instance.TunerServiceCustColors, 2, 2 + 5);
                 TunerBackColor = CustColorBrush(Instance.TunerServiceColors[7 + 0], Instance.TunerServiceCustColors[7 + 0]);
                 TunerTimeFontColor = CustColorBrush(Instance.TunerServiceColors[7 + 2], Instance.TunerServiceCustColors[7 + 2]);
                 TunerTimeBackColor = CustColorBrush(Instance.TunerServiceColors[7 + 3], Instance.TunerServiceCustColors[7 + 3]);
@@ -1762,8 +1768,8 @@ namespace EpgTimer
                 TunerNameFontColor = CustColorBrush(Instance.TunerServiceColors[7 + 5], Instance.TunerServiceCustColors[7 + 5]);
                 TunerNameBackColor = CustColorBrush(Instance.TunerServiceColors[7 + 6], Instance.TunerServiceCustColors[7 + 6]);
                 TunerNameBorderColor = CustColorBrush(Instance.TunerServiceColors[7 + 7], Instance.TunerServiceCustColors[7 + 7]);
+                TunerResBorderColor.Add(CustColorBrush(Instance.TunerServiceColors[7 + 1], Instance.TunerServiceCustColors[7 + 1]));
                 SimpleColorSet(TunerResBorderColor, Instance.TunerServiceColors, Instance.TunerServiceCustColors, 7 + 8, 7 + 8 + 4);
-                TunerResBorderColor.Insert(0, CustColorBrush(Instance.TunerServiceColors[7 + 1], Instance.TunerServiceCustColors[7 + 1]));
 
                 ListDefForeColor = CustColorBrush(Instance.ListDefColor, Instance.ListDefCustColor);
 

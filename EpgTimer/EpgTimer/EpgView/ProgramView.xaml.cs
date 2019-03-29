@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace EpgTimer.EpgView
@@ -97,6 +98,7 @@ namespace EpgTimer.EpgView
         {
             (PopPanel.Item as ProgramViewItem).DrawHours = (item as ProgramViewItem).DrawHours;
             (PopPanel.Item as ProgramViewItem).EpgSettingIndex = (item as ProgramViewItem).EpgSettingIndex;
+            (PopPanel.Item as ProgramViewItem).ViewMode = (item as ProgramViewItem).ViewMode;
             popupItemBorder.Visibility = Visibility.Collapsed;
             popupItemFillOnly.Visibility = Visibility.Collapsed;
             if (popInfoRes != null)
@@ -134,9 +136,11 @@ namespace EpgTimer.EpgView
         private void SetReserveBorderColor(ReserveViewItem info, Rectangle rect, Rectangle fillOnlyRect = null)
         {
             rect.Stroke = info.BorderBrush;
-            rect.Effect = new System.Windows.Media.Effects.DropShadowEffect() { BlurRadius = 10 };
+            rect.Effect = Settings.BrushCache.EpgBlurEffect;
             rect.StrokeThickness = 3;
             (fillOnlyRect ?? rect).Fill = info.BackColor;
+            rect.StrokeDashArray = info.Data.IsWatchMode ? Settings.BrushCache.EpgDashArray : null;
+            rect.StrokeDashCap = PenLineCap.Round;
         }
         public void SetReserveList(IEnumerable<ReserveViewItem> reserveList)
         {

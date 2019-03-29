@@ -97,6 +97,14 @@ namespace EpgTimer
         {
             return new Rect(info.LeftPos - selfLeft, info.TopPos - selfTop, info.Width + borderThickness.Right, info.Height + borderThickness.Bottom);
         }
+        protected virtual Pen BorderPen(PanelItem info)
+        {
+            return null;
+        }
+        protected virtual Rect BorderPenRect(PanelItem info)
+        {
+            return new Rect(info.LeftPos - selfLeft + borderMax / 2, info.TopPos - selfTop + borderMax / 2, info.Width + borderThickness.Right - borderMax, info.Height + borderThickness.Bottom - borderMax);
+        }
         protected virtual Rect ContentRect(PanelItem info)
         {
             return new Rect(info.LeftPos - selfLeft + borderMargin.Left, info.TopPos - selfTop + borderMargin.Top, Math.Max(0, info.Width - borderMargin.Width), Math.Max(0, info.Height - borderMargin.Height));
@@ -109,9 +117,11 @@ namespace EpgTimer
         protected Thickness borderThickness;
         protected Rect borderMargin;
         protected Rect txtMargin;
+        protected double borderMax;
         public virtual void SetBorderStyleFromSettings() { }
         public void SetBorderStyle(double borderLeft, double borderTop, Thickness textPadding)
         {
+            borderMax = CommonUtil.Max(1, borderLeft, borderTop);
             borderThickness.Left = borderLeft <= 1 ? Math.Max(0, borderLeft) : (borderLeft + 1) / 2;
             borderThickness.Top = borderTop <= 1 ? Math.Max(0, borderTop) : (borderTop + 1) / 2;
             borderThickness.Right = Math.Min(1, borderThickness.Left);//右へのはみ出し分
@@ -155,6 +165,8 @@ namespace EpgTimer
             foreach (PanelItem info in Items)
             {
                 dc.DrawRectangle(info.BorderBrush, null, BorderRect(info));
+                Pen borderPen = BorderPen(info);
+                if (borderPen != null) dc.DrawRectangle(null, borderPen, BorderPenRect(info));
                 Rect contentRect = ContentRect(info);
                 dc.DrawRectangle(info.BackColor, null, contentRect);
                 dc.PushClip(new RectangleGeometry(contentRect));

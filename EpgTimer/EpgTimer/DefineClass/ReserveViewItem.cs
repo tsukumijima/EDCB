@@ -7,87 +7,39 @@ namespace EpgTimer
     {
         public ReserveViewItem(ReserveData info) : base(info) { }
 
-        public override Brush BackColor
+        public override Brush BackColor { get { return this.EpgBrushCache().ResFillColorList[BrushIdx()]; } }
+        public override Brush BorderBrush { get { return this.EpgBrushCache().ResColorList[BrushIdx()]; } }
+        protected virtual int BrushIdx()
         {
-            get
+            if (Data is ReserveDataEnd)
             {
-                int idx = 0;
-                if (Data.IsEnabled == false)
-                {
-                    idx = 2;
-                }
-                else if (Data is ReserveDataEnd)
-                {
-                    idx = 9;
-                }
-                else if (Data.OverlapMode == 2)
-                {
-                    idx = 3;
-                }
-                else if (this.EpgStyle().EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
-                {
-                    idx = Data.IsWatchMode ? 8 : 7;
-                }
-                else if (Data.OverlapMode == 1)
-                {
-                    idx = 4;
-                }
-                else if (Data.IsAutoAddInvalid)
-                {
-                    idx = 5;
-                }
-                else if (Data.IsMultiple)
-                {
-                    idx = 6;
-                }
-                else if (this.EpgStyle().EpgChangeBorderWatch == false && Data.IsManual == true ||
-                        this.EpgStyle().EpgChangeBorderWatch == true && Data.IsWatchMode == true)
-                {
-                    idx = 1;
-                }
-                return this.EpgBrushCache().ResFillColorList[idx];
+                return 9;
             }
-        }
-        public override Brush BorderBrush
-        {
-            get
+            if (Data.IsEnabled == false)
             {
-                int idx = 0;
-                if (Data.IsEnabled == false)
-                {
-                    idx = 2;
-                }
-                else if (Data is ReserveDataEnd)
-                {
-                    idx = 9;
-                }
-                else if (Data.OverlapMode == 2)
-                {
-                    idx = 3;
-                }
-                else if (this.EpgStyle().EpgChangeBorderOnRec == true && Data.IsOnRec() == true)
-                {
-                    idx = Data.IsWatchMode ? 8 : 7;
-                }
-                else if (Data.OverlapMode == 1)
-                {
-                    idx = 4;
-                }
-                else if (Data.IsAutoAddInvalid)
-                {
-                    idx = 5;
-                }
-                else if (Data.IsMultiple)
-                {
-                    idx = 6;
-                }
-                else if (this.EpgStyle().EpgChangeBorderWatch == false && Data.IsManual == true ||
-                        this.EpgStyle().EpgChangeBorderWatch == true && Data.IsWatchMode == true)
-                {
-                    idx = 1;
-                }
-                return this.EpgBrushCache().ResColorList[idx];
+                return 2;
             }
+            if (Data.OverlapMode == 2)
+            {
+                return 3;
+            }
+            if ((ViewMode == 1 || this.EpgStyle().EpgChangeBorderOnRecWeekOnly == false) && Data.IsOnRec())
+            {
+                return Data.IsManual ? 8 : 7;
+            }
+            if (Data.OverlapMode == 1)
+            {
+                return 4;
+            }
+            if (Data.IsAutoAddInvalid)
+            {
+                return 5;
+            }
+            if (Data.IsMultiple)
+            {
+                return 6;
+            }
+            return Data.IsManual ? 1 : 0;
         }
     }
 
@@ -96,36 +48,24 @@ namespace EpgTimer
         public TunerReserveViewItem(ReserveData info) : base(info) { }
 
         public override Brush BackColor { get { return ViewUtil.ReserveErrBrush(Data); } }
-        public override Brush BorderBrush
+        public override Brush BorderBrush { get { return Settings.BrushCache.TunerResBorderColor[BrushIdx()]; } }
+        protected override int BrushIdx()
         {
-            get
+            if (Data.IsOnRec())
             {
-                int idx = 0;
-                if (Data.IsOnRec())
-                {
-                    idx = Data.IsWatchMode ? 4 : 3;
-                }
-                else if (Data.IsEnabled == false)
-                {
-                    idx = 2;
-                }
-                else if (Settings.Instance.TunerChangeBorderWatch == false && Data.IsManual == true ||
-                        Settings.Instance.TunerChangeBorderWatch == true && Data.IsWatchMode == true)
-                {
-                    idx = 1;
-                }
-                return Settings.BrushCache.TunerResBorderColor[idx];
+                return Data.IsManual ? 4 : 3;
             }
+            if (Data.IsEnabled == false)
+            {
+                return 2;
+            }
+            return Data.IsManual ? 1 : 0;
         }
         public Brush ServiceColor
         {
             get
             {
-                if (Settings.Instance.TunerColorModeUse == true)
-                {
-                    return Settings.BrushCache.CustTunerServiceColorPri[Data.RecSetting.Priority - 1];
-                }
-                return Settings.BrushCache.CustTunerServiceColor;
+                return Settings.BrushCache.CustTunerServiceColor[Settings.Instance.TunerColorModeUse ? Data.RecSetting.Priority : 0];
             }
         }
         public string Status

@@ -24,6 +24,7 @@ namespace EpgTimer
         public object Data { get; protected set; }
         public bool TitleDrawErr { get; set; }
         public int EpgSettingIndex { get; set; }
+        public int ViewMode { get; set; }
         public virtual Brush BackColor { get { return null; } }
         public virtual Brush BorderBrush { get { return null; } }
     }

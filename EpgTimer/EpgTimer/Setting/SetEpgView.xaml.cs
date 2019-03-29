@@ -147,8 +147,6 @@ namespace EpgTimer.Setting
 
             checkBox_FontBoldReplacePattern_Click(null, null);
             checkBox_ReplacePatternEditFontShare_Click(null, null);
-            checkbox_EpgChangeBorderWatch_Click(null, null);
-            checkbox_TunerChangeBorderWatch_Click(null, null);
         }
 
         public void SaveSetting()
@@ -363,19 +361,6 @@ namespace EpgTimer.Setting
             var fw = settings.FontBoldReplacePattern == true ? FontWeights.Bold : FontWeights.Normal;
             textBox_ReplacePatternTitle.FontWeight = fw;
             textBox_ReplacePattern.FontWeight = fw;
-        }
-
-        private void checkbox_EpgChangeBorderWatch_Click(object sender, RoutedEventArgs e)
-        {
-//            label_EpgReserve.Content = checkBox_EpgChangeBorderWatch.IsChecked == true ? "通常(録画)" : "通常(EPG)";
-//            label_EpgReserve2.Content = checkBox_EpgChangeBorderWatch.IsChecked == true ? "通常(視聴)" : "通常(プログラム)";
-            label_EpgReserve.Content = EpgStyle.EpgChangeBorderWatch == true ? "通常(録画)" : "通常(EPG)";
-            label_EpgReserve2.Content = EpgStyle.EpgChangeBorderWatch == true ? "通常(視聴)" : "通常(プログラム)";
-        }
-        private void checkbox_TunerChangeBorderWatch_Click(object sender, RoutedEventArgs e)
-        {
-            label_TunerReserve.Content = settings.TunerChangeBorderWatch == true ? "予約枠(録画)" : "予約枠(EPG)";
-            label_TunerReserve2.Content = settings.TunerChangeBorderWatch == true ? "予約枠(視聴)" : "予約枠(プログラム)";
         }
 
         private void button_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
