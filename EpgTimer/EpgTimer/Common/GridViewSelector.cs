@@ -82,6 +82,7 @@ namespace EpgTimer
                 GridViewColumn select = columnList[(sender as MenuItem).Uid];
                 if (gridView.Columns.Contains(select) == false)
                 {
+                    select.Width = double.NaN;
                     gridView.Columns.Add(select);
                 }
                 else
