@@ -680,6 +680,9 @@ namespace EpgTimer
             }
         }
 
+        //視聴予約開始チェック用
+        private List<uint> watchReserveOnRec = new List<uint>();
+
         public void ChkTimerWork()
         {
             //オプション状態などが変っている場合もあるので、いったん破棄する。
@@ -732,6 +735,17 @@ namespace EpgTimer
                 }
                 if (updateTaskText == true)
                 {
+                    chkTimer.Tick += (sender, e) =>
+                    {
+                        //視聴予約開始チェック
+                        var list = CommonManager.Instance.DB.ReserveList.Values
+                                            .Where(r => r.IsWatchMode && r.IsOnRec()).Select(r => r.ReserveID).ToList();
+                        if (watchReserveOnRec.Count != list.Count || watchReserveOnRec.Except(list).Any())
+                        {
+                            RefreshAllViewsReserveInfo(UpdateViewMode.ReserveInfoNoAutoAdd);
+                            watchReserveOnRec = list;
+                        }
+                    };
                     chkTimer.Tick += (sender, e) => TrayManager.UpdateInfo();
                 }
                 chkTimer.Start();
@@ -1331,6 +1345,9 @@ namespace EpgTimer
                     RefreshAllViewsReserveInfo(UpdateViewMode.ReserveInfoNoAutoAdd);
                     break;
                 case UpdateNotifyItem.RecEnd:
+                    NotifyWork();
+                    watchReserveOnRec.Clear();
+                    break;
                 case UpdateNotifyItem.RecTuijyu:
                 case UpdateNotifyItem.ChgTuijyu:
                 case UpdateNotifyItem.PreEpgCapStart:
