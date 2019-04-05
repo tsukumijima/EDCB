@@ -493,13 +493,13 @@ namespace EpgTimer
                 if (ret != ErrCode.CMD_SUCCESS && ret != ErrCode.CMD_ERR) return ret;
 
                 //リストの作成
-                EventTimeMinCurrent = list.SelectMany(info => info.eventList).Min(data => data.PgStartTime);
                 ServiceEventList = EpgServiceAllEventInfo.CreateEpgServiceDictionary(list);
                 CorrectServiceInfo(list);
                 foreach (var data in list.SelectMany(info => info.eventList))
                 {
                     EventUIDList[data.CurrentPgUID()] = data;//通常あり得ないがUID被りは後優先。
                 }
+                if (EventUIDList.Any()) EventTimeMinCurrent = EventUIDList.Values.Min(data => data.PgStartTime);
 
                 //リモコンIDの登録
                 ChSet5.SetRemoconID(ServiceEventList.Select(item => item.Value.serviceInfo));

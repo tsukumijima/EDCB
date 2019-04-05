@@ -33,15 +33,6 @@
     <TabControl>
         <TabItem Header="番組表" Name="tabEpg">
             <Grid>
-                <DockPanel VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,-2,0,0" >
-                    <TextBlock Text="デザイン" ToolTip="{Binding ToolTip, ElementName=cmb_design}"/>
-                    <ComboBox Margin="6,0,0,0" Width="100" Name="cmb_design" SelectionChanged="cmb_des_SelectionChanged" ToolTip="※先頭のデザインの設定の一部は番組表以外にも影響します。"/>
-                    <Button Margin="12,0,0,0" Content="追加" Name="btn_des_add" Click="btn_des_add_Click" />
-                    <Button Margin="6,0,0,0" Content="名称" Name="btn_des_name" Click="btn_des_name_Click" ToolTip="デザイン名を変更します"/>
-                    <TextBox Margin="6,0,0,0" Width="100" Name="textBox_des_name" />
-                    <Button Margin="6,0,0,0" Content="初期化" Name="btn_des_reset" Click="btn_des_reset_Click" />
-                    <Button Margin="6,0,0,0" Content="削除" Name="btn_des_delete" Click="btn_des_delete_Click" />
-                </DockPanel>
                 <TabControl>
                     <TabItem Header="基本" Name="tabEpgBasic">
                         <StackPanel>
@@ -413,6 +404,15 @@
                         </DockPanel>
                     </TabItem>
                 </TabControl>
+                <DockPanel VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,-2,0,0" >
+                    <TextBlock Text="デザイン" ToolTip="{Binding ToolTip, ElementName=cmb_design}"/>
+                    <ComboBox Margin="6,0,0,0" Width="100" Name="cmb_design" SelectionChanged="cmb_des_SelectionChanged" ToolTip="※先頭のデザインの設定の一部は番組表以外にも影響します。"/>
+                    <Button Margin="12,0,0,0" Content="追加" Name="btn_des_add" Click="btn_des_add_Click" />
+                    <Button Margin="6,0,0,0" Content="名称" Name="btn_des_name" Click="btn_des_name_Click" ToolTip="デザイン名を変更します"/>
+                    <TextBox Margin="6,0,0,0" Width="100" Name="textBox_des_name" />
+                    <Button Margin="6,0,0,0" Content="初期化" Name="btn_des_reset" Click="btn_des_reset_Click" />
+                    <Button Margin="6,0,0,0" Content="削除" Name="btn_des_delete" Click="btn_des_delete_Click" />
+                </DockPanel>
             </Grid>
         </TabItem>
         <TabItem Header="使用予定チューナー" Name="tabTuner">

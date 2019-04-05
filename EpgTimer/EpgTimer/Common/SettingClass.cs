@@ -1106,13 +1106,14 @@ namespace EpgTimer
             {
                 try
                 {
+                    Instance.EpgSettingList.Clear();//一応クリア
                     var xdr = System.Xml.Linq.XDocument.Load(path).Root;
                     for (int i = 0; i < 3; i++)
                     {
                         var xe = i == 0 ? xdr : xdr.Element("EpgSetting" + i.ToString());
                         if (xe == null) continue;
                         Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
-                        Instance.EpgSettingList[i].ID = i;
+                        Instance.EpgSettingList.Last().ID = i;
                     }
                 }
                 catch { }
@@ -1289,7 +1290,14 @@ namespace EpgTimer
         }
 
         public static string DefaultFontName
-        { get { return SystemFonts.MenuFontFamily.FamilyNames[System.Windows.Markup.XmlLanguage.GetLanguage("ja-JP")]; } }
+        {
+            get
+            {
+                string fName = null;
+                SystemFonts.MenuFontFamily.FamilyNames.TryGetValue(System.Windows.Markup.XmlLanguage.GetLanguage("ja-JP"), out fName);
+                return fName ?? SystemFonts.MenuFontFamily.Source;//別に日本語名無視でもいいかも‥。
+            }
+        }
 
         public RecPresetItem RecPreset(Int32 presetID)
         {

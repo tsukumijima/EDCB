@@ -548,9 +548,6 @@
     <Resource Include="Resources\109_AllAnnotations_Error_16x16_72.ico" />
     <Resource Include="Resources\109_AllAnnotations_Warning_16x16_72.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
