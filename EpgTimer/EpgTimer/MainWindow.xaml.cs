@@ -735,20 +735,22 @@ namespace EpgTimer
                 }
                 if (updateTaskText == true)
                 {
-                    chkTimer.Tick += (sender, e) =>
-                    {
-                        //視聴予約開始チェック
-                        var list = CommonManager.Instance.DB.ReserveList.Values
-                                            .Where(r => r.IsWatchMode && r.IsOnRec()).Select(r => r.ReserveID).ToList();
-                        if (watchReserveOnRec.Count != list.Count || watchReserveOnRec.Except(list).Any())
-                        {
-                            RefreshAllViewsReserveInfo(UpdateViewMode.ReserveInfoNoAutoAdd);
-                            watchReserveOnRec = list;
-                        }
-                    };
+                    chkTimer.Tick += (sender, e) => ChkWatchStart();
                     chkTimer.Tick += (sender, e) => TrayManager.UpdateInfo();
                 }
                 chkTimer.Start();
+            }
+        }
+
+        private void ChkWatchStart(bool chkOnly = false)
+        {
+            //視聴予約開始チェック
+            var list = CommonManager.Instance.DB.ReserveList.Values
+                                .Where(r => r.IsWatchMode && r.IsOnRec()).Select(r => r.ReserveID).ToList();
+            if (watchReserveOnRec.Count != list.Count || watchReserveOnRec.Except(list).Any())
+            {
+                if (chkOnly != true) RefreshAllViewsReserveInfo(UpdateViewMode.ReserveInfoNoAutoAdd);
+                watchReserveOnRec = list;
             }
         }
 
@@ -1334,6 +1336,7 @@ namespace EpgTimer
             {
                 case UpdateNotifyItem.SrvStatus:
                     TrayManager.UpdateInfo(status.param1);
+                    if (status.param1 == 1) ChkWatchStart();
                     break;
                 case UpdateNotifyItem.PreRecStart:
                     NotifyWork();
@@ -1346,7 +1349,7 @@ namespace EpgTimer
                     break;
                 case UpdateNotifyItem.RecEnd:
                     NotifyWork();
-                    watchReserveOnRec.Clear();
+                    ChkWatchStart(true);
                     break;
                 case UpdateNotifyItem.RecTuijyu:
                 case UpdateNotifyItem.ChgTuijyu:
