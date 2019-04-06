@@ -18,19 +18,14 @@ namespace EpgTimer
         }
 
         //過去番組関係用
-        protected string serviceName = null;//DeepCopyでは無視
+        public EpgServiceInfo ServiceInfo { get; set; }
         public string ServiceName
         {
-            get
-            {
-                if (serviceName == null)
-                {
-                    EpgServiceInfo item = ChSet5.ChItem(this.Create64Key(), true, true);
-                    serviceName = (transport_stream_id != item.TSID ? "[廃]" : "") + item.service_name;
-                }
-                return serviceName;
-            }
-            set { serviceName = value; }
+            get { return (ServiceInfo ?? ChSet5.ChItem(Create64Key(), true)).service_name; }
+        }
+        public string NetworkName
+        {
+            get { return (ServiceInfo ?? ChSet5.ChItem(Create64Key(), true)).network_name; }
         }
 
         /// <summary>予約可能。StartTimeFlag != 0 && IsOver() != true</summary>

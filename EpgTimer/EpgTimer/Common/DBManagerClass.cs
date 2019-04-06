@@ -539,9 +539,19 @@ namespace EpgTimer
                 {
                     info.serviceInfo = refInfo.serviceInfo;
                 }
-                else if (info.serviceInfo.TSID != ChSet5.ChItem(info.serviceInfo.Key, true, true).TSID)
+                else
                 {
-                    info.serviceInfo.service_name = "[廃]" + info.serviceInfo.service_name;
+                    EpgServiceInfo chSet5Item = ChSet5.ChItem(info.serviceInfo.Key, true, true);
+                    if (info.serviceInfo.TSID != chSet5Item.TSID)
+                    {
+                        info.serviceInfo.service_name = "[廃]" + info.serviceInfo.service_name;
+                    }
+                    else if (string.IsNullOrWhiteSpace(chSet5Item.service_name) == false)
+                    {
+                        //過去チャンネルでない場合はChSet5の名称を優先する
+                        info.serviceInfo.service_name = chSet5Item.service_name;
+                        info.serviceInfo.network_name = chSet5Item.network_name;
+                    }
                 }
 
                 new List<List<EpgEventInfo>> { info.eventList, info is EpgServiceAllEventInfo ? (info as EpgServiceAllEventInfo).eventArcList : new List<EpgEventInfo>() }
@@ -556,7 +566,7 @@ namespace EpgTimer
                         }
                         else
                         {
-                            eventList[i].ServiceName = info.serviceInfo.service_name;
+                            eventList[i].ServiceInfo = info.serviceInfo;
                         }
                     }
                 });

@@ -426,16 +426,16 @@ namespace EpgTimer
                 | ((UInt32)Create16Key(key64Pg >> 16)) << 16 | (UInt16)key64Pg;
         }
 
-        public static String Convert64PGKeyString(UInt64 Key)
+        public static String Convert64PGKeyString(UInt64 Key, string separator = "\r\n")
         {
-            return Convert64KeyString(Key >> 16) + "\r\n"
+            return Convert64KeyString(Key >> 16, separator) + separator
                 + ConvertEpgIDString("EventID", Key);
         }
-        public static String Convert64KeyString(UInt64 Key)
+        public static String Convert64KeyString(UInt64 Key, string separator = "\r\n", bool chDisplay = true)
         {
-            int chnum = ChSet5.ChNumber(Key);
-            return ConvertEpgIDString("OriginalNetworkID", Key >> 32) + "\r\n" +
-            ConvertEpgIDString("TransportStreamID", Key >> 16) + "\r\n" +
+            int chnum = chDisplay ? ChSet5.ChNumber(Key) : 0;
+            return ConvertEpgIDString("OriginalNetworkID", Key >> 32) + separator +
+            ConvertEpgIDString("TransportStreamID", Key >> 16) + separator +
             ConvertEpgIDString("ServiceID", Key) + (chnum == 0 ? "" : " [" + chnum + "ch]");
         }
         private static String ConvertEpgIDString(String Title, UInt64 id)
@@ -652,24 +652,19 @@ namespace EpgTimer
         {
             if (eventInfo == null) return "";
 
-            string retText = "";
-
-            var ConvertChInfoText = new Func<UInt64, string>(key =>
+            var ConvertChInfoText = new Func<EpgEventInfo, string>(info =>
             {
-                EpgServiceInfo ch = ChSet5.ChItem(key, true);
-                if (string.IsNullOrEmpty(ch.service_name) == false)
+                if (string.IsNullOrEmpty(info.ServiceName) == false)
                 {
-                    return ch.service_name + "(" + ch.network_name + ")";
+                    return info.ServiceName + "(" + info.NetworkName + ")";
                 }
                 else
                 {
-                    return ConvertEpgIDString("OriginalNetworkID", ch.ONID) + " "
-                            + ConvertEpgIDString("TransportStreamID", ch.TSID) + " "
-                            + ConvertEpgIDString("ServiceID", ch.SID);
+                    return Convert64KeyString(eventInfo.Create64Key(), " ", false);
                 }
             });
 
-            retText += ConvertChInfoText(eventInfo.Create64Key()) + "\r\n";
+            string retText = ConvertChInfoText(eventInfo) + "\r\n";
             retText += ConvertTimeText(eventInfo) + "\r\n";
 
             string extText = "";
@@ -800,8 +795,8 @@ namespace EpgTimer
                     {
                         //Epgデータが無いときや過去番組は探せない場合がある
                         UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
-                        var relayInfo = MenuUtil.GetPgInfoUidAll(key);
-                        retText += "→ " + ConvertChInfoText(info.Create64Key()) + " " + ConvertEpgIDString(" EventID", info.event_id) + " " + (relayInfo == null ? "" : relayInfo.DataTitle) + "\r\n";
+                        var relayInfo = MenuUtil.GetPgInfoUidAll(key) ?? new EpgEventInfo { original_network_id = info.original_network_id, transport_stream_id = info.transport_stream_id, service_id = info.service_id };
+                        retText += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle + "\r\n";
                     }
                     retText += "\r\n";
                 }
