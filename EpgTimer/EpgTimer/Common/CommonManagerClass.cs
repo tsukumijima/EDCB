@@ -1299,7 +1299,7 @@ namespace EpgTimer
             {
                 String filePath = SettingPath.ModulePath + "\\Log";
                 Directory.CreateDirectory(filePath);
-                filePath += "\\EpgTimerNotify_" + DateTime.UtcNow.AddHours(9).ToString("yyyyMMdd") + ".log";
+                filePath += "\\EpgTimerNotify_" + CommonUtil.EdcbNow.ToString("yyyyMMdd") + ".log";
                 using (var file = new StreamWriter(filePath, true, Encoding.Unicode))
                 {
                     file.WriteLine(new NotifySrvInfoItem(notifyInfo));
@@ -1411,7 +1411,7 @@ namespace EpgTimer
             wakeLog = wakeLog ?? new Dictionary<string, DateTime>();
 
             //録画中の予約と、録画が始まる予約を抽出
-            var now = DateTime.UtcNow.AddHours(9);
+            var now = CommonUtil.EdcbNowEpg;
             var start = now.AddMinutes(1 + Settings.Instance.RecAppWakeTime);
             var past = start.AddMinutes(-Settings.Instance.NoWakeUpHddMin);
             List<ReserveData> reslist = Instance.DB.ReserveList.Values.Where(info => info.RecSetting.RecMode < 4).ToList();

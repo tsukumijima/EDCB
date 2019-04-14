@@ -74,7 +74,7 @@ namespace EpgTimer.EpgView
         }
         public void SetTodayMark()
         {
-            var date = DateTime.UtcNow.AddHours(9).Date;
+            var date = CommonUtil.EdcbNow.Date;
             var grid = stackPanel_day.Children.OfType<UniformGrid>().FirstOrDefault(grd => (DateTime)grd.Tag == date);
             rect_day.Visibility = grid == null ? Visibility.Collapsed : Visibility.Visible;
             if (grid != null)

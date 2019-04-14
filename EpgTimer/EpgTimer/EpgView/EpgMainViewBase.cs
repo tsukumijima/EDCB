@@ -258,7 +258,7 @@ namespace EpgTimer.EpgView
         /// <summary>表示位置を現在の時刻にスクロールする</summary>
         protected override void MoveNowTime()
         {
-            DateTime current = RestoreState.scrollTime ?? GetViewTime(DateTime.UtcNow.AddHours(9));
+            DateTime current = RestoreState.scrollTime ?? GetViewTime(CommonUtil.EdcbNow);
             //再描画のときは再描画前の時間かその近くに飛ぶが、過去番組移動の時は最初に出てくる同時刻に飛ぶ
             if (RestoreState.isJumpDate == true)
             {
@@ -288,7 +288,7 @@ namespace EpgTimer.EpgView
         {
             nowViewTimer.Stop();
             programView.nowLine.Visibility = Visibility.Hidden;
-            var now = DateTime.UtcNow.AddHours(9);
+            var now = CommonUtil.EdcbNow;
             if (this.IsVisible == false || timeList.Any() == false || now >= ViewPeriod.End.AddDays(1)) return;
 
             //今は表示されない場合でも、そのうち表示されるかもしれない

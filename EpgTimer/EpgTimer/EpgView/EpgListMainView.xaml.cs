@@ -189,7 +189,7 @@ namespace EpgTimer
 
         protected override void MoveNowTime()
         {
-            listView_event.SelectedIndex = lstCtrl.dataList.FindIndex(item => item.EventInfo.PgStartTime >= DateTime.UtcNow.AddHours(9));
+            listView_event.SelectedIndex = lstCtrl.dataList.FindIndex(item => item.EventInfo.PgStartTime >= CommonUtil.EdcbNowEpg);
             listView_event.ScrollIntoView(listView_event.SelectedItem);
         }
 

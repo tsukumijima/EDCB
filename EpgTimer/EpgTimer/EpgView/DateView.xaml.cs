@@ -85,7 +85,7 @@ namespace EpgTimer.EpgView
 
         public void SetTodayMark()
         {
-            var date = DateTime.UtcNow.AddHours(9).Date;
+            var date = CommonUtil.EdcbNow.Date;
             foreach (Rectangle rect in uniformGrid_main.Children.OfType<Grid>().Select(grd => grd.Children[2]))
             {
                 rect.Visibility = (DateTime)rect.Tag == date ? Visibility.Visible : Visibility.Hidden;

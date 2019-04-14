@@ -694,7 +694,7 @@ namespace EpgTimer
         private List<EpgEventInfo> PeriodApplied(List<EpgEventInfo> list, EpgViewPeriod period)
         {
             if (period == null) return list.ToList();
-            bool needNow = period.End >= DateTime.UtcNow.AddHours(9);
+            bool needNow = period.End >= CommonUtil.EdcbNow;
             return list.FindAll(d => needNow && d.StartTimeFlag == 0 || period.Contains(d.PgStartTime));
         }
 

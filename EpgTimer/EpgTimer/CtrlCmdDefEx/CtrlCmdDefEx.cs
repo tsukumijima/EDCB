@@ -59,7 +59,7 @@ namespace EpgTimer
         }
         protected static int onTime(DateTime startTime, uint duration, DateTime? time = null)
         {
-            time = time ?? DateTime.UtcNow.AddHours(9);
+            time = time ?? CommonUtil.EdcbNowEpg;
             return startTime.AddSeconds(duration) <= time ? 1 : startTime <= time ? 0 : -1;
         }
 

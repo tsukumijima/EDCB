@@ -46,6 +46,9 @@ namespace EpgTimer
             return (int)(IdleTicks / 1000);
         }
 
+        public static DateTime EdcbNow { get { return DateTime.UtcNow.AddHours(9); } }
+        public static DateTime EdcbNowEpg { get { return EdcbNow.AddSeconds(15); } }//時計合わせのマージンを考慮して進めた時刻
+
         public static T Max<T>(params T[] args) { return args.Max(); }
         public static T Min<T>(params T[] args) { return args.Min(); }
 

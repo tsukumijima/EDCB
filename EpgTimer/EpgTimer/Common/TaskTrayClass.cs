@@ -198,7 +198,7 @@ namespace EpgTimer
                 }
                 else
                 {
-                    var PreRecTime = DateTime.UtcNow.AddHours(9).AddMinutes(Settings.Instance.RecAppWakeTime);
+                    var PreRecTime = CommonUtil.EdcbNowEpg.AddMinutes(Settings.Instance.RecAppWakeTime);
                     isOnPreRec = sortList[0].OnTime(PreRecTime) >= 0;
                     if (isOnPreRec == true) //録画準備中
                     {

@@ -399,7 +399,7 @@ namespace EpgTimer
             int cMin = Settings.Instance.CautionOnRecMarginMin;
 
             List<string> list = itemlist.Select(item => CommonManager.Instance.DB.ReserveList.ContainsKey(item.ReserveID) == false ? item : CommonManager.Instance.DB.ReserveList[item.ReserveID])
-                .Where(item => item.IsEnabled == true && item.OnTime(DateTime.UtcNow.AddHours(9).AddMinutes(cMin)) >= 0)
+                .Where(item => item.IsEnabled == true && item.OnTime(CommonUtil.EdcbNowEpg.AddMinutes(cMin)) >= 0)
                 .Select(item => new ReserveItem(item).StartTime + "　" + item.Title).ToList();
 
             if (list.Count == 0) return true;
@@ -530,7 +530,7 @@ namespace EpgTimer
                 List<ReserveData> modList = (SyncAll == true ? syncList : AutoAddSyncModifyReserveList(syncList, itemlist));
 
                 int cMin = Settings.Instance.CautionOnRecChange == true ? Settings.Instance.CautionOnRecMarginMin : 1;
-                deleteList.AddRange(modList.FindAll(data => data.IsEnabled == true && data.OnTime(DateTime.UtcNow.AddHours(9).AddMinutes(cMin)) < 0));
+                deleteList.AddRange(modList.FindAll(data => data.IsEnabled == true && data.OnTime(CommonUtil.EdcbNowEpg.AddMinutes(cMin)) < 0));
                 syncList = syncList.Except(deleteList).ToList();
             }
 

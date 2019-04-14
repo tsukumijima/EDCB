@@ -397,7 +397,7 @@ namespace EpgTimer.EpgView
             restoreState = null;
 
             if (viewData.EpgTabInfo.SearchMode && Settings.Instance.NgAutoEpgLoadNW && Settings.Instance.PrebuildEpg == false
-                && ViewPeriod.End > DateTime.UtcNow.AddDays(9) && CommonManager.Instance.DB.ReserveList.Values.Any(r => r.IsManual))
+                && ViewPeriod.End > CommonUtil.EdcbNowEpg && CommonManager.Instance.DB.ReserveList.Values.Any(r => r.IsManual))
             {
                 CommonManager.MainWindow.MainProc(MainProcItem.EpgDataSearch);
             }

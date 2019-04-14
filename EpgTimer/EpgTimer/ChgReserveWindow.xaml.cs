@@ -80,7 +80,7 @@ namespace EpgTimer
             if (info == null)
             {
                 info = new ReserveData();
-                var sTime = DateTime.UtcNow.AddHours(9).AddMinutes(5);
+                var sTime = CommonUtil.EdcbNow.AddMinutes(5);
                 info.StartTime = sTime.AddSeconds(-sTime.Second);
                 info.StartTimeEpg = info.StartTime;
                 info.DurationSecond = 1800;
