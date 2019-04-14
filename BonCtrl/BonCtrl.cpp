@@ -10,7 +10,6 @@ CBonCtrl::CBonCtrl(void)
 	this->statusSignalLv = 0.0f;
 	this->viewSpace = -1;
 	this->viewCh = -1;
-	this->analyzeStopFlag = FALSE;
 	this->chScanIndexOrStatus = ST_STOP;
 	this->epgCapIndexOrStatus = ST_STOP;
 	this->enableLiveEpgCap = FALSE;
@@ -67,7 +66,7 @@ DWORD CBonCtrl::OpenBonDriver(
 		wstring bonFile = this->bonUtil.GetOpenBonDriverFileName();
 		ret = NO_ERR;
 		//解析スレッド起動
-		this->analyzeStopFlag = FALSE;
+		this->analyzeStopFlag = false;
 		this->analyzeThread = thread_(AnalyzeThread, this);
 
 		this->tsOut.SetBonDriver(bonFile);
@@ -227,7 +226,7 @@ void CBonCtrl::CloseBonDriver()
 	StopEpgCap();
 
 	if( this->analyzeThread.joinable() ){
-		this->analyzeStopFlag = TRUE;
+		this->analyzeStopFlag = true;
 		this->analyzeEvent.Set();
 		this->analyzeThread.join();
 	}
@@ -281,7 +280,7 @@ void CBonCtrl::AnalyzeThread(CBonCtrl* sys)
 {
 	std::list<vector<BYTE>> data;
 
-	while( sys->analyzeStopFlag == FALSE ){
+	while( sys->analyzeStopFlag == false ){
 		//バッファからデータ取り出し
 		float signalLv;
 		{
@@ -386,54 +385,25 @@ BOOL CBonCtrl::SendTcp(
 	return this->tsOut.SendTcp(id,sendList);
 }
 
-//ファイル保存を開始する
-//戻り値：
-// TRUE（成功）、FALSE（失敗）
-//引数：
-// id					[IN]制御識別ID
-// fileName				[IN]保存ファイルパス
-// overWriteFlag		[IN]同一ファイル名存在時に上書きするかどうか（TRUE：する、FALSE：しない）
-// pittariFlag			[IN]ぴったりモード（TRUE：する、FALSE：しない）
-// pittariONID			[IN]ぴったりモードで録画するONID
-// pittariTSID			[IN]ぴったりモードで録画するTSID
-// pittariSID			[IN]ぴったりモードで録画するSID
-// pittariEventID		[IN]ぴったりモードで録画するイベントID
-// createSize			[IN]ファイル作成時にディスクに予約する容量
-// saveFolder			[IN]使用するフォルダ一覧
-// saveFolderSub		[IN]HDDの空きがなくなった場合に一時的に使用するフォルダ
-// writeBuffMaxCount	[IN]出力バッファ上限
 BOOL CBonCtrl::StartSave(
-	DWORD id,
-	const wstring& fileName,
-	BOOL overWriteFlag,
-	BOOL pittariFlag,
-	WORD pittariONID,
-	WORD pittariTSID,
-	WORD pittariSID,
-	WORD pittariEventID,
-	ULONGLONG createSize,
-	const vector<REC_FILE_SET_INFO>& saveFolder,
+	const SET_CTRL_REC_PARAM& recParam,
 	const vector<wstring>& saveFolderSub,
 	int writeBuffMaxCount
 )
 {
-	BOOL ret = this->tsOut.StartSave(id, fileName, overWriteFlag, pittariFlag, pittariONID, pittariTSID, pittariSID, pittariEventID, createSize, saveFolder, saveFolderSub, writeBuffMaxCount);
-
-	StartBackgroundEpgCap();
-
-	return ret;
+	if( this->tsOut.StartSave(recParam, saveFolderSub, writeBuffMaxCount) ){
+		StartBackgroundEpgCap();
+		return TRUE;
+	}
+	return FALSE;
 }
 
-//ファイル保存を終了する
-//戻り値：
-// TRUE（成功）、FALSE（失敗）
-//引数：
-// id			[IN]制御識別ID
 BOOL CBonCtrl::EndSave(
-	DWORD id
+	DWORD id,
+	BOOL* subRecFlag
 	)
 {
-	return this->tsOut.EndSave(id);
+	return this->tsOut.EndSave(id, subRecFlag);
 }
 
 //スクランブル解除処理の動作設定
@@ -551,11 +521,7 @@ CBonCtrl::JOB_STATUS CBonCtrl::GetChScanStatus(
 	DWORD* totalNum
 	)
 {
-#if defined(_MSC_VER) && _MSC_VER < 1900
-	LONG indexOrStatus = InterlockedExchangeAdd(&this->chScanIndexOrStatus, 0);
-#else
 	int indexOrStatus = this->chScanIndexOrStatus;
-#endif
 	if( indexOrStatus < 0 ){
 		return (JOB_STATUS)indexOrStatus;
 	}
@@ -678,7 +644,7 @@ void CBonCtrl::ChScanThread(CBonCtrl* sys)
 //引数：
 // chList		[IN]EPG取得するチャンネル一覧(NULL可)
 BOOL CBonCtrl::StartEpgCap(
-	vector<EPGCAP_SERVICE_INFO>* chList
+	const vector<SET_CH_INFO>* chList
 	)
 {
 	if( this->tsOut.IsRec() == TRUE ){
@@ -694,10 +660,15 @@ BOOL CBonCtrl::StartEpgCap(
 	if( this->bonUtil.GetOpenBonDriverFileName().empty() == false ){
 		this->epgCapIndexOrStatus = ST_COMPLETE;
 		if( chList ){
-			this->epgCapChList = *chList;
-		}else{
 			this->epgCapChList.clear();
-			this->chUtil.GetEpgCapService(&this->epgCapChList);
+			for( size_t i = 0; i < chList->size(); i++ ){
+				//SID指定のみ対応
+				if( (*chList)[i].useSID ){
+					this->epgCapChList.push_back((*chList)[i]);
+				}
+			}
+		}else{
+			this->epgCapChList = this->chUtil.GetEpgCapService();
 		}
 		if( this->epgCapChList.empty() ){
 			//取得するものがない
@@ -730,14 +701,10 @@ void CBonCtrl::StopEpgCap(
 //引数：
 // info			[OUT]取得中のサービス
 CBonCtrl::JOB_STATUS CBonCtrl::GetEpgCapStatus(
-	EPGCAP_SERVICE_INFO* info
+	SET_CH_INFO* info
 	)
 {
-#if defined(_MSC_VER) && _MSC_VER < 1900
-	LONG indexOrStatus = InterlockedExchangeAdd(&this->epgCapIndexOrStatus, 0);
-#else
 	int indexOrStatus = this->epgCapIndexOrStatus;
-#endif
 	if( indexOrStatus < 0 ){
 		return (JOB_STATUS)indexOrStatus;
 	}
@@ -816,7 +783,7 @@ void CBonCtrl::EpgCapThread(CBonCtrl* sys)
 						sys->tsOut.StartSaveEPG(epgDataPath);
 						wait = 60*1000;
 					}else{
-						vector<EPGCAP_SERVICE_INFO> chkList;
+						vector<SET_CH_INFO> chkList;
 						if( basicOnlyONIDs[min<size_t>(sys->epgCapChList[chkCount].ONID, _countof(basicOnlyONIDs) - 1)] ){
 							chkList = sys->chUtil.GetEpgCapServiceAll(sys->epgCapChList[chkCount].ONID);
 						}else{
@@ -824,14 +791,14 @@ void CBonCtrl::EpgCapThread(CBonCtrl* sys)
 						}
 						//epgCapChListのサービスはEPG取得対象でなかったとしてもチェックしなければならない
 						chkList.push_back(sys->epgCapChList[chkCount]);
-						for( vector<EPGCAP_SERVICE_INFO>::iterator itr = chkList.begin(); itr != chkList.end(); itr++ ){
+						for( vector<SET_CH_INFO>::iterator itr = chkList.begin(); itr != chkList.end(); itr++ ){
 							if( itr->ONID == chkList.back().ONID && itr->TSID == chkList.back().TSID && itr->SID == chkList.back().SID ){
 								chkList.pop_back();
 								break;
 							}
 						}
 						//蓄積状態チェック
-						for( vector<EPGCAP_SERVICE_INFO>::iterator itr = chkList.begin(); itr != chkList.end(); itr++ ){
+						for( vector<SET_CH_INFO>::iterator itr = chkList.begin(); itr != chkList.end(); itr++ ){
 							BOOL leitFlag = sys->chUtil.IsPartial(itr->ONID, itr->TSID, itr->SID);
 							pair<EPG_SECTION_STATUS, BOOL> status = sys->tsOut.GetSectionStatusService(itr->ONID, itr->TSID, itr->SID, leitFlag);
 							if( status.second == FALSE ){
@@ -998,7 +965,7 @@ void CBonCtrl::EpgCapBackThread(CBonCtrl* sys)
 	                 ONID == 6 && sys->epgCapBackCS1Basic ||
 	                 ONID == 7 && sys->epgCapBackCS2Basic ||
 	                 ONID == 10 && sys->epgCapBackCS3Basic;
-	vector<EPGCAP_SERVICE_INFO> chkList = sys->chUtil.GetEpgCapServiceAll(ONID, TSID);
+	vector<SET_CH_INFO> chkList = sys->chUtil.GetEpgCapServiceAll(ONID, TSID);
 	if( chkList.empty() == false && basicOnly ){
 		chkList = sys->chUtil.GetEpgCapServiceAll(ONID);
 	}
@@ -1017,7 +984,7 @@ void CBonCtrl::EpgCapBackThread(CBonCtrl* sys)
 	while(1){
 		//蓄積状態チェック
 		BOOL chkNext = FALSE;
-		for( vector<EPGCAP_SERVICE_INFO>::iterator itr = chkList.begin(); itr != chkList.end(); itr++ ){
+		for( vector<SET_CH_INFO>::iterator itr = chkList.begin(); itr != chkList.end(); itr++ ){
 			BOOL leitFlag = sys->chUtil.IsPartial(itr->ONID, itr->TSID, itr->SID);
 			pair<EPG_SECTION_STATUS, BOOL> status = sys->tsOut.GetSectionStatusService(itr->ONID, itr->TSID, itr->SID, leitFlag);
 			if( status.second == FALSE ){

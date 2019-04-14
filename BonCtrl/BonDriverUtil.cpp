@@ -4,12 +4,72 @@
 #include "../Common/StringUtil.h"
 #include "IBonDriver2.h"
 
+namespace
+{
 enum {
 	WM_APP_GET_TS_STREAM = WM_APP,
 	WM_APP_GET_STATUS,
 	WM_APP_SET_CH,
 	WM_APP_GET_NOW_CH,
 };
+
+#ifdef USE_IBONCAST
+IBonDriver* CastB(IBonDriver2** if2, IBonDriver* (*funcCreate)(), const LPVOID* (WINAPI* funcCast)(LPCSTR, void*))
+{
+	HMODULE hModule = NULL;
+	if( funcCast == NULL ){
+		if( (hModule = LoadLibrary(L"IBonCast.dll")) == NULL ){
+			OutputDebugString(L"★IBonCast.dllがロードできません\r\n");
+			return NULL;
+		}
+		funcCast = (const LPVOID*(WINAPI*)(LPCSTR,void*))GetProcAddress(hModule, "Cast");
+	}
+	void* pBase;
+	const LPVOID* table;
+	if( funcCast == NULL || (pBase = funcCreate()) == NULL || (table = funcCast("IBonDriver@10", pBase)) == NULL ){
+		OutputDebugString(L"★Castに失敗しました\r\n");
+		if( hModule ){
+			FreeLibrary(hModule);
+		}
+		return NULL;
+	}
+
+	class CCastB : public IBonDriver2
+	{
+	public:
+		CCastB(HMODULE h_, void* p_, const LPVOID* t_) : h(h_), p(p_), t(t_) {}
+		const BOOL OpenTuner() { return ((BOOL(*)(void*))t[0])(p); }
+		void CloseTuner() { ((void(*)(void*))t[1])(p); }
+		const BOOL SetChannel(const BYTE bCh) { return ((BOOL(*)(void*,BYTE))t[2])(p, bCh); }
+		const float GetSignalLevel() { return ((float(*)(void*))t[3])(p); }
+		const DWORD WaitTsStream(const DWORD dwTimeOut = 0) { return ((DWORD(*)(void*,DWORD))t[4])(p, dwTimeOut); }
+		const DWORD GetReadyCount() { return ((DWORD(*)(void*))t[5])(p); }
+		const BOOL GetTsStream(BYTE* pDst, DWORD* pdwSize, DWORD* pdwRemain) { return ((BOOL(*)(void*,BYTE*,DWORD*,DWORD*))t[6])(p, pDst, pdwSize, pdwRemain); }
+		const BOOL GetTsStream(BYTE** ppDst, DWORD* pdwSize, DWORD* pdwRemain) { return ((BOOL(*)(void*,BYTE**,DWORD*,DWORD*))t[7])(p, ppDst, pdwSize, pdwRemain); }
+		void PurgeTsStream() { ((void(*)(void*))t[8])(p); }
+		void Release() { ((void(*)(void*))t[9])(p); if( h ) FreeLibrary(h); delete this; }
+		LPCTSTR GetTunerName() { return ((LPCWSTR(*)(void*))t[10])(p); }
+		const BOOL IsTunerOpening() { return ((BOOL(*)(void*))t[11])(p); }
+		LPCTSTR EnumTuningSpace(const DWORD dwSpace) { return ((LPCWSTR(*)(void*,DWORD))t[12])(p, dwSpace); }
+		LPCTSTR EnumChannelName(const DWORD dwSpace, const DWORD dwChannel) { return ((LPCWSTR(*)(void*,DWORD,DWORD))t[13])(p, dwSpace, dwChannel); }
+		const BOOL SetChannel(const DWORD dwSpace, const DWORD dwChannel) { return ((BOOL(*)(void*,DWORD,DWORD))t[14])(p, dwSpace, dwChannel); }
+		const DWORD GetCurSpace() { return ((DWORD(*)(void*))t[15])(p); }
+		const DWORD GetCurChannel() { return ((DWORD(*)(void*))t[16])(p); }
+	private:
+		HMODULE h;
+		void* p;
+		const LPVOID* t;
+	};
+
+	CCastB* b = new CCastB(hModule, pBase, table);
+	*if2 = NULL;
+	if( funcCast("IBonDriver2@17", pBase) == table ){
+		*if2 = b;
+	}
+	return b;
+}
+#endif
+}
 
 CBonDriverUtil::CInit CBonDriverUtil::s_init;
 
@@ -45,17 +105,13 @@ vector<wstring> CBonDriverUtil::EnumBonDriver()
 	vector<wstring> list;
 	if( this->loadDllFolder.empty() == false ){
 		//指定フォルダのファイル一覧取得
-		WIN32_FIND_DATA findData;
-		HANDLE hFind = FindFirstFile(fs_path(this->loadDllFolder).append(L"BonDriver*.dll").c_str(), &findData);
-		if( hFind != INVALID_HANDLE_VALUE ){
-			do{
-				if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 ){
-					//見つかったDLLを一覧に追加
-					list.push_back(findData.cFileName);
-				}
-			}while( FindNextFile(hFind, &findData) );
-			FindClose(hFind);
-		}
+		EnumFindFile(fs_path(this->loadDllFolder).append(L"BonDriver*.dll").c_str(), [&](WIN32_FIND_DATA& findData) -> bool {
+			if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 ){
+				//見つかったDLLを一覧に追加
+				list.push_back(findData.cFileName);
+			}
+			return true;
+		});
 	}
 	return list;
 }
@@ -105,8 +161,13 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 		IBonDriver* (*funcCreateBonDriver)() = (IBonDriver*(*)())GetProcAddress(hModule, "CreateBonDriver");
 		if( funcCreateBonDriver == NULL ){
 			OutputDebugString(L"★GetProcAddressに失敗しました\r\n");
+#ifdef USE_IBONCAST
+		}else if( (bonIF = CastB(&sys->bon2IF, funcCreateBonDriver, (const LPVOID*(WINAPI*)(LPCSTR,void*))GetProcAddress(hModule, "Cast"))) != NULL &&
+		          sys->bon2IF != NULL ){
+#else
 		}else if( (bonIF = funcCreateBonDriver()) != NULL &&
 		          (sys->bon2IF = dynamic_cast<IBonDriver2*>(bonIF)) != NULL ){
+#endif
 			if( sys->bon2IF->OpenTuner() == FALSE ){
 				OutputDebugString(L"★OpenTunerに失敗しました\r\n");
 			}else{

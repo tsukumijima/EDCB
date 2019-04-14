@@ -5,6 +5,8 @@
 #define MUTEX_TCP_PORT_NAME			L"Global\\EpgDataCap_Bon_TCP_PORT_"
 #define CHSET_SAVE_EVENT_WAIT		L"Global\\EpgTimer_ChSet"
 
+//間接指定がなければ通常必要でないPID範囲の下限
+#define BON_SELECTIVE_PID			0x0030
 
 //ネットワーク送信用設定
 typedef struct {
@@ -13,12 +15,23 @@ typedef struct {
 	BOOL broadcastFlag;
 }NW_SEND_INFO;
 
-//EPG取得用サービス情報
-typedef struct {
-	WORD ONID;
-	WORD TSID;
-	WORD SID;
-}EPGCAP_SERVICE_INFO;
-
+class CSendNW
+{
+public:
+	CSendNW() {}
+	virtual ~CSendNW() {}
+	virtual bool Initialize() = 0;
+	virtual void UnInitialize() = 0;
+	virtual bool IsInitialized() const = 0;
+	virtual bool AddSendAddr(LPCWSTR ip, DWORD dwPort, bool broadcastFlag) = 0;
+	virtual void ClearSendAddr() = 0;
+	virtual bool StartSend() = 0;
+	virtual void StopSend() = 0;
+	virtual bool AddSendData(BYTE* pbBuff, DWORD dwSize) = 0;
+	virtual void ClearSendBuff() {}
+private:
+	CSendNW(const CSendNW&);
+	CSendNW& operator=(const CSendNW&);
+};
 
 #endif

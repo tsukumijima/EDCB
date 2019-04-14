@@ -19,7 +19,6 @@
 
 // C ランタイム ヘッダー ファイル
 #include <stdlib.h>
-#include <memory.h>
 #include <stdio.h>
 
 static inline FILE* secure_wfopen(const wchar_t* name, const wchar_t* mode)
@@ -45,16 +44,6 @@ static inline FILE* shared_wfopen(const wchar_t* name, const wchar_t* mode)
 #endif
 }
 
-#ifdef _UNICODE
-#if defined _M_IX86
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#elif defined _M_X64
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#else
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#endif
-#endif
-
 // TODO: プログラムに必要な追加ヘッダーをここで参照してください。
 
 #if defined(_UNICODE) && defined(OutputDebugString)
@@ -64,5 +53,6 @@ static inline FILE* shared_wfopen(const wchar_t* name, const wchar_t* mode)
 // APIフックによる高度なものでなく単なる置換。OutputDebugStringAやDLLからの呼び出しはラップされない
 void OutputDebugStringWrapper(LPCWSTR lpOutputString);
 #endif
+void SetSaveDebugLog(bool saveDebugLog);
 
 #include "../../Common/Common.h"

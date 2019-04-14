@@ -3,6 +3,7 @@
 #include "NotifyManager.h"
 #include "EpgDBManager.h"
 #include "EpgTimerSrvSetting.h"
+#include "../../Common/ReNamePlugInUtil.h"
 #include "../../Common/ThreadUtil.h"
 
 //1つのチューナ(EpgDataCap_Bon.exe)を管理する
@@ -96,6 +97,10 @@ public:
 	vector<CHECK_RESULT> Check(vector<DWORD>* startedReserveIDList = NULL);
 	//チューナ全体としての状態を取得する
 	TR_STATE GetState() const;
+	//プロセスIDを取得する(GetState()がTR_IDLEのとき不定)
+	int GetProcessID() const { return this->tunerPid; }
+	//ネットワークモードIDを取得する(GetState()がTR_NWTVでないとき不定)
+	int GetNWTVID() const { return this->nwtvID; }
 	//予約開始の最小時刻を取得する
 	__int64 GetNearestReserveTime() const;
 	//EPG取得を開始する
@@ -110,7 +115,7 @@ public:
 	//放送波時刻に対するシステム時刻の遅延時間を取得する
 	__int64 DelayTime() const;
 	//ネットワークモードでチューナを起動しチャンネル設定する
-	bool SetNWTVCh(bool nwUdp, bool nwTcp, const SET_CH_INFO& chInfo);
+	bool OpenNWTV(int id, bool nwUdp, bool nwTcp, const SET_CH_INFO& chInfo);
 	//ネットワークモードのチューナを閉じる
 	void CloseNWTV();
 	//予約が録画中であればその録画ファイル名を取得する
@@ -119,7 +124,7 @@ public:
 	static wstring ConvertRecName(
 		LPCWSTR recNamePlugIn, const SYSTEMTIME& startTime, DWORD durationSec, LPCWSTR eventName, WORD onid, WORD tsid, WORD sid, WORD eid,
 		LPCWSTR serviceName, LPCWSTR bonDriverName, DWORD tunerID, DWORD reserveID, CEpgDBManager& epgDBManager_,
-		const SYSTEMTIME& startTimeForDefault, DWORD ctrlID, LPCWSTR ext, bool noChkYen);
+		const SYSTEMTIME& startTimeForDefault, DWORD ctrlID, LPCWSTR ext, bool noChkYen, CReNamePlugInUtil& util);
 	//バンクを監視して必要ならチューナを強制終了する
 	//概ね2秒ごとにワーカスレッドから呼ぶ
 	void Watch();
@@ -174,6 +179,8 @@ private:
 	//放送波時刻に対するシステム時刻の遅延時間
 	__int64 delayTime;
 	__int64 epgCapDelayTime;
+	//ネットワークモードID
+	int nwtvID;
 
 	__int64 recWakeTime;
 	bool recMinWake;

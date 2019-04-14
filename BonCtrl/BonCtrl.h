@@ -1,7 +1,5 @@
 #pragma once
 
-#include <windows.h>
-
 #include "../Common/StructDef.h"
 #include "../Common/EpgTimerUtil.h"
 #include "../Common/StringUtil.h"
@@ -12,9 +10,6 @@
 #include "TSOut.h"
 #include "ChSetUtil.h"
 #include <list>
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-#include <atomic>
-#endif
 
 class CBonCtrl
 {
@@ -182,29 +177,11 @@ public:
 	//戻り値：
 	// TRUE（成功）、FALSE（失敗）
 	//引数：
-	// id					[IN]制御識別ID
-	// fileName				[IN]保存ファイルパス
-	// overWriteFlag		[IN]同一ファイル名存在時に上書きするかどうか（TRUE：する、FALSE：しない）
-	// pittariFlag			[IN]ぴったりモード（TRUE：する、FALSE：しない）
-	// pittariONID			[IN]ぴったりモードで録画するONID
-	// pittariTSID			[IN]ぴったりモードで録画するTSID
-	// pittariSID			[IN]ぴったりモードで録画するSID
-	// pittariEventID		[IN]ぴったりモードで録画するイベントID
-	// createSize			[IN]ファイル作成時にディスクに予約する容量
-	// saveFolder			[IN]使用するフォルダ一覧
+	// recParam				[IN]保存パラメータ
 	// saveFolderSub		[IN]HDDの空きがなくなった場合に一時的に使用するフォルダ
 	// writeBuffMaxCount	[IN]出力バッファ上限
 	BOOL StartSave(
-		DWORD id,
-		const wstring& fileName,
-		BOOL overWriteFlag,
-		BOOL pittariFlag,
-		WORD pittariONID,
-		WORD pittariTSID,
-		WORD pittariSID,
-		WORD pittariEventID,
-		ULONGLONG createSize,
-		const vector<REC_FILE_SET_INFO>& saveFolder,
+		const SET_CTRL_REC_PARAM& recParam,
 		const vector<wstring>& saveFolderSub,
 		int writeBuffMaxCount
 	);
@@ -214,8 +191,10 @@ public:
 	// TRUE（成功）、FALSE（失敗）
 	//引数：
 	// id			[IN]制御識別ID
+	// subRecFlag	[OUT]成功のとき、サブ録画が発生したかどうか
 	BOOL EndSave(
-		DWORD id
+		DWORD id,
+		BOOL* subRecFlag = NULL
 		);
 
 	//スクランブル解除処理の動作設定
@@ -260,16 +239,14 @@ public:
 
 	//録画中のファイルのファイルパスを取得する
 	//※スレッドセーフ
+	//戻り値：
+	// ファイルパス
 	//引数：
 	// id					[IN]制御識別ID
-	// filePath				[OUT]保存ファイル名
-	// subRecFlag			[OUT]サブ録画が発生したかどうか
-	void GetSaveFilePath(
-		DWORD id,
-		wstring* filePath,
-		BOOL* subRecFlag
+	wstring GetSaveFilePath(
+		DWORD id
 		) {
-		this->tsOut.GetSaveFilePath(id, filePath, subRecFlag);
+		return this->tsOut.GetSaveFilePath(id);
 	}
 
 	//ドロップとスクランブルのカウントを保存する
@@ -374,7 +351,7 @@ public:
 	//引数：
 	// chList		[IN]EPG取得するチャンネル一覧(NULL可)
 	BOOL StartEpgCap(
-		vector<EPGCAP_SERVICE_INFO>* chList
+		const vector<SET_CH_INFO>* chList
 		);
 
 	//EPG取得を停止する
@@ -388,7 +365,7 @@ public:
 	//引数：
 	// info			[OUT]取得中のサービス
 	JOB_STATUS GetEpgCapStatus(
-		EPGCAP_SERVICE_INFO* info
+		SET_CH_INFO* info
 		);
 
 	//バックグラウンドでのEPG取得設定
@@ -435,7 +412,7 @@ protected:
 
 	thread_ analyzeThread;
 	CAutoResetEvent analyzeEvent;
-	BOOL analyzeStopFlag;
+	atomic_bool_ analyzeStopFlag;
 
 	//チャンネルスキャン用
 	thread_ chScanThread;
@@ -448,22 +425,14 @@ protected:
 	};
 	//スキャン中はconst操作のみ
 	vector<CHK_CH_INFO> chScanChkList;
-#if defined(_MSC_VER) && _MSC_VER < 1900
-	LONG chScanIndexOrStatus;
-#else
-	std::atomic<int> chScanIndexOrStatus;
-#endif
+	atomic_int_ chScanIndexOrStatus;
 
 	//EPG取得用
 	thread_ epgCapThread;
 	CAutoResetEvent epgCapStopEvent;
 	//取得中はconst操作のみ
-	vector<EPGCAP_SERVICE_INFO> epgCapChList;
-#if defined(_MSC_VER) && _MSC_VER < 1900
-	LONG epgCapIndexOrStatus;
-#else
-	std::atomic<int> epgCapIndexOrStatus;
-#endif
+	vector<SET_CH_INFO> epgCapChList;
+	atomic_int_ epgCapIndexOrStatus;
 
 	thread_ epgCapBackThread;
 	CAutoResetEvent epgCapBackStopEvent;

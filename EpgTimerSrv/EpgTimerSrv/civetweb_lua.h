@@ -27,9 +27,9 @@
 #define CIVETWEB_LUA_H
 
 #define LUA_LIB
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
+#include "lua/lauxlib.h"
+#include "lua/lua.h"
+#include "lua/lualib.h"
 
 #ifndef LUA_VERSION_NUM
 #error "Unknown Lua version"
@@ -59,6 +59,10 @@
 
 #elif LUA_VERSION_NUM == 503
 /* Lua 5.3 detected */
+#define mg_lua_load lua_load
+
+#elif LUA_VERSION_NUM == 504
+/* Lua 5.4 detected */
 #define mg_lua_load lua_load
 
 #endif

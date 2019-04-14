@@ -3,7 +3,6 @@
 #include "../../Common/EpgTimerUtil.h"
 #include "../../Common/SendCtrlCmd.h"
 #include "../../Common/PathUtil.h"
-#include "../../Common/ReNamePlugInUtil.h"
 #include "../../Common/TimeUtil.h"
 #include <tlhelp32.h>
 
@@ -440,7 +439,7 @@ vector<CTunerBankCtrl::CHECK_RESULT> CTunerBankCtrl::Check(vector<DWORD>* starte
 							//ŠJŽnŽžŠÔ‚©‚ç30•b‚Í‰ß‚¬‚Ä‚¢‚é‚Ì‚Å‚±‚Ì”Ô‘gî•ñ‚ª˜^‰æ’†‚Ì‚à‚Ì‚Ì‚Í‚¸
 							r.savedPgInfo = true;
 							r.epgStartTime = resVal.start_time;
-							r.epgEventName = resVal.shortInfo ? resVal.shortInfo->event_name : L"";
+							r.epgEventName = resVal.hasShortInfo ? resVal.shortInfo.event_name : L"";
 							//‚²‚­‹H‚ÉAPR(‰üs)‚ðŠÜ‚Þ‚½‚ß
 							Replace(r.epgEventName, L"\r\n", L"");
 							if( this->saveProgramInfo ){
@@ -768,7 +767,7 @@ bool CTunerBankCtrl::CreateCtrl(DWORD* ctrlID, DWORD* partialCtrlID, const TUNER
 	SYSTEMTIME st;
 	ConvertSystemTime(reserve.startTime, &st);
 	wstring msg;
-	Format(msg, L"%s %04d/%02d/%02d %02d:%02d:%02d` %s", reserve.stationName.c_str(),
+	Format(msg, L"%s %04d/%02d/%02d %02d:%02d:%02d\xFF5E %s", reserve.stationName.c_str(),
 	       st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, reserve.title.c_str());
 	this->notifyManager.AddNotifyMsg(NOTIFY_UPDATE_PRE_REC_START, msg);
 	return true;
@@ -820,6 +819,7 @@ bool CTunerBankCtrl::RecStart(const TUNER_RESERVE_WORK& reserve, __int64 now) co
 	if( reserve.recMode == RECMODE_VIEW ){
 		return true;
 	}
+	CReNamePlugInUtil utilCache;
 	CSendCtrlCmd ctrlCmd;
 	ctrlCmd.SetPipeSetting(CMD2_VIEW_CTRL_WAIT_CONNECT, CMD2_VIEW_CTRL_PIPE, this->tunerPid);
 	bool isMainCtrl = true;
@@ -863,7 +863,7 @@ bool CTunerBankCtrl::RecStart(const TUNER_RESERVE_WORK& reserve, __int64 now) co
 				param.saveFolder[j].recFileName = ConvertRecName(
 					param.saveFolder[j].recNamePlugIn.c_str(), st, reserve.durationSecond, reserve.title.c_str(), reserve.onid, reserve.tsid, sid, eid,
 					stationName.c_str(), this->bonFileName.c_str(), this->tunerID, reserve.reserveID, this->epgDBManager,
-					stDefault, param.ctrlID, this->tsExt.c_str(), this->recNameNoChkYen);
+					stDefault, param.ctrlID, this->tsExt.c_str(), this->recNameNoChkYen, utilCache);
 				param.saveFolder[j].recNamePlugIn.clear();
 			}
 			param.overWriteFlag = this->recOverWrite;
@@ -968,9 +968,9 @@ bool CTunerBankCtrl::SearchEpgInfo(WORD sid, WORD eid, EPGDB_EVENT_INFO* resVal)
 		val.eventID = eid;
 		val.pfOnlyFlag = 0;
 		if( ctrlCmd.SendViewSearchEvent(val, resVal) == CMD_SUCCESS ){
-			if( resVal->shortInfo ){
+			if( resVal->hasShortInfo ){
 				//‚²‚­‹H‚ÉAPR(‰üs)‚ðŠÜ‚Þ‚½‚ß
-				Replace(resVal->shortInfo->event_name, L"\r\n", L"");
+				Replace(resVal->shortInfo.event_name, L"\r\n", L"");
 			}
 			return true;
 		}
@@ -993,9 +993,9 @@ int CTunerBankCtrl::GetEventPF(WORD sid, bool pfNextFlag, EPGDB_EVENT_INFO* resV
 		val.pfNextFlag = pfNextFlag;
 		DWORD ret = ctrlCmd.SendViewGetEventPF(val, resVal);
 		if( ret == CMD_SUCCESS ){
-			if( resVal->shortInfo ){
+			if( resVal->hasShortInfo ){
 				//‚²‚­‹H‚ÉAPR(‰üs)‚ðŠÜ‚Þ‚½‚ß
-				Replace(resVal->shortInfo->event_name, L"\r\n", L"");
+				Replace(resVal->shortInfo.event_name, L"\r\n", L"");
 			}
 			return 0;
 		}else if( ret == CMD_ERR && (this->tunerChLocked == false || GetTickCount() - this->tunerChChgTick > 15000) ){
@@ -1011,14 +1011,22 @@ __int64 CTunerBankCtrl::DelayTime() const
 	return this->specialState == TR_EPGCAP ? this->epgCapDelayTime : this->delayTime;
 }
 
-bool CTunerBankCtrl::SetNWTVCh(bool nwUdp, bool nwTcp, const SET_CH_INFO& chInfo)
+bool CTunerBankCtrl::OpenNWTV(int id, bool nwUdp, bool nwTcp, const SET_CH_INFO& chInfo)
 {
+	if( this->specialState == TR_EPGCAP ){
+		OutputDebugString(L"epg cancel\r\n");
+		//CSendCtrlCmd::SendViewEpgCapStop()‚Í‘—‚ç‚È‚¢(‘¦À‚Éƒ`ƒ…[ƒi•Â‚¶‚é‚Ì‚ÅˆÓ–¡‚ª‚È‚¢‚½‚ß)
+		CloseTuner();
+		this->specialState = TR_IDLE;
+	}
 	if( this->hTunerProcess == NULL ){
 		if( OpenTuner(true, true, nwUdp, nwTcp, false, &chInfo) ){
 			this->specialState = TR_NWTV;
+			this->nwtvID = id;
 			return true;
 		}
 	}else if( this->specialState == TR_NWTV ){
+		this->nwtvID = id;
 		CWatchBlock watchBlock(&this->watchContext);
 		CSendCtrlCmd ctrlCmd;
 		ctrlCmd.SetPipeSetting(CMD2_VIEW_CTRL_WAIT_CONNECT, CMD2_VIEW_CTRL_PIPE, this->tunerPid);
@@ -1245,7 +1253,7 @@ bool CTunerBankCtrl::CloseOtherTuner()
 wstring CTunerBankCtrl::ConvertRecName(
 	LPCWSTR recNamePlugIn, const SYSTEMTIME& startTime, DWORD durationSec, LPCWSTR eventName, WORD onid, WORD tsid, WORD sid, WORD eid,
 	LPCWSTR serviceName, LPCWSTR bonDriverName, DWORD tunerID, DWORD reserveID, CEpgDBManager& epgDBManager_,
-	const SYSTEMTIME& startTimeForDefault, DWORD ctrlID, LPCWSTR ext, bool noChkYen)
+	const SYSTEMTIME& startTimeForDefault, DWORD ctrlID, LPCWSTR ext, bool noChkYen, CReNamePlugInUtil& util)
 {
 	wstring ret;
 	if( recNamePlugIn[0] ){
@@ -1276,7 +1284,7 @@ wstring CTunerBankCtrl::ConvertRecName(
 		info.sizeOfStruct = 0;
 		WCHAR name[512];
 		DWORD size = 512;
-		if( CReNamePlugInUtil::ConvertRecName3(&info, recNamePlugIn, plugInPath.c_str(), name, &size) ){
+		if( util.Convert(&info, recNamePlugIn, plugInPath.c_str(), name, &size) ){
 			ret = name;
 			CheckFileName(ret, noChkYen);
 		}

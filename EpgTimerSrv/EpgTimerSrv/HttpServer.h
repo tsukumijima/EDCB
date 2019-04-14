@@ -1,7 +1,9 @@
 #pragma once
-#include "lua.hpp"
+#include "lua/lua.hpp"
 #include "UpnpSsdpServer.h"
 #include <functional>
+
+#define LUA_DLL_NAME L"lua52.dll"
 
 struct mg_context;
 struct mg_connection;
@@ -51,6 +53,7 @@ namespace LuaHelp
 	bool isnil(lua_State* L, const char* name);
 	string get_string(lua_State* L, const char* name);
 	int get_int(lua_State* L, const char* name);
+	__int64 get_int64(lua_State* L, const char* name);
 	bool get_boolean(lua_State* L, const char* name);
 	SYSTEMTIME get_time(lua_State* L, const char* name);
 	int os_execute(lua_State* L);

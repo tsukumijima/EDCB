@@ -9,8 +9,6 @@
 #include <wincrypt.h>
 #pragma comment(lib, "Crypt32.lib")
 
-#define LUA_DLL_NAME L"lua52.dll"
-
 namespace
 {
 const char UPNP_URN_DMS_1[] = "urn:schemas-upnp-org:device:MediaServer:1";
@@ -136,17 +134,18 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 		options[opCount++] = globalAuthPath.c_str();
 	}
 
+#ifdef LUA_BUILD_AS_DLL
 	//LuaのDLLが無いとき分かりにくいタイミングでエラーになるので事前に読んでおく(必須ではない)
-	this->hLuaDll = LoadLibrary(LUA_DLL_NAME);
+	this->hLuaDll = LoadLibrary(GetModulePath().replace_filename(LUA_DLL_NAME).c_str());
 	if( this->hLuaDll == NULL ){
 		OutputDebugString(L"CHttpServer::StartServer(): " LUA_DLL_NAME L" not found.\r\n");
 		return false;
 	}
+#endif
 
-	//"serve files" + "support Lua" + "support caching" + (セキュアポートを含むとき)"support HTTPS"
-	unsigned int feat = 1 + 32 + 128 + (ports.find('s') != string::npos ? 2 : 0);
+	unsigned int feat = MG_FEATURES_FILES + MG_FEATURES_LUA + MG_FEATURES_CACHE + (ports.find('s') != string::npos ? MG_FEATURES_TLS : 0);
 	this->initedLibrary = true;
-	if( mg_init_library(feat) != feat ){
+	if( mg_init_library(feat + (op.enableSsdpServer ? MG_FEATURES_X_ALLOW_SUBSCRIBE : 0)) != feat ){
 		OutputDebugString(L"CHttpServer::StartServer(): Library initialization failed.\r\n");
 		StopServer();
 		return false;
@@ -177,7 +176,7 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 				if( n < 256 ){
 					break;
 				}
-				memcpy(olbuff, olbuff + 192, 64);
+				std::copy(olbuff + 192, olbuff + 256, olbuff);
 			}
 		}
 		if( notifyUuid.empty() == false ){
@@ -337,6 +336,15 @@ int get_int(lua_State* L, const char* name)
 	int ret = (int)lua_tointeger(L, -1);
 	lua_pop(L, 1);
 	return ret;
+}
+
+__int64 get_int64(lua_State* L, const char* name)
+{
+	lua_getfield(L, -1, name);
+	lua_Number ret = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	//整数を正しく表現できない範囲の値は制限する
+	return (__int64)min(max(ret, -1e+16), 1e+16);
 }
 
 bool get_boolean(lua_State* L, const char* name)

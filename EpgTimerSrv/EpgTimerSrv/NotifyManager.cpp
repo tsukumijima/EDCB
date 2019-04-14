@@ -9,7 +9,6 @@
 
 CNotifyManager::CNotifyManager()
 {
-	this->notifyStopFlag = false;
 	this->srvStatus = 0;
 	this->notifyCount = 1;
 	this->notifyRemovePos = 0;
@@ -109,7 +108,7 @@ bool CNotifyManager::GetNotify(NOTIFY_SRV_INFO* info, DWORD targetCount) const
 
 	if( targetCount == 0 ){
 		//Œ»Ý‚ÌsrvStatus‚ð•Ô‚·
-		NOTIFY_SRV_INFO status;
+		NOTIFY_SRV_INFO status = {};
 		status.notifyID = NOTIFY_UPDATE_SRV_STATUS;
 		ConvertSystemTime(GetNowI64Time(), &status.time);
 		status.param1 = this->srvStatus;
@@ -153,16 +152,14 @@ void CNotifyManager::AddNotify(DWORD status)
 {
 	CBlockLock lock(&this->managerLock);
 
-	{
-		NOTIFY_SRV_INFO info;
-		ConvertSystemTime(GetNowI64Time(), &info.time);
-		info.notifyID = status;
-		//“¯‚¶‚à‚Ì‚ª‚ ‚é‚Æ‚«‚Í’Ç‰Á‚µ‚È‚¢
-		if( std::find_if(this->notifyList.begin(), this->notifyList.end(),
-		                 [=](const NOTIFY_SRV_INFO& a) { return a.notifyID == status; }) == this->notifyList.end() ){
-			this->notifyList.push_back(info);
-			SendNotify();
-		}
+	NOTIFY_SRV_INFO info = {};
+	ConvertSystemTime(GetNowI64Time(), &info.time);
+	info.notifyID = status;
+	//“¯‚¶‚à‚Ì‚ª‚ ‚é‚Æ‚«‚Í’Ç‰Á‚µ‚È‚¢
+	if( std::find_if(this->notifyList.begin(), this->notifyList.end(),
+	                 [=](const NOTIFY_SRV_INFO& a) { return a.notifyID == status; }) == this->notifyList.end() ){
+		this->notifyList.push_back(info);
+		SendNotify();
 	}
 }
 
@@ -171,7 +168,7 @@ void CNotifyManager::SetNotifySrvStatus(DWORD status)
 	CBlockLock lock(&this->managerLock);
 
 	if( status != this->srvStatus ){
-		NOTIFY_SRV_INFO info;
+		NOTIFY_SRV_INFO info = {};
 		info.notifyID = NOTIFY_UPDATE_SRV_STATUS;
 		ConvertSystemTime(GetNowI64Time(), &info.time);
 		info.param1 = this->srvStatus = (status == 0xFFFFFFFF ? this->srvStatus : status);
@@ -185,20 +182,19 @@ void CNotifyManager::AddNotifyMsg(DWORD notifyID, wstring msg)
 {
 	CBlockLock lock(&this->managerLock);
 
-	{
-		NOTIFY_SRV_INFO info;
-		info.notifyID = notifyID;
-		ConvertSystemTime(GetNowI64Time(), &info.time);
-		info.param4 = msg;
+	NOTIFY_SRV_INFO info = {};
+	info.notifyID = notifyID;
+	ConvertSystemTime(GetNowI64Time(), &info.time);
+	info.param4 = msg;
 
-		this->notifyList.push_back(info);
-	}
+	this->notifyList.push_back(info);
 	SendNotify();
 }
 
 void CNotifyManager::SendNotify()
 {
 	if( this->notifyThread.joinable() == false ){
+		this->notifyStopFlag = false;
 		this->notifyThread = thread_(SendNotifyThread, this);
 	}
 	this->notifyEvent.Set();
@@ -206,7 +202,6 @@ void CNotifyManager::SendNotify()
 
 void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 {
-	bool wait1Sec = false;
 	bool waitNotify = false;
 	DWORD waitNotifyTick = 0;
 	for(;;){
@@ -214,20 +209,19 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 		vector<REGIST_TCP_INFO> registTCP;
 		NOTIFY_SRV_INFO notifyInfo;
 
-		if( wait1Sec ){
-			wait1Sec = false;
-			Sleep(1000);
+		DWORD wait = INFINITE;
+		if( waitNotify ){
+			wait = GetTickCount() - waitNotifyTick;
+			wait = (wait < 5000 ? 5000 - wait : 0);
 		}
-		if( WaitForSingleObject(sys->notifyEvent.Handle(), INFINITE) != WAIT_OBJECT_0 || sys->notifyStopFlag ){
+		WaitForSingleObject(sys->notifyEvent.Handle(), wait);
+		if( sys->notifyStopFlag ){
 			//ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚½
 			break;
 		}
 		//Œ»Ý‚Ìî•ñŽæ“¾
 		{
 			CBlockLock lock(&sys->managerLock);
-			if( sys->notifyList.empty() ){
-				continue;
-			}
 			registGUI = sys->GetRegistGUI();
 			for( size_t i = 0; i < sys->registGUIList.size(); ){
 				if( std::find(registGUI.begin(), registGUI.end(), sys->registGUIList[i].first) == registGUI.end() ){
@@ -239,15 +233,9 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 			}
 			registTCP = sys->GetRegistTCP();
 			if( waitNotify && GetTickCount() - waitNotifyTick < 5000 ){
-				vector<NOTIFY_SRV_INFO>::const_iterator itrNotify;
-				for( itrNotify = sys->notifyList.begin(); itrNotify != sys->notifyList.end(); itrNotify++ ){
-					if( itrNotify->notifyID <= 100 ){
-						break;
-					}
-				}
+				vector<NOTIFY_SRV_INFO>::const_iterator itrNotify = std::find_if(
+					sys->notifyList.begin(), sys->notifyList.end(), [](const NOTIFY_SRV_INFO& info) { return info.notifyID <= 100; });
 				if( itrNotify == sys->notifyList.end() ){
-					sys->notifyEvent.Set();
-					wait1Sec = true;
 					continue;
 				}
 				//NotifyID<=100‚Ì’Ê’m‚Í’x‰„‚³‚¹‚¸æ‚É‘—‚é
@@ -255,6 +243,9 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 				sys->notifyList.erase(itrNotify);
 			}else{
 				waitNotify = false;
+				if( sys->notifyList.empty() ){
+					continue;
+				}
 				notifyInfo = sys->notifyList[0];
 				sys->notifyList.erase(sys->notifyList.begin());
 				//NotifyID>100‚Ì’Ê’m‚Í’x‰„‚³‚¹‚é

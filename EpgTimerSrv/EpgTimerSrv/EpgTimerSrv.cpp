@@ -2,15 +2,14 @@
 //
 
 #include "stdafx.h"
-#include "EpgTimerSrv.h"
 #include "EpgTimerSrvMain.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/ServiceUtil.h"
 #include "../../Common/ThreadUtil.h"
-
 #include "../../Common/CommonDef.h"
-#include <WinSvc.h>
-#include <ObjBase.h>
+#include <winsvc.h>
+#include <objbase.h>
+#include <shellapi.h>
 
 namespace
 {
@@ -18,56 +17,47 @@ SERVICE_STATUS_HANDLE g_hStatusHandle;
 CEpgTimerSrvMain* g_pMain;
 FILE* g_debugLog;
 recursive_mutex_ g_debugLogLock;
-bool g_saveDebugLog;
 
-void StartDebugLog()
-{
-	if( GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0 ){
-		fs_path logPath = GetModulePath().replace_filename(L"EpgTimerSrvDebugLog.txt");
-		g_debugLog = shared_wfopen(logPath.c_str(), L"abN");
-		if( g_debugLog ){
-			_fseeki64(g_debugLog, 0, SEEK_END);
-			if( _ftelli64(g_debugLog) == 0 ){
-				fputwc(L'\xFEFF', g_debugLog);
-			}
-			g_saveDebugLog = true;
-			OutputDebugString(L"****** LOG START ******\r\n");
-		}
-	}
+//サービス動作用のメイン
+void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
 }
 
-void StopDebugLog()
-{
-	if( g_saveDebugLog ){
-		OutputDebugString(L"****** LOG STOP ******\r\n");
-		g_saveDebugLog = false;
-		fclose(g_debugLog);
-	}
-}
-}
-
+#ifdef USE_WINMAIN_A
+__declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+#else
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+#endif
 {
 	SetDllDirectory(L"");
 
-	WCHAR szTask[] = L"/task";
+	WCHAR option[16] = {};
+	int argc;
+	LPWSTR* argv = CommandLineToArgvW(GetCommandLine(), &argc);
+	if( argv ){
+		if( argc >= 2 ){
+			wcsncpy_s(option, argv[1], _TRUNCATE);
+		}
+		LocalFree(argv);
+	}
+
 	if( _wcsicmp(GetModulePath().stem().c_str(), L"EpgTimerTask") == 0 ){
 		//Taskモードを強制する
-		lpCmdLine = szTask;
+		wcscpy_s(option, L"/task");
 	}
-	if( lpCmdLine[0] == L'-' || lpCmdLine[0] == L'/' ){
-		if( _wcsicmp(L"install", lpCmdLine + 1) == 0 ){
+	if( option[0] == L'-' || option[0] == L'/' ){
+		if( _wcsicmp(L"install", option + 1) == 0 ){
 			return 0;
-		}else if( _wcsicmp(L"remove", lpCmdLine + 1) == 0 ){
+		}else if( _wcsicmp(L"remove", option + 1) == 0 ){
 			return 0;
-		}else if( _wcsicmp(L"setting", lpCmdLine + 1) == 0 ){
+		}else if( _wcsicmp(L"setting", option + 1) == 0 ){
 			//設定ダイアログを表示する
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 			CEpgTimerSrvSetting setting;
 			setting.ShowDialog();
 			CoUninitialize();
 			return 0;
-		}else if( _wcsicmp(L"task", lpCmdLine + 1) == 0 ){
+		}else if( _wcsicmp(L"task", option + 1) == 0 ){
 			//Taskモード
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 			CEpgTimerSrvMain::TaskMain();
@@ -82,7 +72,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
-				StartDebugLog();
+				SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
 				//メインスレッドに対するCOMの初期化
 				CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 				CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
@@ -91,7 +81,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 				}
 				delete pMain;
 				CoUninitialize();
-				StopDebugLog();
+				SetSaveDebugLog(false);
 			}
 			CloseHandle(hMutex);
 		}
@@ -100,7 +90,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
-				StartDebugLog();
+				SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
 				SERVICE_TABLE_ENTRY dispatchTable[] = {
 					{ SERVICE_NAME, service_main },
 					{ NULL, NULL }
@@ -108,29 +98,22 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 				if( StartServiceCtrlDispatcher(dispatchTable) == FALSE ){
 					OutputDebugString(L"_tWinMain(): StartServiceCtrlDispatcher failed\r\n");
 				}
-				StopDebugLog();
+				SetSaveDebugLog(false);
 			}
 			CloseHandle(hMutex);
-		}
-	}else{
-		//Stop状態なのでサービスの開始を要求
-		bool started = false;
-		SC_HANDLE hScm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
-		if( hScm != NULL ){
-			SC_HANDLE hSrv = OpenService(hScm, SERVICE_NAME, SERVICE_START);
-			if( hSrv != NULL ){
-				started = StartService(hSrv, 0, NULL) != FALSE;
-				CloseServiceHandle(hSrv);
-			}
-			CloseServiceHandle(hScm);
-		}
-		if( started == false ){
-			OutputDebugString(L"_tWinMain(): Failed to start\r\n");
 		}
 	}
 
 	return 0;
 }
+
+namespace
+{
+//サービスからのコマンドのコールバック
+DWORD WINAPI service_ctrl(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext);
+
+//サービスのステータス通知用
+void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD dwCheckPoint, DWORD dwWaitHint);
 
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 {
@@ -196,19 +179,42 @@ void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD d
 
 	SetServiceStatus(g_hStatusHandle, &ss);
 }
+}
 
 void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 {
-	if( g_saveDebugLog ){
+	{
 		//デバッグ出力ログ保存
 		CBlockLock lock(&g_debugLogLock);
-		SYSTEMTIME st;
-		GetLocalTime(&st);
-		fwprintf(g_debugLog, L"[%02d%02d%02d%02d%02d%02d.%03d] %s%s",
-		         st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-		         lpOutputString ? lpOutputString : L"",
-		         lpOutputString && lpOutputString[0] && lpOutputString[wcslen(lpOutputString) - 1] == L'\n' ? L"" : L"<NOBR>\r\n");
-		fflush(g_debugLog);
+		if( g_debugLog ){
+			SYSTEMTIME st;
+			GetLocalTime(&st);
+			fwprintf_s(g_debugLog, L"[%02d%02d%02d%02d%02d%02d.%03d] %s%s",
+			           st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
+			           lpOutputString ? lpOutputString : L"",
+			           lpOutputString && lpOutputString[0] && lpOutputString[wcslen(lpOutputString) - 1] == L'\n' ? L"" : L"<NOBR>\r\n");
+			fflush(g_debugLog);
+		}
 	}
 	OutputDebugStringW(lpOutputString);
+}
+
+void SetSaveDebugLog(bool saveDebugLog)
+{
+	CBlockLock lock(&g_debugLogLock);
+	if( g_debugLog == NULL && saveDebugLog ){
+		fs_path logPath = GetModulePath().replace_filename(L"EpgTimerSrvDebugLog.txt");
+		g_debugLog = shared_wfopen(logPath.c_str(), L"abN");
+		if( g_debugLog ){
+			_fseeki64(g_debugLog, 0, SEEK_END);
+			if( _ftelli64(g_debugLog) == 0 ){
+				fputwc(L'\xFEFF', g_debugLog);
+			}
+			OutputDebugString(L"****** LOG START ******\r\n");
+		}
+	}else if( g_debugLog && saveDebugLog == false ){
+		OutputDebugString(L"****** LOG STOP ******\r\n");
+		fclose(g_debugLog);
+		g_debugLog = NULL;
+	}
 }

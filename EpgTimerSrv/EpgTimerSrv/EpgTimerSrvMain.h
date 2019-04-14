@@ -60,7 +60,8 @@ private:
 	//外部制御コマンド関係
 	static void CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdParam, CMD_STREAM* resParam, bool tcpFlag);
 	bool CtrlCmdProcessCompatible(CMD_STREAM& cmdParam, CMD_STREAM& resParam);
-	void InitLuaCallback(lua_State* L);
+	void InitLuaCallback(lua_State* L, LPCSTR serverRandom);
+	void DoLuaBat(CBatManager::BAT_WORK_INFO& work, vector<char>& buff);
 	//Lua-edcb空間のコールバック
 	class CLuaWorkspace
 	{
@@ -91,6 +92,8 @@ private:
 	static int LuaEnumEventInfoArchive(lua_State* L);
 	static int LuaEnumEventInfoProc(lua_State* L, bool archive);
 	static int LuaSearchEpg(lua_State* L);
+	static int LuaSearchEpgArchive(lua_State* L);
+	static int LuaSearchEpgProc(lua_State* L, bool archive);
 	static int LuaAddReserveData(lua_State* L);
 	static int LuaChgReserveData(lua_State* L);
 	static int LuaDelReserveData(lua_State* L);
@@ -99,6 +102,7 @@ private:
 	static int LuaGetRecFileInfo(lua_State* L);
 	static int LuaGetRecFileInfoBasic(lua_State* L);
 	static int LuaGetRecFileInfoProc(lua_State* L, bool getExtraInfo);
+	static int LuaChgPathRecFileInfo(lua_State* L);
 	static int LuaChgProtectRecFileInfo(lua_State* L);
 	static int LuaDelRecFileInfo(lua_State* L);
 	static int LuaGetTunerReserveAll(lua_State* L);
@@ -111,6 +115,7 @@ private:
 	static int LuaGetNotifyUpdateCount(lua_State* L);
 	static int LuaFindFile(lua_State* L);
 	static int LuaOpenNetworkTV(lua_State* L);
+	static int LuaIsOpenNetworkTV(lua_State* L);
 	static int LuaCloseNetworkTV(lua_State* L);
 	static void PushEpgEventInfo(CLuaWorkspace& ws, const EPGDB_EVENT_INFO& e);
 	static void PushReserveData(CLuaWorkspace& ws, const RESERVE_DATA& r);
@@ -134,8 +139,10 @@ private:
 	mutable recursive_mutex_ autoAddLock;
 	mutable recursive_mutex_ settingLock;
 	HWND hwndMain;
+	HMODULE hLuaDll;
+	atomic_bool_ stoppingFlag;
 
-	bool residentFlag;
+	atomic_bool_ residentFlag;
 	CEpgTimerSrvSetting::SETTING setting;
 	unsigned short tcpPort;
 	bool tcpIPv6;
@@ -143,10 +150,11 @@ private:
 	wstring tcpAccessControlList;
 	CHttpServer::SERVER_OPTIONS httpOptions;
 	string httpServerRandom;
-	bool useSyoboi;
+	atomic_bool_ useSyoboi;
 	bool nwtvUdp;
 	bool nwtvTcp;
-	DWORD notifyUpdateCount[6];
+	atomic_int_ notifyUpdateCount[6];
+	DWORD compatFlags;
 
 	vector<EPGDB_EVENT_INFO> oldSearchList[2];
 };
