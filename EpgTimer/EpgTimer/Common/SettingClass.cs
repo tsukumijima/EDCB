@@ -158,7 +158,7 @@ namespace EpgTimer
                     ,"EpgDataCap_Bon.ini"
                     ,"BonCtrl.ini"
                     ,"ViewApp.ini" 
-                    //,"Bitrate.ini" //未使用
+                    ,"Bitrate.ini"
                     ,"ChSet5.txt"
                 };
             }
@@ -223,6 +223,10 @@ namespace EpgTimer
         public static string CommonIniPath
         {
             get { return IniPath.TrimEnd('\\') + "\\Common.ini"; }
+        }
+        public static string BitrateIniPath
+        {
+            get { return IniPath.TrimEnd('\\') + "\\Bitrate.ini"; }
         }
         public static string TimerSrvIniPath
         {

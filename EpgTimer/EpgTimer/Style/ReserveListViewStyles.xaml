@@ -103,6 +103,16 @@
                 <GridViewColumnHeader Content="使用予定チューナー" Uid="ReserveTuner" />
             </GridViewColumn.Header>
         </GridViewColumn>
+        <GridViewColumn>
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="予想サイズ" Uid="EstimatedRecSize" />
+            </GridViewColumn.Header>
+            <GridViewColumn.CellTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding EstimatedRecSize}" HorizontalAlignment="Right" />
+                </DataTemplate>
+            </GridViewColumn.CellTemplate>
+        </GridViewColumn>
     </my:GridViewColumnList>
     
     <my:GridViewColumnList x:Key="RecSettingViewColumns">
