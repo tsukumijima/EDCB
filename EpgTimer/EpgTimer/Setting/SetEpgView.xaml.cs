@@ -32,6 +32,7 @@ namespace EpgTimer.Setting
             if (CommonManager.Instance.NWMode == true)
             {
                 stackPanel_epgArchivePeriod.IsEnabled = false;
+                stackPanel_DropLogThresh.IsEnabled = false;
             }
 
             textBox_des_name.KeyDown += ViewUtil.KeyDown_Enter(btn_des_name);
@@ -139,6 +140,8 @@ namespace EpgTimer.Setting
             listBox_tab.SelectedIndex = 0;
 
             //録画済み一覧画面
+            textBox_DropSaveThresh.Text = IniFileHandler.GetPrivateProfileInt("SET", "DropSaveThresh", 0, SettingPath.EdcbIniPath).ToString();
+            textBox_ScrambleSaveThresh.Text = IniFileHandler.GetPrivateProfileInt("SET", "ScrambleSaveThresh", -1, SettingPath.EdcbIniPath).ToString();
             textBox_RecInfoDropExcept.Text = string.Join(", ", settings.RecInfoDropExcept);
 
             //予約一覧・共通画面
@@ -159,6 +162,8 @@ namespace EpgTimer.Setting
             settings.SetCustomEpgTabInfoID();
 
             //録画済み一覧画面
+            IniFileHandler.WritePrivateProfileString("SET", "DropSaveThresh", textBox_DropSaveThresh.Text, SettingPath.EdcbIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "ScrambleSaveThresh", textBox_ScrambleSaveThresh.Text, SettingPath.EdcbIniPath);
             settings.RecInfoDropExcept = textBox_RecInfoDropExcept.Text.Split(',')
                 .Where(s => string.IsNullOrWhiteSpace(s) == false).Select(s => s.Trim()).ToList();
             IsChangeRecInfoDropExcept = settings.RecInfoDropExcept.SequenceEqual(Settings.Instance.RecInfoDropExcept) == false;
