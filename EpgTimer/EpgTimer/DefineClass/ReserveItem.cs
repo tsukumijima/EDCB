@@ -124,6 +124,7 @@ namespace EpgTimer
 
             view += ConvertRecSettingText() + "\r\n";
             view += "使用予定チューナー : " + ReserveTuner + "\r\n";
+            view += "予想サイズ : " + EstimatedRecSize + "\r\n";
             view += "予約状況 : " + Comment + "\r\n";
             List<string> errs = ErrComment;
             view += "エラー状況 : " + (errs.Count == 0 ? "なし" : string.Join(" ", errs.Select(s => "＊" + s))) + "\r\n\r\n";
