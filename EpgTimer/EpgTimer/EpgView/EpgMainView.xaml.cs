@@ -199,7 +199,7 @@ namespace EpgTimer
                         }
 
                         //continueが途中にあるので登録はこの位置
-                        var viewItem = new ProgramViewItem(eventInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex };
+                        var viewItem = new ProgramViewItem(eventInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex, Filtered = viewData.EventFilteredHash.Contains(eventInfo.CurrentPgUID()) };
                         viewItem.DrawHours = eventInfo.start_time != LimitedStart(eventInfo);
                         programList[eventInfo.CurrentPgUID()] = viewItem;
                         programGroupList.Last().Data.Add(viewItem);

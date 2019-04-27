@@ -1627,11 +1627,14 @@ namespace EpgTimer
         public class EpgColorList
         {
             public List<Brush> ContentColorList { get; private set; }
+            public List<Brush> ContentFilteredColorList { get; private set; }
             public List<Brush> ResColorList { get; private set; }
             public List<Brush> ResFillColorList { get; private set; }
             public List<Brush> TimeColorList { get; private set; }
             public Brush TitleColor { get; private set; }
             public Brush NormalColor { get; private set; }
+            public Brush TitleFilteredColor { get; private set; }
+            public Brush NormalFilteredColor { get; private set; }
             public Brush ServiceBackColor { get; private set; }
             public Brush BackColor { get; private set; }
             public Brush BorderColor { get; private set; }
@@ -1646,6 +1649,7 @@ namespace EpgTimer
                 EpgSetting set = Instance.EpgSettingList[idx];
 
                 ContentColorList = new List<Brush>();
+                ContentFilteredColorList = new List<Brush>();
                 ResColorList = new List<Brush>();
                 ResFillColorList = new List<Brush>();
                 TimeColorList = new List<Brush>();
@@ -1654,7 +1658,9 @@ namespace EpgTimer
                 for (int i = 0; i < set.ContentColorList.Count; i++)
                 {
                     brush = BrushCache.CustColorBrush(set.ContentColorList[i], set.ContentCustColorList[i]);
-                    ContentColorList.Add(set.EpgGradation ? (Brush)ColorDef.GradientBrush(brush.Color) : brush);
+                    ContentColorList.Add(set.EpgGradation ? (Brush)BrushCache.CustGradientBrush(brush.Color) : brush);
+                    brush = BrushCache.CustColorBrush(set.ContentColorList[i], set.ContentCustColorList[i], 255, 50);
+                    ContentFilteredColorList.Add(set.EpgGradation ? (Brush)BrushCache.CustGradientBrush(brush.Color) : brush);
                 }
 
                 //0→50で塗りつぶしの不透明度が上がる
@@ -1670,11 +1676,13 @@ namespace EpgTimer
                 for (int i = 0; i < set.EpgEtcColors.Count; i++)
                 {
                     brush = BrushCache.CustColorBrush(set.EpgEtcColors[i], set.EpgEtcCustColors[i]);
-                    TimeColorList.Add(set.EpgGradationHeader ? (Brush)ColorDef.GradientBrush(brush.Color) : brush);
+                    TimeColorList.Add(set.EpgGradationHeader ? (Brush)BrushCache.CustGradientBrush(brush.Color) : brush);
                 }
 
                 TitleColor = BrushCache.CustColorBrush(set.TitleColor1, set.TitleCustColor1);
                 NormalColor = BrushCache.CustColorBrush(set.TitleColor2, set.TitleCustColor2);
+                TitleFilteredColor = BrushCache.CustColorBrush(set.TitleColor1, set.TitleCustColor1, 255, 70);
+                NormalFilteredColor = BrushCache.CustColorBrush(set.TitleColor2, set.TitleCustColor2, 255, 70);
                 brush = BrushCache.CustColorBrush(set.EpgEtcColors[4], set.EpgEtcCustColors[4]);
                 ServiceBackColor = set.EpgGradationHeader ? (Brush)ColorDef.GradientBrush(brush.Color, 1.0, 2.0) : brush;
                 BackColor = BrushCache.CustColorBrush(set.EpgEtcColors[5], set.EpgEtcCustColors[5]);
@@ -1730,6 +1738,7 @@ namespace EpgTimer
 
             //キャッシュ
             private Dictionary<uint, SolidColorBrush> SolidBrushCache = new Dictionary<uint, SolidColorBrush>();
+            private Dictionary<uint, LinearGradientBrush> GradientBrushCache = new Dictionary<uint, LinearGradientBrush>();
 
             //SettingsBrushCache()用のコンバートメソッド
             public SolidColorBrush CustColorBrush(string name, uint cust = 0, byte a = 0xFF, int opacity = 100)
@@ -1744,6 +1753,17 @@ namespace EpgTimer
                     brush = new SolidColorBrush(c);
                     brush.Freeze();
                     SolidBrushCache.Add(ColorDef.ToUInt(c), brush);
+                }
+                return brush;
+            }
+            public LinearGradientBrush CustGradientBrush(Color c)
+            {
+                LinearGradientBrush brush;
+                if (GradientBrushCache.TryGetValue(ColorDef.ToUInt(c), out brush) == false)
+                {
+                    brush = ColorDef.GradientBrush(c);
+                    brush.Freeze();
+                    GradientBrushCache.Add(ColorDef.ToUInt(c), brush);
                 }
                 return brush;
             }

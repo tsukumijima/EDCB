@@ -168,6 +168,7 @@ namespace EpgTimer
                 Pen borderPen = BorderPen(info);
                 if (borderPen != null) dc.DrawRectangle(null, borderPen, BorderPenRect(info));
                 Rect contentRect = ContentRect(info);
+                dc.DrawRectangle(Background, null, contentRect);
                 dc.DrawRectangle(info.BackColor, null, contentRect);
                 dc.PushClip(new RectangleGeometry(contentRect));
                 textDrawLists[i++].ForEach(item => dc.DrawGlyphRun(item.Item1, item.Item2));

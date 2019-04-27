@@ -47,6 +47,7 @@ namespace EpgTimer.EpgView
         public bool IsEpgLoaded { get; private set; }
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
         public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }
+        public HashSet<UInt64> EventFilteredHash { get; private set; }
 
         public int EpgSettingIndex { get; private set; }
         public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal { get; private set; }
@@ -92,22 +93,32 @@ namespace EpgTimer.EpgView
                     .Select(info => new EpgServiceEventInfo { serviceInfo = info.serviceInfo, eventList = info.eventMergeList.ToList() }).ToList();
 
                 EventUIDList = new Dictionary<ulong, EpgEventInfo>();
+                EventFilteredHash = new HashSet<ulong>();
                 var viewContentMatchingHash = new HashSet<UInt32>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
                 foreach (EpgServiceEventInfo item in ServiceEventList)
                 {
                     item.eventList = item.eventList.FindAll(eventInfo =>
+                    {
                         //開始時間未定を除外
-                        (eventInfo.StartTimeFlag != 0)
+                        bool ret = (eventInfo.StartTimeFlag != 0)
 
                         //自動登録されたりするので、サービス別番組表では表示させる
                         //&& (eventInfo.IsGroupMainEvent == true)
 
                         //表示抑制
-                        && (eventInfo.IsOver(newPeriod.Start) == false && eventInfo.PgStartTime < newPeriod.End)
+                        && (eventInfo.IsOver(newPeriod.Start) == false && eventInfo.PgStartTime < newPeriod.End);
+
+                        if (ret == false) return false;
 
                         //ジャンル絞り込み
-                        && (ViewUtil.ContainsContent(eventInfo, viewContentMatchingHash, EpgTabInfo.ViewNotContentFlag) == true)
-                    );
+                        bool filtered = !ViewUtil.ContainsContent(eventInfo, viewContentMatchingHash, EpgTabInfo.ViewNotContentFlag);
+                        if (EpgTabInfo.HighlightContentKind && filtered)
+                        {
+                            EventFilteredHash.Add(eventInfo.CurrentPgUID());
+                        }
+
+                        return EpgTabInfo.HighlightContentKind || !filtered;
+                    });
                     item.eventList.ForEach(data => EventUIDList[data.CurrentPgUID()] = data);
                 }
 

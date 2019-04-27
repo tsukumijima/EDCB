@@ -19,6 +19,7 @@ namespace EpgTimer
             NeedTimeOnlyWeek = false;
             StartTimeWeek = 4;
             SearchMode = false;
+            HighlightContentKind = true;
             SearchKey = new EpgSearchKeyInfo();
             SearchGenreNoSyncView = false;
             FilterEnded = false;
@@ -38,6 +39,7 @@ namespace EpgTimer
         public List<EpgContentData> ViewContentList { get; set; }
         public bool ViewNotContentFlag { get; set; }
         public bool SearchMode { get; set; }
+        public bool HighlightContentKind { get; set; }
         public EpgSearchKeyInfo SearchKey { get; set; }
         public bool SearchGenreNoSyncView { get; set; }
         public bool FilterEnded { get; set; }

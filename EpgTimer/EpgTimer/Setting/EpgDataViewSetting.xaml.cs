@@ -15,7 +15,6 @@ namespace EpgTimer
     {
         private CustomEpgTabInfo info { get { return DataContext as CustomEpgTabInfo; } }
         private EpgSearchKeyInfo searchKey = new EpgSearchKeyInfo();
-        private RadioBtnSelect viewModeRadioBtns;
 
         public EpgDataViewSetting()
         {
@@ -55,7 +54,7 @@ namespace EpgTimer
 
                 listBox_jyanru.ItemsSource = CommonManager.ContentKindList;
 
-                viewModeRadioBtns = new RadioBtnSelect(PanelDisplaySet);
+                RadioButtonTagConverter.SetBindingButtons(CommonUtil.NameOf(() => new CustomEpgTabInfo().ViewMode), PanelDisplaySet);
 
                 listBox_Button_Set();
                 listBox_serviceView_ContextMenu_Set();
@@ -79,7 +78,6 @@ namespace EpgTimer
 
             textBox_tabName.Text = setInfo.TabName;
             checkBox_isVisible.IsChecked = setInfo.IsVisible;
-            viewModeRadioBtns.Value = setInfo.ViewMode;
 
             setList = setList ?? Settings.Instance.EpgSettingList;
             cmb_design.SelectedValuePath = CommonUtil.NameOf(() => setList[0].ID);
@@ -100,7 +98,6 @@ namespace EpgTimer
         {
             info.TabName = textBox_tabName.IsEnabled == true ? textBox_tabName.Text : info.TabName;
             info.IsVisible = checkBox_isVisible.IsEnabled == true ? checkBox_isVisible.IsChecked == true : info.IsVisible;
-            info.ViewMode = viewModeRadioBtns.Value;
             if (cmb_design.SelectedIndex >= 0)
             {
                 info.EpgSettingIndex = cmb_design.SelectedIndex;

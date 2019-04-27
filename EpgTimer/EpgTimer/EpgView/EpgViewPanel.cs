@@ -37,8 +37,6 @@ namespace EpgTimer.EpgView
             double sizeNormal = this.EpgStyle().FontSize;
             double indentTitle = sizeMin * 1.7;
             double indentNormal = this.EpgStyle().EpgTitleIndent ? indentTitle : 0;
-            Brush colorTitle = this.EpgBrushCache().TitleColor;
-            Brush colorNormal = this.EpgBrushCache().NormalColor;
 
             foreach (ProgramViewItem info in Items)
             {
@@ -46,6 +44,8 @@ namespace EpgTimer.EpgView
                 textDrawLists.Add(textDrawList);
                 Rect drawRect = TextRenderRect(info);
                 info.TitleDrawErr = sizeTitle > drawRect.Height;
+                Brush colorTitle = info.Filtered ? this.EpgBrushCache().TitleFilteredColor : this.EpgBrushCache().TitleColor;
+                Brush colorNormal = info.Filtered ? this.EpgBrushCache().NormalFilteredColor : this.EpgBrushCache().NormalColor;
 
                 //分
                 string min = info.Data.StartTimeFlag == 0 ? "？" : info.Data.start_time.ToString(info.DrawHours ? "HH\\:mm" : "mm");

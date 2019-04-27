@@ -20,15 +20,15 @@
                 </DockPanel>
                 <Label Margin="50,0,0,0" Content="※半角アンダーバー'__'でアクセスキーが設定出来ます。文字として'__'を使用したいときは、'__'を2つ続けてください。" IsEnabled="{Binding IsEnabled, ElementName=checkBox_isVisible}" />
                 <Label Content="初期表示モード" Margin="0,6,0,0" />
-                <RadioButton Content="標準モード" Margin="14,6,0,0" />
+                <RadioButton Content="標準モード" Margin="14,6,0,0" Tag="0" />
                 <CheckBox Content="番組のない時間帯は表示しない" Margin="28,6,0,0" IsChecked="{Binding NeedTimeOnlyBasic}" />
-                <RadioButton Content="1週間モード" Margin="14,12,0,0" />
+                <RadioButton Content="1週間モード" Margin="14,12,0,0" Tag="1" />
                 <CheckBox Content="番組のない時間帯は表示しない" Margin="28,6,0,0" IsChecked="{Binding NeedTimeOnlyWeek}" />
                 <StackPanel Orientation="Horizontal" Margin="28,6,0,0" >
                     <Label Content="表示開始時刻" />
                     <ComboBox Margin="6,0,0,0" MinWidth="54" Name="comboBox_timeH_week" SelectedIndex="{Binding StartTimeWeek}" />
                 </StackPanel>
-                <RadioButton Content="リスト表示モード" Margin="14,12,0,0" />
+                <RadioButton Content="リスト表示モード" Margin="14,12,0,0" Tag="2" />
                 <CheckBox Content="終了済みの番組は表示しない" Margin="28,6,0,0" IsChecked="{Binding FilterEnded}" />
                 <Label Content="デザイン" Margin="0,12,0,0" />
                 <ComboBox Margin="28,6,0,0" Width="140" Name="cmb_design" HorizontalAlignment="Left"/>
@@ -181,6 +181,8 @@
                                 <RowDefinition Height="auto" />
                                 <RowDefinition Height="6" />
                                 <RowDefinition Height="*" />
+                                <RowDefinition Height="6" />
+                                <RowDefinition Height="auto" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="5*" />
@@ -203,6 +205,7 @@
                             </StackPanel>
                             <Label Grid.Column="4" Content="ジャンル等一覧" />
                             <ListBox Grid.Column="4" Grid.Row="2" Name="listBox_jyanru" SelectionMode="Extended" />
+                            <CheckBox Grid.Row="4" Grid.ColumnSpan="5" Content="表示ジャンルの番組を強調表示する (表示ジャンル以外を薄くする)" IsChecked="{Binding HighlightContentKind}" ToolTip="未チェック時は表示ジャンル以外を非表示にします。&#10;※なお「検索による絞り込み」条件内のジャンル絞り込みでは、表示ジャンル以外は常に非表示になります。"/>
                         </Grid>
                     </TabItem>
                 </TabControl>

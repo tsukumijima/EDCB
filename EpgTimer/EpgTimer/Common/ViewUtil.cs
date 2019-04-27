@@ -46,16 +46,16 @@ namespace EpgTimer
             return (mode == 0 ? Math.Floor : mode == 1 ? Math.Round : (Func<double, double>)Math.Ceiling)(v * m) / m;
         }
 
-        public static Brush EpgDataContentBrush(EpgEventInfo EventInfo, int EpgSettingIndex = 0)
+        public static Brush EpgDataContentBrush(EpgEventInfo EventInfo, int EpgSettingIndex = 0, bool filtered = false)
         {
             if (EventInfo == null) return null;
 
             var nibbleList = (EventInfo.ContentInfo ?? new EpgContentInfo()).nibbleList;
-            return EpgDataContentBrush(nibbleList, EpgSettingIndex);
+            return EpgDataContentBrush(nibbleList, EpgSettingIndex, filtered);
         }
-        public static Brush EpgDataContentBrush(List<EpgContentData> nibbleList, int EpgSettingIndex = 0)
+        public static Brush EpgDataContentBrush(List<EpgContentData> nibbleList, int EpgSettingIndex = 0, bool filtered = false)
         {
-            List<Brush> colorList = Settings.BrushCache.Epg[EpgSettingIndex].ContentColorList;
+            List<Brush> colorList = filtered ? Settings.BrushCache.Epg[EpgSettingIndex].ContentFilteredColorList : Settings.BrushCache.Epg[EpgSettingIndex].ContentColorList;
             if (nibbleList != null)
             {
                 //0x0C,0D(将来用)は、設定UIは無いが色設定データ自体はあるので他と同様に扱う。

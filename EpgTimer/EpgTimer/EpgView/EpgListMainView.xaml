@@ -62,6 +62,7 @@
                 <ListView.Resources>
                     <Style TargetType="ListViewItem" BasedOn="{StaticResource DataListItemStyle}" >
                         <Setter Property="ToolTip" Value="{x:Null}" />
+                        <Setter Property="Opacity" Value="{Binding Opacity}" />
                     </Style>
                 </ListView.Resources>
                 <ListView.View>

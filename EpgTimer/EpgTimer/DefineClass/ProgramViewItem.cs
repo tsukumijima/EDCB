@@ -23,6 +23,7 @@ namespace EpgTimer
         public PanelItem(object info) { Data = info; }
         public object Data { get; protected set; }
         public bool TitleDrawErr { get; set; }
+        public bool Filtered { get; set; }
         public int EpgSettingIndex { get; set; }
         public int ViewMode { get; set; }
         public virtual Brush BackColor { get { return null; } }
@@ -55,7 +56,7 @@ namespace EpgTimer
     {
         public ProgramViewItem(EpgEventInfo info) : base(info) { }
         public bool DrawHours { get; set; }
-        public override Brush BackColor { get { return ViewUtil.EpgDataContentBrush(Data, EpgSettingIndex); } }
+        public override Brush BackColor { get { return ViewUtil.EpgDataContentBrush(Data, EpgSettingIndex, Filtered); } }
         public override Brush BorderBrush { get { return this.EpgBrushCache().BorderColor; } }
     }
 }

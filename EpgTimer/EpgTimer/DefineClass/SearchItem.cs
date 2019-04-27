@@ -11,6 +11,7 @@ namespace EpgTimer
         public virtual EpgEventInfo EventInfo { get { return eventInfo; } set { eventInfo = value; } }
         public ReserveData ReserveInfo { get; set; }
         public int EpgSettingIndex { get; set; }
+        public bool Filtered { get; set; }
 
         public SearchItem() { }
         public SearchItem(EpgEventInfo item) { eventInfo = item; }
@@ -369,6 +370,10 @@ namespace EpgTimer
                 //
                 return Settings.BrushCache.RecModeForeColor[ReserveInfo.RecSetting.RecMode];
             }
+        }
+        public double Opacity
+        {
+            get { return Filtered ? 0.7 : 1.0; }
         }
         public override Brush BackColor
         {

@@ -128,7 +128,7 @@ namespace EpgTimer
                 serviceEventList[idx].eventList.ForEach(eventInfo =>
                 {
                     //無いはずだが、ToDictionary()にせず、一応保険。
-                    programList[eventInfo.CurrentPgUID()] = new ProgramViewItem(eventInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex };
+                    programList[eventInfo.CurrentPgUID()] = new ProgramViewItem(eventInfo) { EpgSettingIndex = viewInfo.EpgSettingIndex, Filtered = viewData.EventFilteredHash.Contains(eventInfo.CurrentPgUID()) };
                 });
 
                 //日付リスト構築
