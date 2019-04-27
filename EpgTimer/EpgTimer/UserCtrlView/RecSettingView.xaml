@@ -37,9 +37,9 @@
                     <Label Content="終了" HorizontalAlignment="Left" Margin="359,54,0,0" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
                     <TextBox HorizontalAlignment="Left" Margin="399,56,0,0" Name="textBox_margineEnd" VerticalAlignment="Top" Width="57" Text="0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />
                     <Label Content="指定サービス対象データ" HorizontalAlignment="Left" Margin="0,81,0,0" VerticalAlignment="Top" />
-                    <CheckBox Content="デフォルト" HorizontalAlignment="Left" Margin="154,86,0,0" Name="checkBox_serviceMode" VerticalAlignment="Top" Checked="checkBox_serviceMode_Checked" Unchecked="checkBox_serviceMode_Checked" />
-                    <CheckBox Content="字幕を含める" HorizontalAlignment="Left" Margin="254,86,0,0" Name="checkBox_serviceCaption" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
-                    <CheckBox Content="データカルーセルを含める" HorizontalAlignment="Left" Margin="364,86,0,0" Name="checkBox_serviceData" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
+                    <CheckBox Content="デフォルト" Margin="154,86,0,0" Name="checkBox_serviceMode" VerticalAlignment="Top" Checked="checkBox_serviceMode_Checked" Unchecked="checkBox_serviceMode_Checked" />
+                    <CheckBox Content="字幕を含める" Margin="254,86,0,0" Name="checkBox_serviceCaption" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
+                    <CheckBox Content="データカルーセルを含める" Margin="364,86,0,0" Name="checkBox_serviceData" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_serviceMode, Converter={StaticResource invert}}" />
                 </Grid>
                 <DockPanel Grid.Row="1" Margin="0,4" Panel.ZIndex="1">
                     <StackPanel DockPanel.Dock="Right" Margin="6,0,0,0" Width="44" >

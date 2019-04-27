@@ -44,7 +44,7 @@
                                         <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,6,0,0" Name="comboBox_fontTitle" Text="{Binding FontNameTitle}" VerticalAlignment="Top" Width="203" ToolTip="カンマ区切りで英字フォント+日本語フォントのようなフォントフォールバックの指定が出来ます。&#10;　(例)Times New Roman, MS UI Gothic"/>
                                         <Label Content="サイズ" HorizontalAlignment="Left" Margin="374,6,0,0" VerticalAlignment="Top" />
                                         <TextBox Height="24" HorizontalAlignment="Left" Margin="426,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeTitle, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
-                                        <CheckBox Content="太字" HorizontalAlignment="Left" Margin="471,11,0,0" IsChecked="{Binding FontBoldTitle}" VerticalAlignment="Top" />
+                                        <CheckBox Content="太字" Margin="471,11,0,0" IsChecked="{Binding FontBoldTitle}" VerticalAlignment="Top" />
                                         <Label Content="タイトル以外" HorizontalAlignment="Left" Margin="6,36,0,0" VerticalAlignment="Top" />
                                         <Label Content="フォント" HorizontalAlignment="Left" Margin="84,36,0,0" VerticalAlignment="Top" />
                                         <ComboBox Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="155,36,0,0" Text="{Binding FontName}" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" VerticalAlignment="Top" Width="203" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}" />
@@ -63,10 +63,10 @@
                                 <Grid>
                                     <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding ScrollSize}" VerticalAlignment="Top" Width="55" />
-                                    <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding MouseScrollAuto}" VerticalAlignment="Top" />
+                                    <CheckBox Content="自動" Margin="226,11,0,0" IsChecked="{Binding MouseScrollAuto}" VerticalAlignment="Top" />
                                     <Label Content="サービス１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding ServiceWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
-                                    <CheckBox Content="ツールチップ" HorizontalAlignment="Left" Margin="226,41,0,0" IsChecked="{Binding EpgServiceNameTooltip}" VerticalAlignment="Top" ToolTip="サービス名をツールチップに表示します"/>
+                                    <CheckBox Content="ツールチップ" Margin="226,41,0,0" IsChecked="{Binding EpgServiceNameTooltip}" VerticalAlignment="Top" ToolTip="サービス名をツールチップに表示します"/>
                                     <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding MinHeight, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
                                     <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
@@ -446,10 +446,10 @@
                             <Grid>
                                 <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding TunerScrollSize}" VerticalAlignment="Top" Width="55" />
-                                <CheckBox Content="自動" HorizontalAlignment="Left" Margin="226,11,0,0" IsChecked="{Binding TunerMouseScrollAuto}" VerticalAlignment="Top" />
+                                <CheckBox Content="自動" Margin="226,11,0,0" IsChecked="{Binding TunerMouseScrollAuto}" VerticalAlignment="Top" />
                                 <Label Content="チューナー１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding TunerWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
-                                <CheckBox Content="ツールチップ" HorizontalAlignment="Left" Margin="226,41,0,0" IsChecked="{Binding TunerNameTooltip}" VerticalAlignment="Top" ToolTip="チューナー名をツールチップに表示します"/>
+                                <CheckBox Content="ツールチップ" Margin="226,41,0,0" IsChecked="{Binding TunerNameTooltip}" VerticalAlignment="Top" ToolTip="チューナー名をツールチップに表示します"/>
                                 <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding TunerMinHeight, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" VerticalAlignment="Top" />
@@ -729,7 +729,7 @@
                                     <ComboBox Style="{x:Null}" Height="24" HorizontalAlignment="Left" IsEditable="True" Margin="60,6,0,0" Text="{Binding FontNameListView}" VerticalAlignment="Top" Width="240" ItemsSource="{Binding ItemsSource, ElementName=comboBox_fontTitle}" ToolTip="{Binding ToolTip, ElementName=comboBox_fontTitle}"/>
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="316,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="368,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeListView, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
-                                    <CheckBox Content="太字" HorizontalAlignment="Left" Margin="413,11,0,0" IsChecked="{Binding FontBoldListView}" VerticalAlignment="Top" />
+                                    <CheckBox Content="太字" Margin="413,11,0,0" IsChecked="{Binding FontBoldListView}" VerticalAlignment="Top" />
                                 </Grid>
                                 <Grid Margin="488,0,0,0">
                                     <ComboBox Margin="0,6,0,0" Name="cmb_ListDefFontColor" />
