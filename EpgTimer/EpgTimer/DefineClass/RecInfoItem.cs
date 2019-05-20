@@ -31,11 +31,11 @@ namespace EpgTimer
         {
             get { return RecInfo.ServiceName; }
         }
-        public string ProgramDuration
+        public string Duration
         {
             get { return CommonManager.ConvertDurationText(RecInfo.DurationSecond, Settings.Instance.RecInfoNoDurSecond); }
         }
-        public UInt32 ProgramDurationValue
+        public UInt32 DurationValue
         {
             get { return RecInfo.DurationSecond; }
         }

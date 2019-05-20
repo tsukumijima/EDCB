@@ -34,11 +34,11 @@
                     </GridViewColumn>
                     <GridViewColumn>
                         <GridViewColumn.Header>
-                            <GridViewColumnHeader Content="長さ" Uid="ProgramDuration" />
+                            <GridViewColumnHeader Content="長さ" Uid="Duration" />
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding ProgramDuration}" HorizontalAlignment="Right" />
+                                <TextBlock Text="{Binding Duration}" HorizontalAlignment="Right" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

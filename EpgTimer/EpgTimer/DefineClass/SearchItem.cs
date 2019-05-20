@@ -82,7 +82,7 @@ namespace EpgTimer
         /// <summary>
         /// 番組長
         /// </summary>
-        public virtual string ProgramDuration
+        public virtual string Duration
         {
             get
             {
@@ -92,7 +92,7 @@ namespace EpgTimer
                 return CommonManager.ConvertDurationText(EventInfo.durationSec, Settings.Instance.ResInfoNoDurSecond);
             }
         }
-        public virtual UInt32 ProgramDurationValue
+        public virtual UInt32 DurationValue
         {
             get
             {

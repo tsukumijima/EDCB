@@ -89,7 +89,7 @@ namespace EpgTimer
                 return CommonManager.ConvertTimeText(ReserveInfo.StartTime, ReserveInfo.DurationSecond, true, true);
             }
         }
-        public override string ProgramDuration
+        public override string Duration
         {
             get
             {
@@ -102,7 +102,7 @@ namespace EpgTimer
         {
             return CommonManager.ConvertDurationText(durationSecond, Settings.Instance.ResInfoNoDurSecond);
         }
-        public override UInt32 ProgramDurationValue
+        public override UInt32 DurationValue
         {
             get
             {

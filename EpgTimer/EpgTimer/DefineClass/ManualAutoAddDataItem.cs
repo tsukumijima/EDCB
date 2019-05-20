@@ -64,11 +64,11 @@ namespace EpgTimer
         {
             get { return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, true, true, true); }
         }
-        public string ProgramDuration
+        public string Duration
         {
             get { return CommonManager.ConvertDurationText(ManualAutoAddInfo.PgDurationSecond, Settings.Instance.ResInfoNoDurSecond); }
         }
-        public UInt32 ProgramDurationValue
+        public UInt32 DurationValue
         {
             get { return ManualAutoAddInfo.PgDurationSecond; }
         }

@@ -457,9 +457,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20170512、20170717、20190217、20190321
+        //ver履歴 20170512、20170717、20190217、20190321、20190520
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20190321; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20190520; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -1105,70 +1105,8 @@ namespace EpgTimer
             Instance.SetCustomEpgTabInfoID();
             Instance.SearchPresetList.FixUp();
 
-            //互換用コード。番組表ごとのデザイン対応
-            if (Instance.verSaved < 20190321)
-            {
-                try
-                {
-                    Instance.EpgSettingList.Clear();//一応クリア
-                    var xdr = System.Xml.Linq.XDocument.Load(path).Root;
-                    for (int i = 0; i < 3; i++)
-                    {
-                        var xe = i == 0 ? xdr : xdr.Element("EpgSetting" + i.ToString());
-                        if (xe == null) continue;
-                        Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
-                        Instance.EpgSettingList.Last().ID = i;
-                    }
-                }
-                catch { }
-            }
-            //互換用コード。録画結果へジャンプ対応
-            if (Instance.verSaved < 20190217)
-            {
-                //全体メニューのみ番組表へジャンプと同じ設定で追加する。個別設定はさわらない。
-                MenuSettingData.CmdSaveData data = Instance.MenuSet.EasyMenuItems.FirstOrDefault(item => item.Name == EpgCmds.JumpReserve.Name);
-                if (data != null)
-                {
-                    data = data.DeepClone();
-                    data.Name = EpgCmds.JumpRecInfo.Name;
-                    Instance.MenuSet.EasyMenuItems.Add(data);
-                }
-            }
-
-            //互換用コード。検索プリセット対応。DefSearchKeyの吸収があるので旧CS仮対応コードより前。
-            if (Instance.verSaved < 20170717)
-            {
-                Instance.SearchPresetList[0].Data = Instance.DefSearchKey;
-            }
-
-            if (Instance.verSaved < 20170512)
-            {
-                //互換用コード。旧CS仮対応コード(+0x70)も変換する。
-                foreach (var info in Instance.CustomEpgTabList)
-                {
-                    info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
-                    EpgContentData.FixNibble(info.ViewContentList);
-                    EpgContentData.FixNibble(info.SearchKey.contentList);
-                    info.ViewContentKindList = null;
-                }
-                EpgContentData.FixNibble(Instance.SearchPresetList[0].Data.contentList);
-
-                //互換用コード。カラム名の変更追従。
-                var objk = new EpgAutoDataItem();
-                Instance.AutoAddEpgColumn.ForEach(c =>
-                {
-                    if (c.Tag == "AndKey") c.Tag = CommonUtil.NameOf(() => objk.EventName);
-                    else if (c.Tag == "NetworkKey") c.Tag = CommonUtil.NameOf(() => objk.NetworkName);
-                    else if (c.Tag == "ServiceKey") c.Tag = CommonUtil.NameOf(() => objk.ServiceName);
-                });
-                var objm = new ManualAutoAddDataItem();
-                Instance.AutoAddManualColumn.ForEach(c =>
-                {
-                    if (c.Tag == "Title") c.Tag = CommonUtil.NameOf(() => objm.EventName);
-                    else if (c.Tag == "Time") c.Tag = CommonUtil.NameOf(() => objm.StartTime);
-                    else if (c.Tag == "StationName") c.Tag = CommonUtil.NameOf(() => objm.ServiceName);
-                });
-            }
+            //互換チェック
+            CompatibilityCheck();
 
             //色設定関係
             Instance.SetColorSetting();
@@ -1228,6 +1166,85 @@ namespace EpgTimer
             {
                 Instance.RecInfoDropExcept = RecInfoDropExceptDefault.ToList();
             }
+        }
+
+        private static void CompatibilityCheck()
+        {
+            //最新
+            if (Instance.verSaved >= 20190520) return;
+
+            //各画面「長さ」のカラム名のフォーク元追従。
+            Action<string, List<ListColumnInfo>> ReplaceDuration = 
+                (newS, lst) => lst.ForEach(c => { if (c.Tag == "ProgramDuration") c.Tag = newS; });
+            var objs = new SearchItem();
+            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.ReserveListColumn);
+            ReplaceDuration(CommonUtil.NameOf(() => new RecInfoItem().Duration), Instance.RecInfoListColumn);
+            ReplaceDuration(CommonUtil.NameOf(() => new ManualAutoAddDataItem().Duration), Instance.AutoAddManualColumn);
+            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.EpgListColumn);
+            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.SearchWndColumn);
+            ReplaceDuration(CommonUtil.NameOf(() => new InfoSearchItem().Duration), Instance.InfoSearchWndColumn);
+
+            if (Instance.verSaved >= 20190321) return;
+
+            //番組表ごとのデザイン対応
+            try
+            {
+                Instance.EpgSettingList.Clear();//一応クリア
+                var xdr = System.Xml.Linq.XDocument.Load(GetSettingPath()).Root;
+                for (int i = 0; i < 3; i++)
+                {
+                    var xe = i == 0 ? xdr : xdr.Element("EpgSetting" + i.ToString());
+                    if (xe == null) continue;
+                    Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
+                    Instance.EpgSettingList.Last().ID = i;
+                }
+            }
+            catch { }
+
+            if (Instance.verSaved >= 20190217) return;
+
+            //録画結果へジャンプ対応
+            //全体メニューのみ番組表へジャンプと同じ設定で追加する。個別設定はさわらない。
+            MenuSettingData.CmdSaveData data = Instance.MenuSet.EasyMenuItems.FirstOrDefault(item => item.Name == EpgCmds.JumpReserve.Name);
+            if (data != null)
+            {
+                data = data.DeepClone();
+                data.Name = EpgCmds.JumpRecInfo.Name;
+                Instance.MenuSet.EasyMenuItems.Add(data);
+            }
+
+            if (Instance.verSaved >= 20170717) return;
+
+            //検索プリセット対応。DefSearchKeyの吸収があるので旧CS仮対応コードより前。
+            Instance.SearchPresetList[0].Data = Instance.DefSearchKey;
+
+            if (Instance.verSaved >= 20170512) return;
+
+            //旧CS仮対応コード(+0x70)も変換する。
+            foreach (var info in Instance.CustomEpgTabList)
+            {
+                info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
+                EpgContentData.FixNibble(info.ViewContentList);
+                EpgContentData.FixNibble(info.SearchKey.contentList);
+                info.ViewContentKindList = null;
+            }
+            EpgContentData.FixNibble(Instance.SearchPresetList[0].Data.contentList);
+
+            //互換用コード。カラム名の変更追従。
+            var objk = new EpgAutoDataItem();
+            Instance.AutoAddEpgColumn.ForEach(c =>
+            {
+                if (c.Tag == "AndKey") c.Tag = CommonUtil.NameOf(() => objk.EventName);
+                else if (c.Tag == "NetworkKey") c.Tag = CommonUtil.NameOf(() => objk.NetworkName);
+                else if (c.Tag == "ServiceKey") c.Tag = CommonUtil.NameOf(() => objk.ServiceName);
+            });
+            var objm = new ManualAutoAddDataItem();
+            Instance.AutoAddManualColumn.ForEach(c =>
+            {
+                if (c.Tag == "Title") c.Tag = CommonUtil.NameOf(() => objm.EventName);
+                else if (c.Tag == "Time") c.Tag = CommonUtil.NameOf(() => objm.StartTime);
+                else if (c.Tag == "StationName") c.Tag = CommonUtil.NameOf(() => objm.ServiceName);
+            });
         }
 
         /// <summary>設定ファイルセーブ関数</summary>
@@ -1475,7 +1492,7 @@ namespace EpgTimer
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Status) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
-                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ProgramDuration) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
@@ -1491,7 +1508,7 @@ namespace EpgTimer
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ViewItemName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Status) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
-                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ProgramDuration) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },

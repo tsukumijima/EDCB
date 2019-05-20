@@ -88,20 +88,20 @@ namespace EpgTimer
                 else                                        return long.MaxValue;
             }
         }
-        public string ProgramDuration
+        public string Duration
         {
             get
             {
-                if      (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).ProgramDuration;
+                if      (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).Duration;
                 else if (Data is IBasicPgInfo)              return ReserveItem.GetDurationStringReserveStyle(((IBasicPgInfo)Data).PgDurationSecond);
                 else                                        return "";
             }
         }
-        public UInt32 ProgramDurationValue
+        public UInt32 DurationValue
         {
             get
             {
-                if      (Data is EpgAutoAddData)            return new ReserveItem (((EpgAutoAddData)Data).GetNextReserve()).ProgramDurationValue;
+                if      (Data is EpgAutoAddData)            return new ReserveItem (((EpgAutoAddData)Data).GetNextReserve()).DurationValue;
                 else if (Data is IBasicPgInfo)              return ((IBasicPgInfo)Data).PgDurationSecond;
                 else                                        return UInt32.MaxValue;
             }
