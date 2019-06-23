@@ -42,7 +42,7 @@
                 </StackPanel>
             </Border>
             <StackPanel Orientation="Horizontal">
-                <Button Name="button_Panel" Margin="10,0,0,0" Content="↓" Padding="0" Width="14" VerticalAlignment="Stretch" />
+                <Button Name="button_Panel" Margin="10,0,0,0" Content="↓" Padding="0" Width="14" VerticalAlignment="Stretch" ToolTip="検索期間設定ツールバーの表示/非表示を切替え" />
                 <Button Content="検索" Margin="10,0,0,0" Name="button_search" MinWidth="42" />
                 <Button Content="予約" Margin="20,0,0,0" Name="button_add_reserve" MinWidth="42" />
                 <Button Content="予約全削除" Margin="6,0,0,0" Name="button_delall_reserve" MinWidth="42" />

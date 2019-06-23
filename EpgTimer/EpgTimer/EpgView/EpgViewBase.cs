@@ -346,8 +346,7 @@ namespace EpgTimer.EpgView
         }
         protected virtual void RefreshMoveButtonStatus()
         {
-            buttonNow.Content = IsDataDefPeriod ? "現在" : "初期\r\n表示";
-            buttonNow.ToolTip = IsDataDefPeriod ? "現在時刻へスクロール" : DefPeriod.DefPeriod.ConvertText(DefPeriod.DefPeriod.End);
+            buttonNow.ToolTip = (IsDataDefPeriod ? null : "番組表を元に戻して、") + "現在時刻へスクロール";
             buttonNow.Tag = IsDataDefPeriod ? null : "jump";
 
             movePanel.SetButtonEnabled(
