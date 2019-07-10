@@ -80,7 +80,7 @@ namespace EpgTimer.EpgView
         {
             ProgramViewItem popInfo = GetProgramViewData(cursorPos);
             ReserveViewItem lastPopInfoRes = popInfoRes;
-            popInfoRes = GetReserveViewData(cursorPos);
+            popInfoRes = GetReserveViewData(cursorPos).FirstOrDefault();
 
             if (this.EpgStyle().EpgPopupMode == 2 && popInfoRes == null && (
                 onClick == false && !(lastPopInfoRes == null && popInfo == lastPopInfo) ||
@@ -123,9 +123,9 @@ namespace EpgTimer.EpgView
                 this.EpgStyle().EpgExtInfoTooltip == true ? EventInfoTextMode.All : EventInfoTextMode.BasicText));
         }
 
-        public ReserveViewItem GetReserveViewData(Point cursorPos)
+        public IEnumerable<ReserveViewItem> GetReserveViewData(Point cursorPos)
         {
-            return canvas.Children.OfType<Rectangle>().Select(rs => rs.Tag).OfType<ReserveViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
+            return canvas.Children.OfType<Rectangle>().Select(rs => rs.Tag).OfType<ReserveViewItem>().Where(pg => pg.IsPicked(cursorPos)).Reverse();
         }
         public ProgramViewItem GetProgramViewData(Point cursorPos)
         {
@@ -165,8 +165,20 @@ namespace EpgTimer.EpgView
                     return rect;
                 });
 
-                foreach (ReserveViewItem info in reserveList)
+                var sortList = reserveList.ToList();
+                sortList.Sort((a, b) => Math.Sign(a.LeftPos - b.LeftPos) * 2 + Math.Sign((int)a.Data.CurrentPgUID() - (int)b.Data.CurrentPgUID()));
+                for (int i = 1; i < sortList.Count; i++)
                 {
+                    ReserveViewItem info = sortList[i];
+                    for (int j = i - 1; j >= 0 && sortList[j].LeftPos == info.LeftPos; j--)
+                    {
+                        //ほかの枠を完全に覆ってしまう場合は少しだけ縮める
+                        if (18 <= sortList[j].Width && sortList[j].Width <= info.Width &&
+                            info.TopPos <= sortList[j].TopPos && sortList[j].TopPos + sortList[j].Height <= info.TopPos + info.Height)
+                        {
+                            info.Width = sortList[j].Width - 6;
+                        }
+                    }
                     var rect = AddRect(info, 10, info);
                     var fillOnlyRect = this.EpgStyle().ReserveRectFillWithShadow ? null : AddRect(info, 9, null);
                     SetReserveBorderColor(info, rect, fillOnlyRect);

@@ -37,7 +37,7 @@ namespace EpgTimer.EpgView
             base.InitCommand();
 
             //コマンド集の初期化の続き
-            mc.SetFuncGetDataList(isAll => isAll == true ? dataItemList.GetDataList() : dataItemList.GetHitDataList(clickPos));
+            mc.SetFuncGetDataList(isAll => isAll == true ? dataItemList.GetDataList() : programView.GetReserveViewData(clickPos).GetDataList());
             mc.SetFuncGetEpgEventList(() => 
             {
                 ProgramViewItem hitItem = programView.GetProgramViewData(clickPos);
