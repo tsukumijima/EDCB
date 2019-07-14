@@ -165,16 +165,16 @@ namespace EpgTimer.EpgView
                     return rect;
                 });
 
-                var sortList = reserveList.ToList();
-                sortList.Sort((a, b) => Math.Sign(a.LeftPos - b.LeftPos) * 2 + Math.Sign((int)a.Data.CurrentPgUID() - (int)b.Data.CurrentPgUID()));
+                var sortList = reserveList.OrderBy(r => unchecked((ulong)r.LeftPos) << 32 | r.Data.ReserveID).ToList();
                 for (int i = 1; i < sortList.Count; i++)
                 {
                     ReserveViewItem info = sortList[i];
                     for (int j = i - 1; j >= 0 && sortList[j].LeftPos == info.LeftPos; j--)
                     {
-                        //ほかの枠を完全に覆ってしまう場合は少しだけ縮める
-                        if (18 <= sortList[j].Width && sortList[j].Width <= info.Width &&
-                            info.TopPos <= sortList[j].TopPos && sortList[j].TopPos + sortList[j].Height <= info.TopPos + info.Height)
+                        //ほかの枠を覆ってしまう場合は少しだけ縮める。判定には若干余裕を持たせる。
+                        if (18 <= sortList[j].Width && sortList[j].Width <= info.Width
+                            && sortList[j].TopPos - info.TopPos >= -3
+                            && info.TopPos + info.Height - (sortList[j].TopPos + sortList[j].Height) >= -3)
                         {
                             info.Width = sortList[j].Width - 6;
                         }
