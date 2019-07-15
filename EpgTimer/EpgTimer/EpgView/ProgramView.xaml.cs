@@ -166,7 +166,7 @@ namespace EpgTimer.EpgView
                 });
 
                 var sortList = reserveList.OrderBy(r => unchecked((ulong)r.LeftPos) << 32 | r.Data.ReserveID).ToList();
-                for (int i = 1; i < sortList.Count; i++)
+                for (int i = 0; i < sortList.Count; i++)
                 {
                     ReserveViewItem info = sortList[i];
                     for (int j = i - 1; j >= 0 && sortList[j].LeftPos == info.LeftPos; j--)
