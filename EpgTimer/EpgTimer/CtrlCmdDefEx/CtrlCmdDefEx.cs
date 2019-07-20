@@ -59,6 +59,7 @@ namespace EpgTimer
         }
         protected static int onTime(DateTime startTime, uint duration, DateTime? time = null)
         {
+            if (startTime == DateTime.MaxValue) return -1;//startTime.AddSeconds()が通らない
             time = time ?? CommonUtil.EdcbNowEpg;
             return startTime.AddSeconds(duration) <= time ? 1 : startTime <= time ? 0 : -1;
         }

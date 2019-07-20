@@ -794,7 +794,7 @@ namespace EpgTimer
                     foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
                     {
                         //Epgデータが無いときや過去番組は探せない場合がある
-                        UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
+                        UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime == DateTime.MaxValue ? DateTime.MaxValue : eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
                         var relayInfo = MenuUtil.GetPgInfoUidAll(key) ?? new EpgEventInfo { original_network_id = info.original_network_id, transport_stream_id = info.transport_stream_id, service_id = info.service_id };
                         retText += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle + "\r\n";
                     }
