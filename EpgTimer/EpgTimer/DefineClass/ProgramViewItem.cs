@@ -13,11 +13,13 @@ namespace EpgTimer
         public double Height { get; set; }
         public double LeftPos { get; set; }
         public double TopPos { get; set; }
+        public double RightPos { get { return LeftPos + Width; } set { Width = value - LeftPos; } }
+        public double BottomPos { get { return TopPos + Height; } set { Height = value - TopPos; } }
 
         public bool IsPicked(Point cursorPos)
         {
-            return LeftPos <= cursorPos.X && cursorPos.X < LeftPos + Width &&
-                    TopPos <= cursorPos.Y && cursorPos.Y < TopPos + Height;
+            return LeftPos <= cursorPos.X && cursorPos.X < RightPos &&
+                    TopPos <= cursorPos.Y && cursorPos.Y < BottomPos;
         }
 
         public PanelItem(object info) { Data = info; }

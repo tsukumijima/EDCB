@@ -165,7 +165,7 @@ namespace EpgTimer.EpgView
                     return rect;
                 });
 
-                var sortList = reserveList.OrderBy(r => unchecked((ulong)r.LeftPos) << 32 | r.Data.ReserveID).ToList();
+                var sortList = reserveList.OrderBy(r => (long)r.LeftPos << 32 | r.Data.ReserveID).ToList();
                 for (int i = 0; i < sortList.Count; i++)
                 {
                     ReserveViewItem info = sortList[i];
@@ -173,8 +173,9 @@ namespace EpgTimer.EpgView
                     {
                         //ほかの枠を覆ってしまう場合は少しだけ縮める。判定には若干余裕を持たせる。
                         if (18 <= sortList[j].Width && sortList[j].Width <= info.Width
-                            && sortList[j].TopPos - info.TopPos >= -3
-                            && info.TopPos + info.Height - (sortList[j].TopPos + sortList[j].Height) >= -3)
+                            && info.TopPos - sortList[j].TopPos < 6 && sortList[j].BottomPos - info.BottomPos < 6
+                            //あまりないと思うが、6px未満で並んでいる番組の除外。(EventIDでの判定はプログラム予約があるので不可)
+                            && info.BottomPos > sortList[j].TopPos && sortList[j].BottomPos > info.TopPos)
                         {
                             info.Width = sortList[j].Width - 6;
                         }

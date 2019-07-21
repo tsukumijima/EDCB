@@ -118,7 +118,7 @@ namespace EpgTimer.EpgView
         protected virtual ReserveViewItem AddReserveViewItem(ReserveData resInfo, ref ProgramViewItem refPgItem, bool SearchEvent = false)
         {
             //LimitedStart()の関係で判定出来ないものを除外
-            if (timeList.Any() == false || resInfo.IsManual && resInfo.IsOver(timeList[0])) return null;
+            if (timeList.Any() == false || resInfo.IsManual && resInfo.IsOver(timeList[0]) && resInfo.OnTimeBaseOnAir(timeList[0]) > 0) return null;
 
             //マージン適用前
             DateTime startTime = GetViewTime(LimitedStart(resInfo));
@@ -151,21 +151,21 @@ namespace EpgTimer.EpgView
             double StartMargin = resInfo.IsEpgReserve == false ? resInfo.StartMarginResActual : Math.Min(0, resInfo.StartMarginResActual);
             double EndMargin = resInfo.IsEpgReserve == false ? resInfo.EndMarginResActual : Math.Min(0, resInfo.EndMarginResActual);
 
+            //duationがマイナスになる場合は後で処理される
+            double duration = resInfo.DurationSecond + StartMargin + EndMargin;
+
             if (resInfo.IsEpgReserve && resInfo.DurationSecond != 0 && refPgItem != null)
             {
-                //duationがマイナスになる場合は後で処理される
-                double duration = resInfo.DurationSecond + StartMargin + EndMargin;
                 resItem.Height = Math.Max(refPgItem.Height * duration / resInfo.DurationSecond, ViewUtil.PanelMinimumHeight);
                 resItem.TopPos = refPgItem.TopPos + Math.Min(refPgItem.Height - resItem.Height, refPgItem.Height * (-StartMargin) / resInfo.DurationSecond);
             }
             else
             {
-                double adj = (LimitedStart(resInfo) - resInfo.PgStartTime).TotalSeconds;
-                StartMargin = Math.Min(0, StartMargin + adj);
-                double duration = resInfo.DurationSecond + StartMargin + EndMargin - adj;
-                startTime = startTime.AddSeconds(-StartMargin);
-                resItem.Height = Math.Max(duration * this.EpgStyle().MinHeight / 60, ViewUtil.PanelMinimumHeight);
+                //週間番組表のプログラム録画の予約前マージン対応があるので、マージンの反映はGetViewTime()の後
+                startTime = GetViewTime(resInfo.PgStartTime).AddSeconds(-StartMargin);
                 resItem.TopPos = this.EpgStyle().MinHeight * (index * 60 + (startTime - chkStartTime).TotalMinutes);
+                resItem.Height = Math.Max(duration * this.EpgStyle().MinHeight / 60 + Math.Min(resItem.TopPos, 0), ViewUtil.PanelMinimumHeight);
+                resItem.TopPos = Math.Max(resItem.TopPos, 0);
             }
             return resItem;
         }

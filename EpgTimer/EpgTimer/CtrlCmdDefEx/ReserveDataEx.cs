@@ -48,6 +48,7 @@ namespace EpgTimer
         {
             return onTime(StartTimeActual, DurationActual, time);
         }
+        public int OnTimeBaseOnAir(DateTime? time = null) { return base.OnTime(time); }
 
         public DateTime StartTimeActual
         {

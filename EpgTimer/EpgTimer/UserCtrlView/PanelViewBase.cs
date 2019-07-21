@@ -290,7 +290,7 @@ namespace EpgTimer
             Popup.Width = Math.Max(popInfo.Width, PopWidth) + PopPanel.WidthMarginRight;
             if (popInfo.TopPos < scroll.ContentVerticalOffset)
             {
-                Popup.MinHeight = Math.Max(0, popInfo.TopPos + popInfo.Height - scroll.ContentVerticalOffset);
+                Popup.MinHeight = Math.Max(0, popInfo.BottomPos - scroll.ContentVerticalOffset);
             }
             else
             {

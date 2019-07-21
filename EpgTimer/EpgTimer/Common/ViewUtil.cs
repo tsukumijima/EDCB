@@ -190,14 +190,14 @@ namespace EpgTimer
                 }
                 if (item.TopPos < lastBottom)
                 {
-                    item.Height = Math.Max(item.TopPos + item.Height - lastBottom, minimum);
+                    item.Height = Math.Max(item.BottomPos - lastBottom, minimum);
                     item.TopPos = lastBottom;
                 }
                 else
                 {
                     item.Height = Math.Max(item.Height, minimum);
                 }
-                lastBottom = item.TopPos + item.Height;
+                lastBottom = item.BottomPos;
             }
         }
 
@@ -205,7 +205,7 @@ namespace EpgTimer
         {
             if (list.Any() == true && timeList.Count > 0)
             {
-                double bottom = list.Max(info => info.TopPos + info.Height);
+                double bottom = list.Max(info => info.BottomPos);
                 AddTimeList(timeList, timeList.Last().AddHours(1), timeList.Last().AddHours(1 + bottom / 60 / MinutesHeight - timeList.Count));
             }
         }
