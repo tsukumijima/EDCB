@@ -26,6 +26,18 @@ namespace EpgTimer
             return MaxRenderHeight;
         }
 
+        protected double CulcRenderWidth(string text, ItemFont itemFont)
+        {
+            double width = 0;
+            ushort glyphIndex;
+            int glyphType;
+            for (int i = 0; i < text.Length; i++)
+            {
+                width += itemFont.GlyphWidth(text, ref i, out glyphIndex, out glyphType);
+            }
+            return width;
+        }
+
         protected double RenderText(List<Tuple<Brush, GlyphRun>> textDrawList, String text, ItemFont itemFont, double fontSize, Rect drawRect, double marginLeft, double margintTop, Brush fontColor, bool nowrap = false)
         {
             double lineHeight = ViewUtil.CulcLineHeight(fontSize);

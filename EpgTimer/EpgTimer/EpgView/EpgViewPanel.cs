@@ -35,7 +35,8 @@ namespace EpgTimer.EpgView
             double sizeTitle = this.EpgStyle().FontSizeTitle;
             double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, this.EpgStyle().FontSize));
             double sizeNormal = this.EpgStyle().FontSize;
-            double indentTitle = sizeMin * 1.7;
+            double indentTitle = sizeMin * CulcRenderWidth("0", ItemFontNormal) * (2 + sizeTitle / sizeMin);
+            string indentHours = new string(' ', 1 + (int)(CulcRenderWidth("00:", ItemFontNormal) / CulcRenderWidth(" ", ItemFontNormal)));
             double indentNormal = this.EpgStyle().EpgTitleIndent ? indentTitle : 0;
 
             foreach (ProgramViewItem info in Items)
@@ -54,8 +55,7 @@ namespace EpgTimer.EpgView
                 //番組情報
                 if (info.Data.ShortInfo != null)
                 {
-                    //タイトル、info.DrawHoursの際の追加インデントは仮。1行目だけインデント変えるのは面倒そうなので、フォント毎に「00:」相当のスペース文字数を調べるか
-                    string title = (info.DrawHours ? "　 " : "") + CommonManager.ReplaceText(info.Data.ShortInfo.event_name.TrimEnd(), DictionaryTitle);
+                    string title = (info.DrawHours ? indentHours : null) + CommonManager.ReplaceText(info.Data.ShortInfo.event_name.TrimEnd(), DictionaryTitle);
                     useHeight = sizeTitle / 3 + RenderText(textDrawList, title, ItemFontTitle, sizeTitle, drawRect, indentTitle, 0, colorTitle);
 
                     //説明

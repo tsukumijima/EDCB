@@ -33,7 +33,7 @@ namespace EpgTimer.TunerReserveViewCtrl
             double sizeTitle = Settings.Instance.TunerFontSizeService;
             double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, Settings.Instance.TunerFontSize));
             double sizeNormal = Settings.Instance.TunerFontSize;
-            double indentTitle = recSettingInfo == true ? 0 : sizeMin * 1.7;
+            double indentTitle = recSettingInfo ? 0 : sizeMin * CulcRenderWidth("0", ItemFontNormal) * (2 + sizeTitle / sizeMin);
             double indentNormal = Settings.Instance.TunerTitleIndent ? indentTitle : 0;
             Brush colorNormal = Settings.BrushCache.CustTunerTextColor;
 
