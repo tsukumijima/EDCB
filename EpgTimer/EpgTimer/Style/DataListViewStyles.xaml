@@ -1,14 +1,11 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:my="clr-namespace:EpgTimer">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style TargetType="ListViewItem" x:Key="ToolTipListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
         <Setter Property="ToolTip" Value="{Binding ToolTipView}"/>
     </Style>
     <Style TargetType="ListView" x:Key="ServiceListViewStyle">
-        <Style.Resources>
-            <Style TargetType="ListViewItem" BasedOn="{StaticResource ToolTipListViewItem}" />
-        </Style.Resources>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource ToolTipListViewItem}"/>
     </Style>
 
     <Style TargetType="ListViewItem" x:Key="DataListItemStyle" BasedOn="{StaticResource ToolTipListViewItem}" >
@@ -19,12 +16,10 @@
         <Setter Property="BorderBrush" Value="{Binding BorderBrush}" />
     </Style>
     <Style TargetType="ListView" x:Key="DataListViewStyle">
-        <Style.Resources>
-            <Style TargetType="ListViewItem" BasedOn="{StaticResource DataListItemStyle}" />
-        </Style.Resources>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource DataListItemStyle}"/>
     </Style>
 
-    <Style TargetType="{x:Type CheckBox}" x:Key="ProtectKey" BasedOn="{StaticResource {x:Type CheckBox}}" >
+    <Style TargetType="CheckBox" x:Key="ProtectKey" BasedOn="{StaticResource {x:Type CheckBox}}" >
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
