@@ -45,73 +45,90 @@
                     </StackPanel>
                 </StackPanel>
                 <Border Grid.Row="1" BorderBrush="#FF8C8E94" BorderThickness="0,0,0,1" Margin="0,6"/>
-                <DockPanel Grid.Row="2">
+                <DockPanel Grid.Row="2" Name="grid_Filter">
                     <Grid Margin="0,0,20,0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="2*" />
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="9*" Name="grid_Junre" />
+                            <RowDefinition Height="6"/>
+                            <RowDefinition Height="10*"/>
                         </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="6" />
-                            <ColumnDefinition Width="auto" />
-                        </Grid.ColumnDefinitions>
                         <Grid>
-                            <TextBlock Text="ジャンル絞り込み"/>
-                            <CheckBox Content="NOT扱い" HorizontalAlignment="Right" Name="checkBox_notContent" IsEnabled="{Binding Path=IsEnabled, ElementName=listBox_content}" />
-                        </Grid>
-                        <ListBox Margin="0,2,0,4" Grid.Row="1" DisplayMemberPath="ListBoxView" Name="listBox_content" SelectionMode="Extended" />
-                        <ComboBox Grid.Row="2" DisplayMemberPath="ListBoxView" Name="comboBox_content" VerticalAlignment="Stretch" SelectionChanged="comboBox_content_SelectionChanged" />
-                        <StackPanel Grid.RowSpan="3" Grid.Column="2" VerticalAlignment="Bottom" >
-                            <Button Name="button_content_clear" Content="全クリア" />
-                            <Button Name="button_content_del" Content="削除" Margin="0,4,0,0" />
-                            <Button Name="button_content_add" Content="追加" Margin="0,4,0,0" />
-                        </StackPanel>
-                        <Grid Margin="0,6,0,2" Grid.Row="3" >
-                            <TextBlock Text="時間絞り込み" />
-                            <CheckBox Content="NOT扱い" HorizontalAlignment="Right" Name="checkBox_notDate" IsEnabled="{Binding Path=IsEnabled, ElementName=listBox_date}" />
-                        </Grid>
-                        <ListBox Grid.Row="4" Name="listBox_date" SelectionMode="Extended" />
-                        <StackPanel Grid.Row="3" Grid.Column="3" Grid.RowSpan="2" VerticalAlignment="Bottom" >
-                            <Button Content="全クリア" Name="button_date_clear"/>
-                            <Button Content="削除" Name="button_date_del" Margin="0,4,0,0" />
-                        </StackPanel>
-                        <DockPanel Margin="0,4,0,0" Grid.Row="5" >
-                            <CheckBox Content="終了済み除外" Name="checkBox_noArcSearch" DockPanel.Dock="Right" ToolTip="未チェック時、番組表とほぼ同じ期間で検索します。&#10; ※期間指定検索時、この設定は無視されます。&#10; ※このオプションは全体共通で、個別には保存されません。&#10; [設定]-[各画面の設定]-[番組表]-[基本]の、過去の番組情報-番組表の初期表示の日数を参照。"/>
-                            <RadioButton Content="曜日毎" Name="radioButton_week" Margin="0,0,12,0" IsChecked="True"/>
-                            <RadioButton Content="期間" />
-                        </DockPanel>
-                        <Grid Grid.Row="6" Margin="10,4,0,0">
-                            <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_week, Converter={StaticResource invert}}">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4" >
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_time_sw" Width="44" />
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_time_sh" Width="44" IsEditable="True" />
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_time_sm" Width="44" IsEditable="True" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="48,0,0,0" >
-                                    <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_time_dash" />
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_time_ew" Width="44" />
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_time_eh" Width="44" IsEditable="True" />
-                                    <ComboBox Margin="0,0,8,0" Name="comboBox_time_em" Width="44" IsEditable="True" />
-                                </StackPanel>
-                            </StackPanel>
-                            <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_week, Converter={StaticResource convert}}">
-                                <StackPanel Name="stack_data_week" KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal" Margin="0,0,0,4" />
-                                <StackPanel Orientation="Horizontal" Name="panel_data_week_times">
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_week_sh" Width="44" IsEditable="True" />
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_week_sm" Width="44" IsEditable="True" />
-                                    <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_week_dash" />
-                                    <ComboBox Margin="0,0,4,0" Name="comboBox_week_eh" Width="44" IsEditable="True" />
-                                    <ComboBox Margin="0,0,8,0" Name="comboBox_week_em" Width="44" IsEditable="True" />
-                                </StackPanel>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="6" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid>
+                                <TextBlock Text="ジャンル絞り込み"/>
+                                <CheckBox Content="NOT扱い" HorizontalAlignment="Right" Name="checkBox_notContent" IsEnabled="{Binding Path=IsEnabled, ElementName=listBox_content}" />
+                            </Grid>
+                            <ListBox Margin="0,2,0,4" Grid.Row="1" DisplayMemberPath="ListBoxView" Name="listBox_content" SelectionMode="Extended" />
+                            <ComboBox Grid.Row="2" DisplayMemberPath="ListBoxView" Name="comboBox_content" VerticalAlignment="Stretch" SelectionChanged="comboBox_content_SelectionChanged" />
+                            <StackPanel Grid.RowSpan="3" Grid.Column="2" VerticalAlignment="Bottom" >
+                                <Button Name="button_content_clear" Content="全クリア" />
+                                <Button Name="button_content_del" Content="削除" Margin="0,4,0,0" />
+                                <Button Name="button_content_add" Content="追加" Margin="0,4,0,0" />
                             </StackPanel>
                         </Grid>
-                        <Button Grid.Row="6" Grid.Column="2" Name="button_date_add" Content="追加" VerticalAlignment="Bottom" />
+                        <GridSplitter Grid.Row="1" Height="2" Background="LightGray" Margin="-5,0" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                        <Grid Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="6" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid Margin="0,0,0,2" >
+                                <TextBlock Text="時間絞り込み" />
+                                <CheckBox Content="NOT扱い" HorizontalAlignment="Right" Name="checkBox_notDate" IsEnabled="{Binding Path=IsEnabled, ElementName=listBox_date}" />
+                            </Grid>
+                            <ListBox Grid.Row="1" Name="listBox_date" SelectionMode="Extended" />
+                            <StackPanel Grid.Column="3" Grid.RowSpan="2" VerticalAlignment="Bottom" >
+                                <Button Content="全クリア" Name="button_date_clear"/>
+                                <Button Content="削除" Name="button_date_del" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <DockPanel Margin="0,4,0,0" Grid.Row="2" >
+                                <CheckBox Content="終了済み除外" Name="checkBox_noArcSearch" DockPanel.Dock="Right" ToolTip="未チェック時、番組表とほぼ同じ期間で検索します。&#10; ※期間指定検索時、この設定は無視されます。&#10; ※このオプションは全体共通で、個別には保存されません。&#10; [設定]-[各画面の設定]-[番組表]-[基本]の、過去の番組情報-番組表の初期表示の日数を参照。"/>
+                                <RadioButton Content="曜日毎" Name="radioButton_week" Margin="0,0,12,0" IsChecked="True"/>
+                                <RadioButton Content="期間" />
+                            </DockPanel>
+                            <Grid Grid.Row="3" Margin="10,4,0,0">
+                                <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_week, Converter={StaticResource invert}}">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4" >
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_sw" Width="44" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_sh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_sm" Width="44" IsEditable="True" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="48,0,0,0" >
+                                        <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_time_dash" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_ew" Width="44" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_time_eh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,8,0" Name="comboBox_time_em" Width="44" IsEditable="True" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel VerticalAlignment="Bottom" Visibility="{Binding Path=IsChecked, ElementName=radioButton_week, Converter={StaticResource convert}}">
+                                    <StackPanel Name="stack_data_week" KeyboardNavigation.TabNavigation="Once" Orientation="Horizontal" Margin="0,0,0,4" />
+                                    <StackPanel Orientation="Horizontal" Name="panel_data_week_times">
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_sh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_sm" Width="44" IsEditable="True" />
+                                        <TextBlock Text="～" Margin="0,0,4,0" Name="comboBox_week_dash" />
+                                        <ComboBox Margin="0,0,4,0" Name="comboBox_week_eh" Width="44" IsEditable="True" />
+                                        <ComboBox Margin="0,0,8,0" Name="comboBox_week_em" Width="44" IsEditable="True" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                            <Button Grid.Row="3" Grid.Column="2" Name="button_date_add" Content="追加" VerticalAlignment="Bottom" />
+                        </Grid>
                     </Grid>
                     <Grid Grid.Column="2" >
                         <Grid>

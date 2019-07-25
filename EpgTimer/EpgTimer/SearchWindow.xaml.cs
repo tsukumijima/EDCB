@@ -44,6 +44,10 @@ namespace EpgTimer
                 {
                     grid_Tabs.Height = new GridLength(Math.Min(Settings.Instance.SearchWndTabsHeight, Height));
                 }
+                if (Settings.Instance.SearchWndJunreHeight >= 0)
+                {
+                    searchKeyView.grid_Junre.Height = new GridLength(Settings.Instance.SearchWndJunreHeight);
+                }
 
                 //リストビュー関連の設定
                 var list_columns = Resources["ReserveItemViewColumns"] as GridViewColumnList;
@@ -321,6 +325,7 @@ namespace EpgTimer
             lstCtrl.SaveViewDataToSettings();
             base.WriteWindowSaveData();
             Settings.Instance.SearchWndTabsHeight = grid_Tabs.Height.Value;
+            Settings.Instance.SearchWndJunreHeight = Math.Min(searchKeyView.grid_Junre.ActualHeight, searchKeyView.grid_Filter.ActualHeight - 6);
             Settings.Instance.ArcSearch = searchKeyView.checkBox_noArcSearch.IsChecked == false;
         }
 
