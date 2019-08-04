@@ -19,6 +19,7 @@
                 <RowDefinition />
                 <RowDefinition />
                 <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
@@ -31,25 +32,26 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="タブ名"/>
             <my:TextBoxWithReadOnlyEffect x:Name="textBox_tabName" Grid.Column="2" Grid.ColumnSpan="3" IsReadOnly="{Binding IsEnabled, ElementName=checkBox_isVisible, Converter={StaticResource invert}}" />
-            <TextBlock Text="※半角アンダーバー'__'でアクセスキー使用可" Grid.Column="6" ToolTip="文字として'__'を使用したいときは、'__'を2つ続ける"/>
-            <TextBlock Text="デザイン" Grid.Row="1" />
-            <DockPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="5" HorizontalAlignment="Left">
+            <CheckBox Content="「番組表へジャンプ」の対象から除外する" Grid.Column="6" Grid.ColumnSpan="99" IsChecked="{Binding JumpTarget, Converter={StaticResource invert}}" />
+            <TextBlock Text="※タブ名では半角アンダーバー'__'でアクセスキー使用可" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="99" ToolTip="文字として'__'を使用したいときは、'__'を2つ続ける"/>
+            <TextBlock Text="デザイン" Grid.Row="2" />
+            <DockPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="99" HorizontalAlignment="Left">
                 <ComboBox Width="140" Margin="0,6" Name="cmb_design" />
                 <TextBlock Text="録画プリセット" Margin="40,0,0,0" />
                 <ComboBox Width="140" Name="cmb_recSetting" Margin="6,0" />
                 <Button Content="変更" Click="button_recSetting_Click" />
             </DockPanel>
-            <TextBlock Text="初期表示" Grid.Row="2" />
-            <RadioButton Content="標準モード" Grid.Row="2" Grid.Column="2" Tag="0"/>
-            <CheckBox Content="番組のない時間帯は表示しない" Grid.Row="2" Grid.Column="4" IsChecked="{Binding NeedTimeOnlyBasic}" />
-            <RadioButton Content="1週間モード" Grid.Row="3" Grid.Column="2" Tag="1"/>
-            <CheckBox Content="番組のない時間帯は表示しない" Grid.Row="3" Grid.Column="4" IsChecked="{Binding NeedTimeOnlyWeek}" />
-            <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="6">
+            <TextBlock Text="初期表示" Grid.Row="3" />
+            <RadioButton Content="標準モード" Grid.Row="3" Grid.Column="2" Tag="0"/>
+            <CheckBox Content="番組のない時間帯は表示しない" Grid.Row="3" Grid.Column="4" IsChecked="{Binding NeedTimeOnlyBasic}" />
+            <RadioButton Content="1週間モード" Grid.Row="4" Grid.Column="2" Tag="1"/>
+            <CheckBox Content="番組のない時間帯は表示しない" Grid.Row="4" Grid.Column="4" IsChecked="{Binding NeedTimeOnlyWeek}" />
+            <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.Column="6">
                 <TextBlock Text="表示開始時刻" Margin="0,0,5,0" />
                 <ComboBox MinWidth="54" Name="comboBox_timeH_week" SelectedIndex="{Binding StartTimeWeek}" />
             </StackPanel>
-            <RadioButton Content="リスト表示モード" Grid.Row="4" Grid.Column="2" Tag="2" />
-            <CheckBox Content="終了済みの番組は表示しない" Grid.Row="4" Grid.Column="4" IsChecked="{Binding FilterEnded}" />
+            <RadioButton Content="リスト表示モード" Grid.Row="5" Grid.Column="2" Tag="2" />
+            <CheckBox Content="終了済みの番組は表示しない" Grid.Row="5" Grid.Column="4" IsChecked="{Binding FilterEnded}" />
             <TextBlock Text="表示条件" Grid.Row="99" />
             <DockPanel Grid.Row="99" Grid.Column="2" Grid.ColumnSpan="99" Margin="0,6">
                 <CheckBox Content="検索による絞り込みを行う" IsChecked="{Binding SearchMode}" Name="checkBox_searchMode"/>

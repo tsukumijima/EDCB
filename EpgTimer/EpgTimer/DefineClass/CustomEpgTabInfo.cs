@@ -26,6 +26,7 @@ namespace EpgTimer
             FilterEnded = false;
             ID = -1;
             IsVisible = true;
+            JumpTarget = true;
         }
         public string TabName { get; set; }
         public override string ToString() { return TabName; }
@@ -48,6 +49,7 @@ namespace EpgTimer
         public int ID { get; set; }
         public string Uid { get { return ID.ToString(); } }
         public bool IsVisible { get; set; }
+        public bool JumpTarget { get; set; }
 
         public EpgSearchKeyInfo GetSearchKeyReloadEpg()
         {

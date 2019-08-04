@@ -226,17 +226,18 @@ namespace EpgTimer
                 var data = (AutoAddTargetData)trg.ReserveInfo ?? trg.EventInfo;
                 if (data == null || data.PgStartTime == DateTime.MaxValue) return false;
 
-                if (Tabs.Any() == false)//dryrun以外でここに来るときは本当にタブが無い
+                var tabs = Tabs.Where(t => t.Info.JumpTarget).OrderBy(tb => !tb.IsSelected).ToList();
+                if (tabs.Any() == false)//dryrun以外でここに来るときは本当にタブが無い
                 {
                     var infoList = Settings.Instance.UseCustomEpgView == false ?
                         CommonManager.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
-                    return infoList.Where(info => info.IsVisible == true)
+                    return infoList.Where(info => info.IsVisible && info.JumpTarget)
                         .SelectMany(info => CommonManager.Instance.DB.ExpandSpecialKey(info.ViewServiceList)).Contains(data.Create64Key());
                 }
 
                 //表示されてるものがなければキーを持っているタブを当たる
-                var tab = Tabs.OrderBy(tb => !tb.IsSelected).FirstOrDefault(tb => tb.view != null && tb.IsEpgLoaded && tb.view.IsEnabledJumpTab(trg))
-                        ?? Tabs.OrderBy(tb => !tb.IsSelected).FirstOrDefault(tb => tb.HasKey(data.Create64Key()));
+                var tab = tabs.FirstOrDefault(tb => tb.view != null && tb.IsEpgLoaded && tb.view.IsEnabledJumpTab(trg))
+                        ?? tabs.FirstOrDefault(tb => tb.HasKey(data.Create64Key()));
 
                 if (tab != null && dryrun == false) tab.IsSelected = true;
                 return tab != null;
