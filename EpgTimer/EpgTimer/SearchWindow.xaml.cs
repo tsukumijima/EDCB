@@ -449,7 +449,7 @@ namespace EpgTimer
 
         public AutoAddWindow(S data = null, AutoAddMode mode = AutoAddMode.Find)
         {
-            this.Loaded += (sender, e) => { SetData(data); SetViewMode(mode); UpdateViewSelection(); };
+            this.Loaded += (sender, e) => { SetData(data); SetViewMode(data != null && DataID == 0 ? AutoAddMode.NewAdd : mode); UpdateViewSelection(); };
         }
 
         protected AutoAddMode winMode = AutoAddMode.Find;
@@ -468,7 +468,7 @@ namespace EpgTimer
         public override void ChangeData(object data)
         {
             if (SetData(data as S) == false) return;
-            SetViewMode(AutoAddMode.Change);
+            SetViewMode(DataID == 0 ? AutoAddMode.NewAdd : AutoAddMode.Change);
         }
 
         //proc 0:追加、1:変更、2:削除、3:予約ごと削除

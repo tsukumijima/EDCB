@@ -179,7 +179,7 @@ namespace EpgTimer
 
             if (reserveInfo != info)
             {
-                addMode = AddMode.Change;
+                addMode = info.DataID == 0 ? AddMode.Add : AddMode.Change;
                 reserveInfo = info.DeepClone();
             }
             recSettingView.SetViewMode(!reserveInfo.IsManual);

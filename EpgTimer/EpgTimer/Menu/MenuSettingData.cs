@@ -118,6 +118,7 @@ namespace EpgTimer
         public bool SetJunreToAutoAdd { get; set; }
         public bool SetJunreContentToAutoAdd { get; set; }        
         public bool CancelAutoAddOff { get; set; }
+        public bool ShowCopyDialog { get; set; }
         public bool AutoAddFazySearch { get; set; }
         public bool AutoAddSearchToolTip { get; set; }
         public bool AutoAddSearchSkipSubMenu { get; set; }
@@ -146,6 +147,7 @@ namespace EpgTimer
             SetJunreToAutoAdd = true;
             SetJunreContentToAutoAdd = false;
             CancelAutoAddOff = false;
+            ShowCopyDialog = false;
             AutoAddFazySearch = false;
             AutoAddSearchToolTip = false;
             AutoAddSearchSkipSubMenu = false;

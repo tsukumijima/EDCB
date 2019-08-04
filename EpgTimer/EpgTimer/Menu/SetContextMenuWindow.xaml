@@ -79,7 +79,7 @@
                             <Separator Style="{StaticResource TopLine}" />
                             <Separator Style="{StaticResource UnderLine}" />
                             <CheckBox Visibility="Hidden"/>
-                            <CheckBox Visibility="Hidden"/>
+                            <CheckBox Content="ダイアログを開く" IsChecked="{Binding ShowCopyDialog}" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageDelete}" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageDelete2}" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageAdjustRes}" />

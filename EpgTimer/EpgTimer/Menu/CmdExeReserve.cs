@@ -162,12 +162,18 @@ namespace EpgTimer
             if (MenuUtil.ChangeBulkSet(dataList, this.Owner, mList.Count == dataList.Count, true) == false) return;
             IsCommandExecuted = MenuUtil.ReserveChange(dataList);
         }
-        protected override void mc_CopyItem(object sender, ExecutedRoutedEventArgs e)
+        protected override void mcs_CopyItem(object sender, ExecutedRoutedEventArgs e)
         {
-            if (dataList.Count == 0) return;//この行無くても結果は同じ
-            var list = dataList.DeepClone();//予約以外はコピー不要なためコピーされていない。
+            if (dataList.Count == 0) return;
+            var list = dataList.DeepClone();//コピーが必要なのは予約だけ。(キーワード予約などはコピー不要なので)
             list.ForEach(rs => rs.Comment = "");
             IsCommandExecuted = MenuUtil.ReserveAdd(list);
+        }
+        protected override void mcs_CopyItemDialog(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (dataList.Count == 0) return;
+            dataList[0].ReserveID = 0;
+            mc_ShowDialog(sender, e);
         }
         protected override void mc_Delete(object sender, ExecutedRoutedEventArgs e)
         {
@@ -232,7 +238,7 @@ namespace EpgTimer
         }
         protected override void mc_Play(object sender, ExecutedRoutedEventArgs e)
         {
-            if(CmdExeUtil.ReadIdData(e)==0)
+            if (CmdExeUtil.ReadIdData(e) == 0)
             {
                 if (dataList.Count == 0) return;
                 CommonManager.Instance.FilePlay(dataList[0]);
@@ -354,6 +360,10 @@ namespace EpgTimer
                 mcs_chgMenuOpening(menu, true);
                 mcs_SetSingleMenuEnabled(menu, headData is ReserveData);
             }
+            else if (menu.Tag == EpgCmds.CopyItem)
+            {
+                menu.IsEnabled &= !Settings.Instance.MenuSet.ShowCopyDialog || headData is ReserveData;
+            }
             else if (menu.Tag == EpgCmds.Delete)
             {
                 menu.IsEnabled = dataList.Any() || recinfoList.GetNoProtectedList().Any();
@@ -431,22 +441,20 @@ namespace EpgTimer
         }
         protected override string GetCmdMessage(ICommand icmd)
         {
-            if (icmd != EpgCmds.Add && icmd != EpgCmds.AddOnPreset && icmd != EpgCmds.ChgOnOff)
-            {
-                return base.GetCmdMessage(icmd);
-            }
+            if (icmd == EpgCmds.CopyItem && Settings.Instance.MenuSet.ShowCopyDialog) return null;
 
-            string cmdMsg = cmdMessage[icmd];
-
-            int procCount = (icmd == EpgCmds.Add || icmd == EpgCmds.AddOnPreset) ? eventListAdd.Count : dataList.Count + eventListEx.Count;
-            if (procCount == 0) return null;
-
+            string cmdMsg = null;
+            cmdMessage.TryGetValue(icmd, out cmdMsg);
             if (icmd == EpgCmds.ChgOnOff)
             {
-                if (eventListEx.Count == 0) cmdMsg = "有効・無効切替を実行";
-                else if (dataList.Count == 0) cmdMsg = "簡易予約を実行";
+                cmdMsg = eventListEx.Count == 0 ? "有効・無効切替を実行" : dataList.Count == 0 ? "簡易予約を実行" : cmdMsg;
             }
-            return GetCmdMessageFormat(cmdMsg, procCount);
+            //DeleteはRecInfo分含めてdataList.Countに入っている。
+            int procCount = GetCmdParam(icmd).ExeType == cmdExeType.SingleItem ? 1 :
+                            icmd == EpgCmds.Add || icmd == EpgCmds.AddOnPreset ? eventListAdd.Count :
+                                dataList.Count + (icmd == EpgCmds.ChgOnOff ? eventListEx.Count : 0);
+
+            return procCount == 0 ? null : GetCmdMessageFormat(cmdMsg, procCount);
         }
     }
 }
