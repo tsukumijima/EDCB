@@ -28,6 +28,7 @@ namespace EpgTimer
         public bool IsReserved { get { return (ReserveInfo != null); } }
         public override RecSettingData RecSettingInfo { get { return ReserveInfo != null ? ReserveInfo.RecSetting : null; } }
         public override bool IsManual { get { return ReserveInfo != null ? ReserveInfo.IsManual : false; } }
+        public override bool PresetResCompare { get { return true; } }
 
         public virtual string EventName
         {

@@ -70,6 +70,8 @@ namespace EpgTimer
             textBox_tabName.Text = setInfo.TabName;
             checkBox_isVisible.IsChecked = setInfo.IsVisible;
 
+            SetRecSettingCmbo(setInfo.RecSetting);
+
             setList = setList ?? Settings.Instance.EpgSettingList;
             cmb_design.SelectedValuePath = CommonUtil.NameOf(() => setList[0].ID);
             cmb_design.DisplayMemberPath = CommonUtil.NameOf(() => setList[0].Name);
@@ -89,6 +91,12 @@ namespace EpgTimer
             {
                 info.EpgSettingIndex = cmb_design.SelectedIndex;
                 info.EpgSettingID = (int)cmb_design.SelectedValue;
+            }
+
+            info.RecSetting = ((RecPresetItem)cmb_recSetting.SelectedItem).Data;
+            if (info.RecSetting.EqualsSettingTo(Settings.Instance.RecPresetList[0].Data))
+            {
+                info.RecSetting = null;
             }
 
             info.SearchKey = searchKey.DeepClone();
@@ -316,6 +324,30 @@ namespace EpgTimer
 
             var info = (ServiceViewItem)srclistBox.SelectedItems[srclistBox.SelectedItems.Count - 1];
             targetBox.Text = info.ConvertInfoText();
+        }
+
+        private void SetRecSettingCmbo(RecSettingData set = null)
+        {
+            cmb_recSetting.Items.Clear();
+            cmb_recSetting.Items.AddItems(Settings.Instance.RecPresetList.DeepClone());
+
+            var item = (set ?? Settings.Instance.RecPresetList[0].Data).LookUpPreset(cmb_recSetting.Items.OfType<RecPresetItem>());
+            if (item == null)
+            {
+                item = new RecPresetItem("登録時", RecPresetItem.CustomID, set.DeepClone());
+                cmb_recSetting.Items.Add(item);
+            }
+            cmb_recSetting.SelectedItem = item;
+        }
+        private void button_recSetting_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new SetRecPresetWindow(this);
+            dlg.SetSettingMode("予約操作時の録画設定");
+            dlg.DataView.SetDefSetting(GetSetting().RecSetting);
+            if (dlg.ShowDialog() == true)
+            {
+                SetRecSettingCmbo(dlg.DataView.GetRecSetting());
+            }
         }
 
         private void button_searchKey_Click(object sender, RoutedEventArgs e)

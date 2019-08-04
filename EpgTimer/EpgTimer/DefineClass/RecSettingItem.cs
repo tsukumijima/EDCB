@@ -10,6 +10,7 @@ namespace EpgTimer
         public virtual RecSettingData RecSettingInfo { get { return null; } set { } }
         public virtual void Reset() { preset = null; }
         public virtual bool IsManual { get { return false; } }
+        public virtual bool PresetResCompare { get { return false; } }
 
         public virtual string MarginStart
         {
@@ -76,7 +77,7 @@ namespace EpgTimer
             {
                 if (RecSettingInfo == null) return "";
                 //
-                if (preset == null) preset = RecSettingInfo.LookUpPreset(IsManual).DisplayName;
+                if (preset == null) preset = RecSettingInfo.LookUpPreset(IsManual, false, PresetResCompare).DisplayName;
                 return preset;
             }
         }

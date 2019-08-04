@@ -61,7 +61,7 @@ namespace EpgTimer
 
             //コマンド集の初期化の続き
             mc.SetFuncGetSearchList(isAll => (isAll == true ? lstCtrl.dataList.ToList() : lstCtrl.GetSelectedItemsList()));
-            mc.SetFuncSelectSingleSearchData(lstCtrl.SelectSingleItem);
+            mc.SetFuncSelectSingleSearchData((noChange) => lstCtrl.SelectSingleItem(noChange));
             mc.SetFuncReleaseSelectedData(() => listView_event.UnselectAll());
 
             //コマンド集に無いもの

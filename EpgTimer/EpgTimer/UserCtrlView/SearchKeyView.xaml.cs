@@ -208,6 +208,7 @@ namespace EpgTimer
         }
         public void SetSearchKey(EpgSearchKeyInfo key)
         {
+            if (key == null) return;
             //"登録時"を追加する。既存があれば追加前に削除する。検索ダイアログの上下ボタンの移動用のコード。
             comboBox_preSet.Items.Remove(preEdit.FindPreset(SearchPresetItem.CustomID));
             comboBox_preSet.Items.Add(new SearchPresetItem("登録時", SearchPresetItem.CustomID, key.DeepClone()));

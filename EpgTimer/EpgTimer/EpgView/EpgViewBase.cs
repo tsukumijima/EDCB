@@ -217,6 +217,8 @@ namespace EpgTimer.EpgView
 
             //コマンド集の初期化
             mc = new CmdExeReserve(this);
+            mc.SetFuncGetRecSetting(() => viewInfo.RecSetting);
+            mc.SetFuncGetSearchKey(() => viewInfo.SearchMode ? viewInfo.SearchKey : null);
 
             //コマンド集にないものを登録
             mc.AddReplaceCommand(EpgCmds.ViewChgSet, (sender, e) => viewFunc.ViewSetting(-1));

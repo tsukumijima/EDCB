@@ -26,11 +26,12 @@ namespace EpgTimer
             SearchWindow.ViewReserveUpdated += AddReserveEpgWindow.UpdatesViewSelection;
             EpgViewBase.ViewReserveUpdated += AddReserveEpgWindow.UpdatesViewSelection;
         }
-        public AddReserveEpgWindow(EpgEventInfo info = null, int epgInfoOpenMode = 0)
+        public AddReserveEpgWindow(EpgEventInfo info = null, int epgInfoOpenMode = 0, RecSettingData setInfo = null)
         {
             InitializeComponent();
 
             base.SetParam(false, checkBox_windowPinned, checkBox_dataReplace);
+            recSettingView.PresetResCompare = true;
 
             //コマンドの登録
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Cancel, (sender, e) => this.Close()));
@@ -56,6 +57,7 @@ namespace EpgTimer
             //録画設定タブ関係の設定
             recSettingView.SelectedPresetChanged += SetReserveTabHeader;
             reserveTabHeader.MouseRightButtonUp += recSettingView.OpenPresetSelectMenuOnMouseEvent;
+            recSettingView.SetDefSetting(setInfo);
 
             tabControl.SelectedIndex = epgInfoOpenMode == 1 ? 0 : 1;
             if (KeepWin == true)
@@ -161,7 +163,7 @@ namespace EpgTimer
 
             if (proc == 0)
             {
-                ret = MenuUtil.ReserveAdd(eventInfo.IntoList(), recSettingView);
+                ret = MenuUtil.ReserveAdd(eventInfo.IntoList(), recSettingView.GetRecSetting());
             }
             else
             {

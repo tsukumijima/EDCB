@@ -33,7 +33,12 @@
             <my:TextBoxWithReadOnlyEffect x:Name="textBox_tabName" Grid.Column="2" Grid.ColumnSpan="3" IsReadOnly="{Binding IsEnabled, ElementName=checkBox_isVisible, Converter={StaticResource invert}}" />
             <TextBlock Text="※半角アンダーバー'__'でアクセスキー使用可" Grid.Column="6" ToolTip="文字として'__'を使用したいときは、'__'を2つ続ける"/>
             <TextBlock Text="デザイン" Grid.Row="1" />
-            <ComboBox Width="140" Margin="0,6"  Name="cmb_design" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="5" HorizontalAlignment="Left"/>
+            <DockPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="5" HorizontalAlignment="Left">
+                <ComboBox Width="140" Margin="0,6" Name="cmb_design" />
+                <TextBlock Text="録画プリセット" Margin="40,0,0,0" />
+                <ComboBox Width="140" Name="cmb_recSetting" Margin="6,0" />
+                <Button Content="変更" Click="button_recSetting_Click" />
+            </DockPanel>
             <TextBlock Text="初期表示" Grid.Row="2" />
             <RadioButton Content="標準モード" Grid.Row="2" Grid.Column="2" Tag="0"/>
             <CheckBox Content="番組のない時間帯は表示しない" Grid.Row="2" Grid.Column="4" IsChecked="{Binding NeedTimeOnlyBasic}" />

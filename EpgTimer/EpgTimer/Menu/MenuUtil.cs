@@ -190,32 +190,16 @@ namespace EpgTimer
             }
         }
 
-        public static bool ReserveAdd(List<EpgEventInfo> itemlist, RecSettingView recSettingView, int presetID = 0, bool cautionMany = true)
+        public static bool ReserveAdd(List<EpgEventInfo> itemlist, RecSettingData setInfo, int presetID = 0, bool cautionMany = true)
         {
             itemlist = CheckReservable(itemlist);
             if (itemlist == null) return false;
 
-            RecSettingData setInfo;
-            if (recSettingView != null)
-            {
-                //ダイアログからの予約、SearchWindowの簡易予約
-                setInfo = recSettingView.GetRecSetting();
-            }
-            else
-            {
-                //簡易予約やプリセット予約
-                setInfo = Settings.Instance.RecPreset(presetID).Data;
-            }
+            //番組表やキーワードダイアログではsetInfoが指定されている
+            setInfo = setInfo ?? Settings.Instance.RecPreset(presetID).Data;
 
-            var list = new List<ReserveData>();
-
-            foreach (EpgEventInfo item in itemlist)
-            {
-                var resInfo = new ReserveData();
-                item.ToReserveData(ref resInfo);
-                resInfo.RecSetting = setInfo;//setInfoはコピーしなくても大丈夫。
-                list.Add(resInfo);
-            }
+            var list = itemlist.Select(item => item.ToReserveData()).ToList();
+            list.ForEach(resInfo => resInfo.RecSetting = setInfo);//setInfoはコピーしなくても大丈夫。
 
             return ReserveAdd(list, cautionMany);
         }
@@ -252,21 +236,19 @@ namespace EpgTimer
             return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendAddReserve, "予約追加", cautionMany, "エラーが発生しました。\r\n終了時間がすでに過ぎている可能性があります。");
         }
 
-        public static bool ReserveChangeOnOff(List<ReserveData> itemlist, RecSettingView recSettingView = null, bool cautionMany = true)
+        public static bool ReserveChangeOnOff(List<ReserveData> itemlist, RecSettingData setInfo = null, bool cautionMany = true)
         {
-            //無効から戻す録画モードの選択。とりあえずデフォルト設定から。無効で登録なら指定サービスにする。
-            byte defMode = Settings.Instance.RecPresetList[0].Data.RecMode;
-            defMode = defMode != 5 ? defMode : (byte)1;
+            //設定の録画モード無効ならデフォルト優先。デフォルトも無効なら、指定サービス。
+            byte defMode = setInfo != null && setInfo.RecMode != 5 ? setInfo.RecMode : Settings.Instance.RecPresetList[0].Data.RecMode;
+            if (defMode == 5) defMode = 1;
 
-            //SearchWindowの場合は現在のビューの設定を読み込む。ただし無効で登録ならデフォルト優先。
-            if (recSettingView != null)
+            itemlist.ForEach(item =>
             {
-                byte viewMode = recSettingView.GetRecSetting().RecMode;
-                defMode = viewMode != 5 ? viewMode : defMode;
-            }
-
-            //個別設定なので、ChangeRecmode()は不可。
-            itemlist.ForEach(item => item.RecSetting.RecMode = (item.RecSetting.RecMode == 5 ? defMode : (byte)5));
+                //予約の元プリセットがあればそれを使う。
+                RecPresetItem itemPreset = item.RecSetting.LookUpPreset(item.IsManual, false, true);
+                byte mode = itemPreset.Data != null && itemPreset.Data.RecMode != 5 ? itemPreset.Data.RecMode : defMode;
+                item.RecSetting.RecMode = (item.RecSetting.RecMode == 5 ? mode : (byte)5);
+            });
 
             return ReserveChange(itemlist, cautionMany);
         }
@@ -275,7 +257,7 @@ namespace EpgTimer
         {
             infoList.ForEach(info => info.SetMargin(isDefault, start, end, isOffset));
         }
-        public static bool ChangeMarginValue(List<RecSettingData> infoList, bool start, UIElement owner = null)
+        public static bool ChangeMarginValue(List<RecSettingData> infoList, bool start, UIElement owner = null, bool PresetResCompare = false)
         {
             try
             {
@@ -283,6 +265,7 @@ namespace EpgTimer
 
                 var dlg = new SetRecPresetWindow(owner);
                 dlg.SetSettingMode(start == true ? "開始マージン設定" : "終了マージン設定", start == true ? 0 : 1);
+                dlg.DataView.PresetResCompare = PresetResCompare;
                 dlg.DataView.SetDefSetting(infoList[0]);
 
                 if (dlg.ShowDialog() == false) return false;
@@ -295,12 +278,13 @@ namespace EpgTimer
             return false;
         }
 
-        public static bool ChangeBulkSet(IEnumerable<IRecSetttingData> dataList, UIElement owner = null, bool pgAll = false)
+        public static bool ChangeBulkSet(IEnumerable<IRecSetttingData> dataList, UIElement owner = null, bool pgAll = false, bool PresetResCompare = false)
         {
             try
             {
                 var dlg = new SetRecPresetWindow(owner);
                 dlg.SetSettingMode("まとめて録画設定を変更");
+                dlg.DataView.PresetResCompare = PresetResCompare;
                 dlg.DataView.SetViewMode(pgAll != true);
                 dlg.DataView.SetDefSetting(dataList.First().RecSettingInfo);
 
@@ -769,14 +753,14 @@ namespace EpgTimer
             return true;
         }
 
-        public static bool? OpenEpgReserveDialog(EpgEventInfo Data, Int32 epgInfoOpenMode = 0)
+        public static bool? OpenEpgReserveDialog(EpgEventInfo Data, Int32 epgInfoOpenMode = 0, RecSettingData setInfo = null)
         {
             try
             {
                 if (AddReserveEpgWindow.ChangeDataLastUsedWindow(Data) != null) return true;
 
                 //番組表でのダブルクリック時のフォーカス対策
-                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new AddReserveEpgWindow(Data, epgInfoOpenMode).Show()));
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new AddReserveEpgWindow(Data, epgInfoOpenMode, setInfo).Show()));
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -794,16 +778,16 @@ namespace EpgTimer
             if (ChgReserveWindow.ChangeDataLastUsedWindow(Data) != null) return true;
             return OpenChgReserveDialog(Data, epgInfoOpenMode);
         }
-        public static bool? OpenManualReserveDialog()
+        public static bool? OpenManualReserveDialog(RecSettingData setInfo = null)
         {
-            return OpenChgReserveDialog(null);
+            return OpenChgReserveDialog(null, 0, setInfo);
         }
-        public static bool? OpenChgReserveDialog(ReserveData Data, Int32 epgInfoOpenMode = 0)
+        public static bool? OpenChgReserveDialog(ReserveData Data, Int32 epgInfoOpenMode = 0, RecSettingData setInfo = null)
         {
             try
             {
                 //番組表でのダブルクリック時のフォーカス対策
-                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new ChgReserveWindow(Data, epgInfoOpenMode).Show()));
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new ChgReserveWindow(Data, epgInfoOpenMode, setInfo).Show()));
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
@@ -842,9 +826,9 @@ namespace EpgTimer
                 var dlg = new SearchWindow(mode: AutoAddMode.NewAdd);
                 dlg.SetSearchKey(key ?? SendAutoAddKey(item, NotToggle));
 
-                if (item is IRecSetttingData)
+                var item_r = item as IRecSetttingData;
+                if (item_r != null)
                 {
-                    var item_r = (item as IRecSetttingData);
                     RecPresetItem recPreSet = item_r.RecSettingInfo.LookUpPreset(item_r.IsManual, true);
                     RecSettingData recSet = recPreSet.Data;
                     if (recPreSet.IsCustom == true && recSet.RecMode == 5)
@@ -861,10 +845,11 @@ namespace EpgTimer
         public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
         {
             key = key ?? Settings.Instance.SearchPresetList[0].Data.DeepClone();
-            key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
             key.regExpFlag = 0;
-            key.serviceList.Clear();
-            key.serviceList.Add((Int64)item.Create64Key());
+            if (item == null) return key;
+
+            key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
+            key.serviceList = ((Int64)item.Create64Key()).IntoList();
 
             var eventInfo = item as EpgEventInfo;
             if (eventInfo != null && Settings.Instance.MenuSet.SetJunreToAutoAdd == true)

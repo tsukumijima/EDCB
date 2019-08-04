@@ -35,11 +35,12 @@ namespace EpgTimer
             SearchWindow.ViewReserveUpdated += ChgReserveWindow.UpdatesViewSelection;
             EpgViewBase.ViewReserveUpdated += ChgReserveWindow.UpdatesViewSelection;
         }
-        public ChgReserveWindow(ReserveData info = null, int epgInfoOpenMode = 0)
+        public ChgReserveWindow(ReserveData info = null, int epgInfoOpenMode = 0, RecSettingData setInfo = null)
         {
             InitializeComponent();
 
             base.SetParam(false, checkBox_windowPinned, checkBox_dataReplace);
+            recSettingView.PresetResCompare = true;
 
             //コマンドの登録
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Cancel, (sender, e) => this.Close()));
@@ -85,7 +86,7 @@ namespace EpgTimer
                 info.StartTimeEpg = info.StartTime;
                 info.DurationSecond = 1800;
                 info.EventID = 0xFFFF;
-                info.RecSetting = Settings.Instance.RecPresetList[0].Data.DeepClone();
+                info.RecSetting = setInfo ?? Settings.Instance.RecPresetList[0].Data.DeepClone();
                 reserveInfo = info;
             }
             selectedTab = epgInfoOpenMode == 1 ? 0 : 1;

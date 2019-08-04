@@ -451,7 +451,7 @@ namespace EpgTimer
                 mainWindow.RefreshMenu();
             }
         }
-        protected bool mcc_chgRecSetting(ExecutedRoutedEventArgs e)
+        protected bool mcc_chgRecSetting(ExecutedRoutedEventArgs e, bool PresetResCompare = false)
         {
             List<RecSettingData> infoList = dataList.OfType<IRecSetttingData>().Where(data => data.RecSettingInfo != null).RecSettingList();
             if (infoList.Count == 0) return false;
@@ -498,7 +498,7 @@ namespace EpgTimer
             }
             else if (e.Command == EpgCmds.ChgMarginValue)
             {
-                return MenuUtil.ChangeMarginValue(infoList, CmdExeUtil.ReadIdData(e, 0, 2) == 1, this.Owner);
+                return MenuUtil.ChangeMarginValue(infoList, CmdExeUtil.ReadIdData(e, 0, 2) == 1, this.Owner, PresetResCompare);
             }
             else if (e.Command == EpgCmds.ChgRecEndMode)
             {
@@ -641,7 +641,7 @@ namespace EpgTimer
                 subMenu.IsEnabled = isEnabled || GetCmdParam(subMenu.Tag as ICommand).ExeType != cmdExeType.SingleItem;
             }
         }
-        protected void mcs_chgMenuOpening(MenuItem menu)
+        protected void mcs_chgMenuOpening(MenuItem menu, bool PresetResCompare = false)
         {
             if (menu.IsEnabled == false) return;
 
@@ -680,8 +680,8 @@ namespace EpgTimer
                 {
                     mm.CtxmGenerateChgOnPresetItems(subMenu);
 
-                    RecPresetItem pre_0 = listr[0].RecSettingInfo.LookUpPreset(listr[0].IsManual);
-                    RecPresetItem value = listr.All(data => data.RecSettingInfo.LookUpPreset(data.IsManual).ID == pre_0.ID) ? pre_0 : null;
+                    RecPresetItem pre_0 = listr[0].RecSettingInfo.LookUpPreset(listr[0].IsManual, false, PresetResCompare);
+                    RecPresetItem value = listr.All(data => data.RecSettingInfo.LookUpPreset(data.IsManual, false, PresetResCompare).ID == pre_0.ID) ? pre_0 : null;
                     subMenu.Header = string.Format("プリセット(_P) : {0}", value == null ? "*" : value.DisplayName);
                     SetCheckmarkSubMenus(subMenu, value == null ? int.MinValue : value.ID);
                 }

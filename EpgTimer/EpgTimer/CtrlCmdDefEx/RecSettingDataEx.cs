@@ -21,16 +21,16 @@ namespace EpgTimer
 
     public partial class RecSettingData
     {
-        public RecPresetItem LookUpPreset(bool IsManual = false, bool CopyData = false)
+        public RecPresetItem LookUpPreset(bool IsManual = false, bool CopyData = false, bool ResCompare = false)
         {
-            RecPresetItem preset = LookUpPreset(Settings.Instance.RecPresetList, IsManual);
+            RecPresetItem preset = LookUpPreset(Settings.Instance.RecPresetList, IsManual, ResCompare);
             return preset == null ? new RecPresetItem("登録時", RecPresetItem.CustomID, CopyData == true ? this.DeepClone() : null) : preset;
         }
-        public RecPresetItem LookUpPreset(IEnumerable<RecPresetItem> refdata, bool IsManual = false)
+        public RecPresetItem LookUpPreset(IEnumerable<RecPresetItem> refdata, bool IsManual = false, bool ResCompare = false)
         {
-            return refdata.FirstOrDefault(p1 => EqualsSettingTo(p1.Data, IsManual));
+            return refdata.FirstOrDefault(p1 => EqualsSettingTo(p1.Data, IsManual, ResCompare));
         }
-        public bool EqualsSettingTo(RecSettingData other, bool IsManual = false)
+        public bool EqualsSettingTo(RecSettingData other, bool IsManual = false, bool ResCompare = false)
         {
             return other != null
                 && BatFilePath == other.BatFilePath
@@ -43,7 +43,7 @@ namespace EpgTimer
                 && Priority == other.Priority
                 && (RebootFlag == other.RebootFlag || RecEndIsDefault)//動作後設定デフォルト時
                 && RecFolderList.EqualsTo(other.RecFolderList)
-                && (RecMode == other.RecMode || RecMode == 5 || other.RecMode == 5)
+                && (RecMode == other.RecMode || ResCompare && (RecMode == 5 || other.RecMode == 5))
                 && (ServiceMode == other.ServiceMode || ((ServiceMode | other.ServiceMode) & 0x0F) == 0)//字幕等データ設定デフォルト時
                 && (StartMargine == other.StartMargine || IsMarginDefault)//マージンデフォルト時
                 && SuspendMode == other.SuspendMode//動作後設定

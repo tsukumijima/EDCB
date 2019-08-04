@@ -66,10 +66,11 @@ namespace EpgTimer
                 //最初にコマンド集の初期化
                 mc = new CmdExeReserve(this);
                 mc.SetFuncGetSearchList(isAll => (isAll == true ? lstCtrl.dataList.ToList() : lstCtrl.GetSelectedItemsList()));
-                mc.SetFuncSelectSingleSearchData(lstCtrl.SelectSingleItem);
+                mc.SetFuncSelectSingleSearchData((noChange) => lstCtrl.SelectSingleItem(noChange));
                 mc.SetFuncReleaseSelectedData(() => listView_result.UnselectAll());
-                mc.recSettingView = this.recSettingView;
-                
+                mc.SetFuncGetRecSetting(() => recSettingView.GetRecSetting());
+                mc.SetFuncGetSearchKey(() => searchKeyView.GetSearchKey());
+
                 //コマンド集に無いもの
                 mc.AddReplaceCommand(EpgCmds.ReSearch, mc_Research);
                 mc.AddReplaceCommand(EpgCmds.ReSearch2, mc_Research);

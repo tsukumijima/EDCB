@@ -39,6 +39,8 @@ namespace EpgTimer
             }
         }
 
+        public bool PresetResCompare { get; set; }
+
         private RadioBtnSelect recEndModeRadioBtns;
         private bool IsManual = false;
 
@@ -47,6 +49,8 @@ namespace EpgTimer
 
         public RecSettingView()
         {
+            PresetResCompare = false;
+
             InitializeComponent();
 
             if (CommonManager.Instance.NWMode == true)
@@ -97,7 +101,7 @@ namespace EpgTimer
             comboBox_tuijyu.IsEnabled = (epgMode == true);
             comboBox_pittari.IsEnabled = (epgMode == true);
         }
- 
+
         public void SetChangeMode(int chgMode)
         {
             switch (chgMode)
@@ -154,7 +158,7 @@ namespace EpgTimer
         //このへんそのうちpreEditに移動か
         public RecPresetItem MatchPresetOrDefault(RecSettingData data = null)
         {
-            return (data ?? GetRecSetting()).LookUpPreset(preEdit.Items, IsManual);
+            return (data ?? GetRecSetting()).LookUpPreset(preEdit.Items, IsManual, PresetResCompare);
         }
         public RecPresetItem SelectedPreset(bool isCheckData = false)
         {
@@ -165,6 +169,7 @@ namespace EpgTimer
 
         public void SetDefSetting(RecSettingData set)
         {
+            if (set == null) return;
             recSetting = set.DeepClone();
 
             //"登録時"を追加する。既存があれば追加前に削除する。検索ダイアログの上下ボタンの移動用のコード。
@@ -394,7 +399,7 @@ namespace EpgTimer
             SelectedPreset_Changed(false);//状態の確定
             RecSettingData setting = GetRecSetting();
             bool chk = false;
-            return preEdit.CreateSlelectMenu(item => !chk && (chk = setting.EqualsSettingTo(item.Data, IsManual)));
+            return preEdit.CreateSlelectMenu(item => !chk && (chk = setting.EqualsSettingTo(item.Data, IsManual, PresetResCompare)));
         }
         public void OpenPresetSelectMenuOnMouseEvent(object sender, MouseButtonEventArgs e)
         {
