@@ -175,13 +175,18 @@ namespace EpgTimer
             if (mcs_DeleteCheck(e) == false || CmdExeRecinfo.mcs_DeleteCheckDelFile(recinfoList) == false) return;
             IsCommandExecuted = MenuUtil.ReserveDelete(resList) && MenuUtil.RecinfoDelete(recinfoList);
         }
+        protected override void mc_JumpRecInfo(object sender, ExecutedRoutedEventArgs e)
+        {
+            //同じショートカットのフォロー
+            mcs_JumpTab(dataList.Count != 0 ? CtxmCode.ReserveView : CtxmCode.RecInfoView);
+        }
         protected override SearchItem mcs_GetSearchItem()
         {
             if (dataList.Count != 0)//予約情報優先
             {
                 return new ReserveItem(dataList[0]);
             }
-            else if (recinfoList.Count != 0)//予約情報優先
+            else if (recinfoList.Count != 0)
             {
                 return new ReserveItem(recinfoList[0].ToReserveData());
             }

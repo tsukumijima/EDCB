@@ -85,7 +85,7 @@ namespace EpgTimer
 
                 //コマンド集を振り替えるもの
                 mc.AddReplaceCommand(EpgCmds.JumpReserve, (sender, e) => mc_JumpTab(CtxmCode.ReserveView));
-                mc.AddReplaceCommand(EpgCmds.JumpRecInfo, (sender, e) => mc_JumpTab(CtxmCode.RecInfoView));
+                mc.AddReplaceCommand(EpgCmds.JumpRecInfo, (sender, e) => mc_JumpTab(lstCtrl.SelectSingleItem(true).IsReserved ? CtxmCode.ReserveView : CtxmCode.RecInfoView));
                 mc.AddReplaceCommand(EpgCmds.JumpTuner, (sender, e) => mc_JumpTab(CtxmCode.TunerReserveView));
                 mc.AddReplaceCommand(EpgCmds.JumpTable, (sender, e) => mc_JumpTab(CtxmCode.EpgView));
 
@@ -272,7 +272,6 @@ namespace EpgTimer
 
         private void mc_JumpTab(CtxmCode trg_code)
         {
-            lstCtrl.SelectSingleItem();
             JumpTabAndHide(trg_code, mc.GetJumpTabItem(trg_code));
         }
         private void mc_Research(object sender, ExecutedRoutedEventArgs e)

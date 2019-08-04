@@ -110,14 +110,8 @@ namespace EpgTimer
             cmdList.ForEach(icmd =>
             {
                 MenuCmds.CmdData cmdData;
-                if (mm.MC.WorkCmdOptions.TryGetValue(icmd, out cmdData))
-                {
-                    if (((cmdData.GesTrg & spc) == spc || cmdData.GesTrg == MenuCmds.GestureTrg.None) && mm.IsGestureDisableOnView(icmd, this.View) == false)
-                    {
-                        iTrg.InputBindings.AddRange(GetInputBinding(icmd));
-                    }
-                }
-                else
+                if (mm.MC.WorkCmdOptions.TryGetValue(icmd, out cmdData) == false ||
+                    ((cmdData.GesTrg & spc) == spc || cmdData.GesTrg == MenuCmds.GestureTrg.None) && mm.IsGestureDisableOnView(icmd, this.View) == false)
                 {
                     iTrg.InputBindings.AddRange(GetInputBinding(icmd));
                 }
