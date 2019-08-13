@@ -10,7 +10,7 @@
     <TabControl Name="tabControl">
         <TabItem Header="TVTest連携" Name="tabItem_tvtest">
             <StackPanel Margin="10,10,6,6" >
-                <Label Content="※利用にはTVtestに EpgTimerPlugIn.tvtp か EdcbPlugIn.tvtp を追加しておく必要があります。" Foreground="Red" />
+                <Label Content="※利用にはTVtestに EpgTimerPlugIn.tvtp か EdcbPlugIn.tvtp を追加しておく必要があります。&#10;※NetworkTVモードには EpgTimerPlugIn.tvtp が必要です。" />
                 <DockPanel Margin="0,6,0,0">
                     <Label Content="TVTest.exeパス" Width="{Binding ActualWidth, ElementName=label_cmdline}" />
                     <Button DockPanel.Dock="Right" Content="開く" Name="button_exe" />
@@ -55,10 +55,9 @@
                 </DockPanel>
                 <CheckBox Margin="0,12,0,0" Content="NetworkTVモード(録画用アプリやEpgTimerSrvからのUDP、TCP送信)で視聴する" IsChecked="{Binding NwTvMode}"/>
                 <Label Margin="0,6,0,0" Content="NetworkTVモードの送信方式 (NetworkTVモードでファイル再生する場合もチェックが必要です)" />
-                <DockPanel Margin="18,2,0,0">
-                    <CheckBox Content="UDP有効" IsChecked="{Binding NwTvModeUDP}"/>
-                    <CheckBox Content="TCP有効" Margin="24,0,0,0" IsChecked="{Binding NwTvModeTCP}"/>
-                </DockPanel>
+                <CheckBox Content="UDP有効 (BonDriver__UDP.dll)" Margin="18,2,0,0" IsChecked="{Binding NwTvModeUDP}"/>
+                <CheckBox Content="TCP有効 (BonDriver__TCP.dll)" Margin="18,6,0,0" IsChecked="{Binding NwTvModeTCP}"/>
+                <CheckBox Content="Pipe方式 (BonDriver__NetworkPipe.dll) ※ローカル通信専用" Margin="38,6,0,0" IsChecked="{Binding NwTvModePipe}" IsEnabled="{Binding NwTvModeTCP}"/>
             </StackPanel>
         </TabItem>
         <TabItem Header="ファイル再生" Name="tabItem_play">
