@@ -50,6 +50,7 @@ namespace EpgTimer
             if (macAddress != null)
             {
                 NWConnect.SendMagicPacket(macAddress);
+                Settings.Instance.NWMacAdd = textBox_mac.Text;
             }
             else
             {
