@@ -46,28 +46,29 @@ namespace EpgTimer
 
         private void button_wake_Click(object sender, RoutedEventArgs e)
         {
-            try
+            byte[] macAddress = ConvertTextMacAddress(textBox_mac.Text);
+            if (macAddress != null)
             {
-                NWConnect.SendMagicPacket(ConvertTextMacAddress(textBox_mac.Text));
-                Settings.Instance.NWMacAdd = textBox_mac.Text;
+                NWConnect.SendMagicPacket(macAddress);
             }
-            catch
+            else
             {
                 MessageBox.Show("書式が間違っているか、16進アドレスの数値が読み取れません。");
             }
         }
-
-        //失敗するとエラー
         public static byte[] ConvertTextMacAddress(string txt)
         {
-            byte[] macAddress = Enumerable.Repeat<byte>(0xFF, 6).ToArray();
-
             string[] mac = txt.Split('-');
-            for (int i = 0; i < Math.Max(mac.Length, 6); i++)
-            {
-                macAddress[i] = Convert.ToByte(mac[i], 16);
-            }
+            if (mac.Length != 6) return null;
 
+            var macAddress = new byte[6];
+            for (int i = 0; i < 6; i++)
+            {
+                if (byte.TryParse(mac[i], System.Globalization.NumberStyles.HexNumber, null, out macAddress[i]) == false)
+                {
+                    return null;
+                }
+            }
             return macAddress;
         }
 
