@@ -152,15 +152,15 @@
                 </GroupBox>
                 <StackPanel Grid.Row="2" Name="grid_AppRec">
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                        <Label Content="指定サービス対象データのデフォルト" />
-                        <CheckBox Content="字幕を含める" Margin="24,0,0,0" IsChecked="{Binding DefServiceCaption}" />
-                        <CheckBox Content="データカルーセルを含める" Margin="12,0,0,0" IsChecked="{Binding DefServiceData}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="録画マージンのデフォルト　　　開始(秒)" />
                         <TextBox Width="42" Text="{Binding DefStartMargin}"/>
                         <Label Content="終了(秒)" Margin="24,0,0,0" />
                         <TextBox Width="42" Text="{Binding DefEndMargin}"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                        <Label Content="対象データのデフォルト" />
+                        <CheckBox Content="字幕を含める" Margin="24,0,0,0" IsChecked="{Binding DefServiceCaption}" />
+                        <CheckBox Content="データカルーセルを含める" Margin="12,0,0,0" IsChecked="{Binding DefServiceData}" />
                     </StackPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
                         <Label Content="録画用アプリ" />

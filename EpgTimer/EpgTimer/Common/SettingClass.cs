@@ -737,8 +737,8 @@ namespace EpgTimer
             SeparateFixedTuners = IniFileHandler.GetPrivateProfileBool("SET", "SeparateFixedTuners", false, SettingPath.TimerSrvIniPath);
             DefStartMargin = IniFileHandler.GetPrivateProfileInt("SET", "StartMargin", 5, SettingPath.TimerSrvIniPath);
             DefEndMargin = IniFileHandler.GetPrivateProfileInt("SET", "EndMargin", 2, SettingPath.TimerSrvIniPath);
-            DefServiceCaption = IniFileHandler.GetPrivateProfileBool("SET", "Caption", true, SettingPath.EdcbIniPath);
-            DefServiceData = IniFileHandler.GetPrivateProfileBool("SET", "Data", false, SettingPath.EdcbIniPath);
+            DefServiceCaption = IniFileHandler.GetPrivateProfileBool("SET", "Caption", true, SettingPath.TimerSrvIniPath);
+            DefServiceData = IniFileHandler.GetPrivateProfileBool("SET", "Data", false, SettingPath.TimerSrvIniPath);
             DefRecEndMode = IniFileHandler.GetPrivateProfileInt("SET", "RecEndMode", 2, SettingPath.TimerSrvIniPath);
             DefRebootFlg = (byte)IniFileHandler.GetPrivateProfileInt("SET", "Reboot", 0, SettingPath.TimerSrvIniPath);
             RecAppWakeTime = IniFileHandler.GetPrivateProfileInt("SET", "RecAppWakeTime", 2, SettingPath.TimerSrvIniPath);
@@ -755,8 +755,8 @@ namespace EpgTimer
             IniFileHandler.WritePrivateProfileString("SET", "EndMargin", DefEndMargin, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecEndMode", DefRecEndMode, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "Reboot", DefRebootFlg, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "Caption", DefServiceCaption, SettingPath.EdcbIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "Data", DefServiceData, SettingPath.EdcbIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "Caption", DefServiceCaption, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "Data", DefServiceData, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecAppWakeTime", RecAppWakeTime, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "WakeUpHdd", WakeUpHdd, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "NoWakeUpHddMin", NoWakeUpHddMin, SettingPath.TimerSrvIniPath);
