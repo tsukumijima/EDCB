@@ -207,7 +207,7 @@ namespace EpgTimer.Setting
             int ngCount = IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "Count", int.MaxValue, SettingPath.TimerSrvIniPath);
             if (ngCount == int.MaxValue)
             {
-                listBox_process.Items.Add("EpgDataCap_Bon.exe");
+                listBox_process.Items.Add("EpgDataCap_Bon");
             }
             else
             {
@@ -272,7 +272,8 @@ namespace EpgTimer.Setting
                 CommonManager.Instance.DB.ReloadPlugInFile();
             }
             comboBox_recname.ItemsSource = CommonManager.Instance.DB.RecNamePlugInList;
-            comboBox_recname.SelectedItem = IniFileHandler.GetPrivateProfileString("SET", "RecNamePlugInFile", "RecName_Macro.dll", SettingPath.TimerSrvIniPath);
+            comboBox_recname.SelectedItem = IniFileHandler.GetPrivateProfileString("SET", "RecNamePlugInFile", "", SettingPath.TimerSrvIniPath);
+            if (comboBox_recname.SelectedIndex < 0) comboBox_recname.SelectedIndex = 0;
 
             checkBox_noChkYen.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "NoChkYen", false, SettingPath.TimerSrvIniPath);
             delReserveModeRadioBtns = new RadioBtnSelect(grid_delReserve);
@@ -363,7 +364,7 @@ namespace EpgTimer.Setting
             }
 
             IniFileHandler.WritePrivateProfileString("SET", "RecNamePlugIn", checkBox_recname.IsChecked, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "RecNamePlugInFile", comboBox_recname.SelectedItem as string ?? "", SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "RecNamePlugInFile", comboBox_recname.SelectedItem, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "NoChkYen", checkBox_noChkYen.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "DelReserveMode", delReserveModeRadioBtns.Value, -1, SettingPath.TimerSrvIniPath);
 
