@@ -137,14 +137,8 @@ namespace EpgTimer
         private void SetResModeProgram(bool mode)
         {
             resModeProgram = mode;
-
             radioButton_Epg.IsChecked = !resModeProgram;
             radioButton_Program.IsChecked = resModeProgram;
-
-            textBox_title.SetReadOnlyWithEffect(!resModeProgram);
-            comboBox_service.IsEnabled = resModeProgram;
-            stack_start.IsEnabled = resModeProgram;
-            stack_end.IsEnabled = resModeProgram;
             recSettingView.SetViewMode(!resModeProgram);
 
             CheckMultiReserve();
@@ -270,12 +264,14 @@ namespace EpgTimer
                 resInfo.TransportStreamID = ch.TSID;
                 resInfo.ServiceID = ch.SID;
 
-                resInfo.StartTime = datePicker_start.SelectedDate.Value.Date
+                resInfo.StartTime = datePicker_start.SelectedDate == null ? DateTime.MaxValue : 
+                    datePicker_start.SelectedDate.Value.Date
                     .AddHours(comboBox_sh.SelectedIndex)
                     .AddMinutes(comboBox_sm.SelectedIndex)
                     .AddSeconds(comboBox_ss.SelectedIndex);
 
-                DateTime endTime = datePicker_end.SelectedDate.Value.Date
+                DateTime endTime = datePicker_end.SelectedDate == null ? DateTime.MinValue : 
+                    datePicker_end.SelectedDate.Value.Date
                     .AddHours(comboBox_eh.SelectedIndex)
                     .AddMinutes(comboBox_em.SelectedIndex)
                     .AddSeconds(comboBox_es.SelectedIndex);

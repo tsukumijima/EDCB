@@ -47,18 +47,18 @@
                             </StackPanel>
                         </StackPanel>
                         <Label Content="番組名" Grid.Row="1" />
-                        <TextBox Height="24" Grid.Row="1" Grid.Column="1" Name="textBox_title"  Margin="0,3" Width="259" />
+                        <local:TextBoxWithReadOnlyEffect Height="24" Grid.Row="1" Grid.Column="1" x:Name="textBox_title"  Margin="0,3" Width="259" IsReadOnly="{Binding IsChecked, ElementName=radioButton_Epg}"/>
                         <Label Content="サービス" Grid.Row="1" Grid.Column="3" Margin="18,0,6,0" />
-                        <ComboBox Height="24" Grid.Row="1" Grid.Column="4" Name="comboBox_service" Width="259" />
+                        <ComboBox Height="24" Grid.Row="1" Grid.Column="4" Name="comboBox_service" Width="259" IsEnabled="{Binding IsChecked, ElementName=radioButton_Program}" />
                         <Label Content="開始日時" Grid.Row="2" Margin="0,0,6,0" />
-                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Name="stack_start">
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Name="stack_start" IsEnabled="{Binding IsChecked, ElementName=radioButton_Program}">
                             <DatePicker Height="24" Name="datePicker_start" VerticalAlignment="Center" Width="115" Margin="0,0,3,0" SelectedDateFormat="Short" />
                             <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_sh" Width="44" IsEditable="True" />
                             <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_sm" Width="44" IsEditable="True" />
                             <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_ss" Width="44" IsEditable="True" />
                         </StackPanel>
                         <Label Content="終了日時" Grid.Row="2" Grid.Column="3" Margin="18,0,6,0" />
-                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="4" Name="stack_end">
+                        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="4" Name="stack_end" IsEnabled="{Binding IsChecked, ElementName=radioButton_Program}">
                             <DatePicker Height="25" Name="datePicker_end" VerticalAlignment="Center" Width="115" Margin="0,0,3,0" />
                             <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_eh" Width="44" IsEditable="True" />
                             <ComboBox Height="24" Margin="3,0,0,0" Name="comboBox_em" Width="44" IsEditable="True" />
