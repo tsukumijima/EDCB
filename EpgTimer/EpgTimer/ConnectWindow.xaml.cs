@@ -49,13 +49,20 @@ namespace EpgTimer
             byte[] macAddress = ConvertTextMacAddress(textBox_mac.Text);
             if (macAddress != null)
             {
-                NWConnect.SendMagicPacket(macAddress);
+                int ifCount;
+                int ifTotal;
+                if (NWConnect.SendMagicPacket(macAddress, out ifCount, out ifTotal))
+                {
+                    label_wakeResult.Text = (ifCount > 0 ? "送信しました" : "送信できませんでした") + "(" + ifCount + "/" + ifTotal + "interfaces)";
+                }
+                else
+                {
+                    label_wakeResult.Text = "Error! 送信できません";
+                }
                 Settings.Instance.NWMacAdd = textBox_mac.Text;
+                return;
             }
-            else
-            {
-                MessageBox.Show("書式が間違っているか、16進アドレスの数値が読み取れません。");
-            }
+            label_wakeResult.Text = "Error! 書式が間違っているか、\r\n16進アドレスの数値が読み取れません。";
         }
         public static byte[] ConvertTextMacAddress(string txt)
         {

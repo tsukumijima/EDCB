@@ -578,7 +578,8 @@ namespace EpgTimer
 
             if (Settings.Instance.WoLWaitRecconect == true)
             {
-                try { NWConnect.SendMagicPacket(ConnectWindow.ConvertTextMacAddress(Settings.Instance.NWMacAdd)); }
+                int dummy;
+                try { NWConnect.SendMagicPacket(ConnectWindow.ConvertTextMacAddress(Settings.Instance.NWMacAdd), out dummy, out dummy); }
                 catch { }
 
                 connectTimer = new DispatcherTimer();
