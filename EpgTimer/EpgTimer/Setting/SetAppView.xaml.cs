@@ -24,7 +24,7 @@ namespace EpgTimer.Setting
         private List<string> buttonItem = Settings.GetViewButtonAllIDs();
         private List<string> taskItem = Settings.GetTaskMenuAllIDs();
 
-        private RadioBtnSelect recEndModeRadioBtns;
+        private RadioBtnSelect recEndModeRadioBtns;//ラップしてあるがiniオプションなのでバインディング使わない
         private RadioBtnSelect delReserveModeRadioBtns;
 
         public SetAppView()

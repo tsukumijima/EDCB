@@ -13,6 +13,7 @@
             <local:BoolInverter x:Key="invert" />
             <local:BoolConverter x:Key="convert" />
             <local:ValueChecker x:Key="vcheck" />
+            <local:StringSelector x:Key="selector" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

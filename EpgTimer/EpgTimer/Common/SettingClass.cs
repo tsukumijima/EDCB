@@ -376,6 +376,7 @@ namespace EpgTimer
         public bool ApplyReplacePatternTuner { get; set; }
         public bool ShareEpgReplacePatternTitle { get; set; }
         public bool EpgChangeBorderOnRecWeekOnly { get; set; }
+        public uint EpgChangeBorderMode { get; set; }
         public List<string> ContentColorList { get; set; }
         public List<UInt32> ContentCustColorList { get; set; }
         public List<string> EpgResColorList { get; set; }
@@ -434,6 +435,7 @@ namespace EpgTimer
             ApplyReplacePatternTuner = false;
             ShareEpgReplacePatternTitle = false;
             EpgChangeBorderOnRecWeekOnly = true;
+            EpgChangeBorderMode = 1;
             ContentColorList = new List<string>();
             ContentCustColorList = new List<uint>();
             EpgResColorList = new List<string>();
@@ -500,6 +502,7 @@ namespace EpgTimer
         public int TunerPopupMode { get; set; }
         public bool TunerPopupRecinfo { get; set; }
         public double TunerPopupWidth { get; set; }
+        public uint TunerChangeBorderMode { get; set; }
         public bool TunerInfoSingleClick { get; set; }
         public bool TunerColorModeUse { get; set; }
         public bool TunerDisplayOffReserve { get; set; }
@@ -835,6 +838,7 @@ namespace EpgTimer
             TunerPopupRecinfo = false;
             TunerInfoSingleClick = false;
             TunerPopupWidth = 1;
+            TunerChangeBorderMode = 1;
             TunerColorModeUse = false;
             TunerDisplayOffReserve = false;
             TunerToolTipMode = 0;

@@ -286,16 +286,19 @@
                             </GroupBox>
                             <GroupBox Margin="6,6,6,0" >
                                 <GroupBox.Header>
-                                    <DockPanel>
+                                    <DockPanel Name="panel_EpgBorderColor">
                                         <TextBlock Text="予約枠"/>
+                                        <TextBlock Margin="20,0,0,0" Text="予約枠色の変更"/>
+                                        <RadioButton Tag="0" Margin="6,0,0,0" Content="個別予約" />
+                                        <RadioButton Tag="1" Margin="6,0,0,0" Content="プログラム予約" />
                                         <CheckBox Margin="20,0,0,0" Content="録画中の予約枠は1週間表示のときのみ変更する" IsChecked="{Binding EpgChangeBorderOnRecWeekOnly}" />
                                     </DockPanel>
                                 </GroupBox.Header>
                                 <Grid x:Name="grid_EpgColorsReserve" >
-                                    <Label Content="EPG予約" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                    <Label Content="プログラム予約" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
-                                    <Label Content="EPG録画中" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
-                                    <Label Content="プログラム録画中" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
+                                    <Label Content="{Binding EpgChangeBorderMode, Converter={StaticResource selector},ConverterParameter=自動登録予約;EPG予約}" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                    <Label Content="{Binding EpgChangeBorderMode, Converter={StaticResource selector},ConverterParameter=個別予約;プログラム予約}" HorizontalAlignment="Left" Margin="390,0,0,0" VerticalAlignment="Top" />
+                                    <Label Content="{Binding EpgChangeBorderMode, Converter={StaticResource selector},ConverterParameter=自動登録予約録画中;EPG予約録画中}" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
+                                    <Label Content="{Binding EpgChangeBorderMode, Converter={StaticResource selector},ConverterParameter=個別予約録画中;プログラム録画中}" HorizontalAlignment="Left" Margin="390,30,0,0" VerticalAlignment="Top" />
                                     <Label Content="録画済み" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
                                     <Label Content="無効" HorizontalAlignment="Left" Margin="390,60,0,0" VerticalAlignment="Top" />
                                     <Label Content="チューナー不足" HorizontalAlignment="Left" Margin="12,90,0,0" VerticalAlignment="Top" />
@@ -521,13 +524,21 @@
                                 <Button Margin="292,147,0,0" Tag="2" />
                             </Grid>
                         </GroupBox>
-                        <GroupBox Margin="6,6,6,0" Header="その他色設定">
+                        <GroupBox Margin="6,6,6,0">
+                            <GroupBox.Header>
+                                <DockPanel Name="panel_TunerBorderColor">
+                                    <TextBlock Text="その他色設定"/>
+                                    <TextBlock Margin="20,0,0,0" Text="予約枠色の変更"/>
+                                    <RadioButton Tag="0" Margin="6,0,0,0" Content="個別予約" />
+                                    <RadioButton Tag="1" Margin="6,0,0,0" Content="プログラム予約" />
+                                </DockPanel>
+                            </GroupBox.Header>
                             <Grid x:Name="grid_TunerEtcColors">
                                 <Label Content="カスタム色" HorizontalAlignment="Left" Margin="614,-23,0,0" VerticalAlignment="Top" />
-                                <Label Content="EPG予約枠" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="プログラム予約枠" HorizontalAlignment="Left" Margin="370,0,0,0" VerticalAlignment="Top" />
-                                <Label Content="EPG録画中" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
-                                <Label Content="プログラム録画中" HorizontalAlignment="Left" Margin="370,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="{Binding TunerChangeBorderMode, Converter={StaticResource selector},ConverterParameter=自動登録予約枠;EPG予約枠}" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="{Binding TunerChangeBorderMode, Converter={StaticResource selector},ConverterParameter=個別予約枠;プログラム予約枠}" HorizontalAlignment="Left" Margin="370,0,0,0" VerticalAlignment="Top" />
+                                <Label Content="{Binding TunerChangeBorderMode, Converter={StaticResource selector},ConverterParameter=自動登録予約録画中;EPG予約録画中}" HorizontalAlignment="Left" Margin="12,30,0,0" VerticalAlignment="Top" />
+                                <Label Content="{Binding TunerChangeBorderMode, Converter={StaticResource selector},ConverterParameter=個別予約録画中;プログラム録画中}" HorizontalAlignment="Left" Margin="370,30,0,0" VerticalAlignment="Top" />
                                 <Label Content="予約枠(無効)" HorizontalAlignment="Left" Margin="12,60,0,0" VerticalAlignment="Top" />
                                 <Label Content="予約表示エリア背景" HorizontalAlignment="Left" Margin="370,60,0,0" VerticalAlignment="Top" />
                                 <Label Content="時刻表示文字" HorizontalAlignment="Left" Margin="12,90,0,0" VerticalAlignment="Top" />

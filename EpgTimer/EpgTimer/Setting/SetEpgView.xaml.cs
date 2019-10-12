@@ -55,6 +55,9 @@ namespace EpgTimer.Setting
             cmb_design.SelectedValuePath = CommonUtil.NameOf(() => settings.EpgSettingList[0].ID);
             cmb_design.DisplayMemberPath = CommonUtil.NameOf(() => settings.EpgSettingList[0].Name);
 
+            RadioButtonTagConverter.SetBindingButtons(CommonUtil.NameOf(() => settings.EpgSettingList[0].EpgChangeBorderMode), panel_EpgBorderColor);
+            RadioButtonTagConverter.SetBindingButtons(CommonUtil.NameOf(() => settings.TunerChangeBorderMode), panel_TunerBorderColor);
+            
             //カラー関係はまとめてバインドする
             var colorReference = typeof(Brushes).GetProperties().Select(p => new ColorComboItem(p.Name, (Brush)p.GetValue(null, null))).ToList();
             colorReference.Add(new ColorComboItem("カスタム", this.Resources["HatchBrush"] as VisualBrush));

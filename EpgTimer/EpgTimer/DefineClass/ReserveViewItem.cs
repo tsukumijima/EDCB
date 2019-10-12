@@ -25,7 +25,7 @@ namespace EpgTimer
             }
             if ((ViewMode == 1 || this.EpgStyle().EpgChangeBorderOnRecWeekOnly == false) && Data.IsOnRec())
             {
-                return Data.IsManual ? 8 : 7;
+                return 7 + SelectBorder(this.EpgStyle().EpgChangeBorderMode);
             }
             if (Data.OverlapMode == 1)
             {
@@ -39,7 +39,11 @@ namespace EpgTimer
             {
                 return 6;
             }
-            return Data.IsManual ? 1 : 0;
+            return SelectBorder(this.EpgStyle().EpgChangeBorderMode);
+        }
+        protected int SelectBorder(uint mode)
+        {
+            return mode == 0 && !Data.IsAutoAdded || mode == 1 && Data.IsManual ? 1 : 0;
         }
     }
 
@@ -53,13 +57,13 @@ namespace EpgTimer
         {
             if (Data.IsOnRec())
             {
-                return Data.IsManual ? 4 : 3;
+                return 3 + SelectBorder(Settings.Instance.TunerChangeBorderMode);
             }
             if (Data.IsEnabled == false)
             {
                 return 2;
             }
-            return Data.IsManual ? 1 : 0;
+            return SelectBorder(Settings.Instance.TunerChangeBorderMode);
         }
         public Brush ServiceColor
         {

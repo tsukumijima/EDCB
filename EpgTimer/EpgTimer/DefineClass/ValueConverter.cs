@@ -80,6 +80,18 @@ namespace EpgTimer
             }
             return double.Parse(s);
         }
+    }
 
+    /// <summary>パラメータ(p)に指定の文字列のリスト(;区切)から、参照(v)位置の文字列を選択する。</summary>
+    public class StringSelector : IValueConverter
+    {
+        public virtual object Convert(object v, Type t, object p, System.Globalization.CultureInfo c)
+        {
+            return ((string)p).Split(';')[(uint)v];
+        }
+        public virtual object ConvertBack(object v, Type t, object p, System.Globalization.CultureInfo c)
+        {
+            return null;
+        }
     }
 }
