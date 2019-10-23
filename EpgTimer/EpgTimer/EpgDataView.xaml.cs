@@ -34,6 +34,7 @@ namespace EpgTimer
             //タブ関係
             viewInfo = new EpgDataViewInfo(this);
             viewInterface = new EpgDataViewInterface(this);
+            SetEpgTabDragDrop();
 
             //コマンドだと細かく設定しないといけないパターンなのでこの辺りで一括指定
             this.PreviewKeyDown += (sender, e) => ViewUtil.OnKeyMoveNextReserve(sender, e, ActiveView);
@@ -282,6 +283,77 @@ namespace EpgTimer
             tab_viewMode_Changing = false;
         }
 
+        //番組表タブのドラッグドロップ関係
+        private string dragUid = null;//オブジェクトを直接保持しない
+        private bool EpgTabMultiRow = true;
+        void SetEpgTabDragDrop()
+        {
+            tabControl.PreviewMouseLeftButtonDown += (sender, e) =>
+            {
+                var tab = tabControl.GetPlacementItem() as EpgTabItem;
+                dragUid = tab == null ? null : tab.Uid;
+
+                //多段表示判定。とりあえずこれで。
+                EpgTabMultiRow = tabControl.Items.Count >= 2 &&
+                    tabControl.DesiredSize.Height - (tabControl.Padding.Top + tabControl.Padding.Bottom + tabControl.BorderThickness.Top + tabControl.BorderThickness.Bottom)
+                        > tabControl.Items.OfType<TabItem>().Max(ti => ti.DesiredSize.Height) * 2;
+            };
+            tabControl.PreviewMouseMove += (sender, e) =>
+            {
+                if (dragUid == null) return;
+                if (Mouse.LeftButton != MouseButtonState.Pressed) dragUid = null;
+                if (!EpgTabMultiRow) EpgTabMove();
+            };
+            //多段表示のときは選択時に段入れ替わりがあるので動作を調整する。
+            //TabControlのTemplate変更でタブを固定するなら以下不要。
+            tabControl.LostFocus += (sender, e) =>
+            {
+                if (EpgTabMultiRow) dragUid = null;
+            };
+            tabControl.PreviewMouseLeftButtonUp += (sender, e) =>
+            {
+                EpgTabMove();
+                dragUid = null;
+            };
+        }
+
+        private bool OnMoveTab = false;
+        private void EpgTabMove()
+        {
+            if (dragUid == null) return;
+
+            Point pt = Mouse.GetPosition(tabControl);
+            pt.X = Math.Min(pt.X, tabControl.DesiredSize.Width - 5);//右範囲外の処理。
+
+            var trg = tabControl.GetPlacementItem(pt) as EpgTabItem;
+            if (trg == null || trg.Uid == dragUid) return;
+
+            EpgTabItem tab = Tabs.FirstOrDefault(t => t.Uid == dragUid);
+            int pos = tabControl.Items.IndexOf(trg);
+            if (tab == null || pos < 0) return;
+
+            OnMoveTab = true;
+            tabControl.Items.Remove(tab);
+            tabControl.Items.Insert(pos, tab);
+            tabControl.SelectedItem = tab;
+            OnMoveTab = false;
+
+            //設定更新
+            Func<List<CustomEpgTabInfo>, bool> updatesList = (list) =>
+            {
+                CustomEpgTabInfo info = list.Find(ti => ti.ID == tab.Info.ID);
+                int idx = list.FindIndex(ti => ti.ID == trg.Info.ID);
+                if (info != null && idx >= 0)
+                {
+                    list.Remove(info);
+                    list.Insert(idx, info);
+                }
+                return info != null && idx >= 0;
+            };
+            if (updatesList(tabInfo) && Settings.Instance.UseCustomEpgView && updatesList(Settings.Instance.CustomEpgTabList))
+            { SettingWindow.UpdatesInfo("番組表関連の変更"); }
+        }
+
         //番組表ヘッダ用のコンテキストメニュー関係
         private enum edvCmds { Setting, TabSetting, ResetAll, All, /*Delete,*/ DeleteAll, ModeChange, VisibleChange, NameTabChange, NameTabVisible, ViewModeTabVisible, MoveCheckedTab }
         public void EpgTabContextMenuOpen(object sender, MouseButtonEventArgs e)
@@ -515,6 +587,7 @@ namespace EpgTimer
             public bool IsSelected { get { return v.IsSelected; } }
             public Grid grid { get { return v.grid_tab; } }
             public bool OnCreateTab { get { return v.OnCreateTab; } }
+            public bool OnMoveTab { get { return v.OnMoveTab; } }
             public CustomEpgTabInfo TabInfo(string Uid) { return v.get_tabInfo(Uid); }
             public void TabItemsChanged() { ViewUtil.TabControlHeaderCopy(v.tabControl, v.dummyTab); }
         }
@@ -664,20 +737,20 @@ namespace EpgTimer
         //番組表の選択に対する処理。
         protected override void OnSelected(RoutedEventArgs e)
         {
-            grid.Visibility = Visibility.Visible;
+            if (epgView.OnMoveTab == false) grid.Visibility = Visibility.Visible;
             base.OnSelected(e);
-            if (epgView.OnCreateTab == false) SetContent();
+            if (epgView.OnMoveTab == false && epgView.OnCreateTab == false) SetContent();
         }
         protected override void OnUnselected(RoutedEventArgs e)
         {
-            grid.Visibility = Visibility.Hidden;
+            if (epgView.OnMoveTab == false) grid.Visibility = Visibility.Hidden;
             base.OnUnselected(e);
-            if (epgView.OnCreateTab == false && view != null) view.SaveViewData();
+            if (epgView.OnMoveTab == false && epgView.OnCreateTab == false && view != null) view.SaveViewData();
         }
         //削除されたとき
         protected override void OnVisualParentChanged(DependencyObject oldParent)
         {
-            if (Parent == null)
+            if (epgView.OnMoveTab == false && Parent == null)
             {
                 epgView.grid.Children.Remove(grid);
                 grid.Children.Clear();//無くても問題無いが、あると割とすぐGC.Collect()に乗っかる。
