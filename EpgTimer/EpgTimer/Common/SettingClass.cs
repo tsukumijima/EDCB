@@ -1111,7 +1111,7 @@ namespace EpgTimer
             // タイミング合わせにくいので、メニュー系のデータチェックは
             // MenuManager側のワークデータ作成時に実行する。
 
-            Instance.SetCustomEpgTabInfoID();
+            Instance.SetCustomEpgTabInfoID(true);
             Instance.SearchPresetList.FixUp();
 
             //互換チェック
@@ -1334,12 +1334,18 @@ namespace EpgTimer
             return Instance.RecPresetList[Math.Max(0, Math.Min(presetID, Instance.RecPresetList.Count - 1))];
         }
 
-        public void SetCustomEpgTabInfoID()
+        //起動中はIDを再利用しない
+        private static int EpgTabCounter = 0;
+        public void SetCustomEpgTabInfoID(bool reset = false)
         {
-            for (int i = 0; i < CustomEpgTabList.Count; i++)
+            //無いと思うが一応
+            reset |= CustomEpgTabList.Count > int.MaxValue - EpgTabCounter;
+            if (reset) EpgTabCounter = 0;
+
+            CustomEpgTabList.ForEach(info =>
             {
-                CustomEpgTabList[i].ID = i;
-            }
+                if (reset || info.ID < 0) info.ID = EpgTabCounter++;
+            });
         }
 
         private static List<string> viewButtonIDs = new List<string>();

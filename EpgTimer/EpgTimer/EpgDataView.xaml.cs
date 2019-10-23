@@ -140,7 +140,7 @@ namespace EpgTimer
                 tabInfo = Settings.Instance.UseCustomEpgView == false ?
                     CommonManager.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
 
-                //とりあえず同じIDを探して表示してみる(中身は別物になってるかもしれないが、表示を試みる)。
+                //以前表示していた番組表があればそれを表示する。
                 //標準・カスタム切り替えの際は、標準番組表が負のIDを与えられているので、このコードは走らない。
                 foreach (CustomEpgTabInfo info in tabInfo.Where(info => info.IsVisible == true))
                 {
@@ -177,13 +177,17 @@ namespace EpgTimer
                     if (info.Uid != tab.Uid) return;//保険
 
                     //設定の保存。
-                    if (Settings.Instance.UseCustomEpgView == true && Settings.Instance.TryEpgSetting == false
-                        && info.ID >= 0 && info.ID < tabInfo.Count && info.ID < Settings.Instance.CustomEpgTabList.Count)
+                    if (Settings.Instance.UseCustomEpgView == true && Settings.Instance.TryEpgSetting == false)
                     {
-                        tabInfo[info.ID] = info;
-                        Settings.Instance.CustomEpgTabList[info.ID] = info;
-                        Settings.SaveToXmlFile();
-                        SettingWindow.UpdatesInfo("番組表関連の変更");
+                        int idx1 = tabInfo.FindIndex(ti => ti.ID == info.ID);
+                        int idx2 = Settings.Instance.CustomEpgTabList.FindIndex(ti => ti.ID == info.ID);
+                        if (idx1 >= 0 && idx2 >= 0)
+                        {
+                            tabInfo[idx1] = info;
+                            Settings.Instance.CustomEpgTabList[idx2] = info;
+                            Settings.SaveToXmlFile();
+                            SettingWindow.UpdatesInfo("番組表関連の変更");
+                        }
                     }
 
                     if (info.IsVisible == false)
@@ -194,7 +198,7 @@ namespace EpgTimer
                 }
                 else if (param == -2)
                 {
-                    info = tabInfo.Find(tinfo => tinfo.ID == tab.Info.ID);
+                    info = get_tabInfo(tab.Uid);
                     if (info == null) return;
                 }
 

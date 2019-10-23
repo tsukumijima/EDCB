@@ -292,6 +292,7 @@ namespace EpgTimer.Setting
         {
             if (infos.Count != 0)
             {
+                infos.ForEach(info => info.ID = -1);
                 listBox_tab.ScrollIntoViewLast(infos.Select(info => new CustomEpgTabInfoView(info, () => settings)));
             }
         }
