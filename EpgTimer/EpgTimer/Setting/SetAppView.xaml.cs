@@ -24,7 +24,6 @@ namespace EpgTimer.Setting
         private List<string> buttonItem = Settings.GetViewButtonAllIDs();
         private List<string> taskItem = Settings.GetTaskMenuAllIDs();
 
-        private RadioBtnSelect recEndModeRadioBtns;//ラップしてあるがiniオプションなのでバインディング使わない
         private RadioBtnSelect delReserveModeRadioBtns;
 
         public SetAppView()
@@ -98,6 +97,7 @@ namespace EpgTimer.Setting
             SetScButton(button_shortCutSrv, "EpgTimerSrv", Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"));
 
             //1 録画動作
+            RadioButtonTagConverter.SetBindingButtons(CommonUtil.NameOf(() => settings.DefRecEndMode), panel_recEndMode);
             button_process_open.Click += ViewUtil.OpenFileNameDialog(textBox_process, true, "", ".exe");
             comboBox_process.Items.AddItems(new[] { "リアルタイム", "高", "通常以上", "通常", "通常以下", "低" });
 
@@ -200,7 +200,6 @@ namespace EpgTimer.Setting
             textBox_tsExt.Text = SettingPath.CheckTSExtension(IniFileHandler.GetPrivateProfileString("SET", "TSExt", ".ts", SettingPath.TimerSrvIniPath));
 
             //1 録画動作
-            recEndModeRadioBtns = new RadioBtnSelect(panel_recEndMode, settings.DefRecEndMode);
             textBox_pcWakeTime.Text = IniFileHandler.GetPrivateProfileInt("SET", "WakeTime", 5, SettingPath.TimerSrvIniPath).ToString();
 
             listBox_process.Items.Clear();
@@ -308,7 +307,6 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "TSExt", SettingPath.CheckTSExtension(textBox_tsExt.Text), SettingPath.TimerSrvIniPath);
 
             //1 録画動作
-            if (recEndModeRadioBtns.Value != -1) settings.DefRecEndMode = recEndModeRadioBtns.Value;
             IniFileHandler.WritePrivateProfileString("SET", "WakeTime", textBox_pcWakeTime.Text, SettingPath.TimerSrvIniPath);
 
             List<String> ngProcessList = listBox_process.Items.OfType<string>().ToList();

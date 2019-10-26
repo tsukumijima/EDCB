@@ -111,10 +111,10 @@
                 <StackPanel Name="grid_AppRecEnd">
                     <Label Content="録画、EPG取得終了後のデフォルト動作" />
                     <WrapPanel Margin="16,0,0,0" Name="panel_recEndMode">
-                        <RadioButton Content="何もしない" Margin="0,0,12,6" />
-                        <RadioButton Content="スタンバイ" Margin="0,0,12,6" />
-                        <RadioButton Content="休止" Margin="0,0,12,6" />
-                        <RadioButton Content="シャットダウン" Margin="0,0,12,6" />
+                        <RadioButton Tag="0" Content="何もしない" Margin="0,0,12,6" />
+                        <RadioButton Tag="1" Content="スタンバイ" Margin="0,0,12,6" />
+                        <RadioButton Tag="2" Content="休止" Margin="0,0,12,6" />
+                        <RadioButton Tag="3" Content="シャットダウン" Margin="0,0,12,6" />
                         <CheckBox Content="復帰後再起動する" Margin="12,0,12,6" IsChecked="{Binding DefRebootFlg}" />
                     </WrapPanel>
                     <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
