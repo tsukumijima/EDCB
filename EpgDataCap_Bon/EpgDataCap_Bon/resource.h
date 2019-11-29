@@ -3,6 +3,8 @@
 // Used by EpgDataCap_Bon.rc
 //
 #define IDD_EPGDATACAP_BON_DIALOG       102
+#define IDD_EPGDATACAP_BON_DIALOG_1     103
+#define IDD_EPGDATACAP_BON_DIALOG_2     104
 #define IDI_ICON_BLUE                   129
 #define IDD_DIALOG_SETTING              129
 #define IDI_ICON_GRAY                   130
@@ -11,7 +13,9 @@
 #define IDD_DIALOG_SET_NW               131
 #define IDI_ICON_RED                    132
 #define IDD_DIALOG_SET_APP              132
+#define IDI_ICON_OVERLAY_EPG            133
 #define IDD_DIALOG_SET_EPG              133
+#define IDI_ICON_OVERLAY_REC            134
 #define IDD_DIALOG_SET_APPBTN           134
 #define IDD_DIALOG_SET_SERVICE          135
 #define IDC_COMBO_TUNER                 1000
@@ -68,7 +72,6 @@
 #define IDC_BUTTON_VIEW_EXE             1026
 #define IDC_CHECK_BACK_CS2              1026
 #define IDC_EDIT_TS_BUFF_MAX            1027
-#define IDC_EDIT2                       1027
 #define IDC_EDIT_VIEW_OPT               1027
 #define IDC_CHECK_CS3                   1027
 #define IDC_EDIT_PORT_TCP               1028
@@ -81,7 +84,6 @@
 #define IDC_CHECK_ALL_SERVICE           1031
 #define IDC_RADIO_PIPE                  1031
 #define IDC_CHECK_EPGCAP_LIVE           1032
-#define IDC_CHECK2                      1033
 #define IDC_CHECK_EPGCAP_REC            1033
 #define IDC_CHECK_TASKMIN               1034
 #define IDC_CHECK_EMM                   1035
@@ -94,10 +96,12 @@
 #define IDC_CHECK_NO_LOG_SCRAMBLE       1039
 #define IDC_CHECK_PARSE_EPG_POST_PROC   1040
 #define IDC_BUTTON_CHK_CLEAR            1040
+#define IDC_EDIT_DROP_SAVE_THRESH       1041
 #define IDC_EDIT_CH                     1041
-#define IDC_BUTTON1                     1042
+#define IDC_EDIT_SCRAMBLE_SAVE_THRESH   1042
 #define IDC_BUTTON_DEL                  1042
-#define IDC_EDIT1                       1044
+#define IDC_CHECK_MODIFY_TITLE_BAR      1043
+#define IDC_OVERLAY_TASK_ICON           1044
 #define IDC_EDIT_BACKSTART_WAITSEC      1044
 #define IDC_STATIC                      -1
 

@@ -29,8 +29,8 @@ struct REC_SETTING_DATA {
 	BYTE suspendMode;			//休止モード
 	BYTE rebootFlag;			//録画後再起動する
 	BYTE useMargineFlag;		//録画マージンを個別指定
-	INT startMargine;			//録画開始時のマージン
-	INT endMargine;				//録画終了時のマージン
+	int startMargine;			//録画開始時のマージン
+	int endMargine;				//録画終了時のマージン
 	BYTE continueRecFlag;		//後続同一サービス時、同一ファイルで録画
 	BYTE partialRecFlag;		//物理CHに部分受信サービスがある場合、同時録画するかどうか
 	DWORD tunerID;				//強制的に使用Tunerを固定
@@ -75,7 +75,7 @@ enum REC_END_STATUS {
 	REC_END_STATUS_NOT_FIND_PF,		//録画中に番組情報を確認できませんでした
 	REC_END_STATUS_NOT_FIND_6H,		//指定時間番組情報が見つかりませんでした
 	REC_END_STATUS_END_SUBREC,		//録画終了（空き容量不足で別フォルダへの保存が発生）
-	REC_END_STATUS_ERR_RECSTART,	//録画開始処理に失敗しました（空き容量不足の可能性あり）
+	REC_END_STATUS_ERR_RECSTART,	//録画開始処理に失敗しました
 	REC_END_STATUS_NOT_START_HEAD,	//一部のみ録画が実行された可能性があります
 	REC_END_STATUS_ERR_CH_CHG,		//指定チャンネルのデータがBonDriverから出力されなかった可能性があります
 	REC_END_STATUS_ERR_END2,		//ファイル保存で致命的なエラーが発生した可能性があります
@@ -132,7 +132,7 @@ struct REC_FILE_INFO {
 			recStatus == REC_END_STATUS_NOT_FIND_PF ? L"録画中に番組情報を確認できませんでした" :
 			recStatus == REC_END_STATUS_NOT_FIND_6H ? L"指定時間番組情報が見つかりませんでした" :
 			recStatus == REC_END_STATUS_END_SUBREC ? L"録画終了（空き容量不足で別フォルダへの保存が発生）" :
-			recStatus == REC_END_STATUS_ERR_RECSTART ? L"録画開始処理に失敗しました（空き容量不足の可能性あり）" :
+			recStatus == REC_END_STATUS_ERR_RECSTART ? L"録画開始処理に失敗しました" :
 			recStatus == REC_END_STATUS_NOT_START_HEAD ? L"一部のみ録画が実行された可能性があります" :
 			recStatus == REC_END_STATUS_ERR_CH_CHG ? L"指定チャンネルのデータがBonDriverから出力されなかった可能性があります" :
 			recStatus == REC_END_STATUS_ERR_END2 ? L"ファイル保存で致命的なエラーが発生した可能性があります" : L"";
@@ -172,11 +172,6 @@ struct CH_DATA5 {
 	wstring networkName;			//ts_name or network_name
 	BOOL epgCapFlag;				//EPGデータ取得対象かどうか
 	BOOL searchFlag;				//検索時のデフォルト検索対象サービスかどうか
-};
-
-struct REGIST_TCP_INFO {
-	wstring ip;
-	DWORD port;
 };
 
 //コマンド送受信ストリーム

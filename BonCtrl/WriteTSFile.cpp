@@ -2,6 +2,7 @@
 #include "WriteTSFile.h"
 
 #include "../Common/PathUtil.h"
+#include <objbase.h>
 
 CWriteTSFile::CWriteTSFile(void)
 {
@@ -65,11 +66,14 @@ BOOL CWriteTSFile::StartSave(
 		}
 
 		//受信スレッド起動
-		this->outStopFlag = true;
+		this->outStopState = 2;
+		this->outStopEvent.Reset();
 		this->outThread = thread_(OutThread, this);
 		//保存開始まで待つ
-		while( WaitForSingleObject(this->outThread.native_handle(), 10) == WAIT_TIMEOUT && this->outStopFlag );
-		if( this->outStopFlag == false ){
+		this->outStopEvent.WaitOne();
+		//停止状態(1)でなければ開始状態(0)に移す
+		if( this->outStopState != 1 ){
+			this->outStopState = 0;
 			return TRUE;
 		}
 		this->outThread.join();
@@ -79,19 +83,11 @@ BOOL CWriteTSFile::StartSave(
 	return FALSE;
 }
 
-ULONGLONG CWriteTSFile::GetFreeSize(const wstring& folderPath)
-{
-	ULARGE_INTEGER stFree;
-	if( GetDiskFreeSpaceEx(GetChkDrivePath(folderPath).c_str(), &stFree, NULL, NULL) ){
-		return stFree.QuadPart;
-	}
-	return 0;
-}
-
 BOOL CWriteTSFile::EndSave(BOOL* subRecFlag_)
 {
 	if( this->outThread.joinable() ){
-		this->outStopFlag = true;
+		this->outStopState = 1;
+		this->outStopEvent.Set();
 		this->outThread.join();
 		if( subRecFlag_ ){
 			*subRecFlag_ = this->subRecFlag;
@@ -158,14 +154,14 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 			sys->fileList[i].reset();
 		}else{
 			fs_path recFolder = sys->fileList[i]->recFolder;
-			ChkFolderPath(recFolder);
 			//空き容量をあらかじめチェック
-			BOOL isMainFree = GetFreeSize(recFolder.native()) > sys->createSize + FREE_FOLDER_MIN_BYTES;
-			if( isMainFree == FALSE ){
+			__int64 freeBytes = UtilGetStorageFreeBytes(recFolder);
+			bool isMainUnknownOrFree = (freeBytes < 0 || freeBytes > (__int64)sys->createSize + FREE_FOLDER_MIN_BYTES);
+			if( isMainUnknownOrFree == false ){
 				//空きのあるサブフォルダを探してみる
 				vector<wstring>::iterator itrFree = std::find_if(sys->saveFolderSub.begin(), sys->saveFolderSub.end(),
-					[&](const wstring& a) { return CompareNoCase(a, recFolder.native()) &&
-					                               GetFreeSize(a) > sys->createSize + FREE_FOLDER_MIN_BYTES; });
+					[&](const wstring& a) { return UtilComparePath(a.c_str(), recFolder.c_str()) &&
+					                               UtilGetStorageFreeBytes(a) > (__int64)sys->createSize + FREE_FOLDER_MIN_BYTES; });
 				if( itrFree != sys->saveFolderSub.end() ){
 					sys->subRecFlag = TRUE;
 					recFolder = *itrFree;
@@ -177,10 +173,10 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 			if( startRes == FALSE ){
 				OutputDebugString(L"CWriteTSFile::StartSave Err 2\r\n");
 				//エラー時サブフォルダでリトライ
-				if( isMainFree ){
+				if( isMainUnknownOrFree ){
 					vector<wstring>::iterator itrFree = std::find_if(sys->saveFolderSub.begin(), sys->saveFolderSub.end(),
-						[&](const wstring& a) { return CompareNoCase(a, recFolder.native()) &&
-						                               GetFreeSize(a) > sys->createSize + FREE_FOLDER_MIN_BYTES; });
+						[&](const wstring& a) { return UtilComparePath(a.c_str(), recFolder.c_str()) &&
+						                               UtilGetStorageFreeBytes(a) > (__int64)sys->createSize + FREE_FOLDER_MIN_BYTES; });
 					if( itrFree != sys->saveFolderSub.end() ){
 						sys->subRecFlag = TRUE;
 						startRes = sys->fileList[i]->writeUtil.Start(fs_path(*itrFree).append(sys->fileList[i]->recFileName).c_str(),
@@ -208,12 +204,16 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 	if( emptyFlag ){
 		OutputDebugString(L"CWriteTSFile::StartSave Err fileList 0\r\n");
 		CoUninitialize();
+		sys->outStopState = 1;
+		sys->outStopEvent.Set();
 		return;
 	}
-	sys->outStopFlag = false;
+	sys->outStopEvent.Set();
+	//中間状態(2)でなくなるまで待つ
+	for( ; sys->outStopState == 2; Sleep(100) );
 	std::list<vector<BYTE>> data;
 
-	while( sys->outStopFlag == false ){
+	while( sys->outStopState == 0 ){
 		//バッファからデータ取り出し
 		{
 			CBlockLock lock(&sys->outThreadLock);
@@ -247,7 +247,7 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 							if( sys->fileList[i]->freeChk == TRUE ){
 								//次の空きを探す
 								vector<wstring>::iterator itrFree = std::find_if(sys->saveFolderSub.begin(), sys->saveFolderSub.end(),
-									[](const wstring& a) { return GetFreeSize(a) > FREE_FOLDER_MIN_BYTES; });
+									[](const wstring& a) { return UtilGetStorageFreeBytes(a) > FREE_FOLDER_MIN_BYTES; });
 								if( itrFree != sys->saveFolderSub.end() ){
 									//開始
 									if( sys->fileList[i]->writeUtil.Start(fs_path(*itrFree).append(sys->fileList[i]->recFileName).c_str(),
@@ -281,7 +281,7 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 			}
 		}else{
 			//TODO: 厳密にはメッセージをディスパッチすべき(スレッド内で単純なCOMオブジェクトを扱う限りは(多分)問題ない)
-			Sleep(100);
+			sys->outStopEvent.WaitOne(100);
 		}
 	}
 

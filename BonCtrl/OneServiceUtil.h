@@ -21,6 +21,11 @@ public:
 	COneServiceUtil(BOOL sendUdpTcp_);
 	~COneServiceUtil(void);
 
+	//UDP/TCP送信用かどうか（不変値）
+	BOOL GetSendUdpTcp() {
+		return this->sendUdpTcp;
+	}
+
 	//処理対象ServiceIDを設定
 	//引数：
 	// SID			[IN]ServiceID。0xFFFFで全サービス対象。
@@ -101,19 +106,20 @@ public:
 	BOOL IsRec();
 
 	//スクランブル解除処理の動作設定
-	//戻り値：
-	// TRUE（成功）、FALSE（失敗）
 	//引数：
 	// enable		[IN] TRUE（処理する）、FALSE（処理しない）
 	void SetScramble(
 		BOOL enable
-		);
+		) {
+		this->enableScramble = enable != FALSE;
+	}
 
 	//スクランブル解除処理を行うかどうか
 	//戻り値：
-	// TRUE（処理する）、FALSE（処理しない）
-	BOOL GetScramble(
-		);
+	// 正（処理する）、0（処理しない）、負（未設定）
+	int GetScramble() {
+		return this->enableScramble;
+	}
 
 	//字幕とデータ放送含めるかどうか
 	//引数：
@@ -142,8 +148,14 @@ public:
 	//ドロップとスクランブルのカウントを保存する
 	//引数：
 	// filePath			[IN]保存ファイル名
+	// dropSaveThresh	[IN]ドロップ数がこれ以上なら保存する
+	// drop				[OUT]ドロップ数
 	void SaveErrCount(
-		const wstring& filePath
+		const wstring& filePath,
+		int dropSaveThresh,
+		int scrambleSaveThresh,
+		ULONGLONG& drop,
+		ULONGLONG& scramble
 		);
 
 	void SetSignalLevel(
@@ -162,7 +174,7 @@ public:
 		);
 	void SetPIDName(
 		WORD pid,
-		LPCSTR name
+		const wstring& name
 		);
 	void SetNoLogScramble(
 		BOOL noLog
@@ -171,7 +183,7 @@ protected:
 	BOOL sendUdpTcp;
 	WORD SID;
 
-	BOOL enableScramble;
+	int enableScramble;
 
 	vector<HANDLE> udpPortMutex;
 	vector<HANDLE> tcpPortMutex;

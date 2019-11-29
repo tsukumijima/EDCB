@@ -6,13 +6,9 @@ extern HINSTANCE g_instance;
 CWriteMain::CWriteMain(void)
 {
 	this->file = INVALID_HANDLE_VALUE;
-	this->writeBuffSize = 0;
 	this->teeFile = INVALID_HANDLE_VALUE;
-
-	WCHAR dllPath[MAX_PATH];
-	DWORD ret = GetModuleFileName(g_instance, dllPath, MAX_PATH);
-	if( ret && ret < MAX_PATH ){
-		wstring iniPath = wstring(dllPath) + L".ini";
+	{
+		fs_path iniPath = GetModuleIniPath(g_instance);
 		this->writeBuffSize = GetPrivateProfileInt(L"SET", L"Size", 770048, iniPath.c_str());
 		this->writeBuff.reserve(this->writeBuffSize);
 		this->teeCmd = GetPrivateProfileToString(L"SET", L"TeeCmd", L"", iniPath.c_str());
@@ -39,7 +35,7 @@ BOOL CWriteMain::Start(
 	Stop();
 
 	this->savePath = fileName;
-	_OutputDebugString(L"šCWriteMain::Start CreateFile:%s\r\n", this->savePath.c_str());
+	_OutputDebugString(L"šCWriteMain::Start CreateFile:%ls\r\n", this->savePath.c_str());
 	UtilCreateDirectories(fs_path(this->savePath).parent_path());
 	this->file = CreateFile(this->savePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, overWriteFlag ? CREATE_ALWAYS : CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 	if( this->file == INVALID_HANDLE_VALUE ){
@@ -48,11 +44,11 @@ BOOL CWriteMain::Start(
 		fs_path ext = pathWoExt.extension();
 		pathWoExt.replace_extension();
 		for( int i = 1; ; i++ ){
-			Format(this->savePath, L"%s-(%d)%s", pathWoExt.c_str(), i, ext.c_str());
+			Format(this->savePath, L"%ls-(%d)%ls", pathWoExt.c_str(), i, ext.c_str());
 			this->file = CreateFile(this->savePath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, NULL, overWriteFlag ? CREATE_ALWAYS : CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 			if( this->file != INVALID_HANDLE_VALUE || i >= 999 ){
 				DWORD err = GetLastError();
-				_OutputDebugString(L"šCWriteMain::Start CreateFile:%s\r\n", this->savePath.c_str());
+				_OutputDebugString(L"šCWriteMain::Start CreateFile:%ls\r\n", this->savePath.c_str());
 				if( this->file != INVALID_HANDLE_VALUE ){
 					break;
 				}

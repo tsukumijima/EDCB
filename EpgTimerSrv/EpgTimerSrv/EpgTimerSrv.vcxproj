@@ -290,7 +290,6 @@
     <ClInclude Include="EpgDBManager.h" />
     <ClInclude Include="EpgTimerSrvMain.h" />
     <ClInclude Include="EpgTimerSrvSetting.h" />
-    <ClInclude Include="FileStreamingManager.h" />
     <ClInclude Include="HttpServer.h" />
     <ClInclude Include="lua\lapi.h" />
     <ClInclude Include="lua\lauxlib.h" />
@@ -336,7 +335,6 @@
     <ClInclude Include="SyoboiCalUtil.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TunerBankCtrl.h" />
-    <ClInclude Include="TunerManager.h" />
     <ClInclude Include="UpnpSsdpServer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -371,7 +369,6 @@
     <ClCompile Include="EpgTimerSrv.cpp" />
     <ClCompile Include="EpgTimerSrvMain.cpp" />
     <ClCompile Include="EpgTimerSrvSetting.cpp" />
-    <ClCompile Include="FileStreamingManager.cpp" />
     <ClCompile Include="HttpServer.cpp" />
     <ClCompile Include="lua\lapi.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -740,7 +737,6 @@
     </ClCompile>
     <ClCompile Include="SyoboiCalUtil.cpp" />
     <ClCompile Include="TunerBankCtrl.cpp" />
-    <ClCompile Include="TunerManager.cpp" />
     <ClCompile Include="UpnpSsdpServer.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -33,7 +33,6 @@ $(TARGET): $(addsuffix .obj, \
   Common__WritePlugInUtil.cpp \
   EpgDataCap_Bon.cpp \
   EpgDataCap_BonDlg.cpp \
-  EpgDataCap_BonMain.cpp \
   SetDlgApp.cpp \
   SetDlgAppBtn.cpp \
   SetDlgBasic.cpp \
@@ -42,6 +41,7 @@ $(TARGET): $(addsuffix .obj, \
   SetDlgService.cpp \
   SettingDlg.cpp \
   stdafx.cpp \
+  TaskbarList.cpp \
   EpgDataCap_Bon.rc \
   )
 	$(CXX) -mwindows -Wl,-s -Wl,--dynamicbase -Wl,--nxcompat -static-libgcc -static-libstdc++ -o $@ $^ -lws2_32 -lole32 -lcomctl32 -ldbghelp -lcomdlg32
