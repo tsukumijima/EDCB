@@ -66,6 +66,7 @@ namespace EpgTimer
             try
             {
                 var dlg = new Microsoft.Win32.SaveFileDialog();
+                dlg.FileName = "EpgTimerSrvNotify.log";
                 dlg.DefaultExt = ".log";
                 dlg.Filter = "log Files|*.log|all Files|*.*";
                 if (dlg.ShowDialog() == true)
