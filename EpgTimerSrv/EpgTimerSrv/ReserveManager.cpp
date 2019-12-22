@@ -6,8 +6,8 @@
 CReserveManager::CReserveManager(CNotifyManager& notifyManager_, CEpgDBManager& epgDBManager_)
 	: notifyManager(notifyManager_)
 	, epgDBManager(epgDBManager_)
-	, batManager(notifyManager_, L"EpgTimer_Bon_RecEnd.bat")
-	, batPostManager(notifyManager_, L"EpgTimer_Bon_Post.bat")
+	, batManager(notifyManager_, L"EpgTimer_Bon_RecEnd")
+	, batPostManager(notifyManager_, L"EpgTimer_Bon_Post")
 	, checkCount(0)
 	, epgCapRequested(false)
 	, epgCapWork(false)
@@ -18,21 +18,46 @@ CReserveManager::CReserveManager(CNotifyManager& notifyManager_, CEpgDBManager& 
 
 void CReserveManager::Initialize(const CEpgTimerSrvSetting::SETTING& s)
 {
-	this->tunerManager.ReloadTuner();
-	this->tunerManager.GetEnumTunerBank(&this->tunerBankMap, this->notifyManager, this->epgDBManager);
-	this->lastCheckEpgCap = GetNowI64Time();
-
 	fs_path settingPath = GetSettingPath();
+	fs_path iniPath = GetModuleIniPath();
+
+	//チューナ一覧を構築
+	vector<pair<wstring, wstring>> nameList = CEpgTimerSrvSetting::EnumBonFileName(settingPath.c_str());
+	for( size_t i = 0; i < nameList.size(); i++ ){
+		WORD count = (WORD)GetPrivateProfileInt(nameList[i].first.c_str(), L"Count", 0, iniPath.c_str());
+		WORD priority = (WORD)GetPrivateProfileInt(nameList[i].first.c_str(), L"Priority", 0, iniPath.c_str());
+		if( count != 0 && priority != 0xFFFF ){
+			//カウント1以上のものだけ利用
+			WORD epgCount = 0;
+			if( GetPrivateProfileInt(nameList[i].first.c_str(), L"GetEpg", 1, iniPath.c_str()) != 0 ){
+				epgCount = (WORD)GetPrivateProfileInt(nameList[i].first.c_str(), L"EPGCount", 0, iniPath.c_str());
+				if( epgCount == 0 ){
+					epgCount = count;
+				}
+			}
+			DWORD tunerID = (DWORD)priority << 16 | 1;
+			if( this->tunerBankMap.count(tunerID) != 0 ){
+				OutputDebugString(L"CReserveManager::Initialize(): Duplicate bonID\r\n");
+			}else{
+				CParseChText4 chText4;
+				chText4.ParseText(fs_path(settingPath).append(nameList[i].second).c_str());
+				vector<CH_DATA4> chList;
+				chList.reserve(chUtil.GetMap().size());
+				for( map<DWORD, CH_DATA4>::const_iterator itr = chText4.GetMap().begin(); itr != chText4.GetMap().end(); itr++ ){
+					chList.push_back(itr->second);
+				}
+				for( WORD j = 0; j < count; j++, tunerID++ ){
+					this->tunerBankMap.insert(std::make_pair(tunerID, std::unique_ptr<CTunerBankCtrl>(new CTunerBankCtrl(
+						tunerID, nameList[i].first.c_str(), min(epgCount, count), chList, this->notifyManager, this->epgDBManager))));
+				}
+			}
+		}
+	}
+
+	this->lastCheckEpgCap = GetNowI64Time();
 	this->reserveText.ParseText(fs_path(settingPath).append(RESERVE_TEXT_NAME).c_str());
 
 	ReloadSetting(s);
-	fs_path iniPath = GetModuleIniPath();
-	DWORD shiftID = GetPrivateProfileInt(L"SET", L"RecInfoShiftID", 100000, iniPath.c_str());
-	if( shiftID != 0 ){
-		this->recInfoText.SetNextID(shiftID + 1);
-		TouchFileAsUnicode(iniPath.c_str());
-		WritePrivateProfileInt(L"SET", L"RecInfoShiftID", shiftID % 900000 + 100000, iniPath.c_str());
-	}
 	this->recInfoText.ParseText(fs_path(settingPath).append(REC_INFO_TEXT_NAME).c_str());
 	this->recInfo2Text.ParseText(fs_path(settingPath).append(REC_INFO2_TEXT_NAME).c_str());
 
@@ -64,7 +89,7 @@ void CReserveManager::ReloadSetting(const CEpgTimerSrvSetting::SETTING& s)
 
 	this->recInfoText.SetKeepCount(s.autoDelRecInfo ? s.autoDelRecInfoNum : UINT_MAX);
 	this->recInfoText.SetRecInfoDelFile(GetPrivateProfileInt(L"SET", L"RecInfoDelFile", 0, commonIniPath.c_str()) != 0);
-	this->recInfoText.SetRecInfoFolder(GetPrivateProfileToFolderPath(L"SET", L"RecInfoFolder", commonIniPath.c_str()).c_str());
+	this->recInfoText.SetRecInfoFolder(GetPrivateProfileToString(L"SET", L"RecInfoFolder", L"", commonIniPath.c_str()).c_str());
 	this->recInfoText.CustomizeDelExt(s.applyExtToRecInfoDel);
 	this->recInfoText.SetCustomDelExt(s.delExtList);
 
@@ -99,7 +124,7 @@ vector<TUNER_RESERVE_INFO> CReserveManager::GetTunerReserveAll() const
 	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
 		list.resize(list.size() + 1);
 		list.back().tunerID = itr->first;
-		this->tunerManager.GetBonFileName(itr->first, list.back().tunerName);
+		list.back().tunerName = itr->second->GetBonFileName();
 		list.back().reserveList = itr->second->GetReserveIDList();
 	}
 	list.resize(list.size() + 1);
@@ -213,7 +238,7 @@ bool CReserveManager::AddReserveData(const vector<RESERVE_DATA>& reserveList, bo
 		ReloadBankMap(minStartTime);
 		CheckAutoDel();
 		AddNotifyAndPostBat(NOTIFY_UPDATE_RESERVE_INFO);
-		AddPostBatWork(batWorkList, L"PostAddReserve.bat");
+		AddPostBatWork(batWorkList, L"PostAddReserve");
 		return true;
 	}
 	return false;
@@ -360,7 +385,7 @@ bool CReserveManager::ChgReserveData(const vector<RESERVE_DATA>& reserveList, bo
 		ReloadBankMap(minStartTime);
 		CheckAutoDel();
 		AddNotifyAndPostBat(NOTIFY_UPDATE_RESERVE_INFO);
-		AddPostBatWork(batWorkList, L"PostChgReserve.bat");
+		AddPostBatWork(batWorkList, L"PostChgReserve");
 		return true;
 	}
 	return false;
@@ -609,7 +634,7 @@ void CReserveManager::ReloadBankMap(__int64 reloadTime)
 					//チューナID固定
 					map<DWORD, vector<CHK_RESERVE_DATA>>::iterator itrBank = bankResMap.find(itr->second->recSetting.tunerID); 
 					if( itrBank != bankResMap.end() &&
-					    this->tunerManager.IsSupportService(itrBank->first, itr->second->originalNetworkID, itr->second->transportStreamID, itr->second->serviceID) ){
+					    this->tunerBankMap.find(itrBank->first)->second->GetCh(itr->second->originalNetworkID, itr->second->transportStreamID, itr->second->serviceID) ){
 						CHK_RESERVE_DATA testItem = item;
 						ChkInsertStatus(itrBank->second, testItem, false);
 						if( testItem.cutEndTime - testItem.cutStartTime > CTunerBankCtrl::READY_MARGIN * I64_1SEC ){
@@ -628,7 +653,7 @@ void CReserveManager::ReloadBankMap(__int64 reloadTime)
 					for( map<DWORD, vector<CHK_RESERVE_DATA>>::iterator jtr = bankResMap.begin(); jtr != bankResMap.end(); jtr++ ){
 						//NGチューナを除く
 						if( std::find(itr->second->ngTunerIDList.begin(), itr->second->ngTunerIDList.end(), jtr->first) == itr->second->ngTunerIDList.end() &&
-						    this->tunerManager.IsSupportService(jtr->first, itr->second->originalNetworkID, itr->second->transportStreamID, itr->second->serviceID) ){
+						    this->tunerBankMap.find(jtr->first)->second->GetCh(itr->second->originalNetworkID, itr->second->transportStreamID, itr->second->serviceID) ){
 							CHK_RESERVE_DATA testItem = item;
 							__int64 cost = ChkInsertStatus(jtr->second, testItem, false);
 							if( cost < costMin ){
@@ -788,7 +813,7 @@ wstring CReserveManager::GetNotifyChgReserveMessage(const RESERVE_DATA& oldInfo,
 	SYSTEMTIME stNewEnd;
 	ConvertSystemTime(ConvertI64Time(stNew) + newInfo.durationSecond * I64_1SEC, &stNewEnd);
 	wstring msg;
-	Format(msg, L"%s %04d/%02d/%02d %02d:%02d\xFF5E%02d:%02d\r\n%s\r\nEventID:0x%04X\r\n↓\r\n%s %04d/%02d/%02d %02d:%02d\xFF5E%02d:%02d\r\n%s\r\nEventID:0x%04X",
+	Format(msg, L"%ls %04d/%02d/%02d %02d:%02d\xFF5E%02d:%02d\r\n%ls\r\nEventID:0x%04X\r\n↓\r\n%ls %04d/%02d/%02d %02d:%02d\xFF5E%02d:%02d\r\n%ls\r\nEventID:0x%04X",
 		oldInfo.stationName.c_str(), stOld.wYear, stOld.wMonth, stOld.wDay, stOld.wHour, stOld.wMinute,
 		stOldEnd.wHour, stOldEnd.wMinute, oldInfo.title.c_str(), oldInfo.eventID,
 		newInfo.stationName.c_str(), stNew.wYear, stNew.wMonth, stNew.wDay, stNew.wHour, stNew.wMinute,
@@ -835,7 +860,7 @@ void CReserveManager::CheckTuijyu()
 					wstring msg = GetNotifyChgReserveMessage(itr->second, r);
 					this->notifyManager.AddNotifyMsg(NOTIFY_UPDATE_CHG_TUIJYU, msg);
 					Replace(msg, L"\r\n", L" ");
-					_OutputDebugString(L"●予約(ID=%d)を追従 %s\r\n", r.reserveID, msg.c_str());
+					_OutputDebugString(L"●予約(ID=%d)を追従 %ls\r\n", r.reserveID, msg.c_str());
 				}
 			}
 		}
@@ -952,7 +977,7 @@ void CReserveManager::CheckTuijyuTuner()
 							wstring msg = GetNotifyChgReserveMessage(itrRes->second, r);
 							this->notifyManager.AddNotifyMsg(NOTIFY_UPDATE_REC_TUIJYU, msg);
 							Replace(msg, L"\r\n", L" ");
-							_OutputDebugString(L"●p/f 予約(ID=%d)を追従 %s\r\n", r.reserveID, msg.c_str());
+							_OutputDebugString(L"●p/f 予約(ID=%d)を追従 %ls\r\n", r.reserveID, msg.c_str());
 						}
 						//現在(present)についてはイベントリレーもチェック
 						if( i == 0 && r.recSetting.tuijyuuFlag && info.StartTimeFlag && info.DurationFlag && info.eventRelayInfoGroupType ){
@@ -1073,7 +1098,7 @@ void CReserveManager::CheckTuijyuTuner()
 							this->notifyManager.AddNotifyMsg(NOTIFY_UPDATE_REC_TUIJYU, msg);
 						}
 						Replace(msg, L"\r\n", L" ");
-						_OutputDebugString(L"●予約(ID=%d)を追従 %s\r\n", r.reserveID, msg.c_str());
+						_OutputDebugString(L"●予約(ID=%d)を追従 %ls\r\n", r.reserveID, msg.c_str());
 					}
 				}
 			}
@@ -1095,19 +1120,21 @@ void CReserveManager::CheckAutoDel() const
 		return;
 	}
 
-	//ファイル削除可能なフォルダをドライブごとに仕分け
-	vector<pair<wstring, size_t>> mountList;
+	//ファイル削除可能なフォルダのドライブを調べる
+	vector<wstring> mountList;
 	for( size_t i = 0; i < this->setting.delChkList.size(); i++ ){
-		wstring mountPath = GetChkDrivePath(this->setting.delChkList[i]);
-		mountList.insert(std::find_if(mountList.begin(), mountList.end(),
-			[&](const pair<wstring, size_t>& a) { return CompareNoCase(a.first, mountPath) > 0; }), std::make_pair(mountPath, i));
+		mountList.push_back(UtilGetStorageID(this->setting.delChkList[i]));
 	}
 
 	//ドライブレベルでのチェック
 	__int64 now = GetNowI64Time();
-	for( auto itr = mountList.cbegin(); itr != mountList.end(); ){
+	for( size_t checkIndex = 0; checkIndex < mountList.size(); checkIndex++ ){
+		if( mountList[checkIndex].empty() ){
+			//チェック済み
+			continue;
+		}
 		//直近で必要になりそうな空き領域を概算する
-		ULONGLONG needSize = 0;
+		__int64 needSize = 0;
 		for( auto jtr = this->reserveText.GetMap().cbegin(); jtr != this->reserveText.GetMap().end(); jtr++ ){
 			__int64 startTime, endTime;
 			CalcEntireReserveTime(&startTime, &endTime, jtr->second);
@@ -1120,11 +1147,11 @@ void CReserveManager::CheckAutoDel() const
 					wstring mountPath;
 					if( recFolderList.empty() || CompareNoCase(recFolderList[i].recFolder, L"!Default") == 0 ){
 						//デフォルト(注意: !Defaultの置換は原作にはない)
-						mountPath = GetChkDrivePath(GetRecFolderPath().native());
+						mountPath = UtilGetStorageID(GetRecFolderPath());
 					}else{
-						mountPath = GetChkDrivePath(recFolderList[i].recFolder);
+						mountPath = UtilGetStorageID(recFolderList[i].recFolder);
 					}
-					if( CompareNoCase(mountPath, itr->first) == 0 ){
+					if( CompareNoCase(mountPath, mountList[checkIndex]) == 0 ){
 						if( needSize == 0 ){
 							//延長や外部要因による空き領域減少に対処するため最低限の余裕をとる
 							needSize = 512 * 1024 * 1024;
@@ -1133,53 +1160,58 @@ void CReserveManager::CheckAutoDel() const
 						//(厳密にやるのは簡単ではないので、従来通りゆるい実装にしておく)
 						if( now < startTime ){
 							DWORD bitrate = GetBitrateFromIni(jtr->second.originalNetworkID, jtr->second.transportStreamID, jtr->second.serviceID);
-							needSize += (ULONGLONG)(bitrate / 8 * 1000) * (endTime - startTime) / I64_1SEC;
+							needSize += (__int64)(bitrate / 8 * 1000) * (endTime - startTime) / I64_1SEC;
 						}
 					}
 				}
 			}
 		}
 
-		auto itrEnd = std::find_if(itr + 1, mountList.cend(),
-		                           [=](const pair<wstring, size_t>& a) { return CompareNoCase(a.first, itr->first) != 0; });
-		ULARGE_INTEGER freeBytes;
-		if( needSize > 0 && GetDiskFreeSpaceEx(itr->first.c_str(), &freeBytes, NULL, NULL) && freeBytes.QuadPart < needSize ){
+		__int64 freeBytes = UtilGetStorageFreeBytes(this->setting.delChkList[checkIndex]);
+		if( freeBytes >= 0 && freeBytes < needSize ){
 			//ドライブにある古いTS順に必要なだけ消す
-			__int64 needFreeSize = needSize - freeBytes.QuadPart;
-			vector<pair<WIN32_FIND_DATA, size_t>> findList;
-			for( auto itrSame = itr; itrSame != itrEnd; itrSame++ ){
-				EnumFindFile(fs_path(this->setting.delChkList[itrSame->second]).append(L'*' + this->setting.tsExt).c_str(),
-				             [&](WIN32_FIND_DATA& findData) -> bool {
-					if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 && IsExt(findData.cFileName, this->setting.tsExt.c_str()) ){
-						findList.push_back(std::make_pair(findData, itrSame->second));
-					}
-					return true;
-				});
+			__int64 needFreeSize = needSize - freeBytes;
+			vector<pair<UTIL_FIND_DATA, size_t>> findList;
+			for( size_t i = checkIndex; i < mountList.size(); i++ ){
+				if( CompareNoCase(mountList[i], mountList[checkIndex]) == 0 ){
+					EnumFindFile(fs_path(this->setting.delChkList[i]).append(L'*' + this->setting.tsExt),
+					             [&](UTIL_FIND_DATA& findData) -> bool {
+						if( findData.isDir == false && UtilPathEndsWith(findData.fileName.c_str(), this->setting.tsExt.c_str()) ){
+							findList.push_back(std::make_pair(std::move(findData), i));
+						}
+						return true;
+					});
+				}
 			}
 			while( needFreeSize > 0 && findList.empty() == false ){
 				//更新日時が古いもの
 				auto jtr = std::min_element(findList.begin(), findList.end(),
-					[](const pair<WIN32_FIND_DATA, size_t>& a, const pair<WIN32_FIND_DATA, size_t>& b) {
-						return ((__int64)a.first.ftLastWriteTime.dwHighDateTime << 32 | a.first.ftLastWriteTime.dwLowDateTime) <
-						       ((__int64)b.first.ftLastWriteTime.dwHighDateTime << 32 | b.first.ftLastWriteTime.dwLowDateTime); });
-				wstring delPath = fs_path(this->setting.delChkList[jtr->second]).append(jtr->first.cFileName).native();
+					[](const pair<UTIL_FIND_DATA, size_t>& a, const pair<UTIL_FIND_DATA, size_t>& b) {
+						return a.first.lastWriteTime < b.first.lastWriteTime; });
+				fs_path delPath = fs_path(this->setting.delChkList[jtr->second]).append(jtr->first.fileName);
 				if( this->recInfoText.GetMap().end() != std::find_if(this->recInfoText.GetMap().begin(), this->recInfoText.GetMap().end(),
-				        [&](const pair<DWORD, REC_FILE_INFO>& a) { return a.second.protectFlag && CompareNoCase(a.second.recFilePath, delPath) == 0; }) ){
+				        [&](const pair<DWORD, REC_FILE_INFO>& a) {
+				            return a.second.protectFlag && UtilComparePath(a.second.recFilePath.c_str(), delPath.c_str()) == 0; }) ){
 					//プロテクトされた録画済みファイルは消さない
-					_OutputDebugString(L"★No Delete(Protected) : %s\r\n", delPath.c_str());
+					_OutputDebugString(L"★No Delete(Protected) : %ls\r\n", delPath.c_str());
 				}else{
 					DeleteFile(delPath.c_str());
-					needFreeSize -= (__int64)jtr->first.nFileSizeHigh << 32 | jtr->first.nFileSizeLow;
-					_OutputDebugString(L"★Auto Delete2 : %s\r\n", delPath.c_str());
+					needFreeSize -= jtr->first.fileSize;
+					_OutputDebugString(L"★Auto Delete2 : %ls\r\n", delPath.c_str());
 					for( size_t i = 0 ; i < this->setting.delExtList.size(); i++ ){
 						DeleteFile(fs_path(delPath).replace_extension(this->setting.delExtList[i]).c_str());
-						_OutputDebugString(L"★Auto Delete2 : %s\r\n", fs_path(delPath).replace_extension(this->setting.delExtList[i]).c_str());
+						_OutputDebugString(L"★Auto Delete2 : %ls\r\n", fs_path(delPath).replace_extension(this->setting.delExtList[i]).c_str());
 					}
 				}
 				findList.erase(jtr);
 			}
 		}
-		itr = itrEnd;
+		//チェック済みにする
+		for( size_t i = checkIndex + 1; i < mountList.size(); i++ ){
+			if( CompareNoCase(mountList[i], mountList[checkIndex]) == 0 ){
+				mountList[i].clear();
+			}
+		}
 	}
 }
 
@@ -1301,7 +1333,7 @@ void CReserveManager::ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& 
 			if( itrRet->type != CTunerBankCtrl::CHECK_ERR_PASS ){
 				batWorkList.push_back(batInfo);
 				if( shutdownMode ){
-					*shutdownMode = MAKEWORD(itrRes->second.recSetting.suspendMode, itrRes->second.recSetting.rebootFlag);
+					*shutdownMode = itrRes->second.recSetting.rebootFlag << 8 | itrRes->second.recSetting.suspendMode;
 				}
 			}
 			batInfo.batFilePath.assign(itrRes->second.recSetting.batFilePath, 0, itrRes->second.recSetting.batFilePath.find(L'*'));
@@ -1319,7 +1351,7 @@ void CReserveManager::ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& 
 			SYSTEMTIME stEnd;
 			ConvertSystemTime(ConvertI64Time(st) + item.durationSecond * I64_1SEC, &stEnd);
 			wstring msg;
-			Format(msg, L"%s %04d/%02d/%02d %02d:%02d\xFF5E%02d:%02d\r\n%s\r\n%s",
+			Format(msg, L"%ls %04d/%02d/%02d %02d:%02d\xFF5E%02d:%02d\r\n%ls\r\n%ls",
 			       item.serviceName.c_str(), st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
 			       stEnd.wHour, stEnd.wMinute, item.title.c_str(), item.GetComment());
 			this->notifyManager.AddNotifyMsg(NOTIFY_UPDATE_REC_END, msg);
@@ -1337,7 +1369,7 @@ void CReserveManager::ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& 
 		this->recInfo2Text.SaveText();
 		AddNotifyAndPostBat(NOTIFY_UPDATE_RESERVE_INFO);
 		AddNotifyAndPostBat(NOTIFY_UPDATE_REC_INFO);
-		AddPostBatWork(batWorkList, L"PostRecEnd.bat");
+		AddPostBatWork(batWorkList, L"PostRecEnd");
 	}
 }
 
@@ -1365,7 +1397,7 @@ pair<CReserveManager::CHECK_STATUS, int> CReserveManager::Check()
 				AddReserveDataMacro(batWorkList.back().macroList, itrRes->second, "");
 			}
 		}
-		AddPostBatWork(batWorkList, L"PostRecStart.bat");
+		AddPostBatWork(batWorkList, L"PostRecStart");
 		ProcessRecEnd(retList, itrBank->first, &this->shutdownModePending);
 	}
 	if( this->checkCount % 30 == 0 ){
@@ -1400,18 +1432,22 @@ pair<CReserveManager::CHECK_STATUS, int> CReserveManager::Check()
 	return std::make_pair(CHECK_NO_ACTION, 0);
 }
 
-vector<DWORD> CReserveManager::GetEpgCapTunerIDList(__int64 now) const
+vector<CTunerBankCtrl*> CReserveManager::GetEpgCapTunerList(__int64 now) const
 {
 	CBlockLock lock(&this->managerLock);
 
 	//利用可能なチューナの抽出
-	vector<pair<vector<DWORD>, WORD>> tunerIDList = this->tunerManager.GetEnumEpgCapTuner();
-	vector<DWORD> epgCapIDList;
-	for( size_t i = 0; i < tunerIDList.size(); i++ ){
-		WORD epgCapMax = tunerIDList[i].second;
+	vector<CTunerBankCtrl*> tunerList;
+	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); ){
+		DWORD bonID = itr->first >> 16;
+		WORD epgCapMax = itr->second->GetEpgCapMaxOfThisBon();
+		WORD epgCapCount = 0;
 		WORD ngCapCount = 0;
-		for( size_t j = 0; j < tunerIDList[i].first.size() && epgCapMax > 0; j++ ){
-			auto itr = this->tunerBankMap.find(tunerIDList[i].first[j]);
+		WORD tunerCount = 0;
+		for( ; itr != this->tunerBankMap.end() && itr->first >> 16 == bonID; itr++, tunerCount++ ){
+			if( epgCapCount == epgCapMax ){
+				continue;
+			}
 			CTunerBankCtrl::TR_STATE state = itr->second->GetState();
 			__int64 minTime = itr->second->GetNearestReserveTime();
 			if( this->setting.ngEpgCapTime != 0 && (state != CTunerBankCtrl::TR_IDLE || minTime < now + this->setting.ngEpgCapTime * 60 * I64_1SEC) ){
@@ -1419,23 +1455,23 @@ vector<DWORD> CReserveManager::GetEpgCapTunerIDList(__int64 now) const
 				ngCapCount++;
 			}else if( state == CTunerBankCtrl::TR_IDLE && minTime > now + this->setting.ngEpgCapTunerTime * 60 * I64_1SEC ){
 				//使えるチューナ
-				epgCapIDList.push_back(itr->first);
-				epgCapMax--;
+				tunerList.push_back(itr->second.get());
+				epgCapCount++;
 			}
 		}
-		if( tunerIDList[i].second > tunerIDList[i].first.size() - ngCapCount ){
-			epgCapIDList.clear();
+		if( epgCapMax > tunerCount - ngCapCount ){
+			tunerList.clear();
 			break;
 		}
 	}
-	return epgCapIDList;
+	return tunerList;
 }
 
 bool CReserveManager::RequestStartEpgCap()
 {
 	CBlockLock lock(&this->managerLock);
 
-	if( this->epgCapRequested || this->epgCapWork || GetEpgCapTunerIDList(GetNowI64Time()).empty() ){
+	if( this->epgCapRequested || this->epgCapWork || GetEpgCapTunerList(GetNowI64Time()).empty() ){
 		return false;
 	}
 	this->epgCapRequested = true;
@@ -1454,8 +1490,8 @@ bool CReserveManager::CheckEpgCap(bool isEpgCap)
 			int basicOnlyFlags = -1;
 			__int64 capTime = this->epgCapRequested ? now : GetNextEpgCapTime(now, &basicOnlyFlags);
 			if( capTime <= now + 60 * I64_1SEC ){
-				vector<DWORD> epgCapIDList = GetEpgCapTunerIDList(now);
-				if( epgCapIDList.empty() == false ){
+				vector<CTunerBankCtrl*> tunerList = GetEpgCapTunerList(now);
+				if( tunerList.empty() == false ){
 					if( capTime > now ){
 						//取得開始1分前
 						//この通知はあくまで参考。開始しないのに通知する可能性も、その逆もありえる
@@ -1483,7 +1519,7 @@ bool CReserveManager::CheckEpgCap(bool isEpgCap)
 						LONGLONG lastKey = -1;
 						bool inONIDs[16] = {};
 						size_t listIndex = 0;
-						vector<vector<SET_CH_INFO>> epgCapChList(epgCapIDList.size());
+						vector<vector<SET_CH_INFO>> epgCapChList(tunerList.size());
 						for( map<LONGLONG, CH_DATA5>::const_iterator itr = this->chUtil.GetMap().begin(); itr != this->chUtil.GetMap().end(); itr++ ){
 							if( itr->second.epgCapFlag == FALSE ||
 							    lastKey >= 0 && lastKey == itr->first >> 16 ||
@@ -1500,18 +1536,18 @@ bool CReserveManager::CheckEpgCap(bool isEpgCap)
 							addCh.SID = itr->second.serviceID;
 							addCh.useSID = TRUE;
 							addCh.useBonCh = FALSE;
-							for( size_t i = 0; i < epgCapIDList.size(); i++ ){
-								if( this->tunerManager.IsSupportService(epgCapIDList[listIndex], addCh.ONID, addCh.TSID, addCh.SID) ){
+							for( size_t i = 0; i < tunerList.size(); i++ ){
+								if( tunerList[listIndex]->GetCh(addCh.ONID, addCh.TSID, addCh.SID) ){
 									epgCapChList[listIndex].push_back(addCh);
 									inONIDs[min<size_t>(addCh.ONID, _countof(inONIDs) - 1)] = true;
-									listIndex = (listIndex + 1) % epgCapIDList.size();
+									listIndex = (listIndex + 1) % tunerList.size();
 									break;
 								}
-								listIndex = (listIndex + 1) % epgCapIDList.size();
+								listIndex = (listIndex + 1) % tunerList.size();
 							}
 						}
-						for( size_t i = 0; i < epgCapIDList.size(); i++ ){
-							this->tunerBankMap[epgCapIDList[i]]->StartEpgCap(epgCapChList[i]);
+						for( size_t i = 0; i < tunerList.size(); i++ ){
+							tunerList[i]->StartEpgCap(epgCapChList[i]);
 						}
 						this->epgCapWork = true;
 						this->epgCapSetTimeSync = false;
@@ -1561,6 +1597,7 @@ bool CReserveManager::CheckEpgCap(bool isEpgCap)
 					SYSTEMTIME setTime;
 					ConvertSystemTime(now + delay - I64_UTIL_TIMEZONE, &setTime);
 					LPCWSTR debug = L" err ";
+#ifdef _WIN32
 					if( SetSystemTime(&setTime) ){
 						debug = L" ";
 					}else{
@@ -1574,7 +1611,15 @@ bool CReserveManager::CheckEpgCap(bool isEpgCap)
 							}
 						}
 					}
-					_OutputDebugString(L"★SetSystemTime%s%d\r\n", debug, (int)(delay / I64_1SEC));
+#else
+					char cmd[128];
+					sprintf_s(cmd, "/usr/bin/sudo -n /bin/date -s %d-%02d-%02dT%02d:%02d:%02dZ",
+					          setTime.wYear, setTime.wMonth, setTime.wDay, setTime.wHour, setTime.wMinute, setTime.wSecond);
+					if( system(cmd) == 0 ){
+						debug = L" ";
+					}
+#endif
+					_OutputDebugString(L"★SetSystemTime%ls%d\r\n", debug, (int)(delay / I64_1SEC));
 					this->epgCapSetTimeSync = true;
 				}
 			}
@@ -1706,20 +1751,38 @@ bool CReserveManager::IsFindReserve(WORD onid, WORD tsid, WORD sid, WORD eid, DW
 
 vector<DWORD> CReserveManager::GetSupportServiceTuner(WORD onid, WORD tsid, WORD sid) const
 {
-	//tunerManagerは排他制御の対象外
-	return this->tunerManager.GetSupportServiceTuner(onid, tsid, sid);
+	//tunerBankMapそのものは排他制御の対象外
+	vector<DWORD> idList;
+	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
+		if( itr->second->GetCh(onid, tsid, sid) ){
+			idList.push_back(itr->first);
+		}
+	}
+	return idList;
 }
 
 bool CReserveManager::GetTunerCh(DWORD tunerID, WORD onid, WORD tsid, WORD sid, DWORD* space, DWORD* ch) const
 {
-	return this->tunerManager.GetCh(tunerID, onid, tsid, sid, space, ch);
+	auto itr = this->tunerBankMap.find(tunerID);
+	if( itr != this->tunerBankMap.end() ){
+		const CH_DATA4* chData = itr->second->GetCh(onid, tsid, sid);
+		if( chData ){
+			if( space ){
+				*space = chData->space;
+			}
+			if( ch ){
+				*ch = chData->ch;
+			}
+			return true;
+		}
+	}
+	return false;
 }
 
 wstring CReserveManager::GetTunerBonFileName(DWORD tunerID) const
 {
-	wstring bonFileName;
-	this->tunerManager.GetBonFileName(tunerID, bonFileName);
-	return bonFileName;
+	auto itr = this->tunerBankMap.find(tunerID);
+	return itr != this->tunerBankMap.end() ? itr->second->GetBonFileName() : wstring();
 }
 
 bool CReserveManager::IsOpenTuner(DWORD tunerID) const
@@ -1737,7 +1800,7 @@ pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, const 
 	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
 		if( itr->second->GetState() == CTunerBankCtrl::TR_NWTV && itr->second->GetNWTVID() == id ){
 			//すでに起動しているので使えたら使う
-			if( this->tunerManager.IsSupportService(itr->first, chInfo.ONID, chInfo.TSID, chInfo.SID) ){
+			if( itr->second->GetCh(chInfo.ONID, chInfo.TSID, chInfo.SID) ){
 				itr->second->OpenNWTV(id, nwUdp, nwTcp, chInfo);
 				return std::make_pair(true, itr->second->GetProcessID());
 			}
@@ -1746,11 +1809,10 @@ pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, const 
 		}
 	}
 	for( size_t i = 0; i < tunerIDList.size(); i++ ){
-		if( this->tunerManager.IsSupportService(tunerIDList[i], chInfo.ONID, chInfo.TSID, chInfo.SID) ){
-			auto itr = this->tunerBankMap.find(tunerIDList[i]);
+		auto itr = this->tunerBankMap.find(tunerIDList[i]);
+		if( itr != this->tunerBankMap.end() && itr->second->GetCh(chInfo.ONID, chInfo.TSID, chInfo.SID) ){
 			//別IDのネットワークモードを邪魔しない
-			if( itr != this->tunerBankMap.end() &&
-			    itr->second->GetState() != CTunerBankCtrl::TR_NWTV &&
+			if( itr->second->GetState() != CTunerBankCtrl::TR_NWTV &&
 			    itr->second->OpenNWTV(id, nwUdp, nwTcp, chInfo) ){
 				return std::make_pair(true, itr->second->GetProcessID());
 			}
@@ -1801,25 +1863,36 @@ bool CReserveManager::IsFindRecEventInfo(const EPGDB_EVENT_INFO& info, WORD chkD
 	CBlockLock lock(&this->managerLock);
 	bool ret = false;
 
+#if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 	void* pv;
 	if( SUCCEEDED(CoCreateInstance(CLSID_RegExp, NULL, CLSCTX_INPROC_SERVER, IID_IRegExp, &pv)) ){
 		CEpgDBManager::RegExpPtr regExp((IRegExp*)pv, CEpgDBManager::ComRelease);
+#else
+	{
+		std::wregex re;
+#endif
 		if( info.hasShortInfo ){
-			typedef CEpgDBManager::OleCharPtr OleCharPtr;
 			wstring infoEventName = info.shortInfo.event_name;
 			if( this->setting.recInfo2RegExp.empty() == false ){
-				OleCharPtr pattern(SysAllocString(this->setting.recInfo2RegExp.c_str()), SysFreeString);
-				OleCharPtr rplFrom(SysAllocString(infoEventName.c_str()), SysFreeString);
-				OleCharPtr rplTo(SysAllocString(L""), SysFreeString);
+#if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
+				CEpgDBManager::OleCharPtr pattern(SysAllocString(this->setting.recInfo2RegExp.c_str()), SysFreeString);
+				CEpgDBManager::OleCharPtr rplFrom(SysAllocString(infoEventName.c_str()), SysFreeString);
+				CEpgDBManager::OleCharPtr rplTo(SysAllocString(L""), SysFreeString);
 				BSTR rpl_;
 				if( pattern && rplFrom && rplTo &&
 				    SUCCEEDED(regExp->put_Global(VARIANT_TRUE)) &&
 				    SUCCEEDED(regExp->put_Pattern(pattern.get())) &&
 				    SUCCEEDED(regExp->Replace(rplFrom.get(), rplTo.get(), &rpl_)) ){
-					OleCharPtr rpl(rpl_, SysFreeString);
+					CEpgDBManager::OleCharPtr rpl(rpl_, SysFreeString);
 					infoEventName = SysStringLen(rpl.get()) ? rpl.get() : L"";
 				}else{
+#else
+				try{
+					re.assign(this->setting.recInfo2RegExp);
+					infoEventName = std::regex_replace(infoEventName, re, wstring());
+				}catch( std::regex_error& ){
+#endif
 					OutputDebugString(L"RecInfo2RegExp seems ill-formed\r\n");
 					infoEventName = L"";
 				}
@@ -1834,13 +1907,19 @@ bool CReserveManager::IsFindRecEventInfo(const EPGDB_EVENT_INFO& info, WORD chkD
 					    ConvertI64Time(itr->second.startTime) + chkDayActual*24*60*60*I64_1SEC > ConvertI64Time(info.start_time) ){
 						wstring eventName = itr->second.eventName;
 						if( this->setting.recInfo2RegExp.empty() == false ){
-							OleCharPtr rplFrom(SysAllocString(eventName.c_str()), SysFreeString);
-							OleCharPtr rplTo(SysAllocString(L""), SysFreeString);
+#if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
+							CEpgDBManager::OleCharPtr rplFrom(SysAllocString(eventName.c_str()), SysFreeString);
+							CEpgDBManager::OleCharPtr rplTo(SysAllocString(L""), SysFreeString);
 							BSTR rpl_;
 							if( rplFrom && rplTo && SUCCEEDED(regExp->Replace(rplFrom.get(), rplTo.get(), &rpl_)) ){
-								OleCharPtr rpl(rpl_, SysFreeString);
+								CEpgDBManager::OleCharPtr rpl(rpl_, SysFreeString);
 								eventName = SysStringLen(rpl.get()) ? rpl.get() : L"";
 							}else{
+#else
+							try{
+								eventName = std::regex_replace(eventName, re, wstring());
+							}catch( std::regex_error& ){
+#endif
 								eventName = L"";
 							}
 						}
@@ -1853,7 +1932,9 @@ bool CReserveManager::IsFindRecEventInfo(const EPGDB_EVENT_INFO& info, WORD chkD
 			}
 		}
 	}
+#if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
 	CoUninitialize();
+#endif
 
 	return ret;
 }
@@ -1905,23 +1986,20 @@ vector<CH_DATA5> CReserveManager::GetChDataList() const
 
 void CReserveManager::WatchdogThread(CReserveManager* sys)
 {
-	while( WaitForSingleObject(sys->watchdogStopEvent.Handle(), 2000) == WAIT_TIMEOUT ){
+	while( sys->watchdogStopEvent.WaitOne(2000) == false ){
 		for( auto itr = sys->tunerBankMap.cbegin(); itr != sys->tunerBankMap.end(); itr++ ){
 			itr->second->Watch();
 		}
 	}
 }
 
-void CReserveManager::AddPostBatWork(vector<CBatManager::BAT_WORK_INFO>& workList, LPCWSTR fileName)
+void CReserveManager::AddPostBatWork(vector<CBatManager::BAT_WORK_INFO>& workList, LPCWSTR baseName)
 {
 	if( workList.empty() == false ){
-		fs_path batFilePath = GetModulePath().replace_filename(fileName);
-		//同名のPowerShellやLuaスクリプトでもよい
-		if( GetFileAttributes(batFilePath.c_str()) != INVALID_FILE_ATTRIBUTES ||
-		    GetFileAttributes(batFilePath.replace_extension(L".ps1").c_str()) != INVALID_FILE_ATTRIBUTES ||
-		    GetFileAttributes(batFilePath.replace_extension(L".lua").c_str()) != INVALID_FILE_ATTRIBUTES ){
+		workList[0].batFilePath = this->batPostManager.FindExistingPath(GetCommonIniPath().replace_filename(baseName).c_str());
+		if( workList[0].batFilePath.empty() == false ){
 			for( size_t i = 0; i < workList.size(); i++ ){
-				workList[i].batFilePath = batFilePath.native();
+				workList[i].batFilePath = workList[0].batFilePath;
 				this->batPostManager.AddBatWork(workList[i]);
 			}
 		}
@@ -1934,7 +2012,7 @@ void CReserveManager::AddNotifyAndPostBat(DWORD notifyID)
 	vector<CBatManager::BAT_WORK_INFO> workList(1);
 	workList[0].macroList.push_back(pair<string, wstring>("NotifyID", L""));
 	Format(workList[0].macroList.back().second, L"%d", notifyID);
-	AddPostBatWork(workList, L"PostNotify.bat");
+	AddPostBatWork(workList, L"PostNotify");
 }
 
 void CReserveManager::SetBatCustomHandler(LPCWSTR ext, const std::function<void(CBatManager::BAT_WORK_INFO&, vector<char>&)>& handler)
@@ -1946,7 +2024,7 @@ void CReserveManager::SetBatCustomHandler(LPCWSTR ext, const std::function<void(
 void CReserveManager::AddTimeMacro(vector<pair<string, wstring>>& macroList, const SYSTEMTIME& startTime, DWORD durationSecond, LPCSTR suffix)
 {
 	WCHAR v[64];
-	swprintf_s(v, L"%04d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
+	swprintf_s(v, L"%04d-%02d-%02dT%02d:%02d:%02d%lc%02d:%02d",
 	           startTime.wYear, startTime.wMonth, startTime.wDay, startTime.wHour, startTime.wMinute, startTime.wSecond,
 	           (I64_UTIL_TIMEZONE < 0 ? L'-' : L'+'),
 	           (int)((I64_UTIL_TIMEZONE < 0 ? -I64_UTIL_TIMEZONE : I64_UTIL_TIMEZONE) / I64_1SEC) / 3600,
@@ -2006,8 +2084,8 @@ void CReserveManager::AddRecInfoMacro(vector<pair<string, wstring>>& macroList, 
 	swprintf_s(v, L"%04X", recInfo.transportStreamID);	macroList.push_back(pair<string, wstring>("TSID16", v));
 	swprintf_s(v, L"%04X", recInfo.serviceID);			macroList.push_back(pair<string, wstring>("SID16", v));
 	swprintf_s(v, L"%04X", recInfo.eventID);			macroList.push_back(pair<string, wstring>("EID16", v));
-	swprintf_s(v, L"%I64d", recInfo.drops);				macroList.push_back(pair<string, wstring>("Drops", v));
-	swprintf_s(v, L"%I64d", recInfo.scrambles);			macroList.push_back(pair<string, wstring>("Scrambles", v));
+	swprintf_s(v, L"%lld", recInfo.drops);				macroList.push_back(pair<string, wstring>("Drops", v));
+	swprintf_s(v, L"%lld", recInfo.scrambles);			macroList.push_back(pair<string, wstring>("Scrambles", v));
 	macroList.push_back(pair<string, wstring>("Title", recInfo.title));
 	macroList.push_back(pair<string, wstring>("ServiceName", recInfo.serviceName));
 	macroList.push_back(pair<string, wstring>("Result", recInfo.GetComment()));

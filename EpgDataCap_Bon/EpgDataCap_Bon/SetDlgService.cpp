@@ -87,16 +87,16 @@ BOOL CSetDlgService::OnInitDialog()
 	const fs_path path = GetSettingPath();
 
 	//指定フォルダのファイル一覧取得
-	EnumFindFile(fs_path(path).append(L"*.ChSet4.txt").c_str(), [this, &path](WIN32_FIND_DATA& findData) -> bool {
-		if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 ){
+	EnumFindFile(fs_path(path).append(L"*.ChSet4.txt"), [this, &path](UTIL_FIND_DATA& findData) -> bool {
+		if( findData.isDir == false ){
 			//本当に拡張子TXT?
-			if( IsExt(findData.cFileName, L".txt") ){
+			if( UtilPathEndsWith(findData.fileName.c_str(), L".txt") ){
 				wstring bonFileName;
-				FindBonFileName(findData.cFileName, bonFileName);
+				FindBonFileName(findData.fileName, bonFileName);
 				bonFileName += L".dll";
 
 				if( chList.insert(std::make_pair(bonFileName, std::make_pair(CParseChText4(), false))).second ){
-					chList[bonFileName].first.ParseText(fs_path(path).append(findData.cFileName).c_str());
+					chList[bonFileName].first.ParseText(fs_path(path).append(findData.fileName).c_str());
 					ComboBox_AddString(this->GetDlgItem(IDC_COMBO_BON), bonFileName.c_str());
 				}
 			}
@@ -227,8 +227,8 @@ void CSetDlgService::OnLbnSelchangeListService()
 		return ;
 	}
 	const CH_DATA4* chSet = &itr->second.first.GetMap().find((DWORD)ListView_GetItemParam(GetDlgItem(IDC_LIST_SERVICE), sel, 0))->second;
-	wstring info = L"";
-	Format(info, L"space: %d ch: %d (%s)\r\nOriginalNetworkID: %d(0x%04X)\r\nTransportStreamID: %d(0x%04X)\r\nServiceID: %d(0x%04X)\r\nServiceType: %d(0x%02X)\r\n",
+	wstring info;
+	Format(info, L"space: %d ch: %d (%ls)\r\nOriginalNetworkID: %d(0x%04X)\r\nTransportStreamID: %d(0x%04X)\r\nServiceID: %d(0x%04X)\r\nServiceType: %d(0x%02X)\r\n",
 		chSet->space,
 		chSet->ch,
 		chSet->chName.c_str(),

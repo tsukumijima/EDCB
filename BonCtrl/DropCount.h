@@ -8,18 +8,16 @@ public:
 	void AddData(const BYTE* data, DWORD size);
 
 	void Clear();
-
-	void GetCount(ULONGLONG* drop_, ULONGLONG* scramble_);
 	ULONGLONG GetDropCount();
 	ULONGLONG GetScrambleCount();
 
-	void SaveLog(const wstring& filePath);
+	void SaveLog(const wstring& filePath, BOOL asUtf8);
 
 	void SetSignal(float level);
 	void SetBonDriver(const wstring& bonDriver);
 	void SetNoLog(BOOL noLogDrop, BOOL noLogScramble);
 
-	void SetPIDName(WORD pid, LPCSTR name);
+	void SetPIDName(WORD pid, const wstring& name);
 protected:
 	struct DROP_INFO {
 		WORD PID;
@@ -40,7 +38,7 @@ protected:
 	float signalLv;
 	wstring bonFile;
 
-	vector<pair<WORD, string>> pidName;
+	vector<pair<WORD, wstring>> pidName;
 protected:
 	void CheckCounter(const BYTE* packet, DROP_INFO* info);
 
