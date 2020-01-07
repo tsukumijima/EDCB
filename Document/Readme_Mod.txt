@@ -46,6 +46,8 @@ Readme.txt、Readme_EpgDataCap_Bon.txt、Readme_EpgTimer.txtは基本的に人�
       条件を満たしたときだけ.errファイルを出力します。
     ・スクランブル値の変化をドロップログに記録しない【追加】
       スクランブル値の変化した時刻を.errファイルに記録しないようにします。
+    ・ドロップログをUTF-8で出力する【追加】
+       .errファイルをShift_JISではなくUTF-8で出力します。
     ・デバッグ出力をファイルに保存する【追加】
       デバッグ出力(OutputDebugStringW)をEpgDataCap_Bon.exeの起動数に応じて
       EpgDataCap_Bon_DebugLog-{番号}.txtに保存します。
