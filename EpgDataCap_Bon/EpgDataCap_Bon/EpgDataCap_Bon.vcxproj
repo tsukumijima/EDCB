@@ -316,6 +316,13 @@
   <ItemGroup>
     <ResourceCompile Include="EpgDataCap_Bon.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\overlay_epg.ico" />
+    <Image Include="res\overlay_rec.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="EpgDataCap_Bon.manifest" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

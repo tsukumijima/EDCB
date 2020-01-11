@@ -331,4 +331,15 @@
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\overlay_epg.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="res\overlay_rec.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="EpgDataCap_Bon.manifest" />
+  </ItemGroup>
 </Project>
