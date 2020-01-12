@@ -104,9 +104,6 @@
     <ClInclude Include="..\..\Common\TimeUtil.h">
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
-    <ClInclude Include="TunerManager.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Common\CtrlCmdUtil.h">
       <Filter>ヘッダー ファイル\Common</Filter>
     </ClInclude>
@@ -157,9 +154,6 @@
     </ClInclude>
     <ClInclude Include="..\..\BonCtrl\SendUDP.h">
       <Filter>ヘッダー ファイル\BonCtrl</Filter>
-    </ClInclude>
-    <ClInclude Include="FileStreamingManager.h">
-      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="NotifyManager.h">
       <Filter>ヘッダー ファイル</Filter>
@@ -337,9 +331,6 @@
     <ClCompile Include="..\..\Common\TimeUtil.cpp">
       <Filter>ソース ファイル\Common</Filter>
     </ClCompile>
-    <ClCompile Include="TunerManager.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\CtrlCmdUtil.cpp">
       <Filter>ソース ファイル\Common</Filter>
     </ClCompile>
@@ -381,9 +372,6 @@
     </ClCompile>
     <ClCompile Include="..\..\BonCtrl\SendUDP.cpp">
       <Filter>ソース ファイル\BonCtrl</Filter>
-    </ClCompile>
-    <ClCompile Include="FileStreamingManager.cpp">
-      <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="NotifyManager.cpp">
       <Filter>ソース ファイル</Filter>

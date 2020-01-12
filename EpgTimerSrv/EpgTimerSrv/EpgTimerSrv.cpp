@@ -41,23 +41,23 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		LocalFree(argv);
 	}
 
-	if( _wcsicmp(GetModulePath().stem().c_str(), L"EpgTimerTask") == 0 ){
+	if( CompareNoCase(GetModulePath().stem().c_str(), L"EpgTimerTask") == 0 ){
 		//Taskモードを強制する
 		wcscpy_s(option, L"/task");
 	}
 	if( option[0] == L'-' || option[0] == L'/' ){
-		if( _wcsicmp(L"install", option + 1) == 0 ){
+		if( CompareNoCase(L"install", option + 1) == 0 ){
 			return 0;
-		}else if( _wcsicmp(L"remove", option + 1) == 0 ){
+		}else if( CompareNoCase(L"remove", option + 1) == 0 ){
 			return 0;
-		}else if( _wcsicmp(L"setting", option + 1) == 0 ){
+		}else if( CompareNoCase(L"setting", option + 1) == 0 ){
 			//設定ダイアログを表示する
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 			CEpgTimerSrvSetting setting;
 			setting.ShowDialog();
 			CoUninitialize();
 			return 0;
-		}else if( _wcsicmp(L"task", option + 1) == 0 ){
+		}else if( CompareNoCase(L"task", option + 1) == 0 ){
 			//Taskモード
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 			CEpgTimerSrvMain::TaskMain();
@@ -189,10 +189,17 @@ void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
-			fwprintf_s(g_debugLog, L"[%02d%02d%02d%02d%02d%02d.%03d] %s%s",
-			           st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-			           lpOutputString ? lpOutputString : L"",
-			           lpOutputString && lpOutputString[0] && lpOutputString[wcslen(lpOutputString) - 1] == L'\n' ? L"" : L"<NOBR>\r\n");
+			WCHAR t[128];
+			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
+			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+			fwrite(t, sizeof(WCHAR), n, g_debugLog);
+			size_t m = lpOutputString ? wcslen(lpOutputString) : 0;
+			if( m > 0 ){
+				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
+			}
+			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
+				fwrite(L"<NOBR>\r\n", sizeof(WCHAR), 8, g_debugLog);
+			}
 			fflush(g_debugLog);
 		}
 	}
@@ -203,13 +210,14 @@ void SetSaveDebugLog(bool saveDebugLog)
 {
 	CBlockLock lock(&g_debugLogLock);
 	if( g_debugLog == NULL && saveDebugLog ){
-		fs_path logPath = GetModulePath().replace_filename(L"EpgTimerSrvDebugLog.txt");
-		g_debugLog = shared_wfopen(logPath.c_str(), L"abN");
+		fs_path logPath = GetCommonIniPath().replace_filename(L"EpgTimerSrvDebugLog.txt");
+		g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);
 		if( g_debugLog ){
-			_fseeki64(g_debugLog, 0, SEEK_END);
-			if( _ftelli64(g_debugLog) == 0 ){
-				fputwc(L'\xFEFF', g_debugLog);
-			}
+			fwrite(L"\xFEFF", sizeof(WCHAR), 1, g_debugLog);
+		}else{
+			g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
+		}
+		if( g_debugLog ){
 			OutputDebugString(L"****** LOG START ******\r\n");
 		}
 	}else if( g_debugLog && saveDebugLog == false ){

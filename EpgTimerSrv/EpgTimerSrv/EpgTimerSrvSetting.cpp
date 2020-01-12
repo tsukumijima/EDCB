@@ -2,12 +2,14 @@
 #include "EpgTimerSrvSetting.h"
 #include "../../Common/StringUtil.h"
 #include "../../Common/PathUtil.h"
+#ifdef _WIN32
 #include "../../Common/ReNamePlugInUtil.h"
 #include "../../Common/SendCtrlCmd.h"
 #include "resource.h"
 #include <windowsx.h>
 #include <shlobj.h>
 #include <commdlg.h>
+#endif
 
 CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 {
@@ -34,7 +36,7 @@ CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 	int count = GetPrivateProfileInt(L"NO_SUSPEND", L"Count", INT_MAX, iniPath);
 	if( count == INT_MAX ){
 		//未設定
-		s.noSuspendExeList.push_back(L"EpgDataCap_Bon.exe");
+		s.noSuspendExeList.push_back(L"EpgDataCap_Bon");
 	}else{
 		for( int i = 0; i < count; i++ ){
 			WCHAR key[16];
@@ -71,11 +73,17 @@ CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 			WCHAR key[32];
 			swprintf_s(key, L"%d", i);
 			wstring buff = GetPrivateProfileToString(L"EPG_CAP", key, L"", iniPath);
-			//曜日指定接尾辞(w1=Mon,...,w7=Sun)
-			unsigned int hour, minute, wday = 0;
-			if( swscanf_s(buff.c_str(), L"%u:%uw%u", &hour, &minute, &wday) >= 2 ){
+			LPWSTR endp;
+			int hour = (int)(wcstoul(buff.c_str(), &endp, 10) % 24);
+			if( *endp == L':' ){
+				int minute = (int)(wcstoul(endp + 1, &endp, 10) % 60);
+				int wday = 0;
+				if( *endp == L'w' ){
+					//曜日指定接尾辞(w1=Mon,...,w7=Sun)
+					wday = (int)(wcstoul(endp + 1, NULL, 10) % 8);
+				}
 				s.epgCapTimeList.resize(s.epgCapTimeList.size() + 1);
-				s.epgCapTimeList.back().second.first = ((wday * 24 + hour) * 60 + minute) % (1440 * 8);
+				s.epgCapTimeList.back().second.first = (wday * 24 + hour) * 60 + minute;
 				//有効か
 				swprintf_s(key, L"%dSelect", i);
 				s.epgCapTimeList.back().first = GetPrivateProfileInt(L"EPG_CAP", key, 0, iniPath) != 0;
@@ -106,7 +114,7 @@ CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 	for( int i = 0; i < count; i++ ){
 		WCHAR key[16];
 		swprintf_s(key, L"%d", i);
-		s.delChkList.push_back(GetPrivateProfileToFolderPath(L"DEL_CHK", key, iniPath).native());
+		s.delChkList.push_back(GetPrivateProfileToString(L"DEL_CHK", key, L"", iniPath));
 	}
 	s.startMargin = GetPrivateProfileInt(L"SET", L"StartMargin", 5, iniPath);
 	s.endMargin = GetPrivateProfileInt(L"SET", L"EndMargin", 2, iniPath);
@@ -123,7 +131,7 @@ CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 	s.recInfo2RegExp = GetPrivateProfileToString(L"SET", L"RecInfo2RegExp", L"", iniPath);
 	s.errEndBatRun = GetPrivateProfileInt(L"SET", L"ErrEndBatRun", 0, iniPath) != 0;
 	s.recNamePlugIn = GetPrivateProfileInt(L"SET", L"RecNamePlugIn", 0, iniPath) != 0;
-	s.recNamePlugInFile = GetPrivateProfileToString(L"SET", L"RecNamePlugInFile", L"RecName_Macro.dll", iniPath);
+	s.recNamePlugInFile = GetPrivateProfileToString(L"SET", L"RecNamePlugInFile", L"", iniPath);
 	s.noChkYen = GetPrivateProfileInt(L"SET", L"NoChkYen", 0, iniPath) != 0;
 	s.delReserveMode = GetPrivateProfileInt(L"SET", L"DelReserveMode", 2, iniPath);
 	s.recAppWakeTime = GetPrivateProfileInt(L"SET", L"RecAppWakeTime", 2, iniPath);
@@ -137,15 +145,17 @@ CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 	s.processPriority = GetPrivateProfileInt(L"SET", L"ProcessPriority", 3, iniPath);
 	s.keepDisk = GetPrivateProfileInt(L"SET", L"KeepDisk", 1, iniPath) != 0;
 	s.tsExt = CheckTSExtension(GetPrivateProfileToString(L"SET", L"TSExt", L".ts", iniPath));
+	s.enableCaption = GetPrivateProfileInt(L"SET", L"Caption", 1, iniPath) != 0;
+	s.enableData = GetPrivateProfileInt(L"SET", L"Data", 0, iniPath) != 0;
 	return s;
 }
 
 vector<pair<wstring, wstring>> CEpgTimerSrvSetting::EnumBonFileName(LPCWSTR settingPath)
 {
 	vector<pair<wstring, wstring>> ret;
-	EnumFindFile(fs_path(settingPath).append(L"*.ChSet4.txt").c_str(), [&ret](WIN32_FIND_DATA& findData) -> bool {
-		if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 ){
-			wstring bon = findData.cFileName;
+	EnumFindFile(fs_path(settingPath).append(L"*.ChSet4.txt"), [&ret](UTIL_FIND_DATA& findData) -> bool {
+		if( findData.isDir == false ){
+			wstring bon = findData.fileName;
 			for( int depth = 0; bon.empty() == false; ){
 				if( bon.back() == L')' ){
 					depth++;
@@ -158,9 +168,14 @@ vector<pair<wstring, wstring>> CEpgTimerSrvSetting::EnumBonFileName(LPCWSTR sett
 				bon.pop_back();
 			}
 			if( bon.empty() == false ){
+#ifdef _WIN32
 				bon += L".dll";
-				if( std::find_if(ret.begin(), ret.end(), [&](const pair<wstring, wstring>& a) { return CompareNoCase(a.first, bon) == 0; }) == ret.end() ){
-					ret.push_back(pair<wstring, wstring>(bon, findData.cFileName));
+#else
+				bon += L".so";
+#endif
+				if( std::find_if(ret.begin(), ret.end(), [&](const pair<wstring, wstring>& a) {
+				        return UtilComparePath(a.first.c_str(), bon.c_str()) == 0; }) == ret.end() ){
+					ret.push_back(std::make_pair(std::move(bon), std::move(findData.fileName)));
 				}
 			}
 		}
@@ -179,12 +194,14 @@ wstring CEpgTimerSrvSetting::CheckTSExtension(const wstring& ext)
 	return ext;
 }
 
+#ifdef _WIN32
+
 vector<wstring> CEpgTimerSrvSetting::EnumRecNamePlugInFileName()
 {
 	vector<wstring> ret;
-	EnumFindFile(GetModulePath().replace_filename(L"RecName\\RecName*.dll").c_str(), [&ret](WIN32_FIND_DATA& findData) -> bool {
-		if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 ){
-			ret.push_back(findData.cFileName);
+	EnumFindFile(GetModulePath().replace_filename(L"RecName").append(L"RecName*.dll"), [&ret](UTIL_FIND_DATA& findData) -> bool {
+		if( findData.isDir == false ){
+			ret.push_back(std::move(findData.fileName));
 		}
 		return true;
 	});
@@ -231,7 +248,7 @@ void CEpgTimerSrvSetting::AddListBoxItem(HWND hList, HWND hItem)
 	if( item.empty() == false ){
 		for( int i = 0; i < ListBox_GetCount(hList); i++ ){
 			GetListBoxTextBuffer(hList, i, buff);
-			if( CompareNoCase(item, buff.data()) == 0 ){
+			if( UtilComparePath(item.c_str(), buff.data()) == 0 ){
 				//すでにある
 				return;
 			}
@@ -321,16 +338,16 @@ INT_PTR CEpgTimerSrvSetting::OnInitDialog()
 	}
 
 	const fs_path commonIniPath = GetCommonIniPath();
-	fs_path settingPath = GetPrivateProfileToFolderPath(L"SET", L"DataSavePath", commonIniPath.c_str());
+	fs_path settingPath = GetPrivateProfileToString(L"SET", L"DataSavePath", L"", commonIniPath.c_str());
 	if( settingPath.empty() ){
 		settingPath = GetDefSettingPath();
 		//既定の設定関係保存フォルダが存在しなければ特別に作る
-		if( GetFileAttributes(settingPath.c_str()) == INVALID_FILE_ATTRIBUTES ){
-			CreateDirectory(settingPath.c_str(), NULL);
+		if( UtilFileExists(settingPath).first == false ){
+			UtilCreateDirectory(settingPath);
 		}
 	}
 	const fs_path iniPath = GetModuleIniPath();
-	const fs_path viewAppIniPath = GetModulePath().replace_filename(L"ViewApp.ini");
+	const fs_path viewAppIniPath = fs_path(commonIniPath).replace_filename(L"ViewApp.ini");
 
 	SETTING setting = LoadSetting(iniPath.c_str());
 	this->chSet.ParseText(fs_path(settingPath).append(L"ChSet5.txt").c_str());
@@ -349,7 +366,7 @@ INT_PTR CEpgTimerSrvSetting::OnInitDialog()
 		}
 		ListBox_AddString(GetDlgItem(hwnd, IDC_LIST_SET_REC_FOLDER), recPath.c_str());
 	}
-	SetDlgItemText(hwnd, IDC_EDIT_SET_REC_INFO_FOLDER, GetPrivateProfileToFolderPath(L"SET", L"RecInfoFolder", commonIniPath.c_str()).c_str());
+	SetDlgItemText(hwnd, IDC_EDIT_SET_REC_INFO_FOLDER, GetPrivateProfileToString(L"SET", L"RecInfoFolder", L"", commonIniPath.c_str()).c_str());
 
 	vector<pair<wstring, wstring>> bonFileNameList = EnumBonFileName(settingPath.c_str());
 	vector<WORD> priorityList;
@@ -481,6 +498,8 @@ INT_PTR CEpgTimerSrvSetting::OnInitDialog()
 	SetDlgButtonCheck(hwnd, IDC_CHECK_SET_REC_NW, setting.recNW);
 	SetDlgButtonCheck(hwnd, IDC_CHECK_SET_KEEP_DISK, setting.keepDisk);
 	SetDlgButtonCheck(hwnd, IDC_CHECK_SET_REC_OVERWRITE, setting.recOverWrite);
+	SetDlgButtonCheck(hwnd, IDC_CHECK_SET_CAPTION, setting.enableCaption);
+	SetDlgButtonCheck(hwnd, IDC_CHECK_SET_DATA, setting.enableData);
 
 	//予約情報管理
 	hwnd = this->hwndReserve;
@@ -504,12 +523,18 @@ INT_PTR CEpgTimerSrvSetting::OnInitDialog()
 	size_t plugInSel = plugInList.size();
 	for( size_t i = 0; i < plugInList.size(); i++ ){
 		ComboBox_AddString(GetDlgItem(hwnd, IDC_COMBO_SET_RECNAME_PLUGIN), plugInList[i].c_str());
-		if( CompareNoCase(plugInList[i], setting.recNamePlugInFile) == 0 ){
+		if( UtilComparePath(plugInList[i].c_str(), setting.recNamePlugInFile.c_str()) == 0 ){
 			plugInSel = i;
 		}
 	}
 	if( plugInSel == plugInList.size() ){
-		ComboBox_AddString(GetDlgItem(hwnd, IDC_COMBO_SET_RECNAME_PLUGIN), setting.recNamePlugInFile.c_str());
+		if( setting.recNamePlugInFile.empty() && plugInList.empty() == false ){
+			//未設定なので先頭の候補にする
+			plugInSel = 0;
+		}else{
+			//候補を追加
+			ComboBox_AddString(GetDlgItem(hwnd, IDC_COMBO_SET_RECNAME_PLUGIN), setting.recNamePlugInFile.c_str());
+		}
 	}
 	ComboBox_SetCurSel(GetDlgItem(hwnd, IDC_COMBO_SET_RECNAME_PLUGIN), plugInSel);
 	SetDlgButtonCheck(hwnd, IDC_CHECK_SET_NO_CHK_YEN, setting.noChkYen);
@@ -586,29 +611,28 @@ void CEpgTimerSrvSetting::OnBnClickedOk()
 	const fs_path commonIniPath = GetCommonIniPath();
 	fs_path settingPath = GetDefSettingPath();
 	const fs_path iniPath = GetModuleIniPath();
-	const fs_path viewAppIniPath = GetModulePath().replace_filename(L"ViewApp.ini");
+	const fs_path viewAppIniPath = fs_path(commonIniPath).replace_filename(L"ViewApp.ini");
 
 	vector<WCHAR> buff;
 	WCHAR key[32];
-
-	TouchFileAsUnicode(iniPath.c_str());
-
+#ifdef _WIN32
+	TouchFileAsUnicode(iniPath);
+#endif
 	//[SET]セクションをファイル先頭に置くため最初にこれを書く
 	WritePrivateProfileInt(L"SET", L"NGEpgCapTime", GetDlgItemInt(this->hwndEpg, IDC_EDIT_SET_EPG_NG_CAP, NULL, FALSE), iniPath.c_str());
 
 	//基本設定
 	HWND hwnd = this->hwndBasic;
 	GetWindowTextBuffer(GetDlgItem(hwnd, IDC_EDIT_SET_DATA_SAVE_PATH), buff);
-	if( _wcsicmp(settingPath.c_str(), buff.data()) == 0 ){
+	if( UtilComparePath(settingPath.c_str(), buff.data()) == 0 ){
 		//既定値なので記録しない
 		WritePrivateProfileString(L"SET", L"DataSavePath", NULL, commonIniPath.c_str());
 	}else{
 		WritePrivateProfileString(L"SET", L"DataSavePath", buff.data(), commonIniPath.c_str());
 		settingPath = buff.data();
-		ChkFolderPath(settingPath);
 	}
 	GetWindowTextBuffer(GetDlgItem(hwnd, IDC_EDIT_SET_REC_EXE_PATH), buff);
-	if( _wcsicmp(GetModulePath().replace_filename(L"EpgDataCap_Bon.exe").c_str(), buff.data()) == 0 ){
+	if( UtilComparePath(GetModulePath().replace_filename(L"EpgDataCap_Bon.exe").c_str(), buff.data()) == 0 ){
 		//既定値なので記録しない
 		WritePrivateProfileString(L"SET", L"RecExePath", NULL, commonIniPath.c_str());
 	}else{
@@ -629,7 +653,7 @@ void CEpgTimerSrvSetting::OnBnClickedOk()
 	int num = 0;
 	for( int i = 0; i < ListBox_GetCount(GetDlgItem(hwnd, IDC_LIST_SET_REC_FOLDER)); i++ ){
 		GetListBoxTextBuffer(GetDlgItem(hwnd, IDC_LIST_SET_REC_FOLDER), i, buff);
-		if( num == 0 && i + 1 >= ListBox_GetCount(GetDlgItem(hwnd, IDC_LIST_SET_REC_FOLDER)) && _wcsicmp(settingPath.c_str(), buff.data()) == 0 ){
+		if( num == 0 && i + 1 >= ListBox_GetCount(GetDlgItem(hwnd, IDC_LIST_SET_REC_FOLDER)) && UtilComparePath(settingPath.c_str(), buff.data()) == 0 ){
 			//既定値なので記録しない
 			break;
 		}
@@ -681,7 +705,7 @@ void CEpgTimerSrvSetting::OnBnClickedOk()
 		if( wcslen(w) == 6 && wcslen(f) == 7 ){
 			swprintf_s(key, L"%d", num);
 			WCHAR val[32];
-			swprintf_s(val, L"%s%s", &w[1],
+			swprintf_s(val, L"%ls%ls", &w[1],
 			           w[0] == L'月' ? L"w1" : w[0] == L'火' ? L"w2" : w[0] == L'水' ? L"w3" : w[0] == L'木' ? L"w4" :
 			           w[0] == L'金' ? L"w5" : w[0] == L'土' ? L"w6" : w[0] == L'日' ? L"w7" : L"");
 			WritePrivateProfileString(L"EPG_CAP", key, val, iniPath.c_str());
@@ -750,6 +774,8 @@ void CEpgTimerSrvSetting::OnBnClickedOk()
 	WritePrivateProfileInt(L"SET", L"RecNW", GetDlgButtonCheck(hwnd, IDC_CHECK_SET_REC_NW), iniPath.c_str());
 	WritePrivateProfileInt(L"SET", L"KeepDisk", GetDlgButtonCheck(hwnd, IDC_CHECK_SET_KEEP_DISK), iniPath.c_str());
 	WritePrivateProfileInt(L"SET", L"RecOverWrite", GetDlgButtonCheck(hwnd, IDC_CHECK_SET_REC_OVERWRITE), iniPath.c_str());
+	WritePrivateProfileInt(L"SET", L"Caption", GetDlgButtonCheck(hwnd, IDC_CHECK_SET_CAPTION), iniPath.c_str());
+	WritePrivateProfileInt(L"SET", L"Data", GetDlgButtonCheck(hwnd, IDC_CHECK_SET_DATA), iniPath.c_str());
 
 	//予約情報管理
 	hwnd = this->hwndReserve;
@@ -877,7 +903,7 @@ void CEpgTimerSrvSetting::OnLbnSelchangeListSetEpgService()
 		auto itr = this->chSet.GetMap().cbegin();
 		std::advance(itr, sel);
 		WCHAR val[256];
-		swprintf_s(val, L"NetworkID : %d(0x%04X)\r\nTransportStreamID : %d(0x%04X)\r\nServiceID : %d(0x%04X) Type=%d%s",
+		swprintf_s(val, L"NetworkID : %d(0x%04X)\r\nTransportStreamID : %d(0x%04X)\r\nServiceID : %d(0x%04X) Type=%d%ls",
 		           itr->second.originalNetworkID, itr->second.originalNetworkID,
 		           itr->second.transportStreamID, itr->second.transportStreamID,
 		           itr->second.serviceID, itr->second.serviceID,
@@ -895,9 +921,9 @@ void CEpgTimerSrvSetting::AddEpgTime(bool check)
 		static const WCHAR week[9] = L" 月火水木金土日";
 		static const WCHAR flag[3] = L"詳基";
 		WCHAR weekMin[32];
-		swprintf_s(weekMin, L"%c%02d:%02d", week[wday % 8], hh, mm);
+		swprintf_s(weekMin, L"%lc%02d:%02d", week[wday % 8], hh, mm);
 		WCHAR flags[32];
-		swprintf_s(flags, L"%c,%c,%c,%c",
+		swprintf_s(flags, L"%lc,%lc,%lc,%lc",
 		           flag[GetDlgButtonCheck(this->hwndEpg, IDC_CHECK_SET_EPG_BS)],
 		           flag[GetDlgButtonCheck(this->hwndEpg, IDC_CHECK_SET_EPG_CS1)],
 		           flag[GetDlgButtonCheck(this->hwndEpg, IDC_CHECK_SET_EPG_CS2)],
@@ -908,7 +934,7 @@ void CEpgTimerSrvSetting::AddEpgTime(bool check)
 		for( int i = 0; i < lvi.iItem; i++ ){
 			WCHAR buff[32] = {};
 			ListView_GetItemText(GetDlgItem(this->hwndEpg, IDC_LIST_SET_EPG_TIME), i, 0, buff, _countof(buff));
-			if( _wcsicmp(buff, weekMin) == 0 ){
+			if( wcscmp(buff, weekMin) == 0 ){
 				//すでにある
 				return;
 			}
@@ -972,11 +998,10 @@ void CEpgTimerSrvSetting::ToggleStartup(bool execute, bool add)
 	if( SHGetSpecialFolderPath(NULL, startupFolder, CSIDL_STARTUP, FALSE) ){
 		fs_path path = startupFolder;
 		path.append(L"EpgTimerSrv.lnk");
-		if( GetFileAttributes(path.c_str()) == INVALID_FILE_ATTRIBUTES ){
+		if( UtilFileExists(path).first == false ){
 			if( execute && add ){
-				wstring moduleFolder;
-				GetModuleFolderPath(moduleFolder);
 				fs_path modulePath = GetModulePath();
+				fs_path moduleFolder = modulePath.parent_path();
 				{
 					IShellLink* psl;
 					if( CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (void**)&psl) == S_OK ){
@@ -1255,3 +1280,5 @@ INT_PTR CALLBACK CEpgTimerSrvSetting::ChildDlgProc(HWND hDlg, UINT uMsg, WPARAM 
 	}
 	return FALSE;
 }
+
+#endif //_WIN32
