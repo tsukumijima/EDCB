@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -31,38 +29,38 @@ namespace EpgTimer
 
         private void button_connect_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                NWPresetItem data = GetSetting();
-                Settings.Instance.NWServerIP = data.NWServerIP;
-                Settings.Instance.NWServerPort = data.NWServerPort;
-                Settings.Instance.NWWaitPort = data.NWWaitPort;
-                Settings.Instance.NWMacAdd = data.NWMacAdd;
-                DialogResult = true;
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            return;
+            SaveLastConnect();
+            DialogResult = true;
+        }
+        private void SaveLastConnect()
+        {
+            NWPresetItem data = GetSetting();
+            Settings.Instance.NWServerIP = data.NWServerIP;
+            Settings.Instance.NWServerPort = data.NWServerPort;
+            Settings.Instance.NWWaitPort = data.NWWaitPort;
+            Settings.Instance.NWMacAdd = data.NWMacAdd;
         }
 
         private void button_wake_Click(object sender, RoutedEventArgs e)
         {
             byte[] macAddress = ConvertTextMacAddress(textBox_mac.Text);
-            if (macAddress != null)
+            if (macAddress == null)
             {
-                int ifCount;
-                int ifTotal;
-                if (NWConnect.SendMagicPacket(macAddress, out ifCount, out ifTotal))
-                {
-                    label_wakeResult.Text = (ifCount > 0 ? "送信しました" : "送信できませんでした") + "(" + ifCount + "/" + ifTotal + "interfaces)";
-                }
-                else
-                {
-                    label_wakeResult.Text = "Error! 送信できません";
-                }
-                Settings.Instance.NWMacAdd = textBox_mac.Text;
+                label_wakeResult.Text = "Error! 書式が間違っているか、\r\n16進アドレスの数値が読み取れません。";
                 return;
             }
-            label_wakeResult.Text = "Error! 書式が間違っているか、\r\n16進アドレスの数値が読み取れません。";
+
+            int ifCount;
+            int ifTotal;
+            if (NWConnect.SendMagicPacket(macAddress, out ifCount, out ifTotal))
+            {
+                label_wakeResult.Text = (ifCount > 0 ? "送信しました" : "送信できませんでした") + "(" + ifCount + "/" + ifTotal + "interfaces)";
+            }
+            else
+            {
+                label_wakeResult.Text = "Error! 送信できません";
+            }
+            SaveLastConnect();
         }
         public static byte[] ConvertTextMacAddress(string txt)
         {
