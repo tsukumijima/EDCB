@@ -11,7 +11,7 @@ namespace EpgTimer
         {
             //ソート用の代替プロパティには"Value"を後ろに付けることにする。
             //呼び出し回数多くないのでとりあえずこれで。
-            if (key == "ID") return "DisplayID";//"DisplayID"を保持しつつ、保存名("ID")はフォーク元に合わせておく。
+            if (key == "ID") return CommonUtil.NameOf(() => this.DisplayID);//"DisplayID"を保持しつつ、保存名("ID")はフォーク元に合わせておく。
             PropertyInfo pInfo = this.GetType().GetProperty(key + "Value");
             return pInfo == null ? key : pInfo.Name;
         }
