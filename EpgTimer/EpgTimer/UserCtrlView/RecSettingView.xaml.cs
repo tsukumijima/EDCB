@@ -219,7 +219,7 @@ namespace EpgTimer
 
             setInfo.PartialRecFlag = (byte)(checkBox_partial.IsChecked == true ? 1 : 0);
             setInfo.ContinueRecFlag = (byte)(checkBox_continueRec.IsChecked == true ? 1 : 0);
-            setInfo.TunerID = (uint)(comboBox_tuner.SelectedValue ?? 0);
+            setInfo.TunerID = (uint)(comboBox_tuner.SelectedValue ?? 0u);
 
             return setInfo;
         }
@@ -283,6 +283,11 @@ namespace EpgTimer
                 checkBox_continueRec.IsChecked = (recSetting.ContinueRecFlag == 1);
                 checkBox_partial.IsChecked = (recSetting.PartialRecFlag == 1);
                 comboBox_tuner.SelectedValue = recSetting.TunerID;
+                if (comboBox_tuner.SelectedValue == null)
+                {
+                    comboBox_tuner.ItemsSource = comboBox_tuner.ItemsSource.Cast<TunerSelectInfo>().Concat(new TunerSelectInfo("不明なチューナー", recSetting.TunerID).IntoList());
+                    comboBox_tuner.SelectedValue = recSetting.TunerID;
+                }
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
             OnUpdatingView = false;
