@@ -1,11 +1,18 @@
 #include "stdafx.h"
 #include "TimeShiftUtil.h"
+#include "PathUtil.h"
+#include "StringUtil.h"
+#include "TSPacketUtil.h"
+#include "../BonCtrl/PacketInit.h"
+#include "../BonCtrl/CreatePATPacket.h"
+#ifndef _WIN32
+#include <sys/stat.h>
+#endif
 
 CTimeShiftUtil::CTimeShiftUtil(void)
+	: readFile(NULL, fclose)
+	, seekFile(NULL, fclose)
 {
-	this->readFile = INVALID_HANDLE_VALUE;
-	this->seekFile = INVALID_HANDLE_VALUE;
-
 	this->PCR_PID = 0xFFFF;
 	this->fileMode = FALSE;
 	this->seekJitter = 1;
@@ -21,7 +28,7 @@ CTimeShiftUtil::~CTimeShiftUtil(void)
 	Send(&val);
 }
 
-BOOL CTimeShiftUtil::Send(
+void CTimeShiftUtil::Send(
 	NWPLAY_PLAY_INFO* val
 	)
 {
@@ -34,37 +41,65 @@ BOOL CTimeShiftUtil::Send(
 
 	for( int tcp = 0; tcp < 2; tcp++ ){
 		CSendNW* sendNW = (tcp ? (CSendNW*)&this->sendTcp : (CSendNW*)&this->sendUdp);
-		if( this->sendIP[tcp].empty() == false && ((tcp ? val->tcp : val->udp) == 0 || this->sendIP[tcp] != ip) ){
-			this->sendIP[tcp].clear();
+		SEND_INFO* info = this->sendInfo + tcp;
+		if( info->ip.empty() == false && ((tcp ? val->tcp : val->udp) == 0 || info->ip != ip) ){
+			//終了
+			info->ip.clear();
 			sendNW->StopSend();
 			sendNW->UnInitialize();
-			CloseHandle(this->portMutex[tcp]);
+#ifdef _WIN32
+			CloseHandle(info->mutex);
+#else
+			DeleteFile(info->key.c_str());
+			fclose(info->mutex);
+#endif
 		}
-		if( this->sendIP[tcp].empty() == false || (tcp ? val->tcp : val->udp) == 0 ){
+		if( (tcp ? val->tcp : val->udp) == 0 ){
 			continue;
 		}
-		DWORD port = (tcp ? 2230 : 1234);
-		wstring mutexKey;
-		for( int i = 0; i < 100; i++, port++ ){
-			Format(mutexKey, L"%s%d_%d", (tcp ? MUTEX_TCP_PORT_NAME : MUTEX_UDP_PORT_NAME), val->ip, port);
-			this->portMutex[tcp] = CreateMutex(NULL, FALSE, mutexKey.c_str());
-			if( this->portMutex[tcp] ){
+		if( info->ip.empty() == false ){
+			//開始済み。ポート番号を返す
+			(tcp ? val->tcpPort : val->udpPort) = info->port;
+			continue;
+		}
+		//引数のポート番号は使わない(原作挙動)。ip:0.0.0.1-255は特別扱い
+		info->port = (tcp ? (1 <= val->ip && val->ip <= 255 ? 0 : BON_TCP_PORT_BEGIN) : BON_UDP_PORT_BEGIN);
+		for( int i = 0; i < BON_NW_PORT_RANGE; i++, info->port++ ){
+#ifdef _WIN32
+			Format(info->key, L"Global\\%ls%d_%d", (tcp ? MUTEX_TCP_PORT_NAME : MUTEX_UDP_PORT_NAME), val->ip, info->port);
+			info->mutex = CreateMutex(NULL, FALSE, info->key.c_str());
+			if( info->mutex ){
 				if( GetLastError() != ERROR_ALREADY_EXISTS ){
 					break;
 				}
-				CloseHandle(this->portMutex[tcp]);
-				this->portMutex[tcp] = NULL;
+				CloseHandle(info->mutex);
+				info->mutex = NULL;
 			}
+#else
+			Format(info->key, L"%ls%ls%u_%u.lock", EDCB_INI_ROOT, (tcp ? MUTEX_TCP_PORT_NAME : MUTEX_UDP_PORT_NAME), val->ip, info->port);
+			info->mutex = UtilOpenFile(info->key, UTIL_SECURE_WRITE);
+			if( info->mutex ){
+				string strKey;
+				WtoUTF8(info->key, strKey);
+				struct stat st[2];
+				if( fstat(fileno(info->mutex), st) == 0 && stat(strKey.c_str(), st + 1) == 0 && st[0].st_ino == st[1].st_ino ){
+					break;
+				}
+				fclose(info->mutex);
+				info->mutex = NULL;
+			}
+#endif
 		}
-		if( this->portMutex[tcp] ){
-			OutputDebugString((mutexKey + L"\r\n").c_str());
+		if( info->mutex ){
+			//開始
+			OutputDebugString((info->key + L"\r\n").c_str());
 			sendNW->Initialize();
-			sendNW->AddSendAddr(ip, port, false);
+			sendNW->AddSendAddr(ip, info->port, false);
 			sendNW->StartSend();
-			this->sendIP[tcp] = ip;
+			info->ip = ip;
+			(tcp ? val->tcpPort : val->udpPort) = info->port;
 		}
 	}
-	return TRUE;
 }
 
 BOOL CTimeShiftUtil::OpenTimeShift(
@@ -77,7 +112,7 @@ BOOL CTimeShiftUtil::OpenTimeShift(
 	StopTimeShift();
 
 	this->PCR_PID = 0xFFFF;
-	if( GetFileAttributes(filePath_) == INVALID_FILE_ATTRIBUTES ){
+	if( UtilFileExists(filePath_).first == false ){
 		return FALSE;
 	}
 
@@ -106,7 +141,7 @@ BOOL CTimeShiftUtil::StartTimeShift()
 	return TRUE;
 }
 
-BOOL CTimeShiftUtil::StopTimeShift()
+void CTimeShiftUtil::StopTimeShift()
 {
 	CBlockLock lock(&this->utilLock);
 
@@ -114,15 +149,8 @@ BOOL CTimeShiftUtil::StopTimeShift()
 		this->readStopFlag = true;
 		this->readThread.join();
 	}
-	if( this->seekFile != INVALID_HANDLE_VALUE ){
-		CloseHandle(this->seekFile);
-		this->seekFile = INVALID_HANDLE_VALUE;
-	}
-	if( this->readFile != INVALID_HANDLE_VALUE ){
-		CloseHandle(this->readFile);
-		this->readFile = INVALID_HANDLE_VALUE;
-	}
-	return TRUE;
+	this->seekFile.reset();
+	this->readFile.reset();
 }
 
 void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
@@ -132,16 +160,13 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 
 	{
 		CBlockLock lock(&sys->ioLock);
-		sys->readFile = CreateFile(sys->filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		                           NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-		if( sys->readFile == INVALID_HANDLE_VALUE ){
+		sys->readFile.reset(UtilOpenFile(sys->filePath, UTIL_SHARED_READ | UTIL_F_SEQUENTIAL));
+		if( !sys->readFile ){
 			return;
 		}
-		sys->seekFile = CreateFile(sys->filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		                           NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if( sys->seekFile == INVALID_HANDLE_VALUE ){
-			CloseHandle(sys->readFile);
-			sys->readFile = INVALID_HANDLE_VALUE;
+		sys->seekFile.reset(UtilOpenFile(sys->filePath, UTIL_SHARED_READ));
+		if( !sys->seekFile ){
+			sys->readFile.reset();
 			return;
 		}
 	}
@@ -172,11 +197,11 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 		}
 		CBlockLock lock(&sys->ioLock);
 
-		LARGE_INTEGER liMove = {};
-		if( SetFilePointerEx(sys->readFile, liMove, &liMove, FILE_CURRENT) == FALSE ){
+		__int64 pos = _ftelli64(sys->readFile.get());
+		if( pos < 0 ){
 			break;
 		}
-		if( liMove.QuadPart != sys->currentFilePos ){
+		if( pos != sys->currentFilePos ){
 			//シークされた
 			if( sys->currentFilePos >= sys->GetAvailableFileSize() ){
 				//有効なデータの終端に達した
@@ -185,22 +210,19 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 				}
 				continue;
 			}
-			liMove.QuadPart = sys->currentFilePos;
-			if( SetFilePointerEx(sys->readFile, liMove, NULL, FILE_BEGIN) == FALSE ){
+			if( _fseeki64(sys->readFile.get(), sys->currentFilePos, SEEK_SET) != 0 ){
 				break;
 			}
 			packetInit.ClearBuff();
 			initTime = -1;
 		}
-		DWORD readSize;
-		if( ReadFile(sys->readFile, buff, sizeof(buff), &readSize, NULL) == FALSE ||
-		    readSize < (sys->fileMode ? 1 : sizeof(buff)) ){
+		DWORD readSize = (DWORD)fread(buff, 1, sizeof(buff), sys->readFile.get());
+		if( readSize < (sys->fileMode ? 1 : sizeof(buff)) ){
 			//ファイル終端に達した
 			if( sys->fileMode || ++errCount > 50 ){
 				break;
 			}
-			liMove.QuadPart = sys->currentFilePos;
-			if( SetFilePointerEx(sys->readFile, liMove, NULL, FILE_BEGIN) == FALSE ){
+			if( _fseeki64(sys->readFile.get(), sys->currentFilePos, SEEK_SET) != 0 ){
 				break;
 			}
 			continue;
@@ -213,8 +235,7 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 				if( ++errCount > 50 ){
 					break;
 				}
-				liMove.QuadPart = sys->currentFilePos;
-				if( SetFilePointerEx(sys->readFile, liMove, NULL, FILE_BEGIN) == FALSE ){
+				if( _fseeki64(sys->readFile.get(), sys->currentFilePos, SEEK_SET) != 0 ){
 					break;
 				}
 			}else{
@@ -256,16 +277,14 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 	}
 
 	CBlockLock lock(&sys->ioLock);
-	CloseHandle(sys->seekFile);
-	sys->seekFile = INVALID_HANDLE_VALUE;
-	CloseHandle(sys->readFile);
-	sys->readFile = INVALID_HANDLE_VALUE;
+	sys->seekFile.reset();
+	sys->readFile.reset();
 
 	if( sys->readStopFlag == false ){
 		return;
 	}
 	//無効PAT送って次回送信時にリセットされるようにする
-	std::fill_n(buff, sizeof(buff), 0xFF);
+	std::fill_n(buff, sizeof(buff), (BYTE)0xFF);
 	CCreatePATPacket patUtil;
 	patUtil.SetParam(1, vector<pair<WORD, WORD>>());
 	BYTE* patBuff;
@@ -284,14 +303,12 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 	sys->sendTcp.AddSendData(buff, sizeof(buff));
 }
 
-static BOOL IsDataAvailable(HANDLE file, __int64 pos, CPacketInit* packetInit)
+static BOOL IsDataAvailable(FILE* fp, __int64 pos, CPacketInit* packetInit)
 {
-	LARGE_INTEGER liPos;
-	liPos.QuadPart = pos;
-	if( SetFilePointerEx(file, liPos, NULL, FILE_BEGIN) ){
+	if( _fseeki64(fp, pos, SEEK_SET) == 0 ){
 		BYTE buff[188 * 16];
-		DWORD readSize;
-		if( ReadFile(file, buff, sizeof(buff), &readSize, NULL) ){
+		DWORD readSize = (DWORD)fread(buff, 1, sizeof(buff), fp);
+		if( readSize > 0 ){
 			packetInit->ClearBuff();
 			BYTE* data;
 			DWORD dataSize;
@@ -306,51 +323,42 @@ static BOOL IsDataAvailable(HANDLE file, __int64 pos, CPacketInit* packetInit)
 __int64 CTimeShiftUtil::GetAvailableFileSize() const
 {
 	if( this->filePath.empty() == false ){
+		std::unique_ptr<FILE, decltype(&fclose)> tmpFile(NULL, fclose);
+		FILE* fp = this->seekFile.get();
+		if( fp == NULL ){
+			tmpFile.reset(UtilOpenFile(this->filePath, UTIL_SHARED_READ | UTIL_SH_DELETE));
+			fp = tmpFile.get();
+		}
+		__int64 fileSize = -1;
+		if( fp && _fseeki64(fp, 0, SEEK_END) == 0 ){
+			fileSize = _ftelli64(fp);
+		}
 		if( this->fileMode ){
 			//単純にファイルサイズを返す
-			if( this->seekFile == INVALID_HANDLE_VALUE ){
-				WIN32_FILE_ATTRIBUTE_DATA attrData;
-				if( GetFileAttributesEx(this->filePath.c_str(), GetFileExInfoStandard, &attrData) ){
-					return (__int64)attrData.nFileSizeHigh << 32 | attrData.nFileSizeLow;
-				}
-			}else{
-				LARGE_INTEGER liSize;
-				if( GetFileSizeEx(this->seekFile, &liSize) ){
-					return liSize.QuadPart;
-				}
+			if( fileSize >= 0 ){
+				return fileSize;
 			}
 		}else{
 			//有効なデータのある範囲を調べる
-			HANDLE file = this->seekFile;
-			if( file == INVALID_HANDLE_VALUE ){
-				file = CreateFile(this->filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-				                  NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-			}
-			if( file != INVALID_HANDLE_VALUE ){
-				LARGE_INTEGER liSize;
+			if( fileSize >= 188 * 16 * 8 ){
 				CPacketInit packetInit;
-				if( GetFileSizeEx(file, &liSize) == FALSE || liSize.QuadPart < 188 * 16 * 8 ){
-					liSize.QuadPart = 0;
-				}else if( IsDataAvailable(file, liSize.QuadPart - 188 * 16 * this->seekJitter, &packetInit) == FALSE ){
+				if( IsDataAvailable(fp, fileSize - 188 * 16 * this->seekJitter, &packetInit) == FALSE ){
 					//終端部分が無効なので有効なデータの境目を探す
 					//seekJitterは調査箇所がたまたま壊れている場合への対処
-					__int64 range = liSize.QuadPart - 188 * 16 * this->seekJitter;
+					__int64 range = fileSize - 188 * 16 * this->seekJitter;
 					__int64 pos = range / 2 / 188 * 188;
 					//ここは頻繁に呼ばれると高負荷に見えるが、ファイルキャッシュがよく効く条件なのでさほどでもない
 					for( ; range > 256 * 1024; range /= 2 ){
-						if( IsDataAvailable(file, pos, &packetInit) ){
+						if( IsDataAvailable(fp, pos, &packetInit) ){
 							pos += range / 4 / 188 * 188;
 						}else{
 							pos -= range / 4 / 188 * 188;
 						}
 					}
 					//安定のため有効なデータの境目からさらに512KBだけ手前にする
-					liSize.QuadPart = max(pos - range / 2 - 512 * 1024, 0LL);
+					fileSize = max(pos - range / 2 - 512 * 1024, 0LL);
 				}
-				if( file != this->seekFile ){
-					CloseHandle(file);
-				}
-				return liSize.QuadPart;
+				return fileSize;
 			}
 		}
 	}

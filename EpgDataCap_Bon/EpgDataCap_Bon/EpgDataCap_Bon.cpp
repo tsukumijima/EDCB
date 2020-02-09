@@ -7,10 +7,8 @@
 #include "EpgDataCap_BonDlg.h"
 
 #include "../../Common/ThreadUtil.h"
-#include <io.h>
-#include <fcntl.h>
-#include <share.h>
-#include <sys/stat.h>
+#include <objbase.h>
+#include <shellapi.h>
 
 #ifndef SUPPRESS_OUTPUT_STACK_TRACE
 #include <tlhelp32.h>
@@ -174,15 +172,15 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 				} else if (wcscmp(argv[i] + 1, L"d") == 0 && optLowerD == NULL) {
 					curr = argv[i] + 1;
 					optLowerD = L"";
-				} else if (_wcsicmp(argv[i] + 1, L"min") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"min") == 0) {
 					dlg.SetIniMin(TRUE);
-				} else if (_wcsicmp(argv[i] + 1, L"noview") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"noview") == 0) {
 					dlg.SetIniView(FALSE);
-				} else if (_wcsicmp(argv[i] + 1, L"nonw") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"nonw") == 0) {
 					dlg.SetIniNW(FALSE);
-				} else if (_wcsicmp(argv[i] + 1, L"nwudp") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"nwudp") == 0) {
 					dlg.SetIniNWUDP(TRUE);
-				} else if (_wcsicmp(argv[i] + 1, L"nwtcp") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"nwtcp") == 0) {
 					dlg.SetIniNWTCP(TRUE);
 				}
 			} else if (wcscmp(curr, L"D") == 0 && optUpperD && optUpperD[0] == L'\0') {
@@ -246,10 +244,17 @@ void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
-			fwprintf_s(g_debugLog, L"[%02d%02d%02d%02d%02d%02d.%03d] %s%s",
-			           st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-			           lpOutputString ? lpOutputString : L"",
-			           lpOutputString && lpOutputString[0] && lpOutputString[wcslen(lpOutputString) - 1] == L'\n' ? L"" : L"<NOBR>\r\n");
+			WCHAR t[128];
+			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
+			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+			fwrite(t, sizeof(WCHAR), n, g_debugLog);
+			size_t m = lpOutputString ? wcslen(lpOutputString) : 0;
+			if( m > 0 ){
+				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
+			}
+			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
+				fwrite(L"<NOBR>\r\n", sizeof(WCHAR), 8, g_debugLog);
+			}
 			fflush(g_debugLog);
 		}
 	}
@@ -264,20 +269,14 @@ void SetSaveDebugLog(bool saveDebugLog)
 			//パスに添え字をつけて書き込み可能な最初のものに記録する
 			WCHAR logFileName[64];
 			swprintf_s(logFileName, L"EpgDataCap_Bon_DebugLog-%d.txt", i);
-			fs_path logPath = GetModulePath().replace_filename(logFileName);
-			//やりたいことは_wfsopen(L"abN",_SH_DENYWR)だが_wfsopenには"N"オプションがなさそうなので低水準で開く
-			int fd;
-			if( _wsopen_s(&fd, logPath.c_str(), _O_APPEND | _O_BINARY | _O_CREAT | _O_NOINHERIT | _O_WRONLY, _SH_DENYWR, _S_IWRITE) == 0 ){
-				g_debugLog = _wfdopen(fd, L"ab");
-				if( g_debugLog == NULL ){
-					_close(fd);
-				}
+			fs_path logPath = GetCommonIniPath().replace_filename(logFileName);
+			g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);
+			if( g_debugLog ){
+				fwrite(L"\xFEFF", sizeof(WCHAR), 1, g_debugLog);
+			}else{
+				g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
 			}
 			if( g_debugLog ){
-				_fseeki64(g_debugLog, 0, SEEK_END);
-				if( _ftelli64(g_debugLog) == 0 ){
-					fputwc(L'\xFEFF', g_debugLog);
-				}
 				OutputDebugString(L"****** LOG START ******\r\n");
 				break;
 			}

@@ -5,7 +5,7 @@
 #include "../../Common/ThreadUtil.h"
 #include "EpgDBManager.h"
 #include "NotifyManager.h"
-#include "TunerManager.h"
+#include "TunerBankCtrl.h"
 #include "BatManager.h"
 
 //予約を管理しチューナに割り当てる
@@ -131,8 +131,8 @@ private:
 	//tunerID: 終了したチューナID
 	//shutdownMode: 最後に処理した予約の録画後動作を記録
 	void ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& retList, DWORD tunerID = 0, int* shutdownMode = NULL);
-	//EPG取得可能なチューナIDのリストを取得する
-	vector<DWORD> GetEpgCapTunerIDList(__int64 now) const;
+	//EPG取得可能なチューナのリストを取得する
+	vector<CTunerBankCtrl*> GetEpgCapTunerList(__int64 now) const;
 	//EPG取得処理を管理する
 	//isEpgCap: EPG取得中のチューナが無ければfalse
 	//戻り値: EPG取得が完了した瞬間にtrue
@@ -144,7 +144,7 @@ private:
 	//バンクを監視して必要ならチューナを強制終了するスレッド
 	static void WatchdogThread(CReserveManager* sys);
 	//batPostManagerにバッチを追加する
-	void AddPostBatWork(vector<CBatManager::BAT_WORK_INFO>& workList, LPCWSTR fileName);
+	void AddPostBatWork(vector<CBatManager::BAT_WORK_INFO>& workList, LPCWSTR baseName);
 	//バッチに渡す日時マクロを追加する
 	static void AddTimeMacro(vector<pair<string, wstring>>& macroList, const SYSTEMTIME& startTime, DWORD durationSecond, LPCSTR suffix);
 	//バッチに渡す予約情報マクロを追加する
@@ -162,7 +162,6 @@ private:
 	CParseRecInfo2Text recInfo2Text;
 	CParseChText5 chUtil;
 
-	CTunerManager tunerManager;
 	CBatManager batManager;
 	CBatManager batPostManager;
 

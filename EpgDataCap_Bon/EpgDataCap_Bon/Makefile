@@ -1,5 +1,5 @@
 TARGET ?= EpgDataCap_Bon.exe
-CPPFLAGS = -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_WINMAIN_A -DUSE_IBONCAST
+CPPFLAGS = -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_WINMAIN_A
 WINDRES ?= windres
 
 $(TARGET): $(addsuffix .obj, \
@@ -33,7 +33,6 @@ $(TARGET): $(addsuffix .obj, \
   Common__WritePlugInUtil.cpp \
   EpgDataCap_Bon.cpp \
   EpgDataCap_BonDlg.cpp \
-  EpgDataCap_BonMain.cpp \
   SetDlgApp.cpp \
   SetDlgAppBtn.cpp \
   SetDlgBasic.cpp \
@@ -42,16 +41,19 @@ $(TARGET): $(addsuffix .obj, \
   SetDlgService.cpp \
   SettingDlg.cpp \
   stdafx.cpp \
+  TaskbarList.cpp \
   EpgDataCap_Bon.rc \
   )
 	$(CXX) -mwindows -Wl,-s -Wl,--dynamicbase -Wl,--nxcompat -static-libgcc -static-libstdc++ -o $@ $^ -lws2_32 -lole32 -lcomctl32 -ldbghelp -lcomdlg32
-BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp
+BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch
 	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-Common__%.cpp.obj: ../../Common/%.cpp
+Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch
 	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-%.cpp.obj: %.cpp
+%.cpp.obj: %.cpp stdafx.h.gch
+	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
+stdafx.h.gch: stdafx.h
 	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
 %.rc.obj: %.rc
 	iconv -f UTF-16LE -t UTF-8 $< | $(WINDRES) $(CPPFLAGS) -c 65001 -J rc -O coff -o $@
 clean:
-	$(RM) *.obj $(TARGET)
+	$(RM) stdafx.h.gch *.obj $(TARGET)
