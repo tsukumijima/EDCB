@@ -1,0 +1,137 @@
+#!/bin/bash
+
+## Architecture
+##  -a x86|x64
+## Output directory
+##  -o dir
+## Archive
+##  -r 7z|bz2
+## Target
+##  -t debug|release
+
+arch=
+target=release
+out_dir=package
+archive=7z
+
+while getopts a:c:o:p:r:t: arg
+do
+    case $arg in
+    a)
+        arch=$OPTARG
+        ;;
+    o)
+        out_dir=$OPTARG
+        ;;
+    r)
+        archive=$OPTARG
+        ;;
+    t)
+        target=$OPTARG
+        ;;
+    *)
+        echo "Unknown parameter $arg" >&2
+        exit 1
+    esac
+done
+
+if [ "$arch" = "" ]
+then
+    if [ -d x64 ]
+    then
+        arch=x64
+        arch2=x64
+    else
+        arch=x86
+        arch2=
+    fi
+fi
+
+src_bin_dir=${arch}/${target}
+
+dst_dir=${out_dir}/${arch}/${target}
+
+rm -rf ${dst_dir}/*
+mkdir -p ${dst_dir}
+mkdir -p ${dst_dir}/BonDriver
+mkdir -p ${dst_dir}/EdcbPlugIn
+mkdir -p ${dst_dir}/RecName
+mkdir -p ${dst_dir}/Setting
+mkdir -p ${dst_dir}/Tools
+mkdir -p ${dst_dir}/Write
+
+cp -fp "${src_bin_dir}/EpgDataCap_Bon.exe" "${dst_dir}/EpgDataCap_Bon.exe"
+if [ $? -ne 0 ]
+then
+    echo "Failed to copy EpgDataCap_Bon.exe" >&2
+    exit 1
+fi
+
+cp -fp "${src_bin_dir}/EpgTimer.exe" "${dst_dir}/EpgTimer.exe"
+cp -fp "${src_bin_dir}/EpgTimerAdminProxy.exe" "${dst_dir}/EpgTimerAdminProxy.exe"
+cp -fp "${src_bin_dir}/EpgTimerPlugIn.tvtp" "${dst_dir}/EpgTimerPlugIn.tvtp"
+cp -fp "${src_bin_dir}/EpgTimerSrv.exe" "${dst_dir}/EpgTimerSrv.exe"
+cp -fp "${src_bin_dir}/EpgDataCap3.dll" "${dst_dir}/EpgDataCap3.dll"
+cp -fp "ini/Tools/IBonCast/${arch2}/${target}/IBonCast.dll" "${dst_dir}/IBonCast.dll"
+cp -fp "${src_bin_dir}/SendTSTCP.dll" "${dst_dir}/SendTSTCP.dll"
+
+cp -fp "ConvToSJIS.bat" "${dst_dir}/ConvToSJIS.bat"
+cp -fp "ConvToUTF8.bat" "${dst_dir}/ConvToUTF8.bat"
+cp -fp "LICENSE-Civetweb.md" "${dst_dir}/LICENSE-Civetweb.md"
+
+doc_files=(History.txt HowToBuild.txt Readme.txt Readme_EpgDataCap_Bon.txt Readme_EpgTimer.txt Readme_Mod.txt)
+for doc_file in ${doc_files[@]}
+do
+    cp -fp "Document/${doc_file}" "${dst_dir}/${doc_file}"
+done
+
+ini_files=(Bitrate.ini BonCtrl.ini ContentTypeText.txt EpgTimer.exe.rd.xaml EpgTimerSrv_Install.bat EpgTimerSrv_Remove.bat EpgTimerSrv_Setting.bat)
+for ini_file in ${ini_files[@]}
+do
+    cp -fp "ini/${ini_file}" "${dst_dir}/${ini_file}"
+done
+
+cp -fp "${src_bin_dir}/EdcbPlugIn.tvtp" "${dst_dir}/EdcbPlugIn/EdcbPlugIn.tvtp"
+cp -fpr ini/HttpPublic "${dst_dir}"
+cp -fpr ini/PostBatExamples "${dst_dir}"
+cp -fp "${src_bin_dir}/RecName/RecName_Macro.dll" "${dst_dir}/RecName/RecName_Macro.dll"
+
+tools_files=(mail_credential.bat mail_credential.ps1 tsidmove_helper.bat watchip.bat watchip.ps1)
+for tools_file in ${tools_files[@]}
+do
+    cp -fp "ini/Tools/${tools_file}" "${dst_dir}/Tools/${tools_file}"
+done
+
+cp -fp "ini/Tools/tsidmove/${arch2}/${target}/tsidmove.exe" "${dst_dir}/Tools/tsidmove.exe"
+cp -fp "ini/Tools/${arch2}/${target}/readex.exe" "${dst_dir}/Tools/readex.exe"
+cp -fp "ini/Tools/${arch2}/${target}/relayread.exe" "${dst_dir}/Tools/relayread.exe"
+
+cp -fp "${src_bin_dir}/Write/Write_Default.dll" "${dst_dir}/Write/Write_Default.dll"
+cp -fp "${src_bin_dir}/Write/Write_OneService.dll" "${dst_dir}/Write/Write_OneService.dll"
+
+version=
+
+git_hash=$(git rev-parse --short HEAD)
+
+archive_name=${out_dir}/EDCB_${version}${git_hash}_${arch}
+
+if [ "$archive" = 7z ]
+then
+    ## Archive with 7-Zip
+    sevenz_exe='/c/Program Files/7-Zip/7z.exe'
+    if [ ! -f "$sevenz_exe" ]
+    then
+        sevenz_exe='/c/Program Files (x86)/7-Zip/7z.exe'
+        if [ ! -f "$sevenz_exe" ]
+        then
+            echo "Unable to find 7z.exe" >&2
+            exit 1
+        fi
+    fi
+
+    "$sevenz_exe" a "${archive_name}.7z" "./${dst_dir}/\*" -mx=9 -ms=on -myx=9
+elif [ "$archive" = bz2 ]
+then
+    ## Archive with bzip2
+    tar -jcf "${archive_name}.tar.bz2" -C "${dst_dir}" .
+fi
