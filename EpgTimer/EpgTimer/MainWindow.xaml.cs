@@ -650,6 +650,7 @@ namespace EpgTimer
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
             CommonManager.Instance.DB.ReloadEpgDatabaseInfo(true);
             CommonManager.Instance.DB.ReloadReserveInfo(true);
+            CommonManager.Instance.DB.ClearRecFileAppend();
             CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
             CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
             if (Settings.Instance.NgAutoEpgLoadNW == false)
