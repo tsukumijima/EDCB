@@ -743,6 +743,16 @@
   <ItemGroup>
     <ResourceCompile Include="EpgTimerSrv.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="TaskIconBlue.ico" />
+    <Image Include="TaskIconGray.ico" />
+    <Image Include="TaskIconGreen.ico" />
+    <Image Include="TaskIconRed.ico" />
+    <Image Include="TaskIconSemi.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="EpgTimerSrv.manifest" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

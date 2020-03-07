@@ -532,4 +532,24 @@
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="TaskIconGray.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="TaskIconSemi.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="TaskIconBlue.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="TaskIconGreen.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="TaskIconRed.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="EpgTimerSrv.manifest" />
+  </ItemGroup>
 </Project>
