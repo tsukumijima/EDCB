@@ -45,6 +45,11 @@ then
         arch=x86
         arch2=
     fi
+elif [ "$arch" = "x64" ]
+then
+    arch2=x64
+else
+    arch2=
 fi
 
 src_bin_dir=${arch}/${target}
