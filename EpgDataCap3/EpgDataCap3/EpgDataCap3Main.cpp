@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "EpgDataCap3Main.h"
 
 #include "../../Common/TimeUtil.h"
@@ -13,8 +13,8 @@ CEpgDataCap3Main::~CEpgDataCap3Main(void)
 	decodeUtilClass.SetEpgDB(NULL);
 }
 
-//‰ðÍ‘ÎÛ‚ÌTSƒpƒPƒbƒg‚P‚Â‚ð“Ç‚Ýž‚Ü‚¹‚é
-// data		[IN]TSƒpƒPƒbƒg‚P‚Â
+//è§£æžå¯¾è±¡ã®TSãƒ‘ã‚±ãƒƒãƒˆï¼‘ã¤ã‚’èª­ã¿è¾¼ã¾ã›ã‚‹
+// data		[IN]TSãƒ‘ã‚±ãƒƒãƒˆï¼‘ã¤
 void CEpgDataCap3Main::AddTSPacket(
 	BYTE* data
 	)
@@ -24,10 +24,10 @@ void CEpgDataCap3Main::AddTSPacket(
 	this->decodeUtilClass.AddTSData(data);
 }
 
-//‰ðÍƒf[ƒ^‚ÌŒ»Ý‚ÌƒXƒgƒŠ[ƒ€‚h‚c‚ðŽæ“¾‚·‚é
-//ˆø”F
-// originalNetworkID		[OUT]Œ»Ý‚ÌoriginalNetworkID
-// transportStreamID		[OUT]Œ»Ý‚ÌtransportStreamID
+//è§£æžãƒ‡ãƒ¼ã‚¿ã®ç¾åœ¨ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ï¼©ï¼¤ã‚’å–å¾—ã™ã‚‹
+//å¼•æ•°ï¼š
+// originalNetworkID		[OUT]ç¾åœ¨ã®originalNetworkID
+// transportStreamID		[OUT]ç¾åœ¨ã®transportStreamID
 BOOL CEpgDataCap3Main::GetTSID(
 	WORD* originalNetworkID,
 	WORD* transportStreamID
@@ -37,10 +37,10 @@ BOOL CEpgDataCap3Main::GetTSID(
 	return this->decodeUtilClass.GetTSID(originalNetworkID, transportStreamID);
 }
 
-//Ž©ƒXƒgƒŠ[ƒ€‚ÌƒT[ƒrƒXˆê——‚ðŽæ“¾‚·‚é
-//ˆø”F
-// serviceListSize			[OUT]serviceList‚ÌŒÂ”
-// serviceList				[OUT]ƒT[ƒrƒXî•ñ‚ÌƒŠƒXƒgiDLL“à‚ÅŽ©“®“I‚Édelete‚·‚éBŽŸ‚ÉŽæ“¾‚ðs‚¤‚Ü‚Å—LŒøj
+//è‡ªã‚¹ãƒˆãƒªãƒ¼ãƒ ã®ã‚µãƒ¼ãƒ“ã‚¹ä¸€è¦§ã‚’å–å¾—ã™ã‚‹
+//å¼•æ•°ï¼š
+// serviceListSize			[OUT]serviceListã®å€‹æ•°
+// serviceList				[OUT]ã‚µãƒ¼ãƒ“ã‚¹æƒ…å ±ã®ãƒªã‚¹ãƒˆï¼ˆDLLå†…ã§è‡ªå‹•çš„ã«deleteã™ã‚‹ã€‚æ¬¡ã«å–å¾—ã‚’è¡Œã†ã¾ã§æœ‰åŠ¹ï¼‰
 BOOL CEpgDataCap3Main::GetServiceListActual(
 	DWORD* serviceListSize,
 	SERVICE_INFO** serviceList
@@ -50,11 +50,11 @@ BOOL CEpgDataCap3Main::GetServiceListActual(
 	return this->decodeUtilClass.GetServiceListActual(serviceListSize, serviceList);
 }
 
-//’~Ï‚³‚ê‚½EPGî•ñ‚Ì‚ ‚éƒT[ƒrƒXˆê——‚ðŽæ“¾‚·‚é
-//SERVICE_EXT_INFO‚Ìî•ñ‚Í‚È‚¢ê‡‚ª‚ ‚é
-//ˆø”F
-// serviceListSize			[OUT]serviceList‚ÌŒÂ”
-// serviceList				[OUT]ƒT[ƒrƒXî•ñ‚ÌƒŠƒXƒgiDLL“à‚ÅŽ©“®“I‚Édelete‚·‚éBŽŸ‚ÉŽæ“¾‚ðs‚¤‚Ü‚Å—LŒøj
+//è“„ç©ã•ã‚ŒãŸEPGæƒ…å ±ã®ã‚ã‚‹ã‚µãƒ¼ãƒ“ã‚¹ä¸€è¦§ã‚’å–å¾—ã™ã‚‹
+//SERVICE_EXT_INFOã®æƒ…å ±ã¯ãªã„å ´åˆãŒã‚ã‚‹
+//å¼•æ•°ï¼š
+// serviceListSize			[OUT]serviceListã®å€‹æ•°
+// serviceList				[OUT]ã‚µãƒ¼ãƒ“ã‚¹æƒ…å ±ã®ãƒªã‚¹ãƒˆï¼ˆDLLå†…ã§è‡ªå‹•çš„ã«deleteã™ã‚‹ã€‚æ¬¡ã«å–å¾—ã‚’è¡Œã†ã¾ã§æœ‰åŠ¹ï¼‰
 void CEpgDataCap3Main::GetServiceListEpgDB(
 	DWORD* serviceListSize,
 	SERVICE_INFO** serviceList
@@ -64,13 +64,13 @@ void CEpgDataCap3Main::GetServiceListEpgDB(
 	this->epgDBUtilClass.GetServiceListEpgDB(serviceListSize, serviceList);
 }
 
-//Žw’èƒT[ƒrƒX‚Ì‘SEPGî•ñ‚ðŽæ“¾‚·‚é
-//ˆø”F
-// originalNetworkID		[IN]Žæ“¾‘ÎÛ‚ÌoriginalNetworkID
-// transportStreamID		[IN]Žæ“¾‘ÎÛ‚ÌtransportStreamID
-// serviceID				[IN]Žæ“¾‘ÎÛ‚ÌServiceID
-// epgInfoListSize			[OUT]epgInfoList‚ÌŒÂ”
-// epgInfoList				[OUT]EPGî•ñ‚ÌƒŠƒXƒgiDLL“à‚ÅŽ©“®“I‚Édelete‚·‚éBŽŸ‚ÉŽæ“¾‚ðs‚¤‚Ü‚Å—LŒøj
+//æŒ‡å®šã‚µãƒ¼ãƒ“ã‚¹ã®å…¨EPGæƒ…å ±ã‚’å–å¾—ã™ã‚‹
+//å¼•æ•°ï¼š
+// originalNetworkID		[IN]å–å¾—å¯¾è±¡ã®originalNetworkID
+// transportStreamID		[IN]å–å¾—å¯¾è±¡ã®transportStreamID
+// serviceID				[IN]å–å¾—å¯¾è±¡ã®ServiceID
+// epgInfoListSize			[OUT]epgInfoListã®å€‹æ•°
+// epgInfoList				[OUT]EPGæƒ…å ±ã®ãƒªã‚¹ãƒˆï¼ˆDLLå†…ã§è‡ªå‹•çš„ã«deleteã™ã‚‹ã€‚æ¬¡ã«å–å¾—ã‚’è¡Œã†ã¾ã§æœ‰åŠ¹ï¼‰
 BOOL CEpgDataCap3Main::GetEpgInfoList(
 	WORD originalNetworkID,
 	WORD transportStreamID,
@@ -83,7 +83,7 @@ BOOL CEpgDataCap3Main::GetEpgInfoList(
 	return this->epgDBUtilClass.GetEpgInfoList(originalNetworkID, transportStreamID, serviceID, epgInfoListSize, epgInfoList);
 }
 
-//Žw’èƒT[ƒrƒX‚Ì‘SEPGî•ñ‚ð—ñ‹“‚·‚é
+//æŒ‡å®šã‚µãƒ¼ãƒ“ã‚¹ã®å…¨EPGæƒ…å ±ã‚’åˆ—æŒ™ã™ã‚‹
 BOOL CEpgDataCap3Main::EnumEpgInfoList(
 	WORD originalNetworkID,
 	WORD transportStreamID,
@@ -96,13 +96,13 @@ BOOL CEpgDataCap3Main::EnumEpgInfoList(
 	return this->epgDBUtilClass.EnumEpgInfoList(originalNetworkID, transportStreamID, serviceID, enumEpgInfoListProc, param);
 }
 
-//Žw’èƒT[ƒrƒX‚ÌŒ»ÝorŽŸ‚ÌEPGî•ñ‚ðŽæ“¾‚·‚é
-//ˆø”F
-// originalNetworkID		[IN]Žæ“¾‘ÎÛ‚ÌoriginalNetworkID
-// transportStreamID		[IN]Žæ“¾‘ÎÛ‚ÌtransportStreamID
-// serviceID				[IN]Žæ“¾‘ÎÛ‚ÌServiceID
-// nextFlag					[IN]TRUEiŽŸ‚Ì”Ô‘gjAFALSEiŒ»Ý‚Ì”Ô‘gj
-// epgInfo					[OUT]EPGî•ñiDLL“à‚ÅŽ©“®“I‚Édelete‚·‚éBŽŸ‚ÉŽæ“¾‚ðs‚¤‚Ü‚Å—LŒøj
+//æŒ‡å®šã‚µãƒ¼ãƒ“ã‚¹ã®ç¾åœ¨oræ¬¡ã®EPGæƒ…å ±ã‚’å–å¾—ã™ã‚‹
+//å¼•æ•°ï¼š
+// originalNetworkID		[IN]å–å¾—å¯¾è±¡ã®originalNetworkID
+// transportStreamID		[IN]å–å¾—å¯¾è±¡ã®transportStreamID
+// serviceID				[IN]å–å¾—å¯¾è±¡ã®ServiceID
+// nextFlag					[IN]TRUEï¼ˆæ¬¡ã®ç•ªçµ„ï¼‰ã€FALSEï¼ˆç¾åœ¨ã®ç•ªçµ„ï¼‰
+// epgInfo					[OUT]EPGæƒ…å ±ï¼ˆDLLå†…ã§è‡ªå‹•çš„ã«deleteã™ã‚‹ã€‚æ¬¡ã«å–å¾—ã‚’è¡Œã†ã¾ã§æœ‰åŠ¹ï¼‰
 BOOL CEpgDataCap3Main::GetEpgInfo(
 	WORD originalNetworkID,
 	WORD transportStreamID,
@@ -116,23 +116,20 @@ BOOL CEpgDataCap3Main::GetEpgInfo(
 		return FALSE;
 	}
 
-	//TODO: ‚±‚¤‚¢‚¤‘I•Ê‚ðƒ‰ƒCƒuƒ‰ƒŠ‘¤‚Ås‚¤‚Ì‚Í”÷–­‚ÉŽv‚¤‚ªAŒÝŠ·‚Ì‚½‚ßŽc‚µ‚Ä‚¨‚­
+	//TODO: ã“ã†ã„ã†é¸åˆ¥ã‚’ãƒ©ã‚¤ãƒ–ãƒ©ãƒªå´ã§è¡Œã†ã®ã¯å¾®å¦™ã«æ€ã†ãŒã€äº’æ›ã®ãŸã‚æ®‹ã—ã¦ãŠã
 	__int64 nowTime;
-	FILETIME time;
-	if( this->decodeUtilClass.GetNowTime(&time) == FALSE ){
+	if( this->decodeUtilClass.GetNowTime(&nowTime) == FALSE ){
 		nowTime = GetNowI64Time();
-	}else{
-		nowTime = (__int64)time.dwHighDateTime << 32 | time.dwLowDateTime;
 	}
 	if( nextFlag == FALSE && (*epgInfo)->StartTimeFlag != FALSE && (*epgInfo)->DurationFlag != FALSE ){
 		if( nowTime < ConvertI64Time((*epgInfo)->start_time) || ConvertI64Time((*epgInfo)->start_time) + (*epgInfo)->durationSec * I64_1SEC < nowTime ){
-			//ŽžŠÔ“à‚É‚È‚¢‚Ì‚ÅŽ¸”s
+			//æ™‚é–“å†…ã«ãªã„ã®ã§å¤±æ•—
 			epgInfo = NULL;
 			return FALSE;
 		}
 	}else if( nextFlag == TRUE && (*epgInfo)->StartTimeFlag != FALSE ){
 		if( nowTime > ConvertI64Time((*epgInfo)->start_time) ){
-			//ŠJŽnŽžŠÔ‚ð‰ß‚¬‚Ä‚¢‚é‚Ì‚ÅŽ¸”s
+			//é–‹å§‹æ™‚é–“ã‚’éŽãŽã¦ã„ã‚‹ã®ã§å¤±æ•—
 			epgInfo = NULL;
 			return FALSE;
 		}
@@ -141,14 +138,14 @@ BOOL CEpgDataCap3Main::GetEpgInfo(
 	return TRUE;
 }
 
-//Žw’èƒCƒxƒ“ƒg‚ÌEPGî•ñ‚ðŽæ“¾‚·‚é
-//ˆø”F
-// originalNetworkID		[IN]Žæ“¾‘ÎÛ‚ÌoriginalNetworkID
-// transportStreamID		[IN]Žæ“¾‘ÎÛ‚ÌtransportStreamID
-// serviceID				[IN]Žæ“¾‘ÎÛ‚ÌServiceID
-// EventID					[IN]Žæ“¾‘ÎÛ‚ÌEventID
-// pfOnlyFlag				[IN]p/f‚©‚ç‚Ì‚ÝŒŸõ‚·‚é‚©‚Ç‚¤‚©
-// epgInfo					[OUT]EPGî•ñiDLL“à‚ÅŽ©“®“I‚Édelete‚·‚éBŽŸ‚ÉŽæ“¾‚ðs‚¤‚Ü‚Å—LŒøj
+//æŒ‡å®šã‚¤ãƒ™ãƒ³ãƒˆã®EPGæƒ…å ±ã‚’å–å¾—ã™ã‚‹
+//å¼•æ•°ï¼š
+// originalNetworkID		[IN]å–å¾—å¯¾è±¡ã®originalNetworkID
+// transportStreamID		[IN]å–å¾—å¯¾è±¡ã®transportStreamID
+// serviceID				[IN]å–å¾—å¯¾è±¡ã®ServiceID
+// EventID					[IN]å–å¾—å¯¾è±¡ã®EventID
+// pfOnlyFlag				[IN]p/fã‹ã‚‰ã®ã¿æ¤œç´¢ã™ã‚‹ã‹ã©ã†ã‹
+// epgInfo					[OUT]EPGæƒ…å ±ï¼ˆDLLå†…ã§è‡ªå‹•çš„ã«deleteã™ã‚‹ã€‚æ¬¡ã«å–å¾—ã‚’è¡Œã†ã¾ã§æœ‰åŠ¹ï¼‰
 BOOL CEpgDataCap3Main::SearchEpgInfo(
 	WORD originalNetworkID,
 	WORD transportStreamID,
@@ -163,7 +160,7 @@ BOOL CEpgDataCap3Main::SearchEpgInfo(
 	return this->epgDBUtilClass.SearchEpgInfo(originalNetworkID, transportStreamID, serviceID, eventID, pfOnlyFlag, epgInfo);
 }
 
-//EPGƒf[ƒ^‚Ì’~Ïó‘Ô‚ðƒŠƒZƒbƒg‚·‚é
+//EPGãƒ‡ãƒ¼ã‚¿ã®è“„ç©çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
 void CEpgDataCap3Main::ClearSectionStatus()
 {
 	CBlockLock lock(&this->utilLock);
@@ -171,11 +168,11 @@ void CEpgDataCap3Main::ClearSectionStatus()
 	return ;
 }
 
-//EPGƒf[ƒ^‚Ì’~Ïó‘Ô‚ðŽæ“¾‚·‚é
-//–ß‚è’lF
-// ƒXƒe[ƒ^ƒX
-//ˆø”F
-// l_eitFlag		[IN]L-EIT‚ÌƒXƒe[ƒ^ƒX‚ðŽæ“¾
+//EPGãƒ‡ãƒ¼ã‚¿ã®è“„ç©çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
+//æˆ»ã‚Šå€¤ï¼š
+// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+//å¼•æ•°ï¼š
+// l_eitFlag		[IN]L-EITã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’å–å¾—
 EPG_SECTION_STATUS CEpgDataCap3Main::GetSectionStatus(BOOL l_eitFlag)
 {
 	CBlockLock lock(&this->utilLock);
@@ -183,7 +180,7 @@ EPG_SECTION_STATUS CEpgDataCap3Main::GetSectionStatus(BOOL l_eitFlag)
 	return status;
 }
 
-//Žw’èƒT[ƒrƒX‚ÌEPGƒf[ƒ^‚Ì’~Ïó‘Ô‚ðŽæ“¾‚·‚é
+//æŒ‡å®šã‚µãƒ¼ãƒ“ã‚¹ã®EPGãƒ‡ãƒ¼ã‚¿ã®è“„ç©çŠ¶æ…‹ã‚’å–å¾—ã™ã‚‹
 EPG_SECTION_STATUS CEpgDataCap3Main::GetSectionStatusService(
 	WORD originalNetworkID,
 	WORD transportStreamID,
@@ -195,18 +192,18 @@ EPG_SECTION_STATUS CEpgDataCap3Main::GetSectionStatusService(
 	return this->epgDBUtilClass.GetSectionStatusService(originalNetworkID, transportStreamID, serviceID, l_eitFlag);
 }
 
-//PCŽžŒv‚ðŒ³‚Æ‚µ‚½ƒXƒgƒŠ[ƒ€ŽžŠÔ‚Æ‚Ì·‚ðŽæ“¾‚·‚é
-//–ß‚è’lF
-// ·‚Ì•b”
+//PCæ™‚è¨ˆã‚’å…ƒã¨ã—ãŸã‚¹ãƒˆãƒªãƒ¼ãƒ æ™‚é–“ã¨ã®å·®ã‚’å–å¾—ã™ã‚‹
+//æˆ»ã‚Šå€¤ï¼š
+// å·®ã®ç§’æ•°
 int CEpgDataCap3Main::GetTimeDelay(
 	)
 {
 	CBlockLock lock(&this->utilLock);
-	FILETIME time;
+	__int64 time;
 	DWORD tick;
 	if( this->decodeUtilClass.GetNowTime(&time, &tick) == FALSE ){
 		return 0;
 	}
-	__int64 delay = ((__int64)time.dwHighDateTime << 32 | time.dwLowDateTime) + (GetTickCount() - tick) * (I64_1SEC / 1000) - GetNowI64Time();
+	__int64 delay = time + (GetTickCount() - tick) * (I64_1SEC / 1000) - GetNowI64Time();
 	return (int)(delay / I64_1SEC);
 }

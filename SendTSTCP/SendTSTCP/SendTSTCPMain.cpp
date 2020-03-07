@@ -1,22 +1,22 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "SendTSTCPMain.h"
 
-//SendTSTCPƒvƒƒgƒRƒ‹‚Ìƒwƒbƒ_‚Ì‘—M‚ğ—}§‚·‚éŠù’è‚Ìƒ|[ƒg”ÍˆÍ
+//SendTSTCPãƒ—ãƒ­ãƒˆã‚³ãƒ«ã®ãƒ˜ãƒƒãƒ€ã®é€ä¿¡ã‚’æŠ‘åˆ¶ã™ã‚‹æ—¢å®šã®ãƒãƒ¼ãƒˆç¯„å›²
 #define SEND_TS_TCP_NOHEAD_PORT_MIN 22000
 #define SEND_TS_TCP_NOHEAD_PORT_MAX 22999
-//‘—Mæ‚ª0.0.0.1‚Ì‚Æ‚«‘Ò‚¿ó‚¯‚é–¼‘O•t‚«ƒpƒCƒv–¼
+//é€ä¿¡å…ˆãŒ0.0.0.1ã®ã¨ãå¾…ã¡å—ã‘ã‚‹åå‰ä»˜ããƒ‘ã‚¤ãƒ—å
 #define SEND_TS_TCP_0001_PIPE_NAME L"\\\\.\\pipe\\SendTSTCP_%d_%u"
-//‘—Mæ‚ª0.0.0.2‚Ì‚Æ‚«ŠJ‚­–¼‘O•t‚«ƒpƒCƒv–¼
+//é€ä¿¡å…ˆãŒ0.0.0.2ã®ã¨ãé–‹ãåå‰ä»˜ããƒ‘ã‚¤ãƒ—å
 #define SEND_TS_TCP_0002_PIPE_NAME L"\\\\.\\pipe\\BonDriver_Pipe%02d"
-//‘—Mƒoƒbƒtƒ@‚ÌÅ‘å”(ƒTƒCƒY‚ÍAddSendData()‚Ì“ü—Í‚ÉˆË‘¶)
+//é€ä¿¡ãƒãƒƒãƒ•ã‚¡ã®æœ€å¤§æ•°(ã‚µã‚¤ã‚ºã¯AddSendData()ã®å…¥åŠ›ã«ä¾å­˜)
 #define SEND_TS_TCP_BUFF_MAX 500
-//‘—Mæ(ƒT[ƒo)Ú‘±‚Ì‚½‚ß‚Ìƒ|[ƒŠƒ“ƒOŠÔŠu
+//é€ä¿¡å…ˆ(ã‚µãƒ¼ãƒ)æ¥ç¶šã®ãŸã‚ã®ãƒãƒ¼ãƒªãƒ³ã‚°é–“éš”
 #define SEND_TS_TCP_CONNECT_INTERVAL_MSEC 2000
 
 CSendTSTCPMain::CSendTSTCPMain(void)
 {
 	WSAData wsaData;
-	WSAStartup(MAKEWORD(2,0), &wsaData);
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
 }
 
 CSendTSTCPMain::~CSendTSTCPMain(void)
@@ -26,8 +26,8 @@ CSendTSTCPMain::~CSendTSTCPMain(void)
 	WSACleanup();
 }
 
-//‘—Mæ‚ğ’Ç‰Á
-//–ß‚è’lFƒGƒ‰[ƒR[ƒh
+//é€ä¿¡å…ˆã‚’è¿½åŠ 
+//æˆ»ã‚Šå€¤ï¼šã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 DWORD CSendTSTCPMain::AddSendAddr(
 	LPCWSTR lpcwszIP,
 	DWORD dwPort
@@ -40,7 +40,7 @@ DWORD CSendTSTCPMain::AddSendAddr(
 	WtoUTF8(lpcwszIP, Item.strIP);
 	Item.dwPort = dwPort;
 	if( SEND_TS_TCP_NOHEAD_PORT_MIN <= dwPort && dwPort <= SEND_TS_TCP_NOHEAD_PORT_MAX ){
-		//ãˆÊƒ[ƒh‚ª1‚Ì‚Æ‚«‚Íƒwƒbƒ_‚Ì‘—M‚ª—}§‚³‚ê‚é
+		//ä¸Šä½ãƒ¯ãƒ¼ãƒ‰ãŒ1ã®ã¨ãã¯ãƒ˜ãƒƒãƒ€ã®é€ä¿¡ãŒæŠ‘åˆ¶ã•ã‚Œã‚‹
 		Item.dwPort |= 0x10000;
 	}
 	Item.sock = INVALID_SOCKET;
@@ -57,8 +57,8 @@ DWORD CSendTSTCPMain::AddSendAddr(
 	return TRUE;
 }
 
-//‘—MæƒNƒŠƒA
-//–ß‚è’lFƒGƒ‰[ƒR[ƒh
+//é€ä¿¡å…ˆã‚¯ãƒªã‚¢
+//æˆ»ã‚Šå€¤ï¼šã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 DWORD CSendTSTCPMain::ClearSendAddr(
 	)
 {
@@ -73,8 +73,8 @@ DWORD CSendTSTCPMain::ClearSendAddr(
 	return TRUE;
 }
 
-//ƒf[ƒ^‘—M‚ğŠJn
-//–ß‚è’lFƒGƒ‰[ƒR[ƒh
+//ãƒ‡ãƒ¼ã‚¿é€ä¿¡ã‚’é–‹å§‹
+//æˆ»ã‚Šå€¤ï¼šã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 DWORD CSendTSTCPMain::StartSend(
 	)
 {
@@ -88,8 +88,8 @@ DWORD CSendTSTCPMain::StartSend(
 	return TRUE;
 }
 
-//ƒf[ƒ^‘—M‚ğ’â~
-//–ß‚è’lFƒGƒ‰[ƒR[ƒh
+//ãƒ‡ãƒ¼ã‚¿é€ä¿¡ã‚’åœæ­¢
+//æˆ»ã‚Šå€¤ï¼šã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 DWORD CSendTSTCPMain::StopSend(
 	)
 {
@@ -101,8 +101,8 @@ DWORD CSendTSTCPMain::StopSend(
 	return TRUE;
 }
 
-//ƒf[ƒ^‘—M‚ğŠJn
-//–ß‚è’lFƒGƒ‰[ƒR[ƒh
+//ãƒ‡ãƒ¼ã‚¿é€ä¿¡ã‚’é–‹å§‹
+//æˆ»ã‚Šå€¤ï¼šã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 DWORD CSendTSTCPMain::AddSendData(
 	BYTE* pbData,
 	DWORD dwSize
@@ -121,8 +121,8 @@ DWORD CSendTSTCPMain::AddSendData(
 	return TRUE;
 }
 
-//‘—Mƒoƒbƒtƒ@‚ğƒNƒŠƒA
-//–ß‚è’lFƒGƒ‰[ƒR[ƒh
+//é€ä¿¡ãƒãƒƒãƒ•ã‚¡ã‚’ã‚¯ãƒªã‚¢
+//æˆ»ã‚Šå€¤ï¼šã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 DWORD CSendTSTCPMain::ClearSendBuff(
 	)
 {
@@ -154,7 +154,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 					}
 				}
 				if( itr->strIP == "0.0.0.1" ){
-					//ƒT[ƒo‚Æ‚µ‚Ä–¼‘O•t‚«ƒpƒCƒv‚Å‘Ò‚¿ó‚¯
+					//ã‚µãƒ¼ãƒã¨ã—ã¦åå‰ä»˜ããƒ‘ã‚¤ãƒ—ã§å¾…ã¡å—ã‘
 					if( itr->olEvent == NULL ){
 						itr->olEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 					}
@@ -184,7 +184,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 						}
 					}
 				}else if( itr->strIP == "0.0.0.2" ){
-					//ƒNƒ‰ƒCƒAƒ“ƒg‚Æ‚µ‚Ä–¼‘O•t‚«ƒpƒCƒv‚ğŠJ‚­
+					//ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã¨ã—ã¦åå‰ä»˜ããƒ‘ã‚¤ãƒ—ã‚’é–‹ã
 					if( itr->olEvent == NULL ){
 						itr->olEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 					}
@@ -197,7 +197,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 						}
 					}
 				}else{
-					//ƒNƒ‰ƒCƒAƒ“ƒg‚Æ‚µ‚ÄTCP‚ÅÚ‘±
+					//ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã¨ã—ã¦TCPã§æ¥ç¶š
 					if( itr->sock != INVALID_SOCKET && itr->bConnect == FALSE ){
 						fd_set wmask;
 						FD_ZERO(&wmask);
@@ -211,17 +211,17 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 						}
 					}
 					if( itr->sock == INVALID_SOCKET ){
-						string strPort;
-						Format(strPort, "%d", (WORD)itr->dwPort);
+						char szPort[16];
+						sprintf_s(szPort, "%d", (WORD)itr->dwPort);
 						struct addrinfo hints = {};
 						hints.ai_flags = AI_NUMERICHOST;
 						hints.ai_socktype = SOCK_STREAM;
 						hints.ai_protocol = IPPROTO_TCP;
 						struct addrinfo* result;
-						if( getaddrinfo(itr->strIP.c_str(), strPort.c_str(), &hints, &result) == 0 ){
+						if( getaddrinfo(itr->strIP.c_str(), szPort, &hints, &result) == 0 ){
 							itr->sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 							if( itr->sock != INVALID_SOCKET ){
-								//ƒmƒ“ƒuƒƒbƒLƒ“ƒOƒ‚[ƒh‚Ö
+								//ãƒãƒ³ãƒ–ãƒ­ãƒƒã‚­ãƒ³ã‚°ãƒ¢ãƒ¼ãƒ‰ã¸
 								unsigned long x = 1;
 								if( ioctlsocket(itr->sock, FIONBIO, &x) == SOCKET_ERROR ){
 									closesocket(itr->sock);
@@ -250,13 +250,13 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 				DWORD dwCmd[2] = { dwCount, (DWORD)(item.back().size() - sizeof(DWORD) * 2) };
 				memcpy(&item.back().front(), dwCmd, sizeof(dwCmd));
 			}
-			//“r’†‚ÅŒ¸‚é‚±‚Æ‚Í‚È‚¢
+			//é€”ä¸­ã§æ¸›ã‚‹ã“ã¨ã¯ãªã„
 			sendListSizeOrStop = pSys->m_SendList.size();
 		}
 
 		if( item.empty() || sendListSizeOrStop == 0 ){
-			if( WaitForSingleObject(pSys->m_stopSendEvent.Handle(), item.empty() ? 100 : 0) != WAIT_TIMEOUT ){
-				//ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚½
+			if( pSys->m_stopSendEvent.WaitOne(item.empty() ? 100 : 0) ){
+				//ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚ŒãŸ
 				break;
 			}
 		}else{
@@ -275,7 +275,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 					adjust -= sizeof(DWORD) * 2;
 				}
 				if( itr->pipe != INVALID_HANDLE_VALUE && itr->bConnect && adjust != 0 ){
-					//–¼‘O•t‚«ƒpƒCƒv‚É‘‚«‚Ş
+					//åå‰ä»˜ããƒ‘ã‚¤ãƒ—ã«æ›¸ãè¾¼ã‚€
 					OVERLAPPED olZero = {};
 					itr->ol = olZero;
 					itr->ol.hEvent = itr->olEvent;
@@ -286,7 +286,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 					    GetLastError() != ERROR_IO_PENDING ){
 						bClose = TRUE;
 					}else if( WaitForMultipleObjects(2, olEvents, FALSE, INFINITE) != WAIT_OBJECT_0 + 1 ){
-						//ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚½
+						//ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚ŒãŸ
 						CancelIo(itr->pipe);
 						WaitForSingleObject(itr->olEvent, INFINITE);
 						sendListSizeOrStop = 0;
@@ -295,7 +295,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 					}
 					if( bClose ){
 						if( itr->strIP == "0.0.0.1" ){
-							//Ä‚Ñ‘Ò‚¿ó‚¯
+							//å†ã³å¾…ã¡å—ã‘
 							DisconnectNamedPipe(itr->pipe);
 							itr->bConnect = FALSE;
 							itr->ol = olZero;
@@ -317,8 +317,8 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 					}
 				}
 				for(;;){
-					if( WaitForSingleObject(pSys->m_stopSendEvent.Handle(), 0) != WAIT_TIMEOUT ){
-						//ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚½
+					if( pSys->m_stopSendEvent.WaitOne(0) ){
+						//ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚ŒãŸ
 						sendListSizeOrStop = 0;
 						break;
 					}
@@ -340,7 +340,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 						dwCount++;
 						break;
 					}
-					//‚·‚±‚µ‘Ò‚Â
+					//ã™ã“ã—å¾…ã¤
 					fd_set wmask;
 					FD_ZERO(&wmask);
 					FD_SET(itr->sock, &wmask);
@@ -357,7 +357,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 	CBlockLock lock(&pSys->m_sendLock);
 	for( auto itr = pSys->m_SendList.begin(); itr != pSys->m_SendList.end(); itr++ ){
 		if( itr->sock != INVALID_SOCKET ){
-			//–¢‘—Mƒf[ƒ^‚ªÌ‚Ä‚ç‚ê‚Ä‚à–â‘è‚È‚¢‚Ì‚Åshutdown()‚ÍÈ—ª
+			//æœªé€ä¿¡ãƒ‡ãƒ¼ã‚¿ãŒæ¨ã¦ã‚‰ã‚Œã¦ã‚‚å•é¡Œãªã„ã®ã§shutdown()ã¯çœç•¥
 			closesocket(itr->sock);
 			itr->sock = INVALID_SOCKET;
 		}
@@ -366,7 +366,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 				if( itr->bConnect ){
 					DisconnectNamedPipe(itr->pipe);
 				}else{
-					//‘Ò‚¿ó‚¯‚ğƒLƒƒƒ“ƒZƒ‹
+					//å¾…ã¡å—ã‘ã‚’ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 					CancelIo(itr->pipe);
 					WaitForSingleObject(itr->olEvent, INFINITE);
 				}

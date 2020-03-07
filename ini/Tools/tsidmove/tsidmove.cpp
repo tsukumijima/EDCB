@@ -1,18 +1,19 @@
-// tsidmove: EDCB‚Ì—\–ñAEPG©“®—\–ñAƒvƒƒOƒ‰ƒ€©“®—\–ñ‚ÉŠÜ‚Ü‚ê‚éTransportStreamID‚Ìî•ñ‚ğ•ÏX‚·‚é (2018-04-20)
-// ¦—\–ñƒtƒ@ƒCƒ‹“™‚É‚±‚ÌƒtƒH[ƒN‚Æ”ñŒİŠ·‚Ì€–Ú’Ç‰Á“™‚³‚ê‚½ƒtƒH[ƒN‚Å‚Íg‚¢‚Ü‚í‚µ•s‰Â”\
+ï»¿// tsidmove: EDCBã®äºˆç´„ã€EPGè‡ªå‹•äºˆç´„ã€ãƒ—ãƒ­ã‚°ãƒ©ãƒ è‡ªå‹•äºˆç´„ã«å«ã¾ã‚Œã‚‹TransportStreamIDã®æƒ…å ±ã‚’å¤‰æ›´ã™ã‚‹ (2018-04-20)
+// â€»äºˆç´„ãƒ•ã‚¡ã‚¤ãƒ«ç­‰ã«ã“ã®ãƒ•ã‚©ãƒ¼ã‚¯ã¨éäº’æ›ã®é …ç›®è¿½åŠ ç­‰ã•ã‚ŒãŸãƒ•ã‚©ãƒ¼ã‚¯ã§ã¯ä½¿ã„ã¾ã‚ã—ä¸å¯èƒ½
 #include "stdafx.h"
 #include "../../../Common/CommonDef.h"
 #include "../../../Common/ParseTextInstances.h"
 #include "../../../Common/PathUtil.h"
+#include <locale.h>
 
 static const CH_DATA5 *CheckTSID(WORD onid, WORD tsid, WORD sid, const CParseChText5 &chText5)
 {
 	if (chText5.GetMap().count(static_cast<LONGLONG>(onid) << 32 | static_cast<DWORD>(tsid) << 16 | sid) == 0) {
-		// Œ©‚Â‚©‚ç‚È‚©‚Á‚½
+		// è¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸ
 		auto itr = std::find_if(chText5.GetMap().begin(), chText5.GetMap().end(),
 		                        [=](const pair<LONGLONG, CH_DATA5> &a) { return a.second.originalNetworkID == onid && a.second.serviceID == sid; });
 		if (itr != chText5.GetMap().end()) {
-			// TSID‚ğ–³‹‚·‚ê‚ÎŒ©‚Â‚©‚Á‚½
+			// TSIDã‚’ç„¡è¦–ã™ã‚Œã°è¦‹ã¤ã‹ã£ãŸ
 			return &itr->second;
 		}
 	}
@@ -21,40 +22,40 @@ static const CH_DATA5 *CheckTSID(WORD onid, WORD tsid, WORD sid, const CParseChT
 
 int wmain(int argc, wchar_t **argv)
 {
-	_wsetlocale(LC_ALL, L"");
+	setlocale(LC_ALL, "");
 
-	// --dray-run‚Í‘‚«‚İ‚ğˆêØ‚µ‚È‚¢
+	// --dray-runæ™‚ã¯æ›¸ãè¾¼ã¿ã‚’ä¸€åˆ‡ã—ãªã„
 	const bool dryrun = (argc >= 2 && wcscmp(argv[1], L"--dry-run") == 0);
 	if (argc != 2 || (!dryrun && wcscmp(argv[1], L"--run") != 0)) {
-		_putws(L"Usage: tsidmove --dry-run|--run");
+		fputws(L"Usage: tsidmove --dry-run|--run\n", stdout);
 		return 2;
 	}
 
-	// ‚±‚Ìƒc[ƒ‹‚ÍEDCBƒtƒHƒ‹ƒ_‚©‚»‚Ì’¼‰º‚ÌƒtƒHƒ‹ƒ_‚É’u‚©‚ê‚Ä‚¢‚é‚Í‚¸
-	fs_path iniPath = GetModulePath().replace_filename(L"Common.ini");
-	if (GetFileAttributes(iniPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+	// ã“ã®ãƒ„ãƒ¼ãƒ«ã¯EDCBãƒ•ã‚©ãƒ«ãƒ€ã‹ãã®ç›´ä¸‹ã®ãƒ•ã‚©ãƒ«ãƒ€ã«ç½®ã‹ã‚Œã¦ã„ã‚‹ã¯ãš
+	fs_path iniPath = GetCommonIniPath();
+	if (UtilFileExists(iniPath).first == false) {
 		iniPath = iniPath.parent_path().replace_filename(L"Common.ini");
-		if (GetFileAttributes(iniPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
-			_putws(L"Error: Common.ini‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB");
+		if (UtilFileExists(iniPath).first == false) {
+			fputws(L"Error: Common.iniãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚\n", stdout);
 			return 1;
 		}
 	}
 
-	// uİ’èŠÖŒW•Û‘¶ƒtƒHƒ‹ƒ_v
-	fs_path settingPath = GetPrivateProfileToFolderPath(L"SET", L"DataSavePath", iniPath.c_str());
+	// ã€Œè¨­å®šé–¢ä¿‚ä¿å­˜ãƒ•ã‚©ãƒ«ãƒ€ã€
+	fs_path settingPath = GetPrivateProfileToString(L"SET", L"DataSavePath", L"", iniPath.c_str());
 	if (settingPath.empty()) {
 		settingPath = fs_path(iniPath).replace_filename(L"Setting");
 	}
-	wprintf_s(L"\"%s\"ƒtƒHƒ‹ƒ_‚ğƒ`ƒFƒbƒN‚µ‚Ä‚¢‚Ü‚·...\n", settingPath.c_str());
+	wprintf_s(L"\"%ls\"ãƒ•ã‚©ãƒ«ãƒ€ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã„ã¾ã™...\n", settingPath.c_str());
 
 	fs_path chSet5Path = fs_path(settingPath).append(L"ChSet5.txt");
-	if (GetFileAttributes(chSet5Path.c_str()) == INVALID_FILE_ATTRIBUTES) {
-		_putws(L"Error: ChSet5.txt‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB");
+	if (UtilFileExists(chSet5Path).first == false) {
+		fputws(L"Error: ChSet5.txtãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚\n", stdout);
 		return 1;
 	}
 	CParseChText5 chText5;
 	if (!chText5.ParseText(chSet5Path.c_str())) {
-		_putws(L"Error: ChSet5.txt‚ğŠJ‚¯‚Ü‚¹‚ñB");
+		fputws(L"Error: ChSet5.txtã‚’é–‹ã‘ã¾ã›ã‚“ã€‚\n", stdout);
 		return 1;
 	}
 
@@ -62,7 +63,7 @@ int wmain(int argc, wchar_t **argv)
 		for (auto jtr = itr; ++jtr != chText5.GetMap().end(); ) {
 			if (itr->second.originalNetworkID == jtr->second.originalNetworkID &&
 			    itr->second.serviceID == jtr->second.serviceID) {
-				_putws(L"Warning: ChSet5.txt‚ÉTSIDˆÈŠO‚ÌID‚ª“™‚µ‚¢ƒT[ƒrƒX‚ª‚ ‚è‚Ü‚·BŒÃ‚¢î•ñ‚ªc‚Á‚Ä‚¢‚Ü‚¹‚ñ‚©H");
+				fputws(L"Warning: ChSet5.txtã«TSIDä»¥å¤–ã®IDãŒç­‰ã—ã„ã‚µãƒ¼ãƒ“ã‚¹ãŒã‚ã‚Šã¾ã™ã€‚å¤ã„æƒ…å ±ãŒæ®‹ã£ã¦ã„ã¾ã›ã‚“ã‹ï¼Ÿ\n", stdout);
 				itr = chText5.GetMap().end();
 				itr--;
 				break;
@@ -78,16 +79,16 @@ int wmain(int argc, wchar_t **argv)
 		}
 	}
 	if (!hMutex) {
-		_putws(L"Error: EpgTimerSrv.exe‚ğI—¹‚³‚¹‚Ä‚­‚¾‚³‚¢B");
+		fputws(L"Error: EpgTimerSrv.exeã‚’çµ‚äº†ã•ã›ã¦ãã ã•ã„ã€‚\n", stdout);
 		return 1;
 	}
 	CloseHandle(hMutex);
 
-	wprintf_s(RESERVE_TEXT_NAME L"(—\–ñƒtƒ@ƒCƒ‹)");
+	fputws(RESERVE_TEXT_NAME L"(äºˆç´„ãƒ•ã‚¡ã‚¤ãƒ«)", stdout);
 	{
 		CParseReserveText text;
 		if (!text.ParseText(fs_path(settingPath).append(RESERVE_TEXT_NAME).c_str())) {
-			_putws(L"‚ğƒXƒLƒbƒv‚µ‚Ü‚·B");
+			fputws(L"ã‚’ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™ã€‚\n", stdout);
 		} else {
 			int n = 0;
 			for (size_t i = 0; i < text.GetMap().size(); i++) {
@@ -96,7 +97,7 @@ int wmain(int argc, wchar_t **argv)
 				RESERVE_DATA r = itr->second;
 				const CH_DATA5 *ch = CheckTSID(r.originalNetworkID, r.transportStreamID, r.serviceID, chText5);
 				if (ch) {
-					wprintf_s(L"\n  ID=%d, TSID=%d(0x%04X) -> %d(0x%04X) (%s)",
+					wprintf_s(L"\n  ID=%d, TSID=%d(0x%04X) -> %d(0x%04X) (%ls)",
 					          r.reserveID, r.transportStreamID, r.transportStreamID,
 					          ch->transportStreamID, ch->transportStreamID, ch->serviceName.c_str());
 					r.transportStreamID = ch->transportStreamID;
@@ -105,25 +106,25 @@ int wmain(int argc, wchar_t **argv)
 				}
 			}
 			if (n == 0) {
-				_putws(L"‚É•ÏX‚Í‚ ‚è‚Ü‚¹‚ñB");
+				fputws(L"ã«å¤‰æ›´ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚\n", stdout);
 			} else {
-				wprintf_s(L"\nˆÈã‚Ì%d€–Ú•ÏX‚µ‚Ü‚·...\n", n);
+				wprintf_s(L"\nä»¥ä¸Šã®%dé …ç›®å¤‰æ›´ã—ã¾ã™...\n", n);
 				if (!dryrun) {
 					if (text.SaveText()) {
-						_putws(L"¬Œ÷B");
+						fputws(L"æˆåŠŸã€‚\n", stdout);
 					} else {
-						_putws(L"Error: ¸”sB");
+						fputws(L"Error: å¤±æ•—ã€‚\n", stdout);
 					}
 				}
 			}
 		}
 	}
 
-	wprintf_s(EPG_AUTO_ADD_TEXT_NAME L"(EPG©“®—\–ñƒtƒ@ƒCƒ‹)");
+	fputws(EPG_AUTO_ADD_TEXT_NAME L"(EPGè‡ªå‹•äºˆç´„ãƒ•ã‚¡ã‚¤ãƒ«)", stdout);
 	{
 		CParseEpgAutoAddText text;
 		if (!text.ParseText(fs_path(settingPath).append(EPG_AUTO_ADD_TEXT_NAME).c_str())) {
-			_putws(L"‚ğƒXƒLƒbƒv‚µ‚Ü‚·B");
+			fputws(L"ã‚’ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™ã€‚\n", stdout);
 		} else {
 			int n = 0;
 			for (size_t i = 0; i < text.GetMap().size(); i++) {
@@ -134,7 +135,7 @@ int wmain(int argc, wchar_t **argv)
 				for (auto jtr = a.searchInfo.serviceList.begin(); jtr != a.searchInfo.serviceList.end(); jtr++) {
 					const CH_DATA5 *ch = CheckTSID(static_cast<WORD>(*jtr >> 32), static_cast<WORD>(*jtr >> 16), static_cast<WORD>(*jtr), chText5);
 					if (ch) {
-						wprintf_s(L"\n  ID=%d, TSID=%d(0x%04X) -> %d(0x%04X) (%s)",
+						wprintf_s(L"\n  ID=%d, TSID=%d(0x%04X) -> %d(0x%04X) (%ls)",
 						          a.dataID, static_cast<WORD>(*jtr >> 16), static_cast<WORD>(*jtr >> 16),
 						          ch->transportStreamID, ch->transportStreamID, ch->serviceName.c_str());
 						*jtr = (*jtr & 0xFFFF0000FFFFLL) | (static_cast<DWORD>(ch->transportStreamID) << 16);
@@ -147,25 +148,25 @@ int wmain(int argc, wchar_t **argv)
 				}
 			}
 			if (n == 0) {
-				_putws(L"‚É•ÏX‚Í‚ ‚è‚Ü‚¹‚ñB");
+				fputws(L"ã«å¤‰æ›´ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚\n", stdout);
 			} else {
-				wprintf_s(L"\nˆÈã‚Ì%d€–Ú•ÏX‚µ‚Ü‚·...\n", n);
+				wprintf_s(L"\nä»¥ä¸Šã®%dé …ç›®å¤‰æ›´ã—ã¾ã™...\n", n);
 				if (!dryrun) {
 					if (text.SaveText()) {
-						_putws(L"¬Œ÷B");
+						fputws(L"æˆåŠŸã€‚\n", stdout);
 					} else {
-						_putws(L"Error: ¸”sB");
+						fputws(L"Error: å¤±æ•—ã€‚\n", stdout);
 					}
 				}
 			}
 		}
 	}
 
-	wprintf_s(MANUAL_AUTO_ADD_TEXT_NAME L"(ƒvƒƒOƒ‰ƒ€©“®—\–ñƒtƒ@ƒCƒ‹)");
+	fputws(MANUAL_AUTO_ADD_TEXT_NAME L"(ãƒ—ãƒ­ã‚°ãƒ©ãƒ è‡ªå‹•äºˆç´„ãƒ•ã‚¡ã‚¤ãƒ«)", stdout);
 	{
 		CParseManualAutoAddText text;
 		if (!text.ParseText(fs_path(settingPath).append(MANUAL_AUTO_ADD_TEXT_NAME).c_str())) {
-			_putws(L"‚ğƒXƒLƒbƒv‚µ‚Ü‚·B");
+			fputws(L"ã‚’ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™ã€‚\n", stdout);
 		} else {
 			int n = 0;
 			for (size_t i = 0; i < text.GetMap().size(); i++) {
@@ -174,7 +175,7 @@ int wmain(int argc, wchar_t **argv)
 				MANUAL_AUTO_ADD_DATA m = itr->second;
 				const CH_DATA5 *ch = CheckTSID(m.originalNetworkID, m.transportStreamID, m.serviceID, chText5);
 				if (ch) {
-					wprintf_s(L"\n  ID=%d, TSID=%d(0x%04X) -> %d(0x%04X) (%s)",
+					wprintf_s(L"\n  ID=%d, TSID=%d(0x%04X) -> %d(0x%04X) (%ls)",
 					          m.dataID, m.transportStreamID, m.transportStreamID,
 					          ch->transportStreamID, ch->transportStreamID, ch->serviceName.c_str());
 					m.transportStreamID = ch->transportStreamID;
@@ -183,20 +184,20 @@ int wmain(int argc, wchar_t **argv)
 				}
 			}
 			if (n == 0) {
-				_putws(L"‚É•ÏX‚Í‚ ‚è‚Ü‚¹‚ñB");
+				fputws(L"ã«å¤‰æ›´ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚\n", stdout);
 			} else {
-				wprintf_s(L"\nˆÈã‚Ì%d€–Ú•ÏX‚µ‚Ü‚·...\n", n);
+				wprintf_s(L"\nä»¥ä¸Šã®%dé …ç›®å¤‰æ›´ã—ã¾ã™...\n", n);
 				if (!dryrun) {
 					if (text.SaveText()) {
-						_putws(L"¬Œ÷B");
+						fputws(L"æˆåŠŸã€‚\n", stdout);
 					} else {
-						_putws(L"Error: ¸”sB");
+						fputws(L"Error: å¤±æ•—ã€‚\n", stdout);
 					}
 				}
 			}
 		}
 	}
 
-	_putws(L"I—¹B");
+	fputws(L"çµ‚äº†ã€‚\n", stdout);
 	return 0;
 }

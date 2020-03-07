@@ -1,50 +1,54 @@
-
-// EpgDataCap_BonDlg.h : ÉwÉbÉ_Å[ ÉtÉ@ÉCÉã
+Ôªø
+// EpgDataCap_BonDlg.h : „Éò„ÉÉ„ÉÄ„Éº „Éï„Ç°„Ç§„É´
 //
 
 #pragma once
 
+#include "../../BonCtrl/BonCtrl.h"
+#include "../../Common/PipeServer.h"
 #include "EpgDataCap_BonDef.h"
-#include "EpgDataCap_BonMain.h"
 #include "SettingDlg.h"
 
-// CEpgDataCap_BonDlg É_ÉCÉAÉçÉO
+// CEpgDataCap_BonDlg „ÉÄ„Ç§„Ç¢„É≠„Ç∞
 class CEpgDataCap_BonDlg
 {
-// ÉRÉìÉXÉgÉâÉNÉVÉáÉì
+// „Ç≥„É≥„Çπ„Éà„É©„ÇØ„Ç∑„Éß„É≥
 public:
-	CEpgDataCap_BonDlg();	// ïWèÄÉRÉìÉXÉgÉâÉNÉ^Å[
+	CEpgDataCap_BonDlg();	// Ê®ôÊ∫ñ„Ç≥„É≥„Çπ„Éà„É©„ÇØ„Çø„Éº
 	INT_PTR DoModal();
-	HWND GetSafeHwnd() const{ return m_hWnd; }
 
-	void SetInitBon(LPCWSTR bonFile);
+	void SetInitBon(LPCWSTR bonFile){ iniBonDriver = bonFile; }
 	void SetIniMin(BOOL minFlag){ iniMin = minFlag; };
 	void SetIniNW(BOOL networkFlag){ iniNetwork = networkFlag; };
 	void SetIniView(BOOL viewFlag){ iniView = viewFlag; };
 	void SetIniNWUDP(BOOL udpFlag){ iniUDP = udpFlag; };
 	void SetIniNWTCP(BOOL tcpFlag){ iniTCP = tcpFlag; };
 
-// É_ÉCÉAÉçÉO ÉfÅ[É^
+// „ÉÄ„Ç§„Ç¢„É≠„Ç∞ „Éá„Éº„Çø
 	enum { IDD = IDD_EPGDATACAP_BON_DIALOG };
 
 protected:
 	static UINT taskbarCreated;
 	static BOOL disableKeyboardHook;
 protected:
+	void ReloadSetting();
 	void BtnUpdate(DWORD guiMode);
-	//É^ÉXÉNÉgÉåÉC
+	//„Çø„Çπ„ÇØ„Éà„É¨„Ç§
 	BOOL DeleteTaskBar(HWND wnd, UINT id);
 	BOOL AddTaskBar(HWND wnd, UINT msg, UINT id, HICON icon, wstring tips);
 	BOOL ChgTipsTaskBar(HWND wnd, UINT id, HICON icon, wstring tips);
 	void ChgIconStatus();
 
-	void ReloadBonDriver();
-	void ReloadServiceList(BOOL ini = FALSE);
+	void SetOverlayIcon(HICON icon);
+	void UpdateTitleBarText();
+	int ReloadServiceList(int selONID = -1, int selTSID = -1, int selSID = -1);
 	void ReloadNWSet();
-	DWORD SelectBonDriver(LPCWSTR fileName, BOOL ini = FALSE);
-	DWORD SelectService(WORD ONID, WORD TSID, WORD SID);
-	DWORD SelectService(WORD ONID, WORD TSID, WORD SID,	DWORD space, DWORD ch);
-// é¿ëï
+	BOOL SelectBonDriver(LPCWSTR fileName);
+	BOOL SelectService(const CH_DATA4& chData);
+
+	void StartPipeServer();
+	void CtrlCmdCallbackInvoked();
+// ÂÆüË£Ö
 protected:
 	HWND m_hWnd;
 	HHOOK m_hKeyboardHook;
@@ -55,29 +59,49 @@ protected:
 	HICON iconBlue;
 	HICON iconGreen;
 	HICON iconGray;
+	HICON iconOlRec;
+	HICON iconOlEpg;
+	BOOL modifyTitleBarText;
+	BOOL overlayTaskIcon;
 	BOOL minTask;
-
-	wstring moduleIniPath;
+	wstring recFileName;
+	BOOL overWriteFlag;
+	wstring viewPath;
+	wstring viewOpt;
+	int dropSaveThresh;
+	int scrambleSaveThresh;
+	BOOL dropLogAsUtf8;
+	DWORD tsBuffMaxCount;
+	int writeBuffMaxCount;
+	int openWait;
+	vector<wstring> recFolderList;
+	vector<NW_SEND_INFO> setUdpSendList;
+	vector<NW_SEND_INFO> setTcpSendList;
 
 	wstring iniBonDriver;
-	int initONID;
-	int initTSID;
-	int initSID;
-	int initOpenWait;
-	int initChgWait;
 	BOOL iniMin;
 	BOOL iniView;
 	BOOL iniNetwork;
 	BOOL iniUDP;
 	BOOL iniTCP;
-	int openLastCh;
 
-	CEpgDataCap_BonMain main;
+	CBonCtrl bonCtrl;
+	CPipeServer pipeServer;
+	int outCtrlID;
+	vector<DWORD> cmdCtrlList;
+	CMD_STREAM* cmdCapture;
+	CMD_STREAM* resCapture;
 
-	vector<wstring> bonList;
 	vector<CH_DATA4> serviceList;
+	WORD lastONID;
+	WORD lastTSID;
+	DWORD recCtrlID;
+	vector<NW_SEND_INFO> udpSendList;
+	vector<NW_SEND_INFO> tcpSendList;
+	BOOL chScanWorking;
+	BOOL epgCapWorking;
 
-	// ê∂ê¨Ç≥ÇÍÇΩÅAÉÅÉbÉZÅ[ÉWäÑÇËìñÇƒä÷êî
+	// ÁîüÊàê„Åï„Çå„Åü„ÄÅ„É°„ÉÉ„Çª„Éº„Ç∏Ââ≤„ÇäÂΩì„Å¶Èñ¢Êï∞
 	BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam, BOOL* pbProcessed);
 	afx_msg void OnDestroy();

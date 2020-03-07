@@ -1,6 +1,7 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "SendUDP.h"
 #include "../Common/PathUtil.h"
+#include "../Common/StringUtil.h"
 
 static const int SNDBUF_SIZE = 3 * 1024 * 1024;
 
@@ -9,20 +10,24 @@ bool CSendUDP::Initialize()
 	if( m_initialized ){
 		return true;
 	}
+#ifdef _WIN32
 	WSAData wsaData;
-	if( WSAStartup(MAKEWORD(2, 0), &wsaData) == 0 ){
-		m_initialized = true;
-		m_sending = false;
-		return true;
+	if( WSAStartup(MAKEWORD(2, 2), &wsaData) != 0 ){
+		return false;
 	}
-	return false;
+#endif
+	m_initialized = true;
+	m_sending = false;
+	return true;
 }
 
 void CSendUDP::UnInitialize()
 {
 	if( m_initialized ){
 		ClearSendAddr();
+#ifdef _WIN32
 		WSACleanup();
+#endif
 		m_initialized = false;
 	}
 }
@@ -31,29 +36,41 @@ bool CSendUDP::AddSendAddr(LPCWSTR ip, DWORD dwPort, bool broadcastFlag)
 {
 	if( m_initialized ){
 		SOCKET_DATA Item;
-		string ipA, strPort;
+		string ipA;
 		WtoUTF8(ip, ipA);
-		Format(strPort, "%d", (WORD)dwPort);
+		char szPort[16];
+		sprintf_s(szPort, "%d", (WORD)dwPort);
 		struct addrinfo hints = {};
 		hints.ai_flags = AI_NUMERICHOST;
 		hints.ai_socktype = SOCK_DGRAM;
 		hints.ai_protocol = IPPROTO_UDP;
 		struct addrinfo* result;
-		if( getaddrinfo(ipA.c_str(), strPort.c_str(), &hints, &result) != 0 ){
+		if( getaddrinfo(ipA.c_str(), szPort, &hints, &result) != 0 ){
 			return false;
 		}
-		Item.addrlen = min(result->ai_addrlen, sizeof(Item.addr));
+		Item.addrlen = min((size_t)result->ai_addrlen, sizeof(Item.addr));
 		memcpy(&Item.addr, result->ai_addr, Item.addrlen);
 		Item.sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 		freeaddrinfo(result);
+#ifdef _WIN32
 		if( Item.sock == INVALID_SOCKET ){
+#else
+		if( Item.sock < 0 ){
+#endif
 			return false;
 		}
-		//ƒmƒ“ƒuƒƒbƒLƒ“ƒOƒ‚[ƒh‚Ö
+		//ãƒŽãƒ³ãƒ–ãƒ­ãƒƒã‚­ãƒ³ã‚°ãƒ¢ãƒ¼ãƒ‰ã¸
+#ifdef _WIN32
 		ULONG x = 1;
-		if( ioctlsocket(Item.sock,FIONBIO, &x) == SOCKET_ERROR ||
-		    setsockopt(Item.sock, SOL_SOCKET, SO_SNDBUF, (const char *)&SNDBUF_SIZE, sizeof(SNDBUF_SIZE)) == SOCKET_ERROR ){
+		if( ioctlsocket(Item.sock, FIONBIO, &x) != 0 ||
+		    setsockopt(Item.sock, SOL_SOCKET, SO_SNDBUF, (const char *)&SNDBUF_SIZE, sizeof(SNDBUF_SIZE)) != 0 ){
 			closesocket(Item.sock);
+#else
+		int x = 1;
+		if( ioctl(Item.sock, FIONBIO, &x) != 0 ||
+		    setsockopt(Item.sock, SOL_SOCKET, SO_SNDBUF, (const char *)&SNDBUF_SIZE, sizeof(SNDBUF_SIZE)) != 0 ){
+			close(Item.sock);
+#endif
 			return false;
 		}
 
@@ -61,7 +78,7 @@ bool CSendUDP::AddSendAddr(LPCWSTR ip, DWORD dwPort, bool broadcastFlag)
 			BOOL b=1;
 			setsockopt(Item.sock,SOL_SOCKET, SO_BROADCAST, (char *)&b, sizeof(b));
 		}
-		SockList.push_back(Item);
+		m_sockList.push_back(Item);
 		return true;
 	}
 	return false;
@@ -69,16 +86,24 @@ bool CSendUDP::AddSendAddr(LPCWSTR ip, DWORD dwPort, bool broadcastFlag)
 
 void CSendUDP::ClearSendAddr()
 {
-	for( size_t i=0; i<SockList.size(); i++ ){
-		closesocket(SockList[i].sock);
+	while( m_sockList.empty() == false ){
+#ifdef _WIN32
+		ULONG x = 0;
+		ioctlsocket(m_sockList.back().sock, FIONBIO, &x);
+		closesocket(m_sockList.back().sock);
+#else
+		int x = 0;
+		ioctl(m_sockList.back().sock, FIONBIO, &x);
+		close(m_sockList.back().sock);
+#endif
+		m_sockList.pop_back();
 	}
-	SockList.clear();
 }
 
 bool CSendUDP::StartSend()
 {
 	if( m_initialized ){
-		m_uiSendSize = GetPrivateProfileInt(L"SET", L"UDPPacket", 128, GetModuleIniPath().c_str()) * 188;
+		m_sendSize = GetPrivateProfileInt(L"SET", L"UDPPacket", 128, GetModuleIniPath().c_str()) * 188;
 		m_sending = true;
 		return true;
 	}
@@ -91,14 +116,18 @@ bool CSendUDP::AddSendData(BYTE* pbBuff, DWORD dwSize)
 		return false;
 	}
 	for( DWORD dwRead=0; dwRead<dwSize; ){
-		//ƒyƒCƒ[ƒh•ªŠ„BBonDriver_UDP‚É‘—‚éê‡‚ÍŽóMƒTƒCƒY48128ˆÈ‰º‚Å‚È‚¯‚ê‚Î‚È‚ç‚È‚¢
-		int iSendSize = min(max((int)m_uiSendSize, 188), (int)(dwSize - dwRead));
-		for( size_t i=0; i<SockList.size(); i++ ){
-			int iRet = sendto(SockList[i].sock, (char*)(pbBuff + dwRead), iSendSize, 0, (struct sockaddr *)&SockList[i].addr, (int)SockList[i].addrlen);
-			if( iRet == SOCKET_ERROR ){
+		//ãƒšã‚¤ãƒ­ãƒ¼ãƒ‰åˆ†å‰²ã€‚BonDriver_UDPã«é€ã‚‹å ´åˆã¯å—ä¿¡ã‚µã‚¤ã‚º48128ä»¥ä¸‹ã§ãªã‘ã‚Œã°ãªã‚‰ãªã„
+		int iSendSize = (int)min((DWORD)max(m_sendSize, 188), dwSize - dwRead);
+		for( size_t i=0; i<m_sockList.size(); i++ ){
+			int iRet = (int)sendto(m_sockList[i].sock, (char*)(pbBuff + dwRead), iSendSize, 0, (sockaddr*)&m_sockList[i].addr, (int)m_sockList[i].addrlen);
+			if( iRet < 0 ){
+#ifdef _WIN32
 				if( WSAGetLastError() == WSAEWOULDBLOCK ){
-					//‘—Mˆ—‚ª’Ç‚¢‚Â‚©‚¸SNDBUF_SIZE‚ÅŽw’è‚µ‚½ƒoƒbƒtƒ@‚às‚«‚Ä‚µ‚Ü‚Á‚½
-					//‘Ñˆæ‚ª‘«‚è‚È‚¢‚Æ‚«‚Í‚Ç‚¤‘«‘~‚¢‚Ä‚àƒhƒƒbƒv‚·‚é‚µ‚©‚È‚¢‚Ì‚ÅASleep()‚É‚æ‚éƒtƒ[§Œä‚Í‚µ‚È‚¢
+#else
+				if( errno == EAGAIN || errno == EWOULDBLOCK ){
+#endif
+					//é€ä¿¡å‡¦ç†ãŒè¿½ã„ã¤ã‹ãšSNDBUF_SIZEã§æŒ‡å®šã—ãŸãƒãƒƒãƒ•ã‚¡ã‚‚å°½ãã¦ã—ã¾ã£ãŸ
+					//å¸¯åŸŸãŒè¶³ã‚Šãªã„ã¨ãã¯ã©ã†è¶³æŽ»ã„ã¦ã‚‚ãƒ‰ãƒ­ãƒƒãƒ—ã™ã‚‹ã—ã‹ãªã„ã®ã§ã€Sleep()ã«ã‚ˆã‚‹ãƒ•ãƒ­ãƒ¼åˆ¶å¾¡ã¯ã—ãªã„
 					OutputDebugString(L"Dropped\r\n");
 				}
 			}

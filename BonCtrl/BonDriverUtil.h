@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../Common/ThreadUtil.h"
 #include <functional>
@@ -11,72 +11,63 @@ public:
 	CBonDriverUtil(void);
 	~CBonDriverUtil(void);
 
-	//BonDriverƒtƒHƒ‹ƒ_‚ðŽw’è
-	//ˆø”F
-	// bonDriverFolderPath		[IN]BonDriverƒtƒHƒ‹ƒ_ƒpƒX
-	void SetBonDriverFolder(
-		LPCWSTR bonDriverFolderPath
-		);
-
-	//BonDriverƒtƒHƒ‹ƒ_‚ÌBonDriver_*.dll‚ð—ñ‹“
-	//–ß‚è’lF
-	// ŒŸõ‚Å‚«‚½BonDriverˆê——
-	vector<wstring> EnumBonDriver();
-
-	//BonDriver‚ðƒ[ƒh‚µ‚Äƒ`ƒƒƒ“ƒlƒ‹î•ñ‚È‚Ç‚ðŽæ“¾iƒtƒ@ƒCƒ‹–¼‚ÅŽw’èj
-	//ˆø”F
-	// bonDriverFile	[IN]EnumBonDriver‚ÅŽæ“¾‚³‚ê‚½BonDriver‚Ìƒtƒ@ƒCƒ‹–¼
-	// recvFunc_		[IN]ƒXƒgƒŠ[ƒ€ŽóMŽž‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ”
-	// statusFunc_		[IN]ƒXƒe[ƒ^ƒX(ƒVƒOƒiƒ‹ƒŒƒxƒ‹,Space,Ch)Žæ“¾Žž‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ”
+	//BonDriverã‚’ãƒ­ãƒ¼ãƒ‰ã—ã¦ãƒãƒ£ãƒ³ãƒãƒ«æƒ…å ±ãªã©ã‚’å–å¾—ï¼ˆãƒ•ã‚¡ã‚¤ãƒ«åã§æŒ‡å®šï¼‰
+	//å¼•æ•°ï¼š
+	// bonDriverFolder	[IN]BonDriverã®ãƒ•ã‚©ãƒ«ãƒ€ãƒ‘ã‚¹
+	// bonDriverFile	[IN]BonDriverã®ãƒ•ã‚¡ã‚¤ãƒ«å
+	// recvFunc_		[IN]ã‚¹ãƒˆãƒªãƒ¼ãƒ å—ä¿¡æ™‚ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
+	// statusFunc_		[IN]ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹(ã‚·ã‚°ãƒŠãƒ«ãƒ¬ãƒ™ãƒ«,Space,Ch)å–å¾—æ™‚ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
 	bool OpenBonDriver(
+		LPCWSTR bonDriverFolder,
 		LPCWSTR bonDriverFile,
 		const std::function<void(BYTE*, DWORD, DWORD)>& recvFunc_,
 		const std::function<void(float, int, int)>& statusFunc_,
 		int openWait
 		);
 
-	//ƒ[ƒh‚µ‚Ä‚¢‚éBonDriver‚ÌŠJ•ú
+	//ãƒ­ãƒ¼ãƒ‰ã—ã¦ã„ã‚‹BonDriverã®é–‹æ”¾
 	void CloseBonDriver();
 
-	//ƒ[ƒh‚µ‚½BonDriver‚Ìî•ñŽæ“¾
-	//Space‚ÆCh‚Ìˆê——‚ðŽæ“¾‚·‚é
-	//–ß‚è’lF
-	// Space‚ÆCh‚Ìˆê——iƒŠƒXƒg‚Ì“Y‚¦Žš‚ª‚»‚Ì‚Ü‚Üƒ`ƒ…[ƒi[‹óŠÔ‚âƒ`ƒƒƒ“ƒlƒ‹‚Ì”Ô†‚É‚È‚éj
-	// ¦Œ´ì‚Íƒ`ƒƒƒ“ƒlƒ‹–¼‚ª‹ó‚Ì‚à‚Ì‚ðƒXƒLƒbƒv‚·‚éŽd—l‚È‚Ì‚ÅA—˜—p‘¤‚Í‚±‚ê‚É]‚Á‚½‚Ù‚¤‚ª—Ç‚¢‚©‚à‚µ‚ê‚È‚¢
-	vector<pair<wstring, vector<wstring>>> GetOriginalChList();
+	//ãƒ­ãƒ¼ãƒ‰ã—ãŸBonDriverã®æƒ…å ±å–å¾—
+	//Spaceã¨Chã®ä¸€è¦§ã‚’å–å¾—ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// Spaceã¨Chã®ä¸€è¦§ï¼ˆãƒªã‚¹ãƒˆã®æ·»ãˆå­—ãŒãã®ã¾ã¾ãƒãƒ¥ãƒ¼ãƒŠãƒ¼ç©ºé–“ã‚„ãƒãƒ£ãƒ³ãƒãƒ«ã®ç•ªå·ã«ãªã‚‹ï¼‰
+	// â€»åŽŸä½œã¯ãƒãƒ£ãƒ³ãƒãƒ«åãŒç©ºã®ã‚‚ã®ã‚’ã‚¹ã‚­ãƒƒãƒ—ã™ã‚‹ä»•æ§˜ãªã®ã§ã€åˆ©ç”¨å´ã¯ã“ã‚Œã«å¾“ã£ãŸã»ã†ãŒè‰¯ã„ã‹ã‚‚ã—ã‚Œãªã„
+	const vector<pair<wstring, vector<wstring>>>& GetOriginalChList() { return this->loadChList; }
 
-	//BonDriver‚Ìƒ`ƒ…[ƒi[–¼‚ðŽæ“¾
-	//–ß‚è’lF
-	// ƒ`ƒ…[ƒi[–¼
-	wstring GetTunerName();
+	//BonDriverã®ãƒãƒ¥ãƒ¼ãƒŠãƒ¼åã‚’å–å¾—
+	//æˆ»ã‚Šå€¤ï¼š
+	// ãƒãƒ¥ãƒ¼ãƒŠãƒ¼å
+	const wstring& GetTunerName() { return this->loadTunerName; }
 
-	//ƒ`ƒƒƒ“ƒlƒ‹•ÏX
-	//ˆø”F
-	// space			[IN]•ÏXƒ`ƒƒƒ“ƒlƒ‹‚ÌSpace
-	// ch				[IN]•ÏXƒ`ƒƒƒ“ƒlƒ‹‚Ì•¨—Ch
+	//ãƒãƒ£ãƒ³ãƒãƒ«å¤‰æ›´
+	//å¼•æ•°ï¼š
+	// space			[IN]å¤‰æ›´ãƒãƒ£ãƒ³ãƒãƒ«ã®Space
+	// ch				[IN]å¤‰æ›´ãƒãƒ£ãƒ³ãƒãƒ«ã®ç‰©ç†Ch
 	bool SetCh(
 		DWORD space,
 		DWORD ch
 		);
 
-	//Œ»Ý‚Ìƒ`ƒƒƒ“ƒlƒ‹Žæ“¾
-	//ˆø”F
-	// space			[IN]Œ»Ý‚Ìƒ`ƒƒƒ“ƒlƒ‹‚ÌSpace
-	// ch				[IN]Œ»Ý‚Ìƒ`ƒƒƒ“ƒlƒ‹‚Ì•¨—Ch
+	//ç¾åœ¨ã®ãƒãƒ£ãƒ³ãƒãƒ«å–å¾—
+	//å¼•æ•°ï¼š
+	// space			[IN]ç¾åœ¨ã®ãƒãƒ£ãƒ³ãƒãƒ«ã®Space
+	// ch				[IN]ç¾åœ¨ã®ãƒãƒ£ãƒ³ãƒãƒ«ã®ç‰©ç†Ch
 	bool GetNowCh(
 		DWORD* space,
 		DWORD* ch
 		);
 
-	//Open‚µ‚½BonDriver‚Ìƒtƒ@ƒCƒ‹–¼‚ðŽæ“¾
-	//–ß‚è’lF
-	// BonDriver‚Ìƒtƒ@ƒCƒ‹–¼iŠg’£ŽqŠÜ‚Þjiempty‚Å–¢Openj
+	//Openã—ãŸBonDriverã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å–å¾—
+	//â€»ã‚¹ãƒ¬ãƒƒãƒ‰ã‚»ãƒ¼ãƒ•
+	//æˆ»ã‚Šå€¤ï¼š
+	// BonDriverã®ãƒ•ã‚¡ã‚¤ãƒ«åï¼ˆæ‹¡å¼µå­å«ã‚€ï¼‰ï¼ˆemptyã§æœªOpenï¼‰
 	wstring GetOpenBonDriverFileName();
 
 private:
-	//BonDriver‚ÉƒAƒNƒZƒX‚·‚éƒ[ƒJ[ƒXƒŒƒbƒh
+	//BonDriverã«ã‚¢ã‚¯ã‚»ã‚¹ã™ã‚‹ãƒ¯ãƒ¼ã‚«ãƒ¼ã‚¹ãƒ¬ãƒƒãƒ‰
 	static void DriverThread(CBonDriverUtil* sys);
-	//ƒ[ƒJ[ƒXƒŒƒbƒh‚ÌƒƒbƒZ[ƒWê—pƒEƒBƒ“ƒhƒEƒvƒƒV[ƒWƒƒ
+	//ãƒ¯ãƒ¼ã‚«ãƒ¼ã‚¹ãƒ¬ãƒƒãƒ‰ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å°‚ç”¨ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 	static LRESULT CALLBACK DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static class CInit { public: CInit(); } s_init;

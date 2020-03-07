@@ -1,12 +1,19 @@
-#pragma once
+ï»¿#pragma once
+
+//æ­£è¦è¡¨ç¾ã‚¨ãƒ³ã‚¸ãƒ³ã‚’std::wregexã«ã™ã‚‹å ´åˆã¯ã“ã®ãƒã‚¯ãƒ­ã‚’å®šç¾©ã™ã‚‹
+//#define EPGDB_STD_WREGEX
 
 #include "../../Common/StructDef.h"
 #include "../../Common/EpgDataCap3Def.h"
 #include "../../Common/ThreadUtil.h"
 #include <functional>
+#if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
 #include <objbase.h>
 #include <oleauto.h>
 #include "RegExp.h"
+#else
+#include <regex>
+#endif
 
 class CEpgDBManager
 {
@@ -16,11 +23,11 @@ public:
 
 	void SetArchivePeriod(int periodSec);
 
-	//“¯Šú“I‚ÉŒÄ‚Ño‚·‚±‚Æ
+	//åŒæœŸçš„ã«å‘¼ã³å‡ºã™ã“ã¨
 	void ReloadEpgData(bool foreground = false);
-	//“¯Šú“I‚ÉŒÄ‚Ño‚·‚±‚Æ
+	//åŒæœŸçš„ã«å‘¼ã³å‡ºã™ã“ã¨
 	bool IsLoadingData();
-	//“¯Šú“I‚ÉŒÄ‚Ño‚·‚±‚Æ
+	//åŒæœŸçš„ã«å‘¼ã³å‡ºã™ã“ã¨
 	void CancelLoadData();
 
 	bool IsInitialLoadingDataDone() const { return this->initialLoadDone; }
@@ -85,10 +92,14 @@ public:
 		) const;
 
 	static void ConvertSearchText(wstring& str);
+#if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
 	static void ComRelease(IUnknown* p) { p->Release(); }
 
 	typedef std::unique_ptr<IRegExp, decltype(&ComRelease)> RegExpPtr;
 	typedef std::unique_ptr<OLECHAR, decltype(&SysFreeString)> OleCharPtr;
+#else
+	typedef std::unique_ptr<std::wregex> RegExpPtr;
+#endif
 
 private:
 	struct SEARCH_CONTEXT {
@@ -126,7 +137,7 @@ private:
 	atomic_bool_ initialLoadDone;
 	int archivePeriodSec;
 
-	//‚±‚ê‚çƒf[ƒ^ƒx[ƒX‚Ì“Ç‚İæ‚è‚É‚©‚¬‚èepgMapRefLock‚ÅƒAƒNƒZƒX‚Å‚«‚éBLoadThreadˆÈŠO‚Å‚Í•ÏX‚Å‚«‚È‚¢
+	//ã“ã‚Œã‚‰ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®èª­ã¿å–ã‚Šã«ã‹ãã‚ŠepgMapRefLockã§ã‚¢ã‚¯ã‚»ã‚¹ã§ãã‚‹ã€‚LoadThreadä»¥å¤–ã§ã¯å¤‰æ›´ã§ããªã„
 	map<LONGLONG, EPGDB_SERVICE_EVENT_INFO> epgMap;
 	map<LONGLONG, EPGDB_SERVICE_EVENT_INFO> epgArchive;
 	vector<vector<__int64>> epgOldIndexCache;

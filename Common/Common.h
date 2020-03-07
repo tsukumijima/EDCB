@@ -1,7 +1,12 @@
-#pragma once
+﻿#pragma once
 
-// ���ׂẴv���W�F�N�g�ɓK�p�����ǉ��w�b�_����ђ�`
+// すべてのプロジェクトに適用される追加ヘッダおよび定義
 
+// wprintf関数系を規格準拠にする(VC14以降)。ワイド文字列には%sでなく%lsなどを使うこと
+#define _CRT_STDIO_ISO_WIDE_SPECIFIERS
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
 #include <string>
 #include <utility>
 #include <map>
@@ -10,7 +15,8 @@
 #include <algorithm>
 #include <wchar.h>
 #include <stdarg.h>
-#include <sal.h>
+#include <limits.h>
+#include <string.h>
 
 using std::min;
 using std::max;
@@ -34,29 +40,41 @@ using std::vector;
 #endif
 #endif
 
-// �K�؂łȂ�NULL�̌��o�p
+// 適切でないNULLの検出用
 //#undef NULL
 //#define NULL nullptr
 
 #ifdef _MSC_VER
+#include <sal.h>
 #define PRINTF_FORMAT_SZ _In_z_ _Printf_format_string_
 #else
 #define PRINTF_FORMAT_SZ
 #endif
 
+#ifdef WRAP_OUTPUT_DEBUG_STRING
+#undef OutputDebugString
+#define OutputDebugString OutputDebugStringWrapper
+// OutputDebugStringWのラッパー関数
+// APIフックによる高度なものでなく単なる置換。OutputDebugStringAやDLLからの呼び出しはラップされない
+void OutputDebugStringWrapper(LPCWSTR lpOutputString);
+void SetSaveDebugLog(bool saveDebugLog);
+#endif
+
 inline void _OutputDebugString(PRINTF_FORMAT_SZ const WCHAR* format, ...)
 {
-	// TODO: ���̊֐����͗\�񖼈ᔽ�̏�ɕ���킵���̂ŕύX���ׂ�
+	// TODO: この関数名は予約名違反の上に紛らわしいので変更すべき
 	va_list params;
 	va_start(params, format);
-	int length = _vscwprintf(format, params);
+	// 長すぎる等エラー時は書式文字列の展開を省略する
+	WCHAR buff[1024];
+#ifdef _WIN32
+	const WCHAR* p = _vsnwprintf_s(buff, 1024, _TRUNCATE, format, params) < 0 ? format : buff;
+#else
+	const WCHAR* p = vswprintf(buff, 1024, format, params) < 0 ? format : buff;
+#endif
 	va_end(params);
-	if( length >= 0 ){
-		WCHAR* buff = new WCHAR[length + 1];
-		va_start(params, format);
-		vswprintf_s(buff, length + 1, format, params);
-		va_end(params);
-		OutputDebugString(buff);
-		delete[] buff;
-	}
+	OutputDebugString(p);
 }
+
+// 適切でない書式文字列の検出用
+//#define _OutputDebugString(...) (void)wprintf_s(__VA_ARGS__)

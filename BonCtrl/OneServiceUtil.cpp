@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "OneServiceUtil.h"
 
 
@@ -9,7 +9,7 @@ COneServiceUtil::COneServiceUtil(BOOL sendUdpTcp_)
 
 	this->pmtPID = 0xFFFF;
 
-	this->enableScramble = TRUE;
+	this->enableScramble = -1;
 
 	this->pittariState = PITTARI_NONE;
 }
@@ -17,12 +17,15 @@ COneServiceUtil::COneServiceUtil(BOOL sendUdpTcp_)
 
 COneServiceUtil::~COneServiceUtil(void)
 {
+	if( IsRec() ){
+		EndSave();
+	}
 	SendUdp(NULL);
 	SendTcp(NULL);
 }
 
-//ˆ—‘ÎÛServiceID‚ğİ’è
-//ˆø”F
+//å‡¦ç†å¯¾è±¡ServiceIDã‚’è¨­å®š
+//å¼•æ•°ï¼š
 // SID			[IN]ServiceID
 void COneServiceUtil::SetSID(
 	WORD SID_
@@ -37,8 +40,8 @@ void COneServiceUtil::SetSID(
 	this->SID = SID_;
 }
 
-//İ’è‚³‚ê‚Ä‚éˆ—‘ÎÛ‚ÌServiceID‚ğæ“¾
-//–ß‚è’lF
+//è¨­å®šã•ã‚Œã¦ã‚‹å‡¦ç†å¯¾è±¡ã®ServiceIDã‚’å–å¾—
+//æˆ»ã‚Šå€¤ï¼š
 // ServiceID
 WORD COneServiceUtil::GetSID()
 {
@@ -65,13 +68,13 @@ BOOL COneServiceUtil::SendUdpTcp(
 			wstring key = L"";
 			HANDLE portMutex;
 
-			//¶¬‚Å‚«‚È‚­‚Ä‚à[‚Å‚Í‚È‚¢‚Ì‚Å‚Ù‚Ç‚Ù‚Ç‚É‘Å‚¿Ø‚é
-			for( int j = 0; j < 100; j++ ){
+			//ç”Ÿæˆã§ããªãã¦ã‚‚æ·±åˆ»ã§ã¯ãªã„ã®ã§ã»ã©ã»ã©ã«æ‰“ã¡åˆ‡ã‚‹
+			for( int j = 0; j < BON_NW_PORT_RANGE; j++ ){
 				UINT u[4];
 				if( swscanf_s((*sendList)[i].ipString.c_str(), L"%u.%u.%u.%u", &u[0], &u[1], &u[2], &u[3]) == 4 ){
-					Format(key, L"%s%d_%d", mutexName, u[0] << 24 | u[1] << 16 | u[2] << 8 | u[3], (*sendList)[i].port);
+					Format(key, L"Global\\%ls%d_%d", mutexName, u[0] << 24 | u[1] << 16 | u[2] << 8 | u[3], (*sendList)[i].port);
 				}else{
-					Format(key, L"%s%s_%d", mutexName, (*sendList)[i].ipString.c_str(), (*sendList)[i].port);
+					Format(key, L"Global\\%ls%ls_%d", mutexName, (*sendList)[i].ipString.c_str(), (*sendList)[i].port);
 				}
 				portMutex = CreateMutex(NULL, FALSE, key.c_str());
 		
@@ -81,7 +84,7 @@ BOOL COneServiceUtil::SendUdpTcp(
 					CloseHandle(portMutex);
 					(*sendList)[i].port++;
 				}else{
-					_OutputDebugString(L"%s\r\n", key.c_str());
+					_OutputDebugString(L"%ls\r\n", key.c_str());
 					portMutexList.push_back(portMutex);
 					break;
 				}
@@ -94,11 +97,11 @@ BOOL COneServiceUtil::SendUdpTcp(
 	return TRUE;
 }
 
-//o—Í—pTSƒf[ƒ^‚ğ‘—‚é
-//ˆø”F
-// data		[IN]TSƒf[ƒ^
-// size		[IN]data‚ÌƒTƒCƒY
-// funcGetPresent	[IN]EPG‚ÌŒ»İ”Ô‘gID‚ğ’²‚×‚éŠÖ”
+//å‡ºåŠ›ç”¨TSãƒ‡ãƒ¼ã‚¿ã‚’é€ã‚‹
+//å¼•æ•°ï¼š
+// data		[IN]TSãƒ‡ãƒ¼ã‚¿
+// size		[IN]dataã®ã‚µã‚¤ã‚º
+// funcGetPresent	[IN]EPGã®ç¾åœ¨ç•ªçµ„IDã‚’èª¿ã¹ã‚‹é–¢æ•°
 void COneServiceUtil::AddTSBuff(
 	BYTE* data,
 	DWORD size,
@@ -112,7 +115,7 @@ void COneServiceUtil::AddTSBuff(
 		}
 		this->dropCount.AddData(data, size);
 	}else if( this->SID == 0xFFFF ){
-		//‘SƒT[ƒrƒXˆµ‚¢
+		//å…¨ã‚µãƒ¼ãƒ“ã‚¹æ‰±ã„
 		this->writeFile.AddTSBuff(data, size);
 		this->dropCount.AddData(data, size);
 
@@ -149,19 +152,19 @@ void COneServiceUtil::AddTSBuff(
 							this->buff.insert(this->buff.end(), pmtBuff, pmtBuff + pmtBuffSize);
 						}else{
 							_OutputDebugString(L"createPmt.GetPacket Err");
-							//‚»‚Ì‚Ü‚Ü
+							//ãã®ã¾ã¾
 							this->buff.insert(this->buff.end(), data + i, data + i + 188);
 						}
 					}else if( err == FALSE ){
 						_OutputDebugString(L"createPmt.AddData Err");
-						//‚»‚Ì‚Ü‚Ü
+						//ãã®ã¾ã¾
 						this->buff.insert(this->buff.end(), data + i, data + i + 188);
 					}
 				}else{
-					//‚»‚Ì‘¼
+					//ãã®ä»–
 					if( packet.PID < BON_SELECTIVE_PID || createPmt.IsNeedPID(packet.PID) ||
 					    std::binary_search(this->emmPIDList.begin(), this->emmPIDList.end(), packet.PID) ){
-						//PMT‚Å’è‹`‚³‚ê‚Ä‚é‚©EMM‚È‚ç•K—v
+						//PMTã§å®šç¾©ã•ã‚Œã¦ã‚‹ã‹EMMãªã‚‰å¿…è¦
 						this->buff.insert(this->buff.end(), data + i, data + i + 188);
 					}
 				}
@@ -178,7 +181,7 @@ void COneServiceUtil::AddTSBuff(
 		if( this->lastPMTVer == 0xFFFF ){
 			this->lastPMTVer = createPmt.GetVersion();
 		}else if(this->lastPMTVer != createPmt.GetVersion()){
-			//‚Ò‚Á‚½‚èŠJn
+			//ã´ã£ãŸã‚Šé–‹å§‹
 			StratPittariRec();
 			this->lastPMTVer = createPmt.GetVersion();
 		}
@@ -186,7 +189,7 @@ void COneServiceUtil::AddTSBuff(
 			int eventID = funcGetPresent(this->pittariRecParam.pittariONID, this->pittariRecParam.pittariTSID, this->pittariRecParam.pittariSID);
 			if( eventID >= 0 ){
 				if( eventID == this->pittariRecParam.pittariEventID ){
-					//‚Ò‚Á‚½‚èŠJn
+					//ã´ã£ãŸã‚Šé–‹å§‹
 					StratPittariRec();
 					if( this->pittariState == PITTARI_START ){
 						this->pittariState = PITTARI_END_CHK;
@@ -200,7 +203,7 @@ void COneServiceUtil::AddTSBuff(
 			int eventID = funcGetPresent(this->pittariRecParam.pittariONID, this->pittariRecParam.pittariTSID, this->pittariRecParam.pittariSID);
 			if( eventID >= 0 ){
 				if( eventID != this->pittariRecParam.pittariEventID ){
-					//‚Ò‚Á‚½‚èI—¹
+					//ã´ã£ãŸã‚Šçµ‚äº†
 					StopPittariRec();
 				}
 			}
@@ -216,8 +219,8 @@ void COneServiceUtil::SetPmtPID(
 	if( this->pmtPID != pmtPID_ && this->SID != 0xFFFF){
 		_OutputDebugString(L"COneServiceUtil::SetPmtPID 0x%04x => 0x%04x", this->pmtPID, pmtPID_);
 		vector<pair<WORD, WORD>> pidList;
-		pidList.push_back(pair<WORD, WORD>(0x10, 0));
-		pidList.push_back(pair<WORD, WORD>(pmtPID_, this->SID));
+		pidList.push_back(std::make_pair((WORD)0x10, (WORD)0));
+		pidList.push_back(std::make_pair(pmtPID_, this->SID));
 		this->createPat.SetParam(TSID, pidList);
 
 		this->pmtPID = pmtPID_;
@@ -276,7 +279,7 @@ void COneServiceUtil::StopPittariRec()
 {
 	OutputDebugString(L"*:StopPittariRec");
 	this->pittariState = PITTARI_END;
-	//‚±‚±‚Åƒtƒ@ƒCƒ‹ƒpƒX‚ğæ“¾‚µ‚Ä‚¨‚­
+	//ã“ã“ã§ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ã‚’å–å¾—ã—ã¦ãŠã
 	this->pittariRecParam.fileName = this->writeFile.GetSaveFilePath();
 	this->writeFile.EndSave(&this->pittariSubRec);
 }
@@ -287,7 +290,7 @@ BOOL COneServiceUtil::EndSave(BOOL* subRecFlag)
 	if( this->writeFile.IsRec() ){
 		ret = this->writeFile.EndSave(subRecFlag);
 	}else if( this->pittariState != PITTARI_NONE ){
-		//‚Ò‚Á‚½‚èƒ‚[ƒh‚Å‚Í“à•”“I‚ÈŠJnI—¹‚Æ‚Íˆê’v‚µ‚È‚¢
+		//ã´ã£ãŸã‚Šãƒ¢ãƒ¼ãƒ‰ã§ã¯å†…éƒ¨çš„ãªé–‹å§‹çµ‚äº†ã¨ã¯ä¸€è‡´ã—ãªã„
 		if( subRecFlag ){
 			*subRecFlag = this->pittariState == PITTARI_END && this->pittariSubRec;
 		}
@@ -298,39 +301,18 @@ BOOL COneServiceUtil::EndSave(BOOL* subRecFlag)
 	return ret;
 }
 
-//˜^‰æ’†‚©‚Ç‚¤‚©
-//–ß‚è’lF
-// TRUEi˜^‰æ’†jAFALSEi‚µ‚Ä‚¢‚È‚¢j
+//éŒ²ç”»ä¸­ã‹ã©ã†ã‹
+//æˆ»ã‚Šå€¤ï¼š
+// TRUEï¼ˆéŒ²ç”»ä¸­ï¼‰ã€FALSEï¼ˆã—ã¦ã„ãªã„ï¼‰
 BOOL COneServiceUtil::IsRec()
 {
 	return this->writeFile.IsRec() || this->pittariState != PITTARI_NONE;
 }
 
-//ƒXƒNƒ‰ƒ“ƒuƒ‹‰ğœˆ—‚Ì“®ìİ’è
-//–ß‚è’lF
-// TRUEi¬Œ÷jAFALSEi¸”sj
-//ˆø”F
-// enable		[IN] TRUEiˆ—‚·‚éjAFALSEiˆ—‚µ‚È‚¢j
-void COneServiceUtil::SetScramble(
-	BOOL enable
-	)
-{
-	this->enableScramble = enable;
-}
-
-//ƒXƒNƒ‰ƒ“ƒuƒ‹‰ğœˆ—‚ğs‚¤‚©‚Ç‚¤‚©
-//–ß‚è’lF
-// TRUEiˆ—‚·‚éjAFALSEiˆ—‚µ‚È‚¢j
-BOOL COneServiceUtil::GetScramble(
-	)
-{
-	return this->enableScramble;
-}
-
-//š–‹‚Æƒf[ƒ^•ú‘—ŠÜ‚ß‚é‚©‚Ç‚¤‚©
-//ˆø”F
-// enableCaption		[IN]š–‹‚ğ TRUEiŠÜ‚ß‚éjAFALSEiŠÜ‚ß‚È‚¢j
-// enableData			[IN]ƒf[ƒ^•ú‘—‚ğ TRUEiŠÜ‚ß‚éjAFALSEiŠÜ‚ß‚È‚¢j
+//å­—å¹•ã¨ãƒ‡ãƒ¼ã‚¿æ”¾é€å«ã‚ã‚‹ã‹ã©ã†ã‹
+//å¼•æ•°ï¼š
+// enableCaption		[IN]å­—å¹•ã‚’ TRUEï¼ˆå«ã‚ã‚‹ï¼‰ã€FALSEï¼ˆå«ã‚ãªã„ï¼‰
+// enableData			[IN]ãƒ‡ãƒ¼ã‚¿æ”¾é€ã‚’ TRUEï¼ˆå«ã‚ã‚‹ï¼‰ã€FALSEï¼ˆå«ã‚ãªã„ï¼‰
 void COneServiceUtil::SetServiceMode(
 	BOOL enableCaption,
 	BOOL enableData
@@ -339,19 +321,24 @@ void COneServiceUtil::SetServiceMode(
 	createPmt.SetCreateMode(enableCaption, enableData);
 }
 
-//ƒGƒ‰[ƒJƒEƒ“ƒg‚ğƒNƒŠƒA‚·‚é
+//ã‚¨ãƒ©ãƒ¼ã‚«ã‚¦ãƒ³ãƒˆã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
 void COneServiceUtil::ClearErrCount()
 {
 	this->dropCount.Clear();
 }
 
-//ƒhƒƒbƒv‚ÆƒXƒNƒ‰ƒ“ƒuƒ‹‚ÌƒJƒEƒ“ƒg‚ğæ“¾‚·‚é
-//ˆø”F
-// drop				[OUT]ƒhƒƒbƒv”
-// scramble			[OUT]ƒXƒNƒ‰ƒ“ƒuƒ‹”
+//ãƒ‰ãƒ­ãƒƒãƒ—ã¨ã‚¹ã‚¯ãƒ©ãƒ³ãƒ–ãƒ«ã®ã‚«ã‚¦ãƒ³ãƒˆã‚’å–å¾—ã™ã‚‹
+//å¼•æ•°ï¼š
+// drop				[OUT]ãƒ‰ãƒ­ãƒƒãƒ—æ•°
+// scramble			[OUT]ã‚¹ã‚¯ãƒ©ãƒ³ãƒ–ãƒ«æ•°
 void COneServiceUtil::GetErrCount(ULONGLONG* drop, ULONGLONG* scramble)
 {
-	this->dropCount.GetCount(drop, scramble);
+	if( drop ){
+		*drop = this->dropCount.GetDropCount();
+	}
+	if( scramble ){
+		*scramble = this->dropCount.GetScrambleCount();
+	}
 }
 
 wstring COneServiceUtil::GetSaveFilePath()
@@ -364,16 +351,21 @@ wstring COneServiceUtil::GetSaveFilePath()
 	return wstring();
 }
 
-//ƒhƒƒbƒv‚ÆƒXƒNƒ‰ƒ“ƒuƒ‹‚ÌƒJƒEƒ“ƒg‚ğ•Û‘¶‚·‚é
-//ˆø”F
-// filePath			[IN]•Û‘¶ƒtƒ@ƒCƒ‹–¼
 void COneServiceUtil::SaveErrCount(
-	const wstring& filePath
+	const wstring& filePath,
+	BOOL asUtf8,
+	int dropSaveThresh,
+	int scrambleSaveThresh,
+	ULONGLONG& drop,
+	ULONGLONG& scramble
 	)
 {
-	this->dropCount.SaveLog(filePath);
+	GetErrCount(&drop, &scramble);
+	if( (dropSaveThresh >= 0 && drop >= (ULONGLONG)dropSaveThresh) ||
+	    (scrambleSaveThresh >= 0 && scramble >= (ULONGLONG)scrambleSaveThresh) ){
+		this->dropCount.SaveLog(filePath, asUtf8);
+	}
 }
-
 
 void COneServiceUtil::SetSignalLevel(
 	float signalLv
@@ -382,9 +374,9 @@ void COneServiceUtil::SetSignalLevel(
 	this->dropCount.SetSignal(signalLv);
 }
 
-//˜^‰æ’†‚Ìƒtƒ@ƒCƒ‹‚Ìo—ÍƒTƒCƒY‚ğæ“¾‚·‚é
-//ˆø”F
-// writeSize			[OUT]o—ÍƒTƒCƒY
+//éŒ²ç”»ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®å‡ºåŠ›ã‚µã‚¤ã‚ºã‚’å–å¾—ã™ã‚‹
+//å¼•æ•°ï¼š
+// writeSize			[OUT]å‡ºåŠ›ã‚µã‚¤ã‚º
 void COneServiceUtil::GetRecWriteSize(
 	__int64* writeSize
 	)
@@ -407,7 +399,7 @@ void COneServiceUtil::SetBonDriver(
 
 void COneServiceUtil::SetPIDName(
 	WORD pid,
-	LPCSTR name
+	const wstring& name
 	)
 {
 	this->dropCount.SetPIDName(pid, name);

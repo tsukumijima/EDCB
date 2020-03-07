@@ -1,9 +1,7 @@
-#pragma once
-#include "../BonCtrl/PacketInit.h"
+ï»¿#pragma once
 #include "../BonCtrl/SendUDP.h"
 #include "../BonCtrl/SendTCP.h"
-#include "../BonCtrl/CreatePATPacket.h"
-#include "TSPacketUtil.h"
+#include "StructDef.h"
 #include "ThreadUtil.h"
 
 class CTimeShiftUtil
@@ -12,45 +10,43 @@ public:
 	CTimeShiftUtil(void);
 	~CTimeShiftUtil(void);
 
-	//UDP/TCP‘—M‚ğs‚¤
-	//–ß‚è’lF
-	// TRUEi¬Œ÷jAFALSEi¸”sj
-	//ˆø”F
-	// val		[IN/OUT]‘—Mæî•ñ
-	BOOL Send(
+	//UDP/TCPé€ä¿¡ã‚’è¡Œã†
+	//æˆ»ã‚Šå€¤ï¼š
+	// æˆåŠŸï¼švalã«é–‹å§‹ãƒãƒ¼ãƒˆç•ªå·ï¼ˆçµ‚äº†orå¤±æ•—ï¼šå€¤ã¯ä¸å¤‰ï¼‰
+	//å¼•æ•°ï¼š
+	// val		[IN/OUT]é€ä¿¡å…ˆæƒ…å ±
+	void Send(
 		NWPLAY_PLAY_INFO* val
 		);
 
-	//ƒ^ƒCƒ€ƒVƒtƒg—pƒtƒ@ƒCƒ‹‚ğŠJ‚­
-	//–ß‚è’lF
-	// TRUEi¬Œ÷jAFALSEi¸”sj
-	//ˆø”F
-	// filePath		[IN]ƒ^ƒCƒ€ƒVƒtƒg—pƒoƒbƒtƒ@ƒtƒ@ƒCƒ‹‚ÌƒpƒX
-	// fileMode		[IN]˜^‰æÏ‚İƒtƒ@ƒCƒ‹Ä¶ƒ‚[ƒh
+	//ã‚¿ã‚¤ãƒ ã‚·ãƒ•ãƒˆç”¨ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã
+	//æˆ»ã‚Šå€¤ï¼š
+	// TRUEï¼ˆæˆåŠŸï¼‰ã€FALSEï¼ˆå¤±æ•—ï¼‰
+	//å¼•æ•°ï¼š
+	// filePath		[IN]ã‚¿ã‚¤ãƒ ã‚·ãƒ•ãƒˆç”¨ãƒãƒƒãƒ•ã‚¡ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
+	// fileMode		[IN]éŒ²ç”»æ¸ˆã¿ãƒ•ã‚¡ã‚¤ãƒ«å†ç”Ÿãƒ¢ãƒ¼ãƒ‰
 	BOOL OpenTimeShift(
 		LPCWSTR filePath_,
 		BOOL fileMode_
 		);
 
-	//ƒ^ƒCƒ€ƒVƒtƒg‘—M‚ğŠJn‚·‚é
-	//–ß‚è’lF
-	// TRUEi¬Œ÷jAFALSEi¸”sj
+	//ã‚¿ã‚¤ãƒ ã‚·ãƒ•ãƒˆé€ä¿¡ã‚’é–‹å§‹ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// TRUEï¼ˆæˆåŠŸï¼‰ã€FALSEï¼ˆå¤±æ•—ï¼‰
 	BOOL StartTimeShift();
 
-	//ƒ^ƒCƒ€ƒVƒtƒg‘—M‚ğ’â~‚·‚é
-	//–ß‚è’lF
-	// TRUEi¬Œ÷jAFALSEi¸”sj
-	BOOL StopTimeShift();
+	//ã‚¿ã‚¤ãƒ ã‚·ãƒ•ãƒˆé€ä¿¡ã‚’åœæ­¢ã™ã‚‹
+	void StopTimeShift();
 
-	//Œ»İ‚Ì‘—MˆÊ’u‚Æ—LŒø‚Èƒtƒ@ƒCƒ‹ƒTƒCƒY‚ğæ“¾‚·‚é
-	//ˆø”F
-	// filePos		[OUT]ƒtƒ@ƒCƒ‹ˆÊ’u
-	// fileSize		[OUT]ƒtƒ@ƒCƒ‹ƒTƒCƒY
+	//ç¾åœ¨ã®é€ä¿¡ä½ç½®ã¨æœ‰åŠ¹ãªãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’å–å¾—ã™ã‚‹
+	//å¼•æ•°ï¼š
+	// filePos		[OUT]ãƒ•ã‚¡ã‚¤ãƒ«ä½ç½®
+	// fileSize		[OUT]ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º
 	void GetFilePos(__int64* filePos, __int64* fileSize);
 
-	//‘—MŠJnˆÊ’u‚ğ•ÏX‚·‚é
-	//ˆø”F
-	// filePos		[IN]ƒtƒ@ƒCƒ‹ˆÊ’u
+	//é€ä¿¡é–‹å§‹ä½ç½®ã‚’å¤‰æ›´ã™ã‚‹
+	//å¼•æ•°ï¼š
+	// filePos		[IN]ãƒ•ã‚¡ã‚¤ãƒ«ä½ç½®
 	void SetFilePos(__int64 filePos);
 
 protected:
@@ -58,8 +54,16 @@ protected:
 	recursive_mutex_ ioLock;
 	CSendUDP sendUdp;
 	CSendTCP sendTcp;
-	wstring sendIP[2];
-	HANDLE portMutex[2];
+	struct SEND_INFO {
+		wstring ip;
+		DWORD port;
+		wstring key;
+#ifdef _WIN32
+		HANDLE mutex;
+#else
+		FILE* mutex;
+#endif
+	} sendInfo[2];
 
 	wstring filePath;
 	WORD PCR_PID;
@@ -70,8 +74,8 @@ protected:
 
 	thread_ readThread;
 	atomic_bool_ readStopFlag;
-	HANDLE readFile;
-	HANDLE seekFile;
+	std::unique_ptr<FILE, decltype(&fclose)> readFile;
+	std::unique_ptr<FILE, decltype(&fclose)> seekFile;
 protected:
 	static void ReadThread(CTimeShiftUtil* sys);
 	__int64 GetAvailableFileSize() const;

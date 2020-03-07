@@ -1,48 +1,48 @@
-#pragma once
+ï»¿#pragma once
 
-#include "StringUtil.h"
-#include "CtrlCmdDef.h"
 #include "StructDef.h"
 #include "ThreadUtil.h"
 
 #include <functional>
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
+#endif
 
 class CTCPServer
 {
 public:
-	//‰“š‚ª•Û—¯‚³‚ê‚Ä‚¢‚éƒRƒ}ƒ“ƒh‚ğÄ“xŒÄ‚Ô(=NotifyUpdate()‚·‚é)ŠÔŠu
+	//å¿œç­”ãŒä¿ç•™ã•ã‚Œã¦ã„ã‚‹ã‚³ãƒãƒ³ãƒ‰ã‚’å†åº¦å‘¼ã¶(=NotifyUpdate()ã™ã‚‹)é–“éš”
 	static const DWORD NOTIFY_INTERVAL = 2000;
-	//‘—óMƒ^ƒCƒ€ƒAƒEƒg
+	//é€å—ä¿¡ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆ
 	static const DWORD SND_RCV_TIMEOUT = 30000;
 
 	CTCPServer(void);
 	~CTCPServer(void);
 
 	bool StartServer(unsigned short port, bool ipv6, DWORD dwResponseTimeout, LPCWSTR acl,
-	                 const std::function<void(CMD_STREAM*, CMD_STREAM*)>& cmdProc);
+	                 const std::function<void(CMD_STREAM*, CMD_STREAM*, LPCWSTR)>& cmdProc);
 	void StopServer();
 	void NotifyUpdate();
 
 protected:
-	std::function<void(CMD_STREAM*, CMD_STREAM*)> m_cmdProc;
+	std::function<void(CMD_STREAM*, CMD_STREAM*, LPCWSTR)> m_cmdProc;
 	unsigned short m_port;
 	bool m_ipv6;
 	DWORD m_dwResponseTimeout;
-	string m_acl;
+	wstring m_acl;
 
-	WSAEVENT m_hNotifyEvent;
-	WSAEVENT m_hAcceptEvent;
+	CAutoResetEvent m_notifyEvent;
 	atomic_bool_ m_stopFlag;
 	thread_ m_thread;
-
+#ifdef _WIN32
+	WSAEVENT m_hAcceptEvent;
 	SOCKET m_sock;
-	
-protected:
-	static void SetBlockingMode(SOCKET sock);
-	static void SetNonBlockingMode(SOCKET sock, WSAEVENT hEvent, long lNetworkEvents);
+#else
+	int m_sock;
+#endif
+
 	static void ServerThread(CTCPServer* pSys);
 
 };

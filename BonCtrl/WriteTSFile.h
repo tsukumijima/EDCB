@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../Common/StructDef.h"
 #include "../Common/ErrDef.h"
@@ -10,21 +10,21 @@
 class CWriteTSFile
 {
 public:
-	//ƒtƒHƒ‹ƒ_‚É‹ó‚«‚ª‚ ‚é‚Æ‚İ‚È‚·Å’á—e—Ê
+	//ãƒ•ã‚©ãƒ«ãƒ€ã«ç©ºããŒã‚ã‚‹ã¨ã¿ãªã™æœ€ä½å®¹é‡
 	static const int FREE_FOLDER_MIN_BYTES = 200 * 1024 * 1024;
 
 	CWriteTSFile(void);
 	~CWriteTSFile(void);
 
-	//ƒtƒ@ƒCƒ‹•Û‘¶‚ğŠJn‚·‚é
-	//–ß‚è’lF
-	// TRUEi¬Œ÷jAFALSEi¸”sj
-	//ˆø”F
-	// fileName				[IN]•Û‘¶ƒtƒ@ƒCƒ‹ƒpƒX
-	// overWriteFlag		[IN]“¯ˆêƒtƒ@ƒCƒ‹–¼‘¶İ‚Éã‘‚«‚·‚é‚©‚Ç‚¤‚©iTRUEF‚·‚éAFALSEF‚µ‚È‚¢j
-	// createSize			[IN]ƒtƒ@ƒCƒ‹ì¬‚ÉƒfƒBƒXƒN‚É—\–ñ‚·‚é—e—Ê
-	// saveFolder			[IN]g—p‚·‚éƒtƒHƒ‹ƒ_ˆê——
-	// saveFolderSub		[IN]HDD‚Ì‹ó‚«‚ª‚È‚­‚È‚Á‚½ê‡‚Éˆê“I‚Ég—p‚·‚éƒtƒHƒ‹ƒ_
+	//ãƒ•ã‚¡ã‚¤ãƒ«ä¿å­˜ã‚’é–‹å§‹ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// TRUEï¼ˆæˆåŠŸï¼‰ã€FALSEï¼ˆå¤±æ•—ï¼‰
+	//å¼•æ•°ï¼š
+	// fileName				[IN]ä¿å­˜ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
+	// overWriteFlag		[IN]åŒä¸€ãƒ•ã‚¡ã‚¤ãƒ«åå­˜åœ¨æ™‚ã«ä¸Šæ›¸ãã™ã‚‹ã‹ã©ã†ã‹ï¼ˆTRUEï¼šã™ã‚‹ã€FALSEï¼šã—ãªã„ï¼‰
+	// createSize			[IN]ãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆæ™‚ã«ãƒ‡ã‚£ã‚¹ã‚¯ã«äºˆç´„ã™ã‚‹å®¹é‡
+	// saveFolder			[IN]ä½¿ç”¨ã™ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ä¸€è¦§
+	// saveFolderSub		[IN]HDDã®ç©ºããŒãªããªã£ãŸå ´åˆã«ä¸€æ™‚çš„ã«ä½¿ç”¨ã™ã‚‹ãƒ•ã‚©ãƒ«ãƒ€
 	BOOL StartSave(
 		const wstring& fileName,
 		BOOL overWriteFlag_,
@@ -34,47 +34,40 @@ public:
 		int maxBuffCount_
 	);
 
-	//ƒtƒ@ƒCƒ‹•Û‘¶‚ğI—¹‚·‚é
-	//–ß‚è’lF
-	// TRUEi¬Œ÷jAFALSEi¸”sj
-	//ˆø”F
-	// subRecFlag			[OUT]¬Œ÷‚Ì‚Æ‚«AƒTƒu˜^‰æ‚ª”­¶‚µ‚½‚©‚Ç‚¤‚©
+	//ãƒ•ã‚¡ã‚¤ãƒ«ä¿å­˜ã‚’çµ‚äº†ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// TRUEï¼ˆæˆåŠŸï¼‰ã€FALSEï¼ˆå¤±æ•—ï¼‰
+	//å¼•æ•°ï¼š
+	// subRecFlag			[OUT]æˆåŠŸã®ã¨ãã€ã‚µãƒ–éŒ²ç”»ãŒç™ºç”Ÿã—ãŸã‹ã©ã†ã‹
 	BOOL EndSave(BOOL* subRecFlag_ = NULL);
 
-	//•Û‘¶’†‚©‚Ç‚¤‚©
+	//ä¿å­˜ä¸­ã‹ã©ã†ã‹
 	BOOL IsRec() { return this->outThread.joinable(); }
 
-	//o—Í—pTSƒf[ƒ^‚ğ‘—‚é
-	//–ß‚è’lF
-	// TRUEi¬Œ÷jAFALSEi¸”sj
-	//ˆø”F
-	// data		[IN]TSƒf[ƒ^
-	// size		[IN]data‚ÌƒTƒCƒY
+	//å‡ºåŠ›ç”¨TSãƒ‡ãƒ¼ã‚¿ã‚’é€ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// TRUEï¼ˆæˆåŠŸï¼‰ã€FALSEï¼ˆå¤±æ•—ï¼‰
+	//å¼•æ•°ï¼š
+	// data		[IN]TSãƒ‡ãƒ¼ã‚¿
+	// size		[IN]dataã®ã‚µã‚¤ã‚º
 	BOOL AddTSBuff(
 		BYTE* data,
 		DWORD size
 		);
 
-	//˜^‰æ’†‚Ìƒtƒ@ƒCƒ‹‚Ìƒtƒ@ƒCƒ‹ƒpƒX‚ğæ“¾‚·‚é
-	//–ß‚è’lF
-	// ƒtƒ@ƒCƒ‹ƒpƒX
+	//éŒ²ç”»ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ã‚’å–å¾—ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
 	wstring GetSaveFilePath();
 
-	//˜^‰æ’†‚Ìƒtƒ@ƒCƒ‹‚Ìo—ÍƒTƒCƒY‚ğæ“¾‚·‚é
-	//ˆø”F
-	// writeSize			[OUT]•Û‘¶ƒtƒ@ƒCƒ‹–¼
+	//éŒ²ç”»ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®å‡ºåŠ›ã‚µã‚¤ã‚ºã‚’å–å¾—ã™ã‚‹
+	//å¼•æ•°ï¼š
+	// writeSize			[OUT]ä¿å­˜ãƒ•ã‚¡ã‚¤ãƒ«å
 	void GetRecWriteSize(
 		__int64* writeSize
 		);
 
 protected:
-	//w’èƒtƒHƒ‹ƒ_‚Ì‹ó‚«—e—Ê‚ğæ“¾‚·‚é
-	//–ß‚è’lF
-	// ‹ó‚«—e—Ê
-	//ˆø”F
-	// folderPath		[IN]w’èƒtƒHƒ‹ƒ_
-	static ULONGLONG GetFreeSize(const wstring& folderPath);
-
 	static void OutThread(CWriteTSFile* sys);
 
 protected:
@@ -83,7 +76,8 @@ protected:
 	std::list<vector<BYTE>> tsFreeList;
 
 	thread_ outThread;
-	atomic_bool_ outStopFlag;
+	atomic_int_ outStopState;
+	CAutoResetEvent outStopEvent;
 
 	struct SAVE_INFO {
 		CWritePlugInUtil writeUtil;

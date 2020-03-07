@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "StructDef.h"
 
@@ -12,100 +12,100 @@ public:
 	CSendCtrlCmd(void);
 	~CSendCtrlCmd(void);
 
-#ifndef SEND_CTRL_CMD_NO_TCP
-	//‘—óMƒ^ƒCƒ€ƒAƒEƒgiÚ‘±æ‚ª—v‹‚ğˆ—‚·‚é‚Ì‚É‚©‚©‚éŠÔ‚æ‚è‚à\•ª‚É’·‚­j
+#if !defined(SEND_CTRL_CMD_NO_TCP) && defined(_WIN32)
+	//é€å—ä¿¡ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆï¼ˆæ¥ç¶šå…ˆãŒè¦æ±‚ã‚’å‡¦ç†ã™ã‚‹ã®ã«ã‹ã‹ã‚‹æ™‚é–“ã‚ˆã‚Šã‚‚ååˆ†ã«é•·ãï¼‰
 	static const DWORD SND_RCV_TIMEOUT = 30000;
 
-	//ƒRƒ}ƒ“ƒh‘—M•û–@‚Ìİ’è
-	//ˆø”F
-	// tcpFlag		[IN] TRUEFTCP/IPƒ‚[ƒhAFALSEF–¼‘O•t‚«ƒpƒCƒvƒ‚[ƒh
+	//ã‚³ãƒãƒ³ãƒ‰é€ä¿¡æ–¹æ³•ã®è¨­å®š
+	//å¼•æ•°ï¼š
+	// tcpFlag		[IN] TRUEï¼šTCP/IPãƒ¢ãƒ¼ãƒ‰ã€FALSEï¼šåå‰ä»˜ããƒ‘ã‚¤ãƒ—ãƒ¢ãƒ¼ãƒ‰
 	void SetSendMode(
 		BOOL tcpFlag_
 		);
 #endif
 
-	//–¼‘O•t‚«ƒpƒCƒvƒ‚[ƒh‚ÌÚ‘±æ‚ğİ’è
-	//EpgTimerSrv.exe‚É‘Î‚·‚éƒRƒ}ƒ“ƒh‚Íİ’è‚µ‚È‚­‚Ä‚à‰ÂiƒfƒtƒHƒ‹ƒg’l‚É‚È‚Á‚Ä‚¢‚éj
-	//ˆø”F
-	// eventName	[IN]”r‘¼§Œä—pEvent‚Ì–¼‘O
-	// pipeName		[IN]Ú‘±ƒpƒCƒv‚Ì–¼‘O
+	//åå‰ä»˜ããƒ‘ã‚¤ãƒ—ãƒ¢ãƒ¼ãƒ‰æ™‚ã®æ¥ç¶šå…ˆã‚’è¨­å®š
+	//EpgTimerSrv.exeã«å¯¾ã™ã‚‹ã‚³ãƒãƒ³ãƒ‰ã¯è¨­å®šã—ãªãã¦ã‚‚å¯ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã«ãªã£ã¦ã„ã‚‹ï¼‰
+	//å¼•æ•°ï¼š
+	// pipeName		[IN]æ¥ç¶šãƒ‘ã‚¤ãƒ—ã®åå‰
 	void SetPipeSetting(
-		LPCWSTR eventName_,
 		LPCWSTR pipeName_
 		);
 
-	//–¼‘O•t‚«ƒpƒCƒvƒ‚[ƒh‚ÌÚ‘±æ‚ğİ’èiÚ”ö‚ÉƒvƒƒZƒXID‚ğ”º‚¤ƒ^ƒCƒvj
-	//ˆø”F
-	// pid			[IN]ƒvƒƒZƒXID
+	//åå‰ä»˜ããƒ‘ã‚¤ãƒ—ãƒ¢ãƒ¼ãƒ‰æ™‚ã®æ¥ç¶šå…ˆã‚’è¨­å®šï¼ˆæ¥å°¾ã«ãƒ—ãƒ­ã‚»ã‚¹IDã‚’ä¼´ã†ã‚¿ã‚¤ãƒ—ï¼‰
+	//å¼•æ•°ï¼š
+	// pid			[IN]ãƒ—ãƒ­ã‚»ã‚¹ID
 	void SetPipeSetting(
-		LPCWSTR eventName_,
 		LPCWSTR pipeName_,
 		DWORD pid
 		);
 
-	//TCP/IPƒ‚[ƒh‚ÌÚ‘±æ‚ğİ’è
-	//ˆø”F
-	// ip			[IN]Ú‘±æIP
-	// port			[IN]Ú‘±æƒ|[ƒg
+	//æ¥ç¶šå…ˆãƒ‘ã‚¤ãƒ—ãŒå­˜åœ¨ã™ã‚‹ã‹èª¿ã¹ã‚‹
+	bool PipeExists();
+
+	//TCP/IPãƒ¢ãƒ¼ãƒ‰æ™‚ã®æ¥ç¶šå…ˆã‚’è¨­å®š
+	//å¼•æ•°ï¼š
+	// ip			[IN]æ¥ç¶šå…ˆIP
+	// port			[IN]æ¥ç¶šå…ˆãƒãƒ¼ãƒˆ
 	void SetNWSetting(
 		const wstring& ip,
 		DWORD port
 		);
 
-	//Ú‘±ˆ—‚Ìƒ^ƒCƒ€ƒAƒEƒgİ’è
-	// timeOut		[IN]ƒ^ƒCƒ€ƒAƒEƒg’li’PˆÊFmsj
+	//æ¥ç¶šå‡¦ç†æ™‚ã®ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆè¨­å®š
+	// timeOut		[IN]ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆå€¤ï¼ˆå˜ä½ï¼šmsï¼‰
 	void SetConnectTimeOut(
 		DWORD timeOut
 		);
 
-	//EPGƒf[ƒ^‚ğÄ“Ç‚İ‚İ‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//EPGãƒ‡ãƒ¼ã‚¿ã‚’å†èª­ã¿è¾¼ã¿ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendReloadEpg(){
 		return SendCmdWithoutData(CMD2_EPG_SRV_RELOAD_EPG);
 	}
 
-	//İ’èî•ñ‚ğÄ“Ç‚İ‚İ‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//è¨­å®šæƒ…å ±ã‚’å†èª­ã¿è¾¼ã¿ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendReloadSetting(){
 		return SendCmdWithoutData(CMD2_EPG_SRV_RELOAD_SETTING);
 	}
 
-	//EpgTimerSrv.exe‚ÌƒpƒCƒvÚ‘±GUI‚Æ‚µ‚ÄƒvƒƒZƒX‚ğ“o˜^‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// processID			[IN]ƒvƒƒZƒXID
+	//EpgTimerSrv.exeã®ãƒ‘ã‚¤ãƒ—æ¥ç¶šGUIã¨ã—ã¦ãƒ—ãƒ­ã‚»ã‚¹ã‚’ç™»éŒ²ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// processID			[IN]ãƒ—ãƒ­ã‚»ã‚¹ID
 	DWORD SendRegistGUI(DWORD processID){
 		return SendCmdData(CMD2_EPG_SRV_REGIST_GUI, processID);
 	}
 
-	//EpgTimerSrv.exe‚ÌƒpƒCƒvÚ‘±GUI“o˜^‚ğ‰ğœ‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// processID			[IN]ƒvƒƒZƒXID
+	//EpgTimerSrv.exeã®ãƒ‘ã‚¤ãƒ—æ¥ç¶šGUIç™»éŒ²ã‚’è§£é™¤ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// processID			[IN]ãƒ—ãƒ­ã‚»ã‚¹ID
 	DWORD SendUnRegistGUI(DWORD processID){
 		return SendCmdData(CMD2_EPG_SRV_UNREGIST_GUI, processID);
 	}
 
-	//—\–ñˆê——‚ğæ“¾‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val			[OUT]—\–ñˆê——
+	//äºˆç´„ä¸€è¦§ã‚’å–å¾—ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val			[OUT]äºˆç´„ä¸€è¦§
 	DWORD SendEnumReserve(
 		vector<RESERVE_DATA>* val
 		){
 		return ReceiveCmdData(CMD2_EPG_SRV_ENUM_RESERVE, val);
 	}
 
-	//—\–ñ‚ğíœ‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN]íœ‚·‚é—\–ñIDˆê——
+	//äºˆç´„ã‚’å‰Šé™¤ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN]å‰Šé™¤ã™ã‚‹äºˆç´„IDä¸€è¦§
 	DWORD SendDelReserve(const vector<DWORD>& val){
 		return SendCmdData(CMD2_EPG_SRV_DEL_RESERVE, val);
 	}
@@ -124,116 +124,116 @@ public:
 		return SendCmdWithoutData(CMD2_EPG_SRV_REBOOT);
 	}
 
-	//İ’èƒtƒ@ƒCƒ‹(ini)‚ÌXV‚ğ’Ê’m‚³‚¹‚é
-	//–ß‚è’lF
-	//ˆø”F
+	//è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«(ini)ã®æ›´æ–°ã‚’é€šçŸ¥ã•ã›ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	//å¼•æ•°ï¼š
 	// val			[IN]Sender
-	// ƒGƒ‰[ƒR[ƒh
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendProfileUpdate(
 		const wstring& val
 		){
 		return SendCmdData(CMD2_EPG_SRV_PROFILE_UPDATE, val);
 	}
 
-	//ƒXƒgƒŠ[ƒ€”zM—pƒtƒ@ƒCƒ‹‚ğ•Â‚¶‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN]§Œä—pCtrlID
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ é…ä¿¡ç”¨ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‰ã˜ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN]åˆ¶å¾¡ç”¨CtrlID
 	DWORD SendNwPlayClose(
 		DWORD val
 		){
 		return SendCmdData(CMD2_EPG_SRV_NWPLAY_CLOSE, val);
 	}
 
-	//ƒXƒgƒŠ[ƒ€”zMŠJn
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN]§Œä—pCtrlID
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ é…ä¿¡é–‹å§‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN]åˆ¶å¾¡ç”¨CtrlID
 	DWORD SendNwPlayStart(
 		DWORD val
 		){
 		return SendCmdData(CMD2_EPG_SRV_NWPLAY_PLAY, val);
 	}
 
-	//ƒXƒgƒŠ[ƒ€”zM’â~
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN]§Œä—pCtrlID
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ é…ä¿¡åœæ­¢
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN]åˆ¶å¾¡ç”¨CtrlID
 	DWORD SendNwPlayStop(
 		DWORD val
 		){
 		return SendCmdData(CMD2_EPG_SRV_NWPLAY_STOP, val);
 	}
 
-	//ƒXƒgƒŠ[ƒ€”zM‚ÅŒ»İ‚Ì‘—MˆÊ’u‚Æ‘ƒtƒ@ƒCƒ‹ƒTƒCƒY‚ğæ“¾‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN/OUT]ƒTƒCƒYî•ñ
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ é…ä¿¡ã§ç¾åœ¨ã®é€ä¿¡ä½ç½®ã¨ç·ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’å–å¾—ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN/OUT]ã‚µã‚¤ã‚ºæƒ…å ±
 	DWORD SendNwPlayGetPos(
 		NWPLAY_POS_CMD* val
 		){
 		return SendAndReceiveCmdData(CMD2_EPG_SRV_NWPLAY_GET_POS, *val, val);
 	}
 
-	//ƒXƒgƒŠ[ƒ€”zM‚Å‘—MˆÊ’u‚ğƒV[ƒN‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN]ƒTƒCƒYî•ñ
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ é…ä¿¡ã§é€ä¿¡ä½ç½®ã‚’ã‚·ãƒ¼ã‚¯ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN]ã‚µã‚¤ã‚ºæƒ…å ±
 	DWORD SendNwPlaySetPos(
 		const NWPLAY_POS_CMD* val
 		){
 		return SendCmdData(CMD2_EPG_SRV_NWPLAY_SET_POS, *val);
 	}
 
-	//ƒXƒgƒŠ[ƒ€”zM‚Å‘—Mæ‚ğİ’è‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN/OUT]ƒTƒCƒYî•ñ
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ é…ä¿¡ã§é€ä¿¡å…ˆã‚’è¨­å®šã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN/OUT]ã‚µã‚¤ã‚ºæƒ…å ±
 	DWORD SendNwPlaySetIP(
 		NWPLAY_PLAY_INFO* val
 		){
 		return SendAndReceiveCmdData(CMD2_EPG_SRV_NWPLAY_SET_IP, *val, val);
 	}
 
-//ƒ^ƒCƒ}[GUIiEpgTimer_Bon.exej—p
+//ã‚¿ã‚¤ãƒãƒ¼GUIï¼ˆEpgTimer_Bon.exeï¼‰ç”¨
 
-	//—\–ñˆê——‚Ìî•ñ‚ªXV‚³‚ê‚½
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//äºˆç´„ä¸€è¦§ã®æƒ…å ±ãŒæ›´æ–°ã•ã‚ŒãŸ
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendGUIUpdateReserve(
 		){
 		return SendCmdWithoutData(CMD2_TIMER_GUI_UPDATE_RESERVE);
 	}
 
-	//EPGƒf[ƒ^‚ÌÄ“Ç‚İ‚İ‚ªŠ®—¹‚µ‚½
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//EPGãƒ‡ãƒ¼ã‚¿ã®å†èª­ã¿è¾¼ã¿ãŒå®Œäº†ã—ãŸ
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendGUIUpdateEpgData(
 		){
 		return SendCmdWithoutData(CMD2_TIMER_GUI_UPDATE_EPGDATA);
 	}
 
-	//î•ñXV‚ğ’Ê’m‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val				[IN]’Ê’mî•ñ
+	//æƒ…å ±æ›´æ–°ã‚’é€šçŸ¥ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val				[IN]é€šçŸ¥æƒ…å ±
 	DWORD SendGUINotifyInfo2(const NOTIFY_SRV_INFO& val){
 		return SendCmdData2(CMD2_TIMER_GUI_SRV_STATUS_NOTIFY2, val);
 	}
 
-	//ViewƒAƒvƒŠiEpgDataCap_Bon.exej‚ğ‹N“®
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// exeCmd			[IN]ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“
-	// PID				[OUT]‹N“®‚µ‚½exe‚ÌPID
+	//Viewã‚¢ãƒ—ãƒªï¼ˆEpgDataCap_Bon.exeï¼‰ã‚’èµ·å‹•
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// exeCmd			[IN]ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³
+	// PID				[OUT]èµ·å‹•ã—ãŸexeã®PID
 	DWORD SendGUIExecute(
 		const wstring& exeCmd,
 		DWORD* PID
@@ -241,9 +241,9 @@ public:
 		return SendAndReceiveCmdData(CMD2_TIMER_GUI_VIEW_EXECUTE, exeCmd, PID);
 	}
 
-	//ƒXƒ^ƒ“ƒoƒCA‹x~AƒVƒƒƒbƒgƒ_ƒEƒ“‚É“ü‚Á‚Ä‚¢‚¢‚©‚ÌŠm”F‚ğƒ†[ƒU[‚És‚¤
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//ã‚¹ã‚¿ãƒ³ãƒã‚¤ã€ä¼‘æ­¢ã€ã‚·ãƒ£ãƒƒãƒˆãƒ€ã‚¦ãƒ³ã«å…¥ã£ã¦ã„ã„ã‹ã®ç¢ºèªã‚’ãƒ¦ãƒ¼ã‚¶ãƒ¼ã«è¡Œã†
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendGUIQuerySuspend(
 		BYTE rebootFlag,
 		BYTE suspendMode
@@ -251,20 +251,20 @@ public:
 		return SendCmdData(CMD2_TIMER_GUI_QUERY_SUSPEND, (WORD)(rebootFlag<<8|suspendMode));
 	}
 
-	//PCÄ‹N“®‚É“ü‚Á‚Ä‚¢‚¢‚©‚ÌŠm”F‚ğƒ†[ƒU[‚És‚¤
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//PCå†èµ·å‹•ã«å…¥ã£ã¦ã„ã„ã‹ã®ç¢ºèªã‚’ãƒ¦ãƒ¼ã‚¶ãƒ¼ã«è¡Œã†
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendGUIQueryReboot(
 		BYTE rebootFlag
 		){
 		return SendCmdData(CMD2_TIMER_GUI_QUERY_REBOOT, (WORD)(rebootFlag<<8));
 	}
 
-	//ƒT[ƒo[‚ÌƒXƒe[ƒ^ƒX•ÏX’Ê’m
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// status			[IN]ƒXƒe[ƒ^ƒX
+	//ã‚µãƒ¼ãƒãƒ¼ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰æ›´é€šçŸ¥
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// status			[IN]ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 	DWORD SendGUIStatusChg(
 		WORD status
 		){
@@ -272,64 +272,64 @@ public:
 	}
 
 
-//ViewƒAƒvƒŠiEpgDataCap_Bon.exej—p
+//Viewã‚¢ãƒ—ãƒªï¼ˆEpgDataCap_Bon.exeï¼‰ç”¨
 
-	//g—p’†‚ÌBonDriver‚Ìƒtƒ@ƒCƒ‹–¼‚ğæ“¾
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// bonDriver			[OUT]BonDriverƒtƒ@ƒCƒ‹–¼
+	//ä½¿ç”¨ä¸­ã®BonDriverã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å–å¾—
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// bonDriver			[OUT]BonDriverãƒ•ã‚¡ã‚¤ãƒ«å
 	DWORD SendViewGetBonDrivere(
 		wstring* bonDriver
 		){
 		return ReceiveCmdData(CMD2_VIEW_APP_GET_BONDRIVER, bonDriver);
 	}
 
-	//ƒ`ƒƒƒ“ƒlƒ‹Ø‚è‘Ö‚¦
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// chInfo				[IN]ƒ`ƒƒƒ“ƒlƒ‹î•ñ
+	//ãƒãƒ£ãƒ³ãƒãƒ«åˆ‡ã‚Šæ›¿ãˆ
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// chInfo				[IN]ãƒãƒ£ãƒ³ãƒãƒ«æƒ…å ±
 	DWORD SendViewSetCh(
 		const SET_CH_INFO& chInfo
 		){
 		return SendCmdData(CMD2_VIEW_APP_SET_CH, chInfo);
 	}
 
-	//•ú‘—”g‚ÌŠÔ‚ÆPCŠÔ‚ÌŒë·æ“¾
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// delaySec				[OUT]Œë·i•bj
+	//æ”¾é€æ³¢ã®æ™‚é–“ã¨PCæ™‚é–“ã®èª¤å·®å–å¾—
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// delaySec				[OUT]èª¤å·®ï¼ˆç§’ï¼‰
 	DWORD SendViewGetDelay(
 		int* delaySec
 		){
 		return ReceiveCmdData(CMD2_VIEW_APP_GET_DELAY, delaySec);
 	}
 
-	//Œ»İ‚Ìó‘Ô‚ğæ“¾
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// status				[OUT]ó‘Ô
+	//ç¾åœ¨ã®çŠ¶æ…‹ã‚’å–å¾—
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// status				[OUT]çŠ¶æ…‹
 	DWORD SendViewGetStatus(
 		DWORD* status
 		){
 		return ReceiveCmdData(CMD2_VIEW_APP_GET_STATUS, status);
 	}
 
-	//ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ÌI—¹
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®çµ‚äº†
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendViewAppClose(
 		){
 		return SendCmdWithoutData(CMD2_VIEW_APP_CLOSE);
 	}
 
-	//¯•Ê—pID‚Ìİ’è
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
+	//è­˜åˆ¥ç”¨IDã®è¨­å®š
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
 	// id				[IN]ID
 	DWORD SendViewSetID(
 		int id
@@ -337,10 +337,10 @@ public:
 		return SendCmdData(CMD2_VIEW_APP_SET_ID, id);
 	}
 
-	//¯•Ê—pID‚Ìæ“¾
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
+	//è­˜åˆ¥ç”¨IDã®å–å¾—
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
 	// id				[OUT]ID
 	DWORD SendViewGetID(
 		int* id
@@ -348,65 +348,65 @@ public:
 		return ReceiveCmdData(CMD2_VIEW_APP_GET_ID, id);
 	}
 
-	//—\–ñ˜^‰æ—p‚ÉGUIƒL[ƒv
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//äºˆç´„éŒ²ç”»ç”¨ã«GUIã‚­ãƒ¼ãƒ—
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendViewSetStandbyRec(
 		DWORD keepFlag
 		){
 		return SendCmdData(CMD2_VIEW_APP_SET_STANDBY_REC, keepFlag);
 	}
 
-	//ƒXƒgƒŠ[ƒ€§Œä—pƒRƒ“ƒgƒ[ƒ‹ì¬
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// ctrlID				[OUT]§ŒäID
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ åˆ¶å¾¡ç”¨ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ä½œæˆ
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// ctrlID				[OUT]åˆ¶å¾¡ID
 	DWORD SendViewCreateCtrl(
 		DWORD* ctrlID
 		){
 		return ReceiveCmdData(CMD2_VIEW_APP_CREATE_CTRL, ctrlID);
 	}
 
-	//ƒXƒgƒŠ[ƒ€§Œä—pƒRƒ“ƒgƒ[ƒ‹íœ
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// ctrlID				[IN]§ŒäID
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ åˆ¶å¾¡ç”¨ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«å‰Šé™¤
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// ctrlID				[IN]åˆ¶å¾¡ID
 	DWORD SendViewDeleteCtrl(
 		DWORD ctrlID
 		){
 		return SendCmdData(CMD2_VIEW_APP_DELETE_CTRL, ctrlID);
 	}
 
-	//§ŒäƒRƒ“ƒgƒ[ƒ‹‚Ìİ’è
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val					[IN]İ’è’l
+	//åˆ¶å¾¡ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®è¨­å®š
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val					[IN]è¨­å®šå€¤
 	DWORD SendViewSetCtrlMode(
 		const SET_CTRL_MODE& val
 		){
 		return SendCmdData(CMD2_VIEW_APP_SET_CTRLMODE, val);
 	}
 
-	//˜^‰æˆ—ŠJn
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val					[IN]İ’è’l
+	//éŒ²ç”»å‡¦ç†é–‹å§‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val					[IN]è¨­å®šå€¤
 	DWORD SendViewStartRec(
 		const SET_CTRL_REC_PARAM& val
 		){
 		return SendCmdData(CMD2_VIEW_APP_REC_START_CTRL, val);
 	}
 
-	//˜^‰æˆ—’â~
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val					[IN]İ’è’l
-	// resVal				[OUT]ƒhƒƒbƒv”
+	//éŒ²ç”»å‡¦ç†åœæ­¢
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val					[IN]è¨­å®šå€¤
+	// resVal				[OUT]ãƒ‰ãƒ­ãƒƒãƒ—æ•°
 	DWORD SendViewStopRec(
 		const SET_CTRL_REC_STOP_PARAM& val,
 		SET_CTRL_REC_STOP_RES_PARAM* resVal
@@ -414,11 +414,11 @@ public:
 		return SendAndReceiveCmdData(CMD2_VIEW_APP_REC_STOP_CTRL, val, resVal);
 	}
 
-	//˜^‰æ’†‚Ìƒtƒ@ƒCƒ‹ƒpƒX‚ğæ“¾
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val					[OUT]ƒtƒ@ƒCƒ‹ƒpƒX
+	//éŒ²ç”»ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ã‚’å–å¾—
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val					[OUT]ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
 	DWORD SendViewGetRecFilePath(
 		DWORD ctrlID,
 		wstring* resVal
@@ -426,30 +426,30 @@ public:
 		return SendAndReceiveCmdData(CMD2_VIEW_APP_REC_FILE_PATH, ctrlID, resVal);
 	}
 
-	//EPGæ“¾ŠJn
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	//ˆø”F
-	// val					[IN]æ“¾ƒ`ƒƒƒ“ƒlƒ‹ƒŠƒXƒg
+	//EPGå–å¾—é–‹å§‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	//å¼•æ•°ï¼š
+	// val					[IN]å–å¾—ãƒãƒ£ãƒ³ãƒãƒ«ãƒªã‚¹ãƒˆ
 	DWORD SendViewEpgCapStart(
 		const vector<SET_CH_INFO>& val
 		){
 		return SendCmdData(CMD2_VIEW_APP_EPGCAP_START, val);
 	}
 
-	//EPGæ“¾ƒLƒƒƒ“ƒZƒ‹
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//EPGå–å¾—ã‚­ãƒ£ãƒ³ã‚»ãƒ«
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendViewEpgCapStop(
 		){
 		return SendCmdWithoutData(CMD2_VIEW_APP_EPGCAP_STOP);
 	}
 
-	//EPGƒf[ƒ^‚ÌŒŸõ
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	// val					[IN]æ“¾”Ô‘g
-	// resVal				[OUT]”Ô‘gî•ñ
+	//EPGãƒ‡ãƒ¼ã‚¿ã®æ¤œç´¢
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	// val					[IN]å–å¾—ç•ªçµ„
+	// resVal				[OUT]ç•ªçµ„æƒ…å ±
 	DWORD SendViewSearchEvent(
 		const SEARCH_EPG_INFO_PARAM& val,
 		EPGDB_EVENT_INFO* resVal
@@ -457,11 +457,11 @@ public:
 		return SendAndReceiveCmdData(CMD2_VIEW_APP_SEARCH_EVENT, val, resVal);
 	}
 
-	//Œ»İorŸ‚Ì”Ô‘gî•ñ‚ğæ“¾‚·‚é
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
-	// val					[IN]æ“¾”Ô‘g
-	// resVal				[OUT]”Ô‘gî•ñ
+	//ç¾åœ¨oræ¬¡ã®ç•ªçµ„æƒ…å ±ã‚’å–å¾—ã™ã‚‹
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
+	// val					[IN]å–å¾—ç•ªçµ„
+	// resVal				[OUT]ç•ªçµ„æƒ…å ±
 	DWORD SendViewGetEventPF(
 		const GET_EPG_PF_INFO_PARAM& val,
 		EPGDB_EVENT_INFO* resVal
@@ -469,9 +469,9 @@ public:
 		return SendAndReceiveCmdData(CMD2_VIEW_APP_GET_EVENT_PF, val, resVal);
 	}
 
-	//Viewƒ{ƒ^ƒ““o˜^ƒAƒvƒŠ‹N“®
-	//–ß‚è’lF
-	// ƒGƒ‰[ƒR[ƒh
+	//Viewãƒœã‚¿ãƒ³ç™»éŒ²ã‚¢ãƒ—ãƒªèµ·å‹•
+	//æˆ»ã‚Šå€¤ï¼š
+	// ã‚¨ãƒ©ãƒ¼ã‚³ãƒ¼ãƒ‰
 	DWORD SendViewExecViewApp(
 		){
 		return SendCmdWithoutData(CMD2_VIEW_APP_EXEC_VIEW_APP);
@@ -480,14 +480,13 @@ public:
 private:
 	BOOL tcpFlag;
 	DWORD connectTimeOut;
-	wstring eventName;
 	wstring pipeName;
 	wstring sendIP;
 	DWORD sendPort;
 
 	CSendCtrlCmd(const CSendCtrlCmd&);
 	CSendCtrlCmd& operator=(const CSendCtrlCmd&);
-	DWORD SendCmdStream(const CMD_STREAM* send, CMD_STREAM* res);
+	DWORD SendCmdStream(const CMD_STREAM* cmd, CMD_STREAM* res);
 	DWORD SendCmdWithoutData(DWORD param, CMD_STREAM* res = NULL);
 	DWORD SendCmdWithoutData2(DWORD param, CMD_STREAM* res = NULL);
 	template<class T> DWORD SendCmdData(DWORD param, const T& val, CMD_STREAM* res = NULL);
@@ -498,13 +497,13 @@ private:
 	template<class T, class U> DWORD SendAndReceiveCmdData2(DWORD param, const T& val, U* resVal);
 };
 
-#if 1 //ƒCƒ“ƒ‰ƒCƒ“/ƒeƒ“ƒvƒŒ[ƒg’è‹`
+#if 1 //ã‚¤ãƒ³ãƒ©ã‚¤ãƒ³/ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆå®šç¾©
 
 inline DWORD CSendCtrlCmd::SendCmdWithoutData(DWORD param, CMD_STREAM* res)
 {
-	CMD_STREAM send;
-	send.param = param;
-	return SendCmdStream(&send, res);
+	CMD_STREAM cmd;
+	cmd.param = param;
+	return SendCmdStream(&cmd, res);
 }
 
 inline DWORD CSendCtrlCmd::SendCmdWithoutData2(DWORD param, CMD_STREAM* res)
@@ -515,26 +514,26 @@ inline DWORD CSendCtrlCmd::SendCmdWithoutData2(DWORD param, CMD_STREAM* res)
 template<class T>
 DWORD CSendCtrlCmd::SendCmdData(DWORD param, const T& val, CMD_STREAM* res)
 {
-	CMD_STREAM send;
-	send.param = param;
-	send.data = NewWriteVALUE(val, send.dataSize);
-	if( send.data == NULL ){
+	CMD_STREAM cmd;
+	cmd.param = param;
+	cmd.data = NewWriteVALUE(val, cmd.dataSize);
+	if( cmd.data == NULL ){
 		return CMD_ERR;
 	}
-	return SendCmdStream(&send, res);
+	return SendCmdStream(&cmd, res);
 }
 
 template<class T>
 DWORD CSendCtrlCmd::SendCmdData2(DWORD param, const T& val, CMD_STREAM* res)
 {
 	WORD ver = CMD_VER;
-	CMD_STREAM send;
-	send.param = param;
-	send.data = NewWriteVALUE2WithVersion(ver, val, send.dataSize);
-	if( send.data == NULL ){
+	CMD_STREAM cmd;
+	cmd.param = param;
+	cmd.data = NewWriteVALUE2WithVersion(ver, val, cmd.dataSize);
+	if( cmd.data == NULL ){
 		return CMD_ERR;
 	}
-	return SendCmdStream(&send, res);
+	return SendCmdStream(&cmd, res);
 }
 
 template<class T>

@@ -1,14 +1,18 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "BatManager.h"
 
 #include "../../Common/SendCtrlCmd.h"
 #include "../../Common/StringUtil.h"
 #include "../../Common/PathUtil.h"
+#ifndef _WIN32
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
-CBatManager::CBatManager(CNotifyManager& notifyManager_, LPCWSTR tmpBatFileName)
+CBatManager::CBatManager(CNotifyManager& notifyManager_, LPCWSTR name)
 	: notifyManager(notifyManager_)
 {
-	this->tmpBatFilePath = GetModulePath().replace_filename(tmpBatFileName).native();
+	this->managerName = name;
 	this->idleMargin = MAXDWORD;
 	this->nextBatMargin = 0;
 }
@@ -51,6 +55,27 @@ void CBatManager::SetCustomHandler(LPCWSTR ext, const std::function<void(BAT_WOR
 	this->customExt = ext;
 }
 
+wstring CBatManager::FindExistingPath(LPCWSTR basePath) const
+{
+	fs_path path = basePath;
+#ifdef _WIN32
+	if( UtilFileExists(path.concat(L".bat")).first ||
+	    UtilFileExists(path.replace_extension(L".ps1")).first ){
+#else
+	if( UtilFileExists(path.concat(L".sh")).first ){
+#endif
+		return path.native();
+	}
+	{
+		CBlockLock lock(&this->managerLock);
+		if( !this->customHandler ){
+			return wstring();
+		}
+		path.replace_extension(this->customExt);
+	}
+	return UtilFileExists(path).first ? path.native() : wstring();
+}
+
 bool CBatManager::IsWorking() const
 {
 	CBlockLock lock(&this->managerLock);
@@ -70,7 +95,7 @@ void CBatManager::StartWork()
 {
 	CBlockLock lock(&this->managerLock);
 
-	//ƒ[ƒJƒXƒŒƒbƒh‚ªI—¹‚µ‚æ‚¤‚Æ‚µ‚Ä‚¢‚é‚Æ‚«‚Í‚»‚ÌŠ®—¹‚ğ‘Ò‚Â
+	//ãƒ¯ãƒ¼ã‚«ã‚¹ãƒ¬ãƒƒãƒ‰ãŒçµ‚äº†ã—ã‚ˆã†ã¨ã—ã¦ã„ã‚‹ã¨ãã¯ãã®å®Œäº†ã‚’å¾…ã¤
 	if( this->batWorkThread.joinable() && this->batWorkExitingFlag ){
 		this->batWorkThread.join();
 	}
@@ -92,7 +117,7 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 	for(;;){
 		while( notifyWorkWait && sys->batWorkStopFlag == false && sys->IsWorking() == false ){
 			DWORD tick = GetTickCount();
-			WaitForSingleObject(sys->batWorkEvent.Handle(), notifyWorkWait);
+			sys->batWorkEvent.WaitOne(notifyWorkWait);
 			DWORD diff = GetTickCount() - tick;
 			notifyWorkWait -= min(diff, notifyWorkWait);
 			if( notifyWorkWait == 0 ){
@@ -101,48 +126,52 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 			}
 		}
 		if( sys->batWorkStopFlag ){
-			//’†~
+			//ä¸­æ­¢
 			break;
 		}
 
 		BAT_WORK_INFO work;
-		fs_path batFilePath;
+		bool workable = true;
 		std::function<void(BAT_WORK_INFO&, vector<char>&)> customHandler_;
 		{
 			CBlockLock lock(&sys->managerLock);
 			if( sys->workList.empty() ){
-				//‚±‚Ìƒtƒ‰ƒO‚ğ—§‚Ä‚½‚ ‚Æ‚Í“ñ“x‚ÆƒƒbƒN‚ğŠm•Û‚µ‚Ä‚Í‚¢‚¯‚È‚¢
+				//ã“ã®ãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ãŸã‚ã¨ã¯äºŒåº¦ã¨ãƒ­ãƒƒã‚¯ã‚’ç¢ºä¿ã—ã¦ã¯ã„ã‘ãªã„
 				sys->batWorkExitingFlag = true;
 				sys->nextBatMargin = 0;
 				break;
 			}
 			work = sys->workList[0];
-			batFilePath = work.batFilePath;
-			if( !IsExt(batFilePath, L".bat") && !IsExt(batFilePath, L".ps1") ){
-				if( sys->customHandler && IsExt(batFilePath, sys->customExt.c_str()) ){
+#ifdef _WIN32
+			if( !UtilPathEndsWith(work.batFilePath.c_str(), L".bat") &&
+			    !UtilPathEndsWith(work.batFilePath.c_str(), L".ps1") ){
+#else
+			if( !UtilPathEndsWith(work.batFilePath.c_str(), L".sh") ){
+#endif
+				if( sys->customHandler && UtilPathEndsWith(work.batFilePath.c_str(), sys->customExt.c_str()) ){
 					customHandler_ = sys->customHandler;
 				}else{
-					batFilePath.clear();
+					workable = false;
 				}
 			}
 		}
 
-		if( batFilePath.empty() == false ){
+		if( workable ){
 			DWORD exBatMargin;
 			DWORD exNotifyInterval;
 			WORD exSW;
-			wstring exDirect;
+			bool exDirect;
 			vector<char> buff;
 			if( sys->CreateBatFile(work, exBatMargin, exNotifyInterval, exSW, exDirect, buff) ){
 				{
 					CBlockLock lock(&sys->managerLock);
 					if( sys->idleMargin < exBatMargin ){
-						//ƒAƒCƒhƒ‹ŠÔ‚É—]—T‚ª‚È‚¢‚Ì‚Å’†~
+						//ã‚¢ã‚¤ãƒ‰ãƒ«æ™‚é–“ã«ä½™è£•ãŒãªã„ã®ã§ä¸­æ­¢
 						sys->batWorkExitingFlag = true;
 						sys->nextBatMargin = exBatMargin;
 						break;
 					}
-					//NotifyIntervalŠg’£: macroList[0]‚ª"NotifyID"‚Ì‚Æ‚«A‚±‚Ì’l‚ğ"0"‚É‚µ‚Äw’èŠÔŒã‚ÉÄ”­s‚·‚éBidleMargin‚Æ•¹—p•s‰Â
+					//NotifyIntervalæ‹¡å¼µ: macroList[0]ãŒ"NotifyID"ã®ã¨ãã€ã“ã®å€¤ã‚’"0"ã«ã—ã¦æŒ‡å®šæ™‚é–“å¾Œã«å†ç™ºè¡Œã™ã‚‹ã€‚idleMarginã¨ä½µç”¨ä¸å¯
 					if( exNotifyInterval && notifyWorkWait == 0 &&
 					    sys->workList[0].macroList.empty() == false && sys->workList[0].macroList[0].first == "NotifyID" ){
 						notifyWorkWait = exNotifyInterval;
@@ -155,17 +184,18 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 						customHandler_(work, buff);
 					}
 				}else{
+#ifdef _WIN32
 					bool executed = false;
 					HANDLE hProcess = NULL;
-					if( exDirect.empty() && sys->notifyManager.IsGUI() == false ){
-						//•\¦‚Å‚«‚È‚¢‚Ì‚ÅGUIŒo—R‚Å‹N“®‚µ‚Ä‚İ‚é
+					if( exDirect == false && sys->notifyManager.IsGUI() == false ){
+						//è¡¨ç¤ºã§ããªã„ã®ã§GUIçµŒç”±ã§èµ·å‹•ã—ã¦ã¿ã‚‹
 						CSendCtrlCmd ctrlCmd;
 						vector<DWORD> registGUI = sys->notifyManager.GetRegistGUI();
 						for( size_t i = 0; i < registGUI.size(); i++ ){
-							ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_WAIT_CONNECT, CMD2_GUI_CTRL_PIPE, registGUI[i]);
+							ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_PIPE, registGUI[i]);
 							DWORD pid;
-							if( ctrlCmd.SendGUIExecute(L'"' + sys->tmpBatFilePath + L'"', &pid) == CMD_SUCCESS ){
-								//ƒnƒ“ƒhƒ‹ŠJ‚­‘O‚ÉI—¹‚·‚é‚©‚à‚µ‚ê‚È‚¢
+							if( ctrlCmd.SendGUIExecute(L'"' + work.batFilePath + L'"', &pid) == CMD_SUCCESS ){
+								//ãƒãƒ³ãƒ‰ãƒ«é–‹ãå‰ã«çµ‚äº†ã™ã‚‹ã‹ã‚‚ã—ã‚Œãªã„
 								executed = true;
 								hProcess = OpenProcess(SYNCHRONIZE | PROCESS_SET_INFORMATION, FALSE, pid);
 								if( hProcess ){
@@ -181,17 +211,11 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 						si.cb = sizeof(si);
 						si.dwFlags = STARTF_USESHOWWINDOW;
 						si.wShowWindow = exSW;
-						fs_path batFolder;
-						if( exDirect.empty() ){
-							batFilePath = sys->tmpBatFilePath;
-						}else{
-							batFolder = batFilePath.parent_path();
-						}
 						fs_path exePath;
 						wstring strParam;
-						if( IsExt(batFilePath, L".ps1") ){
+						if( UtilPathEndsWith(work.batFilePath.c_str(), L".ps1") ){
 							//PowerShell
-							strParam = L" -NoProfile -ExecutionPolicy RemoteSigned -File \"" + batFilePath.native() + L"\"";
+							strParam = L" -NoProfile -ExecutionPolicy RemoteSigned -File \"" + work.batFilePath + L"\"";
 							WCHAR szSystemRoot[MAX_PATH];
 							DWORD dwRet = GetEnvironmentVariable(L"SystemRoot", szSystemRoot, MAX_PATH);
 							if( dwRet && dwRet < MAX_PATH ){
@@ -199,8 +223,8 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 								exePath.append(L"System32\\WindowsPowerShell\\v1.0\\powershell.exe");
 							}
 						}else{
-							//ƒRƒ}ƒ“ƒhƒvƒƒ“ƒvƒg
-							strParam = L" /c \"\"" + batFilePath.native() + L"\" \"";
+							//ã‚³ãƒãƒ³ãƒ‰ãƒ—ãƒ­ãƒ³ãƒ—ãƒˆ
+							strParam = L" /c \"\"" + work.batFilePath + L"\" \"";
 							WCHAR szComSpec[MAX_PATH];
 							DWORD dwRet = GetEnvironmentVariable(L"ComSpec", szComSpec, MAX_PATH);
 							if( dwRet && dwRet < MAX_PATH ){
@@ -208,29 +232,56 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 							}
 						}
 						vector<WCHAR> strBuff(strParam.c_str(), strParam.c_str() + strParam.size() + 1);
-						if( exePath.empty() == false &&
-						    CreateProcess(exePath.c_str(), strBuff.data(), NULL, NULL, FALSE,
-						                  BELOW_NORMAL_PRIORITY_CLASS | (exDirect.empty() ? 0 : CREATE_UNICODE_ENVIRONMENT),
-						                  exDirect.empty() ? NULL : const_cast<LPWSTR>(exDirect.c_str()),
-						                  exDirect.empty() ? NULL : batFolder.c_str(), &si, &pi) != FALSE ){
-							CloseHandle(pi.hThread);
-							hProcess = pi.hProcess;
-						}else{
-							_OutputDebugString(L"BAT‹N“®ƒGƒ‰[F%s\r\n", batFilePath.c_str());
+						//ã“ã“ã§çŸ­çµ¡è©•ä¾¡ã™ã‚‹ã¨C4701(piãŒæœªåˆæœŸåŒ–)ã«ãªã‚‹ã€‚ãŠãã‚‰ãå½é™½æ€§
+						if( exePath.empty() == false ){
+							if( CreateProcess(exePath.c_str(), strBuff.data(), NULL, NULL, FALSE,
+							                  BELOW_NORMAL_PRIORITY_CLASS | (exDirect ? CREATE_UNICODE_ENVIRONMENT : 0),
+							                  exDirect ? const_cast<LPWSTR>(CreateEnvironment(work).c_str()) : NULL,
+							                  exDirect ? fs_path(work.batFilePath).parent_path().c_str() : NULL, &si, &pi) ){
+								CloseHandle(pi.hThread);
+								hProcess = pi.hProcess;
+							}
+						}
+						if( hProcess == NULL ){
+							_OutputDebugString(L"BATèµ·å‹•ã‚¨ãƒ©ãƒ¼ï¼š%ls\r\n", work.batFilePath.c_str());
 						}
 					}
 					if( hProcess ){
-						//I—¹ŠÄ‹
+						//çµ‚äº†ç›£è¦–
 						HANDLE hEvents[2] = { sys->batWorkEvent.Handle(), hProcess };
 						while( WaitForMultipleObjects(2, hEvents, FALSE, INFINITE) == WAIT_OBJECT_0 && sys->batWorkStopFlag == false );
 						CloseHandle(hProcess);
 					}
+#else
+					string execPath;
+					WtoUTF8(work.batFilePath, execPath);
+					string execDir;
+					WtoUTF8(fs_path(work.batFilePath).parent_path().native(), execDir);
+					pid_t pid = fork();
+					if( pid == 0 ){
+						if( chdir(execDir.c_str()) == 0 ){
+							for( size_t i = 0; i < work.macroList.size(); i++ ){
+								string strVal;
+								WtoUTF8(work.macroList[i].second, strVal);
+								setenv(work.macroList[i].first.c_str(), strVal.c_str(), 0);
+							}
+							execl(execPath.c_str(), execPath.c_str(), NULL);
+						}
+						exit(EXIT_FAILURE);
+					}
+					if( pid != -1 ){
+						//çµ‚äº†ç›£è¦–(åŠ¹ç‡ã‚ˆã„æ‰‹æ³•ã¯ãªã„ã‚‚ã®ã‹â€¦)
+						while( sys->batWorkStopFlag == false && waitpid(pid, NULL, WNOHANG) == 0 ){
+							sys->batWorkEvent.WaitOne(200);
+						}
+					}
+#endif
 				}
 			}else{
-				_OutputDebugString(L"BATƒtƒ@ƒCƒ‹ì¬ƒGƒ‰[F%s\r\n", work.batFilePath.c_str());
+				_OutputDebugString(L"BATãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆã‚¨ãƒ©ãƒ¼ï¼š%ls\r\n", work.batFilePath.c_str());
 			}
 		}else{
-			_OutputDebugString(L"BATŠg’£qƒGƒ‰[F%s\r\n", work.batFilePath.c_str());
+			_OutputDebugString(L"BATæ‹¡å¼µå­ã‚¨ãƒ©ãƒ¼ï¼š%ls\r\n", work.batFilePath.c_str());
 		}
 
 		CBlockLock lock(&sys->managerLock);
@@ -238,86 +289,96 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 	}
 }
 
-bool CBatManager::CreateBatFile(BAT_WORK_INFO& info, DWORD& exBatMargin, DWORD& exNotifyInterval, WORD& exSW, wstring& exDirect, vector<char>& buff) const
+bool CBatManager::CreateBatFile(BAT_WORK_INFO& info, DWORD& exBatMargin, DWORD& exNotifyInterval, WORD& exSW, bool& exDirect, vector<char>& buff) const
 {
-	//ƒoƒbƒ`‚Ìì¬
-	std::unique_ptr<FILE, decltype(&fclose)> fp(secure_wfopen(info.batFilePath.c_str(), L"rbN"), fclose);
+	//ãƒãƒƒãƒã®ä½œæˆ
+	std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(info.batFilePath, UTIL_SECURE_READ), fclose);
 	if( !fp ){
 		return false;
 	}
 
-	//Šg’£–½—ß: BatMargin
+	//æ‹¡å¼µå‘½ä»¤: BatMargin
 	exBatMargin = 0;
-	//Šg’£–½—ß: NotifyInterval
+	//æ‹¡å¼µå‘½ä»¤: NotifyInterval
 	exNotifyInterval = 0;
-	//Šg’£–½—ß: ƒEƒBƒ“ƒhƒE•\¦ó‘Ô
-	exSW = SW_SHOWMINNOACTIVE;
-	//Šg’£–½—ß: ŠÂ‹«“n‚µ‚É‚æ‚é’¼ÚÀs
-	exDirect = L"";
-	bool exDirectFlag = false;
-	//Šg’£–½—ß: “ú‚É‚Â‚¢‚Ä‚Ì•Ï”‚ğISOŒ`®‚É‚·‚é
-	bool exFormatTime = false;
-	//ƒJƒXƒ^ƒ€ƒnƒ“ƒhƒ‰—pƒtƒ@ƒCƒ‹‚Ì’†g
+	//æ‹¡å¼µå‘½ä»¤: ç’°å¢ƒæ¸¡ã—ã«ã‚ˆã‚‹ç›´æ¥å®Ÿè¡Œ
+	exDirect = true;
+	//ã‚«ã‚¹ã‚¿ãƒ ãƒãƒ³ãƒ‰ãƒ©ç”¨ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¸­èº«
 	buff.clear();
+#ifdef _WIN32
+	//æ‹¡å¼µå‘½ä»¤: æ—¥æ™‚ã«ã¤ã„ã¦ã®å¤‰æ•°ã‚’ISOå½¢å¼ã«ã™ã‚‹
+	bool exFormatTime = true;
+	//æ‹¡å¼µå‘½ä»¤: ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¡¨ç¤ºçŠ¶æ…‹
+	exSW = SW_SHOWMINNOACTIVE;
 
-	fs_path batFilePath = info.batFilePath;
-	if( !IsExt(batFilePath, L".bat") ){
-		exDirectFlag = true;
-		exFormatTime = true;
+	if( UtilPathEndsWith(info.batFilePath.c_str(), L".bat") ){
+		exDirect = false;
+		exFormatTime = false;
 	}
+#endif
 	__int64 fileSize = 0;
 	char olbuff[257];
 	for( size_t n = fread(olbuff, 1, 256, fp.get()); ; n = fread(olbuff + 64, 1, 192, fp.get()) + 64 ){
 		olbuff[n] = '\0';
 		if( strstr(olbuff, "_EDCBX_BATMARGIN_=") ){
-			//ˆê“I‚É’f•Ğ‚ğŠi”[‚·‚é‚©‚à‚µ‚ê‚È‚¢‚ªÅI“I‚É³‚µ‚¯‚ê‚Î‚æ‚¢
+			//ä¸€æ™‚çš„ã«æ–­ç‰‡ã‚’æ ¼ç´ã™ã‚‹ã‹ã‚‚ã—ã‚Œãªã„ãŒæœ€çµ‚çš„ã«æ­£ã—ã‘ã‚Œã°ã‚ˆã„
 			exBatMargin = strtoul(strstr(olbuff, "_EDCBX_BATMARGIN_=") + 18, NULL, 10) * 60;
 		}
 		if( strstr(olbuff, "_EDCBX_NOTIFY_INTERVAL_=") ){
 			exNotifyInterval = strtoul(strstr(olbuff, "_EDCBX_NOTIFY_INTERVAL_=") + 24, NULL, 10) * 1000;
 		}
+#ifdef _WIN32
 		if( strstr(olbuff, "_EDCBX_HIDE_") ){
 			exSW = SW_HIDE;
 		}
 		if( strstr(olbuff, "_EDCBX_NORMAL_") ){
 			exSW = SW_SHOWNORMAL;
 		}
-		exDirectFlag = exDirectFlag || strstr(olbuff, "_EDCBX_DIRECT_");
+		exDirect = exDirect || strstr(olbuff, "_EDCBX_DIRECT_");
 		exFormatTime = exFormatTime || strstr(olbuff, "_EDCBX_FORMATTIME_");
+#endif
 		fileSize += (fileSize == 0 ? n : n - 64);
 		if( n < 256 ){
 			break;
 		}
 		std::copy(olbuff + 192, olbuff + 256, olbuff);
 	}
-	if( exFormatTime ){
-		//#‚ÅƒRƒƒ“ƒgƒAƒEƒg‚³‚ê‚Ä‚¢‚é‚à‚Ì‚ğÁ‚·
-		info.macroList.erase(std::remove_if(info.macroList.begin(), info.macroList.end(),
-			[](const pair<string, wstring>& a) { return a.first.compare(0, 1, "#") == 0; }), info.macroList.end());
-	}else{
-		info.macroList.erase(std::remove_if(info.macroList.begin(), info.macroList.end(),
-			[](const pair<string, wstring>& a) { return a.first.compare(0, 9, "StartTime") == 0 || a.first.compare(0, 14, "DurationSecond") == 0; }),
-			info.macroList.end());
-		//ƒRƒƒ“ƒgƒAƒEƒg‚ğ‰ğœ‚·‚é
-		for( size_t i = 0; i < info.macroList.size(); i++ ){
+
+	for( size_t i = 0; i < info.macroList.size(); ){
+#ifdef _WIN32
+		if( exFormatTime == false ){
+			if( info.macroList[i].first.compare(0, 9, "StartTime") == 0 ||
+			    info.macroList[i].first.compare(0, 14, "DurationSecond") == 0 ){
+				info.macroList.erase(info.macroList.begin() + i);
+				continue;
+			}
+			//ã‚³ãƒ¡ãƒ³ãƒˆã‚¢ã‚¦ãƒˆã‚’è§£é™¤ã™ã‚‹
 			if( info.macroList[i].first.compare(0, 1, "#") == 0 ){
 				info.macroList[i].first.erase(0, 1);
 			}
 		}
-	}
-	for( size_t i = 0; i < info.macroList.size(); i++ ){
+#endif
+		//ã‚³ãƒ¡ãƒ³ãƒˆã‚¢ã‚¦ãƒˆã•ã‚Œã¦ã„ã‚‹ã‚‚ã®ã‚’æ¶ˆã™
+		if( info.macroList[i].first.compare(0, 1, "#") == 0 ){
+			info.macroList.erase(info.macroList.begin() + i);
+			continue;
+		}
 		for( size_t j = 0; j < info.macroList[i].second.size(); j++ ){
-			//§Œä•¶š‚Æƒ_ƒuƒ‹ƒNƒH[ƒg‚Í’u‚«Š·‚¦‚é
+			//åˆ¶å¾¡æ–‡å­—ã¨ãƒ€ãƒ–ãƒ«ã‚¯ã‚©ãƒ¼ãƒˆã¯ç½®ãæ›ãˆã‚‹
 			if( (L'\x1' <= info.macroList[i].second[j] && info.macroList[i].second[j] <= L'\x1f') || info.macroList[i].second[j] == L'\x7f' ){
-				info.macroList[i].second[j] = L'¬';
+				info.macroList[i].second[j] = L'ã€“';
 			}else if( info.macroList[i].second[j] == L'"' ){
-				info.macroList[i].second[j] = L'h';
+				info.macroList[i].second[j] = L'â€';
 			}
 		}
+		i++;
 	}
-	if( exDirectFlag && (IsExt(batFilePath, L".bat") || IsExt(batFilePath, L".ps1")) ){
-		exDirect = CreateEnvironment(info);
-		return exDirect.empty() == false;
+#ifdef _WIN32
+	if( exDirect && (UtilPathEndsWith(info.batFilePath.c_str(), L".bat") || UtilPathEndsWith(info.batFilePath.c_str(), L".ps1")) ){
+#else
+	if( UtilPathEndsWith(info.batFilePath.c_str(), L".sh") ){
+#endif
+		return true;
 	}
 
 	if( fileSize >= 64 * 1024 * 1024 ){
@@ -328,85 +389,78 @@ bool CBatManager::CreateBatFile(BAT_WORK_INFO& info, DWORD& exBatMargin, DWORD& 
 	if( fread(buff.data(), 1, buff.size() - 1, fp.get()) != buff.size() - 1 ){
 		return false;
 	}
-	if( exDirectFlag ){
-		//ƒJƒXƒ^ƒ€ƒnƒ“ƒhƒ‰
+#ifdef _WIN32
+	if( exDirect ){
+		//ã‚«ã‚¹ã‚¿ãƒ ãƒãƒ³ãƒ‰ãƒ©
 		return true;
 	}
 	string strRead = buff.data();
 	buff.clear();
 
-	string strWrite;
 	for( size_t pos = 0;; ){
-		size_t next = strRead.find('$', pos);
-		if( next == string::npos ){
-			strWrite.append(strRead, pos, string::npos);
+		pos = strRead.find('$', pos);
+		if( pos == string::npos ){
 			break;
 		}
-		strWrite.append(strRead, pos, next - pos);
-		pos = next;
-
-		next = strRead.find('$', pos + 1);
+		size_t next = strRead.find('$', pos + 1);
 		if( next == string::npos ){
-			strWrite.append(strRead, pos, string::npos);
 			break;
 		}
-		wstring strValW;
-		if( ExpandMacro(strRead.substr(pos + 1, next - pos - 1), info, strValW) == false ){
-			strWrite += '$';
+		//"$ãƒã‚¯ãƒ­$"ãŒã‚ã‚Œã°ç½®æ›
+		auto itrMacro = std::find_if(info.macroList.begin(), info.macroList.end(),
+			[=, &strRead](const pair<string, wstring>& a) { return strRead.compare(pos + 1, next - pos - 1, a.first) == 0; });
+		if( itrMacro == info.macroList.end() ){
 			pos++;
 		}else{
 			string strValA;
-			WtoA(strValW, strValA);
-			strWrite += strValA;
-			pos = next + 1;
+			WtoA(itrMacro->second, strValA);
+			strRead.replace(pos, next - pos + 1, strValA);
+			pos += strValA.size();
 		}
 	}
 
-	fp.reset(secure_wfopen(this->tmpBatFilePath.c_str(), L"wbN"));
-	if( !fp || fputs(strWrite.c_str(), fp.get()) < 0 || fflush(fp.get()) != 0 ){
+	//ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ã«ã‚³ãƒ”ãƒ¼
+	info.batFilePath = GetCommonIniPath().replace_filename(this->managerName).concat(L".bat").native();
+	fp.reset(UtilOpenFile(info.batFilePath, UTIL_SECURE_WRITE | UTIL_F_IONBF));
+	if( !fp || fputs(strRead.c_str(), fp.get()) < 0 ){
 		return false;
 	}
+#endif
 
 	return true;
 }
 
-bool CBatManager::ExpandMacro(const string& var, const BAT_WORK_INFO& info, wstring& strWrite)
-{
-	for( size_t i = 0; i < info.macroList.size(); i++ ){
-		if( var == info.macroList[i].first ){
-			strWrite += info.macroList[i].second;
-			return true;
-		}
-	}
-	return false;
-}
-
+#ifdef _WIN32
 wstring CBatManager::CreateEnvironment(const BAT_WORK_INFO& info)
 {
 	wstring strEnv;
 	LPWCH env = GetEnvironmentStrings();
 	if( env ){
-		do{
-			wstring str(env + strEnv.size());
-			wstring strVar(str, 0, str.find(L'='));
-			wstring strMacroVar;
-			//‹£‡‚·‚é•Ï”‚ğƒGƒXƒP[ƒv
-			for( size_t i = 0; i < info.macroList.size(); i++ ){
-				UTF8toW(info.macroList[i].first, strMacroVar);
-				if( CompareNoCase(strMacroVar, strVar) == 0 && strVar.empty() == false ){
-					str[0] = L'_';
-					break;
-				}
-			}
-			strEnv += str + L'\0';
-		}while( env[strEnv.size()] != L'\0' );
+		size_t n = 0;
+		while( env[n] ){
+			n += wcslen(env + n) + 1;
+		}
+		strEnv.assign(env, env + n);
 		FreeEnvironmentStrings(env);
 	}
 	for( size_t i = 0; i < info.macroList.size(); i++ ){
 		wstring strVar;
 		UTF8toW(info.macroList[i].first, strVar);
-		strEnv += strVar + L'=' + info.macroList[i].second;
-		strEnv += L'\0';
+		//ç«¶åˆã™ã‚‹å¤‰æ•°ãŒãªã‘ã‚Œã°è¿½åŠ 
+		bool unique = true;
+		for( size_t n = 0; unique && n < strEnv.size(); ){
+			size_t m = strEnv.find_first_of(L'\0', n);
+			if( m - n > strVar.size() && strEnv[n + strVar.size()] == L'=' ){
+				strEnv[n + strVar.size()] = L'\0';
+				unique = CompareNoCase(strVar, strEnv.c_str() + n) != 0;
+				strEnv[n + strVar.size()] = L'=';
+			}
+			n = m + 1;
+		}
+		if( unique ){
+			strEnv += strVar + L'=' + info.macroList[i].second + L'\0';
+		}
 	}
 	return strEnv;
 }
+#endif

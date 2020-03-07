@@ -1,5 +1,5 @@
-
-// EpgDataCap_Bon.cpp : ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ÌƒNƒ‰ƒX“®ì‚ğ’è‹`‚µ‚Ü‚·B
+ï»¿
+// EpgDataCap_Bon.cpp : ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚¯ãƒ©ã‚¹å‹•ä½œã‚’å®šç¾©ã—ã¾ã™ã€‚
 //
 
 #include "stdafx.h"
@@ -7,10 +7,8 @@
 #include "EpgDataCap_BonDlg.h"
 
 #include "../../Common/ThreadUtil.h"
-#include <io.h>
-#include <fcntl.h>
-#include <share.h>
-#include <sys/stat.h>
+#include <objbase.h>
+#include <shellapi.h>
 
 #ifndef SUPPRESS_OUTPUT_STACK_TRACE
 #include <tlhelp32.h>
@@ -25,8 +23,8 @@ FILE* g_debugLog;
 recursive_mutex_ g_debugLogLock;
 
 #ifndef SUPPRESS_OUTPUT_STACK_TRACE
-// —áŠO‚É‚æ‚Á‚ÄƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ªI—¹‚·‚é’¼‘O‚ÉƒXƒ^ƒbƒNƒgƒŒ[ƒX‚ğ"Àsƒtƒ@ƒCƒ‹–¼.exe.err"‚Éo—Í‚·‚é
-// ƒfƒoƒbƒOî•ñ(.pdbƒtƒ@ƒCƒ‹)‚ª‘¶İ‚·‚ê‚Îo—Í‚Í‚æ‚èÚ×‚É‚È‚é
+// ä¾‹å¤–ã«ã‚ˆã£ã¦ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãŒçµ‚äº†ã™ã‚‹ç›´å‰ã«ã‚¹ã‚¿ãƒƒã‚¯ãƒˆãƒ¬ãƒ¼ã‚¹ã‚’"å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«å.exe.err"ã«å‡ºåŠ›ã™ã‚‹
+// ãƒ‡ãƒãƒƒã‚°æƒ…å ±(.pdbãƒ•ã‚¡ã‚¤ãƒ«)ãŒå­˜åœ¨ã™ã‚Œã°å‡ºåŠ›ã¯ã‚ˆã‚Šè©³ç´°ã«ãªã‚‹
 
 void OutputStackTrace(DWORD exceptionCode, const PVOID* addrOffsets)
 {
@@ -59,7 +57,7 @@ void OutputStackTrace(DWORD exceptionCode, const PVOID* addrOffsets)
 				do{
 					char moduleA[256] = {};
 					for( int i = 0; i == 0 || i < 255 && moduleA[i - 1]; i++ ){
-						//•¶š‰»‚¯‚µ‚Ä‚à\‚í‚È‚¢
+						//æ–‡å­—åŒ–ã‘ã—ã¦ã‚‚æ§‹ã‚ãªã„
 						moduleA[i] = (char)modent.szModule[i];
 					}
 					len = sprintf_s(buff, "0x%p - 0x%p = %s\r\n", modent.modBaseAddr, modent.modBaseAddr + modent.modBaseSize - 1, moduleA);
@@ -119,31 +117,31 @@ LONG WINAPI TopLevelExceptionFilter(_EXCEPTION_POINTERS* exceptionInfo)
 
 #endif // SUPPRESS_OUTPUT_STACK_TRACE
 
-// —Bˆê‚Ì CEpgDataCap_BonApp ƒIƒuƒWƒFƒNƒg‚Å‚·B
+// å”¯ä¸€ã® CEpgDataCap_BonApp ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã§ã™ã€‚
 
 CEpgDataCap_BonApp theApp;
 
 }
 
-// CEpgDataCap_BonApp ƒRƒ“ƒXƒgƒ‰ƒNƒVƒ‡ƒ“
+// CEpgDataCap_BonApp ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚·ãƒ§ãƒ³
 
 CEpgDataCap_BonApp::CEpgDataCap_BonApp()
 {
-	// TODO: ‚±‚ÌˆÊ’u‚É\’z—pƒR[ƒh‚ğ’Ç‰Á‚µ‚Ä‚­‚¾‚³‚¢B
-	// ‚±‚±‚É InitInstance ’†‚Ìd—v‚È‰Šú‰»ˆ—‚ğ‚·‚×‚Ä‹Lq‚µ‚Ä‚­‚¾‚³‚¢B
+	// TODO: ã“ã®ä½ç½®ã«æ§‹ç¯‰ç”¨ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¦ãã ã•ã„ã€‚
+	// ã“ã“ã« InitInstance ä¸­ã®é‡è¦ãªåˆæœŸåŒ–å‡¦ç†ã‚’ã™ã¹ã¦è¨˜è¿°ã—ã¦ãã ã•ã„ã€‚
 }
 
-// CEpgDataCap_BonApp ‰Šú‰»
+// CEpgDataCap_BonApp åˆæœŸåŒ–
 
 BOOL CEpgDataCap_BonApp::InitInstance()
 {
-	// ƒAƒvƒŠƒP[ƒVƒ‡ƒ“ ƒ}ƒjƒtƒFƒXƒg‚ª visual ƒXƒ^ƒCƒ‹‚ğ—LŒø‚É‚·‚é‚½‚ß‚ÉA
-	// ComCtl32.dll Version 6 ˆÈ~‚Ìg—p‚ğw’è‚·‚éê‡‚ÍA
-	// Windows XP ‚É InitCommonControlsEx() ‚ª•K—v‚Å‚·B‚³‚à‚È‚¯‚ê‚ÎAƒEƒBƒ“ƒhƒEì¬‚Í‚·‚×‚Ä¸”s‚µ‚Ü‚·B
+	// ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ ãƒãƒ‹ãƒ•ã‚§ã‚¹ãƒˆãŒ visual ã‚¹ã‚¿ã‚¤ãƒ«ã‚’æœ‰åŠ¹ã«ã™ã‚‹ãŸã‚ã«ã€
+	// ComCtl32.dll Version 6 ä»¥é™ã®ä½¿ç”¨ã‚’æŒ‡å®šã™ã‚‹å ´åˆã¯ã€
+	// Windows XP ã« InitCommonControlsEx() ãŒå¿…è¦ã§ã™ã€‚ã•ã‚‚ãªã‘ã‚Œã°ã€ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½œæˆã¯ã™ã¹ã¦å¤±æ•—ã—ã¾ã™ã€‚
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
-	// ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Åg—p‚·‚é‚·‚×‚Ä‚ÌƒRƒ‚ƒ“ ƒRƒ“ƒgƒ[ƒ‹ ƒNƒ‰ƒX‚ğŠÜ‚ß‚é‚É‚ÍA
-	// ‚±‚ê‚ğİ’è‚µ‚Ü‚·B
+	// ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã§ä½¿ç”¨ã™ã‚‹ã™ã¹ã¦ã®ã‚³ãƒ¢ãƒ³ ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ« ã‚¯ãƒ©ã‚¹ã‚’å«ã‚ã‚‹ã«ã¯ã€
+	// ã“ã‚Œã‚’è¨­å®šã—ã¾ã™ã€‚
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
@@ -158,7 +156,7 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	dlg.SetIniView(TRUE);
 	dlg.SetIniNW(TRUE);
 
-	// ƒRƒ}ƒ“ƒhƒIƒvƒVƒ‡ƒ“‚ğ‰ğÍ
+	// ã‚³ãƒãƒ³ãƒ‰ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚’è§£æ
 	int argc;
 	LPWSTR *argv = CommandLineToArgvW(GetCommandLine(), &argc);
 	if (argv != NULL) {
@@ -174,15 +172,15 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 				} else if (wcscmp(argv[i] + 1, L"d") == 0 && optLowerD == NULL) {
 					curr = argv[i] + 1;
 					optLowerD = L"";
-				} else if (_wcsicmp(argv[i] + 1, L"min") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"min") == 0) {
 					dlg.SetIniMin(TRUE);
-				} else if (_wcsicmp(argv[i] + 1, L"noview") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"noview") == 0) {
 					dlg.SetIniView(FALSE);
-				} else if (_wcsicmp(argv[i] + 1, L"nonw") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"nonw") == 0) {
 					dlg.SetIniNW(FALSE);
-				} else if (_wcsicmp(argv[i] + 1, L"nwudp") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"nwudp") == 0) {
 					dlg.SetIniNWUDP(TRUE);
-				} else if (_wcsicmp(argv[i] + 1, L"nwtcp") == 0) {
+				} else if (CompareNoCase(argv[i] + 1, L"nwtcp") == 0) {
 					dlg.SetIniNWTCP(TRUE);
 				}
 			} else if (wcscmp(curr, L"D") == 0 && optUpperD && optUpperD[0] == L'\0') {
@@ -195,7 +193,7 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 			dlg.SetInitBon(optUpperD);
 			OutputDebugString(optUpperD);
 		}
-		// Œ´ì‚Ì‹““®‚É‡‚í‚¹‚é‚½‚ß
+		// åŸä½œã®æŒ™å‹•ã«åˆã‚ã›ã‚‹ãŸã‚
 		if (optLowerD) {
 			dlg.SetInitBon(optLowerD);
 			OutputDebugString(optLowerD);
@@ -207,22 +205,22 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
-		// TODO: ƒ_ƒCƒAƒƒO‚ª <OK> ‚ÅÁ‚³‚ê‚½‚ÌƒR[ƒh‚ğ
-		//  ‹Lq‚µ‚Ä‚­‚¾‚³‚¢B
+		// TODO: ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒ <OK> ã§æ¶ˆã•ã‚ŒãŸæ™‚ã®ã‚³ãƒ¼ãƒ‰ã‚’
+		//  è¨˜è¿°ã—ã¦ãã ã•ã„ã€‚
 	}
 	else if (nResponse == IDCANCEL)
 	{
-		// TODO: ƒ_ƒCƒAƒƒO‚ª <ƒLƒƒƒ“ƒZƒ‹> ‚ÅÁ‚³‚ê‚½‚ÌƒR[ƒh‚ğ
-		//  ‹Lq‚µ‚Ä‚­‚¾‚³‚¢B
+		// TODO: ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãŒ <ã‚­ãƒ£ãƒ³ã‚»ãƒ«> ã§æ¶ˆã•ã‚ŒãŸæ™‚ã®ã‚³ãƒ¼ãƒ‰ã‚’
+		//  è¨˜è¿°ã—ã¦ãã ã•ã„ã€‚
 	}
 
-	// ƒ_ƒCƒAƒƒO‚Í•Â‚¶‚ç‚ê‚Ü‚µ‚½BƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ÌƒƒbƒZ[ƒW ƒ|ƒ“ƒv‚ğŠJn‚µ‚È‚¢‚Å
-	//  ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ğI—¹‚·‚é‚½‚ß‚É FALSE ‚ğ•Ô‚µ‚Ä‚­‚¾‚³‚¢B
+	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã¯é–‰ã˜ã‚‰ã‚Œã¾ã—ãŸã€‚ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ ãƒãƒ³ãƒ—ã‚’é–‹å§‹ã—ãªã„ã§
+	//  ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚’çµ‚äº†ã™ã‚‹ãŸã‚ã« FALSE ã‚’è¿”ã—ã¦ãã ã•ã„ã€‚
 	return FALSE;
 }
 
 #ifdef USE_WINMAIN_A
-__declspec(dllexport) //ASLR‚ğ–³Œø‚É‚µ‚È‚¢‚½‚ß(CVE-2018-5392)
+__declspec(dllexport) //ASLRã‚’ç„¡åŠ¹ã«ã—ãªã„ãŸã‚(CVE-2018-5392)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #else
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
@@ -230,7 +228,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 {
 	SetDllDirectory(L"");
 	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
-	//ƒƒCƒ“ƒXƒŒƒbƒh‚É‘Î‚·‚éCOM‚Ì‰Šú‰»
+	//ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã«å¯¾ã™ã‚‹COMã®åˆæœŸåŒ–
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 	theApp.InitInstance();
 	CoUninitialize();
@@ -241,15 +239,22 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 {
 	{
-		//ƒfƒoƒbƒOo—ÍƒƒO•Û‘¶
+		//ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›ãƒ­ã‚°ä¿å­˜
 		CBlockLock lock(&g_debugLogLock);
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
-			fwprintf_s(g_debugLog, L"[%02d%02d%02d%02d%02d%02d.%03d] %s%s",
-			           st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-			           lpOutputString ? lpOutputString : L"",
-			           lpOutputString && lpOutputString[0] && lpOutputString[wcslen(lpOutputString) - 1] == L'\n' ? L"" : L"<NOBR>\r\n");
+			WCHAR t[128];
+			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
+			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+			fwrite(t, sizeof(WCHAR), n, g_debugLog);
+			size_t m = lpOutputString ? wcslen(lpOutputString) : 0;
+			if( m > 0 ){
+				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
+			}
+			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
+				fwrite(L"<NOBR>\r\n", sizeof(WCHAR), 8, g_debugLog);
+			}
 			fflush(g_debugLog);
 		}
 	}
@@ -261,23 +266,17 @@ void SetSaveDebugLog(bool saveDebugLog)
 	CBlockLock lock(&g_debugLogLock);
 	if( g_debugLog == NULL && saveDebugLog ){
 		for( int i = 0; i < 100; i++ ){
-			//ƒpƒX‚É“Y‚¦š‚ğ‚Â‚¯‚Ä‘‚«‚İ‰Â”\‚ÈÅ‰‚Ì‚à‚Ì‚É‹L˜^‚·‚é
+			//ãƒ‘ã‚¹ã«æ·»ãˆå­—ã‚’ã¤ã‘ã¦æ›¸ãè¾¼ã¿å¯èƒ½ãªæœ€åˆã®ã‚‚ã®ã«è¨˜éŒ²ã™ã‚‹
 			WCHAR logFileName[64];
 			swprintf_s(logFileName, L"EpgDataCap_Bon_DebugLog-%d.txt", i);
-			fs_path logPath = GetModulePath().replace_filename(logFileName);
-			//‚â‚è‚½‚¢‚±‚Æ‚Í_wfsopen(L"abN",_SH_DENYWR)‚¾‚ª_wfsopen‚É‚Í"N"ƒIƒvƒVƒ‡ƒ“‚ª‚È‚³‚»‚¤‚È‚Ì‚Å’á…€‚ÅŠJ‚­
-			int fd;
-			if( _wsopen_s(&fd, logPath.c_str(), _O_APPEND | _O_BINARY | _O_CREAT | _O_NOINHERIT | _O_WRONLY, _SH_DENYWR, _S_IWRITE) == 0 ){
-				g_debugLog = _wfdopen(fd, L"ab");
-				if( g_debugLog == NULL ){
-					_close(fd);
-				}
+			fs_path logPath = GetCommonIniPath().replace_filename(logFileName);
+			g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);
+			if( g_debugLog ){
+				fwrite(L"\xFEFF", sizeof(WCHAR), 1, g_debugLog);
+			}else{
+				g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
 			}
 			if( g_debugLog ){
-				_fseeki64(g_debugLog, 0, SEEK_END);
-				if( _ftelli64(g_debugLog) == 0 ){
-					fputwc(L'\xFEFF', g_debugLog);
-				}
 				OutputDebugString(L"****** LOG START ******\r\n");
 				break;
 			}

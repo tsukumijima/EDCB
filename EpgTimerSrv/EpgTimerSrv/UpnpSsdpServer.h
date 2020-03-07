@@ -1,17 +1,22 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../../Common/ThreadUtil.h"
 
-//UPnP‚ÌUDP(Port1900)•”•ª‚ğ’S“–‚·‚éƒT[ƒo
-//UPnPCtrlƒtƒHƒ‹ƒ_‚É‚ ‚éCŒ¾Œêƒx[ƒX(?)‚ÌƒR[ƒh‚ğC++‚ÅÄÀ‘•‚µ‚½‚à‚Ì
-//¦UPnPCtrlƒtƒHƒ‹ƒ_‚Í•s—v‚Ì‚½‚ßíœÏ‚İB•K—v‚È‚çˆÈ‘O‚ÌƒRƒ~ƒbƒg‚ğQÆ
-//  UPnP(DLNA)‚ÌHTTP‰“š‚â•¶š—ñˆ—‚È‚Ç‚ª‚Ù‚ÚƒXƒ^ƒ“ƒhƒAƒƒ“‚ÅÀ‘•‚³‚ê‚Ä‚¢‚½
+//UPnPã®UDP(Port1900)éƒ¨åˆ†ã‚’æ‹…å½“ã™ã‚‹ã‚µãƒ¼ãƒ
+//UPnPCtrlãƒ•ã‚©ãƒ«ãƒ€ã«ã‚ã‚‹Cè¨€èªãƒ™ãƒ¼ã‚¹(?)ã®ã‚³ãƒ¼ãƒ‰ã‚’C++ã§å†å®Ÿè£…ã—ãŸã‚‚ã®
+//â€»UPnPCtrlãƒ•ã‚©ãƒ«ãƒ€ã¯ä¸è¦ã®ãŸã‚å‰Šé™¤æ¸ˆã¿ã€‚å¿…è¦ãªã‚‰ä»¥å‰ã®ã‚³ãƒŸãƒƒãƒˆã‚’å‚ç…§
+//  UPnP(DLNA)ã®HTTPå¿œç­”ã‚„æ–‡å­—åˆ—å‡¦ç†ãªã©ãŒã»ã¼ã‚¹ã‚¿ãƒ³ãƒ‰ã‚¢ãƒ­ãƒ³ã§å®Ÿè£…ã•ã‚Œã¦ã„ãŸ
 class CUpnpSsdpServer
 {
 public:
 	static const int RECV_BUFF_SIZE = 2048;
 	static const unsigned int NOTIFY_INTERVAL_SEC = 1000;
-	static const unsigned int NOTIFY_FIRST_DELAY_SEC = 5;
+	static const int SSDP_IF_LOOPBACK = 1;
+	static const int SSDP_IF_C_PRIVATE = 2;
+	static const int SSDP_IF_B_PRIVATE = 4;
+	static const int SSDP_IF_A_PRIVATE = 8;
+	static const int SSDP_IF_LINKLOCAL = 16;
+	static const int SSDP_IF_GLOBAL = 32;
 	struct SSDP_TARGET_INFO {
 		string target;
 		string location;
@@ -19,15 +24,13 @@ public:
 		bool notifyFlag;
 	};
 	~CUpnpSsdpServer();
-	bool Start(const vector<SSDP_TARGET_INFO>& targetList_);
+	bool Start(const vector<SSDP_TARGET_INFO>& targetList_, int ifTypes, int initialWaitSec_);
 	void Stop();
-	static string GetUserAgent();
 private:
-	static vector<string> GetNICList();
 	static void SsdpThread(CUpnpSsdpServer* sys);
-	string GetMSearchReply(const char* header, const char* host) const;
-	void SendNotifyAliveOrByebye(bool byebyeFlag, const vector<string>& nicList);
 	thread_ ssdpThread;
 	atomic_bool_ stopFlag;
 	vector<SSDP_TARGET_INFO> targetList;
+	int ssdpIfTypes;
+	int initialWaitSec;
 };

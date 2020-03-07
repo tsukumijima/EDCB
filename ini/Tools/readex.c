@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <io.h>
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 int wmain(int argc, wchar_t **argv)

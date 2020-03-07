@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "EpgDBUtil.h"
 #include "../../Common/TSPacketUtil.h"
@@ -13,30 +13,30 @@ public:
 	void SetEpgDB(CEpgDBUtil* epgDBUtil_);
 	void AddTSData(BYTE* data);
 
-	//‰ğÍƒf[ƒ^‚ÌŒ»İ‚ÌƒXƒgƒŠ[ƒ€‚h‚c‚ğæ“¾‚·‚é
-	//ˆø”F
-	// originalNetworkID		[OUT]Œ»İ‚ÌoriginalNetworkID
-	// transportStreamID		[OUT]Œ»İ‚ÌtransportStreamID
+	//è§£æãƒ‡ãƒ¼ã‚¿ã®ç¾åœ¨ã®ã‚¹ãƒˆãƒªãƒ¼ãƒ ï¼©ï¼¤ã‚’å–å¾—ã™ã‚‹
+	//å¼•æ•°ï¼š
+	// originalNetworkID		[OUT]ç¾åœ¨ã®originalNetworkID
+	// transportStreamID		[OUT]ç¾åœ¨ã®transportStreamID
 	BOOL GetTSID(
 		WORD* originalNetworkID,
 		WORD* transportStreamID
 		);
 
-	//©ƒXƒgƒŠ[ƒ€‚ÌƒT[ƒrƒXˆê——‚ğæ“¾‚·‚é
-	//ˆø”F
-	// serviceListSize			[OUT]serviceList‚ÌŒÂ”
-	// serviceList				[OUT]ƒT[ƒrƒXî•ñ‚ÌƒŠƒXƒgiDLL“à‚Å©“®“I‚Édelete‚·‚éBŸ‚Éæ“¾‚ğs‚¤‚Ü‚Å—LŒøj
+	//è‡ªã‚¹ãƒˆãƒªãƒ¼ãƒ ã®ã‚µãƒ¼ãƒ“ã‚¹ä¸€è¦§ã‚’å–å¾—ã™ã‚‹
+	//å¼•æ•°ï¼š
+	// serviceListSize			[OUT]serviceListã®å€‹æ•°
+	// serviceList				[OUT]ã‚µãƒ¼ãƒ“ã‚¹æƒ…å ±ã®ãƒªã‚¹ãƒˆï¼ˆDLLå†…ã§è‡ªå‹•çš„ã«deleteã™ã‚‹ã€‚æ¬¡ã«å–å¾—ã‚’è¡Œã†ã¾ã§æœ‰åŠ¹ï¼‰
 	BOOL GetServiceListActual(
 		DWORD* serviceListSize,
 		SERVICE_INFO** serviceList_
 		);
 
-	//ƒXƒgƒŠ[ƒ€“à‚ÌŒ»İ‚ÌŠÔî•ñ‚ğæ“¾‚·‚é
-	//ˆø”F
-	// time				[OUT]ƒXƒgƒŠ[ƒ€“à‚ÌŒ»İ‚ÌŠÔ
-	// tick				[OUT]time‚ğæ“¾‚µ‚½“_‚Ìƒ`ƒbƒNƒJƒEƒ“ƒg
+	//ã‚¹ãƒˆãƒªãƒ¼ãƒ å†…ã®ç¾åœ¨ã®æ™‚é–“æƒ…å ±ã‚’å–å¾—ã™ã‚‹
+	//å¼•æ•°ï¼š
+	// time				[OUT]ã‚¹ãƒˆãƒªãƒ¼ãƒ å†…ã®ç¾åœ¨ã®æ™‚é–“
+	// tick				[OUT]timeã‚’å–å¾—ã—ãŸæ™‚ç‚¹ã®ãƒãƒƒã‚¯ã‚«ã‚¦ãƒ³ãƒˆ
 	BOOL GetNowTime(
-		FILETIME* time,
+		__int64* time,
 		DWORD* tick = NULL
 		);
 
@@ -45,8 +45,8 @@ protected:
 
 	AribDescriptor::CDescriptor tableBuff;
 
-	//PID–ˆ‚Ìƒoƒbƒtƒ@ƒŠƒ“ƒO
-	//ƒL[ PID
+	//PIDæ¯ã®ãƒãƒƒãƒ•ã‚¡ãƒªãƒ³ã‚°
+	//ã‚­ãƒ¼ PID
 	map<WORD, CTSBuffUtil> buffUtilMap;
 
 	std::unique_ptr<const AribDescriptor::CDescriptor> patInfo;
@@ -54,9 +54,9 @@ protected:
 	map<BYTE, AribDescriptor::CDescriptor> sdtActualInfo;
 	std::unique_ptr<const AribDescriptor::CDescriptor> bitInfo;
 	std::unique_ptr<const AribDescriptor::CDescriptor> sitInfo;
-	FILETIME totTime;
-	FILETIME tdtTime;
-	FILETIME sitTime;
+	__int64 totTime;
+	__int64 tdtTime;
+	__int64 sitTime;
 	DWORD totTimeTick;
 	DWORD tdtTimeTick;
 	DWORD sitTimeTick;
@@ -79,10 +79,10 @@ protected:
 	void CheckBIT(WORD PID, const AribDescriptor::CDescriptor& bit);
 	void CheckSIT(const AribDescriptor::CDescriptor& sit);
 
-	//©ƒXƒgƒŠ[ƒ€‚ÌƒT[ƒrƒXˆê——‚ğSIT‚©‚çæ“¾‚·‚é
-	//ˆø”F
-	// serviceListSize			[OUT]serviceList‚ÌŒÂ”
-	// serviceList				[OUT]ƒT[ƒrƒXî•ñ‚ÌƒŠƒXƒgiDLL“à‚Å©“®“I‚Édelete‚·‚éBŸ‚Éæ“¾‚ğs‚¤‚Ü‚Å—LŒøj
+	//è‡ªã‚¹ãƒˆãƒªãƒ¼ãƒ ã®ã‚µãƒ¼ãƒ“ã‚¹ä¸€è¦§ã‚’SITã‹ã‚‰å–å¾—ã™ã‚‹
+	//å¼•æ•°ï¼š
+	// serviceListSize			[OUT]serviceListã®å€‹æ•°
+	// serviceList				[OUT]ã‚µãƒ¼ãƒ“ã‚¹æƒ…å ±ã®ãƒªã‚¹ãƒˆï¼ˆDLLå†…ã§è‡ªå‹•çš„ã«deleteã™ã‚‹ã€‚æ¬¡ã«å–å¾—ã‚’è¡Œã†ã¾ã§æœ‰åŠ¹ï¼‰
 	BOOL GetServiceListSIT(
 		DWORD* serviceListSize,
 		SERVICE_INFO** serviceList_

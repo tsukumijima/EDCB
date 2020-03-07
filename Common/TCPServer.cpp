@@ -1,38 +1,51 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "TCPServer.h"
+#include "StringUtil.h"
+#include "CtrlCmdDef.h"
 #include "ErrDef.h"
-#include "CtrlCmdUtil.h"
+#ifndef _WIN32
+#include <netdb.h>
+#include <poll.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+typedef int SOCKET;
+static const int INVALID_SOCKET = -1;
+#define closesocket(sock) close(sock)
+#endif
 
 CTCPServer::CTCPServer(void)
 {
-	m_hNotifyEvent = WSA_INVALID_EVENT;
-	m_hAcceptEvent = WSA_INVALID_EVENT;
 	m_sock = INVALID_SOCKET;
+#ifdef _WIN32
+	m_hAcceptEvent = WSA_INVALID_EVENT;
 
 	WSAData wsaData;
-	WSAStartup(MAKEWORD(2,0), &wsaData);
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
 }
 
 CTCPServer::~CTCPServer(void)
 {
 	StopServer();
+#ifdef _WIN32
 	WSACleanup();
+#endif
 }
 
 bool CTCPServer::StartServer(unsigned short port, bool ipv6, DWORD dwResponseTimeout, LPCWSTR acl,
-                             const std::function<void(CMD_STREAM*, CMD_STREAM*)>& cmdProc)
+                             const std::function<void(CMD_STREAM*, CMD_STREAM*, LPCWSTR)>& cmdProc)
 {
 	if( !cmdProc ){
 		return false;
 	}
-	string aclU;
-	WtoUTF8(acl, aclU);
 	if( m_thread.joinable() &&
 	    m_port == port &&
 	    m_ipv6 == ipv6 &&
 	    m_dwResponseTimeout == dwResponseTimeout &&
-	    m_acl == aclU ){
-		//cmdProcÇÃïœâªÇÕëzíËÇµÇƒÇ¢Ç»Ç¢
+	    m_acl == acl ){
+		//cmdProc„ÅÆÂ§âÂåñ„ÅØÊÉ≥ÂÆö„Åó„Å¶„ÅÑ„Å™„ÅÑ
 		return true;
 	}
 	StopServer();
@@ -40,10 +53,10 @@ bool CTCPServer::StartServer(unsigned short port, bool ipv6, DWORD dwResponseTim
 	m_port = port;
 	m_ipv6 = ipv6;
 	m_dwResponseTimeout = dwResponseTimeout;
-	m_acl = aclU;
+	m_acl = acl;
 
-	string strPort;
-	Format(strPort, "%d", m_port);
+	char szPort[16];
+	sprintf_s(szPort, "%d", m_port);
 	struct addrinfo hints = {};
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = m_ipv6 ? AF_INET6 : AF_INET;
@@ -51,24 +64,31 @@ bool CTCPServer::StartServer(unsigned short port, bool ipv6, DWORD dwResponseTim
 	hints.ai_protocol = IPPROTO_TCP;
 
 	struct addrinfo* result;
-	if( getaddrinfo(NULL, strPort.c_str(), &hints, &result) != 0 ){
+	if( getaddrinfo(NULL, szPort, &hints, &result) != 0 ){
 		return false;
 	}
 
-	m_sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+	m_sock = socket(result->ai_family, result->ai_socktype
+#ifndef _WIN32
+	                    | SOCK_CLOEXEC | SOCK_NONBLOCK
+#endif
+	                , result->ai_protocol);
 	if( m_sock != INVALID_SOCKET ){
 		BOOL b = TRUE;
 		setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&b, sizeof(b));
 		if( m_ipv6 ){
-			//ÉfÉÖÉAÉãÉXÉ^ÉbÉNÇ…ÇÕÇµÇ»Ç¢
+			//„Éá„É•„Ç¢„É´„Çπ„Çø„ÉÉ„ÇØ„Å´„ÅØ„Åó„Å™„ÅÑ
 			b = TRUE;
 			setsockopt(m_sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&b, sizeof(b));
 		}
-		if( bind(m_sock, result->ai_addr, (int)result->ai_addrlen) != SOCKET_ERROR && listen(m_sock, 1) != SOCKET_ERROR ){
-			m_hNotifyEvent = WSACreateEvent();
-			m_hAcceptEvent = WSACreateEvent();
-			if( m_hNotifyEvent != WSA_INVALID_EVENT && m_hAcceptEvent != WSA_INVALID_EVENT ){
+#ifdef _WIN32
+		m_hAcceptEvent = WSACreateEvent();
+		if( m_hAcceptEvent != WSA_INVALID_EVENT && WSAEventSelect(m_sock, m_hAcceptEvent, FD_ACCEPT) == 0 )
+#endif
+		{
+			if( bind(m_sock, result->ai_addr, (int)result->ai_addrlen) == 0 && listen(m_sock, SOMAXCONN) == 0 ){
 				m_stopFlag = false;
+				m_notifyEvent.Reset();
 				m_thread = thread_(ServerThread, this);
 				freeaddrinfo(result);
 				return true;
@@ -85,61 +105,70 @@ void CTCPServer::StopServer()
 {
 	if( m_thread.joinable() ){
 		m_stopFlag = true;
-		WSASetEvent(m_hNotifyEvent);
+		m_notifyEvent.Set();
 		m_thread.join();
 	}
+	if( m_sock != INVALID_SOCKET ){
+#ifdef _WIN32
+		WSAEventSelect(m_sock, NULL, 0);
+		unsigned long x = 0;
+		ioctlsocket(m_sock, FIONBIO, &x);
+#else
+		int x = 0;
+		ioctl(m_sock, FIONBIO, &x);
+#endif
+		closesocket(m_sock);
+		m_sock = INVALID_SOCKET;
+	}
+#ifdef _WIN32
 	if( m_hAcceptEvent != WSA_INVALID_EVENT ){
 		WSACloseEvent(m_hAcceptEvent);
 		m_hAcceptEvent = WSA_INVALID_EVENT;
 	}
-	if( m_hNotifyEvent != WSA_INVALID_EVENT ){
-		WSACloseEvent(m_hNotifyEvent);
-		m_hNotifyEvent = WSA_INVALID_EVENT;
-	}
-	
-	if( m_sock != INVALID_SOCKET ){
-		closesocket(m_sock);
-		m_sock = INVALID_SOCKET;
-	}
+#endif
 }
 
 void CTCPServer::NotifyUpdate()
 {
 	if( m_thread.joinable() ){
-		WSASetEvent(m_hNotifyEvent);
+		m_notifyEvent.Set();
 	}
 }
 
-static bool TestAcl(struct sockaddr* addr, string acl)
+namespace
 {
-	//èëéÆó·: +192.168.0.0/16,-192.168.0.1
-	//èëéÆó·(IPv6): +fe80::/64,-::1
+bool TestAcl(struct sockaddr* addr, wstring acl)
+{
+	//Êõ∏Âºè‰æã: +192.168.0.0/16,-192.168.0.1
+	//Êõ∏Âºè‰æã(IPv6): +fe80::/64,-::1
 	bool ret = false;
 	for(;;){
-		string val;
-		BOOL sep = Separate(acl, ",", val, acl);
-		if( val.empty() || val[0] != '+' && val[0] != '-' ){
-			//èëéÆÉGÉâÅ[
+		wstring val;
+		bool sep = Separate(acl, L",", val, acl);
+		if( val.empty() || (val[0] != L'+' && val[0] != L'-') ){
+			//Êõ∏Âºè„Ç®„É©„Éº
 			return false;
 		}
-		string m;
-		int mm = Separate(val, "/", val, m) ? atoi(m.c_str()) : addr->sa_family == AF_INET6 ? 128 : 32;
+		wstring m;
+		int mm = Separate(val, L"/", val, m) ? (int)wcstol(m.c_str(), NULL, 10) : addr->sa_family == AF_INET6 ? 128 : 32;
 		if( val.empty() || mm < 0 || mm > (addr->sa_family == AF_INET6 ? 128 : 32) ){
-			//èëéÆÉGÉâÅ[
+			//Êõ∏Âºè„Ç®„É©„Éº
 			return false;
 		}
+		string valU;
+		WtoUTF8(val, valU);
 		struct addrinfo hints = {};
 		hints.ai_flags = AI_NUMERICHOST;
 		hints.ai_family = addr->sa_family;
 		struct addrinfo* result;
-		if( getaddrinfo(val.c_str() + 1, NULL, &hints, &result) != 0 ){
-			//èëéÆÉGÉâÅ[
+		if( getaddrinfo(valU.c_str() + 1, NULL, &hints, &result) != 0 ){
+			//Êõ∏Âºè„Ç®„É©„Éº
 			return false;
 		}
 		if( result->ai_family == AF_INET6 ){
 			int i = 0;
 			for( ; i < 16; i++ ){
-				UCHAR mask = (UCHAR)(8 * i + 8 < mm ? 0xFF : 8 * i > mm ? 0 : 0xFF << (8 * i + 8 - mm));
+				BYTE mask = (BYTE)(8 * i + 8 < mm ? 0xFF : 8 * i > mm ? 0 : 0xFF << (8 * i + 8 - mm));
 				if( (((struct sockaddr_in6*)addr)->sin6_addr.s6_addr[i] & mask) !=
 				    (((struct sockaddr_in6*)result->ai_addr)->sin6_addr.s6_addr[i] & mask) ){
 					break;
@@ -149,24 +178,24 @@ static bool TestAcl(struct sockaddr* addr, string acl)
 				ret = val[0] == '+';
 			}
 		}else{
-			ULONG mask = mm == 0 ? 0 : 0xFFFFFFFFUL << (32 - mm);
+			DWORD mask = mm == 0 ? 0 : 0xFFFFFFFF << (32 - mm);
 			if( (ntohl(((struct sockaddr_in*)addr)->sin_addr.s_addr) & mask) ==
 			    (ntohl(((struct sockaddr_in*)result->ai_addr)->sin_addr.s_addr) & mask) ){
 				ret = val[0] == '+';
 			}
 		}
 		freeaddrinfo(result);
-		if( sep == FALSE ){
+		if( sep == false ){
 			return ret;
 		}
 	}
 }
 
-static int RecvAll(SOCKET sock, char* buf, int len, int flags)
+int RecvAll(SOCKET sock, char* buf, int len, int flags)
 {
 	int n = 0;
 	while( n < len ){
-		int ret = recv(sock, buf + n, len - n, flags);
+		int ret = (int)recv(sock, buf + n, len - n, flags);
 		if( ret < 0 ){
 			return ret;
 		}else if( ret <= 0 ){
@@ -177,50 +206,113 @@ static int RecvAll(SOCKET sock, char* buf, int len, int flags)
 	return n;
 }
 
-void CTCPServer::SetBlockingMode(SOCKET sock)
+void SetBlockingMode(SOCKET sock)
 {
+#ifdef _WIN32
 	WSAEventSelect(sock, NULL, 0);
 	unsigned long x = 0;
 	ioctlsocket(sock, FIONBIO, &x);
-	DWORD to = SND_RCV_TIMEOUT;
+	DWORD to = CTCPServer::SND_RCV_TIMEOUT;
+#else
+	int x = 0;
+	ioctl(sock, FIONBIO, &x);
+	timeval to = {};
+	to.tv_sec = CTCPServer::SND_RCV_TIMEOUT / 1000;
+#endif
 	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&to, sizeof(to));
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&to, sizeof(to));
 }
 
-void CTCPServer::SetNonBlockingMode(SOCKET sock, WSAEVENT hEvent, long lNetworkEvents)
+struct WAIT_INFO {
+	SOCKET sock;
+	CMD_STREAM cmd;
+	DWORD tick;
+	bool closing;
+#ifdef _WIN32
+	WSAEVENT hEvent;
+#endif
+};
+
+void SetNonBlockingMode(const WAIT_INFO& info)
 {
+#ifdef _WIN32
+	WSAEventSelect(info.sock, info.hEvent, FD_READ | FD_CLOSE);
 	DWORD noTimeout = 0;
-	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&noTimeout, sizeof(noTimeout));
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&noTimeout, sizeof(noTimeout));
-	WSAEventSelect(sock, hEvent, lNetworkEvents);
+#else
+	int x = 1;
+	ioctl(info.sock, FIONBIO, &x);
+	timeval noTimeout = {};
+#endif
+	setsockopt(info.sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&noTimeout, sizeof(noTimeout));
+	setsockopt(info.sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&noTimeout, sizeof(noTimeout));
+}
 }
 
 void CTCPServer::ServerThread(CTCPServer* pSys)
 {
-	struct WAIT_INFO {
-		SOCKET sock;
-		CMD_STREAM* cmd;
-		DWORD tick;
-	};
-	vector<WAIT_INFO> waitList;
-	vector<WSAEVENT> hEventList;
-	hEventList.push_back(pSys->m_hNotifyEvent);
-	hEventList.push_back(pSys->m_hAcceptEvent);
-	WSAEventSelect(pSys->m_sock, hEventList.back(), FD_ACCEPT);
+	vector<std::unique_ptr<WAIT_INFO>> waitList;
 
 	while( pSys->m_stopFlag == false ){
+#ifdef _WIN32
+		vector<WSAEVENT> hEventList(2 + waitList.size());
+		hEventList[0] = pSys->m_notifyEvent.Handle();
+		hEventList[1] = pSys->m_hAcceptEvent;
+		for( size_t i = 0; i < waitList.size(); i++ ){
+			hEventList[2 + i] = waitList[i]->hEvent;
+		}
 		DWORD result = WSAWaitForMultipleEvents((DWORD)hEventList.size(), &hEventList[0], FALSE, waitList.empty() ? WSA_INFINITE : NOTIFY_INTERVAL, FALSE);
-		if( result == WSA_WAIT_EVENT_0 || result == WSA_WAIT_TIMEOUT ){
-			WSAResetEvent(hEventList[0]);
+		if( WSA_WAIT_EVENT_0 + 2 <= result && result < WSA_WAIT_EVENT_0 + hEventList.size() ){
+			size_t i = result - WSA_WAIT_EVENT_0 - 2;
+			WSANETWORKEVENTS events;
+			if( WSAEnumNetworkEvents(waitList[i]->sock, waitList[i]->hEvent, &events) != SOCKET_ERROR ){
+				if( events.lNetworkEvents & FD_CLOSE ){
+					//Èñâ„Åò„Çã
+					closesocket(waitList[i]->sock);
+					WSACloseEvent(waitList[i]->hEvent);
+					waitList.erase(waitList.begin() + i);
+				}else if( events.lNetworkEvents & FD_READ ){
+					//Ë™≠„ÅøÈ£õ„Å∞„Åô
+					OutputDebugString(L"Unexpected FD_READ\r\n");
+					char buf[1024];
+					recv(waitList[i]->sock, buf, sizeof(buf), 0);
+				}
+			}
+		}else if( result == WSA_WAIT_EVENT_0 || result == WSA_WAIT_TIMEOUT ){
+#else
+		vector<pollfd> pfdList(2 + waitList.size());
+		pfdList[0].fd = pSys->m_notifyEvent.Handle();
+		pfdList[0].events = POLLIN;
+		pfdList[1].fd = pSys->m_sock;
+		pfdList[1].events = POLLIN;
+		for( size_t i = 0; i < waitList.size(); i++ ){
+			pfdList[2 + i].fd = waitList[i]->sock;
+			pfdList[2 + i].events = POLLIN;
+		}
+		int result = poll(&pfdList[0], pfdList.size(), waitList.empty() ? -1 : (int)NOTIFY_INTERVAL);
+		if( result < 0 ){
+			break;
+		}
+		for( size_t i = 0; i < waitList.size(); ){
+			if( pfdList[2 + i].revents & POLLIN ){
+				//Èñâ„Åò„Çã
+				close(waitList[i]->sock);
+				waitList.erase(waitList.begin() + i);
+				pfdList.erase(pfdList.begin() + 2 + i);
+			}else{
+				i++;
+			}
+		}
+		if( result == 0 || (pfdList[0].revents & POLLIN) ){
+#endif
 			for( size_t i = 0; i < waitList.size(); i++ ){
-				if( waitList[i].cmd == NULL ){
+				if( waitList[i]->closing ){
 					continue;
 				}
 				CMD_STREAM stRes;
-				pSys->m_cmdProc(waitList[i].cmd, &stRes);
+				pSys->m_cmdProc(&waitList[i]->cmd, &stRes, NULL);
 				if( stRes.param == CMD_NO_RES ){
-					//âûìöÇÕï€óØÇ≥ÇÍÇΩ
-					if( GetTickCount() - waitList[i].tick <= pSys->m_dwResponseTimeout ){
+					//ÂøúÁ≠î„ÅØ‰øùÁïô„Åï„Çå„Åü
+					if( GetTickCount() - waitList[i]->tick <= pSys->m_dwResponseTimeout ){
 						continue;
 					}
 				}else{
@@ -232,39 +324,22 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 						extSize = min(stRes.dataSize, (DWORD)(sizeof(head) - sizeof(DWORD)*2));
 						memcpy(head + 2, stRes.data.get(), extSize);
 					}
-					//ÉuÉçÉbÉLÉìÉOÉÇÅ[ÉhÇ…ïœçX
-					SetBlockingMode(waitList[i].sock);
-					if( send(waitList[i].sock, (const char*)head, sizeof(DWORD)*2 + extSize, 0) == (int)(sizeof(DWORD)*2 + extSize) ){
+					//„Éñ„É≠„ÉÉ„Ç≠„É≥„Ç∞„É¢„Éº„Éâ„Å´Â§âÊõ¥
+					SetBlockingMode(waitList[i]->sock);
+					if( send(waitList[i]->sock, (const char*)head, sizeof(DWORD)*2 + extSize, 0) == (int)(sizeof(DWORD)*2 + extSize) ){
 						if( stRes.dataSize > extSize ){
-							send(waitList[i].sock, (const char*)stRes.data.get() + extSize, stRes.dataSize - extSize, 0);
+							send(waitList[i]->sock, (const char*)stRes.data.get() + extSize, stRes.dataSize - extSize, 0);
 						}
 					}
-					SetNonBlockingMode(waitList[i].sock, hEventList[2 + i], FD_READ | FD_CLOSE);
+					SetNonBlockingMode(*waitList[i]);
 				}
-				shutdown(waitList[i].sock, SD_BOTH);
-				//É^ÉCÉÄÉAÉEÉgÇ©âûìöçœÇ›(Ç±Ç±Ç≈ÇÕï¬Ç∂Ç»Ç¢)
-				delete waitList[i].cmd;
-				waitList[i].cmd = NULL;
+				shutdown(waitList[i]->sock, 2); //SD_BOTH
+				//„Çø„Ç§„É†„Ç¢„Ç¶„Éà„ÅãÂøúÁ≠îÊ∏à„Åø(„Åì„Åì„Åß„ÅØÈñâ„Åò„Å™„ÅÑ)
+				waitList[i]->closing = true;
 			}
-		}else if( WSA_WAIT_EVENT_0 + 2 <= result && result < WSA_WAIT_EVENT_0 + hEventList.size() ){
-			size_t i = result - WSA_WAIT_EVENT_0 - 2;
-			WSANETWORKEVENTS events;
-			if( WSAEnumNetworkEvents(waitList[i].sock, hEventList[2 + i], &events) != SOCKET_ERROR ){
-				if( events.lNetworkEvents & FD_CLOSE ){
-					//ï¬Ç∂ÇÈ
-					closesocket(waitList[i].sock);
-					delete waitList[i].cmd;
-					waitList.erase(waitList.begin() + i);
-					WSACloseEvent(hEventList[2 + i]);
-					hEventList.erase(hEventList.begin() + 2 + i);
-				}else if( events.lNetworkEvents & FD_READ ){
-					//ì«Ç›îÚÇŒÇ∑
-					OutputDebugString(L"Unexpected FD_READ\r\n");
-					char buf[1024];
-					recv(waitList[i].sock, buf, sizeof(buf), 0);
-				}
-			}
-		}else if( result == WSA_WAIT_EVENT_0 + 1 ){
+		}
+#ifdef _WIN32
+		else if( result == WSA_WAIT_EVENT_0 + 1 ){
 			struct sockaddr_storage client = {};
 			int clientLen = sizeof(client);
 			SOCKET sock = INVALID_SOCKET;
@@ -274,6 +349,12 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 					sock = accept(pSys->m_sock, (struct sockaddr*)&client, &clientLen);
 				}
 			}
+#else
+		if( pfdList[1].revents & POLLIN ){
+			struct sockaddr_storage client = {};
+			socklen_t clientLen = sizeof(client);
+			int sock = accept4(pSys->m_sock, (struct sockaddr*)&client, &clientLen, SOCK_CLOEXEC);
+#endif
 			if( sock != INVALID_SOCKET ){
 				if( (pSys->m_ipv6 && client.ss_family != AF_INET6) || (pSys->m_ipv6 == false && client.ss_family != AF_INET) ){
 					OutputDebugString(L"IP protocol mismatch\r\n");
@@ -291,17 +372,17 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 				}
 			}
 			if( sock != INVALID_SOCKET ){
-				//ÉuÉçÉbÉLÉìÉOÉÇÅ[ÉhÇ…ïœçX
+				//„Éñ„É≠„ÉÉ„Ç≠„É≥„Ç∞„É¢„Éº„Éâ„Å´Â§âÊõ¥
 				SetBlockingMode(sock);
 				for(;;){
 					CMD_STREAM stCmd;
 					CMD_STREAM stRes;
 					DWORD head[256];
-					if( RecvAll(sock, (char*)head, sizeof(DWORD)*2, 0) != sizeof(DWORD)*2 ){
+					if( RecvAll(sock, (char*)head, sizeof(DWORD)*2, 0) != (int)(sizeof(DWORD)*2) ){
 						break;
 					}
-					//ëÊ2,3ÉoÉCÉgÇÕ0Ç≈Ç»ÇØÇÍÇŒÇ»ÇÁÇ»Ç¢
-					if( HIWORD(head[0]) != 0 ){
+					//Á¨¨2,3„Éê„Ç§„Éà„ÅØ0„Åß„Å™„Åë„Çå„Å∞„Å™„Çâ„Å™„ÅÑ
+					if( head[0] & 0xFFFF0000 ){
 						_OutputDebugString(L"Deny TCP cmd:0x%08x\r\n", head[0]);
 						break;
 					}
@@ -315,36 +396,37 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 						}
 					}
 
-					if( stCmd.param == CMD2_EPG_SRV_REGIST_GUI_TCP || stCmd.param == CMD2_EPG_SRV_UNREGIST_GUI_TCP || stCmd.param == CMD2_EPG_SRV_ISREGIST_GUI_TCP ){
-						REGIST_TCP_INFO setParam;
+					wstring clientIP;
+					if( stCmd.param == CMD2_EPG_SRV_REGIST_GUI_TCP ||
+					    stCmd.param == CMD2_EPG_SRV_UNREGIST_GUI_TCP ||
+					    stCmd.param == CMD2_EPG_SRV_ISREGIST_GUI_TCP ){
+						//Êé•Á∂öÂÖÉIP„ÇíÂºïÊï∞„Å´Ê∑ª‰ªò
 						char ip[NI_MAXHOST];
-						if( getnameinfo((struct sockaddr*)&client, clientLen, ip, NI_MAXHOST, NULL, 0, NI_NUMERICHOST) == 0 &&
-						    ReadVALUE(&setParam.port, stCmd.data, stCmd.dataSize, NULL) ){
-							UTF8toW(ip, setParam.ip);
-							stCmd.data = NewWriteVALUE(setParam, stCmd.dataSize);
-						}else{
-							//ê⁄ë±å≥IPÇÃìYïtÇ…é∏îsÇµÇΩ
-							stCmd.dataSize = 0;
-							stCmd.data.reset();
+						if( getnameinfo((struct sockaddr*)&client, clientLen, ip, NI_MAXHOST, NULL, 0, NI_NUMERICHOST) == 0 ){
+							UTF8toW(ip, clientIP);
 						}
 					}
 
-					pSys->m_cmdProc(&stCmd, &stRes);
+					pSys->m_cmdProc(&stCmd, &stRes, clientIP.empty() ? NULL : clientIP.c_str());
 					if( stRes.param == CMD_NO_RES ){
 						if( stCmd.param == CMD2_EPG_SRV_GET_STATUS_NOTIFY2 ){
-							//ï€óØâ¬î\Ç»ÉRÉ}ÉìÉhÇÕâûìöë“ÇøÉäÉXÉgÇ…à⁄ìÆ
+							//‰øùÁïôÂèØËÉΩ„Å™„Ç≥„Éû„É≥„Éâ„ÅØÂøúÁ≠îÂæÖ„Å°„É™„Çπ„Éà„Å´ÁßªÂãï
+#ifdef _WIN32
 							WSAEVENT hEvent;
-							if( hEventList.size() < WSA_MAXIMUM_WAIT_EVENTS && (hEvent = WSACreateEvent()) != WSA_INVALID_EVENT ){
-								WAIT_INFO waitInfo;
-								waitInfo.sock = sock;
-								waitInfo.cmd = new CMD_STREAM;
-								waitInfo.cmd->param = stCmd.param;
-								waitInfo.cmd->dataSize = stCmd.dataSize;
-								waitInfo.cmd->data.swap(stCmd.data);
-								waitInfo.tick = GetTickCount();
-								waitList.push_back(waitInfo);
-								hEventList.push_back(hEvent);
-								SetNonBlockingMode(sock, hEvent, FD_READ | FD_CLOSE);
+							if( hEventList.size() < WSA_MAXIMUM_WAIT_EVENTS && (hEvent = WSACreateEvent()) != WSA_INVALID_EVENT )
+#endif
+							{
+								waitList.push_back(std::unique_ptr<WAIT_INFO>(new WAIT_INFO));
+								waitList.back()->sock = sock;
+								waitList.back()->cmd.param = stCmd.param;
+								waitList.back()->cmd.dataSize = stCmd.dataSize;
+								waitList.back()->cmd.data.swap(stCmd.data);
+								waitList.back()->tick = GetTickCount();
+								waitList.back()->closing = false;
+#ifdef _WIN32
+								waitList.back()->hEvent = hEvent;
+#endif
+								SetNonBlockingMode(*waitList.back());
 								sock = INVALID_SOCKET;
 							}
 						}
@@ -363,8 +445,8 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 						break;
 					}
 					if( stRes.param != CMD_NEXT && stRes.param != OLD_CMD_NEXT ){
-						//EnumópÇÃåJÇËï‘ÇµÇ≈ÇÕÇ»Ç¢
-						shutdown(sock, SD_BOTH);
+						//EnumÁî®„ÅÆÁπ∞„ÇäËøî„Åó„Åß„ÅØ„Å™„ÅÑ
+						shutdown(sock, 2); //SD_BOTH
 						break;
 					}
 				}
@@ -372,17 +454,20 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 					closesocket(sock);
 				}
 			}
-		}else{
+		}
+#ifdef _WIN32
+		else{
 			break;
 		}
+#endif
 	}
 
 	while( waitList.empty() == false ){
-		closesocket(waitList.back().sock);
-		delete waitList.back().cmd;
+		SetBlockingMode(waitList.back()->sock);
+		closesocket(waitList.back()->sock);
+#ifdef _WIN32
+		WSACloseEvent(waitList.back()->hEvent);
+#endif
 		waitList.pop_back();
-		WSACloseEvent(hEventList.back());
-		hEventList.pop_back();
 	}
-	WSAEventSelect(pSys->m_sock, NULL, 0);
 }

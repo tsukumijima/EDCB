@@ -1,4 +1,4 @@
-// SettingDlg.cpp : À‘•ƒtƒ@ƒCƒ‹
+ï»¿// SettingDlg.cpp : å®Ÿè£…ãƒ•ã‚¡ã‚¤ãƒ«
 //
 
 #include "stdafx.h"
@@ -6,7 +6,7 @@
 #include "SettingDlg.h"
 
 
-// CSettingDlg ƒ_ƒCƒAƒƒO
+// CSettingDlg ãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 
 CSettingDlg::CSettingDlg(HWND hWndOwner)
 	: m_hWnd(NULL)
@@ -25,33 +25,12 @@ INT_PTR CSettingDlg::DoModal()
 }
 
 
-// CSettingDlg ƒƒbƒZ[ƒW ƒnƒ“ƒhƒ‰[
+// CSettingDlg ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ ãƒãƒ³ãƒ‰ãƒ©ãƒ¼
 
 
 BOOL CSettingDlg::OnInitDialog()
 {
-	// TODO:  ‚±‚±‚É‰Šú‰»‚ğ’Ç‰Á‚µ‚Ä‚­‚¾‚³‚¢
-	TCITEM Item;
-	Item.mask = TCIF_TEXT;
-
-	Item.pszText = L"Šî–{İ’è";
-	TabCtrl_InsertItem(GetDlgItem(IDC_TAB), 0, &Item);
-
-	Item.pszText = L"“®ìİ’è";
-	TabCtrl_InsertItem(GetDlgItem(IDC_TAB), 1, &Item);
-
-	Item.pszText = L"EPGæ“¾İ’è";
-	TabCtrl_InsertItem(GetDlgItem(IDC_TAB), 2, &Item);
-
-	Item.pszText = L"ƒT[ƒrƒX•\¦İ’è";
-	TabCtrl_InsertItem(GetDlgItem(IDC_TAB), 3, &Item);
-
-	Item.pszText = L"ƒlƒbƒgƒ[ƒNİ’è";
-	TabCtrl_InsertItem(GetDlgItem(IDC_TAB), 4, &Item);
-
-	Item.pszText = L"ŠO•”ƒAƒvƒŠƒP[ƒVƒ‡ƒ“İ’è";
-	TabCtrl_InsertItem(GetDlgItem(IDC_TAB), 5, &Item);
-
+	// TODO:  ã“ã“ã«åˆæœŸåŒ–ã‚’è¿½åŠ ã—ã¦ãã ã•ã„
 	basicDlg.Create( MAKEINTRESOURCE(IDD_DIALOG_SET_BASIC), GetSafeHwnd() );
 	appDlg.Create( MAKEINTRESOURCE(IDD_DIALOG_SET_APP), GetSafeHwnd() );
 	epgDlg.Create( MAKEINTRESOURCE(IDD_DIALOG_SET_EPG), GetSafeHwnd() );
@@ -59,6 +38,23 @@ BOOL CSettingDlg::OnInitDialog()
 	appBtnDlg.Create( MAKEINTRESOURCE(IDD_DIALOG_SET_APPBTN), GetSafeHwnd() );
 	serviceDlg.Create( MAKEINTRESOURCE(IDD_DIALOG_SET_SERVICE), GetSafeHwnd() );
 
+	HWND hwndItems[6] = {
+		basicDlg.GetSafeHwnd(),
+		appDlg.GetSafeHwnd(),
+		epgDlg.GetSafeHwnd(),
+		serviceDlg.GetSafeHwnd(),
+		networkDlg.GetSafeHwnd(),
+		appBtnDlg.GetSafeHwnd()
+	};
+
+	for( int i = 0; i < 6; i++ ){
+		WCHAR text[32] = {};
+		GetWindowText(hwndItems[i], text, 32);
+		TCITEM tci;
+		tci.mask = TCIF_TEXT;
+		tci.pszText = text;
+		TabCtrl_InsertItem(GetDlgItem(IDC_TAB), i, &tci);
+	}
 	RECT rc;
 	GetWindowRect(GetDlgItem(IDC_TAB), &rc);
 	TabCtrl_AdjustRect(GetDlgItem(IDC_TAB), FALSE, &rc);
@@ -69,24 +65,21 @@ BOOL CSettingDlg::OnInitDialog()
 
 	rc.right -= rc.left;
 	rc.bottom -= rc.top;
-	MoveWindow(basicDlg.GetSafeHwnd(), pt.x, pt.y, rc.right, rc.bottom, TRUE);
-	MoveWindow(appDlg.GetSafeHwnd(), pt.x, pt.y, rc.right, rc.bottom, TRUE);
-	MoveWindow(epgDlg.GetSafeHwnd(), pt.x, pt.y, rc.right, rc.bottom, TRUE);
-	MoveWindow(networkDlg.GetSafeHwnd(), pt.x, pt.y, rc.right, rc.bottom, TRUE);
-	MoveWindow(appBtnDlg.GetSafeHwnd(), pt.x, pt.y, rc.right, rc.bottom, TRUE);
-	MoveWindow(serviceDlg.GetSafeHwnd(), pt.x, pt.y, rc.right, rc.bottom, TRUE);
+	for( int i = 0; i < 6; i++ ){
+		MoveWindow(hwndItems[i], pt.x, pt.y, rc.right, rc.bottom, TRUE);
+	}
 
 	TabCtrl_SetCurSel(GetDlgItem(IDC_TAB), 0);
 	ShowWindow(basicDlg.GetSafeHwnd(), SW_SHOW);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
-	// —áŠO : OCX ƒvƒƒpƒeƒB ƒy[ƒW‚Í•K‚¸ FALSE ‚ğ•Ô‚µ‚Ü‚·B
+	// ä¾‹å¤– : OCX ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ ãƒšãƒ¼ã‚¸ã¯å¿…ãš FALSE ã‚’è¿”ã—ã¾ã™ã€‚
 }
 
 
 void CSettingDlg::OnBnClickedOk()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	basicDlg.SaveIni();
 	appDlg.SaveIni();
 	epgDlg.SaveIni();
@@ -98,7 +91,7 @@ void CSettingDlg::OnBnClickedOk()
 
 void CSettingDlg::OnTcnSelchangingTab(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	int index = TabCtrl_GetCurSel(GetDlgItem(IDC_TAB));
 	switch(index){
 		case 0:
@@ -128,7 +121,7 @@ void CSettingDlg::OnTcnSelchangingTab(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CSettingDlg::OnTcnSelchangeTab(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	int index = TabCtrl_GetCurSel(GetDlgItem(IDC_TAB));
 	switch(index){
 		case 0:

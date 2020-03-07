@@ -1,6 +1,18 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "PathUtil.h"
+#include "StringUtil.h"
 #include <stdexcept>
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#else
+#include <dirent.h>
+#include <errno.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <unistd.h>
+#endif
 
 namespace filesystem_
 {
@@ -31,8 +43,12 @@ path& path::append(const wstring& source)
 // Note: An append is never performed if size()==0, so a returned 0 is unambiguous.
 size_t path::m_append_separator_if_needed()
 {
-	if (!m_pathname.empty() && m_pathname.back() != L':' && !is_dir_sep(m_pathname.back())) {
-		m_pathname += L'\\';
+	if (!m_pathname.empty() &&
+#ifdef _WIN32
+	    m_pathname.back() != L':' &&
+#endif
+	    !is_dir_sep(m_pathname.back())) {
+		m_pathname += preferred_separator;
 		return m_pathname.size() - 1;
 	}
 	return 0;
@@ -75,7 +91,9 @@ path path::root_name() const
 	first_element(m_pathname, itr_pos, itr_element_size);
 	return (itr_pos != m_pathname.size()
 		&& ((itr_element_size > 1 && is_dir_sep(m_pathname[itr_pos]) && is_dir_sep(m_pathname[itr_pos + 1]))
+#ifdef _WIN32
 			|| m_pathname[itr_pos + itr_element_size - 1] == L':'
+#endif
 		)) ? path(m_pathname.substr(itr_pos, itr_element_size)) : path();
 }
 
@@ -131,15 +149,17 @@ bool path::is_root_separator(const wstring& str, size_t pos)
 	if (pos == 0) {
 		return true;
 	}
+#ifdef _WIN32
 	//  "c:/" [...]
 	if (pos == 2 && is_letter(str[0]) && str[1] == L':') {
 		return true;
 	}
+#endif
 	//  "//" name "/"
 	if (pos < 3 || !is_dir_sep(str[0]) || !is_dir_sep(str[1])) {
 		return false;
 	}
-	return str.find_first_of(L"/\\", 2) == pos;
+	return str.find_first_of(separators(), 2) == pos;
 }
 
 // return 0 if str itself is filename (or empty)
@@ -154,10 +174,12 @@ size_t path::filename_pos(const wstring& str)
 		return str.size() - 1;
 	}
 	// set pos to start of last element
-	size_t pos(str.find_last_of(L"/\\", str.size() - 1));
+	size_t pos(str.find_last_of(separators(), str.size() - 1));
+#ifdef _WIN32
 	if (pos == wstring::npos && str.size() > 1) {
 		pos = str.find_last_of(L':', str.size() - 2);
 	}
+#endif
 	return (pos == wstring::npos // path itself must be a filename (or empty)
 		|| (pos == 1 && is_dir_sep(str[0]))) // or net
 			? 0 // so filename is entire string
@@ -167,22 +189,26 @@ size_t path::filename_pos(const wstring& str)
 // return npos if no root_directory found
 size_t path::root_directory_start(const wstring& str, size_t size)
 {
+#ifdef _WIN32
 	// case "c:/"
 	if (size > 2 && str[1] == L':' && is_dir_sep(str[2])) {
 		return 2;
 	}
+#endif
 	// case "//"
 	if (size == 2 && is_dir_sep(str[0]) && is_dir_sep(str[1])) {
 		return wstring::npos;
 	}
+#ifdef _WIN32
 	// case "\\?\"
 	if (size > 4 && is_dir_sep(str[0]) && is_dir_sep(str[1]) && str[2] == L'?' && is_dir_sep(str[3])) {
-		size_t pos(str.find_first_of(L"/\\", 4));
+		size_t pos(str.find_first_of(separators(), 4));
 		return pos < size ? pos : wstring::npos;
 	}
+#endif
 	// case "//net {/}"
 	if (size > 3 && is_dir_sep(str[0]) && is_dir_sep(str[1]) && !is_dir_sep(str[2])) {
-		size_t pos(str.find_first_of(L"/\\", 2));
+		size_t pos(str.find_first_of(separators(), 2));
 		return pos < size ? pos : wstring::npos;
 	}
 	// case "/"
@@ -217,32 +243,113 @@ void path::first_element(const wstring& src, size_t& element_pos, size_t& elemen
 	// at this point, we have either a plain name, a network name,
 	// or (on Windows only) a device name
 	// find the end
-	for (; cur < src.size() && src[cur] != L':' && !is_dir_sep(src[cur]); ++cur, ++element_size);
+	for (; cur < src.size()
+#ifdef _WIN32
+		&& src[cur] != L':'
+#endif
+		&& !is_dir_sep(src[cur]); ++cur, ++element_size);
+#ifdef _WIN32
 	// include device delimiter
 	if (cur < src.size() && src[cur] == L':') {
 		++element_size;
 	}
+#endif
 }
 
 } // namespace filesystem_
 
 
+FILE* UtilOpenFile(const wstring& path, int flags)
+{
+#ifdef _WIN32
+	LPCWSTR mode = (flags & 31) == UTIL_O_RDONLY ? L"rb" :
+	               (flags & 31) == UTIL_O_RDWR ? L"r+b" :
+	               (flags & 31) == UTIL_O_CREAT_WRONLY ? L"wb" :
+	               (flags & 31) == UTIL_O_CREAT_RDWR ? L"w+b" :
+	               (flags & 31) == UTIL_O_CREAT_APPEND ? L"ab" :
+	               (flags & 31) == UTIL_O_EXCL_CREAT_WRONLY ? L"wb" :
+	               (flags & 31) == UTIL_O_EXCL_CREAT_RDWR ? L"w+b" :
+	               (flags & 31) == UTIL_O_EXCL_CREAT_APPEND ? L"ab" : NULL;
+	if( mode ){
+		// ÂÖ±Êúâ„É¢„Éº„ÉâÂà∂Âæ°„ÅÆ„Åü„ÇÅAPI„ÅßÈñã„Åè
+		// ÂèÇËÄÉ:ÂæåÁ∂ö„ÅåÈñã„Åè„Åì„Å®„ÅÆ„Åß„Åç„ÇãÂÖ±Êúâ„É¢„Éº„Éâ„ÅÆ„Éë„Çø„Éº„É≥(ÂèåÊñπÂêë„ÄÇ*„ÅØÊú™„Çµ„Éù„Éº„Éà)
+		// (RD,SH_READ)<=>(RD,SH_READ)
+		// (RD,SH_READ)<=>(RD,SH_RDWR)
+		// (RD,SH_RDWR)<=>(RD,SH_RDWR)
+		// (RD,SH_RDWR)<=>(WR,SH_READ)
+		// (RD,SH_RDWR)<=>(WR,SH_RDWR)*
+		// (WR,SH_RDWR)<=>(WR,SH_RDWR)*
+		HANDLE h = CreateFile(path.c_str(), ((flags & 1) ? GENERIC_READ : 0) | ((flags & 2) ? GENERIC_WRITE : 0),
+		                      ((flags & 32) ? FILE_SHARE_READ : 0) | ((flags & 64) ? FILE_SHARE_WRITE : 0) | ((flags & 128) ? FILE_SHARE_DELETE : 0),
+		                      NULL, (flags & 24) == 8 ? CREATE_ALWAYS : (flags & 24) == 16 ? OPEN_ALWAYS : (flags & 24) == 24 ? CREATE_NEW : OPEN_EXISTING,
+		                      FILE_ATTRIBUTE_NORMAL | ((flags & 256) ? FILE_FLAG_SEQUENTIAL_SCAN : 0), NULL);
+		if( h != INVALID_HANDLE_VALUE ){
+			int fd = _open_osfhandle((intptr_t)h, (flags & 4) ? _O_APPEND : 0);
+			if( fd != -1 ){
+				FILE* fp = _wfdopen(fd, mode);
+				if( fp ){
+					if( flags & 512 ){
+						setvbuf(fp, NULL, _IONBF, 0);
+					}
+					return fp;
+				}
+				_close(fd);
+			}else{
+				CloseHandle(h);
+			}
+		}
+	}
+#else
+	const char* mode = (flags & 31) == UTIL_O_RDONLY ? "re" :
+	                   (flags & 31) == UTIL_O_RDWR ? "r+e" :
+	                   (flags & 31) == UTIL_O_CREAT_WRONLY ? "we" :
+	                   (flags & 31) == UTIL_O_CREAT_RDWR ? "w+e" :
+	                   (flags & 31) == UTIL_O_CREAT_APPEND ? "ae" :
+	                   (flags & 31) == UTIL_O_EXCL_CREAT_WRONLY ? "wxe" :
+	                   (flags & 31) == UTIL_O_EXCL_CREAT_RDWR ? "w+xe" :
+	                   (flags & 31) == UTIL_O_EXCL_CREAT_APPEND ? "axe" : NULL;
+	if( mode ){
+		string strPath;
+		WtoUTF8(path, strPath);
+		FILE* fp = fopen(strPath.c_str(), mode);
+		if( fp ){
+			if( flags & 512 ){
+				setvbuf(fp, NULL, _IONBF, 0);
+			}
+			// flock()„ÅØÂãßÂëä„É≠„ÉÉ„ÇØ„Å´ÈÅé„Åé„Å™„ÅÑ„ÅÆ„ÅßÊ≥®ÊÑè
+			// UTIL_SHARED_READ„ÅØÁÑ°„É≠„ÉÉ„ÇØÁõ∏ÂΩì„Åß„ÄÅÊó¢„Å´„Åã„Åã„Å£„Å¶„ÅÑ„ÇãÊéí‰ªñ„É≠„ÉÉ„ÇØ„ÇíÁÑ°Ë¶ñ„Åô„Çã„ÅÆ„ÅßÊ≥®ÊÑè
+			if( ((flags & 32) && (flags & 64)) || flock(fileno(fp), ((flags & 32) ? LOCK_SH : LOCK_EX) | LOCK_NB) == 0 ){
+				return fp;
+			}
+			// („Åª„Åº„Å™„ÅÑ„Åå)„Éï„Ç°„Ç§„É´ÁîüÊàêÂæå„Å´„É≠„ÉÉ„ÇØ„Å´Â§±Êïó„Åó„ÅüÂ†¥Âêà„ÅÆ„É≠„Éº„É´„Éê„ÉÉ„ÇØ„ÅØ„Åó„Å™„ÅÑ
+			fclose(fp);
+		}
+	}
+#endif
+	return NULL;
+}
+
+#ifndef _WIN32
+BOOL DeleteFile(LPCWSTR path)
+{
+	string strPath;
+	WtoUTF8(path, strPath);
+	return remove(strPath.c_str()) == 0;
+}
+#endif
+
 fs_path GetDefSettingPath()
 {
-	return GetModulePath().replace_filename(L"Setting");
+	return GetCommonIniPath().replace_filename(L"Setting");
 }
 
 fs_path GetSettingPath()
 {
-	fs_path path = GetPrivateProfileToFolderPath(L"SET", L"DataSavePath", GetCommonIniPath().c_str());
+	fs_path path = GetPrivateProfileToString(L"SET", L"DataSavePath", L"", GetCommonIniPath().c_str());
 	return path.empty() ? GetDefSettingPath() : path;
 }
 
-void GetModuleFolderPath(wstring& strPath)
-{
-	strPath = GetModulePath().parent_path().native();
-}
-
+#ifdef _WIN32
 fs_path GetModulePath(HMODULE hModule)
 {
 	WCHAR szPath[MAX_PATH];
@@ -257,24 +364,44 @@ fs_path GetModulePath(HMODULE hModule)
 	return path;
 }
 
-fs_path GetPrivateProfileToFolderPath(LPCWSTR appName, LPCWSTR keyName, LPCWSTR fileName)
-{
-	if( !appName || !keyName ){
-		return fs_path();
-	}
-	fs_path path(GetPrivateProfileToString(appName, keyName, L"", fileName));
-	ChkFolderPath(path);
-	return path;
-}
-
 fs_path GetModuleIniPath(HMODULE hModule)
 {
-	return GetModulePath(hModule).replace_extension(L".ini");
+	if( hModule ){
+		return GetModulePath(hModule).concat(L".ini");
+	}
+	return GetModulePath().replace_extension(L".ini");
 }
+#else
+fs_path GetModulePath()
+{
+	char szPath[1024];
+	if( readlink("/proc/self/exe", szPath, sizeof(szPath)) < 0 ){
+		throw std::runtime_error("");
+	}
+	wstring strPath;
+	UTF8toW(szPath, strPath);
+	fs_path path(strPath);
+	if( path.is_relative() || path.has_filename() == false ){
+		throw std::runtime_error("");
+	}
+	return path;
+}
+fs_path GetModuleIniPath(LPCWSTR moduleName)
+{
+	if( moduleName ){
+		return fs_path(EDCB_INI_ROOT).append(moduleName).concat(L".ini");
+	}
+	return fs_path(EDCB_INI_ROOT).append(GetModulePath().filename().native()).replace_extension(L".ini");
+}
+#endif
 
 fs_path GetCommonIniPath()
 {
+#ifdef _WIN32
 	return GetModulePath().replace_filename(L"Common.ini");
+#else
+	return fs_path(EDCB_INI_ROOT).append(L"Common.ini");
+#endif
 }
 
 fs_path GetRecFolderPath(int index)
@@ -282,117 +409,201 @@ fs_path GetRecFolderPath(int index)
 	fs_path iniPath = GetCommonIniPath();
 	int num = GetPrivateProfileInt(L"SET", L"RecFolderNum", 0, iniPath.c_str());
 	if( index <= 0 ){
-		// ïKÇ∏ï‘Ç∑
+		// ÂøÖ„ÅöËøî„Åô
 		fs_path path;
 		if( num > 0 ){
-			path = GetPrivateProfileToFolderPath(L"SET", L"RecFolderPath0", iniPath.c_str());
+			path = GetPrivateProfileToString(L"SET", L"RecFolderPath0", L"", iniPath.c_str());
 		}
 		return path.empty() ? GetSettingPath() : path;
 	}
 	for( int i = 1; i < num; i++ ){
 		WCHAR szKey[32];
 		swprintf_s(szKey, L"RecFolderPath%d", i);
-		fs_path path = GetPrivateProfileToFolderPath(L"SET", szKey, iniPath.c_str());
-		// ãÛóvëfÇÕãlÇﬂÇÈ
+		fs_path path = GetPrivateProfileToString(L"SET", szKey, L"", iniPath.c_str());
+		// Á©∫Ë¶ÅÁ¥†„ÅØË©∞„ÇÅ„Çã
 		if( path.empty() == false ){
 			if( --index <= 0 ){
 				return path;
 			}
 		}
 	}
-	// îÕàÕäO
+	// ÁØÑÂõ≤Â§ñ
 	return fs_path();
 }
 
-BOOL IsExt(const fs_path& filePath, const WCHAR* ext)
+int UtilComparePath(LPCWSTR path1, LPCWSTR path2)
 {
-	return _wcsicmp(filePath.extension().c_str(), ext) == 0;
+#ifdef _WIN32
+	return CompareNoCase(path1, path2);
+#else
+	return wcscmp(path1, path2);
+#endif
 }
 
-void CheckFileName(wstring& fileName, BOOL noChkYen)
+bool UtilPathEndsWith(LPCWSTR path, LPCWSTR suffix)
+{
+	size_t n = wcslen(path);
+	size_t m = wcslen(suffix);
+	return n >= m && UtilComparePath(path + n - m, suffix) == 0;
+}
+
+void CheckFileName(wstring& fileName, bool noChkYen)
 {
 	static const WCHAR s[10] = L"\\/:*?\"<>|";
-	static const WCHAR r[10] = L"ÅèÅ^ÅFÅñÅHÅhÅÉÅÑÅb";
-	// ÉgÉäÉÄ
+	static const WCHAR r[10] = L"Ôø•ÔºèÔºöÔºäÔºü‚ÄùÔºúÔºûÔΩú";
+	// „Éà„É™„É†
 	size_t j = fileName.find_last_not_of(L' ');
 	fileName.erase(j == wstring::npos ? 0 : j + 1);
 	fileName.erase(0, fileName.find_first_not_of(L' '));
 	for( size_t i = 0; i < fileName.size(); i++ ){
 		if( L'\x1' <= fileName[i] && fileName[i] <= L'\x1f' || fileName[i] == L'\x7f' ){
-			// êßå‰ï∂éö
-			fileName[i] = L'Å¨';
+			// Âà∂Âæ°ÊñáÂ≠ó
+			fileName[i] = L'„Äì';
 		}
-		// ".\"Ç∆Ç»ÇÈÇ∆Ç´ÇÕnoChkYenÇ≈Ç‡ëSäpÇ…
+		// ".\"„Å®„Å™„Çã„Å®„Åç„ÅØnoChkYen„Åß„ÇÇÂÖ®Ëßí„Å´
 		const WCHAR* p = wcschr(s, fileName[i]);
-		if( p && (noChkYen == FALSE || *p != L'\\' || (i > 0 && fileName[i - 1] == L'.')) ){
+		if( p && (noChkYen == false || *p != fs_path::preferred_separator || (i > 0 && fileName[i - 1] == L'.')) ){
 			fileName[i] = r[p - s];
 		}
 	}
-	// ñ`ì™'\'ÇÕÉgÉäÉÄ
-	fileName.erase(0, fileName.find_first_not_of(L'\\'));
-	// Ç∑Ç◊Çƒ'.'ÇÃÇ∆Ç´ÇÕëSäpÇ…
+	// ÂÜíÈ†≠'\'„ÅØ„Éà„É™„É†
+	fileName.erase(0, fileName.find_first_not_of(fs_path::preferred_separator));
+	// „Åô„Åπ„Å¶'.'„ÅÆ„Å®„Åç„ÅØÂÖ®Ëßí„Å´
 	if( fileName.find_first_not_of(L'.') == wstring::npos ){
-		for( size_t i = 0; i < fileName.size(); fileName[i++] = L'ÅD' );
+		for( size_t i = 0; i < fileName.size(); fileName[i++] = L'Ôºé' );
 	}
 }
 
-void ChkFolderPath(fs_path& path)
+#ifdef _WIN32
+void TouchFileAsUnicode(const fs_path& path)
 {
-	// âﬂãéÇ…ÉãÅ[ÉgÉfÉBÉåÉNÉgÉäãÊêÿÇËÇé∏Ç¡ÇΩèÛë‘("C:"Ç»Ç«)Ç≈ê›íËÇ»Ç«Ç…ï€ë∂ÇµÇƒÇ¢ÇΩÇÃÇ≈ÅAÇ±ÇÍÇ…ëŒâûÇ∑ÇÈ
-	if( path.empty() == false && path.native().back() != L'/' && path.native().back() != L'\\' ){
-		// àÍéûìIÇ…â∫ëwÇçÏÇ¡Çƒè„Ç™ÇÈ
-		// TODO: remove_filename()ÇÃññîˆãÊêÿÇËÇ…Ç¬Ç¢ÇƒïWèÄÇÃédólÇ™óhÇÍÇƒÇ¢ÇÈÅBèÛãµÇ…ÇÊÇ¡ÇƒÇÕparent_path()Ç…ïœçXÇ∑ÇÈÇ±Ç∆
-		path.concat(L"\\a").remove_filename();
+	std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(path, UTIL_O_EXCL_CREAT_WRONLY), fclose);
+	if( fp ){
+		fputwc(L'\xFEFF', fp.get());
 	}
 }
+#endif
 
-void TouchFileAsUnicode(LPCWSTR path)
+pair<bool, bool> UtilFileExists(const fs_path& path, bool* mightExist)
 {
-	if( GetFileAttributes(path) == INVALID_FILE_ATTRIBUTES ){
-		FILE* fp;
-		if( _wfopen_s(&fp, path, L"abN") == 0 && fp ){
-			_fseeki64(fp, 0, SEEK_END);
-			if( _ftelli64(fp) == 0 ){
-				fputwc(L'\xFEFF', fp);
-			}
-			fclose(fp);
-		}
+#ifdef _WIN32
+	DWORD attr = GetFileAttributes(path.c_str());
+	if( attr != INVALID_FILE_ATTRIBUTES ){
+		return std::make_pair(true, (attr & FILE_ATTRIBUTE_DIRECTORY) == 0);
 	}
+	if( mightExist ){
+		DWORD err = GetLastError();
+		*mightExist = (err != ERROR_FILE_NOT_FOUND && err != ERROR_PATH_NOT_FOUND);
+	}
+#else
+	string strPath;
+	WtoUTF8(path.native(), strPath);
+	struct stat st;
+	if( stat(strPath.c_str(), &st) == 0 ){
+		return std::make_pair(true, S_ISDIR(st.st_mode) == 0);
+	}
+	if( mightExist ){
+		*mightExist = errno != ENOENT;
+	}
+#endif
+	return std::make_pair(false, false);
 }
 
-BOOL UtilCreateDirectories(const fs_path& path)
+bool UtilCreateDirectory(const fs_path& path)
+{
+#ifdef _WIN32
+	return CreateDirectory(path.c_str(), NULL) != FALSE;
+#else
+	string strPath;
+	WtoUTF8(path.native(), strPath);
+	return mkdir(strPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == 0;
+#endif
+}
+
+bool UtilCreateDirectories(const fs_path& path)
 {
 	if( path.empty() || path.is_relative() && path.has_root_path() ){
-		// ÉpÉXÇ™ïsäÆëS
-		return FALSE;
+		// „Éë„Çπ„Åå‰∏çÂÆåÂÖ®
+		return false;
 	}
-	if( GetFileAttributes(path.c_str()) != INVALID_FILE_ATTRIBUTES ){
-		// ä˘ë∂
-		return FALSE;
+	bool mightExist = false;
+	if( UtilFileExists(path, &mightExist).first ){
+		// Êó¢Â≠ò
+		return false;
 	}
-	DWORD err = GetLastError();
-	if( err != ERROR_FILE_NOT_FOUND && err != ERROR_PATH_NOT_FOUND ){
-		// ì¡éÍÇ»óùóR
-		_OutputDebugString(L"UtilCreateDirectories(): Error=%08x\r\n", err);
-		return FALSE;
+	if( mightExist ){
+		// ÁâπÊÆä„Å™ÁêÜÁî±
+		OutputDebugString(L"UtilCreateDirectories(): Error\r\n");
+		return false;
 	}
 	UtilCreateDirectories(path.parent_path());
-	return CreateDirectory(path.c_str(), NULL);
+	return UtilCreateDirectory(path);
 }
 
-wstring GetChkDrivePath(const wstring& directoryPath)
+__int64 UtilGetStorageFreeBytes(const fs_path& directoryPath)
 {
+#ifdef _WIN32
+	ULARGE_INTEGER li;
+	return GetDiskFreeSpaceEx(UtilGetStorageID(directoryPath).c_str(), &li, NULL, NULL) ? (__int64)li.QuadPart : -1;
+#else
+	if( directoryPath.empty() || (directoryPath.is_relative() && directoryPath.has_root_path()) ){
+		// „Éë„Çπ„Åå‰∏çÂÆåÂÖ®
+		return -1;
+	}
+	bool mightExist = false;
+	if( UtilFileExists(directoryPath, &mightExist).first ){
+		string strPath;
+		WtoUTF8(directoryPath.native(), strPath);
+		struct statvfs st;
+		return statvfs(strPath.c_str(), &st) == 0 ? (__int64)st.f_frsize * (__int64)st.f_bavail : -1;
+	}
+	if( mightExist ){
+		// ÁâπÊÆä„Å™ÁêÜÁî±
+		OutputDebugString(L"UtilGetStorageFreeBytes(): Error\r\n");
+		return -1;
+	}
+	return UtilGetStorageFreeBytes(directoryPath.parent_path());
+#endif
+}
+
+wstring UtilGetStorageID(const fs_path& directoryPath)
+{
+#ifdef _WIN32
 	WCHAR szVolumePathName[MAX_PATH];
 	if( GetVolumePathName(directoryPath.c_str(), szVolumePathName, MAX_PATH) == FALSE ){
-		return directoryPath;
+		return directoryPath.native();
 	}
 	WCHAR szMount[MAX_PATH];
 	if( GetVolumeNameForVolumeMountPoint(szVolumePathName, szMount, MAX_PATH) == FALSE ){
 		return szVolumePathName;
 	}
 	return szMount;
+#else
+	wstring ret;
+	if( directoryPath.empty() || (directoryPath.is_relative() && directoryPath.has_root_path()) ){
+		// „Éë„Çπ„Åå‰∏çÂÆåÂÖ®
+		return ret;
+	}
+	bool mightExist = false;
+	if( UtilFileExists(directoryPath, &mightExist).first ){
+		string strPath;
+		WtoUTF8(directoryPath.native(), strPath);
+		struct stat st;
+		if( stat(strPath.c_str(), &st) == 0 ){
+			Format(ret, L"%08X", (DWORD)st.st_dev);
+		}
+		return ret;
+	}
+	if( mightExist ){
+		// ÁâπÊÆä„Å™ÁêÜÁî±
+		OutputDebugString(L"UtilGetStorageID(): Error\r\n");
+		return ret;
+	}
+	return UtilGetStorageID(directoryPath.parent_path());
+#endif
 }
 
+#ifdef _WIN32
 vector<WCHAR> GetPrivateProfileSectionBuffer(LPCWSTR appName, LPCWSTR fileName)
 {
 	vector<WCHAR> buff(4096);
@@ -410,9 +621,96 @@ vector<WCHAR> GetPrivateProfileSectionBuffer(LPCWSTR appName, LPCWSTR fileName)
 	}
 	return buff;
 }
+#else
+int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName)
+{
+	wstring ret = GetPrivateProfileToString(appName, keyName, L"", fileName);
+	LPWSTR endp;
+	int n = (int)wcstol(ret.c_str(), &endp, 10);
+	return endp != ret.c_str() ? n : nDefault;
+}
+
+BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpString, LPCWSTR fileName)
+{
+	for( int retry = 0;; ){
+		std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(wstring(fileName), UTIL_O_RDWR), fclose);
+		if( !fp ){
+			fp.reset(UtilOpenFile(wstring(fileName), UTIL_O_EXCL_CREAT_RDWR));
+		}
+		if( fp ){
+			string app, key, val, line, buff;
+			WtoUTF8(L'[' + wstring(appName) + L']', app);
+			WtoUTF8(keyName ? keyName : L"", key);
+			WtoUTF8(lpString ? lpString : L"", val);
+			bool isApp = false;
+			bool hasApp = false;
+			bool hasKey = false;
+			int c;
+			do{
+				c = fgetc(fp.get());
+				if( c >= 0 && (char)c && (char)c != '\n' ){
+					line += (char)c;
+					continue;
+				}
+				size_t n = line.find_last_not_of("\t\r ");
+				line.erase(n == string::npos ? 0 : n + 1);
+				line.erase(0, line.find_first_not_of("\t\r "));
+				bool isKey = false;
+				if( CompareNoCase(app, line) == 0 ){
+					hasApp = isApp = true;
+				}else if( line[0] == '[' ){
+					if( keyName && lpString && isApp && hasKey == false ){
+						buff += key + '=' + val + '\n';
+						hasKey = true;
+					}
+					isApp = false;
+				}else if( isApp && keyName && (n = line.find('=')) != string::npos ){
+					size_t m = line.find_last_not_of("\t\r =", n);
+					m = (m == string::npos ? 0 : m + 1);
+					char d = line[m];
+					line[m] = '\0';
+					hasKey = isKey = CompareNoCase(key, line.c_str()) == 0;
+					line[m] = d;
+					if( isKey && lpString ){
+						line.replace(n + 1, string::npos, val);
+					}
+				}
+				if( (isApp == false || keyName) && (isKey == false || lpString) && (c >= 0 || line.empty() == false) ){
+					buff += line;
+					buff += '\n';
+				}
+				line.clear();
+			}while( c >= 0 && (char)c );
+
+			if( keyName && lpString ){
+				if( hasApp == false ){
+					buff += app + '\n';
+				}
+				if( hasKey == false ){
+					buff += key + '=' + val + '\n';
+				}
+			}
+			if( ftruncate(fileno(fp.get()), 0) == 0 ){
+				rewind(fp.get());
+				if( fwrite(buff.c_str(), 1, buff.size(), fp.get()) == buff.size() && fflush(fp.get()) == 0 ){
+					return TRUE;
+				}
+			}
+			OutputDebugString(L"WritePrivateProfileString(): Error\r\n");
+			break;
+		}else if( ++retry > 1000 ){
+			OutputDebugString(L"WritePrivateProfileString(): Error: Cannot open file\r\n");
+			break;
+		}
+		Sleep(10);
+	}
+	return FALSE;
+}
+#endif
 
 wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDefault, LPCWSTR fileName)
 {
+#ifdef _WIN32
 	WCHAR szBuff[512];
 	DWORD n = GetPrivateProfileString(appName, keyName, lpDefault, szBuff, 512, fileName);
 	if( n >= 510 ){
@@ -424,6 +722,56 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 		return wstring(buff.begin(), buff.begin() + n);
 	}
 	return wstring(szBuff, szBuff + n);
+#else
+	for( int retry = 0; appName && keyName; ){
+		bool mightExist = false;
+		std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(wstring(fileName), UTIL_SECURE_READ), fclose);
+		if( fp ){
+			string app, key, line;
+			WtoUTF8(L'[' + wstring(appName) + L']', app);
+			WtoUTF8(keyName, key);
+			bool isApp = false;
+			int c;
+			do{
+				c = fgetc(fp.get());
+				if( c >= 0 && (char)c && (char)c != '\n' ){
+					line += (char)c;
+					continue;
+				}
+				size_t n = line.find_last_not_of("\t\r ");
+				line.erase(n == string::npos ? 0 : n + 1);
+				line.erase(0, line.find_first_not_of("\t\r "));
+				if( CompareNoCase(app, line) == 0 ){
+					isApp = true;
+				}else if( line[0] == '[' ){
+					isApp = false;
+				}else if( isApp && (n = line.find('=')) != string::npos ){
+					size_t m = line.find_last_not_of("\t\r =", n);
+					line[m == string::npos ? 0 : m + 1] = '\0';
+					if( CompareNoCase(key, line.c_str()) == 0 ){
+						line.erase(0, line.find_first_not_of("\t\r ", n + 1));
+						if( line.size() > 1 && (line[0] == '"' || line[0] == '\'') && line[0] == line.back() ){
+							line.pop_back();
+							line.erase(line.begin());
+						}
+						wstring ret;
+						UTF8toW(line, ret);
+						return ret;
+					}
+				}
+				line.clear();
+			}while( c >= 0 && (char)c );
+			break;
+		}else if( UtilFileExists(fileName, &mightExist).first == false && mightExist == false ){
+			break;
+		}else if( ++retry > 1000 ){
+			OutputDebugString(L"GetPrivateProfileToString(): Error: Cannot open file\r\n");
+			break;
+		}
+		Sleep(10);
+	}
+	return lpDefault ? lpDefault : L"";
+#endif
 }
 
 BOOL WritePrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int value, LPCWSTR fileName)
@@ -431,4 +779,94 @@ BOOL WritePrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int value, LPCWSTR
 	WCHAR sz[32];
 	swprintf_s(sz, L"%d", value);
 	return WritePrivateProfileString(appName, keyName, sz, fileName);
+}
+
+void EnumFindFile(const fs_path& pattern, const std::function<bool(UTIL_FIND_DATA&)>& enumProc)
+{
+#ifdef _WIN32
+	WIN32_FIND_DATA findData;
+	HANDLE hFind = FindFirstFile(pattern.c_str(), &findData);
+	if( hFind != INVALID_HANDLE_VALUE ){
+		try{
+			UTIL_FIND_DATA ufd;
+			do{
+				ufd.isDir = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+				ufd.lastWriteTime = (__int64)findData.ftLastWriteTime.dwHighDateTime << 32 | findData.ftLastWriteTime.dwLowDateTime;
+				ufd.fileSize = (__int64)findData.nFileSizeHigh << 32 | findData.nFileSizeLow;
+				ufd.fileName = findData.cFileName;
+			}while( enumProc(ufd) && FindNextFile(hFind, &findData) );
+		}catch(...){
+			FindClose(hFind);
+			throw;
+		}
+		FindClose(hFind);
+	}
+#else
+	string strPath;
+	fs_path pat = pattern.filename();
+	if( pat.native().find_first_of(L"*?") == wstring::npos ){
+		// ÂÆåÂÖ®‰∏ÄËá¥
+		WtoUTF8(pattern.native(), strPath);
+		struct stat st;
+		if( stat(strPath.c_str(), &st) == 0 ){
+			UTIL_FIND_DATA ufd;
+			ufd.isDir = S_ISDIR(st.st_mode) != 0;
+			ufd.lastWriteTime = (__int64)st.st_mtime * 10000000 + 116444736000000000;
+			ufd.fileSize = (__int64)st.st_size;
+			ufd.fileName = pat.native();
+			enumProc(ufd);
+		}
+	}else{
+		// „ÉØ„Ç§„É´„Éâ„Ç´„Éº„Éâ('*'3ÂÄã„Åæ„Åß)
+		fs_path parent = pattern.parent_path();
+		WtoUTF8(parent.native(), strPath);
+		DIR* dir = opendir(strPath.c_str());
+		if( dir ){
+			try{
+				UTIL_FIND_DATA ufd;
+				dirent* ent;
+				while( (ent = readdir(dir)) != NULL ){
+					UTF8toW(ent->d_name, ufd.fileName);
+					LPCWSTR p[4] = {pat.c_str(), NULL, NULL};
+					LPCWSTR t[4] = {ufd.fileName.c_str(), NULL, NULL};
+					size_t i = 0;
+					while( *p[i] || *t[i] ){
+						if( *p[i] == L'*' && (!p[i][1] || p[i][1] == L'*' || *t[i]) ){
+							if( i == 3 ){
+								break;
+							}
+							p[i + 1] = p[i] + 1;
+							t[i + 1] = t[i];
+							i++;
+						}else if( *p[i] != L'*' && *t[i] && (*p[i] == L'?' || *p[i] == *t[i]) ){
+							p[i]++;
+							t[i]++;
+						}else{
+							if( i == 0 ){
+								break;
+							}
+							t[--i]++;
+						}
+					}
+					if( !*p[i] && !*t[i] ){
+						WtoUTF8(fs_path(parent).append(ufd.fileName).native(), strPath);
+						struct stat st;
+						if( stat(strPath.c_str(), &st) == 0 ){
+							ufd.isDir = S_ISDIR(st.st_mode) != 0;
+							ufd.lastWriteTime = (__int64)st.st_mtime * 10000000 + 116444736000000000;
+							ufd.fileSize = (__int64)st.st_size;
+							if( enumProc(ufd) == false ){
+								break;
+							}
+						}
+					}
+				}
+			}catch(...){
+				closedir(dir);
+				throw;
+			}
+			closedir(dir);
+		}
+	}
+#endif
 }

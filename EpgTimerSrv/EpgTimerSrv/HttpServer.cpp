@@ -1,13 +1,16 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "HttpServer.h"
 #include "../../Common/StringUtil.h"
+#include "../../Common/TimeUtil.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/ParseTextInstances.h"
 #include "civetweb.h"
+#ifdef _WIN32
 #include <io.h>
 #include <fcntl.h>
 #include <wincrypt.h>
 #pragma comment(lib, "Crypt32.lib")
+#endif
 
 namespace
 {
@@ -19,7 +22,9 @@ const char UPNP_URN_AVT_1[] = "urn:schemas-upnp-org:service:AVTransport:1";
 
 CHttpServer::CHttpServer()
 	: mgContext(NULL)
+#ifdef LUA_BUILD_AS_DLL
 	, hLuaDll(NULL)
+#endif
 	, initedLibrary(false)
 {
 }
@@ -37,32 +42,36 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 	WtoUTF8(op.ports, ports);
 	string rootPathU;
 	WtoUTF8(op.rootPath, rootPathU);
-	//ÉpÉXÇ…ASCIIîÕàÕäOÇä‹ÇﬁÇÃÇÕ(éÂÇ…LuaÇ™å¥àˆÇ≈)ìÔÇ†ÇËÇ»ÇÃÇ≈èRÇÈ
+#ifdef _WIN32
+	//„Éë„Çπ„Å´ASCIIÁØÑÂõ≤Â§ñ„ÇíÂê´„ÇÄ„ÅÆ„ÅØ(‰∏ª„Å´Lua„ÅåÂéüÂõ†„Åß)Èõ£„ÅÇ„Çä„Å™„ÅÆ„ÅßËπ¥„Çã
 	if( std::find_if(rootPathU.begin(), rootPathU.end(), [](char c) { return (c & 0x80) != 0; }) != rootPathU.end() ){
 		OutputDebugString(L"CHttpServer::StartServer(): path has unavailable chars.\r\n");
 		return false;
 	}
+#endif
 	string accessLogPath;
-	//ÉçÉOÇÕ_wfopen()Ç≥ÇÍÇÈÇÃÇ≈WtoUTF8()ÅBcivetweb.cÇÃACCESS_LOG_FILEÇ∆ERROR_LOG_FILEÇÃàµÇ¢Ç…íçà”
-	WtoUTF8(GetModulePath().replace_filename(L"HttpAccess.log").native(), accessLogPath);
+	//„É≠„Ç∞„ÅØ_wfopen()„Åï„Çå„Çã„ÅÆ„ÅßWtoUTF8()„ÄÇcivetweb.c„ÅÆACCESS_LOG_FILE„Å®ERROR_LOG_FILE„ÅÆÊâ±„ÅÑ„Å´Ê≥®ÊÑè
+	WtoUTF8(GetCommonIniPath().replace_filename(L"HttpAccess.log").native(), accessLogPath);
 	string errorLogPath;
-	WtoUTF8(GetModulePath().replace_filename(L"HttpError.log").native(), errorLogPath);
+	WtoUTF8(GetCommonIniPath().replace_filename(L"HttpError.log").native(), errorLogPath);
 
-	fs_path sslFsPath = GetModulePath().replace_filename(L"ssl_");
-	//îFèÿåÆÇÕé¿éøfopen()Ç≥ÇÍÇÈÇÃÇ≈CP_ACP
-	vector<char> sslPath(WideCharToMultiByte(CP_ACP, 0, sslFsPath.c_str(), -1, NULL, 0, NULL, NULL));
-	if( sslPath.empty() ||
-	    WideCharToMultiByte(CP_ACP, 0, sslFsPath.c_str(), -1, sslPath.data(), (int)sslPath.size(), NULL, NULL) == 0 ){
+	fs_path sslFsPath = GetCommonIniPath().replace_filename(L"ssl_");
+	//Ë™çË®ºÈçµ„ÅØÂÆüË≥™fopen()„Åï„Çå„Çã„ÅÆ„ÅßCP_ACP
+	string sslPathA;
+	wstring sslPath;
+	WtoA(sslFsPath.native(), sslPathA, UTIL_CONV_ACP);
+	AtoW(sslPathA, sslPath, UTIL_CONV_ACP);
+	if( sslPath != sslFsPath.native() ){
 		OutputDebugString(L"CHttpServer::StartServer(): path has unavailable chars.\r\n");
 		return false;
 	}
-	string sslCertPath = string(sslPath.data()) + "cert.pem";
-	string sslPeerPath = string(sslPath.data()) + "peer.pem";
+	string sslCertPath = sslPathA + "cert.pem";
+	string sslPeerPath = sslPathA + "peer.pem";
 	fs_path sslPeerFsPath = sslFsPath.concat(L"peer.pem");
 
 	string globalAuthPath;
-	//ÉOÉçÅ[ÉoÉãÉpÉXÉèÅ[ÉhÇÕ_wfopen()Ç≥ÇÍÇÈÇÃÇ≈WtoUTF8()
-	fs_path globalAuthFsPath = GetModulePath().replace_filename(L"glpasswd");
+	//„Ç∞„É≠„Éº„Éê„É´„Éë„Çπ„ÉØ„Éº„Éâ„ÅØ_wfopen()„Åï„Çå„Çã„ÅÆ„ÅßWtoUTF8()
+	fs_path globalAuthFsPath = GetCommonIniPath().replace_filename(L"glpasswd");
 	WtoUTF8(globalAuthFsPath.native(), globalAuthPath);
 
 	//Access Control List
@@ -74,16 +83,16 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 	WtoUTF8(op.authenticationDomain, authDomain);
 	string sslCipherList;
 	WtoUTF8(op.sslCipherList, sslCipherList);
-	string numThreads;
-	Format(numThreads, "%d", min(max(op.numThreads, 1), 50));
-	string requestTimeout;
-	Format(requestTimeout, "%d", max(op.requestTimeout, 1));
-	string sslProtocolVersion;
-	Format(sslProtocolVersion, "%d", op.sslProtocolVersion);
+	char numThreads[16];
+	sprintf_s(numThreads, "%d", min(max(op.numThreads, 1), 50));
+	char requestTimeout[16];
+	sprintf_s(requestTimeout, "%d", max(op.requestTimeout, 1));
+	char sslProtocolVersion[16];
+	sprintf_s(sslProtocolVersion, "%d", op.sslProtocolVersion);
 
-	//í«â¡ÇÃMIMEÉ^ÉCÉv
+	//ËøΩÂä†„ÅÆMIME„Çø„Ç§„Éó
 	CParseContentTypeText contentType;
-	contentType.ParseText(GetModulePath().replace_filename(L"ContentTypeText.txt").c_str());
+	contentType.ParseText(GetCommonIniPath().replace_filename(L"ContentTypeText.txt").c_str());
 	wstring extraMimeW;
 	for( map<wstring, wstring>::const_iterator itr = contentType.GetMap().begin(); itr != contentType.GetMap().end(); itr++ ){
 		extraMimeW += itr->first + L'=' + itr->second + L',';
@@ -98,12 +107,12 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 		"extra_mime_types", extraMime.c_str(),
 		"listening_ports", ports.c_str(),
 		"document_root", rootPathU.c_str(),
-		"num_threads", numThreads.c_str(),
-		"request_timeout_ms", requestTimeout.c_str(),
+		"num_threads", numThreads,
+		"request_timeout_ms", requestTimeout,
 		"ssl_ca_file", sslPeerPath.c_str(),
 		"ssl_default_verify_paths", "no",
 		"ssl_cipher_list", sslCipherList.c_str(),
-		"ssl_protocol_version", sslProtocolVersion.c_str(),
+		"ssl_protocol_version", sslProtocolVersion,
 		"lua_script_pattern", "**.lua$|**.html$|*/api/*$",
 		"access_control_allow_origin", "",
 	};
@@ -119,23 +128,24 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 		options[opCount++] = authDomain.c_str();
 	}
 	if( ports.find('s') != string::npos ){
-		//ÉZÉLÉÖÉAÉ|Å[ÉgÇä‹ÇﬁÇÃÇ≈îFèÿåÆÇéwíËÇ∑ÇÈ
+		//„Çª„Ç≠„É•„Ç¢„Éù„Éº„Éà„ÇíÂê´„ÇÄ„ÅÆ„ÅßË™çË®ºÈçµ„ÇíÊåáÂÆö„Åô„Çã
 		options[opCount++] = "ssl_certificate";
 		options[opCount++] = sslCertPath.c_str();
 	}
-	if( GetFileAttributes(sslPeerFsPath.c_str()) != INVALID_FILE_ATTRIBUTES || GetLastError() != ERROR_FILE_NOT_FOUND ){
-		//êMóäçœÇ›èÿñæèëÉtÉ@ÉCÉãÇ™Åuë∂ç›ÇµÇ»Ç¢Ç±Ç∆ÇämêMÅvÇ≈Ç´Ç»ÇØÇÍÇŒóLå¯Ç…Ç∑ÇÈ
+	bool mightExist = false;
+	if( UtilFileExists(sslPeerFsPath, &mightExist).first || mightExist ){
+		//‰ø°È†ºÊ∏à„ÅøË®ºÊòéÊõ∏„Éï„Ç°„Ç§„É´„Åå„ÄåÂ≠òÂú®„Åó„Å™„ÅÑ„Åì„Å®„ÇíÁ¢∫‰ø°„Äç„Åß„Åç„Å™„Åë„Çå„Å∞ÊúâÂäπ„Å´„Åô„Çã
 		options[opCount++] = "ssl_verify_peer";
 		options[opCount++] = "yes";
 	}
-	if( GetFileAttributes(globalAuthFsPath.c_str()) != INVALID_FILE_ATTRIBUTES || GetLastError() != ERROR_FILE_NOT_FOUND ){
-		//ÉOÉçÅ[ÉoÉãÉpÉXÉèÅ[ÉhÇÕÅuë∂ç›ÇµÇ»Ç¢Ç±Ç∆ÇämêMÅvÇ≈Ç´Ç»ÇØÇÍÇŒéwíËÇµÇƒÇ®Ç≠
+	if( UtilFileExists(globalAuthFsPath, &mightExist).first || mightExist ){
+		//„Ç∞„É≠„Éº„Éê„É´„Éë„Çπ„ÉØ„Éº„Éâ„ÅØ„ÄåÂ≠òÂú®„Åó„Å™„ÅÑ„Åì„Å®„ÇíÁ¢∫‰ø°„Äç„Åß„Åç„Å™„Åë„Çå„Å∞ÊåáÂÆö„Åó„Å¶„Åä„Åè
 		options[opCount++] = "global_auth_file";
 		options[opCount++] = globalAuthPath.c_str();
 	}
 
 #ifdef LUA_BUILD_AS_DLL
-	//LuaÇÃDLLÇ™ñ≥Ç¢Ç∆Ç´ï™Ç©ÇËÇ…Ç≠Ç¢É^ÉCÉ~ÉìÉOÇ≈ÉGÉâÅ[Ç…Ç»ÇÈÇÃÇ≈éñëOÇ…ì«ÇÒÇ≈Ç®Ç≠(ïKê{Ç≈ÇÕÇ»Ç¢)
+	//Lua„ÅÆDLL„ÅåÁÑ°„ÅÑ„Å®„ÅçÂàÜ„Åã„Çä„Å´„Åè„ÅÑ„Çø„Ç§„Éü„É≥„Ç∞„Åß„Ç®„É©„Éº„Å´„Å™„Çã„ÅÆ„Åß‰∫ãÂâç„Å´Ë™≠„Çì„Åß„Åä„Åè(ÂøÖÈ†à„Åß„ÅØ„Å™„ÅÑ)
 	this->hLuaDll = LoadLibrary(GetModulePath().replace_filename(LUA_DLL_NAME).c_str());
 	if( this->hLuaDll == NULL ){
 		OutputDebugString(L"CHttpServer::StartServer(): " LUA_DLL_NAME L" not found.\r\n");
@@ -161,9 +171,9 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 	}
 
 	if( op.enableSsdpServer ){
-		//"<UDN>uuid:{UUID}</UDN>"Ç™ïKóv
+		//"<UDN>uuid:{UUID}</UDN>"„ÅåÂøÖË¶Å
 		string notifyUuid;
-		std::unique_ptr<FILE, decltype(&fclose)> fp(shared_wfopen(fs_path(op.rootPath).append(L"dlna\\dms\\ddd.xml").c_str(), L"rbN"), fclose);
+		std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(fs_path(op.rootPath).append(L"dlna").append(L"dms").append(L"ddd.xml"), UTIL_SECURE_READ), fclose);
 		if( fp ){
 			char olbuff[257];
 			for( size_t n = fread(olbuff, 1, 256, fp.get()); ; n = fread(olbuff + 64, 1, 192, fp.get()) + 64 ){
@@ -180,13 +190,15 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 			}
 		}
 		if( notifyUuid.empty() == false ){
-			//ç≈å„Ç…Ç›Ç¬Ç©Ç¡ÇΩ':'ÇÊÇËå„ÇÎÇ©êÊì™ÇatoiÇµÇΩåãâ Çí ímÉ|Å[ÉgÇ∆Ç∑ÇÈ
+			//ÊúÄÂæå„Å´„Åø„Å§„Åã„Å£„Åü':'„Çà„ÇäÂæå„Çç„ÅãÂÖàÈ†≠„Çíatoi„Åó„ÅüÁµêÊûú„ÇíÈÄöÁü•„Éù„Éº„Éà„Å®„Åô„Çã
 			int notifyPort = atoi(ports.c_str() + (ports.find_last_of(':') == string::npos ? 0 : ports.find_last_of(':') + 1)) & 0xFFFF;
-			//UPnPÇÃUDP(Port1900)ïîï™ÇíSìñÇ∑ÇÈÉTÅ[Éo
+			//UPnP„ÅÆUDP(Port1900)ÈÉ®ÂàÜ„ÇíÊãÖÂΩì„Åô„Çã„Çµ„Éº„Éê
 			LPCSTR targetArray[] = { "upnp:rootdevice", UPNP_URN_DMS_1, UPNP_URN_CDS_1, UPNP_URN_CMS_1, UPNP_URN_AVT_1 };
 			vector<CUpnpSsdpServer::SSDP_TARGET_INFO> targetList(2 + _countof(targetArray));
 			targetList[0].target = notifyUuid;
-			Format(targetList[0].location, "http://$HOST$:%d/dlna/dms/ddd.xml", notifyPort);
+			char location[64];
+			sprintf_s(location, ":%d/dlna/dms/ddd.xml", notifyPort);
+			targetList[0].location = location;
 			targetList[0].usn = targetList[0].target;
 			targetList[0].notifyFlag = true;
 			targetList[1].target = "ssdp:all";
@@ -199,7 +211,7 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 				targetList[i].usn = notifyUuid + "::" + targetList[i].target;
 				targetList[i].notifyFlag = true;
 			}
-			this->upnpSsdpServer.Start(targetList);
+			this->upnpSsdpServer.Start(targetList, op.ssdpIfTypes, op.ssdpInitialWaitSec);
 		}else{
 			OutputDebugString(L"CHttpServer::StartServer(): invalid /dlna/dms/ddd.xml\r\n");
 		}
@@ -216,7 +228,7 @@ bool CHttpServer::StopServer(bool checkOnly)
 				return false;
 			}
 		}else{
-			//ê≥èÌÇ≈Ç†ÇÍÇŒmg_stop()ÇÕreqToÇí¥Ç¶Çƒë“ã@Ç∑ÇÈÇ±Ç∆ÇÕÇ»Ç¢
+			//Ê≠£Â∏∏„Åß„ÅÇ„Çå„Å∞mg_stop()„ÅØreqTo„ÇíË∂Ö„Åà„Å¶ÂæÖÊ©ü„Åô„Çã„Åì„Å®„ÅØ„Å™„ÅÑ
 			DWORD reqTo = atoi(mg_get_option(this->mgContext, "request_timeout_ms"));
 			DWORD tick = GetTickCount();
 			while( GetTickCount() - tick < reqTo + 10000 ){
@@ -236,24 +248,63 @@ bool CHttpServer::StopServer(bool checkOnly)
 		mg_exit_library();
 		this->initedLibrary = false;
 	}
+#ifdef LUA_BUILD_AS_DLL
 	if( this->hLuaDll ){
 		FreeLibrary(this->hLuaDll);
 		this->hLuaDll = NULL;
 	}
+#endif
 	return true;
+}
+
+CHttpServer::SERVER_OPTIONS CHttpServer::LoadServerOptions(LPCWSTR iniPath)
+{
+	SERVER_OPTIONS op;
+	int enableHttpSrv = GetPrivateProfileInt(L"SET", L"EnableHttpSrv", 0, iniPath);
+	if( enableHttpSrv != 0 ){
+		op.rootPath = GetPrivateProfileToString(L"SET", L"HttpPublicFolder", L"", iniPath);
+		if( op.rootPath.empty() ){
+			op.rootPath = GetCommonIniPath().replace_filename(L"HttpPublic").native();
+		}
+		op.accessControlList = GetPrivateProfileToString(L"SET", L"HttpAccessControlList", L"+127.0.0.1", iniPath);
+		op.authenticationDomain = GetPrivateProfileToString(L"SET", L"HttpAuthenticationDomain", L"", iniPath);
+		op.numThreads = GetPrivateProfileInt(L"SET", L"HttpNumThreads", 5, iniPath);
+		op.requestTimeout = GetPrivateProfileInt(L"SET", L"HttpRequestTimeoutSec", 120, iniPath) * 1000;
+		op.sslCipherList = GetPrivateProfileToString(L"SET", L"HttpSslCipherList", L"HIGH:!aNULL:!MD5", iniPath);
+		op.sslProtocolVersion = GetPrivateProfileInt(L"SET", L"HttpSslProtocolVersion", 4, iniPath);
+		op.keepAlive = GetPrivateProfileInt(L"SET", L"HttpKeepAlive", 0, iniPath) != 0;
+		op.ports = GetPrivateProfileToString(L"SET", L"HttpPort", L"5510", iniPath);
+		op.saveLog = enableHttpSrv == 2;
+		op.enableSsdpServer = GetPrivateProfileInt(L"SET", L"EnableDMS", 0, iniPath) != 0;
+		if( op.enableSsdpServer ){
+			op.ssdpIfTypes = GetPrivateProfileInt(L"SET", L"DmsIfTypes", CUpnpSsdpServer::SSDP_IF_LOOPBACK | CUpnpSsdpServer::SSDP_IF_C_PRIVATE, iniPath);
+			op.ssdpInitialWaitSec = GetPrivateProfileInt(L"SET", L"DmsInitialWaitSec", 20, iniPath);
+		}
+	}
+	return op;
 }
 
 string CHttpServer::CreateRandom()
 {
 	char ret[65] = {};
+#ifdef _WIN32
 	HCRYPTPROV prov;
 	if( CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) ){
 		unsigned __int64 r[4] = {};
 		if( CryptGenRandom(prov, sizeof(r), (BYTE*)r) ){
-			sprintf_s(ret, "%016I64x%016I64x%016I64x%016I64x", r[0], r[1], r[2], r[3]);
+			sprintf_s(ret, "%016llx%016llx%016llx%016llx", r[0], r[1], r[2], r[3]);
 		}
 		CryptReleaseContext(prov, 0);
 	}
+#else
+	std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(fs_path(L"/dev/urandom"), UTIL_SHARED_READ), fclose);
+	if( fp ){
+		unsigned long long r[4];
+		if( fread(r, 1, sizeof(r), fp.get()) == sizeof(r) ){
+			sprintf_s(ret, "%016llx%016llx%016llx%016llx", r[0], r[1], r[2], r[3]);
+		}
+	}
+#endif
 	return ret;
 }
 
@@ -343,7 +394,7 @@ __int64 get_int64(lua_State* L, const char* name)
 	lua_getfield(L, -1, name);
 	lua_Number ret = lua_tonumber(L, -1);
 	lua_pop(L, 1);
-	//êÆêîÇê≥ÇµÇ≠ï\åªÇ≈Ç´Ç»Ç¢îÕàÕÇÃílÇÕêßå¿Ç∑ÇÈ
+	//Êï¥Êï∞„ÇíÊ≠£„Åó„ÅèË°®Áèæ„Åß„Åç„Å™„ÅÑÁØÑÂõ≤„ÅÆÂÄ§„ÅØÂà∂Èôê„Åô„Çã
 	return (__int64)min(max(ret, -1e+16), 1e+16);
 }
 
@@ -368,8 +419,8 @@ SYSTEMTIME get_time(lua_State* L, const char* name)
 		st.wMinute = (WORD)get_int(L, "min");
 		st.wSecond = (WORD)get_int(L, "sec");
 		st.wMilliseconds = (WORD)get_int(L, "msec");
-		FILETIME ft;
-		if( SystemTimeToFileTime(&st, &ft) && FileTimeToSystemTime(&ft, &st) ){
+		__int64 t = ConvertI64Time(st);
+		if( t != 0 && ConvertSystemTime(t, &st) ){
 			ret = st;
 		}
 	}
@@ -377,23 +428,29 @@ SYSTEMTIME get_time(lua_State* L, const char* name)
 	return ret;
 }
 
+#ifdef _WIN32
 namespace
 {
 
 wchar_t* utf8towcsdup(const char* s, const wchar_t* prefix = L"")
 {
-	int len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, s, -1, NULL, 0);
-	if( len > 0 ){
-		wchar_t* w = (wchar_t*)calloc(wcslen(prefix) + len, sizeof(wchar_t));
-		if( w != NULL ){
-			wcscpy_s(w, wcslen(prefix) + 1, prefix);
-			if( MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, s, -1, w + wcslen(prefix), len) > 0 ){
-				return w;
-			}
+	wstring w;
+	try{
+		string u;
+		UTF8toW(s, w);
+		WtoUTF8(w, u);
+		if( u != s ){
+			return NULL;
 		}
-		free(w);
+		w.insert(0, prefix);
+	}catch(...){
+		return NULL;
 	}
-	return NULL;
+	wchar_t* ret = (wchar_t*)malloc((w.size() + 1) * sizeof(wchar_t));
+	if( ret ){
+		wcscpy_s(ret, w.size() + 1, w.c_str());
+	}
+	return ret;
 }
 
 void nefree(void* p)
@@ -697,7 +754,19 @@ int io_open(lua_State* L)
 		free(wfilename);
 		luaL_argerror(L, 2, "utf8towcsdup");
 	}
-	p->f = shared_wfopen(wfilename, wmode);
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#else
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#endif
+	p->f = _wfopen(wfilename, wmode);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else
+#pragma warning(pop)
+#endif
 	nefree(wmode);
 	nefree(wfilename);
 	return (p->f == NULL) ? luaL_fileresult(L, 0, filename) : 1;
@@ -796,5 +865,6 @@ void f_createmeta(lua_State* L)
 	luaL_setfuncs(L, flib, 0); //add file methods to new metatable
 	lua_pop(L, 1); //pop new metatable
 }
+#endif
 
 }

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "SyoboiCalUtil.h"
 
 #include <winhttp.h>
@@ -88,10 +88,10 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 	if( GetPrivateProfileInt(L"SYOBOI", L"use", 0, iniAppPath.c_str()) == 0 ){
 		return FALSE;
 	}
-	_OutputDebugString(L"ÅöSyoboiCalUtil:SendReserve");
+	_OutputDebugString(L"‚òÖSyoboiCalUtil:SendReserve");
 
 	CParseServiceChgText srvChg;
-	srvChg.ParseText(GetModulePath().replace_filename(L"SyoboiCh.txt").c_str());
+	srvChg.ParseText(GetCommonIniPath().replace_filename(L"SyoboiCh.txt").c_str());
 
 	wstring proxyServerName;
 	wstring proxyUserName;
@@ -113,7 +113,7 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 	wstring epgurl=GetPrivateProfileToString(L"SYOBOI", L"epgurl", L"", iniAppPath.c_str());
 
 	if( id.size() == 0 ){
-		_OutputDebugString(L"ÅöSyoboiCalUtil:NoUserID");
+		_OutputDebugString(L"‚òÖSyoboiCalUtil:NoUserID");
 		return FALSE;
 	}
 
@@ -129,12 +129,12 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 	Base64Enc(authA.c_str(), (DWORD)authA.size(), NULL, &destSize);
 	vector<WCHAR> base64(destSize + 1, L'\0');
 	Base64Enc(authA.c_str(), (DWORD)authA.size(), &base64.front(), &destSize);
-	//ñ≥ë Ç»CRLFÇ™ç¨Ç∂ÇÈÇ±Ç∆Ç™Ç†ÇÈÇΩÇﬂ
+	//ÁÑ°ÈßÑ„Å™CRLF„ÅåÊ∑∑„Åò„Çã„Åì„Å®„Åå„ÅÇ„Çã„Åü„ÇÅ
 	std::replace(base64.begin(), base64.end(), L'\r', L'\0');
 	std::replace(base64.begin(), base64.end(), L'\n', L'\0');
 
-	wstring authHead = L"";
-	Format(authHead, L"Authorization: Basic %s\r\nContent-type: application/x-www-form-urlencoded\r\n", &base64.front());
+	wstring authHead;
+	Format(authHead, L"Authorization: Basic %ls\r\nContent-type: application/x-www-form-urlencoded\r\n", &base64.front());
 
 	//data
 	wstring dataParam;
@@ -165,19 +165,20 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 		srvChg.ChgText(stationName);
 
 		__int64 startTime = GetTimeStamp(info->startTime);
-		Format(param, L"%I64d\t%I64d\t%s\t%s\t%s\t\t0\t%d\n", startTime, startTime+info->durationSecond, device.c_str(), info->title.c_str(), stationName.c_str(), info->reserveID );
+		Format(param, L"%lld\t%lld\t%ls\t%ls\t%ls\t\t0\t%d\n", startTime, startTime+info->durationSecond, device.c_str(), info->title.c_str(), stationName.c_str(), info->reserveID );
 		dataParam+=param;
 	}
 
 	if(dataParam.size() == 0 ){
-		_OutputDebugString(L"ÅöSyoboiCalUtil:NoReserve");
+		_OutputDebugString(L"‚òÖSyoboiCalUtil:NoReserve");
 		return FALSE;
 	}
 
 	string utf8;
 	UrlEncodeUTF8(dataParam.c_str(), (DWORD)dataParam.size(), utf8);
-	string data;
-	Format(data, "slot=%d&data=%s",slot, utf8.c_str());
+	char szSlot[32];
+	sprintf_s(szSlot, "slot=%d&data=", slot);
+	string data = szSlot + utf8;
 
 	if( devcolors.size() > 0){
 		utf8 = "";
@@ -193,7 +194,7 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 	}
 	vector<char> dataBuff(data.begin(), data.end());
 
-	//URLÇÃï™â
+	//URL„ÅÆÂàÜËß£
 	URL_COMPONENTS stURL = {};
 	stURL.dwStructSize = sizeof(stURL);
 	stURL.dwSchemeLength = (DWORD)-1;
@@ -226,13 +227,13 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 		result = L"0 SetTimeouts";
 		goto EXIT;
 	}
-	//ÉRÉlÉNÉVÉáÉìÉIÅ[ÉvÉì
+	//„Ç≥„Éç„ÇØ„Ç∑„Éß„É≥„Ç™„Éº„Éó„É≥
 	connect = WinHttpConnect(session, host.c_str(), stURL.nPort, 0);
 	if( connect == NULL ){
 		result = L"0 Connect";
 		goto EXIT;
 	}
-	//ÉäÉNÉGÉXÉgÉIÅ[ÉvÉì
+	//„É™„ÇØ„Ç®„Çπ„Éà„Ç™„Éº„Éó„É≥
 	request = WinHttpOpenRequest(connect, L"POST", sendUrl.c_str(), NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES,
 	                             stURL.nPort == INTERNET_DEFAULT_HTTPS_PORT ? WINHTTP_FLAG_SECURE : 0);
 	if( request == NULL ){
@@ -240,7 +241,7 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 		goto EXIT;
 	}
 	if( proxyServerName.empty() == false ){
-		//ProxyÇÃIDÇ©ÉpÉXÉèÅ[ÉhÇ™Ç†Ç¡ÇΩÇÁÉZÉbÉg
+		//Proxy„ÅÆID„Åã„Éë„Çπ„ÉØ„Éº„Éâ„Åå„ÅÇ„Å£„Åü„Çâ„Çª„ÉÉ„Éà
 		if( proxyUserName.empty() == false || proxyPassword.empty() == false ){
 			if( WinHttpSetCredentials(request, WINHTTP_AUTH_TARGET_PROXY, WINHTTP_AUTH_SCHEME_BASIC,
 			                          proxyUserName.c_str(), proxyPassword.c_str(), NULL) == FALSE ){
@@ -257,7 +258,7 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 		result = L"0 ReceiveResponse";
 		goto EXIT;
 	}
-	//HTTPÇÃÉXÉeÅ[É^ÉXÉRÅ[ÉhämîF
+	//HTTP„ÅÆ„Çπ„ÉÜ„Éº„Çø„Çπ„Ç≥„Éº„ÉâÁ¢∫Ë™ç
 	statusCodeSize = sizeof(statusCode);
 	if( WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_HEADER_NAME_BY_INDEX,
 	                        &statusCode, &statusCodeSize, WINHTTP_NO_HEADER_INDEX) == FALSE ){
@@ -279,7 +280,7 @@ EXIT:
 		WinHttpCloseHandle(session);
 	}
 
-	_OutputDebugString(L"ÅöSyoboiCalUtil:SendRequest res:%s", result);
+	_OutputDebugString(L"‚òÖSyoboiCalUtil:SendRequest res:%ls", result);
 
 	if( result[0] != L'1' ){
 		return FALSE;

@@ -1,8 +1,9 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "resource.h"
 #include "StreamCtrlDlg.h"
 #include <commctrl.h>
-
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <iphlpapi.h>
 #pragma comment(lib, "IPHLPAPI.lib")
 
@@ -10,11 +11,7 @@
 CStreamCtrlDlg::CStreamCtrlDlg(void)
 {
 	this->hwnd = NULL;
-	this->cmd = NULL;
-	this->ctrlID = 0;
-	this->iniTCP = FALSE;
-	this->iniUDP = FALSE;
-	this->timeShiftMode = FALSE;
+	this->ctrlEnabled = FALSE;
 	this->callbackFunc = NULL;
 	this->callbackParam = NULL;
 }
@@ -23,15 +20,34 @@ CStreamCtrlDlg::~CStreamCtrlDlg(void)
 {
 }
 
-void CStreamCtrlDlg::SetCtrlCmd(CSendCtrlCmd* ctrlCmd, DWORD ctrlID_, BOOL chkUdp, BOOL chkTcp, BOOL play, BOOL timeShiftMode_)
+void CStreamCtrlDlg::SetCtrl(const TVTEST_STREAMING_INFO& info)
 {
-	this->cmd = ctrlCmd;
-	this->ctrlID = ctrlID_;
-	this->iniTCP = chkTcp;
-	this->iniUDP = chkUdp;
-	this->timeShiftMode = timeShiftMode_;
-	if( this->hwnd != NULL ){
-		PostMessage(this->hwnd, WM_RESET_GUI, play, 0);
+	if( this->ctrlEnabled && (info.enableMode == FALSE || info.ctrlID != this->ctrlID) ){
+		this->cmd.SendNwPlayClose(this->ctrlID);
+		StopTimer();
+		this->ctrlEnabled = FALSE;
+	}
+	if( this->ctrlEnabled == FALSE && info.enableMode ){
+		this->ctrlEnabled = TRUE;
+		this->ctrlID = info.ctrlID;
+		this->ctrlIsNetwork = info.serverIP != 1;
+		this->cmd.SetSendMode(this->ctrlIsNetwork);
+		if( this->ctrlIsNetwork ){
+			// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯æŽ¥ç¶šã‚’ä½¿ã†
+			wstring ip;
+			Format(ip, L"%d.%d.%d.%d", info.serverIP >> 24, (info.serverIP >> 16) & 0xFF, (info.serverIP >> 8) & 0xFF, info.serverIP & 0xFF);
+			this->cmd.SetNWSetting(ip, info.serverPort);
+		}
+		if( this->hwnd ){
+			EnableWindow(GetDlgItem(this->hwnd, IDC_CHECK_UDP), this->ctrlIsNetwork);
+			EnableWindow(GetDlgItem(this->hwnd, IDC_COMBO_IP), this->ctrlIsNetwork);
+			SendDlgItemMessage(this->hwnd, IDC_SLIDER_SEEK, TBM_SETPOS, TRUE, 0);
+			SendDlgItemMessage(this->hwnd, IDC_CHECK_UDP, BM_SETCHECK, info.udpSend ? BST_CHECKED : BST_UNCHECKED, 0);
+			SendDlgItemMessage(this->hwnd, IDC_CHECK_TCP, BM_SETCHECK, info.tcpSend ? BST_CHECKED : BST_UNCHECKED, 0);
+			SetNWModeSend();
+			this->cmd.SendNwPlayStart(this->ctrlID);
+			SetTimer(this->hwnd, 1000, 500, NULL);
+		}
 	}
 }
 
@@ -94,41 +110,43 @@ void CStreamCtrlDlg::StopFullScreenMouseChk()
 
 LRESULT CALLBACK CStreamCtrlDlg::DlgProc(HWND hDlgWnd, UINT msg, WPARAM wp, LPARAM lp)
 {
-	static CStreamCtrlDlg* sys = NULL;
+	CStreamCtrlDlg* sys = (CStreamCtrlDlg*)GetWindowLongPtr(hDlgWnd, GWLP_USERDATA);
+	if( sys == NULL && msg != WM_INITDIALOG ){
+		return FALSE;
+	}
 	switch (msg) {
 		case WM_KEYDOWN:
 			break;
 		case WM_INITDIALOG:
+			SetWindowLongPtr(hDlgWnd, GWLP_USERDATA, lp);
 			sys = (CStreamCtrlDlg*)lp;
 			sys->hwnd = hDlgWnd;
 			sys->EnumIP();
-			SetWindowText(GetDlgItem(hDlgWnd, IDC_EDIT_LOG), L"’âŽ~");
+			SetWindowText(GetDlgItem(hDlgWnd, IDC_EDIT_LOG), L"åœæ­¢");
 			break;
         case WM_COMMAND:
-			if(sys != NULL ){
-				if( sys->cmd != NULL ){
+			{
+				if( sys->ctrlEnabled ){
 					switch (LOWORD(wp)) {
 					case IDC_BUTTON_PLAY:
 						sys->SetNWModeSend();
-						sys->cmd->SendNwPlayStart(sys->ctrlID);
+						sys->cmd.SendNwPlayStart(sys->ctrlID);
 						SetTimer(hDlgWnd, 1000, 500, NULL);
-						sys->UpdateLog();
 						break;
 					case IDC_BUTTON_STOP:
 						KillTimer(hDlgWnd, 1000);
-						sys->cmd->SendNwPlayStop(sys->ctrlID);
-						SetWindowText(GetDlgItem(hDlgWnd, IDC_EDIT_LOG), L"’âŽ~");
+						sys->cmd.SendNwPlayStop(sys->ctrlID);
+						SetWindowText(GetDlgItem(hDlgWnd, IDC_EDIT_LOG), L"åœæ­¢");
 						break;
 					case IDC_CHECK_UDP:
 					case IDC_CHECK_TCP:
 						sys->SetNWModeSend();
-						sys->UpdateLog();
 						break;
 					case IDC_BUTTON_CLOSE:
 						KillTimer(hDlgWnd, 1000);
 						KillTimer(hDlgWnd, 1010);
-						sys->cmd->SendNwPlayStop(sys->ctrlID);
-						SetWindowText(GetDlgItem(hDlgWnd, IDC_EDIT_LOG), L"’âŽ~");
+						sys->cmd.SendNwPlayStop(sys->ctrlID);
+						SetWindowText(GetDlgItem(hDlgWnd, IDC_EDIT_LOG), L"åœæ­¢");
 						SendMessage(GetDlgItem(sys->hwnd, IDC_CHECK_UDP), BM_SETCHECK, BST_UNCHECKED, 0);
 						SendMessage(GetDlgItem(sys->hwnd, IDC_CHECK_TCP), BM_SETCHECK, BST_UNCHECKED, 0);
 						sys->SetNWModeSend();
@@ -186,14 +204,13 @@ LRESULT CALLBACK CStreamCtrlDlg::DlgProc(HWND hDlgWnd, UINT msg, WPARAM wp, LPAR
 					}else{
 						ShowWindow(hDlgWnd, SW_HIDE);
 					}
-				}else if(wp == 1000){
-					KillTimer(hDlgWnd, 1000);
+				}else if( wp == 1000 && sys->ctrlEnabled ){
 					__int64 totalPos = 0;
 					__int64 filePos = 0;
 
 					NWPLAY_POS_CMD item;
 					item.ctrlID = sys->ctrlID;
-					sys->cmd->SendNwPlayGetPos(&item);
+					sys->cmd.SendNwPlayGetPos(&item);
 					totalPos = item.totalPos;
 					filePos = item.currentPos;
 
@@ -206,18 +223,17 @@ LRESULT CALLBACK CStreamCtrlDlg::DlgProc(HWND hDlgWnd, UINT msg, WPARAM wp, LPAR
 						int setPos = (int)(filePos/pos1);
 						SendDlgItemMessage( hDlgWnd, IDC_SLIDER_SEEK, TBM_SETPOS, TRUE, (DWORD)setPos );
 					}
-					SetTimer(hDlgWnd, 1000, 500, NULL);
 				}
 			}
 			return FALSE;
 		case WM_HSCROLL:
-			if(sys != NULL ){
-				if( sys->cmd != NULL ){
+			{
+				if( sys->ctrlEnabled ){
 					switch(LOWORD(wp)){
 					case SB_THUMBTRACK:
 						KillTimer(hDlgWnd, 1000);
 
-						sys->cmd->SendNwPlayStop(sys->ctrlID);
+						sys->cmd.SendNwPlayStop(sys->ctrlID);
 						break;
 					case SB_LINELEFT:
 					case SB_LINERIGHT:
@@ -227,13 +243,13 @@ LRESULT CALLBACK CStreamCtrlDlg::DlgProc(HWND hDlgWnd, UINT msg, WPARAM wp, LPAR
 						{
 							KillTimer(hDlgWnd, 1000);
 
-							sys->cmd->SendNwPlayStop(sys->ctrlID);
+							sys->cmd.SendNwPlayStop(sys->ctrlID);
 
 							__int64 filePos = SendDlgItemMessage( hDlgWnd, IDC_SLIDER_SEEK, TBM_GETPOS, 0, 0);
 
 							NWPLAY_POS_CMD item;
 							item.ctrlID = sys->ctrlID;
-							sys->cmd->SendNwPlayGetPos(&item);
+							sys->cmd.SendNwPlayGetPos(&item);
 
 							if( item.totalPos<10000 ){
 								SendDlgItemMessage( hDlgWnd, IDC_SLIDER_SEEK, TBM_SETRANGEMAX, FALSE, (DWORD)item.totalPos );
@@ -246,8 +262,8 @@ LRESULT CALLBACK CStreamCtrlDlg::DlgProc(HWND hDlgWnd, UINT msg, WPARAM wp, LPAR
 								item.currentPos = filePos;
 								//SendDlgItemMessage( hDlgWnd, IDC_SLIDER_SEEK, TBM_SETPOS, TRUE, (DWORD)filePos );
 							}
-							sys->cmd->SendNwPlaySetPos(&item);
-							sys->cmd->SendNwPlayStart(sys->ctrlID);
+							sys->cmd.SendNwPlaySetPos(&item);
+							sys->cmd.SendNwPlayStart(sys->ctrlID);
 							SetTimer(hDlgWnd, 1000, 500, NULL);
 						}
 						break;
@@ -255,28 +271,6 @@ LRESULT CALLBACK CStreamCtrlDlg::DlgProc(HWND hDlgWnd, UINT msg, WPARAM wp, LPAR
 						break;
 					}
 					return FALSE;
-				}
-			}
-			break;
-		case WM_RESET_GUI:
-			{
-				SendDlgItemMessage( hDlgWnd, IDC_SLIDER_SEEK, TBM_SETPOS, TRUE, 0 );
-				SetWindowText(GetDlgItem(hDlgWnd, IDC_EDIT_LOG), L"’âŽ~");
-				if( sys->iniUDP == TRUE ){
-					SendMessage(GetDlgItem(sys->hwnd, IDC_CHECK_UDP), BM_SETCHECK, BST_CHECKED, 0);
-				}else{
-					SendMessage(GetDlgItem(sys->hwnd, IDC_CHECK_UDP), BM_SETCHECK, BST_UNCHECKED, 0);
-				}
-				if( sys->iniTCP == TRUE ){
-					SendMessage(GetDlgItem(sys->hwnd, IDC_CHECK_TCP), BM_SETCHECK, BST_CHECKED, 0);
-				}else{
-					SendMessage(GetDlgItem(sys->hwnd, IDC_CHECK_TCP), BM_SETCHECK, BST_UNCHECKED, 0);
-				}
-				if( wp == 1 ){
-					sys->SetNWModeSend();
-					sys->cmd->SendNwPlayStart(sys->ctrlID);
-					SetTimer(hDlgWnd, 1000, 500, NULL);
-					sys->UpdateLog();
 				}
 			}
 			break;
@@ -292,9 +286,10 @@ LRESULT CALLBACK CStreamCtrlDlg::DlgProc(HWND hDlgWnd, UINT msg, WPARAM wp, LPAR
 
 void CStreamCtrlDlg::SetNWModeSend()
 {
-	WCHAR textBuff[512] = L"";
-	GetWindowText(GetDlgItem(this->hwnd, IDC_COMBO_IP), textBuff, 512);
-	
+	WCHAR textBuff[512] = L"0.0.0.2";
+	if( this->ctrlIsNetwork ){
+		GetDlgItemText(this->hwnd, IDC_COMBO_IP, textBuff, 512);
+	}
 	wstring strIP = textBuff;
 	wstring ip1;
 	wstring ip2;
@@ -304,52 +299,63 @@ void CStreamCtrlDlg::SetNWModeSend()
 	Separate(strIP, L".", ip2, strIP);
 	Separate(strIP, L".", ip3, ip4);
 
+	NWPLAY_PLAY_INFO nwPlayInfo;
 	nwPlayInfo.ctrlID = this->ctrlID;
-	nwPlayInfo.udp = (BYTE)SendMessage(GetDlgItem(this->hwnd, IDC_CHECK_UDP), BM_GETCHECK, 0, 0);
-	nwPlayInfo.tcp = (BYTE)SendMessage(GetDlgItem(this->hwnd, IDC_CHECK_TCP), BM_GETCHECK, 0, 0);
+	nwPlayInfo.udp = this->ctrlIsNetwork && SendDlgItemMessage(this->hwnd, IDC_CHECK_UDP, BM_GETCHECK, 0, 0) != 0;
+	nwPlayInfo.tcp = SendDlgItemMessage(this->hwnd, IDC_CHECK_TCP, BM_GETCHECK, 0, 0) != 0;
+	nwPlayInfo.udpPort = 65536;
+	nwPlayInfo.tcpPort = 65536;
 	nwPlayInfo.ip = _wtoi(ip1.c_str())<<24 | _wtoi(ip2.c_str())<<16 | _wtoi(ip3.c_str())<<8 | _wtoi(ip4.c_str());
-	this->cmd->SendNwPlaySetIP(&nwPlayInfo);
+	this->cmd.SendNwPlaySetIP(&nwPlayInfo);
 
-	DWORD udpPort = 0;
+	wstring editLog;
+	DWORD udpPort = 65536;
 	if( nwPlayInfo.udp == 1 ){
 		udpPort = nwPlayInfo.udpPort;
+		wstring udp;
+		Format(udp, L"UDPé€ä¿¡ï¼š%ls:%d\r\n", textBuff, udpPort);
+		editLog += udp;
 	}
-	DWORD tcpPort = 0;
+	DWORD tcpPort = 65536;
 	if( nwPlayInfo.tcp == 1 ){
 		tcpPort = nwPlayInfo.tcpPort;
+		wstring tcp;
+		Format(tcp, L"TCPé€ä¿¡ï¼š%ls:%d\r\n", textBuff, tcpPort);
+		editLog += tcp;
 	}
+	SetDlgItemText(this->hwnd, IDC_EDIT_LOG, editLog.empty() ? L"é€ä¿¡å…ˆãªã—" : editLog.c_str());
 	PostMessage(this->hwnd, WM_CHG_PORT, udpPort, tcpPort);
 }
 
 void CStreamCtrlDlg::EnumIP()
 {
-	ULONG len = 0;   // —ñ‹“‚É•K—v‚ÈƒoƒCƒg”‚Å‚·B
+	ULONG len = 0;   // åˆ—æŒ™ã«å¿…è¦ãªãƒã‚¤ãƒˆæ•°ã§ã™ã€‚
 	DWORD ret = GetAdaptersAddresses(AF_UNSPEC, 0, 0, 0, &len);
-	if(ret != ERROR_BUFFER_OVERFLOW) return;   // ƒƒ‚ƒŠ•s‘«ˆÈŠO‚ÌƒGƒ‰[‚È‚ç§Œä‚ð•Ô‚µ‚Ü‚·B
+	if(ret != ERROR_BUFFER_OVERFLOW) return;   // ãƒ¡ãƒ¢ãƒªä¸è¶³ä»¥å¤–ã®ã‚¨ãƒ©ãƒ¼ãªã‚‰åˆ¶å¾¡ã‚’è¿”ã—ã¾ã™ã€‚
 
-	// —v‹‚³‚ê‚½ƒoƒCƒg” len •ª‚Ìƒƒ‚ƒŠ‚ð adpts ‚É—pˆÓ‚µ‚Ü‚·B
+	// è¦æ±‚ã•ã‚ŒãŸãƒã‚¤ãƒˆæ•° len åˆ†ã®ãƒ¡ãƒ¢ãƒªã‚’ adpts ã«ç”¨æ„ã—ã¾ã™ã€‚
 	PIP_ADAPTER_ADDRESSES adpts = (PIP_ADAPTER_ADDRESSES)new BYTE[len];
-	if(adpts == 0) return;      // ƒƒ‚ƒŠ‚ð—pˆÓ‚Å‚«‚È‚¯‚ê‚Î§Œä‚ð•Ô‚µ‚Ü‚·B
+	if(adpts == 0) return;      // ãƒ¡ãƒ¢ãƒªã‚’ç”¨æ„ã§ããªã‘ã‚Œã°åˆ¶å¾¡ã‚’è¿”ã—ã¾ã™ã€‚
 
-	ret = GetAdaptersAddresses(AF_INET, 0, 0, adpts, &len);   // adpts ‚Éî•ñ‚ð—ñ‹“‚µ‚Ü‚·B
-	if(ret != ERROR_SUCCESS){   // ƒAƒ_ƒvƒ^‚ð—ñ‹“‚Å‚«‚È‚©‚Á‚½‚ç§Œä‚ð•Ô‚µ‚Ü‚·B
+	ret = GetAdaptersAddresses(AF_INET, 0, 0, adpts, &len);   // adpts ã«æƒ…å ±ã‚’åˆ—æŒ™ã—ã¾ã™ã€‚
+	if(ret != ERROR_SUCCESS){   // ã‚¢ãƒ€ãƒ—ã‚¿ã‚’åˆ—æŒ™ã§ããªã‹ã£ãŸã‚‰åˆ¶å¾¡ã‚’è¿”ã—ã¾ã™ã€‚
 		delete [] adpts;
 		return;
 	}
 
 	WSADATA data;
 	WSAStartup(MAKEWORD(2, 2), &data);
-	// adpts ”z—ñ“à‚ÌŠeƒAƒ_ƒvƒ^î•ñ‚ðˆê‚Â‚¸‚Â adpt ‚É“ü‚ê‚Ä‚Ý‚Ä‚¢‚«‚Ü‚·B
+	// adpts é…åˆ—å†…ã®å„ã‚¢ãƒ€ãƒ—ã‚¿æƒ…å ±ã‚’ä¸€ã¤ãšã¤ adpt ã«å…¥ã‚Œã¦ã¿ã¦ã„ãã¾ã™ã€‚
 	for(PIP_ADAPTER_ADDRESSES adpt = adpts; adpt; adpt = adpt->Next){
-		if(adpt->PhysicalAddressLength == 0) continue;            // ƒf[ƒ^ƒŠƒ“ƒN‘w‚ðŽ‚½‚È‚¢‚È‚ç
-		if(adpt->IfType == IF_TYPE_SOFTWARE_LOOPBACK) continue;   // ƒ‹[ƒvƒoƒbƒN ƒAƒhƒŒƒX‚È‚ç
-		// adpt ƒAƒ_ƒvƒ^î•ñ‚Ì IP ƒAƒhƒŒƒX‚ðˆê‚Â‚¸‚Â uni ‚É“ü‚ê‚Ä‚Ý‚Ä‚¢‚«‚Ü‚·B
+		if(adpt->PhysicalAddressLength == 0) continue;            // ãƒ‡ãƒ¼ã‚¿ãƒªãƒ³ã‚¯å±¤ã‚’æŒãŸãªã„ãªã‚‰
+		if(adpt->IfType == IF_TYPE_SOFTWARE_LOOPBACK) continue;   // ãƒ«ãƒ¼ãƒ—ãƒãƒƒã‚¯ ã‚¢ãƒ‰ãƒ¬ã‚¹ãªã‚‰
+		// adpt ã‚¢ãƒ€ãƒ—ã‚¿æƒ…å ±ã® IP ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’ä¸€ã¤ãšã¤ uni ã«å…¥ã‚Œã¦ã¿ã¦ã„ãã¾ã™ã€‚
 		for(PIP_ADAPTER_UNICAST_ADDRESS uni = adpt->FirstUnicastAddress; uni; uni = uni->Next){
-			// DNS ‚É‘Î‚µ‚Ä“KØ‚ÈƒAƒhƒŒƒX‚Å‚È‚¢iƒvƒ‰ƒCƒx[ƒg‚È‚Çj‚È‚ç‚Î
-			if(~(uni->Flags) & IP_ADAPTER_ADDRESS_DNS_ELIGIBLE) continue;   // ŽŸ‚ÌƒAƒhƒŒƒX‚Ö
-			// ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ªŽg‚¤‚×‚«‚Å‚È‚¢ƒAƒhƒŒƒX‚È‚ç
-			if(uni->Flags & IP_ADAPTER_ADDRESS_TRANSIENT) continue;         // ŽŸ‚ÌƒAƒhƒŒƒX‚Ö
-			char host[NI_MAXHOST + 1] = {'\0'};   // host ‚Éu0.0.0.0vŒ`Ž®‚Ì•¶Žš—ñ‚ðŽæ“¾‚µ‚Ü‚·B
+			// DNS ã«å¯¾ã—ã¦é©åˆ‡ãªã‚¢ãƒ‰ãƒ¬ã‚¹ã§ãªã„ï¼ˆãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆãªã©ï¼‰ãªã‚‰ã°
+			if(~(uni->Flags) & IP_ADAPTER_ADDRESS_DNS_ELIGIBLE) continue;   // æ¬¡ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã¸
+			// ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãŒä½¿ã†ã¹ãã§ãªã„ã‚¢ãƒ‰ãƒ¬ã‚¹ãªã‚‰
+			if(uni->Flags & IP_ADAPTER_ADDRESS_TRANSIENT) continue;         // æ¬¡ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã¸
+			char host[NI_MAXHOST + 1] = {'\0'};   // host ã«ã€Œ0.0.0.0ã€å½¢å¼ã®æ–‡å­—åˆ—ã‚’å–å¾—ã—ã¾ã™ã€‚
 			if(getnameinfo(uni->Address.lpSockaddr, uni->Address.iSockaddrLength
 			, host, sizeof(host), 0, 0, NI_NUMERICHOST/*NI_NAMEREQD*/) == 0){
 				wstring strW;
@@ -364,31 +370,4 @@ void CStreamCtrlDlg::EnumIP()
 	if(SendDlgItemMessage(this->hwnd , IDC_COMBO_IP, CB_GETCOUNT , 0 , 0) > 0){
 		SendDlgItemMessage(this->hwnd , IDC_COMBO_IP, CB_SETCURSEL , 0 , 0);
 	}
-}
-
-void CStreamCtrlDlg::UpdateLog()
-{
-	wstring editLog = L"";
-
-	WCHAR textBuff[512] = L"";
-	GetWindowText(GetDlgItem(this->hwnd, IDC_COMBO_IP), textBuff, 512);
-	
-	wstring IP = textBuff;
-
-	if( this->nwPlayInfo.udp == 1 ){
-		wstring udp = L"";
-		Format(udp, L"UDP‘—MF%s:%d\r\n", IP.c_str(), nwPlayInfo.udpPort);
-		editLog += udp;
-	}
-	if( this->nwPlayInfo.tcp == 1 ){
-		wstring tcp = L"";
-		Format(tcp, L"TCP‘—MF%s:%d\r\n", IP.c_str(), nwPlayInfo.tcpPort);
-		editLog += tcp;
-	}
-	
-	if( editLog.size() == 0 ){
-		editLog = L"‘—Mæ‚È‚µ";
-	}
-
-	SetWindowText(GetDlgItem(this->hwnd, IDC_EDIT_LOG), editLog.c_str());
 }

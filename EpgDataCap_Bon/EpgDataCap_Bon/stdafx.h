@@ -1,36 +1,13 @@
-
-// stdafx.h : •W€‚ÌƒVƒXƒeƒ€ ƒCƒ“ƒNƒ‹[ƒh ƒtƒ@ƒCƒ‹‚ÌƒCƒ“ƒNƒ‹[ƒh ƒtƒ@ƒCƒ‹A‚Ü‚½‚Í
-// QÆ‰ñ”‚ª‘½‚­A‚©‚Â‚ ‚Ü‚è•ÏX‚³‚ê‚È‚¢AƒvƒƒWƒFƒNƒgê—p‚ÌƒCƒ“ƒNƒ‹[ƒh ƒtƒ@ƒCƒ‹
-// ‚ğ‹Lq‚µ‚Ü‚·B
+ï»¿
+// stdafx.h : æ¨™æº–ã®ã‚·ã‚¹ãƒ†ãƒ  ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ ãƒ•ã‚¡ã‚¤ãƒ«ã€ã¾ãŸã¯
+// å‚ç…§å›æ•°ãŒå¤šãã€ã‹ã¤ã‚ã¾ã‚Šå¤‰æ›´ã•ã‚Œãªã„ã€ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆå°‚ç”¨ã®ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰ ãƒ•ã‚¡ã‚¤ãƒ«
+// ã‚’è¨˜è¿°ã—ã¾ã™ã€‚
 
 #pragma once
 
 #include "targetver.h"
 
-#define WIN32_LEAN_AND_MEAN             // Windows ƒwƒbƒ_[‚©‚çg—p‚³‚ê‚Ä‚¢‚È‚¢•”•ª‚ğœŠO‚µ‚Ü‚·B
-#define NOMINMAX
-// Windows ƒwƒbƒ_[ ƒtƒ@ƒCƒ‹:
-#include <windows.h>
-#include <windowsx.h>
-#include <commctrl.h>
-#include <shellapi.h>
-#include <commdlg.h>
-#include <shlobj.h>
-#pragma comment(lib, "comctl32.lib")
-#pragma comment(lib, "ws2_32.lib")
-
-// C ƒ‰ƒ“ƒ^ƒCƒ€ ƒwƒbƒ_[ ƒtƒ@ƒCƒ‹
-#include <stdio.h>
+#define WRAP_OUTPUT_DEBUG_STRING
+#include "../../Common/Common.h"
 
 #define afx_msg
-
-#if defined(_UNICODE) && defined(OutputDebugString)
-#undef OutputDebugString
-#define OutputDebugString OutputDebugStringWrapper
-// OutputDebugStringW‚Ìƒ‰ƒbƒp[ŠÖ”
-// APIƒtƒbƒN‚É‚æ‚é‚“x‚È‚à‚Ì‚Å‚È‚­’P‚È‚é’uŠ·BOutputDebugStringA‚âDLL‚©‚ç‚ÌŒÄ‚Ño‚µ‚Íƒ‰ƒbƒv‚³‚ê‚È‚¢
-void OutputDebugStringWrapper(LPCWSTR lpOutputString);
-#endif
-void SetSaveDebugLog(bool saveDebugLog);
-
-#include "../../Common/Common.h"

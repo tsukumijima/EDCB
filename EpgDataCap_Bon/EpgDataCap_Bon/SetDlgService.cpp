@@ -1,4 +1,4 @@
-// SetDlgService.cpp : À‘•ƒtƒ@ƒCƒ‹
+ï»¿// SetDlgService.cpp : å®Ÿè£…ãƒ•ã‚¡ã‚¤ãƒ«
 //
 
 #include "stdafx.h"
@@ -18,7 +18,7 @@ static LPARAM ListView_GetItemParam(HWND hItem, int iItem, int iSubItem)
 	return 0;
 }
 
-// CSetDlgService ƒ_ƒCƒAƒƒO
+// CSetDlgService ãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 
 CSetDlgService::CSetDlgService()
 	: m_hWnd(NULL)
@@ -36,12 +36,12 @@ BOOL CSetDlgService::Create(LPCWSTR lpszTemplateName, HWND hWndParent)
 }
 
 
-// CSetDlgService ƒƒbƒZ[ƒW ƒnƒ“ƒhƒ‰[
+// CSetDlgService ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ ãƒãƒ³ãƒ‰ãƒ©ãƒ¼
 
 
 void CSetDlgService::OnBnClickedButtonChkAll()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	for( int i=0; i<ListView_GetItemCount(GetDlgItem(IDC_LIST_SERVICE)); i++ ){
 		ListView_SetCheckState(GetDlgItem(IDC_LIST_SERVICE), i, TRUE);
 	}
@@ -50,7 +50,7 @@ void CSetDlgService::OnBnClickedButtonChkAll()
 
 void CSetDlgService::OnBnClickedButtonChkVideo()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	for( int i=0; i<ListView_GetItemCount(GetDlgItem(IDC_LIST_SERVICE)); i++ ){
 		map<wstring, pair<CParseChText4, bool>>::const_iterator itr = chList.find(currentChListKey);
 		if( itr != chList.end() ){
@@ -63,7 +63,7 @@ void CSetDlgService::OnBnClickedButtonChkVideo()
 
 void CSetDlgService::OnBnClickedButtonChkClear()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	for( int i=0; i<ListView_GetItemCount(GetDlgItem(IDC_LIST_SERVICE)); i++ ){
 		ListView_SetCheckState(GetDlgItem(IDC_LIST_SERVICE), i, FALSE);
 	}
@@ -72,9 +72,9 @@ void CSetDlgService::OnBnClickedButtonChkClear()
 
 BOOL CSetDlgService::OnInitDialog()
 {
-	// TODO:  ‚±‚±‚É‰Šú‰»‚ğ’Ç‰Á‚µ‚Ä‚­‚¾‚³‚¢
+	// TODO:  ã“ã“ã«åˆæœŸåŒ–ã‚’è¿½åŠ ã—ã¦ãã ã•ã„
 
-	//ƒŠƒXƒgƒrƒ…[‚Éƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚Æ—ñ‚ğ‚Â‚­‚é
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã¨åˆ—ã‚’ã¤ãã‚‹
 	HWND hItem = GetDlgItem(IDC_LIST_SERVICE);
 	ListView_SetExtendedListViewStyleEx(hItem, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT);
 	RECT rc;
@@ -86,17 +86,17 @@ BOOL CSetDlgService::OnInitDialog()
 
 	const fs_path path = GetSettingPath();
 
-	//w’èƒtƒHƒ‹ƒ_‚Ìƒtƒ@ƒCƒ‹ˆê——æ“¾
-	EnumFindFile(fs_path(path).append(L"*.ChSet4.txt").c_str(), [this, &path](WIN32_FIND_DATA& findData) -> bool {
-		if( (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 ){
-			//–{“–‚ÉŠg’£qTXT?
-			if( IsExt(findData.cFileName, L".txt") ){
+	//æŒ‡å®šãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§å–å¾—
+	EnumFindFile(fs_path(path).append(L"*.ChSet4.txt"), [this, &path](UTIL_FIND_DATA& findData) -> bool {
+		if( findData.isDir == false ){
+			//æœ¬å½“ã«æ‹¡å¼µå­TXT?
+			if( UtilPathEndsWith(findData.fileName.c_str(), L".txt") ){
 				wstring bonFileName;
-				FindBonFileName(findData.cFileName, bonFileName);
+				FindBonFileName(findData.fileName, bonFileName);
 				bonFileName += L".dll";
 
 				if( chList.insert(std::make_pair(bonFileName, std::make_pair(CParseChText4(), false))).second ){
-					chList[bonFileName].first.ParseText(fs_path(path).append(findData.cFileName).c_str());
+					chList[bonFileName].first.ParseText(fs_path(path).append(findData.fileName).c_str());
 					ComboBox_AddString(this->GetDlgItem(IDC_COMBO_BON), bonFileName.c_str());
 				}
 			}
@@ -110,7 +110,7 @@ BOOL CSetDlgService::OnInitDialog()
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control
-	// —áŠO : OCX ƒvƒƒpƒeƒB ƒy[ƒW‚Í•K‚¸ FALSE ‚ğ•Ô‚µ‚Ü‚·B
+	// ä¾‹å¤– : OCX ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ ãƒšãƒ¼ã‚¸ã¯å¿…ãš FALSE ã‚’è¿”ã—ã¾ã™ã€‚
 }
 
 void CSetDlgService::ReloadList()
@@ -179,7 +179,7 @@ void CSetDlgService::SaveIni()
 	SynchronizeCheckState();
 
 	for( map<wstring, pair<CParseChText4, bool>>::const_iterator itr = chList.begin(); itr != chList.end(); itr++ ){
-		//•ÏX‚µ‚½‚Æ‚«‚¾‚¯•Û‘¶‚·‚é
+		//å¤‰æ›´ã—ãŸã¨ãã ã‘ä¿å­˜ã™ã‚‹
 		if( itr->second.second ){
 			itr->second.first.SaveText();
 		}
@@ -188,7 +188,7 @@ void CSetDlgService::SaveIni()
 
 void CSetDlgService::OnCbnSelchangeComboBon()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	SynchronizeCheckState();
 	WCHAR key[512];
 	currentChListKey = (GetDlgItemText(m_hWnd, IDC_COMBO_BON, key, 512) > 0 ? key : L"");
@@ -198,12 +198,12 @@ void CSetDlgService::OnCbnSelchangeComboBon()
 
 void CSetDlgService::OnBnClickedButtonDel()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	int sel = ListView_GetNextItem(GetDlgItem(IDC_LIST_SERVICE), -1, LVNI_SELECTED);
 	if( sel < 0 ){
 		return ;
 	}
-	if( MessageBox(m_hWnd, L"íœ‚ğs‚¤‚ÆAÄ“xƒ`ƒƒƒ“ƒlƒ‹ƒXƒLƒƒƒ“‚ğs‚¤‚Ü‚Å€–Ú‚ª•\¦‚³‚ê‚È‚­‚È‚è‚Ü‚·B\r\n‚æ‚ë‚µ‚¢‚Å‚·‚©H",L"", MB_OKCANCEL) == IDOK ){
+	if( MessageBox(m_hWnd, L"å‰Šé™¤ã‚’è¡Œã†ã¨ã€å†åº¦ãƒãƒ£ãƒ³ãƒãƒ«ã‚¹ã‚­ãƒ£ãƒ³ã‚’è¡Œã†ã¾ã§é …ç›®ãŒè¡¨ç¤ºã•ã‚Œãªããªã‚Šã¾ã™ã€‚\r\nã‚ˆã‚ã—ã„ã§ã™ã‹ï¼Ÿ",L"", MB_OKCANCEL) == IDOK ){
 		map<wstring, pair<CParseChText4, bool>>::iterator itr = chList.find(currentChListKey);
 		if( itr != chList.end() ){
 			SynchronizeCheckState();
@@ -217,7 +217,7 @@ void CSetDlgService::OnBnClickedButtonDel()
 
 void CSetDlgService::OnLbnSelchangeListService()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	int sel = ListView_GetNextItem(GetDlgItem(IDC_LIST_SERVICE), -1, LVNI_SELECTED);
 	if( sel < 0 ){
 		return ;
@@ -227,8 +227,8 @@ void CSetDlgService::OnLbnSelchangeListService()
 		return ;
 	}
 	const CH_DATA4* chSet = &itr->second.first.GetMap().find((DWORD)ListView_GetItemParam(GetDlgItem(IDC_LIST_SERVICE), sel, 0))->second;
-	wstring info = L"";
-	Format(info, L"space: %d ch: %d (%s)\r\nOriginalNetworkID: %d(0x%04X)\r\nTransportStreamID: %d(0x%04X)\r\nServiceID: %d(0x%04X)\r\nServiceType: %d(0x%02X)\r\n",
+	wstring info;
+	Format(info, L"space: %d ch: %d (%ls)\r\nOriginalNetworkID: %d(0x%04X)\r\nTransportStreamID: %d(0x%04X)\r\nServiceID: %d(0x%04X)\r\nServiceType: %d(0x%02X)\r\n",
 		chSet->space,
 		chSet->ch,
 		chSet->chName.c_str(),

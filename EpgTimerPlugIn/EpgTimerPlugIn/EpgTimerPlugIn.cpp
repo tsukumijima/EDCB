@@ -1,4 +1,4 @@
-// EpgTimerPlugIn.cpp : DLL ƒAƒvƒŠƒP[ƒVƒ‡ƒ“—p‚ÉƒGƒNƒXƒ|[ƒg‚³‚ê‚éŠÖ”‚ğ’è‹`‚µ‚Ü‚·B
+ï»¿// EpgTimerPlugIn.cpp : DLL ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ç”¨ã«ã‚¨ã‚¯ã‚¹ãƒãƒ¼ãƒˆã•ã‚Œã‚‹é–¢æ•°ã‚’å®šç¾©ã—ã¾ã™ã€‚
 //
 
 #include "stdafx.h"
@@ -12,7 +12,7 @@
 
 extern HINSTANCE g_hinstDLL;
 
-// ƒvƒ‰ƒOƒCƒ“ƒNƒ‰ƒX‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğ¶¬‚·‚é
+// ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã‚¯ãƒ©ã‚¹ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ç”Ÿæˆã™ã‚‹
 TVTest::CTVTestPlugin *CreatePluginClass()
 {
 	return new CEpgTimerPlugIn;
@@ -22,31 +22,30 @@ TVTest::CTVTestPlugin *CreatePluginClass()
 CEpgTimerPlugIn::CEpgTimerPlugIn()
 {
 	this->nwMode = FALSE;
-	this->nwModeCurrentCtrlID = 0;
 	this->fullScreen = FALSE;
 	this->showNormal = TRUE;
 	this->grantServerAccess = FALSE;
 }
 
-// ƒvƒ‰ƒOƒCƒ“‚Ìî•ñ‚ğ•Ô‚·
+// ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã®æƒ…å ±ã‚’è¿”ã™
 bool CEpgTimerPlugIn::GetPluginInfo(TVTest::PluginInfo *pInfo)
 {
 	pInfo->Type           = TVTest::PLUGIN_TYPE_NORMAL;
 	pInfo->Flags          = 0;
 	pInfo->pszPluginName  = L"EpgTimer PlugIn";
-	pInfo->pszCopyright   = L"‚è‚å‚¤‚¿‚ñ Copyright (C) 2010";
-	pInfo->pszDescription = L"EpgTimerSrv‚©‚ç‚Ì§Œä—p";
+	pInfo->pszCopyright   = L"ã‚Šã‚‡ã†ã¡ã‚“ Copyright (C) 2010";
+	pInfo->pszDescription = L"EpgTimerSrvã‹ã‚‰ã®åˆ¶å¾¡ç”¨";
 	return true;
 }
 
 
-// ‰Šú‰»ˆ—
+// åˆæœŸåŒ–å‡¦ç†
 bool CEpgTimerPlugIn::Initialize()
 {
-	// ƒCƒxƒ“ƒgƒR[ƒ‹ƒoƒbƒNŠÖ”‚ğ“o˜^
+	// ã‚¤ãƒ™ãƒ³ãƒˆã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°ã‚’ç™»éŒ²
 	m_pApp->SetEventCallback(EventCallback, this);
 
-	// ƒ_ƒCƒAƒƒO‚ğŠmÀ‚É¶¬‚·‚é
+	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ç¢ºå®Ÿã«ç”Ÿæˆã™ã‚‹
 	if( !this->ctrlDlg.CreateStreamCtrlDialog(g_hinstDLL, this->m_pApp->GetAppWindow()) ){
 		return false;
 	}
@@ -62,7 +61,7 @@ void CEpgTimerPlugIn::EnablePlugin(BOOL enable)
 	if( enable == TRUE ){
 		OutputDebugString(L"EnablePlugin");
 		if(this->m_pApp->SetWindowMessageCallback(WindowMsgeCallback, this)==false){
-			OutputDebugString(L"œTVTest Version Err::SetWindowMessageCallback");
+			OutputDebugString(L"â—TVTest Version Err::SetWindowMessageCallback");
 		}
 		if( this->grantServerAccess == FALSE ){
 			if( CPipeServer::GrantServerAccessToKernelObject(GetCurrentProcess(), SYNCHRONIZE | PROCESS_TERMINATE | PROCESS_SET_INFORMATION) ){
@@ -71,23 +70,18 @@ void CEpgTimerPlugIn::EnablePlugin(BOOL enable)
 			this->grantServerAccess = TRUE;
 		}
 
-		wstring pipeName = L"";
-		wstring eventName = L"";
-
-		Format(pipeName, L"%s%d", CMD2_TVTEST_CTRL_PIPE, GetCurrentProcessId());
-		Format(eventName, L"%s%d", CMD2_TVTEST_CTRL_WAIT_CONNECT, GetCurrentProcessId());
-
+		wstring pipeName;
+		Format(pipeName, L"%ls%d", CMD2_TVTEST_CTRL_PIPE, GetCurrentProcessId());
 		OutputDebugString(pipeName.c_str());
-		OutputDebugString(eventName.c_str());
-		this->pipeServer.StartServer(eventName.c_str(), pipeName.c_str(), [this](CMD_STREAM* cmdParam, CMD_STREAM* resParam) {
-			// SendMessageTimeout()‚ÍƒƒbƒZ[ƒWˆ—’†‚Å‚à—eÍ‚È‚­ƒ^ƒCƒ€ƒAƒEƒg‚·‚é‚Ì‚ÅƒRƒ}ƒ“ƒhƒf[ƒ^‚ğ”r‘¼ˆ—‚·‚é
+		this->pipeServer.StartServer(pipeName, [this](CMD_STREAM* cmdParam, CMD_STREAM* resParam) {
+			// SendMessageTimeout()ã¯ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç†ä¸­ã§ã‚‚å®¹èµ¦ãªãã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã™ã‚‹ã®ã§ã‚³ãƒãƒ³ãƒ‰ãƒ‡ãƒ¼ã‚¿ã‚’æ’ä»–å‡¦ç†ã™ã‚‹
 			{
 				CBlockLock lock(&this->cmdLock);
 				std::swap(this->cmdCapture.param, cmdParam->param);
 				std::swap(this->cmdCapture.dataSize, cmdParam->dataSize);
 				this->cmdCapture.data.swap(cmdParam->data);
 			}
-			// CtrlCmdCallbackInvoked()‚ğƒƒCƒ“ƒXƒŒƒbƒh‚ÅŒÄ‚Ô(ƒfƒbƒhƒƒbƒN–h~‚Ì‚½‚ßƒ^ƒCƒ€ƒAƒEƒg‚Â‚«)
+			// CtrlCmdCallbackInvoked()ã‚’ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã§å‘¼ã¶(ãƒ‡ãƒƒãƒ‰ãƒ­ãƒƒã‚¯é˜²æ­¢ã®ãŸã‚ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã¤ã)
 			DWORD_PTR dwResult;
 			if( SendMessageTimeout(this->ctrlDlg.GetDlgHWND(), WM_INVOKE_CTRL_CMD, 0, 0, SMTO_NORMAL, 10000, &dwResult) ){
 				CBlockLock lock(&this->cmdLock);
@@ -99,9 +93,6 @@ void CEpgTimerPlugIn::EnablePlugin(BOOL enable)
 			}
 		});
 
-		if( this->nwMode == TRUE ){
-			this->ctrlDlg.SetCtrlCmd(&this->cmd, this->nwModeInfo.ctrlID, this->nwModeInfo.udpSend, this->nwModeInfo.tcpSend, FALSE, this->nwModeInfo.timeShiftMode);
-		}
 		if( this->m_pApp->GetFullscreen() == true ){
 			this->fullScreen = TRUE;
 			this->ctrlDlg.StartFullScreenMouseChk();
@@ -119,7 +110,7 @@ void CEpgTimerPlugIn::EnablePlugin(BOOL enable)
 	return ;
 }
 
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 bool CEpgTimerPlugIn::Finalize()
 {
 	if( this->m_pApp->IsPluginEnabled() ){
@@ -129,14 +120,15 @@ bool CEpgTimerPlugIn::Finalize()
 	this->ctrlDlg.CloseStreamCtrlDialog();
 
 	if( this->nwMode ){
-		this->cmd.SendNwPlayClose(this->nwModeCurrentCtrlID);
+		this->nwModeInfo.enableMode = FALSE;
+		this->ctrlDlg.SetCtrl(this->nwModeInfo);
 		this->nwMode = FALSE;
 	}
 	return true;
 }
 
-// ƒCƒxƒ“ƒgƒR[ƒ‹ƒoƒbƒNŠÖ”
-// ‰½‚©ƒCƒxƒ“ƒg‚ª‹N‚«‚é‚ÆŒÄ‚Î‚ê‚é
+// ã‚¤ãƒ™ãƒ³ãƒˆã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•°
+// ä½•ã‹ã‚¤ãƒ™ãƒ³ãƒˆãŒèµ·ãã‚‹ã¨å‘¼ã°ã‚Œã‚‹
 LRESULT CALLBACK CEpgTimerPlugIn::EventCallback(UINT Event,LPARAM lParam1,LPARAM lParam2,void *pClientData)
 {
 	CEpgTimerPlugIn *pThis=static_cast<CEpgTimerPlugIn*>(pClientData);
@@ -196,7 +188,9 @@ void CEpgTimerPlugIn::CtrlCmdCallbackInvoked()
 				if( sys->m_pApp->SetDriverName(val.c_str()) == TRUE ){
 					resParam->param = CMD_SUCCESS;
 				}
-				if( CompareNoCase(val, L"BonDriver_UDP.dll") == 0 || CompareNoCase(val, L"BonDriver_TCP.dll") == 0 ){
+				if( CompareNoCase(val, L"BonDriver_UDP.dll") == 0 ||
+				    CompareNoCase(val, L"BonDriver_TCP.dll") == 0 ||
+				    CompareNoCase(val, L"BonDriver_NetworkPipe.dll") == 0 ){
 					sys->m_pApp->SetChannel(0, 0);
 				}
 			}
@@ -250,7 +244,7 @@ void CEpgTimerPlugIn::CtrlCmdCallbackInvoked()
 				}
 			}
 			if( sys->nwMode == TRUE ){
-				// ƒRƒ}ƒ“ƒhˆ—’†‚È‚Ì‚Å’¼ÚSendNwPlayClose()‚ğŒÄ‚Ô‚ÆƒAƒvƒŠƒP[ƒVƒ‡ƒ“ŠÔ‚ÅƒƒbƒN‚·‚é‹°‚ê‚ª‚ ‚é
+				// ã‚³ãƒãƒ³ãƒ‰å‡¦ç†ä¸­ãªã®ã§ç›´æ¥SendNwPlayClose()ã‚’å‘¼ã¶ã¨ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³é–“ã§ãƒ­ãƒƒã‚¯ã™ã‚‹æã‚ŒãŒã‚ã‚‹
 				PostMessage(sys->ctrlDlg.GetDlgHWND(), CStreamCtrlDlg::WM_PLAY_CLOSE, 0, 0);
 			}
 		}
@@ -267,7 +261,7 @@ void CEpgTimerPlugIn::CtrlCmdCallbackInvoked()
 		{
 			if( ReadVALUE(&sys->nwModeInfo, cmdParam->data, cmdParam->dataSize, NULL ) == TRUE ){
 				resParam->param = CMD_SUCCESS;
-				// “Š‚°‚é‚¾‚¯
+				// æŠ•ã’ã‚‹ã ã‘
 				PostMessage(sys->ctrlDlg.GetDlgHWND(), WM_TT_SET_CTRL, 0, 0);
 			}
 		}
@@ -359,25 +353,25 @@ LRESULT CALLBACK CEpgTimerPlugIn::StreamCtrlDlgCallback(HWND hwnd,UINT uMsg,WPAR
 				WCHAR buff[512] = L"";
 				sys->m_pApp->GetDriverFullPathName(buff, 512);
 				wstring bonName = fs_path(buff).filename().native();
-				if( lParam != 0){
-					if( CompareNoCase(bonName, L"BonDriver_TCP.dll") != 0 ){
-						sys->m_pApp->SetDriverName(L"BonDriver_TCP.dll");
+				DWORD udpPort = (DWORD)wParam;
+				DWORD tcpPort = (DWORD)lParam;
+				if( tcpPort < 65536 ){
+					if( CompareNoCase(bonName, tcpPort < 2230 ? L"BonDriver_NetworkPipe.dll" : L"BonDriver_TCP.dll") != 0 ){
+						sys->m_pApp->SetDriverName(tcpPort < 2230 ? L"BonDriver_NetworkPipe.dll" : L"BonDriver_TCP.dll");
 					}
-					DWORD ch = (DWORD)lParam-2230;
-					sys->m_pApp->SetChannel(0, ch);
-				}else
-				if( wParam != 0){
+					sys->m_pApp->SetChannel(0, (int)(tcpPort < 2230 ? tcpPort : tcpPort - 2230));
+				}else if( 1234 <= udpPort && udpPort < 65536 ){
 					if( CompareNoCase(bonName, L"BonDriver_UDP.dll") != 0 ){
 						sys->m_pApp->SetDriverName(L"BonDriver_UDP.dll");
 					}
-					DWORD ch = (DWORD)wParam-1234;
-					sys->m_pApp->SetChannel(0, ch);
+					sys->m_pApp->SetChannel(0, (int)(udpPort - 1234));
 				}
 			}
 			return TRUE;
 		case CStreamCtrlDlg::WM_PLAY_CLOSE:
 			if( sys->nwMode ){
-				sys->cmd.SendNwPlayClose(sys->nwModeCurrentCtrlID);
+				sys->nwModeInfo.enableMode = FALSE;
+				sys->ctrlDlg.SetCtrl(sys->nwModeInfo);
 				sys->nwMode = FALSE;
 				sys->ResetStreamingCtrlView();
 			}
@@ -386,27 +380,8 @@ LRESULT CALLBACK CEpgTimerPlugIn::StreamCtrlDlgCallback(HWND hwnd,UINT uMsg,WPAR
 			sys->CtrlCmdCallbackInvoked();
 			return TRUE;
 		case WM_TT_SET_CTRL:
-			if( sys->nwMode ){
-				sys->cmd.SendNwPlayClose(sys->nwModeCurrentCtrlID);
-				sys->ctrlDlg.StopTimer();
-				sys->nwMode = FALSE;
-			}
-			if( sys->nwModeInfo.enableMode == TRUE ){
-				sys->nwModeCurrentCtrlID = sys->nwModeInfo.ctrlID;
-				sys->nwMode = TRUE;
-
-				wstring ip = L"";
-				Format(ip, L"%d.%d.%d.%d",
-					(sys->nwModeInfo.serverIP&0xFF000000)>>24,
-					(sys->nwModeInfo.serverIP&0x00FF0000)>>16,
-					(sys->nwModeInfo.serverIP&0x0000FF00)>>8,
-					(sys->nwModeInfo.serverIP&0x000000FF));
-
-				sys->cmd.SetSendMode(TRUE);
-				sys->cmd.SetNWSetting(ip,sys->nwModeInfo.serverPort);
-				sys->cmd.SetConnectTimeOut(15*1000);
-				sys->ctrlDlg.SetCtrlCmd(&sys->cmd, sys->nwModeInfo.ctrlID, sys->nwModeInfo.udpSend, sys->nwModeInfo.tcpSend, TRUE, sys->nwModeInfo.timeShiftMode);
-			}
+			sys->ctrlDlg.SetCtrl(sys->nwModeInfo);
+			sys->nwMode = sys->nwModeInfo.enableMode ? TRUE : FALSE;
 			sys->ResetStreamingCtrlView();
 			return TRUE;
 		}

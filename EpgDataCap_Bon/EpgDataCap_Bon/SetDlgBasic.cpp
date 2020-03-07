@@ -1,4 +1,4 @@
-// SetDlgBasic.cpp : À‘•ƒtƒ@ƒCƒ‹
+ï»¿// SetDlgBasic.cpp : å®Ÿè£…ãƒ•ã‚¡ã‚¤ãƒ«
 //
 
 #include "stdafx.h"
@@ -7,8 +7,9 @@
 
 #include "../../Common/PathUtil.h"
 #include "../../Common/StringUtil.h"
+#include <shlobj.h>
 
-// CSetDlgBasic ƒ_ƒCƒAƒƒO
+// CSetDlgBasic ãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 
 CSetDlgBasic::CSetDlgBasic()
 	: m_hWnd(NULL)
@@ -26,10 +27,10 @@ BOOL CSetDlgBasic::Create(LPCWSTR lpszTemplateName, HWND hWndParent)
 }
 
 
-// CSetDlgBasic ƒƒbƒZ[ƒW ƒnƒ“ƒhƒ‰[
+// CSetDlgBasic ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ ãƒãƒ³ãƒ‰ãƒ©ãƒ¼
 BOOL CSetDlgBasic::OnInitDialog()
 {
-	// TODO:  ‚±‚±‚É‰Šú‰»‚ğ’Ç‰Á‚µ‚Ä‚­‚¾‚³‚¢
+	// TODO:  ã“ã“ã«åˆæœŸåŒ–ã‚’è¿½åŠ ã—ã¦ãã ã•ã„
 	fs_path path = GetSettingPath();
 	SetDlgItemText(m_hWnd, IDC_EDIT_SET_PATH, path.c_str());
 
@@ -41,8 +42,18 @@ BOOL CSetDlgBasic::OnInitDialog()
 		ListBox_AddString(GetDlgItem(IDC_LIST_REC_FOLDER), recPath.c_str());
 	}
 
+	fs_path appIniPath = GetModuleIniPath();
+	Button_SetCheck(GetDlgItem(IDC_CHECK_MODIFY_TITLE_BAR), GetPrivateProfileInt(L"SET", L"ModifyTitleBarText", 0, appIniPath.c_str()));
+	Button_SetCheck(GetDlgItem(IDC_CHECK_OVERLAY_TASK_ICON), GetPrivateProfileInt(L"SET", L"OverlayTaskIcon", 1, appIniPath.c_str()));
+	Button_SetCheck(GetDlgItem(IDC_CHECK_TASKMIN), GetPrivateProfileInt(L"SET", L"MinTask", 0, appIniPath.c_str()));
+	ComboBox_AddString(GetDlgItem(IDC_COMBO_DIALOG_TEMPLATE), L"MS UI Gothic");
+	ComboBox_AddString(GetDlgItem(IDC_COMBO_DIALOG_TEMPLATE), L"Meiryo UI");
+	ComboBox_AddString(GetDlgItem(IDC_COMBO_DIALOG_TEMPLATE), L"Yu Gothic UI");
+	int index = GetPrivateProfileInt(L"SET", L"DialogTemplate", 0, appIniPath.c_str());
+	ComboBox_SetCurSel(GetDlgItem(IDC_COMBO_DIALOG_TEMPLATE), min(max(index, 0), 2));
+
 	return TRUE;  // return TRUE unless you set the focus to a control
-	// —áŠO : OCX ƒvƒƒpƒeƒB ƒy[ƒW‚Í•K‚¸ FALSE ‚ğ•Ô‚µ‚Ü‚·B
+	// ä¾‹å¤– : OCX ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ ãƒšãƒ¼ã‚¸ã¯å¿…ãš FALSE ã‚’è¿”ã—ã¾ã™ã€‚
 }
 
 void CSetDlgBasic::SaveIni()
@@ -54,7 +65,7 @@ void CSetDlgBasic::SaveIni()
 
 	WCHAR settingFolderPath[512] = L"";
 	GetDlgItemText(m_hWnd, IDC_EDIT_SET_PATH, settingFolderPath, 512);
-	WritePrivateProfileString(L"SET", L"DataSavePath", _wcsicmp(settingFolderPath, GetDefSettingPath().c_str()) ? settingFolderPath : NULL, commonIniPath.c_str());
+	WritePrivateProfileString(L"SET", L"DataSavePath", UtilComparePath(settingFolderPath, GetDefSettingPath().c_str()) ? settingFolderPath : NULL, commonIniPath.c_str());
 	UtilCreateDirectories(settingFolderPath);
 
 	int iNum = ListBox_GetCount(GetDlgItem(IDC_LIST_REC_FOLDER));
@@ -64,7 +75,7 @@ void CSetDlgBasic::SaveIni()
 		if( 0 <= len && len < 512 ){
 			ListBox_GetText(GetDlgItem(IDC_LIST_REC_FOLDER), 0, folder);
 		}
-		if( _wcsicmp(folder, settingFolderPath) == 0 ){
+		if( UtilComparePath(folder, settingFolderPath) == 0 ){
 			iNum = 0;
 		}
 	}
@@ -79,18 +90,24 @@ void CSetDlgBasic::SaveIni()
 		}
 		WritePrivateProfileString(L"SET", key, folder, commonIniPath.c_str());
 	}
+
+	fs_path appIniPath = GetModuleIniPath();
+	WritePrivateProfileInt(L"SET", L"ModifyTitleBarText", Button_GetCheck(GetDlgItem(IDC_CHECK_MODIFY_TITLE_BAR)), appIniPath.c_str());
+	WritePrivateProfileInt(L"SET", L"OverlayTaskIcon", Button_GetCheck(GetDlgItem(IDC_CHECK_OVERLAY_TASK_ICON)), appIniPath.c_str());
+	WritePrivateProfileInt(L"SET", L"MinTask", Button_GetCheck(GetDlgItem(IDC_CHECK_TASKMIN)), appIniPath.c_str());
+	WritePrivateProfileInt(L"SET", L"DialogTemplate", ComboBox_GetCurSel(GetDlgItem(IDC_COMBO_DIALOG_TEMPLATE)), appIniPath.c_str());
 }
 
 void CSetDlgBasic::OnBnClickedButtonRecPath()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	BROWSEINFO bi = {};
 	WCHAR buff[MAX_PATH] = {};
 	LPITEMIDLIST pidlBrowse;
 
 	bi.hwndOwner = m_hWnd;
 	bi.pszDisplayName = buff;
-	bi.lpszTitle = L"˜^‰æƒtƒ@ƒCƒ‹•Û‘¶ƒtƒHƒ‹ƒ_‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢";
+	bi.lpszTitle = L"éŒ²ç”»ãƒ•ã‚¡ã‚¤ãƒ«ä¿å­˜ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠã—ã¦ãã ã•ã„";
 	bi.ulFlags = BIF_NEWDIALOGSTYLE;
 
 	pidlBrowse = SHBrowseForFolder(&bi);
@@ -105,13 +122,13 @@ void CSetDlgBasic::OnBnClickedButtonRecPath()
 
 void CSetDlgBasic::OnBnClickedButtonRecAdd()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	WCHAR recFolderPath[512];
 	if( GetDlgItemText(m_hWnd, IDC_EDIT_REC_FOLDER, recFolderPath, 512) <= 0 ){
 		return ;
 	}
 
-	//“¯ˆêƒtƒHƒ‹ƒ_‚ª‚·‚Å‚É‚ ‚é‚©ƒ`ƒFƒbƒN
+	//åŒä¸€ãƒ•ã‚©ãƒ«ãƒ€ãŒã™ã§ã«ã‚ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
 	int iNum = ListBox_GetCount(GetDlgItem(IDC_LIST_REC_FOLDER));
 	BOOL findFlag = FALSE;
 	for( int i = 0; i < iNum; i++ ){
@@ -121,7 +138,7 @@ void CSetDlgBasic::OnBnClickedButtonRecAdd()
 			ListBox_GetText(GetDlgItem(IDC_LIST_REC_FOLDER), i, folder);
 		}
 
-		if( _wcsicmp(recFolderPath, folder) == 0 ){
+		if( UtilComparePath(recFolderPath, folder) == 0 ){
 			findFlag = TRUE;
 			break;
 		}
@@ -134,7 +151,7 @@ void CSetDlgBasic::OnBnClickedButtonRecAdd()
 
 void CSetDlgBasic::OnBnClickedButtonRecDel()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	int sel = ListBox_GetCurSel(GetDlgItem(IDC_LIST_REC_FOLDER));
 	if( sel == LB_ERR ){
 		return ;
@@ -145,7 +162,7 @@ void CSetDlgBasic::OnBnClickedButtonRecDel()
 
 void CSetDlgBasic::OnBnClickedButtonRecUp()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	HWND hItem = GetDlgItem(IDC_LIST_REC_FOLDER);
 	int sel = ListBox_GetCurSel(hItem);
 	if( sel == LB_ERR || sel == 0){
@@ -164,7 +181,7 @@ void CSetDlgBasic::OnBnClickedButtonRecUp()
 
 void CSetDlgBasic::OnBnClickedButtonRecDown()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	HWND hItem = GetDlgItem(IDC_LIST_REC_FOLDER);
 	int sel = ListBox_GetCurSel(hItem);
 	if( sel == LB_ERR || sel == ListBox_GetCount(hItem) - 1 ){
@@ -183,14 +200,14 @@ void CSetDlgBasic::OnBnClickedButtonRecDown()
 
 void CSetDlgBasic::OnBnClickedButtonSetPath()
 {
-	// TODO: ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰[ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
+	// TODO: ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ©ãƒ¼ ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
 	BROWSEINFO bi = {};
 	WCHAR buff[MAX_PATH] = {};
 	LPITEMIDLIST pidlBrowse;
 
 	bi.hwndOwner = m_hWnd;
 	bi.pszDisplayName = buff;
-	bi.lpszTitle = L"İ’èŠÖŒW•Û‘¶ƒtƒHƒ‹ƒ_‚ğ‘I‘ğ‚µ‚Ä‚­‚¾‚³‚¢";
+	bi.lpszTitle = L"è¨­å®šé–¢ä¿‚ä¿å­˜ãƒ•ã‚©ãƒ«ãƒ€ã‚’é¸æŠã—ã¦ãã ã•ã„";
 	bi.ulFlags = BIF_NEWDIALOGSTYLE;
 
 	pidlBrowse = SHBrowseForFolder(&bi);

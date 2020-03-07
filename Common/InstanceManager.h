@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "ThreadUtil.h"
 #include <map>
@@ -37,7 +37,21 @@ public:
 		return ptr;
 	}
 
-	std::shared_ptr<T> find(DWORD id)
+	void clear()
+	{
+		CBlockLock lock(&(this->m_lock));
+
+		this->m_list.clear();
+	}
+
+	bool empty() const
+	{
+		CBlockLock lock(&(this->m_lock));
+
+		return this->m_list.empty();
+	}
+
+	std::shared_ptr<T> find(DWORD id) const
 	{
 		CBlockLock lock(&(this->m_lock));
 
@@ -51,7 +65,7 @@ public:
 protected:
 	std::map<DWORD, std::shared_ptr<T> > m_list;
 	DWORD m_nextID;
-	recursive_mutex_ m_lock;
+	mutable recursive_mutex_ m_lock;
 
 	DWORD getNextID()
 	{
@@ -70,8 +84,8 @@ protected:
 			}
 			count += 1;
 
-			// 65536 ‰ñ‚µ‚Äƒ_ƒ‚¾‚Á‚½‚ç’f”O
-			// 1 ƒvƒƒZƒX‚©‚ç (2^16) ˆÈã‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğ“¯‚Éì¬‚·‚é‚±‚Æ‚Í‚È‚¢‚Í‚¸
+			// 65536 å›è©¦ã—ã¦ãƒ€ãƒ¡ã ã£ãŸã‚‰æ–­å¿µ
+			// 1 ãƒ—ãƒ­ã‚»ã‚¹ã‹ã‚‰ (2^16) ä»¥ä¸Šã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’åŒæ™‚ã«ä½œæˆã™ã‚‹ã“ã¨ã¯ãªã„ã¯ãš
 
 		} while ((nextID == INVALID_ID) && (count < (1<<16))); 
 

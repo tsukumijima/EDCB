@@ -1,26 +1,29 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "ScrambleDecoderUtil.h"
 
-#ifdef USE_IBONCAST
 namespace
 {
 IB25Decoder* CastB(IB25Decoder2** if2, IB25Decoder* (*funcCreate)(), const LPVOID* (WINAPI* funcCast)(LPCSTR, void*))
 {
 	HMODULE hModule = NULL;
+#ifndef _MSC_VER
 	if( funcCast == NULL ){
 		if( (hModule = LoadLibrary(L"IBonCast.dll")) == NULL ){
-			OutputDebugString(L"šIBonCast.dll‚ªƒ[ƒh‚Å‚«‚Ü‚¹‚ñ\r\n");
+			OutputDebugString(L"â˜…IBonCast.dllãŒãƒ­ãƒ¼ãƒ‰ã§ãã¾ã›ã‚“\r\n");
 			return NULL;
 		}
 		funcCast = (const LPVOID*(WINAPI*)(LPCSTR,void*))GetProcAddress(hModule, "Cast");
 	}
+#endif
 	void* pBase;
 	const LPVOID* table;
 	if( funcCast == NULL || (pBase = funcCreate()) == NULL || (table = funcCast("IB25Decoder@5", pBase)) == NULL ){
-		OutputDebugString(L"šCast‚ÉŽ¸”s‚µ‚Ü‚µ‚½\r\n");
+		OutputDebugString(L"â˜…Castã«å¤±æ•—ã—ã¾ã—ãŸ\r\n");
+#ifndef _MSC_VER
 		if( hModule ){
 			FreeLibrary(hModule);
 		}
+#endif
 		return NULL;
 	}
 
@@ -62,7 +65,6 @@ IB25Decoder* CastB(IB25Decoder2** if2, IB25Decoder* (*funcCreate)(), const LPVOI
 	return b;
 }
 }
-#endif
 
 CScrambleDecoderUtil::CScrambleDecoderUtil(void)
 {
@@ -95,22 +97,27 @@ BOOL CScrambleDecoderUtil::LoadDll(LPCWSTR dllPath)
 		ret = FALSE;
 		goto ERR_END;
 	}
-#ifdef USE_IBONCAST
-	if( (this->decodeIF = CastB(&this->decodeIF2, func, (const LPVOID*(WINAPI*)(LPCSTR,void*))GetProcAddress(this->module, "Cast"))) == NULL ){
+	const LPVOID* (WINAPI* funcCast)(LPCSTR, void*);
+	funcCast = (const LPVOID*(WINAPI*)(LPCSTR,void*))GetProcAddress(this->module, "Cast");
+#ifdef _MSC_VER
+	if( !funcCast ){
+		this->decodeIF = func();
+	}else
+#endif
+	if( (this->decodeIF = CastB(&this->decodeIF2, func, funcCast)) == NULL ){
 		ret = FALSE;
 		goto ERR_END;
 	}
-#else
-	this->decodeIF = func();
-#endif
 	if( this->decodeIF->Initialize() == FALSE ){
 		ret = FALSE;
 	}else{
-#ifdef USE_IBONCAST
+#ifndef _MSC_VER
 		{
 #else
 		try{
-			this->decodeIF2 = dynamic_cast<IB25Decoder2 *>(this->decodeIF);
+			if( !funcCast ){
+				this->decodeIF2 = dynamic_cast<IB25Decoder2 *>(this->decodeIF);
+			}
 #endif
 			if( this->decodeIF2 != NULL ){
 				//this->decodeIF2->EnableEmmProcess(false);
@@ -119,7 +126,7 @@ BOOL CScrambleDecoderUtil::LoadDll(LPCWSTR dllPath)
 				this->decodeIF2->EnableEmmProcess(this->emmEnable);
 			}
 		}
-#ifndef USE_IBONCAST
+#ifdef _MSC_VER
 		catch(std::__non_rtti_object){
 			this->decodeIF2 = NULL;
 		}
@@ -150,11 +157,7 @@ void CScrambleDecoderUtil::UnLoadDll()
 BOOL CScrambleDecoderUtil::SetNetwork(WORD ONID, WORD TSID)
 {
 	BOOL ret = FALSE;
-	wstring folderPath;
-	GetModuleFolderPath( folderPath );
-
-	wstring iniPath = folderPath;
-	iniPath += L"\\BonCtrl.ini";
+	fs_path iniPath = GetCommonIniPath().replace_filename(L"BonCtrl.ini");
 
 	wstring defKey = L"FFFFFFFF";
 	wstring networkDefKey = L"";
@@ -162,18 +165,11 @@ BOOL CScrambleDecoderUtil::SetNetwork(WORD ONID, WORD TSID)
 	Format(networkDefKey, L"%04XFFFF", ONID);
 	Format(key, L"%04X%04X", ONID, TSID);
 
-	wstring defDll = L"";
-	wstring networkDefDll = L"";
-	wstring loadDll = L"";
-	WCHAR buff[512]=L"";
-	GetPrivateProfileString( L"SET", defKey.c_str(), L"", buff, 512, iniPath.c_str() );
-	defDll = buff;
-	GetPrivateProfileString( L"SET", networkDefKey.c_str(), L"", buff, 512, iniPath.c_str() );
-	networkDefDll = buff;
-	GetPrivateProfileString( L"SET", key.c_str(), L"", buff, 512, iniPath.c_str() );
-	loadDll = buff;
+	wstring defDll = GetPrivateProfileToString(L"SET", defKey.c_str(), L"", iniPath.c_str());
+	wstring networkDefDll = GetPrivateProfileToString(L"SET", networkDefKey.c_str(), L"", iniPath.c_str());
+	wstring loadDll = GetPrivateProfileToString(L"SET", key.c_str(), L"", iniPath.c_str());
 
-	wstring dllPath = folderPath;
+	wstring dllPath = GetModulePath().parent_path().native();
 	if( loadDll.size() > 0 ){
 		dllPath += L"\\";
 		dllPath += loadDll;
@@ -193,7 +189,7 @@ BOOL CScrambleDecoderUtil::SetNetwork(WORD ONID, WORD TSID)
 
 	if( CompareNoCase(dllPath, this->currentDll) != 0 ){
 		if( LoadDll(dllPath.c_str()) == FALSE ){
-			_OutputDebugString(L"š%s ‚Ìƒ[ƒh‚ÉŽ¸”s‚µ‚Ü‚µ‚½B\r\n", dllPath.c_str());
+			_OutputDebugString(L"â˜…%ls ã®ãƒ­ãƒ¼ãƒ‰ã«å¤±æ•—ã—ã¾ã—ãŸã€‚\r\n", dllPath.c_str());
 			this->currentDll = L"";
 		}else{
 			this->currentDll = dllPath;

@@ -1,4 +1,4 @@
-#ifndef INCLUDE_CTRL_CMD_UTIL_H
+Ôªø#ifndef INCLUDE_CTRL_CMD_UTIL_H
 #define INCLUDE_CTRL_CMD_UTIL_H
 
 #include "StructDef.h"
@@ -18,7 +18,7 @@ template<class T> BOOL CCUTIL_ReadVectorVALUE_( WORD ver, vector<T>* val, const 
 #define CCUTIL_VECTOR_READ_				return CCUTIL_ReadVectorVALUE_(ver, val, buff, buffSize, readSize)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//ÉRÉ}ÉìÉhëóêMópÉoÉCÉiÉäçÏê¨ä÷êî
+//„Ç≥„Éû„É≥„ÉâÈÄÅ‰ø°Áî®„Éê„Ç§„Éä„É™‰ΩúÊàêÈñ¢Êï∞
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, char val ){ CCUTIL_BASETYPE_WRITE_; }
 inline BOOL ReadVALUE( WORD ver, char* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
@@ -32,24 +32,19 @@ inline BOOL ReadVALUE( WORD ver, unsigned short* val, const BYTE* buff, DWORD bu
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, int val ){ CCUTIL_BASETYPE_WRITE_; }
 inline BOOL ReadVALUE( WORD ver, int* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
-inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, unsigned int val ){ CCUTIL_BASETYPE_WRITE_; }
-inline BOOL ReadVALUE( WORD ver, unsigned int* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
-
-inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, long val ){ CCUTIL_BASETYPE_WRITE_; }
-inline BOOL ReadVALUE( WORD ver, long* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
-inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, unsigned long val ){ CCUTIL_BASETYPE_WRITE_; }
-inline BOOL ReadVALUE( WORD ver, unsigned long* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
+inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, DWORD val ){ CCUTIL_BASETYPE_WRITE_; }
+inline BOOL ReadVALUE( WORD ver, DWORD* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, __int64 val ){ CCUTIL_BASETYPE_WRITE_; }
 inline BOOL ReadVALUE( WORD ver, __int64* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
-inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, unsigned __int64 val ){ CCUTIL_BASETYPE_WRITE_; }
-inline BOOL ReadVALUE( WORD ver, unsigned __int64* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
+inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, ULONGLONG val ){ CCUTIL_BASETYPE_WRITE_; }
+inline BOOL ReadVALUE( WORD ver, ULONGLONG* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_BASETYPE_READ_; }
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const vector<unsigned short>& val ){ CCUTIL_VECTOR_WRITE_; }
 inline BOOL ReadVALUE( WORD ver, vector<unsigned short>* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_VECTOR_READ_; }
 
-inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const vector<unsigned long>& val ){ CCUTIL_VECTOR_WRITE_; }
-inline BOOL ReadVALUE( WORD ver, vector<unsigned long>* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_VECTOR_READ_; }
+inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const vector<DWORD>& val ){ CCUTIL_VECTOR_WRITE_; }
+inline BOOL ReadVALUE( WORD ver, vector<DWORD>* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_VECTOR_READ_; }
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const vector<__int64>& val ){ CCUTIL_VECTOR_WRITE_; }
 inline BOOL ReadVALUE( WORD ver, vector<__int64>* val, const BYTE* buff, DWORD buffSize, DWORD* readSize ){ CCUTIL_VECTOR_READ_; }
@@ -189,9 +184,6 @@ inline BOOL ReadVALUE( WORD ver, vector<MANUAL_AUTO_ADD_DATA>* val, const BYTE* 
 DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const TUNER_RESERVE_INFO& val );
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const vector<TUNER_RESERVE_INFO>& val ){ CCUTIL_VECTOR_WRITE_; }
 
-DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const REGIST_TCP_INFO& val );
-BOOL ReadVALUE( WORD ver, REGIST_TCP_INFO* val, const BYTE* buff, DWORD buffSize, DWORD* readSize );
-
 DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const EPGDB_SERVICE_EVENT_INFO& val );
 DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const EPGDB_SERVICE_EVENT_INFO_PTR& val );
 BOOL ReadVALUE( WORD ver, EPGDB_SERVICE_EVENT_INFO* val, const BYTE* buff, DWORD buffSize, DWORD* readSize );
@@ -216,19 +208,19 @@ DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const NOTIFY_SRV_INFO&
 BOOL ReadVALUE( WORD ver, NOTIFY_SRV_INFO* val, const BYTE* buff, DWORD buffSize, DWORD* readSize );
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//ÉeÉìÉvÉåÅ[ÉgíËã`
+//„ÉÜ„É≥„Éó„É¨„Éº„ÉàÂÆöÁæ©
 
 template<class T>
 DWORD CCUTIL_WriteVectorVALUE_( WORD ver, BYTE* buff, DWORD buffOffset, const vector<T>& val )
 {
 	DWORD pos = buffOffset + sizeof(DWORD) * 2;
-	//ÉäÉXÉgÇÃå¬êî
+	//„É™„Çπ„Éà„ÅÆÂÄãÊï∞
 	WriteVALUE(0, buff, buffOffset + sizeof(DWORD), (DWORD)val.size());
-	//ÉäÉXÉgÇÃíÜêg
+	//„É™„Çπ„Éà„ÅÆ‰∏≠Ë∫´
 	for( size_t i = 0; i < val.size(); i++ ){
 		pos += WriteVALUE(ver, buff, pos, val[i]);
 	}
-	//ëSëÃÇÃÉTÉCÉY
+	//ÂÖ®‰Ωì„ÅÆ„Çµ„Ç§„Ç∫
 	WriteVALUE(0, buff, buffOffset, pos - buffOffset);
 	return pos - buffOffset;
 }
@@ -237,16 +229,16 @@ template<class T>
 DWORD CCUTIL_WritePtrVectorVALUE_( WORD ver, BYTE* buff, DWORD buffOffset, const vector<T>& val )
 {
 	DWORD pos = buffOffset + sizeof(DWORD) * 2;
-	//ÉäÉXÉgÇÃå¬êî
+	//„É™„Çπ„Éà„ÅÆÂÄãÊï∞
 	WriteVALUE(0, buff, buffOffset + sizeof(DWORD), (DWORD)val.size());
-	//ÉäÉXÉgÇÃíÜêg
+	//„É™„Çπ„Éà„ÅÆ‰∏≠Ë∫´
 	for( size_t i = 0; i < val.size(); i++ ){
 		if( val[i] == NULL ){
 			throw std::runtime_error("");
 		}
 		pos += WriteVALUE(ver, buff, pos, *val[i]);
 	}
-	//ëSëÃÇÃÉTÉCÉY
+	//ÂÖ®‰Ωì„ÅÆ„Çµ„Ç§„Ç∫
 	WriteVALUE(0, buff, buffOffset, pos - buffOffset);
 	return pos - buffOffset;
 }
@@ -262,10 +254,10 @@ BOOL CCUTIL_ReadVectorVALUE_( WORD ver, vector<T>* val, const BYTE* buff, DWORD 
 	DWORD size = 0;
 	DWORD valSize = 0;
 	DWORD valCount = 0;
-	//ëSëÃÇÃÉTÉCÉY
+	//ÂÖ®‰Ωì„ÅÆ„Çµ„Ç§„Ç∫
 	ReadVALUE(0, &valSize, buff + pos, buffSize - pos, &size);
 	pos += size;
-	//ÉäÉXÉgÇÃå¬êî
+	//„É™„Çπ„Éà„ÅÆÂÄãÊï∞
 	ReadVALUE(0, &valCount, buff + pos, buffSize - pos, &size);
 	pos += size;
 	if( valSize < pos || buffSize < valSize ){
@@ -320,7 +312,7 @@ inline BOOL ReadVALUE2( WORD ver, T* val, const BYTE* buff, DWORD buffSize, DWOR
 	if( val == NULL || buff == NULL ){
 		return FALSE;
 	}
-	//2ñ¢ñûÇÃÉRÉ}ÉìÉhÉoÅ[ÉWÉáÉìÇÕ2Ç∆ÇµÇƒàµÇ§
+	//2Êú™Ê∫Ä„ÅÆ„Ç≥„Éû„É≥„Éâ„Éê„Éº„Ç∏„Éß„É≥„ÅØ2„Å®„Åó„Å¶Êâ±„ÅÜ
 	ver = max(ver, (WORD)2);
 	DWORD readSize_;
 	return CtrlCmdUtilImpl_::ReadVALUE(ver, val, buff, buffSize, readSize ? readSize : &readSize_);
@@ -329,7 +321,7 @@ inline BOOL ReadVALUE2( WORD ver, T* val, const BYTE* buff, DWORD buffSize, DWOR
 template<class T>
 std::unique_ptr<BYTE[]> NewWriteVALUE2WithVersion( WORD ver, const T& val, DWORD& writeSize )
 {
-	//2ñ¢ñûÇÃÉRÉ}ÉìÉhÉoÅ[ÉWÉáÉìÇÕ2Ç∆ÇµÇƒàµÇ§
+	//2Êú™Ê∫Ä„ÅÆ„Ç≥„Éû„É≥„Éâ„Éê„Éº„Ç∏„Éß„É≥„ÅØ2„Å®„Åó„Å¶Êâ±„ÅÜ
 	ver = max(ver, (WORD)2);
 	DWORD buffSize = CtrlCmdUtilImpl_::WriteVALUE(0, NULL, 0, ver) + CtrlCmdUtilImpl_::WriteVALUE(ver, NULL, 0, val);
 	std::unique_ptr<BYTE[]> buff(new BYTE[buffSize]);
@@ -339,7 +331,7 @@ std::unique_ptr<BYTE[]> NewWriteVALUE2WithVersion( WORD ver, const T& val, DWORD
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-//ãåÉoÅ[ÉWÉáÉìÉRÉ}ÉìÉhëóêMópÉoÉCÉiÉäçÏê¨ä÷êî
+//Êóß„Éê„Éº„Ç∏„Éß„É≥„Ç≥„Éû„É≥„ÉâÈÄÅ‰ø°Áî®„Éê„Ç§„Éä„É™‰ΩúÊàêÈñ¢Êï∞
 std::unique_ptr<BYTE[]> DeprecatedNewWriteVALUE( const RESERVE_DATA& val, DWORD& writeSize, std::unique_ptr<BYTE[]>&& buff_ = NULL );
 BOOL DeprecatedReadVALUE( RESERVE_DATA* val, const std::unique_ptr<BYTE[]>& buff_, DWORD buffSize );
 BOOL DeprecatedReadVALUE( EPG_AUTO_ADD_DATA* val, const std::unique_ptr<BYTE[]>& buff_, DWORD buffSize );

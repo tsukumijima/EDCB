@@ -1,4 +1,4 @@
-// EpgTimerSrv.cpp : ÉAÉvÉäÉPÅ[ÉVÉáÉìÇÃÉGÉìÉgÉä É|ÉCÉìÉgÇíËã`ÇµÇ‹Ç∑ÅB
+Ôªø// EpgTimerSrv.cpp : „Ç¢„Éó„É™„Ç±„Éº„Ç∑„Éß„É≥„ÅÆ„Ç®„É≥„Éà„É™ „Éù„Ç§„É≥„Éà„ÇíÂÆöÁæ©„Åó„Åæ„Åô„ÄÇ
 //
 
 #include "stdafx.h"
@@ -18,12 +18,12 @@ CEpgTimerSrvMain* g_pMain;
 FILE* g_debugLog;
 recursive_mutex_ g_debugLogLock;
 
-//ÉTÅ[ÉrÉXìÆçÏópÇÃÉÅÉCÉì
+//„Çµ„Éº„Éì„ÇπÂãï‰ΩúÁî®„ÅÆ„É°„Ç§„É≥
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
 }
 
 #ifdef USE_WINMAIN_A
-__declspec(dllexport) //ASLRÇñ≥å¯Ç…ÇµÇ»Ç¢ÇΩÇﬂ(CVE-2018-5392)
+__declspec(dllexport) //ASLR„ÇíÁÑ°Âäπ„Å´„Åó„Å™„ÅÑ„Åü„ÇÅ(CVE-2018-5392)
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #else
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
@@ -41,24 +41,24 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		LocalFree(argv);
 	}
 
-	if( _wcsicmp(GetModulePath().stem().c_str(), L"EpgTimerTask") == 0 ){
-		//TaskÉÇÅ[ÉhÇã≠êßÇ∑ÇÈ
+	if( CompareNoCase(GetModulePath().stem().c_str(), L"EpgTimerTask") == 0 ){
+		//Task„É¢„Éº„Éâ„ÇíÂº∑Âà∂„Åô„Çã
 		wcscpy_s(option, L"/task");
 	}
 	if( option[0] == L'-' || option[0] == L'/' ){
-		if( _wcsicmp(L"install", option + 1) == 0 ){
+		if( CompareNoCase(L"install", option + 1) == 0 ){
 			return 0;
-		}else if( _wcsicmp(L"remove", option + 1) == 0 ){
+		}else if( CompareNoCase(L"remove", option + 1) == 0 ){
 			return 0;
-		}else if( _wcsicmp(L"setting", option + 1) == 0 ){
-			//ê›íËÉ_ÉCÉAÉçÉOÇï\é¶Ç∑ÇÈ
+		}else if( CompareNoCase(L"setting", option + 1) == 0 ){
+			//Ë®≠ÂÆö„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÇíË°®Á§∫„Åô„Çã
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 			CEpgTimerSrvSetting setting;
 			setting.ShowDialog();
 			CoUninitialize();
 			return 0;
-		}else if( _wcsicmp(L"task", option + 1) == 0 ){
-			//TaskÉÇÅ[Éh
+		}else if( CompareNoCase(L"task", option + 1) == 0 ){
+			//Task„É¢„Éº„Éâ
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 			CEpgTimerSrvMain::TaskMain();
 			CoUninitialize();
@@ -68,12 +68,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 
 	if( IsInstallService(SERVICE_NAME) == FALSE ){
-		//ïÅí Ç…exeÇ∆ÇµÇƒãNìÆÇçsÇ§
+		//ÊôÆÈÄö„Å´exe„Å®„Åó„Å¶Ëµ∑Âãï„ÇíË°å„ÅÜ
 		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
 				SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
-				//ÉÅÉCÉìÉXÉåÉbÉhÇ…ëŒÇ∑ÇÈCOMÇÃèâä˙âª
+				//„É°„Ç§„É≥„Çπ„É¨„ÉÉ„Éâ„Å´ÂØæ„Åô„ÇãCOM„ÅÆÂàùÊúüÂåñ
 				CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 				CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
 				if( pMain->Main(false) == false ){
@@ -86,7 +86,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 			CloseHandle(hMutex);
 		}
 	}else if( IsStopService(SERVICE_NAME) == FALSE ){
-		//ÉTÅ[ÉrÉXÇ∆ÇµÇƒé¿çs
+		//„Çµ„Éº„Éì„Çπ„Å®„Åó„Å¶ÂÆüË°å
 		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
@@ -109,10 +109,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 namespace
 {
-//ÉTÅ[ÉrÉXÇ©ÇÁÇÃÉRÉ}ÉìÉhÇÃÉRÅ[ÉãÉoÉbÉN
+//„Çµ„Éº„Éì„Çπ„Åã„Çâ„ÅÆ„Ç≥„Éû„É≥„Éâ„ÅÆ„Ç≥„Éº„É´„Éê„ÉÉ„ÇØ
 DWORD WINAPI service_ctrl(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext);
 
-//ÉTÅ[ÉrÉXÇÃÉXÉeÅ[É^ÉXí ímóp
+//„Çµ„Éº„Éì„Çπ„ÅÆ„Çπ„ÉÜ„Éº„Çø„ÇπÈÄöÁü•Áî®
 void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD dwCheckPoint, DWORD dwWaitHint);
 
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
@@ -121,9 +121,9 @@ void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 	if( g_hStatusHandle != NULL ){
 		ReportServiceStatus(SERVICE_START_PENDING, 0, 1, 10000);
 
-		//ÉÅÉCÉìÉXÉåÉbÉhÇ…ëŒÇ∑ÇÈCOMÇÃèâä˙âª
+		//„É°„Ç§„É≥„Çπ„É¨„ÉÉ„Éâ„Å´ÂØæ„Åô„ÇãCOM„ÅÆÂàùÊúüÂåñ
 		CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-		//Ç±Ç±Ç≈ÇÕíPèÉÇ»(éûä‘ÇÃÇ©Ç©ÇÁÇ»Ç¢)èâä˙âªÇÃÇ›çsÇ§
+		//„Åì„Åì„Åß„ÅØÂçòÁ¥î„Å™(ÊôÇÈñì„ÅÆ„Åã„Åã„Çâ„Å™„ÅÑ)ÂàùÊúüÂåñ„ÅÆ„ÅøË°å„ÅÜ
 		g_pMain = new CEpgTimerSrvMain;
 
 		ReportServiceStatus(SERVICE_RUNNING, SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_POWEREVENT, 0, 0);
@@ -149,7 +149,7 @@ DWORD WINAPI service_ctrl(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData
 			return NO_ERROR;
 		case SERVICE_CONTROL_POWEREVENT:
 			if( dwEventType == PBT_APMQUERYSUSPEND ){
-				//Vistaà»ç~ÇÕåƒÇŒÇÍÇ»Ç¢
+				//Vista‰ª•Èôç„ÅØÂëº„Å∞„Çå„Å™„ÅÑ
 				OutputDebugString(L"PBT_APMQUERYSUSPEND\r\n");
 				if( g_pMain->IsSuspendOK() == false ){
 					OutputDebugString(L"BROADCAST_QUERY_DENY\r\n");
@@ -184,15 +184,22 @@ void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD d
 void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 {
 	{
-		//ÉfÉoÉbÉOèoóÕÉçÉOï€ë∂
+		//„Éá„Éê„ÉÉ„Ç∞Âá∫Âäõ„É≠„Ç∞‰øùÂ≠ò
 		CBlockLock lock(&g_debugLogLock);
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
-			fwprintf_s(g_debugLog, L"[%02d%02d%02d%02d%02d%02d.%03d] %s%s",
-			           st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-			           lpOutputString ? lpOutputString : L"",
-			           lpOutputString && lpOutputString[0] && lpOutputString[wcslen(lpOutputString) - 1] == L'\n' ? L"" : L"<NOBR>\r\n");
+			WCHAR t[128];
+			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
+			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+			fwrite(t, sizeof(WCHAR), n, g_debugLog);
+			size_t m = lpOutputString ? wcslen(lpOutputString) : 0;
+			if( m > 0 ){
+				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
+			}
+			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
+				fwrite(L"<NOBR>\r\n", sizeof(WCHAR), 8, g_debugLog);
+			}
 			fflush(g_debugLog);
 		}
 	}
@@ -203,13 +210,14 @@ void SetSaveDebugLog(bool saveDebugLog)
 {
 	CBlockLock lock(&g_debugLogLock);
 	if( g_debugLog == NULL && saveDebugLog ){
-		fs_path logPath = GetModulePath().replace_filename(L"EpgTimerSrvDebugLog.txt");
-		g_debugLog = shared_wfopen(logPath.c_str(), L"abN");
+		fs_path logPath = GetCommonIniPath().replace_filename(L"EpgTimerSrvDebugLog.txt");
+		g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);
 		if( g_debugLog ){
-			_fseeki64(g_debugLog, 0, SEEK_END);
-			if( _ftelli64(g_debugLog) == 0 ){
-				fputwc(L'\xFEFF', g_debugLog);
-			}
+			fwrite(L"\xFEFF", sizeof(WCHAR), 1, g_debugLog);
+		}else{
+			g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
+		}
+		if( g_debugLog ){
 			OutputDebugString(L"****** LOG START ******\r\n");
 		}
 	}else if( g_debugLog && saveDebugLog == false ){

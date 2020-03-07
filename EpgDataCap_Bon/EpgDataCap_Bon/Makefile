@@ -1,6 +1,11 @@
 TARGET ?= EpgDataCap_Bon.exe
-CPPFLAGS = -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_WINMAIN_A -DUSE_IBONCAST
+CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_WINMAIN_A $(CPPFLAGS)
+CXXFLAGS := -Os $(CXXFLAGS)
+LDFLAGS := -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDLIBS := -lws2_32 -lole32 -lcomctl32 -ldbghelp -lcomdlg32 $(LDLIBS)
 WINDRES ?= windres
+DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
+CUR_ALL_H := $(wildcard *.h)
 
 $(TARGET): $(addsuffix .obj, \
   BonCtrl__BonCtrl.cpp \
@@ -33,7 +38,6 @@ $(TARGET): $(addsuffix .obj, \
   Common__WritePlugInUtil.cpp \
   EpgDataCap_Bon.cpp \
   EpgDataCap_BonDlg.cpp \
-  EpgDataCap_BonMain.cpp \
   SetDlgApp.cpp \
   SetDlgAppBtn.cpp \
   SetDlgBasic.cpp \
@@ -42,16 +46,19 @@ $(TARGET): $(addsuffix .obj, \
   SetDlgService.cpp \
   SettingDlg.cpp \
   stdafx.cpp \
+  TaskbarList.cpp \
   EpgDataCap_Bon.rc \
   )
-	$(CXX) -mwindows -Wl,-s -Wl,--dynamicbase -Wl,--nxcompat -static-libgcc -static-libstdc++ -o $@ $^ -lws2_32 -lole32 -lcomctl32 -ldbghelp -lcomdlg32
-BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp
-	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-Common__%.cpp.obj: ../../Common/%.cpp
-	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-%.cpp.obj: %.cpp
-	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-%.rc.obj: %.rc
-	iconv -f UTF-16LE -t UTF-8 $< | $(WINDRES) $(CPPFLAGS) -c 65001 -J rc -O coff -o $@
+	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch $(DEP_ALL_H)
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+%.cpp.obj: %.cpp stdafx.h.gch $(DEP_ALL_H) $(CUR_ALL_H)
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+stdafx.h.gch: stdafx.h ../../Common/Common.h targetver.h
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+%.rc.obj: %.rc resource.h targetver.h
+	iconv -f UTF-16LE -t UTF-8 $< | $(WINDRES) $(CPPFLAGS) -c 65001 -J rc -O coff $(OUTPUT_OPTION)
 clean:
-	$(RM) *.obj $(TARGET)
+	$(RM) stdafx.h.gch *.obj $(TARGET)

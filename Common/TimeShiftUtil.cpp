@@ -1,11 +1,18 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "TimeShiftUtil.h"
+#include "PathUtil.h"
+#include "StringUtil.h"
+#include "TSPacketUtil.h"
+#include "../BonCtrl/PacketInit.h"
+#include "../BonCtrl/CreatePATPacket.h"
+#ifndef _WIN32
+#include <sys/stat.h>
+#endif
 
 CTimeShiftUtil::CTimeShiftUtil(void)
+	: readFile(NULL, fclose)
+	, seekFile(NULL, fclose)
 {
-	this->readFile = INVALID_HANDLE_VALUE;
-	this->seekFile = INVALID_HANDLE_VALUE;
-
 	this->PCR_PID = 0xFFFF;
 	this->fileMode = FALSE;
 	this->seekJitter = 1;
@@ -21,50 +28,78 @@ CTimeShiftUtil::~CTimeShiftUtil(void)
 	Send(&val);
 }
 
-BOOL CTimeShiftUtil::Send(
+void CTimeShiftUtil::Send(
 	NWPLAY_PLAY_INFO* val
 	)
 {
 	CBlockLock lock(&this->utilLock);
 	CBlockLock lock2(&this->ioLock);
 
-	//‘—Mæ‚ğİ’è‚·‚é
+	//é€ä¿¡å…ˆã‚’è¨­å®šã™ã‚‹
 	WCHAR ip[64];
 	swprintf_s(ip, L"%d.%d.%d.%d", val->ip >> 24, val->ip >> 16 & 0xFF, val->ip >> 8 & 0xFF, val->ip & 0xFF);
 
 	for( int tcp = 0; tcp < 2; tcp++ ){
 		CSendNW* sendNW = (tcp ? (CSendNW*)&this->sendTcp : (CSendNW*)&this->sendUdp);
-		if( this->sendIP[tcp].empty() == false && ((tcp ? val->tcp : val->udp) == 0 || this->sendIP[tcp] != ip) ){
-			this->sendIP[tcp].clear();
+		SEND_INFO* info = this->sendInfo + tcp;
+		if( info->ip.empty() == false && ((tcp ? val->tcp : val->udp) == 0 || info->ip != ip) ){
+			//çµ‚äº†
+			info->ip.clear();
 			sendNW->StopSend();
 			sendNW->UnInitialize();
-			CloseHandle(this->portMutex[tcp]);
+#ifdef _WIN32
+			CloseHandle(info->mutex);
+#else
+			DeleteFile(info->key.c_str());
+			fclose(info->mutex);
+#endif
 		}
-		if( this->sendIP[tcp].empty() == false || (tcp ? val->tcp : val->udp) == 0 ){
+		if( (tcp ? val->tcp : val->udp) == 0 ){
 			continue;
 		}
-		DWORD port = (tcp ? 2230 : 1234);
-		wstring mutexKey;
-		for( int i = 0; i < 100; i++, port++ ){
-			Format(mutexKey, L"%s%d_%d", (tcp ? MUTEX_TCP_PORT_NAME : MUTEX_UDP_PORT_NAME), val->ip, port);
-			this->portMutex[tcp] = CreateMutex(NULL, FALSE, mutexKey.c_str());
-			if( this->portMutex[tcp] ){
+		if( info->ip.empty() == false ){
+			//é–‹å§‹æ¸ˆã¿ã€‚ãƒãƒ¼ãƒˆç•ªå·ã‚’è¿”ã™
+			(tcp ? val->tcpPort : val->udpPort) = info->port;
+			continue;
+		}
+		//å¼•æ•°ã®ãƒãƒ¼ãƒˆç•ªå·ã¯ä½¿ã‚ãªã„(åŸä½œæŒ™å‹•)ã€‚ip:0.0.0.1-255ã¯ç‰¹åˆ¥æ‰±ã„
+		info->port = (tcp ? (1 <= val->ip && val->ip <= 255 ? 0 : BON_TCP_PORT_BEGIN) : BON_UDP_PORT_BEGIN);
+		for( int i = 0; i < BON_NW_PORT_RANGE; i++, info->port++ ){
+#ifdef _WIN32
+			Format(info->key, L"Global\\%ls%d_%d", (tcp ? MUTEX_TCP_PORT_NAME : MUTEX_UDP_PORT_NAME), val->ip, info->port);
+			info->mutex = CreateMutex(NULL, FALSE, info->key.c_str());
+			if( info->mutex ){
 				if( GetLastError() != ERROR_ALREADY_EXISTS ){
 					break;
 				}
-				CloseHandle(this->portMutex[tcp]);
-				this->portMutex[tcp] = NULL;
+				CloseHandle(info->mutex);
+				info->mutex = NULL;
 			}
+#else
+			Format(info->key, L"%ls%ls%u_%u.lock", EDCB_INI_ROOT, (tcp ? MUTEX_TCP_PORT_NAME : MUTEX_UDP_PORT_NAME), val->ip, info->port);
+			info->mutex = UtilOpenFile(info->key, UTIL_SECURE_WRITE);
+			if( info->mutex ){
+				string strKey;
+				WtoUTF8(info->key, strKey);
+				struct stat st[2];
+				if( fstat(fileno(info->mutex), st) == 0 && stat(strKey.c_str(), st + 1) == 0 && st[0].st_ino == st[1].st_ino ){
+					break;
+				}
+				fclose(info->mutex);
+				info->mutex = NULL;
+			}
+#endif
 		}
-		if( this->portMutex[tcp] ){
-			OutputDebugString((mutexKey + L"\r\n").c_str());
+		if( info->mutex ){
+			//é–‹å§‹
+			OutputDebugString((info->key + L"\r\n").c_str());
 			sendNW->Initialize();
-			sendNW->AddSendAddr(ip, port, false);
+			sendNW->AddSendAddr(ip, info->port, false);
 			sendNW->StartSend();
-			this->sendIP[tcp] = ip;
+			info->ip = ip;
+			(tcp ? val->tcpPort : val->udpPort) = info->port;
 		}
 	}
-	return TRUE;
 }
 
 BOOL CTimeShiftUtil::OpenTimeShift(
@@ -77,7 +112,7 @@ BOOL CTimeShiftUtil::OpenTimeShift(
 	StopTimeShift();
 
 	this->PCR_PID = 0xFFFF;
-	if( GetFileAttributes(filePath_) == INVALID_FILE_ATTRIBUTES ){
+	if( UtilFileExists(filePath_).first == false ){
 		return FALSE;
 	}
 
@@ -97,7 +132,7 @@ BOOL CTimeShiftUtil::StartTimeShift()
 		return FALSE;
 	}else{
 		if( this->readThread.joinable() == false ){
-			//óMƒXƒŒƒbƒh‹N“®
+			//å—ä¿¡ã‚¹ãƒ¬ãƒƒãƒ‰èµ·å‹•
 			this->readStopFlag = false;
 			this->readThread = thread_(ReadThread, this);
 		}
@@ -106,7 +141,7 @@ BOOL CTimeShiftUtil::StartTimeShift()
 	return TRUE;
 }
 
-BOOL CTimeShiftUtil::StopTimeShift()
+void CTimeShiftUtil::StopTimeShift()
 {
 	CBlockLock lock(&this->utilLock);
 
@@ -114,15 +149,8 @@ BOOL CTimeShiftUtil::StopTimeShift()
 		this->readStopFlag = true;
 		this->readThread.join();
 	}
-	if( this->seekFile != INVALID_HANDLE_VALUE ){
-		CloseHandle(this->seekFile);
-		this->seekFile = INVALID_HANDLE_VALUE;
-	}
-	if( this->readFile != INVALID_HANDLE_VALUE ){
-		CloseHandle(this->readFile);
-		this->readFile = INVALID_HANDLE_VALUE;
-	}
-	return TRUE;
+	this->seekFile.reset();
+	this->readFile.reset();
 }
 
 void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
@@ -132,16 +160,13 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 
 	{
 		CBlockLock lock(&sys->ioLock);
-		sys->readFile = CreateFile(sys->filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		                           NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-		if( sys->readFile == INVALID_HANDLE_VALUE ){
+		sys->readFile.reset(UtilOpenFile(sys->filePath, UTIL_SHARED_READ | UTIL_F_SEQUENTIAL));
+		if( !sys->readFile ){
 			return;
 		}
-		sys->seekFile = CreateFile(sys->filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		                           NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-		if( sys->seekFile == INVALID_HANDLE_VALUE ){
-			CloseHandle(sys->readFile);
-			sys->readFile = INVALID_HANDLE_VALUE;
+		sys->seekFile.reset(UtilOpenFile(sys->filePath, UTIL_SHARED_READ));
+		if( !sys->seekFile ){
+			sys->readFile.reset();
 			return;
 		}
 	}
@@ -156,11 +181,11 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 		{
 			__int64 wait = 0;
 			if( base >= 0 ){
-				//ƒŒ[ƒg’²®
+				//ãƒ¬ãƒ¼ãƒˆèª¿æ•´
 				wait = ((base + 0x200000000LL - initTime) & 0x1FFFFFFFFLL) / 90 - (GetTickCount() - initTick);
 				base = -1;
 			}else if( errCount > 0 ){
-				//I’[ŠÄ‹’†
+				//çµ‚ç«¯ç›£è¦–ä¸­
 				wait = 200;
 			}
 			for( ; wait > 0 && sys->readStopFlag == false; wait -= 20 ){
@@ -172,35 +197,32 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 		}
 		CBlockLock lock(&sys->ioLock);
 
-		LARGE_INTEGER liMove = {};
-		if( SetFilePointerEx(sys->readFile, liMove, &liMove, FILE_CURRENT) == FALSE ){
+		__int64 pos = _ftelli64(sys->readFile.get());
+		if( pos < 0 ){
 			break;
 		}
-		if( liMove.QuadPart != sys->currentFilePos ){
-			//ƒV[ƒN‚³‚ê‚½
+		if( pos != sys->currentFilePos ){
+			//ã‚·ãƒ¼ã‚¯ã•ã‚ŒãŸ
 			if( sys->currentFilePos >= sys->GetAvailableFileSize() ){
-				//—LŒø‚Èƒf[ƒ^‚ÌI’[‚É’B‚µ‚½
+				//æœ‰åŠ¹ãªãƒ‡ãƒ¼ã‚¿ã®çµ‚ç«¯ã«é”ã—ãŸ
 				if( sys->fileMode || ++errCount > 50 ){
 					break;
 				}
 				continue;
 			}
-			liMove.QuadPart = sys->currentFilePos;
-			if( SetFilePointerEx(sys->readFile, liMove, NULL, FILE_BEGIN) == FALSE ){
+			if( _fseeki64(sys->readFile.get(), sys->currentFilePos, SEEK_SET) != 0 ){
 				break;
 			}
 			packetInit.ClearBuff();
 			initTime = -1;
 		}
-		DWORD readSize;
-		if( ReadFile(sys->readFile, buff, sizeof(buff), &readSize, NULL) == FALSE ||
-		    readSize < (sys->fileMode ? 1 : sizeof(buff)) ){
-			//ƒtƒ@ƒCƒ‹I’[‚É’B‚µ‚½
+		DWORD readSize = (DWORD)fread(buff, 1, sizeof(buff), sys->readFile.get());
+		if( readSize < (sys->fileMode ? 1 : sizeof(buff)) ){
+			//ãƒ•ã‚¡ã‚¤ãƒ«çµ‚ç«¯ã«é”ã—ãŸ
 			if( sys->fileMode || ++errCount > 50 ){
 				break;
 			}
-			liMove.QuadPart = sys->currentFilePos;
-			if( SetFilePointerEx(sys->readFile, liMove, NULL, FILE_BEGIN) == FALSE ){
+			if( _fseeki64(sys->readFile.get(), sys->currentFilePos, SEEK_SET) != 0 ){
 				break;
 			}
 			continue;
@@ -209,16 +231,15 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 		DWORD dataSize;
 		if( packetInit.GetTSData(buff, readSize, &data, &dataSize) == FALSE || dataSize <= 0 ){
 			if( sys->fileMode == FALSE && sys->currentFilePos + (__int64)sizeof(buff) > sys->GetAvailableFileSize() ){
-				//–³Œø‚Èƒf[ƒ^—Ìˆæ‚ğ“Ç‚ñ‚Å‚¢‚é‰Â”\«‚ª‚ ‚é
+				//ç„¡åŠ¹ãªãƒ‡ãƒ¼ã‚¿é ˜åŸŸã‚’èª­ã‚“ã§ã„ã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹
 				if( ++errCount > 50 ){
 					break;
 				}
-				liMove.QuadPart = sys->currentFilePos;
-				if( SetFilePointerEx(sys->readFile, liMove, NULL, FILE_BEGIN) == FALSE ){
+				if( _fseeki64(sys->readFile.get(), sys->currentFilePos, SEEK_SET) != 0 ){
 					break;
 				}
 			}else{
-				//•s³‚Èƒf[ƒ^‚ğ“Ç‚İ”ò‚Î‚·
+				//ä¸æ­£ãªãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿é£›ã°ã™
 				sys->currentFilePos += readSize;
 				errCount = 0;
 			}
@@ -231,8 +252,8 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 			CTSPacketUtil packet;
 			if( packet.Set188TS(data + i, 188) ){
 				if( packet.adaptation_field_length > 0 && packet.PCR_flag == 1 ){
-					//Å‰‚É3‰ñPCR‚ªoŒ»‚µ‚½PID‚ğPCR_PID‚Æ‚·‚é
-					//PCR_PID‚ªŒ»‚ê‚é‚±‚Æ‚È‚­5‰ñ•Ê‚ÌPCR‚ªoŒ»‚·‚ê‚ÎPCR_PID‚ğ•ÏX‚·‚é
+					//æœ€åˆã«3å›PCRãŒå‡ºç¾ã—ãŸPIDã‚’PCR_PIDã¨ã™ã‚‹
+					//PCR_PIDãŒç¾ã‚Œã‚‹ã“ã¨ãªã5å›åˆ¥ã®PCRãŒå‡ºç¾ã™ã‚Œã°PCR_PIDã‚’å¤‰æ›´ã™ã‚‹
 					if( packet.PID != sys->PCR_PID ){
 						pcrPidList.push_back(packet.PID);
 						if( std::count(pcrPidList.begin(), pcrPidList.end(), packet.PID) >= (sys->PCR_PID == 0xFFFF ? 3 : 5) ){
@@ -256,16 +277,14 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 	}
 
 	CBlockLock lock(&sys->ioLock);
-	CloseHandle(sys->seekFile);
-	sys->seekFile = INVALID_HANDLE_VALUE;
-	CloseHandle(sys->readFile);
-	sys->readFile = INVALID_HANDLE_VALUE;
+	sys->seekFile.reset();
+	sys->readFile.reset();
 
 	if( sys->readStopFlag == false ){
 		return;
 	}
-	//–³ŒøPAT‘—‚Á‚ÄŸ‰ñ‘—M‚ÉƒŠƒZƒbƒg‚³‚ê‚é‚æ‚¤‚É‚·‚é
-	std::fill_n(buff, sizeof(buff), 0xFF);
+	//ç„¡åŠ¹PATé€ã£ã¦æ¬¡å›é€ä¿¡æ™‚ã«ãƒªã‚»ãƒƒãƒˆã•ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹
+	std::fill_n(buff, sizeof(buff), (BYTE)0xFF);
 	CCreatePATPacket patUtil;
 	patUtil.SetParam(1, vector<pair<WORD, WORD>>());
 	BYTE* patBuff;
@@ -284,14 +303,12 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 	sys->sendTcp.AddSendData(buff, sizeof(buff));
 }
 
-static BOOL IsDataAvailable(HANDLE file, __int64 pos, CPacketInit* packetInit)
+static BOOL IsDataAvailable(FILE* fp, __int64 pos, CPacketInit* packetInit)
 {
-	LARGE_INTEGER liPos;
-	liPos.QuadPart = pos;
-	if( SetFilePointerEx(file, liPos, NULL, FILE_BEGIN) ){
+	if( _fseeki64(fp, pos, SEEK_SET) == 0 ){
 		BYTE buff[188 * 16];
-		DWORD readSize;
-		if( ReadFile(file, buff, sizeof(buff), &readSize, NULL) ){
+		DWORD readSize = (DWORD)fread(buff, 1, sizeof(buff), fp);
+		if( readSize > 0 ){
 			packetInit->ClearBuff();
 			BYTE* data;
 			DWORD dataSize;
@@ -306,51 +323,42 @@ static BOOL IsDataAvailable(HANDLE file, __int64 pos, CPacketInit* packetInit)
 __int64 CTimeShiftUtil::GetAvailableFileSize() const
 {
 	if( this->filePath.empty() == false ){
+		std::unique_ptr<FILE, decltype(&fclose)> tmpFile(NULL, fclose);
+		FILE* fp = this->seekFile.get();
+		if( fp == NULL ){
+			tmpFile.reset(UtilOpenFile(this->filePath, UTIL_SHARED_READ | UTIL_SH_DELETE));
+			fp = tmpFile.get();
+		}
+		__int64 fileSize = -1;
+		if( fp && _fseeki64(fp, 0, SEEK_END) == 0 ){
+			fileSize = _ftelli64(fp);
+		}
 		if( this->fileMode ){
-			//’Pƒ‚Éƒtƒ@ƒCƒ‹ƒTƒCƒY‚ğ•Ô‚·
-			if( this->seekFile == INVALID_HANDLE_VALUE ){
-				WIN32_FILE_ATTRIBUTE_DATA attrData;
-				if( GetFileAttributesEx(this->filePath.c_str(), GetFileExInfoStandard, &attrData) ){
-					return (__int64)attrData.nFileSizeHigh << 32 | attrData.nFileSizeLow;
-				}
-			}else{
-				LARGE_INTEGER liSize;
-				if( GetFileSizeEx(this->seekFile, &liSize) ){
-					return liSize.QuadPart;
-				}
+			//å˜ç´”ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’è¿”ã™
+			if( fileSize >= 0 ){
+				return fileSize;
 			}
 		}else{
-			//—LŒø‚Èƒf[ƒ^‚Ì‚ ‚é”ÍˆÍ‚ğ’²‚×‚é
-			HANDLE file = this->seekFile;
-			if( file == INVALID_HANDLE_VALUE ){
-				file = CreateFile(this->filePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-				                  NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-			}
-			if( file != INVALID_HANDLE_VALUE ){
-				LARGE_INTEGER liSize;
+			//æœ‰åŠ¹ãªãƒ‡ãƒ¼ã‚¿ã®ã‚ã‚‹ç¯„å›²ã‚’èª¿ã¹ã‚‹
+			if( fileSize >= 188 * 16 * 8 ){
 				CPacketInit packetInit;
-				if( GetFileSizeEx(file, &liSize) == FALSE || liSize.QuadPart < 188 * 16 * 8 ){
-					liSize.QuadPart = 0;
-				}else if( IsDataAvailable(file, liSize.QuadPart - 188 * 16 * this->seekJitter, &packetInit) == FALSE ){
-					//I’[•”•ª‚ª–³Œø‚È‚Ì‚Å—LŒø‚Èƒf[ƒ^‚Ì‹«–Ú‚ğ’T‚·
-					//seekJitter‚Í’²¸‰ÓŠ‚ª‚½‚Ü‚½‚Ü‰ó‚ê‚Ä‚¢‚éê‡‚Ö‚Ì‘Îˆ
-					__int64 range = liSize.QuadPart - 188 * 16 * this->seekJitter;
+				if( IsDataAvailable(fp, fileSize - 188 * 16 * this->seekJitter, &packetInit) == FALSE ){
+					//çµ‚ç«¯éƒ¨åˆ†ãŒç„¡åŠ¹ãªã®ã§æœ‰åŠ¹ãªãƒ‡ãƒ¼ã‚¿ã®å¢ƒç›®ã‚’æ¢ã™
+					//seekJitterã¯èª¿æŸ»ç®‡æ‰€ãŒãŸã¾ãŸã¾å£Šã‚Œã¦ã„ã‚‹å ´åˆã¸ã®å¯¾å‡¦
+					__int64 range = fileSize - 188 * 16 * this->seekJitter;
 					__int64 pos = range / 2 / 188 * 188;
-					//‚±‚±‚Í•p”É‚ÉŒÄ‚Î‚ê‚é‚Æ‚•‰‰×‚ÉŒ©‚¦‚é‚ªAƒtƒ@ƒCƒ‹ƒLƒƒƒbƒVƒ…‚ª‚æ‚­Œø‚­ğŒ‚È‚Ì‚Å‚³‚Ù‚Ç‚Å‚à‚È‚¢
+					//ã“ã“ã¯é »ç¹ã«å‘¼ã°ã‚Œã‚‹ã¨é«˜è² è·ã«è¦‹ãˆã‚‹ãŒã€ãƒ•ã‚¡ã‚¤ãƒ«ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãŒã‚ˆãåŠ¹ãæ¡ä»¶ãªã®ã§ã•ã»ã©ã§ã‚‚ãªã„
 					for( ; range > 256 * 1024; range /= 2 ){
-						if( IsDataAvailable(file, pos, &packetInit) ){
+						if( IsDataAvailable(fp, pos, &packetInit) ){
 							pos += range / 4 / 188 * 188;
 						}else{
 							pos -= range / 4 / 188 * 188;
 						}
 					}
-					//ˆÀ’è‚Ì‚½‚ß—LŒø‚Èƒf[ƒ^‚Ì‹«–Ú‚©‚ç‚³‚ç‚É512KB‚¾‚¯è‘O‚É‚·‚é
-					liSize.QuadPart = max(pos - range / 2 - 512 * 1024, 0LL);
+					//å®‰å®šã®ãŸã‚æœ‰åŠ¹ãªãƒ‡ãƒ¼ã‚¿ã®å¢ƒç›®ã‹ã‚‰ã•ã‚‰ã«512KBã ã‘æ‰‹å‰ã«ã™ã‚‹
+					fileSize = max(pos - range / 2 - 512 * 1024, 0LL);
 				}
-				if( file != this->seekFile ){
-					CloseHandle(file);
-				}
-				return liSize.QuadPart;
+				return fileSize;
 			}
 		}
 	}

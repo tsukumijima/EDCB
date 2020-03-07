@@ -1,6 +1,6 @@
-#pragma once
+Ôªø#pragma once
 
-#define TVTEST_PLUGIN_CLASS_IMPLEMENT	// ÉNÉâÉXÇ∆ÇµÇƒé¿ëï
+#define TVTEST_PLUGIN_CLASS_IMPLEMENT	// „ÇØ„É©„Çπ„Å®„Åó„Å¶ÂÆüË£Ö
 #define TVTEST_PLUGIN_VERSION TVTEST_PLUGIN_VERSION_(0,0,13)
 #include "../../Common/TVTestPlugin.h"
 
@@ -8,7 +8,6 @@
 #include "../../Common/ErrDef.h"
 #include "../../Common/CtrlCmdDef.h"
 #include "../../Common/CtrlCmdUtil.h"
-#include "../../Common/SendCtrlCmd.h"
 #include "../../Common/ThreadUtil.h"
 
 #include "StreamCtrlDlg.h"
@@ -19,9 +18,7 @@ private:
 	CPipeServer pipeServer;
 
 	BOOL nwMode;
-	DWORD nwModeCurrentCtrlID;
 	TVTEST_STREAMING_INFO nwModeInfo;
-	CSendCtrlCmd cmd;
 	BOOL fullScreen;
 	BOOL showNormal;
 	BOOL grantServerAccess;
