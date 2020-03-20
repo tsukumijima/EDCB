@@ -616,13 +616,13 @@ namespace EpgTimer
             if (Settings.Instance.LaterTimeUse == true)
             {
                 var time28 = new DateTime28(time, isUse28, ref_start);
-                return (isNoDay == true ? "" : time28.DateTimeMod.ToString((isNoYear == true ? "MM\\/dd(ddd) " : "yyyy\\/MM\\/dd(ddd) ")))
-                + time28.HourMod.ToString("00\\:") + time.ToString(isNoSecond == true ? "mm" : "mm\\:ss");
+                return (isNoDay == true ? "" : time28.DateTimeMod.ToString((isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")))
+                + time28.HourMod.ToString("00:") + time.ToString(isNoSecond == true ? "mm" : "mm:ss");
             }
             else
             {
                 return time.ToString((isNoDay == true ? "" :
-                (isNoYear == true ? "MM\\/dd(ddd) " : "yyyy\\/MM\\/dd(ddd) ")) + (isNoSecond == true ? "HH\\:mm" : "HH\\:mm\\:ss"));
+                (isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")) + (isNoSecond == true ? "HH:mm" : "HH:mm:ss"));
             }
         }
         public static String ConvertDurationText(uint duration, bool isNoSecond)

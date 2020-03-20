@@ -18,7 +18,7 @@ namespace EpgTimer.EpgView
             }
             if (limit != null)
             {
-                label_Limit.Text = limit != DateTime.MaxValue ? ((DateTime)limit).ToString(modeText + "可能期間 yyyy\\/MM\\/dd(ddd) 以降") : "*過去番組データなし";
+                label_Limit.Text = limit != DateTime.MaxValue ? ((DateTime)limit).ToString(modeText + "可能期間 yyyy/MM/dd(ddd) 以降") : "*過去番組データなし";
             }
         }
         public EpgViewPeriod GetDate() { return GetDate(false); }

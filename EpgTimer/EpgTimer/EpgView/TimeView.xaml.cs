@@ -56,7 +56,7 @@ namespace EpgTimer.EpgView
                         item.Height = 60 * this.EpgStyle().MinHeight - item.Margin.Top - item.Margin.Bottom;
                         if (weekMode == false)
                         {
-                            item.Inlines.Add(new Run(time.ToString("M\\/d\r\n")));
+                            item.Inlines.Add(new Run(time.ToString("M/d\r\n")));
                             if (item.Height >= h3L)
                             {
                                 var color = time.DayOfWeek == DayOfWeek.Sunday ? Brushes.Red : time.DayOfWeek == DayOfWeek.Saturday ? Brushes.Blue : item.Foreground;
@@ -73,7 +73,7 @@ namespace EpgTimer.EpgView
                         item.Foreground = time.DayOfWeek == DayOfWeek.Sunday ? Brushes.Red : time.DayOfWeek == DayOfWeek.Saturday ? Brushes.Blue : Settings.BrushCache.TunerTimeFontColor;
                         item.Background = Settings.BrushCache.TunerTimeBackColor;
                         item.Height = 60 * Settings.Instance.TunerMinHeight - item.Margin.Top - item.Margin.Bottom;
-                        item.Text = time.ToString("M\\/d\r\n" + (item.Height >= h3L ? "(ddd)\r\n" : ""))
+                        item.Text = time.ToString("M/d\r\n" + (item.Height >= h3L ? "(ddd)\r\n" : ""))
                                                             + (item.Height >= h6L ? "\r\n" : "") + HourMod;
                     }
                 }

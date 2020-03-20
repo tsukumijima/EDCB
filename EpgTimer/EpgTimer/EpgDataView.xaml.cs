@@ -802,8 +802,8 @@ namespace EpgTimer
 
         public string ConvertText(DateTime endTime)
         {
-            var start = Start.ToString("yyyy\\/MM\\/dd(ddd)");
-            var end = End >= endTime ? "以降全て" : End.AddSeconds(-1).ToString("～MM\\/dd(ddd)");
+            var start = Start.ToString("yyyy/MM/dd(ddd)");
+            var end = End >= endTime ? "以降全て" : End.AddSeconds(-1).ToString("～MM/dd(ddd)");
             return string.Format("{0}{1}", start, end);
         }
 
