@@ -34,6 +34,8 @@ namespace EpgTimer.TunerReserveViewCtrl
             double sizeMin = Math.Max(sizeTitle - 1, Math.Min(sizeTitle, Settings.Instance.TunerFontSize));
             double sizeNormal = Settings.Instance.TunerFontSize;
             double indentTitle = recSettingInfo ? 0 : sizeMin * CulcRenderWidth("0", ItemFontNormal) * (2 + sizeTitle / sizeMin);
+            double indentHours = sizeMin * CulcRenderWidth("00:", ItemFontNormal);//番組表とは異なるインデントの入れ方にする
+            double indentService;
             double indentNormal = Settings.Instance.TunerTitleIndent ? indentTitle : 0;
             Brush colorNormal = Settings.BrushCache.CustTunerTextColor;
 
@@ -46,6 +48,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                 textDrawLists.Add(textDrawList);
                 Rect drawRect = TextRenderRect(info);
                 double useHeight = 0;
+                indentService = indentTitle;
 
                 //追加情報の表示
                 if (recSettingInfo == true)
@@ -62,13 +65,14 @@ namespace EpgTimer.TunerReserveViewCtrl
                 else
                 {
                     //分のみ
-                    RenderText(textDrawList, info.Data.StartTime.ToString("mm"), ItemFontNormal, sizeMin, drawRect, 0, 0, info.ServiceColor);
+                    RenderText(textDrawList, (info.DrawHours ? new DateTime28(info.Data.StartTime).HourMod.ToString("00:") : "") + info.Data.StartTime.ToString("mm"), ItemFontNormal, sizeMin, drawRect, 0, 0, info.ServiceColor);
+                    indentService += info.DrawHours ? indentHours : 0;
                 }
 
                 //サービス名
                 string serviceName = info.Data.StationName + "(" + CommonManager.ConvertNetworkNameText(info.Data.OriginalNetworkID) + ")";
                 serviceName = CommonManager.ReplaceText(serviceName, DictionaryTitle);
-                useHeight += sizeTitle / 3 + RenderText(textDrawList, serviceName, ItemFontTitle, sizeTitle, drawRect, indentTitle, useHeight, info.ServiceColor, noWrap);
+                useHeight += sizeTitle / 3 + RenderText(textDrawList, serviceName, ItemFontTitle, sizeTitle, drawRect, indentService, useHeight, info.ServiceColor, noWrap);
 
                 //番組名
                 if (useHeight < drawRect.Height)

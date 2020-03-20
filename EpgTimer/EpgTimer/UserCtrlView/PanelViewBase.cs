@@ -299,17 +299,19 @@ namespace EpgTimer
 
             UpdatePopupPosition(popInfo);
 
+            PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.Data) as PanelItem;
+
             Popup.Width = Math.Max(popInfo.Width, PopWidth) + PopPanel.WidthMarginRight;
             if (popInfo.TopPos < scroll.ContentVerticalOffset)
             {
                 Popup.MinHeight = Math.Max(0, popInfo.BottomPos - scroll.ContentVerticalOffset);
+                PopPanel.Item.DrawHours = true;
             }
             else
             {
                 Popup.MinHeight = Math.Max(0, Math.Min(scroll.ContentVerticalOffset + scroll.ViewportHeight - popInfo.TopPos - PopPanel.HeightMarginBottom, popInfo.Height));
             }
 
-            PopPanel.Item = Activator.CreateInstance(popInfo.GetType(), popInfo.Data) as PanelItem;
             PopPanel.Item.Width = Popup.Width - PopPanel.WidthMarginRight;
             PopPanel.Item.Height = Math.Max(PopPanel.GetMaxRenderHeight(9999), Popup.MinHeight);
             Popup.Height = PopPanel.Item.Height + PopPanel.HeightMarginBottom;

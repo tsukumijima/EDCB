@@ -96,7 +96,7 @@ namespace EpgTimer.EpgView
         }
         protected override void SetPopupItemEx(PanelItem item)
         {
-            (PopPanel.Item as ProgramViewItem).DrawHours = (item as ProgramViewItem).DrawHours;
+            (PopPanel.Item as ProgramViewItem).DrawHours |= (item as ProgramViewItem).DrawHours;
             (PopPanel.Item as ProgramViewItem).EpgSettingIndex = (item as ProgramViewItem).EpgSettingIndex;
             (PopPanel.Item as ProgramViewItem).ViewMode = (item as ProgramViewItem).ViewMode;
             //(PopPanel.Item as ProgramViewItem).Filtered = (item as ProgramViewItem).Filtered;//ポップアップ時は通常表示
