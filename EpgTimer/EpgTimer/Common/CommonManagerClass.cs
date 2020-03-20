@@ -976,21 +976,31 @@ namespace EpgTimer
         }
         public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo, ReserveData resInfo = null)
         {
-            String epgText = ConvertProgramText(eventInfo, EventInfoTextMode.All, resInfo);
-            if (epgText == "") epgText = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。";
-            String text = epgText;
+            string text = ConvertProgramText(eventInfo, EventInfoTextMode.All, resInfo);
+            if (text == "") text = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。";
 
+            return ConvertDisplayText(text);
+        }
+        public static FlowDocument ConvertDisplayText(string text)
+        {
             int searchFrom = 0;
-            Paragraph para = new Paragraph();
-            string rtext = ReplaceUrl(text);
+            var para = new Paragraph();
+            string rtext = ReplaceText(text, ReplaceUrlDictionary);
             if (rtext.Length == text.Length)
             {
                 for (Match m = Regex.Match(rtext, @"https?://[0-9A-Za-z!#$%&'()~=@;:?_+\-*/.]+"); m.Success; m = m.NextMatch())
                 {
                     para.Inlines.Add(text.Substring(searchFrom, m.Index - searchFrom));
-                    Hyperlink h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
-                    h.MouseLeftButtonDown += new MouseButtonEventHandler(h_MouseLeftButtonDown);
-                    h.Foreground = Brushes.Blue;
+                    var h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
+                    h.MouseLeftButtonDown += (sender, e) =>
+                    {
+                        try
+                        {
+                            using (Process.Start(((Hyperlink)sender).NavigateUri.ToString())) { }
+                        }
+                        catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                    };
+                    h.Foreground = SystemColors.HotTrackBrush;
                     h.Cursor = Cursors.Hand;
                     h.NavigateUri = new Uri(m.Value);
                     para.Inlines.Add(h);
@@ -1016,19 +1026,6 @@ namespace EpgTimer
             };
             var check = new HashSet<int>(ChSet5.ChList.Values.Select(info => info.IsDttv ? -1 : info.IsBS ? -2 : info.IsCS ? -3 : info.IsSPHD ? -4 : -5));
             return setInfo.Where(info => check.Contains(info.ID)).ToList();
-        }
-
-        static void h_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                if (sender is Hyperlink)
-                {
-                    var h = sender as Hyperlink;
-                    Process.Start(h.NavigateUri.ToString());
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false, string defaultPath = "")
