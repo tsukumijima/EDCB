@@ -222,7 +222,7 @@ namespace EpgTimer
                     return ViewItem.ConvertInfoText();
                 }
             }
-            return DataTitle + " " + RecTag;
+            return DataTitle + " " + BatFileTag;
         }
 
         public bool IsToolTipEnabled = false;

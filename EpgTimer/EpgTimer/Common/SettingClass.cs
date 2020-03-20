@@ -459,9 +459,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20170512、20170717、20190217、20190321、20190520
+        //ver履歴 20170512、20170717、20190217、20190321、20190520、20200320
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20190520; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200320; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -1177,21 +1177,27 @@ namespace EpgTimer
             }
         }
 
+        private static void ReplaceColumTag(string oldTag, string newTag, params List<ListColumnInfo>[] lists)
+        {
+            foreach(var list in lists) list.ForEach(c => { if (c.Tag == oldTag) c.Tag = newTag; });
+        }
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200320) return;
+
+            //各画面「録画タグ」のカラム名のフォーク元追従。
+            ReplaceColumTag("RecTag", CommonUtil.NameOf(() => new RecSettingItem().BatFileTag)
+                , Instance.ReserveListColumn, Instance.AutoAddEpgColumn, Instance.AutoAddManualColumn
+                , Instance.EpgListColumn, Instance.SearchWndColumn, Instance.InfoSearchWndColumn);
+
             if (Instance.verSaved >= 20190520) return;
 
             //各画面「長さ」のカラム名のフォーク元追従。
-            Action<string, List<ListColumnInfo>> ReplaceDuration = 
-                (newS, lst) => lst.ForEach(c => { if (c.Tag == "ProgramDuration") c.Tag = newS; });
-            var objs = new SearchItem();
-            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.ReserveListColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => new RecInfoItem().Duration), Instance.RecInfoListColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => new ManualAutoAddDataItem().Duration), Instance.AutoAddManualColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.EpgListColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.SearchWndColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => new InfoSearchItem().Duration), Instance.InfoSearchWndColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new SearchItem().Duration), Instance.ReserveListColumn, Instance.EpgListColumn, Instance.SearchWndColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new RecInfoItem().Duration), Instance.RecInfoListColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new ManualAutoAddDataItem().Duration), Instance.AutoAddManualColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new InfoSearchItem().Duration), Instance.InfoSearchWndColumn);
 
             if (Instance.verSaved >= 20190321) return;
 
@@ -1241,19 +1247,13 @@ namespace EpgTimer
 
             //互換用コード。カラム名の変更追従。
             var objk = new EpgAutoDataItem();
-            Instance.AutoAddEpgColumn.ForEach(c =>
-            {
-                if (c.Tag == "AndKey") c.Tag = CommonUtil.NameOf(() => objk.EventName);
-                else if (c.Tag == "NetworkKey") c.Tag = CommonUtil.NameOf(() => objk.NetworkName);
-                else if (c.Tag == "ServiceKey") c.Tag = CommonUtil.NameOf(() => objk.ServiceName);
-            });
             var objm = new ManualAutoAddDataItem();
-            Instance.AutoAddManualColumn.ForEach(c =>
-            {
-                if (c.Tag == "Title") c.Tag = CommonUtil.NameOf(() => objm.EventName);
-                else if (c.Tag == "Time") c.Tag = CommonUtil.NameOf(() => objm.StartTime);
-                else if (c.Tag == "StationName") c.Tag = CommonUtil.NameOf(() => objm.ServiceName);
-            });
+            ReplaceColumTag("AndKey", CommonUtil.NameOf(() => objk.EventName), Instance.AutoAddEpgColumn);
+            ReplaceColumTag("NetworkKey", CommonUtil.NameOf(() => objk.NetworkName), Instance.AutoAddEpgColumn);
+            ReplaceColumTag("ServiceKey", CommonUtil.NameOf(() => objk.ServiceName), Instance.AutoAddEpgColumn);
+            ReplaceColumTag("Title", CommonUtil.NameOf(() => objm.EventName), Instance.AutoAddManualColumn);
+            ReplaceColumTag("Time", CommonUtil.NameOf(() => objm.StartTime), Instance.AutoAddManualColumn);
+            ReplaceColumTag("StationName", CommonUtil.NameOf(() => objm.ServiceName), Instance.AutoAddManualColumn);
         }
 
         /// <summary>設定ファイルセーブ関数</summary>

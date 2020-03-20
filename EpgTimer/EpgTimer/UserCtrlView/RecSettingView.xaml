@@ -23,7 +23,7 @@
                 </Grid.RowDefinitions>
                 <Grid>
                     <Label Content="録画モード" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                    <ComboBox HorizontalAlignment="Left" Margin="77,3,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="160" />
+                    <ComboBox HorizontalAlignment="Left" Margin="77,3,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="180" />
                     <Label Content="イベントリレー追従" HorizontalAlignment="Left" Margin="294,0,0,0" VerticalAlignment="Top" />
                     <ComboBox HorizontalAlignment="Left" Margin="414,3,0,0" Name="comboBox_tuijyu" VerticalAlignment="Top" Width="75" />
                     <Label Content="ぴったり(?)録画" HorizontalAlignment="Left" Margin="294,27,0,0" VerticalAlignment="Top" />
