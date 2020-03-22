@@ -133,6 +133,14 @@ namespace EpgTimer.EpgView
                 .Where(panel => panel.Items != null && Canvas.GetLeft(panel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(panel) + panel.Width)
                 .SelectMany(panel => panel.Items).OfType<ProgramViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
         }
+        public ProgramViewItem GetProgramViewDataNear(Point cursorPos, double minY = double.MinValue, double maxY = double.MaxValue)
+        {
+            return canvas.Children.OfType<EpgViewPanel>()
+                .Where(panel => panel.Items != null && Canvas.GetLeft(panel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(panel) + panel.Width)
+                .SelectMany(panel => panel.Items).OfType<ProgramViewItem>()
+                .Where(pg => pg.LeftPos <= cursorPos.X && cursorPos.X < pg.RightPos && (pg.TopPos < minY && maxY <= pg.BottomPos || minY <= pg.TopPos && pg.TopPos < maxY || minY <= pg.BottomPos && pg.BottomPos < maxY))
+                .OrderBy(pg => pg.TopPos <= cursorPos.Y && cursorPos.Y < pg.BottomPos ? 0 : Math.Min(Math.Abs(pg.TopPos - cursorPos.Y), Math.Abs(pg.BottomPos - cursorPos.Y))).FirstOrDefault();
+        }
 
         private void SetReserveBorderColor(ReserveViewItem info, Rectangle rect, Rectangle fillOnlyRect = null)
         {

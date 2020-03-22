@@ -241,13 +241,15 @@ namespace EpgTimer.EpgView
                 if (param == null || param.ID == viewMode) return;
 
                 //BlackWindowに状態を登録。
-                //コマンド集の機能による各ビューの共用メソッド。
-                BlackoutWindow.SelectedData = mc.GetJumpTabItem();
+                //mc.GetJumpTabItem()はコマンド集の機能による各ビューの共用メソッド。
+                BlackoutWindow.SelectedData = mc.GetJumpTabItem() ?? GetJumpTabItemNear() ?? (param.ID <= 1 ? GetJumpTabService() : null);
 
                 viewFunc.ViewSetting(param.ID);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
+        protected virtual object GetJumpTabItemNear() { return null; }
+        protected virtual object GetJumpTabService() { return null; }
         protected void mc_JumpTable(object sender, ExecutedRoutedEventArgs e)
         {
             var param = e.Parameter as EpgCmdParam;
@@ -444,8 +446,7 @@ namespace EpgTimer.EpgView
             if (DefPeriod.DefPeriod.Contains(time) == true) return DefPeriod.DefPeriod;
 
             //見つからない場合はそのまま
-            if (CommonManager.Instance.DB.IsEventTimePossible(time) == false)
-            { return DataPeriod; }
+            if (CommonManager.Instance.DB.IsEventTimePossible(time) == false) return DataPeriod;
 
             return new EpgViewPeriod(time - TimeSpan.FromDays(this.EpgStyle().EpgArcStartSunday ? (int)time.DayOfWeek : 0), DefPeriod.InitDays);
         }

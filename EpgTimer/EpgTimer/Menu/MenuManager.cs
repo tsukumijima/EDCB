@@ -588,6 +588,15 @@ namespace EpgTimer
             }
             CtxmGenerateContextMenu(data, ctxm, code, true);
         }
+        public void CtxmGenerateContextMenuEpgView(ContextMenu ctxm)
+        {
+            var ctmd = new CtxmData(CtxmCode.EpgView, DefCtxmData[CtxmCode.EpgView].Items.Find(item => item.Command == EpgCmdsEx.ViewMenu).Items);
+            CtxmGenerateContextMenu(ctmd, ctxm, CtxmCode.EpgView, false);
+            foreach (var item in ctxm.Items.OfType<MenuItem>().Where(item => item.Tag == EpgCmds.ViewChgMode))
+            {
+                item.IsChecked = ((item.CommandParameter as EpgCmdParam).ID == (int)ctxm.Tag);
+            }
+        }
         public void CtxmGenerateContextMenu(ContextMenu ctxm, CtxmCode code, bool shortcutTextforListType)
         {
             CtxmGenerateContextMenu(WorkCtxmData[code], ctxm, code, shortcutTextforListType);

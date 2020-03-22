@@ -31,6 +31,7 @@ namespace EpgTimer.EpgView
         private ScrollViewer horizontalViewScroll = null;
 
         protected ContextMenu cmdMenu = new ContextMenu();
+        protected ContextMenu cmdMenuView = new ContextMenu();
 
         protected override void InitCommand()
         {
@@ -45,7 +46,7 @@ namespace EpgTimer.EpgView
             });
 
             //コマンド集からコマンドを登録
-            mc.ResetCommandBindings(this, cmdMenu);
+            mc.ResetCommandBindings(this, cmdMenu, cmdMenuView);
 
             //現在ラインの描画を追加
             nowViewTimer = new DispatcherTimer(DispatcherPriority.Normal);
@@ -57,7 +58,10 @@ namespace EpgTimer.EpgView
         {
             base.RefreshMenuInfo();
             mBinds.ResetInputBindings(this);
+            cmdMenu.Tag = viewMode;
+            cmdMenuView.Tag = viewMode;
             mm.CtxmGenerateContextMenu(cmdMenu, CtxmCode.EpgView, false);
+            mm.CtxmGenerateContextMenuEpgView(cmdMenuView);
         }
 
         public override void SetViewData(EpgViewData data)
@@ -183,21 +187,30 @@ namespace EpgTimer.EpgView
             programView.view_ScrollChanged(programView.scrollViewer, timeView.scrollViewer, horizontalViewScroll);
         }
 
-        /// <summary>右ボタンクリック</summary>
-        protected void button_erea_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            epgProgramView_RightClick(sender, new Point(-1, -1));
-        }
+        /// <summary>右クリック表示メニューの作成</summary>
         protected void epgProgramView_RightClick(object sender, Point cursorPos)
         {
-            try
+            clickPos = cursorPos;
+            mc.SupportContextMenuLoading(cmdMenu, null);
+        }
+        /// <summary>右クリック表示メニューの作成(番組表エリア外)</summary>
+        protected void button_erea_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            clickPos = Mouse.GetPosition(programView);//範囲外にしておく
+            mc.SupportContextMenuLoading(cmdMenuView, null);
+        }
+        protected override object GetJumpTabItemNear()
+        {
+            double voffset = programView.scrollViewer.VerticalOffset;
+            if (clickPos.X >= 0 && clickPos.Y < 0)
             {
-                //右クリック表示メニューの作成
-                clickPos = cursorPos;
-                cmdMenu.Tag = viewMode;     //Viewの情報を与えておく
-                mc.SupportContextMenuLoading(cmdMenu, null);
+                clickPos.X += programView.scrollViewer.HorizontalOffset;
+                //サービス名付近から実行しているときはX位置を調整(サービス結合関連)
+                clickPos.X -= clickPos.X % viewData.EpgStyle().ServiceWidth;
+                clickPos.Y = Math.Max(0, clickPos.Y) + voffset;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            ProgramViewItem hitItem = programView.GetProgramViewDataNear(clickPos, voffset, voffset + timeView.ActualHeight);
+            return hitItem != null && hitItem.Data != null ? new SearchItem(hitItem.Data) : null;
         }
 
         public override int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
