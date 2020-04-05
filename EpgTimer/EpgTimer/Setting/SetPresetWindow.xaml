@@ -43,7 +43,7 @@
             <Button Content="保存されている状態に戻す" Name="button_iniLoad" HorizontalAlignment="Left" />
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" >
                 <Button Name="button_ok" Content="OK" Width="75" Margin="0,0,24,0" />
-                <Button Name="button_cancel" Content="キャンセル" Width="75" IsCancel="True" />
+                <Button Content="キャンセル" Width="75" IsCancel="True" />
             </StackPanel>
         </Grid>
     </Grid>

@@ -31,7 +31,6 @@ namespace EpgTimer
             this.Closing += (sender, e) => countTimer.Stop();
 
             button_work_now.Click += (sender, e) => DialogResult = true;
-            button_cancel.Click += (sender, e) => DialogResult = false;
             button_cancel.Focus();//スペースキーも効く
 
             var msg = new[] { "再起動", "スタンバイに移行", "休止に移行", "シャットダウン" };

@@ -218,15 +218,8 @@ namespace EpgTimer
                 info.ManualMenuItems = editMenu.DeepClone();
 
                 DialogResult = true;
-                return;
             }
             catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
-            DialogResult = false;
-        }
-
-        private void button_cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
         }
 
         private void comboBoxViewSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)

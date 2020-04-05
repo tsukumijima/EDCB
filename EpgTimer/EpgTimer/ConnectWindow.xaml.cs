@@ -15,16 +15,13 @@ namespace EpgTimer
         {
             InitializeComponent();
 
-            try
-            {
-                var nowSet = new NWPresetItem(DefPresetStr, Settings.Instance.NWServerIP, Settings.Instance.NWServerPort, Settings.Instance.NWWaitPort, Settings.Instance.NWMacAdd);
-                cmb_preset.Items.Add(nowSet);
-                Settings.Instance.NWPreset.ForEach(item => cmb_preset.Items.Add(item.DeepClone()));
-                cmb_preset.SelectedIndex = FindCmbPresetItem(nowSet, true);
-                this.KeyDown += ViewUtil.KeyDown_Escape_Close;
-                cmb_preset.KeyDown += ViewUtil.KeyDown_Enter(btn_reload);
-            }
-            catch { }
+            var nowSet = new NWPresetItem(DefPresetStr, Settings.Instance.NWServerIP, Settings.Instance.NWServerPort, Settings.Instance.NWWaitPort, Settings.Instance.NWMacAdd);
+            cmb_preset.Items.Add(nowSet);
+            Settings.Instance.NWPreset.ForEach(item => cmb_preset.Items.Add(item.DeepClone()));
+            cmb_preset.SelectedIndex = FindCmbPresetItem(nowSet, true);
+            this.KeyDown += ViewUtil.KeyDown_Escape_Close;
+            cmb_preset.KeyDown += ViewUtil.KeyDown_Enter(btn_reload);
+            button_connect.Focus();//スペースキーも効く
         }
 
         private void button_connect_Click(object sender, RoutedEventArgs e)
@@ -76,11 +73,6 @@ namespace EpgTimer
                 }
             }
             return macAddress;
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            button_connect.Focus();
         }
 
         private void SetSetting(NWPresetItem data)

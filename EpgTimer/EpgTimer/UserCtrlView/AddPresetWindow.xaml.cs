@@ -14,7 +14,6 @@ namespace EpgTimer
         {
             InitializeComponent();
             button_ok.Click += (sender, e) => DialogResult = true;
-            button_cancel.Click += (sender, e) => DialogResult = false;
         }
 
         public void SetMode(PresetEdit chgMode, string title = "プリセット")

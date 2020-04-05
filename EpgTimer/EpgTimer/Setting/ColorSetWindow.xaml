@@ -24,6 +24,6 @@
             <TextBlock Margin="1" Padding="2" Text="カスタム色" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="9" Background="#C0FFFFFF" IsHitTestVisible="False" />
         </Grid>
         <Button Content="OK" HorizontalAlignment="Left" Margin="162,117,0,0" Name="button_OK" VerticalAlignment="Top" Width="77" />
-        <Button Content="キャンセル" HorizontalAlignment="Left" Margin="258,117,0,0" Name="button_cancel" VerticalAlignment="Top" Width="77" IsCancel="True" />
+        <Button Content="キャンセル" HorizontalAlignment="Left" Margin="258,117,0,0" VerticalAlignment="Top" Width="77" IsCancel="True" />
     </Grid>
 </Window>
