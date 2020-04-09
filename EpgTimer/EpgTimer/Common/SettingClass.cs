@@ -1093,7 +1093,7 @@ namespace EpgTimer
                 catch (Exception ex)
                 {
                     //内容が異常など
-                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                    MessageBox.Show(ex.ToString());
                     MessageBox.Show("現在の設定ファイルは次の名前で保存されます。\r\n" + path + ".err",
                         "設定ファイル読込みエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                     try
@@ -1101,7 +1101,7 @@ namespace EpgTimer
                         try { File.Replace(path, path + ".err", null); }
                         catch (FileNotFoundException) { File.Move(path, path + ".err"); }
                     }
-                    catch (Exception ex2) { MessageBox.Show(ex2.Message + "\r\n" + ex2.StackTrace); }
+                    catch (Exception ex2) { MessageBox.Show(ex2.ToString()); }
                     break;
                 }
             }
@@ -1297,7 +1297,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { if (notifyException) MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { if (notifyException) MessageBox.Show(ex.ToString()); }
         }
 
         private static string GetSettingPath()

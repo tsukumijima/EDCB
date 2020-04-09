@@ -289,7 +289,7 @@ namespace EpgTimer
                     comboBox_tuner.SelectedValue = recSetting.TunerID;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             OnUpdatingView = false;
         }
         public void RefreshView()

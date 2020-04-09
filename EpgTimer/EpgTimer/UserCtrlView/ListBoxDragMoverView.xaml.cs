@@ -36,7 +36,7 @@ namespace EpgTimer
                     //OnDragCursor = ((UserControl)this.Resources["DragCursor"]).Cursor;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public abstract class LVDMHelper
@@ -98,7 +98,7 @@ namespace EpgTimer
                     }
                 });
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void ItemsAction(Action func)
@@ -164,7 +164,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         public Dictionary<ulong, ulong> GetChangeIDTable()
         {
@@ -217,7 +217,7 @@ namespace EpgTimer
                 }
                 notifyTimer.Start();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void listBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -235,7 +235,7 @@ namespace EpgTimer
                 }
                 DragRelease();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void listBoxItem_MouseEnter(object sender, MouseEventArgs e)
@@ -258,7 +258,7 @@ namespace EpgTimer
                 DragItemsSelect();
                 DrawDropLine();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private object GetDragItemData(object obj)
@@ -294,7 +294,7 @@ namespace EpgTimer
                     ClearDropLineData();
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         //ドロップライン関係

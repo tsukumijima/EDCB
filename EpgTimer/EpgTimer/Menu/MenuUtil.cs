@@ -64,7 +64,7 @@ namespace EpgTimer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.ToString());
                 MessageBox.Show("'検索のURI'の設定を確認してください。");
             }
         }
@@ -88,7 +88,7 @@ namespace EpgTimer
             }
             catch (Exception ex)
             {
-                string msg = "\r\n\r\nエラーメッセージ :\r\n" + ex.Message;
+                string msg = "\r\n\r\nエラーメッセージ :\r\n" + ex.ToString();
                 if (Settings.Instance.PicUpTitleWork.UseCustom == true)
                 {
                     msg = "記号類の除去でエラーが発生しました。\r\n"
@@ -274,7 +274,7 @@ namespace EpgTimer
                 ChangeMargin(infoList, false, start ? (int?)setData.StartMargine : null, start ? null : (int?)setData.EndMargine, false);
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
 
@@ -294,7 +294,7 @@ namespace EpgTimer
                 foreach (var data in dataList) data.RecSettingInfo = setData.DeepClone();
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
 
@@ -312,7 +312,7 @@ namespace EpgTimer
                 infoList.ForEach(info => info.contentList = setData.contentList.DeepClone());
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
 
@@ -690,7 +690,7 @@ namespace EpgTimer
                 changeIDTable = cmdPrm.Data as Dictionary<ulong, ulong>;
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -701,7 +701,7 @@ namespace EpgTimer
                 itemlist.ForEach(item => item.ProtectFlag = (byte)(item.ProtectFlag == 0 ? 1 : 0));
                 return ReserveCmdSend(itemlist, CommonManager.CreateSrvCtrl().SendChgProtectRecInfo, "録画情報の変更", cautionMany);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
         public static bool RecinfoDelete(List<RecFileInfo> itemlist, bool cautionMany = true)
@@ -711,7 +711,7 @@ namespace EpgTimer
                 List<uint> list = itemlist.Select(item => item.ID).ToList();
                 return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendDelRecInfo, "録画情報の削除", cautionMany);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
 
@@ -736,7 +736,7 @@ namespace EpgTimer
                 ErrCode err = cmdSend(list);
                 return CommonManager.CmdErrMsgTypical(err, description, msg_other);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
         public static bool CautionManyMessage(int Count, string description = "")
@@ -763,7 +763,7 @@ namespace EpgTimer
                 Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new AddReserveEpgWindow(Data, epgInfoOpenMode, setInfo).Show()));
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -790,7 +790,7 @@ namespace EpgTimer
                 Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => new ChgReserveWindow(Data, epgInfoOpenMode, setInfo).Show()));
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -814,7 +814,7 @@ namespace EpgTimer
                 new SearchWindow(Data, mode).Show();
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
         public static void SendAutoAdd(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
@@ -840,7 +840,7 @@ namespace EpgTimer
 
                 dlg.Show();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
         {
@@ -885,7 +885,7 @@ namespace EpgTimer
                 new AddManualAutoAddWindow(Data, mode).Show();
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -914,7 +914,7 @@ namespace EpgTimer
 
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -929,7 +929,7 @@ namespace EpgTimer
                 new InfoSearchWindow(word).Show();
                 return true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 

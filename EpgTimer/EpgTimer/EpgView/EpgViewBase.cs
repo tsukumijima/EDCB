@@ -127,7 +127,7 @@ namespace EpgTimer.EpgView
                 IsDefPeriod = Period.Equals(DefPeriod.DefPeriod);
                 return true;
             }
-            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.ToString()); }
             return false;
         }
     }
@@ -246,7 +246,7 @@ namespace EpgTimer.EpgView
 
                 viewFunc.ViewSetting(param.ID);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         protected virtual object GetJumpTabItemNear() { return null; }
         protected virtual object GetJumpTabService() { return null; }

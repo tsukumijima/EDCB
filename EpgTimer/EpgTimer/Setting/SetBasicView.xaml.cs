@@ -333,7 +333,7 @@ namespace EpgTimer.Setting
                     listView_time.ScrollIntoViewLast(item);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
     }
 

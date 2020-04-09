@@ -120,7 +120,7 @@ namespace EpgTimer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.ToString());
             } 
             return true;
         }
@@ -211,7 +211,7 @@ namespace EpgTimer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.ToString());
             } 
             return true;
         }

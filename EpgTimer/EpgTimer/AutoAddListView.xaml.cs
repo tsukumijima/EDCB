@@ -119,7 +119,7 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_del, EpgCmds.Delete);
                 mBinds.SetCommandToButton(button_del2, EpgCmds.Delete2);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         public void RefreshMenu()
         {

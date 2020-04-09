@@ -90,7 +90,7 @@ namespace EpgTimer.Setting
                         }
                         btn.Content = File.Exists(scPath) ? "削除" : "作成";
                     }
-                    catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+                    catch (Exception ex) { MessageBox.Show(ex.ToString()); }
                 };
             });
             SetScButton(button_shortCut, SettingPath.ModuleName, Assembly.GetEntryAssembly().Location);

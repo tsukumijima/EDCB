@@ -66,7 +66,7 @@ namespace EpgTimer
                 setOtherAppView.LoadSetting();
                 SetReload(false);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void SetMode(SettingMode mode, object param)
@@ -128,7 +128,7 @@ namespace EpgTimer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.ToString());
                 MessageBox.Show("不正な入力値によるエラーのため、一部設定のみ更新されました。");
             }
         }

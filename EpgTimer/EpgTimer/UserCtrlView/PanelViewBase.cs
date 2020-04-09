@@ -288,7 +288,7 @@ namespace EpgTimer
             catch (Exception ex) 
             {
                 PopupClear();
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.ToString());
             }
         }
         // PopUpの初期化
@@ -382,7 +382,7 @@ namespace EpgTimer
             catch (Exception ex) 
             {
                 TooltipClear();
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); 
+                MessageBox.Show(ex.ToString()); 
             }
         }
         void toolTipTimer_Tick(object sender, EventArgs e)
@@ -397,7 +397,7 @@ namespace EpgTimer
             catch (Exception ex)
             {
                 TooltipClear();
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.ToString());
             }
         }
         //Tooltipの初期化
@@ -446,7 +446,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected virtual void scrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -465,7 +465,7 @@ namespace EpgTimer
                 //サービス名表示もスクロール
                 h_scroll.ScrollToHorizontalOffset(main_scroll.HorizontalOffset);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected virtual void canvas_MouseMove(object sender, MouseEventArgs e)
@@ -498,7 +498,7 @@ namespace EpgTimer
                     TooltipWork();
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         protected virtual void canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -524,7 +524,7 @@ namespace EpgTimer
                     PopUpWork(true);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         protected virtual void canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -541,7 +541,7 @@ namespace EpgTimer
                 }
                 isDragMoved = false;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected virtual void canvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -666,7 +666,7 @@ namespace EpgTimer
                     notifyTimer.Start();
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
     }

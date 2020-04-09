@@ -62,7 +62,7 @@ namespace EpgTimer
                     listBox.ScrollIntoView(listBox.SelectedItem);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
     }

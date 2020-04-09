@@ -203,7 +203,7 @@ namespace EpgTimer
                 key.chkDurationMin = (ushort)MenuUtil.MyToNumerical(textBox_chkDurationMin, Convert.ToUInt32, 9999u, 0u, 0u);
                 key.chkDurationMax = (ushort)MenuUtil.MyToNumerical(textBox_chkDurationMax, Convert.ToUInt32, 9999u, 0u, 0u);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return key;
         }
         public void SetSearchKey(EpgSearchKeyInfo key)
@@ -260,7 +260,7 @@ namespace EpgTimer
                 textBox_chkDurationMin.Text = key.chkDurationMin.ToString();
                 textBox_chkDurationMax.Text = key.chkDurationMax.ToString();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             loadingSetting = false;
         }
 

@@ -77,7 +77,7 @@ namespace EpgTimer
                 DeleteInputBindingsTo(iTrgView, deleteCmds);
                 DeleteInputBindingsTo(iTrgList, deleteCmds);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void DeleteInputBindingsTo(UIElement iTrg, List<ICommand> delList)
         {
@@ -100,7 +100,7 @@ namespace EpgTimer
                 AddInputBindgsTo(iTrgView, gestureCmds, MenuCmds.GestureTrg.ToView);
                 AddInputBindgsTo(iTrgList, gestureCmds, MenuCmds.GestureTrg.ToList);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void AddInputBindgsTo(UIElement iTrg, List<ICommand> cmdList, MenuCmds.GestureTrg spc)
         {
@@ -191,7 +191,7 @@ namespace EpgTimer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.ToString());
             }
         }
         private void SetCommandBindgsTo(CommandBindingCollection cBindsSrc, UIElement cTrg, List<ICommand> cmdList)

@@ -1060,7 +1060,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -1095,7 +1095,7 @@ namespace EpgTimer
                     return isNameOnly == true ? dlg.SafeFileName : dlg.FileName;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -1165,7 +1165,7 @@ namespace EpgTimer
                 if (Instance.NWMode == false || path.StartsWith("\\\\", StringComparison.Ordinal) == true) return path;
                 CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref nwPath);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return nwPath;
         }
 
@@ -1189,7 +1189,7 @@ namespace EpgTimer
                     Process.Start("EXPLORER.EXE", cmd + "\"" + path + "\"");
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void FilePlay(ReserveData data)
@@ -1210,15 +1210,19 @@ namespace EpgTimer
             {
                 //ファイルパスを取得するため開いてすぐ閉じる
                 var info = new NWPlayTimeShiftInfo();
-                if (CreateSrvCtrl().SendNwTimeShiftOpen(data.ReserveID, ref info) == ErrCode.CMD_SUCCESS)
+                try
                 {
-                    CreateSrvCtrl().SendNwPlayClose(info.ctrlID);
-                    if (info.filePath != "")
+                    if (CreateSrvCtrl().SendNwTimeShiftOpen(data.ReserveID, ref info) == ErrCode.CMD_SUCCESS)
                     {
-                        FilePlay(info.filePath);
-                        return;
+                        CreateSrvCtrl().SendNwPlayClose(info.ctrlID);
+                        if (info.filePath != "")
+                        {
+                            FilePlay(info.filePath);
+                            return;
+                        }
                     }
                 }
+                catch { }
                 MessageBox.Show("録画ファイルの場所がわかりませんでした。", "追っかけ再生", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
@@ -1281,7 +1285,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         const int NotifyLogMaxLocal = 8192 * 2;
@@ -1394,7 +1398,7 @@ namespace EpgTimer
                     CommonUtil.SetForegroundWindow(SrvSettingProcess.MainWindowHandle);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         //2回呼び出されるが、2回目の呼び出しはキャッシュヒットで落ちる。

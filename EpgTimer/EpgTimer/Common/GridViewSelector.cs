@@ -72,7 +72,7 @@ namespace EpgTimer
                 //表示列の初期化
                 cmdsMenu[gvsCmds.Reset].RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent, cmdsMenu[gvsCmds.Reset]));
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void HeaderSelectClick(object sender, RoutedEventArgs e)
@@ -90,7 +90,7 @@ namespace EpgTimer
                     gridView.Columns.Remove(select);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void ResetGridViewColumns(IEnumerable<ListColumnInfo> setting)
@@ -137,7 +137,7 @@ namespace EpgTimer
                         break;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void ContextMenuOpening(object sender, RoutedEventArgs e)
@@ -166,7 +166,7 @@ namespace EpgTimer
                 cmdsMenu[gvsCmds.All].IsEnabled = gridView.Columns.Count != columnList.Count;
                 cmdsMenu[gvsCmds.Clear].IsEnabled = gridView.Columns.Count != 0;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void SaveSize()
@@ -181,7 +181,7 @@ namespace EpgTimer
                 setting.Clear();
                 setting.AddRange(gridView.Columns.Select(info => new ListColumnInfo(((GridViewColumnHeader)info.Header).Uid, info.Width)));
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
     }

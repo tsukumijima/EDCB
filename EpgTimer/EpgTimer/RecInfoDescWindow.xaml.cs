@@ -71,7 +71,7 @@ namespace EpgTimer
 
                 ChangeData(info);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected override bool ReloadInfoData()

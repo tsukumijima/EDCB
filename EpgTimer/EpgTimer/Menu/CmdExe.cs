@@ -233,7 +233,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         protected ExecutedRoutedEventHandler GetExecute(ICommand icmd)
         {
@@ -264,7 +264,7 @@ namespace EpgTimer
                         }
                     }
                 }
-                catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+                catch (Exception ex) { MessageBox.Show(ex.ToString()); }
                 ClearData();
             });
         }
@@ -579,7 +579,7 @@ namespace EpgTimer
                     mcs_ctxmLoading_switch(ctxm, menu);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             ClearData();
         }
         protected virtual void mcs_ctxmLoading_switch(ContextMenu ctxm, MenuItem menu) { }

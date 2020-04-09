@@ -193,7 +193,7 @@ namespace EpgTimer.EpgView
                     SetReserveBorderColor(info, rect, fillOnlyRect);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public Rect SetProgramList(List<ProgramViewItem> programList, double width, double height)
@@ -227,7 +227,7 @@ namespace EpgTimer.EpgView
                 epgViewPanel.Width = Math.Max(canvas.Width, ViewUtil.SnapsToDevicePixelsX(SystemParameters.VirtualScreenWidth));
                 epgViewPanel.Height = Math.Max(canvas.Height, ViewUtil.SnapsToDevicePixelsY(SystemParameters.VirtualScreenHeight));
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return new Rect(0, 0, canvas.Width, canvas.Height);
         }
     }

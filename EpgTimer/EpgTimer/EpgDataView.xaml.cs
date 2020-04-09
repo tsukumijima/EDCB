@@ -123,7 +123,7 @@ namespace EpgTimer
                 //実際にEPGが読込まれたかと無関係に、操作感としてこれでいい。
                 UpdateInfo(!Settings.Instance.NgAutoEpgLoadNW);
             }
-            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.ToString()); }
 
             //UpdateInfo()はオプションによるガ非表示の時走らない。
             //データはここでクリアしてしまうので、現に表示されているもの以外は表示状態はリセットされる。
@@ -149,7 +149,7 @@ namespace EpgTimer
                 }
                 if (tabControl.SelectedIndex < 0) tabControl.SelectedIndex = 0;
             }
-            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.ToString()); }
 
             oldID = null;
             OnCreateTab = false;
@@ -207,7 +207,7 @@ namespace EpgTimer
                 tab_viewMode_ChangeTabOnly(info != null ? info.ViewMode : param);
                 tab.ChangeContent(info, param);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected override void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -247,7 +247,7 @@ namespace EpgTimer
                 if (tab != null && dryrun == false) tab.IsSelected = true;
                 return tab != null;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
 
@@ -279,7 +279,7 @@ namespace EpgTimer
                 tab_viewMode_Changing = true;
                 tab_viewMode.SelectedIndex = idx;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             tab_viewMode_Changing = false;
         }
 
@@ -469,7 +469,7 @@ namespace EpgTimer
                 }
                 trg.Foreground = Brushes.Red;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void ClearTabHeader()
         {
@@ -573,7 +573,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         //過去番組表示パネルの状態保持

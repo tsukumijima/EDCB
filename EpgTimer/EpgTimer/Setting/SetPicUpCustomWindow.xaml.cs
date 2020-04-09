@@ -75,7 +75,7 @@ namespace EpgTimer
             catch (Exception ex)
             {
                 textbox_TestResult.TextWrapping = TextWrapping.Wrap;
-                textbox_TestResult.Text = ex.Message;
+                textbox_TestResult.Text = ex.ToString();
             }
         }
     }

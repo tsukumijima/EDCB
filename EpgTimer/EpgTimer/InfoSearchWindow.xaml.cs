@@ -143,7 +143,7 @@ namespace EpgTimer
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public override void RefreshMenu() { ResetMenu(true); }
@@ -242,7 +242,7 @@ namespace EpgTimer
                 this.Title = ViewUtil.WindowTitleText(SearchInfo.SearchWord, "予約情報検索");
                 UpdateStatus();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void UpdateStatus(int mode = 0)
         {

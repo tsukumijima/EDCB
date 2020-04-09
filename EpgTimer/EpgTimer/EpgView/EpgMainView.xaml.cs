@@ -102,7 +102,7 @@ namespace EpgTimer
 
                 epgProgramView.SetReserveList(dataItemList);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         /// <summary>番組情報の再描画</summary>
@@ -227,7 +227,7 @@ namespace EpgTimer
                 ReDrawNowLine();
                 MoveNowTime();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected override object GetJumpTabService()

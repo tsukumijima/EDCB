@@ -78,7 +78,7 @@ namespace EpgTimer
 
                 recSettingView.SetViewMode(false);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public override void SetWindowTitle()
@@ -134,7 +134,7 @@ namespace EpgTimer
 
                 return data;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
         protected override bool SetData(ManualAutoAddData data)

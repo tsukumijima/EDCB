@@ -303,7 +303,7 @@ namespace EpgTimer
                     Dispatcher.BeginInvoke(new Action(() => ConnectCmd()), DispatcherPriority.Loaded);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private static bool CheckCmdLine()
@@ -1166,7 +1166,7 @@ namespace EpgTimer
                         break;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         void NwTVEndCmd()
@@ -1537,7 +1537,7 @@ namespace EpgTimer
                 }
                 StatusManager.StatusNotifySet("情報の強制更新を実行(F5)");
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
 
         }
 

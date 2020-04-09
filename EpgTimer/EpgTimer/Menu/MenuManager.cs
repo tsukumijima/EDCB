@@ -608,7 +608,7 @@ namespace EpgTimer
                 ctxm.Name = code.ToString();
                 CtxmConvertToMenuItems(data.Items, ctxm.Items, code, shortcutTextforListType);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void CtxmConvertToMenuItems(List<CtxmItemData> src, ItemCollection dest, CtxmCode code, bool shortcutTextforListType)
         {

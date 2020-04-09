@@ -127,7 +127,7 @@ namespace EpgTimer
                     wrapPanel_IsManualMenu.Children.Add(chkbox);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -190,7 +190,7 @@ namespace EpgTimer
                 this.comboBoxViewSelect.SelectedIndex = -1; //初期化ボタンでSetData()使うとき用のリセット。
                 this.comboBoxViewSelect.SelectedIndex = this.comboBoxViewSelect.Items.Count - 1; //これでSelectionChanged発生する
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void button_OK_Click(object sender, RoutedEventArgs e)
@@ -219,7 +219,7 @@ namespace EpgTimer
 
                 DialogResult = true;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void comboBoxViewSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -253,7 +253,7 @@ namespace EpgTimer
                         break;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void button_allDefault_Click(object sender, RoutedEventArgs e)
@@ -268,7 +268,7 @@ namespace EpgTimer
                     this.listBox_Setting.Items.AddItems(StringItem.Items(editMenu.FindData(code).Items));
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void button_separator_Click(object sender, RoutedEventArgs e)
