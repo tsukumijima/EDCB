@@ -718,13 +718,11 @@
                                     <Label Content="各画面のボタン列を表示する　　配置" />
                                     <ComboBox Name="comboBox_mainViewButtonsDock" SelectedValue="{Binding MainViewButtonsDock}" SelectedValuePath="Key" DisplayMemberPath="Value"/>
                                 </StackPanel>
-                                <WrapPanel Margin="14,0,0,0" MaxWidth="286">
-                                    <CheckBox Content="予約一覧　 " IsChecked="{Binding IsVisibleReserveView}" />
-                                    <CheckBox Content="録画済み一覧　 " IsChecked="{Binding IsVisibleRecInfoView}" />
-                                    <DockPanel Margin="0,4,0,0">
-                                        <CheckBox Content="自動予約登録（　" IsChecked="{Binding IsVisibleAutoAddView}" />
-                                        <CheckBox Content="「並び替え」のみ表示　）" IsChecked="{Binding IsVisibleAutoAddViewMoveOnly}" IsEnabled="{Binding IsVisibleAutoAddView}"/>
-                                    </DockPanel>
+                                <WrapPanel Margin="14,0,0,0" MaxWidth="300">
+                                    <CheckBox Content="予約一覧　 " IsChecked="{Binding ResHideButton, Converter={StaticResource invert}}" />
+                                    <CheckBox Content="録画済み一覧　 " IsChecked="{Binding RecInfoHideButton, Converter={StaticResource invert}}" />
+                                    <CheckBox Content="キーワード自動予約登録　 " IsChecked="{Binding AutoAddEpgHideButton, Converter={StaticResource invert}}" />
+                                    <CheckBox Content="プログラム自動予約登録" IsChecked="{Binding AutoAddManualHideButton, Converter={StaticResource invert}}" />
                                 </WrapPanel>
                             </StackPanel>
                             <Button Margin="0,12,12,6" Content="右クリックメニューの設定" HorizontalAlignment="Left" Click="button_set_cm_Click" />

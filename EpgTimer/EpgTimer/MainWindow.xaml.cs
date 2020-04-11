@@ -234,6 +234,9 @@ namespace EpgTimer
                     (e.RemovedItems[0] as TabItem == tabItem_reserve ? tabItem_epg : tabItem_reserve).IsSelected = true;
                 };
 
+                //自動登録の個別タブに番組表設定画面を出すコンテキストメニューを表示する
+                tabItem_AutoAdd.MouseRightButtonUp += autoAddView.TabContextMenuOpen;
+
                 //番組表タブに番組表設定画面を出すコンテキストメニューを表示する
                 tabItem_epg.MouseRightButtonUp += epgView.EpgTabContextMenuOpen;
 
@@ -241,10 +244,6 @@ namespace EpgTimer
                 tabControl_main.MouseRightButtonUp += (sender, e) =>
                 {
                     var tab = tabControl_main.GetPlacementItem() as TabItem;
-                    if (tab == null && autoAddView.IsVisible == true && autoAddView.tabControl.GetPlacementItem() is TabItem)
-                    {
-                        tab = tabItem_AutoAdd;
-                    }
                     if (tab == null) return;
 
                     e.Handled = true;
@@ -375,23 +374,22 @@ namespace EpgTimer
                     { Dock.Top, new Thickness(0, 0, 0, 6) },{ Dock.Bottom, new Thickness(12, 6, 0, 0) },
                     { Dock.Left, new Thickness(0, 12, 6, 0) },{ Dock.Right, new Thickness(6, 12, 0, 0) }}[dock];
 
-            var SetButtonsPanel = new Action<StackPanel, bool, bool>((panel, pnlVisible, btnVisible) =>
+            var SetButtonsPanel = new Action<StackPanel, bool>((panel, pnlHide) =>
             {
                 DockPanel.SetDock(panel, dock);
-                panel.Visibility = ToVisibility(pnlVisible);
+                panel.Visibility = ToVisibility(!pnlHide);
                 panel.Orientation = IsVertical ? Orientation.Vertical : Orientation.Horizontal;
                 panel.Margin = panel_margin;
                 foreach (var btn in panel.Children.OfType<Button>())
                 {
                     btn.MinWidth = 75;
                     btn.Margin = IsVertical ? new Thickness(0, 0, 0, 10) : new Thickness(0, 0, 12, 0);
-                    btn.Visibility = ToVisibility(btnVisible);
                 }
             });
-            SetButtonsPanel(reserveView.stackPanel_button, Settings.Instance.IsVisibleReserveView, true);
-            SetButtonsPanel(recInfoView.stackPanel_button, Settings.Instance.IsVisibleRecInfoView, true);
-            SetButtonsPanel(autoAddView.epgAutoAddView.stackPanel_button, Settings.Instance.IsVisibleAutoAddView, Settings.Instance.IsVisibleAutoAddViewMoveOnly == false);
-            SetButtonsPanel(autoAddView.manualAutoAddView.stackPanel_button, Settings.Instance.IsVisibleAutoAddView, Settings.Instance.IsVisibleAutoAddViewMoveOnly == false);
+            SetButtonsPanel(reserveView.stackPanel_button, Settings.Instance.ResHideButton);
+            SetButtonsPanel(recInfoView.stackPanel_button, Settings.Instance.RecInfoHideButton);
+            SetButtonsPanel(autoAddView.epgAutoAddView.stackPanel_button, Settings.Instance.AutoAddEpgHideButton);
+            SetButtonsPanel(autoAddView.manualAutoAddView.stackPanel_button, Settings.Instance.AutoAddManualHideButton);
 
             //面倒なのでここで処理
             var SetDragMover = new Action<ListBoxDragMoverView>(dm =>

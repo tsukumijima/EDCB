@@ -459,9 +459,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20170512、20170717、20190217、20190321、20190520、20200320
+        //ver履歴 20200411、20200320、20190520、20190321、20190217、20170717、20170512
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20200320; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200411; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -647,10 +647,10 @@ namespace EpgTimer
         public bool UpdateTaskText { get; set; }
         public bool DisplayStatus { get; set; }
         public bool DisplayStatusNotify { get; set; }
-        public bool IsVisibleReserveView { get; set; }
-        public bool IsVisibleRecInfoView { get; set; }
-        public bool IsVisibleAutoAddView { get; set; }
-        public bool IsVisibleAutoAddViewMoveOnly { get; set; }
+        public bool ResHideButton { get; set; }
+        public bool RecInfoHideButton { get; set; }
+        public bool AutoAddEpgHideButton { get; set; }
+        public bool AutoAddManualHideButton { get; set; }
         public Dock MainViewButtonsDock { get; set; }
         public CtxmCode StartTab { get; set; }
         public bool TrimSortTitle { get; set; }
@@ -971,10 +971,10 @@ namespace EpgTimer
             UpdateTaskText = false;
             DisplayStatus = false;
             DisplayStatusNotify = false;
-            IsVisibleReserveView = true;
-            IsVisibleRecInfoView = true;
-            IsVisibleAutoAddView = true;
-            IsVisibleAutoAddViewMoveOnly = false;
+            ResHideButton = false;
+            RecInfoHideButton = false;
+            AutoAddEpgHideButton = false;
+            AutoAddManualHideButton = false;
             MainViewButtonsDock = Dock.Right;
             StartTab = CtxmCode.ReserveView;
             TrimSortTitle = false;
@@ -1184,6 +1184,21 @@ namespace EpgTimer
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200411) return;
+
+            //互換用コード。ボタン列非表示関連追従。
+            System.Xml.Linq.XElement xdr = null;
+            try { xdr = System.Xml.Linq.XDocument.Load(GetSettingPath()).Root; } catch { }
+            if (xdr != null)
+            {
+                var val = new[] { "IsVisibleReserveView", "IsVisibleRecInfoView", "IsVisibleAutoAddView" }
+                            .Select(s => xdr.Element(s)).Select(xe => xe == null ? (bool?)null : xe.Value != "true").ToArray();
+                if (val[0] != null) Instance.ResHideButton = (bool)val[0];
+                if (val[1] != null) Instance.RecInfoHideButton = (bool)val[1];
+                if (val[2] != null) Instance.AutoAddEpgHideButton = (bool)val[2];
+                if (val[2] != null) Instance.AutoAddManualHideButton = (bool)val[2];
+            }
+
             if (Instance.verSaved >= 20200320) return;
 
             //各画面「録画タグ」のカラム名のフォーク元追従。
@@ -1202,19 +1217,21 @@ namespace EpgTimer
             if (Instance.verSaved >= 20190321) return;
 
             //番組表ごとのデザイン対応
-            try
+            if (xdr != null)
             {
                 Instance.EpgSettingList.Clear();//一応クリア
-                var xdr = System.Xml.Linq.XDocument.Load(GetSettingPath()).Root;
                 for (int i = 0; i < 3; i++)
                 {
                     var xe = i == 0 ? xdr : xdr.Element("EpgSetting" + i.ToString());
                     if (xe == null) continue;
-                    Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
-                    Instance.EpgSettingList.Last().ID = i;
+                    try
+                    {
+                        Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
+                        Instance.EpgSettingList.Last().ID = i;
+                    }
+                    catch { }
                 }
             }
-            catch { }
 
             if (Instance.verSaved >= 20190217) return;
 

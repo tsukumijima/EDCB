@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -61,6 +62,7 @@ namespace EpgTimer
                 //とりあえず今はこれで
                 var tab = View.Parent as TabItem;
                 tab.Header = (tab.Header as string).TrimEnd('*') + (View.dragMover.NotSaved == true ? "*" : "");
+                tab.ToolTip = View.dragMover.NotSaved ? "並び替え状態未保存\r\n　Ctrl+S:保存\r\n　Ctrl+Z:復元" : null;
             }
             public override void ItemMoved() { View.lstCtrl.gvSorter.ResetSortParams(); }
         }
@@ -127,6 +129,27 @@ namespace EpgTimer
             mBinds.ResetInputBindings(this, listView_key);
             mm.CtxmGenerateContextMenu(listView_key.ContextMenu, viewCode, true);
         }
+        public void TabContextMenuOpen(object sender, MouseButtonEventArgs e)
+        {
+            var ctxm = new ContextMenu { IsOpen = true };
+            e.Handled = true;
+
+            var menu = new MenuItem { Header = "自動登録画面の画面設定(_O)..." };
+            menu.Click += (s2, e2) => CommonManager.MainWindow.OpenSettingDialog(SettingWindow.SettingMode.ReserveSetting);
+            ctxm.Items.Add(menu);
+
+            //非表示の時は設定画面のみ
+            if (this.IsVisible == false) return;
+
+            ctxm.Items.Add(new Separator());
+            menu = new MenuItem { Header = "並びを保存する(_S)", IsEnabled = dragMover.NotSaved, InputGestureText = MenuBinds.GetInputGestureText(EpgCmds.SaveOrder) };
+            menu.Click += (s2, e2) => EpgCmds.SaveOrder.Execute(null, dragMover);
+            ctxm.Items.Add(menu);
+            menu = new MenuItem { Header = "並びを元に戻す(_Z)", IsEnabled = dragMover.NotSaved, InputGestureText = MenuBinds.GetInputGestureText(EpgCmds.RestoreOrder) };
+            menu.Click += (s2, e2) => EpgCmds.RestoreOrder.Execute(null, dragMover);
+            ctxm.Items.Add(menu);
+        }
+
         public void SaveViewData()
         {
             lstCtrl.SaveViewDataToSettings();
