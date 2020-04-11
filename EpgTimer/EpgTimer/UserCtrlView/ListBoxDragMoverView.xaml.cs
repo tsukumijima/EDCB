@@ -92,7 +92,7 @@ namespace EpgTimer
                 {
                     if (e.Handled == false && e.Key == Key.Escape && e.IsRepeat == false && _onDrag == true)
                     {
-                        EpgCmds.DragCancel.Execute(null, null);
+                        EpgCmds.DragCancel.Execute(null, this);
                         //this.listBox.Items.Refresh();//壊したバインディングを修復する。モタツキ感があるので放置する。
                         e.Handled = true;
                     }

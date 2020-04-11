@@ -133,7 +133,7 @@ namespace EpgTimer
         }
         protected override bool ReloadInfoData()
         {
-            EpgCmds.DragCancel.Execute(null, this);
+            EpgCmds.DragCancel.Execute(null, dragMover);
 
             return lstCtrl.ReloadInfoData(dataList =>
             {

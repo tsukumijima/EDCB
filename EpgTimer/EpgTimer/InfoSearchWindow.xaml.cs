@@ -278,7 +278,7 @@ namespace EpgTimer
             lstCtrl.SelectSingleItem();//Selection_Changeが走ってRefreshMenuが実行される。
             if (selectedType != typeof(InfoSearchItem))
             {
-                EpgCmds.ShowDialog.Execute(e.Parameter, null);
+                EpgCmds.ShowDialog.Execute(e.Parameter, this);
             }
         }
         private void mc_ChgOnOff(object sender, ExecutedRoutedEventArgs e)
