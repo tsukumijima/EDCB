@@ -290,12 +290,20 @@ namespace EpgTimer
 
                 if (dlg.ShowDialog() == false) return false;
 
-                RecSettingData setData = dlg.DataView.GetRecSetting();
-                foreach (var data in dataList) data.RecSettingInfo = setData.DeepClone();
+                ChangeRecSet(dataList, dlg.DataView.GetRecSetting());
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
+        }
+        public static void ChangeRecSet(IEnumerable<IRecSetttingData> dataList, RecSettingData setData)
+        {
+            foreach (var data in dataList)
+            {
+                RecSettingData orgData = data.RecSettingInfo;
+                data.RecSettingInfo = setData.DeepClone();
+                if (Settings.Instance.SetWithoutRecTag) data.RecSettingInfo.RecTag = orgData.RecTag;
+            }
         }
 
         public static bool ChgGenre(List<EpgSearchKeyInfo> infoList, UIElement owner = null)

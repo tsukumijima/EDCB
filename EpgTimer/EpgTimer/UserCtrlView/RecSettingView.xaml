@@ -11,9 +11,12 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Margin="16,4,4,6" Name="stackPanel_PresetEdit" >
-            <my:PresetEditorBase /><!-- デザイン時用。実行時は別途Addする -->
-        </Grid>
+        <StackPanel Margin="16,4,4,6" Orientation="Horizontal" Name="stackPanel_PresetEdit" >
+            <Grid Name="grid_PresetEdit">
+                <my:PresetEditorBase /><!-- デザイン時用。実行時は別途Addする -->
+            </Grid>
+            <CheckBox Content="録画タグを除く" Margin="8,0,0,0" Name="checkBox_setWithoutRecTag" Click="checkBox_setWithoutRecTag_Click" ToolTip="プリセット読込時、「録画タグ」はそのままにします。&#10;　※右クリックメニューからのプリセット変更などにも適用されます。"/>
+        </StackPanel>
         <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FF8C8E94" Padding="10,8">
             <Grid>
                 <Grid.RowDefinitions>

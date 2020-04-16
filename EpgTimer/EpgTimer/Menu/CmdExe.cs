@@ -466,7 +466,7 @@ namespace EpgTimer
             if (e.Command == EpgCmds.ChgOnPreset)
             {
                 var val = Settings.Instance.RecPreset(CmdExeUtil.ReadIdData(e, 0, 0xFE)).Data;
-                foreach (var data in dataList.OfType<IRecSetttingData>()) data.RecSettingInfo = val.DeepClone();
+                MenuUtil.ChangeRecSet(dataList.OfType<IRecSetttingData>(), val);
             }
             else if (e.Command == EpgCmds.ChgRecmode)
             {

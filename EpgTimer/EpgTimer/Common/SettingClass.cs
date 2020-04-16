@@ -542,6 +542,7 @@ namespace EpgTimer
         public bool UseLastSearchKey { get; set; }
         public List<SearchPresetItem> SearchPresetList { get; set; }
         public bool SetWithoutSearchKeyWord { get; set; }
+        public bool SetWithoutRecTag { get; set; }
         public Int32 RecInfoToolTipMode { get; set; }
         public string RecInfoColumnHead { get; set; }
         public ListSortDirection RecInfoSortDirection { get; set; }
@@ -877,6 +878,7 @@ namespace EpgTimer
             UseLastSearchKey = false;
             SearchPresetList = new List<SearchPresetItem>();
             SetWithoutSearchKeyWord = false;
+            SetWithoutRecTag = false;
             RecInfoToolTipMode = 0;
             RecInfoColumnHead = "";
             RecInfoSortDirection = ListSortDirection.Ascending;
