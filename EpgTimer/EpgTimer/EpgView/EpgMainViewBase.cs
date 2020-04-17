@@ -30,8 +30,8 @@ namespace EpgTimer.EpgView
         private TimeView timeView = null;
         private ScrollViewer horizontalViewScroll = null;
 
-        protected ContextMenu cmdMenu = new ContextMenu();
-        protected ContextMenu cmdMenuView = new ContextMenu();
+        protected ContextMenu cmdMenu = new ContextMenuEx();
+        protected ContextMenu cmdMenuView = new ContextMenuEx();
 
         protected override void InitCommand()
         {

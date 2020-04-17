@@ -709,6 +709,7 @@
                                 <CheckBox Margin="14,4,0,0" Content="主要操作の操作結果を表示をする" IsChecked="{Binding DisplayStatusNotify}" IsEnabled="{Binding DisplayStatus}" />
                             </StackPanel>
                             <CheckBox Margin="0,6,12,0" Content="テーマを適用する(要再起動)" Name="checkBox_NotNoStyle" IsChecked="{Binding NoStyle, Converter={StaticResource invert}}" />
+                            <CheckBox Margin="0,6,12,0" Content="右クリックメニューにテーマを適用する(要再起動)" Name="checkBox_ApplyContextMenuStyle" IsChecked="{Binding ApplyContextMenuStyle}" />
                             <StackPanel Orientation="Horizontal" Margin="0,6,12,0">
                                 <Label Content="初期表示画面 "/>
                                 <ComboBox Name="comboBox_startTab" Width="160" SelectedValue="{Binding StartTab}" SelectedValuePath="Key" DisplayMemberPath="Value"/>

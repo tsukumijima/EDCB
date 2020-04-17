@@ -140,7 +140,7 @@ namespace EpgTimer
 
         public ContextMenu CreateSlelectMenu(Func<S, bool> isMenuChecked = null, Func<S, bool> isMenuEnabled = null, RoutedEventHandler clicked = null)
         {
-            var ctxm = new ContextMenu();
+            var ctxm = new ContextMenuEx();
             int i = 0;
             foreach (var item in Items)
             {

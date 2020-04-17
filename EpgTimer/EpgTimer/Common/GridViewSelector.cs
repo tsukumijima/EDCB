@@ -27,7 +27,7 @@ namespace EpgTimer
                 getInitColumns = initColumns;
 
                 //セレクト用の右クリックメニュー関係
-                gridView.ColumnHeaderContextMenu = new ContextMenu();
+                gridView.ColumnHeaderContextMenu = new ContextMenuEx();
                 gridView.ColumnHeaderContextMenu.Opened += new RoutedEventHandler(ContextMenuOpening);
 
                 //カラム操作用メニュー追加

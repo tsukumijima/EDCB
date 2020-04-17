@@ -60,33 +60,13 @@ namespace EpgTimer
                 Environment.Exit(0);
             }
 
-            if (Settings.Instance.NoStyle == 0)
+            if (Settings.AppResourceDictionary != null)
             {
-                if (File.Exists(System.Reflection.Assembly.GetEntryAssembly().Location + ".rd.xaml"))
-                {
-                    //ResourceDictionaryを定義したファイルがあるので本体にマージする
-                    try
-                    {
-                        App.Current.Resources.MergedDictionaries.Add(
-                            (ResourceDictionary)System.Windows.Markup.XamlReader.Load(
-                                System.Xml.XmlReader.Create(System.Reflection.Assembly.GetEntryAssembly().Location + ".rd.xaml")));
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.ToString());
-                    }
-                }
-                else
-                {
-                    //既定のテーマ(Aero)をマージする
-                    App.Current.Resources.MergedDictionaries.Add(
-                        Application.LoadComponent(new Uri("/PresentationFramework.Aero, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35;component/themes/aero.normalcolor.xaml", UriKind.Relative)) as ResourceDictionary
-                        );
-                }
+                Application.Current.Resources.MergedDictionaries.Add(Settings.AppResourceDictionary);
             }
 
             // レイアウト用のスタイルをロード
-            App.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Style/UiLayoutStyles.xaml") });
+            Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Style/UiLayoutStyles.xaml") });
 
             //ツールチップの表示時間を30秒、Disableでも表示するように変更
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(true));
@@ -256,7 +236,7 @@ namespace EpgTimer
 
                     var menuSet = new MenuItem { Header = (tab.Header as string ?? tab.Tag as string) + "の画面設定(_O)..." };
                     menuSet.Click += (s2, e2) => OpenSettingDialog(mode);
-                    var ctxm = new ContextMenu { IsOpen = true };
+                    var ctxm = new ContextMenuEx { IsOpen = true };
                     ctxm.Items.Add(menuSet);
 
                     //チューナー不足時の追加メニュー
@@ -1672,6 +1652,18 @@ namespace EpgTimer
             else if (this.autoAddView.manualAutoAddView.listView_key.IsVisible == true)
             {
                 this.autoAddView.manualAutoAddView.listView_key.Focus();
+            }
+        }
+    }
+
+    /// <summary>アプリケーション全体に適用する拡張コンテキストメニュー</summary>
+    public class ContextMenuEx : ContextMenu
+    {
+        public ContextMenuEx()
+        {
+            if (Settings.ContextMenuResourceDictionary != null)
+            {
+                Resources.MergedDictionaries.Add(Settings.ContextMenuResourceDictionary);
             }
         }
     }

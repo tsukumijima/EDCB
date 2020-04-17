@@ -131,7 +131,7 @@ namespace EpgTimer
         }
         public void TabContextMenuOpen(object sender, MouseButtonEventArgs e)
         {
-            var ctxm = new ContextMenu { IsOpen = true };
+            var ctxm = new ContextMenuEx { IsOpen = true };
             e.Handled = true;
 
             var menu = new MenuItem { Header = "自動登録画面の画面設定(_O)..." };

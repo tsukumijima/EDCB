@@ -182,7 +182,7 @@ namespace EpgTimer
         private void listBox_serviceView_ContextMenu_Set()
         {
             // 右クリックメニューにSIDのソートを登録
-            var cm = new ContextMenu();
+            var cm = new ContextMenuEx();
             var menuItemAsc = new MenuItem();
             menuItemAsc.Header = "サブチャンネルの結合表示を解除";
             menuItemAsc.ToolTip = "同一TSIDのサービスの結合表示が解除されるようServiceIDを昇順に並び替えます";

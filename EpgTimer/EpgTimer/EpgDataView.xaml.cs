@@ -20,7 +20,7 @@ namespace EpgTimer
         IEnumerable<EpgTabItem> Tabs { get { return tabControl.Items.OfType<EpgTabItem>(); } }
         List<CustomEpgTabInfo> tabInfo = new List<CustomEpgTabInfo>();//Settingデータの参照を保持
         CustomEpgTabInfo get_tabInfo(string Uid) { return tabInfo.Find(ti => ti.Uid == Uid); }
-        ContextMenu ctxm = new ContextMenu();//使用時に生成するとClearTabHeader()のタイミングが前後するので準備しておく。
+        ContextMenu ctxm = new ContextMenuEx();//使用時に生成するとClearTabHeader()のタイミングが前後するので準備しておく。
 
         public EpgDataView()
         {

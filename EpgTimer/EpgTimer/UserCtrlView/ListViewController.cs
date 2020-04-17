@@ -120,7 +120,7 @@ namespace EpgTimer
 
             if (defaultContextMenu == true)
             {
-                if (lv.ContextMenu == null) lv.ContextMenu = new ContextMenu();
+                if (lv.ContextMenu == null) lv.ContextMenu = new ContextMenuEx();
 
                 lv.ContextMenu.Opened += (sender, e) =>
                 {
