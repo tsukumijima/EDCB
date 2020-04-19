@@ -1,22 +1,28 @@
-TARGET ?= EpgTimerPlugIn.tvtp
+TARGET ?= Write_OneService.dll
 CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE $(CPPFLAGS)
 CXXFLAGS := -Os $(CXXFLAGS)
 LDFLAGS := -Wl,-s,--dynamicbase,--nxcompat,--kill-at -static-libgcc -static-libstdc++ -shared $(LDFLAGS)
-LDLIBS := -lws2_32 -liphlpapi $(LDLIBS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
 CUR_ALL_H := $(wildcard *.h)
 
 $(TARGET): $(addsuffix .obj, \
-  Common__CtrlCmdUtil.cpp \
+  BonCtrl__CATUtil.cpp \
+  BonCtrl__CreatePATPacket.cpp \
+  BonCtrl__PacketInit.cpp \
+  BonCtrl__PMTUtil.cpp \
+  BonCtrl__ServiceFilter.cpp \
+  Common__EpgTimerUtil.cpp \
   Common__PathUtil.cpp \
-  Common__PipeServer.cpp \
-  Common__SendCtrlCmd.cpp \
   Common__StringUtil.cpp \
-  EpgTimerPlugIn.cpp \
+  Common__TimeUtil.cpp \
+  Common__TSBuffUtil.cpp \
+  Common__TSPacketUtil.cpp \
+  Common__WritePlugInUtil.cpp \
+  dllmain.cpp \
   stdafx.cpp \
-  StreamCtrlDlg.cpp \
-  EpgTimerPlugIn.rc \
+  WriteMain.cpp \
+  Write_OneService.cpp \
   )
 	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
