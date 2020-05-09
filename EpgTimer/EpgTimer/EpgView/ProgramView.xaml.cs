@@ -96,7 +96,7 @@ namespace EpgTimer.EpgView
         }
         protected override void SetPopupItemEx(PanelItem item)
         {
-            (PopPanel.Item as ProgramViewItem).DrawHours = (item as ProgramViewItem).DrawHours;
+            (PopPanel.Item as ProgramViewItem).DrawHours |= (item as ProgramViewItem).DrawHours;
             (PopPanel.Item as ProgramViewItem).EpgSettingIndex = (item as ProgramViewItem).EpgSettingIndex;
             (PopPanel.Item as ProgramViewItem).ViewMode = (item as ProgramViewItem).ViewMode;
             //(PopPanel.Item as ProgramViewItem).Filtered = (item as ProgramViewItem).Filtered;//ポップアップ時は通常表示
@@ -132,6 +132,14 @@ namespace EpgTimer.EpgView
             return canvas.Children.OfType<EpgViewPanel>()
                 .Where(panel => panel.Items != null && Canvas.GetLeft(panel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(panel) + panel.Width)
                 .SelectMany(panel => panel.Items).OfType<ProgramViewItem>().FirstOrDefault(pg => pg.IsPicked(cursorPos));
+        }
+        public ProgramViewItem GetProgramViewDataNear(Point cursorPos, double minY = double.MinValue, double maxY = double.MaxValue)
+        {
+            return canvas.Children.OfType<EpgViewPanel>()
+                .Where(panel => panel.Items != null && Canvas.GetLeft(panel) <= cursorPos.X && cursorPos.X < Canvas.GetLeft(panel) + panel.Width)
+                .SelectMany(panel => panel.Items).OfType<ProgramViewItem>()
+                .Where(pg => pg.LeftPos <= cursorPos.X && cursorPos.X < pg.RightPos && (pg.TopPos < minY && maxY <= pg.BottomPos || minY <= pg.TopPos && pg.TopPos < maxY || minY <= pg.BottomPos && pg.BottomPos < maxY))
+                .OrderBy(pg => pg.TopPos <= cursorPos.Y && cursorPos.Y < pg.BottomPos ? 0 : Math.Min(Math.Abs(pg.TopPos - cursorPos.Y), Math.Abs(pg.BottomPos - cursorPos.Y))).FirstOrDefault();
         }
 
         private void SetReserveBorderColor(ReserveViewItem info, Rectangle rect, Rectangle fillOnlyRect = null)
@@ -185,7 +193,7 @@ namespace EpgTimer.EpgView
                     SetReserveBorderColor(info, rect, fillOnlyRect);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public Rect SetProgramList(List<ProgramViewItem> programList, double width, double height)
@@ -219,7 +227,7 @@ namespace EpgTimer.EpgView
                 epgViewPanel.Width = Math.Max(canvas.Width, ViewUtil.SnapsToDevicePixelsX(SystemParameters.VirtualScreenWidth));
                 epgViewPanel.Height = Math.Max(canvas.Height, ViewUtil.SnapsToDevicePixelsY(SystemParameters.VirtualScreenHeight));
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return new Rect(0, 0, canvas.Width, canvas.Height);
         }
     }

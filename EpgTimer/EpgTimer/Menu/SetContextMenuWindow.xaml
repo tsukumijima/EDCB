@@ -199,7 +199,7 @@
             <Button Content="設定の初期化" Click="button_Initialize_Click" HorizontalAlignment="Left" MinWidth="100" ToolTip="Shift+クリックでショートカットキーのみ初期化&#10;(※他はダイアログを開いた時の状態に戻ります)" />
             <DockPanel HorizontalAlignment="Right">
                 <Button Content="OK" Margin="0,0,20,0" MinWidth="75" Click="button_OK_Click" />
-                <Button Content="キャンセル" Name="button_cancel" MinWidth="75" Click="button_cancel_Click" IsCancel="True" />
+                <Button Content="キャンセル" MinWidth="75" IsCancel="True" />
             </DockPanel>
         </Grid>
     </Grid>

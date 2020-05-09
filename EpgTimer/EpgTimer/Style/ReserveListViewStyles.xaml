@@ -161,9 +161,9 @@
                 <GridViewColumnHeader Content="録画後実行bat" Uid="BatFilePath" />
             </GridViewColumn.Header>
         </GridViewColumn>
-        <GridViewColumn DisplayMemberBinding="{Binding RecTag}">
+        <GridViewColumn DisplayMemberBinding="{Binding BatFileTag}">
             <GridViewColumn.Header>
-                <GridViewColumnHeader Content="録画タグ" Uid="RecTag" />
+                <GridViewColumnHeader Content="タグ" Tag="録画タグ" Uid="BatFileTag" />
             </GridViewColumn.Header>
         </GridViewColumn>
         <GridViewColumn>

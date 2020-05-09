@@ -262,7 +262,7 @@ namespace EpgTimer.BoxExchangeEdit
                 target.SelectedItemsAdd(addList);
                 if (target.SelectedIndex >= 0) target.ScrollIntoViewIndex(scrollTo);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return true;
         }
 
@@ -303,7 +303,7 @@ namespace EpgTimer.BoxExchangeEdit
                     box.ScrollIntoViewIndex(box.SelectedIndex);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return true;
         }
         /// <summary>アイテム全削除</summary>
@@ -346,7 +346,7 @@ namespace EpgTimer.BoxExchangeEdit
                 box.SelectedItemsAdd(selected);
                 box.ScrollIntoView(direction < 0 ? selected[0] : selected.Last());
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return true;
         }
 
@@ -381,7 +381,7 @@ namespace EpgTimer.BoxExchangeEdit
                 TargetBoxItemsRefresh(box);
                 box.ScrollIntoViewIndex(insertItem == null ? int.MaxValue : box.SelectedIndex);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return true;
         }
 
@@ -527,7 +527,7 @@ namespace EpgTimer.BoxExchangeEdit
                     item.FontWeight = FontWeights.Bold;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         //移動ターゲットになるアイテムのフォント変更のバックアップ
@@ -546,7 +546,7 @@ namespace EpgTimer.BoxExchangeEdit
                     back_font = null;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void targetBox_PreviewDrop_fromSourceBox(object sender, DragEventArgs e)
@@ -567,7 +567,7 @@ namespace EpgTimer.BoxExchangeEdit
                 {
                     if (dStartBox(e) == (box == fromBox.SrcBox ? SourceBox : TargetBox)) proc(sender, e);
                 }
-                catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+                catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             });
         }
     }

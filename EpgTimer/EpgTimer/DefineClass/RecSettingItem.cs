@@ -153,7 +153,7 @@ namespace EpgTimer
                 return RecSettingInfo.BatFilePath;
             }
         }
-        public virtual string RecTag
+        public virtual string BatFileTag
         {
             get
             {

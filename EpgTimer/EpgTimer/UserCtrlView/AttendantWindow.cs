@@ -42,7 +42,7 @@ namespace EpgTimer
                 //はみ出ないよう修正
                 ViewUtil.AdjustWindowPosition(this);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         //前面表示関係

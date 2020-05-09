@@ -40,7 +40,7 @@ namespace EpgTimer.EpgView
             {
                 var day = new Button();
                 day.Padding = new Thickness(1);
-                day.Content = itemTime.ToString("M\\/d(ddd)");
+                day.Content = itemTime.ToString("M/d(ddd)");
                 if (itemTime.DayOfWeek == DayOfWeek.Saturday) day.Foreground = Brushes.Blue;
                 if (itemTime.DayOfWeek == DayOfWeek.Sunday) day.Foreground = Brushes.Red;
                 day.Tag = itemTime;

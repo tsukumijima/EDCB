@@ -1,6 +1,13 @@
 TARGET ?= EpgTimerSrv.exe
-CPPFLAGS = -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_WINMAIN_A -DUSE_LUA -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 #-DEPGDB_STD_WREGEX
+CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_LUA -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 $(CPPFLAGS)
+#CPPFLAGS += -DEPGDB_STD_WREGEX
+CFLAGS := -Os $(CFLAGS)
+CXXFLAGS := -Os $(CXXFLAGS)
+LDFLAGS := -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDLIBS := -lws2_32 -lole32 -lcomctl32 -lwinhttp -loleaut32 -lcrypt32 -liphlpapi -luuid -lnetapi32 $(LDLIBS)
 WINDRES ?= windres
+DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
+CUR_ALL_H := $(wildcard *.h *.inl)
 
 ifdef withlua
   SOURCES_LUA = \
@@ -48,12 +55,16 @@ ifdef withlua
     lua_zlib1__trees.c \
     lua_zlib1__uncompr.c \
     lua_zlib1__zutil.c
-  LIBS_LUA =
 else
   # Lazy loading fails with segfault if LUA_LIB undefined.
   CPPFLAGS += -DLUA_BUILD_AS_DLL -DLUA_LIB
   SOURCES_LUA =
-  LIBS_LUA = -llua52-mingw-lazy-$(MSYSTEM_CARCH)
+  LDLIBS := -L. -llua52-mingw-lazy-$(or $(MSYSTEM_CARCH),$(findstring x86_64,$(MAKE_HOST)),i686) $(LDLIBS)
+endif
+
+ifndef MSYSTEM
+  # Assume non-pthread threading model
+  CPPFLAGS += -DMUST_IMPLEMENT_CLOCK_GETTIME
 endif
 
 $(TARGET): $(addsuffix .obj, \
@@ -92,22 +103,28 @@ $(TARGET): $(addsuffix .obj, \
   UpnpSsdpServer.cpp \
   EpgTimerSrv.rc \
   )
-	$(CXX) -mwindows -Wl,-s -Wl,--dynamicbase -Wl,--nxcompat -static-libgcc -static-libstdc++ -o $@ $^ -L. $(LIBS_LUA) -lws2_32 -lole32 -lcomctl32 -lwinhttp -loleaut32 -lcrypt32 -liphlpapi -luuid -lnetapi32
-BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch
-	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch
-	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-%.cpp.obj: %.cpp stdafx.h.gch
-	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
-stdafx.h.gch: stdafx.h
-	$(CXX) -c $(CPPFLAGS) -finput-charset=CP932 -Os -o $@ $<
+	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch $(DEP_ALL_H)
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+%.cpp.obj: %.cpp stdafx.h.gch $(DEP_ALL_H) $(CUR_ALL_H)
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
+stdafx.h.gch: stdafx.h ../../Common/Common.h targetver.h
+	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 lua__%.c.obj: lua/%.c
-	$(CC) -c $(CPPFLAGS) -I./lua -I./lua/zlib1 -Os -o $@ $<
+	$(COMPILE.c) -I./lua -I./lua/zlib1 $(OUTPUT_OPTION) $<
 lua_zlib1__%.c.obj: lua/zlib1/%.c
-	$(CC) -c $(CPPFLAGS) -Os -o $@ $<
-%.c.obj: %.c
-	$(CC) -c $(CPPFLAGS) -Os -o $@ $<
-%.rc.obj: %.rc
-	iconv -f UTF-16LE -t UTF-8 $< | $(WINDRES) $(CPPFLAGS) -c 65001 -J rc -O coff -o $@
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+%.c.obj: %.c $(CUR_ALL_H)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+%.rc.obj: %.rc.u.obj resource.h targetver.h
+	$(WINDRES) $(CPPFLAGS) -c 65001 -J rc -O coff $(OUTPUT_OPTION) $<
+%.rc.u.obj: %.rc
+ifdef MSYSTEM
+	iconv -f UTF-16LE -t UTF-8 $< >$@
+else
+	powershell -NoProfile -Command "&{cat $<|Out-File -Encoding UTF8 $@}"
+endif
 clean:
 	$(RM) stdafx.h.gch *.obj $(TARGET)

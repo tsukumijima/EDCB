@@ -459,9 +459,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20170512、20170717、20190217、20190321、20190520
+        //ver履歴 20200411、20200320、20190520、20190321、20190217、20170717、20170512
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20190520; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200411; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -542,6 +542,7 @@ namespace EpgTimer
         public bool UseLastSearchKey { get; set; }
         public List<SearchPresetItem> SearchPresetList { get; set; }
         public bool SetWithoutSearchKeyWord { get; set; }
+        public bool SetWithoutRecTag { get; set; }
         public Int32 RecInfoToolTipMode { get; set; }
         public string RecInfoColumnHead { get; set; }
         public ListSortDirection RecInfoSortDirection { get; set; }
@@ -626,6 +627,7 @@ namespace EpgTimer
         public bool ShowTray { get; set; }
         public bool MinHide { get; set; }
         public int NoStyle { get; set; }
+        public bool ApplyContextMenuStyle { get; set; }
         public int NoSendClose { get; set; }
         public bool CautionManyChange { get; set; }
         public int CautionManyNum { get; set; }
@@ -647,10 +649,10 @@ namespace EpgTimer
         public bool UpdateTaskText { get; set; }
         public bool DisplayStatus { get; set; }
         public bool DisplayStatusNotify { get; set; }
-        public bool IsVisibleReserveView { get; set; }
-        public bool IsVisibleRecInfoView { get; set; }
-        public bool IsVisibleAutoAddView { get; set; }
-        public bool IsVisibleAutoAddViewMoveOnly { get; set; }
+        public bool ResHideButton { get; set; }
+        public bool RecInfoHideButton { get; set; }
+        public bool AutoAddEpgHideButton { get; set; }
+        public bool AutoAddManualHideButton { get; set; }
         public Dock MainViewButtonsDock { get; set; }
         public CtxmCode StartTab { get; set; }
         public bool TrimSortTitle { get; set; }
@@ -877,6 +879,7 @@ namespace EpgTimer
             UseLastSearchKey = false;
             SearchPresetList = new List<SearchPresetItem>();
             SetWithoutSearchKeyWord = false;
+            SetWithoutRecTag = false;
             RecInfoToolTipMode = 0;
             RecInfoColumnHead = "";
             RecInfoSortDirection = ListSortDirection.Ascending;
@@ -950,6 +953,7 @@ namespace EpgTimer
             ShowTray = false;
             MinHide = true;
             NoStyle = 1;
+            ApplyContextMenuStyle = false;
             NoSendClose = 0;
             CautionManyChange = true;
             CautionManyNum = 10;
@@ -971,10 +975,10 @@ namespace EpgTimer
             UpdateTaskText = false;
             DisplayStatus = false;
             DisplayStatusNotify = false;
-            IsVisibleReserveView = true;
-            IsVisibleRecInfoView = true;
-            IsVisibleAutoAddView = true;
-            IsVisibleAutoAddViewMoveOnly = false;
+            ResHideButton = false;
+            RecInfoHideButton = false;
+            AutoAddEpgHideButton = false;
+            AutoAddManualHideButton = false;
             MainViewButtonsDock = Dock.Right;
             StartTab = CtxmCode.ReserveView;
             TrimSortTitle = false;
@@ -1066,8 +1070,74 @@ namespace EpgTimer
             }
         }
 
-    /// <summary>設定ファイルロード関数</summary>
-    public static void LoadFromXmlFile(bool nwMode = false)
+        private static bool appResourceDictionaryInitialized;
+        private static ResourceDictionary _appResourceDictionary;
+        public static ResourceDictionary AppResourceDictionary
+        {
+            get
+            {
+                if (appResourceDictionaryInitialized == false)
+                {
+                    appResourceDictionaryInitialized = true;
+                    if (Instance.NoStyle == 0)
+                    {
+                        try
+                        {
+                            if (File.Exists(Assembly.GetEntryAssembly().Location + ".rd.xaml"))
+                            {
+                                //ResourceDictionaryを定義したファイルがあるので本体にマージする
+                                _appResourceDictionary = (ResourceDictionary)System.Windows.Markup.XamlReader.Load(
+                                    System.Xml.XmlReader.Create(Assembly.GetEntryAssembly().Location + ".rd.xaml"));
+                            }
+                            else
+                            {
+                                //既定のテーマ(Aero)をマージする
+                                _appResourceDictionary = (ResourceDictionary)Application.LoadComponent(
+                                    new Uri("/PresentationFramework.Aero, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35;component/themes/aero.normalcolor.xaml", UriKind.Relative));
+                            }
+                        }
+                        catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                    }
+                }
+                return _appResourceDictionary;
+            }
+        }
+
+        private static bool contextMenuResourceDictionaryInitialized;
+        private static ResourceDictionary _contextMenuResourceDictionary;
+        public static ResourceDictionary ContextMenuResourceDictionary
+        {
+            get
+            {
+                if (contextMenuResourceDictionaryInitialized == false)
+                {
+                    contextMenuResourceDictionaryInitialized = true;
+                    if (Instance.ApplyContextMenuStyle)
+                    {
+                        try
+                        {
+                            if (File.Exists(Assembly.GetEntryAssembly().Location + ".rdcm.xaml"))
+                            {
+                                //ResourceDictionaryを定義したファイルがあるので本体にマージする
+                                _contextMenuResourceDictionary = (ResourceDictionary)System.Windows.Markup.XamlReader.Load(
+                                    System.Xml.XmlReader.Create(Assembly.GetEntryAssembly().Location + ".rdcm.xaml"));
+                            }
+                            else
+                            {
+                                //既定のテーマ(Aero)をマージする
+                                _contextMenuResourceDictionary = (ResourceDictionary)Application.LoadComponent(
+                                    new Uri("/PresentationFramework.Aero, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35;component/themes/aero.normalcolor.xaml", UriKind.Relative));
+                            }
+                        }
+                        catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                    }
+                }
+                return _contextMenuResourceDictionary;
+            }
+        }
+        
+        /// <summary>設定ファイルロード関数</summary>
+        public static void LoadFromXmlFile(bool nwMode = false)
         {
             string path = GetSettingPath();
             for (int retry = 0; ;)
@@ -1093,7 +1163,7 @@ namespace EpgTimer
                 catch (Exception ex)
                 {
                     //内容が異常など
-                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                    MessageBox.Show(ex.ToString());
                     MessageBox.Show("現在の設定ファイルは次の名前で保存されます。\r\n" + path + ".err",
                         "設定ファイル読込みエラー", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                     try
@@ -1101,7 +1171,7 @@ namespace EpgTimer
                         try { File.Replace(path, path + ".err", null); }
                         catch (FileNotFoundException) { File.Move(path, path + ".err"); }
                     }
-                    catch (Exception ex2) { MessageBox.Show(ex2.Message + "\r\n" + ex2.StackTrace); }
+                    catch (Exception ex2) { MessageBox.Show(ex2.ToString()); }
                     break;
                 }
             }
@@ -1177,38 +1247,61 @@ namespace EpgTimer
             }
         }
 
+        private static void ReplaceColumTag(string oldTag, string newTag, params List<ListColumnInfo>[] lists)
+        {
+            foreach(var list in lists) list.ForEach(c => { if (c.Tag == oldTag) c.Tag = newTag; });
+        }
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200411) return;
+
+            //互換用コード。ボタン列非表示関連追従。
+            System.Xml.Linq.XElement xdr = null;
+            try { xdr = System.Xml.Linq.XDocument.Load(GetSettingPath()).Root; } catch { }
+            if (xdr != null)
+            {
+                var val = new[] { "IsVisibleReserveView", "IsVisibleRecInfoView", "IsVisibleAutoAddView" }
+                            .Select(s => xdr.Element(s)).Select(xe => xe == null ? (bool?)null : xe.Value != "true").ToArray();
+                if (val[0] != null) Instance.ResHideButton = (bool)val[0];
+                if (val[1] != null) Instance.RecInfoHideButton = (bool)val[1];
+                if (val[2] != null) Instance.AutoAddEpgHideButton = (bool)val[2];
+                if (val[2] != null) Instance.AutoAddManualHideButton = (bool)val[2];
+            }
+
+            if (Instance.verSaved >= 20200320) return;
+
+            //各画面「録画タグ」のカラム名のフォーク元追従。
+            ReplaceColumTag("RecTag", CommonUtil.NameOf(() => new RecSettingItem().BatFileTag)
+                , Instance.ReserveListColumn, Instance.AutoAddEpgColumn, Instance.AutoAddManualColumn
+                , Instance.EpgListColumn, Instance.SearchWndColumn, Instance.InfoSearchWndColumn);
+
             if (Instance.verSaved >= 20190520) return;
 
             //各画面「長さ」のカラム名のフォーク元追従。
-            Action<string, List<ListColumnInfo>> ReplaceDuration = 
-                (newS, lst) => lst.ForEach(c => { if (c.Tag == "ProgramDuration") c.Tag = newS; });
-            var objs = new SearchItem();
-            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.ReserveListColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => new RecInfoItem().Duration), Instance.RecInfoListColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => new ManualAutoAddDataItem().Duration), Instance.AutoAddManualColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.EpgListColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => objs.Duration), Instance.SearchWndColumn);
-            ReplaceDuration(CommonUtil.NameOf(() => new InfoSearchItem().Duration), Instance.InfoSearchWndColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new SearchItem().Duration), Instance.ReserveListColumn, Instance.EpgListColumn, Instance.SearchWndColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new RecInfoItem().Duration), Instance.RecInfoListColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new ManualAutoAddDataItem().Duration), Instance.AutoAddManualColumn);
+            ReplaceColumTag("ProgramDuration", CommonUtil.NameOf(() => new InfoSearchItem().Duration), Instance.InfoSearchWndColumn);
 
             if (Instance.verSaved >= 20190321) return;
 
             //番組表ごとのデザイン対応
-            try
+            if (xdr != null)
             {
                 Instance.EpgSettingList.Clear();//一応クリア
-                var xdr = System.Xml.Linq.XDocument.Load(GetSettingPath()).Root;
                 for (int i = 0; i < 3; i++)
                 {
                     var xe = i == 0 ? xdr : xdr.Element("EpgSetting" + i.ToString());
                     if (xe == null) continue;
-                    Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
-                    Instance.EpgSettingList.Last().ID = i;
+                    try
+                    {
+                        Instance.EpgSettingList.Add((EpgSetting)(new XmlSerializer(typeof(EpgSetting), new XmlRootAttribute(xe.Name.LocalName)).Deserialize(xe.CreateReader())));
+                        Instance.EpgSettingList.Last().ID = i;
+                    }
+                    catch { }
                 }
             }
-            catch { }
 
             if (Instance.verSaved >= 20190217) return;
 
@@ -1241,19 +1334,13 @@ namespace EpgTimer
 
             //互換用コード。カラム名の変更追従。
             var objk = new EpgAutoDataItem();
-            Instance.AutoAddEpgColumn.ForEach(c =>
-            {
-                if (c.Tag == "AndKey") c.Tag = CommonUtil.NameOf(() => objk.EventName);
-                else if (c.Tag == "NetworkKey") c.Tag = CommonUtil.NameOf(() => objk.NetworkName);
-                else if (c.Tag == "ServiceKey") c.Tag = CommonUtil.NameOf(() => objk.ServiceName);
-            });
             var objm = new ManualAutoAddDataItem();
-            Instance.AutoAddManualColumn.ForEach(c =>
-            {
-                if (c.Tag == "Title") c.Tag = CommonUtil.NameOf(() => objm.EventName);
-                else if (c.Tag == "Time") c.Tag = CommonUtil.NameOf(() => objm.StartTime);
-                else if (c.Tag == "StationName") c.Tag = CommonUtil.NameOf(() => objm.ServiceName);
-            });
+            ReplaceColumTag("AndKey", CommonUtil.NameOf(() => objk.EventName), Instance.AutoAddEpgColumn);
+            ReplaceColumTag("NetworkKey", CommonUtil.NameOf(() => objk.NetworkName), Instance.AutoAddEpgColumn);
+            ReplaceColumTag("ServiceKey", CommonUtil.NameOf(() => objk.ServiceName), Instance.AutoAddEpgColumn);
+            ReplaceColumTag("Title", CommonUtil.NameOf(() => objm.EventName), Instance.AutoAddManualColumn);
+            ReplaceColumTag("Time", CommonUtil.NameOf(() => objm.StartTime), Instance.AutoAddManualColumn);
+            ReplaceColumTag("StationName", CommonUtil.NameOf(() => objm.ServiceName), Instance.AutoAddManualColumn);
         }
 
         /// <summary>設定ファイルセーブ関数</summary>
@@ -1297,7 +1384,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { if (notifyException) MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { if (notifyException) MessageBox.Show(ex.ToString()); }
         }
 
         private static string GetSettingPath()

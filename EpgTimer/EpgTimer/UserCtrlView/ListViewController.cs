@@ -120,7 +120,7 @@ namespace EpgTimer
 
             if (defaultContextMenu == true)
             {
-                if (lv.ContextMenu == null) lv.ContextMenu = new ContextMenu();
+                if (lv.ContextMenu == null) lv.ContextMenu = new ContextMenuEx();
 
                 lv.ContextMenu.Opened += (sender, e) =>
                 {
@@ -155,13 +155,9 @@ namespace EpgTimer
 
         public void SaveViewDataToSettings()
         {
-            try
-            {
-                gvSelector.SaveSize();
-                Settings.Instance.SetSettings(sort_HeaderSavePath, this.gvSorter.LastHeader);
-                Settings.Instance.SetSettings(sort_DirectionSavePath, this.gvSorter.LastDirection);
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            gvSelector.SaveSize();
+            Settings.Instance.SetSettings(sort_HeaderSavePath, this.gvSorter.LastHeader);
+            Settings.Instance.SetSettings(sort_DirectionSavePath, this.gvSorter.LastDirection);
         }
 
         public bool ReloadInfoData(Func<List<T>, bool> reloadData)
@@ -195,7 +191,7 @@ namespace EpgTimer
                 oldItems.RestoreListViewSelected();
                 return true;
             }
-            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.ToString()); }
             return false;
         }
 
@@ -225,7 +221,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return false;
         }
 

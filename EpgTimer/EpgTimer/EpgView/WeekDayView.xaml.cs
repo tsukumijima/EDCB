@@ -36,7 +36,7 @@ namespace EpgTimer.EpgView
                 stackPanel_day.Children.Clear();
                 foreach (DateTime time in dayList)
                 {
-                    TextBlock item = ViewUtil.GetPanelTextBlock(time.ToString("M\\/d\r\n(ddd)"));
+                    TextBlock item = ViewUtil.GetPanelTextBlock(time.ToString("M/d\r\n(ddd)"));
                     item.Tag = time;
                     item.Width = this.EpgStyle().ServiceWidth - 1;
 

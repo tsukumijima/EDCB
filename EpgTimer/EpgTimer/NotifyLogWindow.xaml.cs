@@ -35,7 +35,7 @@ namespace EpgTimer
                 //データ読込
                 ReloadInfoData();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         protected override bool ReloadInfoData()
         {
@@ -77,7 +77,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void textBox_logMax_TextChanged(object sender, TextChangedEventArgs e)
         {

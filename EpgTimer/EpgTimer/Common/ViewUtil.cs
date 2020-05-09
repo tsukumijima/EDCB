@@ -266,7 +266,7 @@ namespace EpgTimer
                     notifyTimer.Start();
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return selIdx;
         }
 
@@ -501,7 +501,7 @@ namespace EpgTimer
                 }
                 lb.ItemContainerStyle = newStyle;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public static string WindowTitleText(string contentTitle, string baseTitle)
@@ -611,7 +611,7 @@ namespace EpgTimer
 
                 box.ScrollIntoView(item);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         ///<summary>最後のアイテムを選択してスクロールさせる。addItemがあればリストに追加する。</summary>
         public static void ScrollIntoViewLast(this ListBox box, object addItem = null)

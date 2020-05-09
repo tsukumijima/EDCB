@@ -138,7 +138,7 @@ namespace EpgTimer
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         public override void RefreshMenu()
         {
@@ -304,7 +304,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -528,7 +528,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             StatusManager.StatusNotifySet(ret, AutoAddString + "を" + cmdMsg[code]);
         }
 
@@ -556,7 +556,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             StatusManager.StatusNotifySet(ret, AutoAddString + "を" + cmdMsg[code]);
         }
 

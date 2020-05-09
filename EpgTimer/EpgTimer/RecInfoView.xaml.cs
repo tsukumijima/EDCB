@@ -61,7 +61,7 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_delAll, EpgCmds.DeleteAll);
                 mBinds.SetCommandToButton(button_play, EpgCmds.Play);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         public void RefreshMenu()
         {

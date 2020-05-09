@@ -40,7 +40,6 @@ namespace EpgTimer
             listBox_preset.SelectionChanged += listBox_preset_SelectionChanged;
             textBox_preset.TextChanged += textBox_preset_TextChanged;
 
-            button_cancel.Click += (sender, e) => DialogResult = false;
             button_ok.Click += (sender, e) =>
             {
                 listBox_preset.SelectedIndex = -1;//listBox_preset_SelectionChanged()を走らせる

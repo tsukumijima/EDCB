@@ -31,6 +31,8 @@ namespace EpgTimer
             serviceView.SetViewData(viewData);
         }
 
+        List<EpgServiceInfo> primeServiceList = new List<EpgServiceInfo>();
+
         //強制イベント用。ScrollChangedEventArgsがCreate出来ない(RaiseEvent出来ない)のでOverride対応
         protected override void epgProgramView_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
@@ -100,7 +102,7 @@ namespace EpgTimer
 
                 epgProgramView.SetReserveList(dataItemList);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         /// <summary>番組情報の再描画</summary>
@@ -111,6 +113,7 @@ namespace EpgTimer
                 dateView.ClearInfo();
                 timeView.ClearInfo();
                 serviceView.ClearInfo();
+                primeServiceList.Clear();
                 epgProgramView.ClearInfo();
                 timeList.Clear();
                 programList.Clear();
@@ -119,7 +122,6 @@ namespace EpgTimer
                 if (serviceEventList.Count == 0) return;
 
                 //必要番組の抽出と時間チェック
-                var primeServiceList = new List<EpgServiceInfo>();
                 //番組表でまとめて描画する矩形の幅と番組集合のリスト
                 var programGroupList = new List<PanelItem<List<ProgramViewItem>>>();
                 int groupSpan = 1;
@@ -225,7 +227,15 @@ namespace EpgTimer
                 ReDrawNowLine();
                 MoveNowTime();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+        }
+
+        protected override object GetJumpTabService()
+        {
+            int idx = (int)Math.Floor(clickPos.X / viewData.EpgStyle().ServiceWidth);
+            if (idx < 0 || idx >= primeServiceList.Count) return null;
+            EpgServiceInfo info = primeServiceList[idx];
+            return new SearchItem { ReserveInfo = new ReserveData { OriginalNetworkID = info.ONID, TransportStreamID = info.TSID, ServiceID = info.SID } };
         }
     }
 }

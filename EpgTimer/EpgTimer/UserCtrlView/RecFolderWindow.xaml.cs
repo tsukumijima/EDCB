@@ -21,7 +21,6 @@ namespace EpgTimer
             }
 
             button_ok.Click += (sender, e) => DialogResult = true;
-            button_cancel.Click += (sender, e) => DialogResult = false;
 
             if (CommonManager.Instance.IsConnected == true)
             {

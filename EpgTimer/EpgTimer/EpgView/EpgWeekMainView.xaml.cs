@@ -86,7 +86,7 @@ namespace EpgTimer
 
                 epgProgramView.SetReserveList(dataItemList);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         /// <summary>番組情報の再描画</summary>
@@ -103,7 +103,7 @@ namespace EpgTimer
                 UpdateProgramView();
                 MoveNowTime();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             serviceChanging = false;
         }
         private void UpdateProgramView()
@@ -157,7 +157,7 @@ namespace EpgTimer
 
                 ReDrawNowLine();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         bool serviceChanging = false;

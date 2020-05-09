@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace EpgTimer
 {
@@ -19,6 +20,13 @@ namespace EpgTimer
         {
             epgAutoAddView.RefreshMenu();
             manualAutoAddView.RefreshMenu();
+        }
+
+        public void TabContextMenuOpen(object sender, MouseButtonEventArgs e)
+        {
+            var tab = tabControl.GetPlacementItem() as TabItem;
+            if (tab == tabItem_epgAutoAdd) epgAutoAddView.TabContextMenuOpen(sender, e);
+            if (tab == tabItem_manualAutoAdd) manualAutoAddView.TabContextMenuOpen(sender, e);
         }
 
         public void SaveViewData()

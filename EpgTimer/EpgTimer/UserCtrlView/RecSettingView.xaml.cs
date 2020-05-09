@@ -78,10 +78,11 @@ namespace EpgTimer
                 .Select(info => new TunerSelectInfo(info.tunerName, info.tunerID)));
             comboBox_tuner.SelectedIndex = 0;
 
-            stackPanel_PresetEdit.Children.Clear();
-            stackPanel_PresetEdit.Children.Add(preEdit);
+            grid_PresetEdit.Children.Clear();
+            grid_PresetEdit.Children.Add(preEdit);
             preEdit.Set(this, PresetSelectChanged, PresetEdited, "録画プリセット", SetRecPresetWindow.SettingWithDialog);
             comboBox_preSet = preEdit.comboBox_preSet;
+            checkBox_setWithoutRecTag.IsChecked = Settings.Instance.SetWithoutRecTag;
 
             var bx = new BoxExchangeEditor(null, listView_recFolder, true, true, true);
             bx.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_recFolderChg);
@@ -178,6 +179,7 @@ namespace EpgTimer
             SetCustomPresetDisplayName();
 
             //該当するものがあれば選択、無ければ"登録時"。
+            loadingSetting = true;
             preEdit.ChangeSelect(MatchPresetOrDefault(recSetting), PresetSelectMode.InitLoad);
         }
         public void SetCustomPresetDisplayName()
@@ -250,6 +252,7 @@ namespace EpgTimer
             return 0;
         }
 
+        private bool loadingSetting = true;
         private bool OnUpdatingView = false;
         private void UpdateView()
         {
@@ -263,7 +266,10 @@ namespace EpgTimer
                 checkBox_serviceMode.IsChecked = null;//切り替え時のイベント発生のために必要
                 checkBox_serviceMode.IsChecked = recSetting.ServiceModeIsDefault;
                 textBox_bat.Text = recSetting.BatFilePath;
-                textBox_recTag.Text = recSetting.RecTag;
+                if (loadingSetting == true || checkBox_setWithoutRecTag.IsChecked == false)
+                {
+                    textBox_recTag.Text = recSetting.RecTag;
+                }
 
                 listView_recFolder.Items.Clear();
                 foreach (RecFileSetInfo info in recSetting.RecFolderList)
@@ -289,7 +295,8 @@ namespace EpgTimer
                     comboBox_tuner.SelectedValue = recSetting.TunerID;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+            loadingSetting = false;
             OnUpdatingView = false;
         }
         public void RefreshView()
@@ -410,6 +417,12 @@ namespace EpgTimer
         {
             if (Settings.Instance.DisplayPresetOnSearch == false) return;
             CreatePresetSlelectMenu().IsOpen = true;
+        }
+
+        private void checkBox_setWithoutRecTag_Click(object sender, RoutedEventArgs e)
+        {
+            //これはダイアログの設定なので即座に反映。
+            Settings.Instance.SetWithoutRecTag = (checkBox_setWithoutRecTag.IsChecked == true);
         }
     }
 

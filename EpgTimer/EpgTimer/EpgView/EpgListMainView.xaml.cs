@@ -118,7 +118,7 @@ namespace EpgTimer
                 ReloadReserveInfoFlg = false;//リストビューでは処理済みになる
                 MoveNowTime();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void UpdateEventList(bool scroll = false)
         {

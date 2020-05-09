@@ -50,7 +50,7 @@ namespace EpgTimer.TunerReserveViewCtrl
                 PopupClear();
                 TooltipClear();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected override PanelItem GetPopupItem(Point cursorPos, bool onClick)

@@ -1,7 +1,7 @@
 ﻿<Window x:Class="EpgTimer.ConnectWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ネットワーク接続" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="ネットワーク接続" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Closing="Window_Closing">
     <StackPanel Margin="12" >
         <StackPanel Margin="4,0,0,0" Orientation="Horizontal">
             <TextBlock Text="プリセット" />

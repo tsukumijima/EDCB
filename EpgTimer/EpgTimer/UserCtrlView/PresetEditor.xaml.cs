@@ -85,7 +85,7 @@ namespace EpgTimer
 
                 if (changeSelect_noEvent == false) SelectionChanged(item, changeSelect_msg);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             changeSelect_noEvent = false;
             changeSelect_msg = null;
         }
@@ -124,7 +124,7 @@ namespace EpgTimer
                     PresetEdited(mode);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void button_set_Click(object sender, RoutedEventArgs e)
@@ -140,7 +140,7 @@ namespace EpgTimer
 
         public ContextMenu CreateSlelectMenu(Func<S, bool> isMenuChecked = null, Func<S, bool> isMenuEnabled = null, RoutedEventHandler clicked = null)
         {
-            var ctxm = new ContextMenu();
+            var ctxm = new ContextMenuEx();
             int i = 0;
             foreach (var item in Items)
             {

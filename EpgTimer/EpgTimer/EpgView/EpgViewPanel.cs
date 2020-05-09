@@ -49,9 +49,9 @@ namespace EpgTimer.EpgView
                 Brush colorNormal = info.Filtered ? this.EpgBrushCache().NormalFilteredColor : this.EpgBrushCache().NormalColor;
 
                 //分
-                string min = info.Data.StartTimeFlag == 0 ? "？" : info.Data.start_time.ToString(info.DrawHours ? "HH\\:mm" : "mm");
+                string min = info.Data.StartTimeFlag == 0 ? "？" : (info.DrawHours ? new DateTime28(info.Data.start_time).HourMod.ToString("00:") : "") + info.Data.start_time.ToString("mm");
                 double useHeight = sizeNormal / 3 + RenderText(textDrawList, min, ItemFontTitle, sizeMin, drawRect, 0, 0, colorTitle);
-                
+
                 //番組情報
                 if (info.Data.ShortInfo != null)
                 {

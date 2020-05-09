@@ -247,7 +247,7 @@ namespace EpgTimer
                 comboBox_em.SelectedIndex = endTime.Minute;
                 comboBox_es.SelectedIndex = endTime.Second;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private int GetReserveTimeInfo(ref ReserveData resInfo)
@@ -279,7 +279,7 @@ namespace EpgTimer
                 resInfo.DurationSecond = (uint)Math.Max(0, (endTime - resInfo.StartTime).TotalSeconds);
                 return resInfo.StartTime > endTime ? -2 : 0;
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return -1;
         }
 
@@ -389,7 +389,7 @@ namespace EpgTimer
                 }
                 SetReserveTabHeader(false);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         private void reserve_del(object sender, ExecutedRoutedEventArgs e)
         {

@@ -29,7 +29,7 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <CheckBox Content="部分受信" Name="chkbox_partial" Margin="0,0,20,0" />
             <Button Content="追加" Margin="0,0,12,0" Name="button_ok" Width="75" IsDefault="True" />
-            <Button Content="キャンセル"  Name="button_cancel" Width="75" IsCancel="True" />
+            <Button Content="キャンセル"  Width="75" IsCancel="True" />
         </StackPanel>
     </StackPanel>
 </Window>

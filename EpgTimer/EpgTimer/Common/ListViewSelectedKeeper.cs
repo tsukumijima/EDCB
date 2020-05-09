@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -64,7 +62,7 @@ namespace EpgTimer
                     listBox.ScrollIntoView(listBox.SelectedItem);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
     }

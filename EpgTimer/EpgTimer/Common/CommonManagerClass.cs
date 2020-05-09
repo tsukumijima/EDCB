@@ -616,13 +616,13 @@ namespace EpgTimer
             if (Settings.Instance.LaterTimeUse == true)
             {
                 var time28 = new DateTime28(time, isUse28, ref_start);
-                return (isNoDay == true ? "" : time28.DateTimeMod.ToString((isNoYear == true ? "MM\\/dd(ddd) " : "yyyy\\/MM\\/dd(ddd) ")))
-                + time28.HourMod.ToString("00\\:") + time.ToString(isNoSecond == true ? "mm" : "mm\\:ss");
+                return (isNoDay == true ? "" : time28.DateTimeMod.ToString((isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")))
+                + time28.HourMod.ToString("00:") + time.ToString(isNoSecond == true ? "mm" : "mm:ss");
             }
             else
             {
                 return time.ToString((isNoDay == true ? "" :
-                (isNoYear == true ? "MM\\/dd(ddd) " : "yyyy\\/MM\\/dd(ddd) ")) + (isNoSecond == true ? "HH\\:mm" : "HH\\:mm\\:ss"));
+                (isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")) + (isNoSecond == true ? "HH:mm" : "HH:mm:ss"));
             }
         }
         public static String ConvertDurationText(uint duration, bool isNoSecond)
@@ -976,21 +976,31 @@ namespace EpgTimer
         }
         public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo, ReserveData resInfo = null)
         {
-            String epgText = ConvertProgramText(eventInfo, EventInfoTextMode.All, resInfo);
-            if (epgText == "") epgText = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。";
-            String text = epgText;
+            string text = ConvertProgramText(eventInfo, EventInfoTextMode.All, resInfo);
+            if (text == "") text = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。";
 
+            return ConvertDisplayText(text);
+        }
+        public static FlowDocument ConvertDisplayText(string text)
+        {
             int searchFrom = 0;
-            Paragraph para = new Paragraph();
-            string rtext = ReplaceUrl(text);
+            var para = new Paragraph();
+            string rtext = ReplaceText(text, ReplaceUrlDictionary);
             if (rtext.Length == text.Length)
             {
                 for (Match m = Regex.Match(rtext, @"https?://[0-9A-Za-z!#$%&'()~=@;:?_+\-*/.]+"); m.Success; m = m.NextMatch())
                 {
                     para.Inlines.Add(text.Substring(searchFrom, m.Index - searchFrom));
-                    Hyperlink h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
-                    h.MouseLeftButtonDown += new MouseButtonEventHandler(h_MouseLeftButtonDown);
-                    h.Foreground = Brushes.Blue;
+                    var h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
+                    h.MouseLeftButtonDown += (sender, e) =>
+                    {
+                        try
+                        {
+                            using (Process.Start(((Hyperlink)sender).NavigateUri.ToString())) { }
+                        }
+                        catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                    };
+                    h.Foreground = SystemColors.HotTrackBrush;
                     h.Cursor = Cursors.Hand;
                     h.NavigateUri = new Uri(m.Value);
                     para.Inlines.Add(h);
@@ -1016,19 +1026,6 @@ namespace EpgTimer
             };
             var check = new HashSet<int>(ChSet5.ChList.Values.Select(info => info.IsDttv ? -1 : info.IsBS ? -2 : info.IsCS ? -3 : info.IsSPHD ? -4 : -5));
             return setInfo.Where(info => check.Contains(info.ID)).ToList();
-        }
-
-        static void h_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                if (sender is Hyperlink)
-                {
-                    var h = sender as Hyperlink;
-                    Process.Start(h.NavigateUri.ToString());
-                }
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
         }
 
         public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false, string defaultPath = "")
@@ -1063,7 +1060,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -1098,7 +1095,7 @@ namespace EpgTimer
                     return isNameOnly == true ? dlg.SafeFileName : dlg.FileName;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return null;
         }
 
@@ -1168,7 +1165,7 @@ namespace EpgTimer
                 if (Instance.NWMode == false || path.StartsWith("\\\\", StringComparison.Ordinal) == true) return path;
                 CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref nwPath);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             return nwPath;
         }
 
@@ -1192,7 +1189,7 @@ namespace EpgTimer
                     Process.Start("EXPLORER.EXE", cmd + "\"" + path + "\"");
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         public void FilePlay(ReserveData data)
@@ -1213,15 +1210,19 @@ namespace EpgTimer
             {
                 //ファイルパスを取得するため開いてすぐ閉じる
                 var info = new NWPlayTimeShiftInfo();
-                if (CreateSrvCtrl().SendNwTimeShiftOpen(data.ReserveID, ref info) == ErrCode.CMD_SUCCESS)
+                try
                 {
-                    CreateSrvCtrl().SendNwPlayClose(info.ctrlID);
-                    if (info.filePath != "")
+                    if (CreateSrvCtrl().SendNwTimeShiftOpen(data.ReserveID, ref info) == ErrCode.CMD_SUCCESS)
                     {
-                        FilePlay(info.filePath);
-                        return;
+                        CreateSrvCtrl().SendNwPlayClose(info.ctrlID);
+                        if (info.filePath != "")
+                        {
+                            FilePlay(info.filePath);
+                            return;
+                        }
                     }
                 }
+                catch { }
                 MessageBox.Show("録画ファイルの場所がわかりませんでした。", "追っかけ再生", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
@@ -1284,7 +1285,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         const int NotifyLogMaxLocal = 8192 * 2;
@@ -1397,7 +1398,7 @@ namespace EpgTimer
                     CommonUtil.SetForegroundWindow(SrvSettingProcess.MainWindowHandle);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         //2回呼び出されるが、2回目の呼び出しはキャッシュヒットで落ちる。

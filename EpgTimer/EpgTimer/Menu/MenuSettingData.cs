@@ -101,7 +101,7 @@ namespace EpgTimer
                     //エラーの場合があり得る
                     return new KeyGesture(skey, mKey); 
                 }
-                catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+                catch (Exception ex) { MessageBox.Show(ex.ToString()); }
                 return null;
             }
         }

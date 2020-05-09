@@ -11,9 +11,12 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Margin="16,4,4,6" Name="stackPanel_PresetEdit" >
-            <my:PresetEditorBase /><!-- デザイン時用。実行時は別途Addする -->
-        </Grid>
+        <StackPanel Margin="16,4,4,6" Orientation="Horizontal" Name="stackPanel_PresetEdit" >
+            <Grid Name="grid_PresetEdit">
+                <my:PresetEditorBase /><!-- デザイン時用。実行時は別途Addする -->
+            </Grid>
+            <CheckBox Content="録画タグを除く" Margin="8,0,0,0" Name="checkBox_setWithoutRecTag" Click="checkBox_setWithoutRecTag_Click" ToolTip="プリセット読込時、「録画タグ」はそのままにします。&#10;　※右クリックメニューからのプリセット変更などにも適用されます。"/>
+        </StackPanel>
         <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FF8C8E94" Padding="10,8">
             <Grid>
                 <Grid.RowDefinitions>
@@ -23,7 +26,7 @@
                 </Grid.RowDefinitions>
                 <Grid>
                     <Label Content="録画モード" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                    <ComboBox HorizontalAlignment="Left" Margin="77,3,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="160" />
+                    <ComboBox HorizontalAlignment="Left" Margin="77,3,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="180" />
                     <Label Content="イベントリレー追従" HorizontalAlignment="Left" Margin="294,0,0,0" VerticalAlignment="Top" />
                     <ComboBox HorizontalAlignment="Left" Margin="414,3,0,0" Name="comboBox_tuijyu" VerticalAlignment="Top" Width="75" />
                     <Label Content="ぴったり(?)録画" HorizontalAlignment="Left" Margin="294,27,0,0" VerticalAlignment="Top" />

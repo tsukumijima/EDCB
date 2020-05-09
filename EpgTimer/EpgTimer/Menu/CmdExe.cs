@@ -53,7 +53,7 @@ namespace EpgTimer
         public virtual void SetFuncReleaseSelectedData(Action f) { }
 
         public virtual void AddReplaceCommand(ICommand icmd, ExecutedRoutedEventHandler exe, CanExecuteRoutedEventHandler canExe = null) { }
-        public virtual void ResetCommandBindings(UIElement cTrgView, UIElement cTrgMenu = null) { }
+        public virtual void ResetCommandBindings(params UIElement[] cTrgs) { }
         public virtual object GetJumpTabItem(CtxmCode trg_code = CtxmCode.EpgView) { return null; }
         public virtual Int32 EpgInfoOpenMode { get; set; }
         public virtual void SupportContextMenuLoading(object sender, RoutedEventArgs e) { }
@@ -213,7 +213,7 @@ namespace EpgTimer
             }
         }
         /// <summary>持っているコマンドを登録する。</summary>
-        public override void ResetCommandBindings(UIElement cTrgView, UIElement cTrgMenu = null)
+        public override void ResetCommandBindings(params UIElement[] cTrgs)
         {
             try
             {
@@ -223,7 +223,7 @@ namespace EpgTimer
                     ExecutedRoutedEventHandler exeh = GetExecute(item.Key);
                     if (exeh != null)
                     {
-                        foreach (var cTrg in new List<UIElement> { cTrgView, cTrgMenu }.OfType<UIElement>())
+                        foreach (var cTrg in cTrgs)
                         {
                             //古いものは削除
                             var delList = cTrg.CommandBindings.OfType<CommandBinding>().Where(bind => bind.Command == item.Key).ToList();
@@ -233,7 +233,7 @@ namespace EpgTimer
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
         protected ExecutedRoutedEventHandler GetExecute(ICommand icmd)
         {
@@ -264,7 +264,7 @@ namespace EpgTimer
                         }
                     }
                 }
-                catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+                catch (Exception ex) { MessageBox.Show(ex.ToString()); }
                 ClearData();
             });
         }
@@ -466,7 +466,7 @@ namespace EpgTimer
             if (e.Command == EpgCmds.ChgOnPreset)
             {
                 var val = Settings.Instance.RecPreset(CmdExeUtil.ReadIdData(e, 0, 0xFE)).Data;
-                foreach (var data in dataList.OfType<IRecSetttingData>()) data.RecSettingInfo = val.DeepClone();
+                MenuUtil.ChangeRecSet(dataList.OfType<IRecSetttingData>(), val);
             }
             else if (e.Command == EpgCmds.ChgRecmode)
             {
@@ -579,7 +579,7 @@ namespace EpgTimer
                     mcs_ctxmLoading_switch(ctxm, menu);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
             ClearData();
         }
         protected virtual void mcs_ctxmLoading_switch(ContextMenu ctxm, MenuItem menu) { }

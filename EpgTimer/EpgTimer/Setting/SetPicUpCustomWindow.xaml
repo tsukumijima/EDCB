@@ -53,7 +53,7 @@
         </GroupBox>
         <DockPanel HorizontalAlignment="Right" Margin="20,10,24,0">
             <Button Content="OK" Name="button_ok" MinWidth="75" />
-            <Button Content="キャンセル" Name="button_cancel" Margin="20,0,0,0" IsCancel="True" MinWidth="75"/>
+            <Button Content="キャンセル" Margin="20,0,0,0" IsCancel="True" MinWidth="75"/>
         </DockPanel>
     </StackPanel>
 </Window>

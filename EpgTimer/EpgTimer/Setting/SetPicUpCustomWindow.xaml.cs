@@ -29,7 +29,6 @@ namespace EpgTimer
             textbox_TestInput.Text = testString;
             this.Closing += (sender, e) => testString = textbox_TestInput.Text;
             button_ok.Click += (sender, e) => DialogResult = true;
-            button_cancel.Click += (sender, e) => DialogResult = false;
 
             button_ReplaceClear.Click += (sender, e) => textBox_replaceSet.Clear();
             button_ReplaceCopy.Click += (sender, e) => AddSetData(textBox_replaceSet, PicUpTitle.ReplaceSetDefault);
@@ -76,7 +75,7 @@ namespace EpgTimer
             catch (Exception ex)
             {
                 textbox_TestResult.TextWrapping = TextWrapping.Wrap;
-                textbox_TestResult.Text = ex.Message;
+                textbox_TestResult.Text = ex.ToString();
             }
         }
     }

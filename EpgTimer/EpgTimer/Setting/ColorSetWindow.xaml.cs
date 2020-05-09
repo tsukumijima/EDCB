@@ -29,7 +29,6 @@ namespace EpgTimer.Setting
             comboBox_color.ItemsSource = typeof(Brushes).GetProperties().Select(p => new ColorComboItem(p.Name, (Brush)p.GetValue(null, null)));
             comboBox_color.SelectedIndex = 0;
             button_OK.Click += (sender, e) => DialogResult = true;
-            button_cancel.Click += (sender, e) => DialogResult = false;
 
             this.Owner = CommonUtil.GetTopWindow(owner);
             SetColor(color);

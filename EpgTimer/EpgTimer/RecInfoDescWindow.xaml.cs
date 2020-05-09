@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -70,7 +71,7 @@ namespace EpgTimer
 
                 ChangeData(info);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         protected override bool ReloadInfoData()
@@ -98,7 +99,7 @@ namespace EpgTimer
                 {
                     recInfo.ProgramInfo = CommonManager.ConvertProgramText(recInfo.GetPgInfo(), EventInfoTextMode.All);
                 }
-                textBox_pgInfo.Text = recInfo.ProgramInfo;
+                textBox_pgInfo.Document = CommonManager.ConvertDisplayText(recInfo.ProgramInfo);
                 textBox_errLog.Text = recInfo.ErrInfo;
             }
             UpdateViewSelection(0);

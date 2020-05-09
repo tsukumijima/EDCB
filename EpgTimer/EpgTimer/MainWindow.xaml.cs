@@ -60,33 +60,13 @@ namespace EpgTimer
                 Environment.Exit(0);
             }
 
-            if (Settings.Instance.NoStyle == 0)
+            if (Settings.AppResourceDictionary != null)
             {
-                if (File.Exists(System.Reflection.Assembly.GetEntryAssembly().Location + ".rd.xaml"))
-                {
-                    //ResourceDictionaryを定義したファイルがあるので本体にマージする
-                    try
-                    {
-                        App.Current.Resources.MergedDictionaries.Add(
-                            (ResourceDictionary)System.Windows.Markup.XamlReader.Load(
-                                System.Xml.XmlReader.Create(System.Reflection.Assembly.GetEntryAssembly().Location + ".rd.xaml")));
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.ToString());
-                    }
-                }
-                else
-                {
-                    //既定のテーマ(Aero)をマージする
-                    App.Current.Resources.MergedDictionaries.Add(
-                        Application.LoadComponent(new Uri("/PresentationFramework.Aero, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35;component/themes/aero.normalcolor.xaml", UriKind.Relative)) as ResourceDictionary
-                        );
-                }
+                Application.Current.Resources.MergedDictionaries.Add(Settings.AppResourceDictionary);
             }
 
             // レイアウト用のスタイルをロード
-            App.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Style/UiLayoutStyles.xaml") });
+            Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Style/UiLayoutStyles.xaml") });
 
             //ツールチップの表示時間を30秒、Disableでも表示するように変更
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(true));
@@ -234,6 +214,9 @@ namespace EpgTimer
                     (e.RemovedItems[0] as TabItem == tabItem_reserve ? tabItem_epg : tabItem_reserve).IsSelected = true;
                 };
 
+                //自動登録の個別タブに番組表設定画面を出すコンテキストメニューを表示する
+                tabItem_AutoAdd.MouseRightButtonUp += autoAddView.TabContextMenuOpen;
+
                 //番組表タブに番組表設定画面を出すコンテキストメニューを表示する
                 tabItem_epg.MouseRightButtonUp += epgView.EpgTabContextMenuOpen;
 
@@ -241,10 +224,6 @@ namespace EpgTimer
                 tabControl_main.MouseRightButtonUp += (sender, e) =>
                 {
                     var tab = tabControl_main.GetPlacementItem() as TabItem;
-                    if (tab == null && autoAddView.IsVisible == true && autoAddView.tabControl.GetPlacementItem() is TabItem)
-                    {
-                        tab = tabItem_AutoAdd;
-                    }
                     if (tab == null) return;
 
                     e.Handled = true;
@@ -257,7 +236,7 @@ namespace EpgTimer
 
                     var menuSet = new MenuItem { Header = (tab.Header as string ?? tab.Tag as string) + "の画面設定(_O)..." };
                     menuSet.Click += (s2, e2) => OpenSettingDialog(mode);
-                    var ctxm = new ContextMenu { IsOpen = true };
+                    var ctxm = new ContextMenuEx { IsOpen = true };
                     ctxm.Items.Add(menuSet);
 
                     //チューナー不足時の追加メニュー
@@ -303,7 +282,7 @@ namespace EpgTimer
                     Dispatcher.BeginInvoke(new Action(() => ConnectCmd()), DispatcherPriority.Loaded);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private static bool CheckCmdLine()
@@ -375,23 +354,22 @@ namespace EpgTimer
                     { Dock.Top, new Thickness(0, 0, 0, 6) },{ Dock.Bottom, new Thickness(12, 6, 0, 0) },
                     { Dock.Left, new Thickness(0, 12, 6, 0) },{ Dock.Right, new Thickness(6, 12, 0, 0) }}[dock];
 
-            var SetButtonsPanel = new Action<StackPanel, bool, bool>((panel, pnlVisible, btnVisible) =>
+            var SetButtonsPanel = new Action<StackPanel, bool>((panel, pnlHide) =>
             {
                 DockPanel.SetDock(panel, dock);
-                panel.Visibility = ToVisibility(pnlVisible);
+                panel.Visibility = ToVisibility(!pnlHide);
                 panel.Orientation = IsVertical ? Orientation.Vertical : Orientation.Horizontal;
                 panel.Margin = panel_margin;
                 foreach (var btn in panel.Children.OfType<Button>())
                 {
                     btn.MinWidth = 75;
                     btn.Margin = IsVertical ? new Thickness(0, 0, 0, 10) : new Thickness(0, 0, 12, 0);
-                    btn.Visibility = ToVisibility(btnVisible);
                 }
             });
-            SetButtonsPanel(reserveView.stackPanel_button, Settings.Instance.IsVisibleReserveView, true);
-            SetButtonsPanel(recInfoView.stackPanel_button, Settings.Instance.IsVisibleRecInfoView, true);
-            SetButtonsPanel(autoAddView.epgAutoAddView.stackPanel_button, Settings.Instance.IsVisibleAutoAddView, Settings.Instance.IsVisibleAutoAddViewMoveOnly == false);
-            SetButtonsPanel(autoAddView.manualAutoAddView.stackPanel_button, Settings.Instance.IsVisibleAutoAddView, Settings.Instance.IsVisibleAutoAddViewMoveOnly == false);
+            SetButtonsPanel(reserveView.stackPanel_button, Settings.Instance.ResHideButton);
+            SetButtonsPanel(recInfoView.stackPanel_button, Settings.Instance.RecInfoHideButton);
+            SetButtonsPanel(autoAddView.epgAutoAddView.stackPanel_button, Settings.Instance.AutoAddEpgHideButton);
+            SetButtonsPanel(autoAddView.manualAutoAddView.stackPanel_button, Settings.Instance.AutoAddManualHideButton);
 
             //面倒なのでここで処理
             var SetDragMover = new Action<ListBoxDragMoverView>(dm =>
@@ -650,6 +628,7 @@ namespace EpgTimer
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
             CommonManager.Instance.DB.ReloadEpgDatabaseInfo(true);
             CommonManager.Instance.DB.ReloadReserveInfo(true);
+            CommonManager.Instance.DB.ClearRecFileAppend();
             CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
             CommonManager.Instance.DB.ReloadManualAutoAddInfo(true);
             if (Settings.Instance.NgAutoEpgLoadNW == false)
@@ -1165,7 +1144,7 @@ namespace EpgTimer
                         break;
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         void NwTVEndCmd()
@@ -1536,7 +1515,7 @@ namespace EpgTimer
                 }
                 StatusManager.StatusNotifySet("情報の強制更新を実行(F5)");
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace); }
+            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
 
         }
 
@@ -1673,6 +1652,18 @@ namespace EpgTimer
             else if (this.autoAddView.manualAutoAddView.listView_key.IsVisible == true)
             {
                 this.autoAddView.manualAutoAddView.listView_key.Focus();
+            }
+        }
+    }
+
+    /// <summary>アプリケーション全体に適用する拡張コンテキストメニュー</summary>
+    public class ContextMenuEx : ContextMenu
+    {
+        public ContextMenuEx()
+        {
+            if (Settings.ContextMenuResourceDictionary != null)
+            {
+                Resources.MergedDictionaries.Add(Settings.ContextMenuResourceDictionary);
             }
         }
     }

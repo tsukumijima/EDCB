@@ -116,6 +116,7 @@ namespace EpgTimer.Setting
 
             button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
             checkBox_NotNoStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", System.IO.Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location) + ".rd.xaml");
+            checkBox_ApplyContextMenuStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", System.IO.Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location) + ".rdcm.xaml");
 
             comboBox_startTab.ItemsSource = new Dictionary<CtxmCode, string> {
                         { CtxmCode.ReserveView, "予約一覧" },{ CtxmCode.TunerReserveView, "使用予定チューナー" },
@@ -399,7 +400,7 @@ namespace EpgTimer.Setting
             menuCustom2.Click += (sender2, e2) => SetColor(true);
             menuSelect.Click += (sender2, e2) => ColorSetWindow.SelectNearColor(cmb, ((SolidColorBrush)btn.Background).Color);
             
-            ContextMenu ctxm = new ContextMenu();
+            ContextMenu ctxm = new ContextMenuEx();
             ctxm.Items.Add(menuCustom1);
             ctxm.Items.Add(menuCustom2);
             ctxm.Items.Add(menuReset);
