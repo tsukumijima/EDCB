@@ -451,7 +451,7 @@ namespace EpgTimer
             }
             //DeleteはRecInfo分含めてdataList.Countに入っている。
             int procCount = GetCmdParam(icmd).ExeType == cmdExeType.SingleItem ? 1 :
-                            icmd == EpgCmds.Add || icmd == EpgCmds.AddOnPreset ? eventListAdd.Count :
+                            icmd == EpgCmds.AddReserve || icmd == EpgCmds.AddOnPreset ? eventListAdd.Count :
                                 dataList.Count + (icmd == EpgCmds.ChgOnOff ? eventListEx.Count : 0);
 
             return procCount == 0 ? null : GetCmdMessageFormat(cmdMsg, procCount);

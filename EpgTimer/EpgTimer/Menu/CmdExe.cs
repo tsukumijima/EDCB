@@ -87,7 +87,7 @@ namespace EpgTimer
         public CmdExe(UIElement owner)
         {
             this.Owner = owner;
-            cmdList.Add(EpgCmds.Add, new cmdOption(mc_Add, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.AddReserve, new cmdOption(mc_Add, null, cmdExeType.MultiItem));
             cmdList.Add(EpgCmds.AddOnPreset, new cmdOption(mc_AddOnPreset, null, cmdExeType.MultiItem));
             cmdList.Add(EpgCmds.ChgOnOff, new cmdOption(mc_ChangeOnOff, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgOnPreset, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
@@ -821,7 +821,7 @@ namespace EpgTimer
         }
         protected static void SetCmdMessage()
         {
-            cmdMessage.Add(EpgCmds.Add, "予約を追加");
+            cmdMessage.Add(EpgCmds.AddReserve, "予約を追加");
             cmdMessage.Add(EpgCmds.AddOnPreset, "指定プリセットで予約を追加");
             cmdMessage.Add(EpgCmds.ChgOnOff, "簡易予約/有効・無効切替を実行");
             cmdMessage.Add(EpgCmds.ChgOnPreset, "録画プリセットを変更");

@@ -459,9 +459,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20200411、20200320、20190520、20190321、20190217、20170717、20170512
+        //ver履歴 20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20200411; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200528; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -1254,6 +1254,15 @@ namespace EpgTimer
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200528) return;
+
+            //フォーク元との擦り合せ。ショートカットキーの変更に伴い、該当部分を初期化。
+            var chgCmds = new[] { EpgCmds.AddInDialog, EpgCmds.ChangeInDialog, EpgCmds.DeleteInDialog, EpgCmds.ReSearch, EpgCmds.ReSearch2 };
+            Instance.MenuSet.EasyMenuItems.ForEach(item =>
+            {
+                if(chgCmds.Contains(item.GetCommand())) item.ShortCuts.Clear();
+            });
+
             if (Instance.verSaved >= 20200411) return;
 
             //互換用コード。ボタン列非表示関連追従。
