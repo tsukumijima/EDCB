@@ -404,7 +404,14 @@ namespace EpgTimer
         protected virtual void mc_Play(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_OpenFolder(object sender, ExecutedRoutedEventArgs e)
         {
-            CommonManager.OpenRecFolder(CmdExeUtil.ReadObjData(e) as string);
+            var path = CmdExeUtil.ReadObjData(e) as string;
+            if (string.IsNullOrEmpty(path) && dataList[0] is IRecSetttingData)//ショートカットから
+            {
+                RecSettingData recSet = (dataList[0] as IRecSetttingData).RecSettingInfo;
+                RecFileSetInfo f1 = recSet.RecFolderList.Concat(recSet.PartialRecFolder).FirstOrDefault();
+                path = (f1 == null || f1.RecFolder == "!Default") ? Settings.Instance.DefRecFolders[0] : f1.RecFolder;
+            }
+            CommonManager.OpenRecFolder(path);
             IsCommandExecuted = true;
         }
         protected virtual void mc_CopyTitle(object sender, ExecutedRoutedEventArgs e)

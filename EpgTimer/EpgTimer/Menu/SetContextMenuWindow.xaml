@@ -196,7 +196,7 @@
             </TabItem>
         </TabControl>
         <Grid Grid.Row="1" Margin="30,10,30,6" MinWidth="300">
-            <Button Content="設定の初期化" Click="button_Initialize_Click" HorizontalAlignment="Left" MinWidth="100" ToolTip="Shift+クリックでショートカットキーのみ初期化&#10;(※他はダイアログを開いた時の状態に戻ります)" />
+            <Button Content="設定の初期化" Click="button_Initialize_Click" HorizontalAlignment="Left" MinWidth="100" ToolTip="Shift+クリックでショートカットキー割り当てのみ初期化&#10;(※選択状態などはダイアログを開いた時の状態に戻ります)" />
             <DockPanel HorizontalAlignment="Right">
                 <Button Content="OK" Margin="0,0,20,0" MinWidth="75" Click="button_OK_Click" />
                 <Button Content="キャンセル" MinWidth="75" IsCancel="True" />

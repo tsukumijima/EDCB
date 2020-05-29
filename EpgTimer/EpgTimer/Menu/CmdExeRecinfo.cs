@@ -34,6 +34,11 @@ namespace EpgTimer
             }
             return true;
         }
+        protected override void mc_OpenFolder(object sender, ExecutedRoutedEventArgs e)
+        {
+            CommonManager.OpenRecFolder(dataList[0].RecFilePath);
+            IsCommandExecuted = true;
+        }
         protected override void mc_Play(object sender, ExecutedRoutedEventArgs e)
         {
             CommonManager.Instance.FilePlay(dataList[0].RecFilePath);
@@ -71,9 +76,7 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmds.OpenFolder)
             {
-                string path = (dataList.Count == 0 ? null : dataList[0].RecFilePath);
-                (menu.CommandParameter as EpgCmdParam).Data = path;
-                menu.ToolTip = path;
+                menu.ToolTip = dataList.Count == 0 ? null : dataList[0].RecFilePath;
             }
         }
     }

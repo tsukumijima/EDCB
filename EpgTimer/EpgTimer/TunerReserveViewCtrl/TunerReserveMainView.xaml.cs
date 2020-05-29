@@ -18,7 +18,7 @@ namespace EpgTimer
         private Point clickPos;
 
         private CmdExeReserve mc; //予約系コマンド集
-        private ContextMenu cmdMenu = new ContextMenuEx();//tunerReserveView.Contextmenu使うとフォーカスおかしくなる‥。
+        private ContextMenu cmdMenu = new ContextMenuEx() { Tag = -1 };//tunerReserveView.Contextmenu使うとフォーカスおかしくなる‥。
 
         public TunerReserveMainView()
         {

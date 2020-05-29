@@ -67,7 +67,7 @@ namespace EpgTimer
             AddCommand(EpgCmds.DeleteAll, Key.D, ModifierKeys.Control | ModifierKeys.Alt, spc: GestureTrg.ToView);
             AddCommand(EpgCmds.AdjustReserve, isEnable: false);
             AddCommand(EpgCmds.ShowDialog, Key.Enter, gesNeedMenu: false);//doubleclickは上手く入らないので省略
-            AddCommand(EpgCmds.ShowAddDialog, spc: GestureTrg.ToView, isEnable: false);
+            AddCommand(EpgCmds.ShowAddDialog, Key.N, ModifierKeys.Control, spc: GestureTrg.ToView, isEnable: false);
             AddCommand(EpgCmds.JumpReserve, Key.F3, ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.JumpRecInfo, Key.F3, ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.JumpTuner, Key.F3, ModifierKeys.Control, isEnable: false);
@@ -77,7 +77,7 @@ namespace EpgTimer
             AddCommand(EpgCmds.ReSearch, Key.K, ModifierKeys.Control | ModifierKeys.Shift);
             AddCommand(EpgCmds.ReSearch2, Key.K, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.Play, Key.P, ModifierKeys.Control);
-            AddCommand(EpgCmds.OpenFolder, isEnable: false);
+            AddCommand(EpgCmds.OpenFolder, Key.O, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.CopyTitle, Key.C, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.CopyContent, Key.C, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.InfoSearchTitle, Key.T, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
