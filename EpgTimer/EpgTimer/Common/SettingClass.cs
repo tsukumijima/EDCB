@@ -281,17 +281,13 @@ namespace EpgTimer
             path = string.IsNullOrEmpty(path) == true ? GetDefSettingFolderPath(isSrv) : path;
             return (Path.IsPathRooted(path) ? "" : GetModulePath(isSrv).TrimEnd('\\') + "\\") + path;
         }
-        public static string DefSettingFolderPath
-        {
-            get { return GetDefSettingFolderPath(); }
-        }
         public static string SettingFolderPath
         {
             get { return GetSettingFolderPath(); }
             set
             {
                 string path = CheckFolder(value);
-                bool isDefaultPath = path == "" || path.TrimEnd('\\').Equals(SettingPath.DefSettingFolderPath.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) == true;
+                bool isDefaultPath = path == "" || path.TrimEnd('\\').Equals(GetDefSettingFolderPath().TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) == true;
                 if (CommonManager.Instance.NWMode == false)
                 {
                     IniFileHandler.WritePrivateProfileString("SET", "DataSavePath", isDefaultPath == true ? null : path, SettingPath.CommonIniPath);
@@ -709,15 +705,14 @@ namespace EpgTimer
                 {
                     defRecFolders = new List<string>();
                     int num = IniFileHandler.GetPrivateProfileInt("SET", "RecFolderNum", 0, SettingPath.CommonIniPath);
-                    if (num <= 0) defRecFolders.Add("");
 
                     for (int i = 0; i < num; i++)
                     {
                         defRecFolders.Add(IniFileHandler.GetPrivateProfileFolder("SET", "RecFolderPath" + i.ToString(), SettingPath.CommonIniPath));
                     }
 
-                    if (defRecFolders[0] == "") defRecFolders[0] = SettingPath.SettingFolderPath;
                     defRecFolders = defRecFolders.Except(new[] { "" }).ToList();
+                    if (defRecFolders.Count == 0) defRecFolders.Add(SettingPath.GetSettingFolderPath(true));
                 }
                 return defRecFolders;
             }
@@ -727,7 +722,7 @@ namespace EpgTimer
         {
             if (defRecFolders == null) return;
 
-            int recFolderCount = defRecFolders.Count == 1 && defRecFolders[0].Equals(SettingPath.SettingFolderPath, StringComparison.OrdinalIgnoreCase) == true ? 0 : defRecFolders.Count;
+            int recFolderCount = defRecFolders.Count == 1 && defRecFolders[0].Equals(SettingPath.GetSettingFolderPath(true), StringComparison.OrdinalIgnoreCase) == true ? 0 : defRecFolders.Count;
             IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
             IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
 

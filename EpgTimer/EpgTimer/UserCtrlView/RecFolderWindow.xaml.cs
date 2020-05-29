@@ -34,7 +34,7 @@ namespace EpgTimer
             comboBox_recNamePlugIn.SelectedIndex = 0;
 
             //フォルダ設定無しの場合の表示
-            textBox_recFolderDef.Text = Settings.Instance.DefRecFolders.FirstOrDefault() ?? SettingPath.GetSettingFolderPath(true);
+            textBox_recFolderDef.Text = Settings.Instance.DefRecFolders[0];
             textBox_recFolder.TextChanged += textBox_recFolder_TextChanged;
             textBox_recFolder_TextChanged(null, null);//ツールチップを設定するため
 
