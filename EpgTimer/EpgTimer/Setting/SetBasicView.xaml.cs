@@ -202,7 +202,7 @@ namespace EpgTimer.Setting
             checkBox_httpLog.IsChecked = enableHttpSrv == 2;
 
             textBox_httpPort.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpPort", 5510, SettingPath.TimerSrvIniPath).ToString();
-            textBox_httpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpAccessControlList", "+127.0.0.1", SettingPath.TimerSrvIniPath);
+            textBox_httpAcl.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpAccessControlList", "+127.0.0.1,+::1,+::ffff:127.0.0.1", SettingPath.TimerSrvIniPath);
             textBox_httpTimeout.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpRequestTimeoutSec", 120, SettingPath.TimerSrvIniPath).ToString();
             textBox_httpThreads.Text = IniFileHandler.GetPrivateProfileInt("SET", "HttpNumThreads", 5, SettingPath.TimerSrvIniPath).ToString();
             textBox_docrootPath.Text = IniFileHandler.GetPrivateProfileString("SET", "HttpPublicFolder", SettingPath.DefHttpPublicPath, SettingPath.TimerSrvIniPath);
