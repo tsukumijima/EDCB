@@ -1000,6 +1000,8 @@ namespace EpgTimer
             dest.WndSettings = WndSettings;
             dest.SearchWndTabsHeight = SearchWndTabsHeight;
             dest.SearchWndJunreHeight = SearchWndJunreHeight;
+            dest.SetWithoutSearchKeyWord = SetWithoutSearchKeyWord;
+            dest.SetWithoutRecTag = SetWithoutRecTag;
             dest.RecInfoColumnHead = RecInfoColumnHead;
             dest.RecInfoSortDirection = RecInfoSortDirection;
             dest.OpenFolderWithFileDialog = OpenFolderWithFileDialog;
