@@ -5,6 +5,7 @@
 #include "EpgTimerSrvMain.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/ServiceUtil.h"
+#include "../../Common/StackTrace.h"
 #include "../../Common/ThreadUtil.h"
 #include "../../Common/CommonDef.h"
 #include <winsvc.h>
@@ -22,12 +23,10 @@ recursive_mutex_ g_debugLogLock;
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
 }
 
-#ifdef USE_WINMAIN_A
+#ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-#else
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 #endif
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	SetDllDirectory(L"");
 
@@ -66,6 +65,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		}
 	}
 
+#ifndef SUPPRESS_OUTPUT_STACK_TRACE
+	SetOutputStackTraceOnUnhandledException(GetModulePath().concat(L".err").c_str());
+#endif
 
 	if( IsInstallService(SERVICE_NAME) == FALSE ){
 		//普通にexeとして起動を行う
@@ -91,8 +93,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
 				SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
+				WCHAR serviceName[] = SERVICE_NAME;
 				SERVICE_TABLE_ENTRY dispatchTable[] = {
-					{ SERVICE_NAME, service_main },
+					{ serviceName, service_main },
 					{ NULL, NULL }
 				};
 				if( StartServiceCtrlDispatcher(dispatchTable) == FALSE ){
