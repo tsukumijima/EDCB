@@ -1391,7 +1391,7 @@ namespace EpgTimer
             {
                 if (SrvSettingProcess == null || SrvSettingProcess.HasExited)
                 {
-                    using (SrvSettingProcess = Process.Start(Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"), "/setting")) { }
+                    SrvSettingProcess = Process.Start(Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"), "/setting");
                 }
                 else
                 {
