@@ -87,7 +87,7 @@ namespace EpgTimer
         public CmdExe(UIElement owner)
         {
             this.Owner = owner;
-            cmdList.Add(EpgCmds.Add, new cmdOption(mc_Add, null, cmdExeType.MultiItem));
+            cmdList.Add(EpgCmds.AddReserve, new cmdOption(mc_Add, null, cmdExeType.MultiItem));
             cmdList.Add(EpgCmds.AddOnPreset, new cmdOption(mc_AddOnPreset, null, cmdExeType.MultiItem));
             cmdList.Add(EpgCmds.ChgOnOff, new cmdOption(mc_ChangeOnOff, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgOnPreset, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
@@ -404,7 +404,14 @@ namespace EpgTimer
         protected virtual void mc_Play(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_OpenFolder(object sender, ExecutedRoutedEventArgs e)
         {
-            CommonManager.OpenFolder(CmdExeUtil.ReadObjData(e) as string, "録画フォルダを開く");
+            var path = CmdExeUtil.ReadObjData(e) as string;
+            if (string.IsNullOrEmpty(path) && dataList[0] is IRecSetttingData)//ショートカットから
+            {
+                RecSettingData recSet = (dataList[0] as IRecSetttingData).RecSettingInfo;
+                RecFileSetInfo f1 = recSet.RecFolderList.Concat(recSet.PartialRecFolder).FirstOrDefault();
+                path = (f1 == null || f1.RecFolder == "!Default") ? Settings.Instance.DefRecFolders[0] : f1.RecFolder;
+            }
+            CommonManager.OpenRecFolder(path);
             IsCommandExecuted = true;
         }
         protected virtual void mc_CopyTitle(object sender, ExecutedRoutedEventArgs e)
@@ -821,7 +828,7 @@ namespace EpgTimer
         }
         protected static void SetCmdMessage()
         {
-            cmdMessage.Add(EpgCmds.Add, "予約を追加");
+            cmdMessage.Add(EpgCmds.AddReserve, "予約を追加");
             cmdMessage.Add(EpgCmds.AddOnPreset, "指定プリセットで予約を追加");
             cmdMessage.Add(EpgCmds.ChgOnOff, "簡易予約/有効・無効切替を実行");
             cmdMessage.Add(EpgCmds.ChgOnPreset, "録画プリセットを変更");

@@ -99,7 +99,7 @@ namespace EpgTimer
                 //ボタンの設定
                 mBinds.View = CtxmCode.SearchWindow;
                 mBinds.SetCommandToButton(button_search, EpgCmds.Search);
-                mBinds.SetCommandToButton(button_add_reserve, EpgCmds.Add);
+                mBinds.SetCommandToButton(button_add_reserve, EpgCmds.AddReserve);
                 mBinds.SetCommandToButton(button_delall_reserve, EpgCmds.DeleteAll);
                 mBinds.SetCommandToButton(button_add_epgAutoAdd, EpgCmds.AddInDialog);
                 mBinds.SetCommandToButton(button_chg_epgAutoAdd, EpgCmds.ChangeInDialog);

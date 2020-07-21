@@ -27,12 +27,12 @@
                 </Grid.RowDefinitions>
                 <StackPanel>
                     <DockPanel Margin="0,0,0,4">
-                        <TextBlock Text="検索キーワード" Width="80"/>
+                        <TextBlock Text="検索キーワード" Width="80" ToolTip="【検索対象を指定】 :title:ネコ&#10;   :title:番組名&#10;   :event:番組名と番組内容&#10;   :genre:ジャンル&#10;   :video:映像情報&#10;   :audio:音声情報&#10;【個別に正規表現】 ::title:^ネコ&#10;【OR検索】 :title:ネコ | :title:猫"/>
                         <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="履歴クリア" Name="Button_clearAndKey" />
                         <ComboBox VerticalAlignment="Stretch" Name="comboBox_andKey" KeyUp="comboBox_andKey_KeyUp" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
                     </DockPanel>
                     <DockPanel Margin="0,0,0,4">
-                        <TextBlock Text="NOTキーワード" Width="80"/>
+                        <TextBlock Text="NOTキーワード" Width="80" ToolTip="【検索対象を指定】 :title:ネコ&#10;   :title:番組名&#10;   :event:番組名と番組内容&#10;   :genre:ジャンル&#10;   :video:映像情報&#10;   :audio:音声情報&#10;【個別に正規表現】 ::title:^ネコ"/>
                         <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="履歴クリア" Name="Button_clearNotKey" />
                         <ComboBox VerticalAlignment="Stretch" Name="comboBox_notKey" KeyUp="comboBox_notKey_KeyUp" IsEditable="True" IsTextSearchEnabled="False" TextBoxBase.TextChanged="ComboBox_TextChanged" />
                     </DockPanel>

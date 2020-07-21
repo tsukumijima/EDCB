@@ -281,17 +281,13 @@ namespace EpgTimer
             path = string.IsNullOrEmpty(path) == true ? GetDefSettingFolderPath(isSrv) : path;
             return (Path.IsPathRooted(path) ? "" : GetModulePath(isSrv).TrimEnd('\\') + "\\") + path;
         }
-        public static string DefSettingFolderPath
-        {
-            get { return GetDefSettingFolderPath(); }
-        }
         public static string SettingFolderPath
         {
             get { return GetSettingFolderPath(); }
             set
             {
                 string path = CheckFolder(value);
-                bool isDefaultPath = path == "" || path.TrimEnd('\\').Equals(SettingPath.DefSettingFolderPath.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) == true;
+                bool isDefaultPath = path == "" || path.TrimEnd('\\').Equals(GetDefSettingFolderPath().TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) == true;
                 if (CommonManager.Instance.NWMode == false)
                 {
                     IniFileHandler.WritePrivateProfileString("SET", "DataSavePath", isDefaultPath == true ? null : path, SettingPath.CommonIniPath);
@@ -459,9 +455,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20200411、20200320、20190520、20190321、20190217、20170717、20170512
+        //ver履歴 20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20200411; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200528; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -709,15 +705,14 @@ namespace EpgTimer
                 {
                     defRecFolders = new List<string>();
                     int num = IniFileHandler.GetPrivateProfileInt("SET", "RecFolderNum", 0, SettingPath.CommonIniPath);
-                    if (num <= 0) defRecFolders.Add("");
 
                     for (int i = 0; i < num; i++)
                     {
                         defRecFolders.Add(IniFileHandler.GetPrivateProfileFolder("SET", "RecFolderPath" + i.ToString(), SettingPath.CommonIniPath));
                     }
 
-                    if (defRecFolders[0] == "") defRecFolders[0] = SettingPath.SettingFolderPath;
                     defRecFolders = defRecFolders.Except(new[] { "" }).ToList();
+                    if (defRecFolders.Count == 0) defRecFolders.Add(SettingPath.GetSettingFolderPath(true));
                 }
                 return defRecFolders;
             }
@@ -727,7 +722,7 @@ namespace EpgTimer
         {
             if (defRecFolders == null) return;
 
-            int recFolderCount = defRecFolders.Count == 1 && defRecFolders[0].Equals(SettingPath.SettingFolderPath, StringComparison.OrdinalIgnoreCase) == true ? 0 : defRecFolders.Count;
+            int recFolderCount = defRecFolders.Count == 1 && defRecFolders[0].Equals(SettingPath.GetSettingFolderPath(true), StringComparison.OrdinalIgnoreCase) == true ? 0 : defRecFolders.Count;
             IniFileHandler.WritePrivateProfileString("SET", "RecFolderNum", recFolderCount, SettingPath.CommonIniPath);
             IniFileHandler.DeletePrivateProfileNumberKeys("SET", SettingPath.CommonIniPath, "RecFolderPath");
 
@@ -1005,6 +1000,8 @@ namespace EpgTimer
             dest.WndSettings = WndSettings;
             dest.SearchWndTabsHeight = SearchWndTabsHeight;
             dest.SearchWndJunreHeight = SearchWndJunreHeight;
+            dest.SetWithoutSearchKeyWord = SetWithoutSearchKeyWord;
+            dest.SetWithoutRecTag = SetWithoutRecTag;
             dest.RecInfoColumnHead = RecInfoColumnHead;
             dest.RecInfoSortDirection = RecInfoSortDirection;
             dest.OpenFolderWithFileDialog = OpenFolderWithFileDialog;
@@ -1254,6 +1251,15 @@ namespace EpgTimer
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200528) return;
+
+            //フォーク元との擦り合せ。ショートカットキーの変更に伴い、該当部分を初期化。
+            var chgCmds = new[] { EpgCmds.AddInDialog, EpgCmds.ChangeInDialog, EpgCmds.DeleteInDialog, EpgCmds.ReSearch, EpgCmds.ReSearch2 };
+            Instance.MenuSet.EasyMenuItems.ForEach(item =>
+            {
+                if(chgCmds.Contains(item.GetCommand())) item.ShortCuts.Clear();
+            });
+
             if (Instance.verSaved >= 20200411) return;
 
             //互換用コード。ボタン列非表示関連追従。

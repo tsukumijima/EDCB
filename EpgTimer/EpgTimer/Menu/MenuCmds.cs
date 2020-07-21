@@ -59,7 +59,6 @@ namespace EpgTimer
             //gesNeedMenu:メニューと連動してショートカットを無効にするか、spc:ショートカット範囲
 
             //コンテキストメニュー用
-            AddCommand(EpgCmds.Add);
             AddCommand(EpgCmds.ChgOnOff, Key.S, ModifierKeys.Control);
             AddCommand(EpgCmds.ChgGenre, isEnable: false, isSave: false);
             AddCommand(EpgCmds.CopyItem, Key.M, ModifierKeys.Control, isEnable: false);
@@ -68,17 +67,17 @@ namespace EpgTimer
             AddCommand(EpgCmds.DeleteAll, Key.D, ModifierKeys.Control | ModifierKeys.Alt, spc: GestureTrg.ToView);
             AddCommand(EpgCmds.AdjustReserve, isEnable: false);
             AddCommand(EpgCmds.ShowDialog, Key.Enter, gesNeedMenu: false);//doubleclickは上手く入らないので省略
-            AddCommand(EpgCmds.ShowAddDialog, spc: GestureTrg.ToView, isEnable: false);
+            AddCommand(EpgCmds.ShowAddDialog, Key.N, ModifierKeys.Control, spc: GestureTrg.ToView, isEnable: false);
             AddCommand(EpgCmds.JumpReserve, Key.F3, ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.JumpRecInfo, Key.F3, ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.JumpTuner, Key.F3, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.JumpTable, Key.F3);
             AddCommand(EpgCmds.JumpListView, Key.F3, ModifierKeys.Alt);//簡易検索画面用のジャンプ。
             AddCommand(EpgCmds.ToAutoadd, Key.K, ModifierKeys.Control);
-            AddCommand(EpgCmds.ReSearch, Key.R, ModifierKeys.Control);
-            AddCommand(EpgCmds.ReSearch2, Key.R, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
+            AddCommand(EpgCmds.ReSearch, Key.K, ModifierKeys.Control | ModifierKeys.Shift);
+            AddCommand(EpgCmds.ReSearch2, Key.K, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.Play, Key.P, ModifierKeys.Control);
-            AddCommand(EpgCmds.OpenFolder, isEnable: false);
+            AddCommand(EpgCmds.OpenFolder, Key.O, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.CopyTitle, Key.C, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.CopyContent, Key.C, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.InfoSearchTitle, Key.T, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
@@ -96,9 +95,10 @@ namespace EpgTimer
             AddCommand(EpgCmds.MenuSetting, spc: GestureTrg.ToView);
 
             //主にボタン用、Up,Downはリストビューのキー操作と干渉するのでウィンドウにもリストビューにもバインディングさせる。
-            AddCommand(EpgCmds.AddInDialog, Key.A, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToView, gesNeedMenu: false);
-            AddCommand(EpgCmds.ChangeInDialog, Key.C, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToView, gesNeedMenu: false);
-            AddCommand(EpgCmds.DeleteInDialog, Key.X, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToView, gesNeedMenu: false);
+            AddCommand(EpgCmds.AddReserve, Key.R, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
+            AddCommand(EpgCmds.AddInDialog, Key.N, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
+            AddCommand(EpgCmds.ChangeInDialog, Key.S, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
+            AddCommand(EpgCmds.DeleteInDialog, Key.D, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.Delete2InDialog, Key.D, ModifierKeys.Control | ModifierKeys.Shift, spc: GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.ShowInDialog, Key.Enter, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
             AddCommand(EpgCmds.Search, Key.F, ModifierKeys.Control, spc: GestureTrg.ToView, gesNeedMenu: false);
@@ -164,13 +164,18 @@ namespace EpgTimer
                 if (cmdSave != null)
                 {
                     cmdData.IsMenuEnabled = cmdSave.IsMenuEnabled;
-                    cmdData.IsGestureEnabled = cmdSave.IsGestureEnabled;
+                    cmdData.IsGestureEnabled = cmdData.IsMenuEnabled;
                     cmdData.IsGesNeedMenu = cmdSave.IsGesNeedMenu;
 
-                    //入出力はキージェスチャだけなので、それだけ入れ替える。(キージェスチャ以外はそのまま)
-                    var delList = cmdData.Gestures.OfType<KeyGesture>().ToList();
-                    delList.ForEach(gs => cmdData.Gestures.Remove(gs));
-                    cmdData.Gestures.AddRange(cmdSave.GetGestuers());
+                    var gesSave = cmdSave.GetGestuers();
+                    if (gesSave.Count != 0)
+                    {
+                        //入出力はキージェスチャだけなので、それだけ入れ替える。(キージェスチャ以外はそのまま)
+                        var delList = cmdData.Gestures.OfType<KeyGesture>().ToList();
+                        delList.ForEach(gs => cmdData.Gestures.Remove(gs));
+                        cmdData.Gestures.AddRange(gesSave);
+                        cmdData.IsGestureEnabled = cmdSave.IsGestureEnabled;
+                    }
                 }
                 WorkCmdOptions.Add(item.Key, cmdData);
             }

@@ -1169,7 +1169,7 @@ namespace EpgTimer
             return nwPath;
         }
 
-        public static void OpenFolder(String folderPath, String title = "フォルダを開く")
+        public static void OpenRecFolder(string folderPath)
         {
             try
             {
@@ -1180,13 +1180,13 @@ namespace EpgTimer
 
                 if (String.IsNullOrWhiteSpace(path) == true)
                 {
-                    MessageBox.Show("パスが見つかりません。\r\n\r\n" + folderPath, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("パスが見つかりません。\r\n\r\n" + folderPath, "録画フォルダを開く", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
                     //オプションに応じて一つ上のフォルダから対象フォルダを選択した状態で開く。
                     String cmd = isFile == true || noParent == false && Settings.Instance.MenuSet.OpenParentFolder == true ? "/select," : "";
-                    Process.Start("EXPLORER.EXE", cmd + "\"" + path + "\"");
+                    using (Process.Start("EXPLORER.EXE", cmd + "\"" + path + "\"")) { }
                 }
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
@@ -1420,8 +1420,7 @@ namespace EpgTimer
             List<ReserveData> stlist = reslist.Where(info => info.OnTime(start) >= 0).Except(onlist).ToList();
 
             //録画フォルダの抽出メソッド
-            string def1 = Settings.Instance.DefRecFolders.Count == 0 ? "" : Settings.Instance.DefRecFolders[0];
-            def1 = string.IsNullOrEmpty(def1) == true ? SettingPath.SettingFolderPath : def1;
+            string def1 = Settings.Instance.DefRecFolders[0];
             var cnv = new PathConverter(SettingPath.EdcbExePath);//今のところ同じフォルダにある前提だが、設定があるので変換しておく
             Func<List<ReserveData>, IEnumerable<IGrouping<string, string>>> RecFolders = list =>
             {

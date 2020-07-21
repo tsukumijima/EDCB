@@ -9,7 +9,7 @@ namespace EpgTimer
 {
     public static class EpgCmds
     {
-        public static RoutedUICommand Add { get; private set; }
+        public static RoutedUICommand AddReserve { get; private set; }
         public static RoutedUICommand AddOnPreset { get; private set; }
         public static RoutedUICommand ChgOnOff { get; private set; }
         public static RoutedUICommand ChgOnPreset { get; private set; }

@@ -277,6 +277,16 @@ namespace EpgTimer
             //番組情報優先
             IsCommandExecuted = true == MenuUtil.OpenInfoSearchDialog((headDataEv ?? headDataRec).DataTitle, CmdExeUtil.IsKeyGesture(e));
         }
+        protected override void mc_OpenFolder(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (headDataRec == null)
+            {
+                base.mc_OpenFolder(sender, e);
+                return;
+            }
+            CommonManager.OpenRecFolder(headDataRec.RecFilePath);
+            IsCommandExecuted = true;
+        }
         protected override void mc_SearchTitle(object sender, ExecutedRoutedEventArgs e)
         {
             //番組情報優先
@@ -429,7 +439,7 @@ namespace EpgTimer
             }
             else if (menu.Tag == EpgCmdsEx.OpenFolderMenu)
             {
-                mm.CtxmGenerateOpenFolderItems(menu, headData is ReserveData ? dataList[0].RecSetting : null, headDataRec != null ? headDataRec.RecFilePath : null);
+                mm.CtxmGenerateOpenFolderItems(menu, headData is ReserveData ? dataList[0].RecSetting : null, headDataRec != null ? headDataRec.RecFilePath : null, !(ctxm.Tag is int && (int)(ctxm.Tag) != 2));
             }
             else if (menu.Tag == EpgCmdsEx.ViewMenu)
             {
@@ -451,7 +461,7 @@ namespace EpgTimer
             }
             //DeleteはRecInfo分含めてdataList.Countに入っている。
             int procCount = GetCmdParam(icmd).ExeType == cmdExeType.SingleItem ? 1 :
-                            icmd == EpgCmds.Add || icmd == EpgCmds.AddOnPreset ? eventListAdd.Count :
+                            icmd == EpgCmds.AddReserve || icmd == EpgCmds.AddOnPreset ? eventListAdd.Count :
                                 dataList.Count + (icmd == EpgCmds.ChgOnOff ? eventListEx.Count : 0);
 
             return procCount == 0 ? null : GetCmdMessageFormat(cmdMsg, procCount);
