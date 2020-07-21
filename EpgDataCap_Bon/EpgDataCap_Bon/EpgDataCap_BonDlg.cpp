@@ -1250,6 +1250,13 @@ INT_PTR CALLBACK CEpgDataCap_BonDlg::DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
 		pSys->m_hWnd = hDlg;
 		pSys->m_hKeyboardHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
 		return pSys->OnInitDialog();
+	// ダイヤログの背景色を白に変更
+	case WM_CTLCOLORDLG:
+		return (INT_PTR) CreateSolidBrush(RGB(253, 253, 253));
+	// コントロールの背景色を白に変更
+	case WM_CTLCOLORSTATIC:
+		SetBkMode(((HDC) wParam), TRANSPARENT);
+		return (INT_PTR) CreateSolidBrush(RGB(253, 253, 253));
 	case WM_NCDESTROY:
 		UnhookWindowsHookEx(pSys->m_hKeyboardHook);
 		pSys->m_hWnd = NULL;
