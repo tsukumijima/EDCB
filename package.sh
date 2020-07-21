@@ -129,8 +129,16 @@ then
         sevenz_exe='/c/Program Files (x86)/7-Zip/7z.exe'
         if [ ! -f "$sevenz_exe" ]
         then
-            echo "Unable to find 7z.exe" >&2
-            exit 1
+            sevenz_exe='/mnt/c/Program Files/7-Zip/7z.exe'
+            if [ ! -f "$sevenz_exe" ]
+            then
+                sevenz_exe='/mnt/c/Program Filess (x86)/7-Zip/7z.exe'
+                if [ ! -f "$sevenz_exe" ]
+                then
+                    echo "Unable to find 7z.exe" >&2
+                    exit 1
+                fi
+            fi
         fi
     fi
 
