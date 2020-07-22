@@ -67,6 +67,10 @@ namespace EpgTimer
             set { EpgCmds.ChgOnOffCheck.Execute(this, null); }
             get { return Data.IsEnabled; }
         }
+        public new string RecMode
+        {
+            get { return RecEnabled + "/" + base.RecMode; }
+        }
         public override string ConvertInfoText(object param = null) { return ""; }
         public override Brush ForeColor
         {
@@ -225,7 +229,7 @@ namespace EpgTimer
             view += "あいまい検索モード : " + Aimai + "\r\n";
             view += "番組名のみ検索対象 : " + TitleOnly + "\r\n";
             view += "大小文字区別 : " + CaseSensitive + "\r\n";
-            view += "自動登録 : " + (KeyEnabled == true ? "有効" : "無効") + "\r\n";
+            view += "自動登録 : " + CommonManager.ConvertIsEnableText(KeyEnabled) + "\r\n";
             view += "ジャンル絞り込み : " + JyanruKey + "\r\n";
             view += "時間絞り込み : " + DateKey + "\r\n";
             view += "検索対象サービス : " + _ServiceName(10, true) + "\r\n\r\n";

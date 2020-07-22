@@ -94,6 +94,7 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.ChgResMode, new cmdOption(mc_ChgResMode, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgBulkRecSet, new cmdOption(mc_ChgBulkRecSet, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgGenre, new cmdOption(mc_ChgGenre, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.ChgRecEnabled, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgRecmode, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgPriority, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ChgRelay, new cmdOption(mc_ChangeRecSetting, null, cmdExeType.MultiItem, true));
@@ -475,9 +476,14 @@ namespace EpgTimer
                 var val = Settings.Instance.RecPreset(CmdExeUtil.ReadIdData(e, 0, 0xFE)).Data;
                 MenuUtil.ChangeRecSet(dataList.OfType<IRecSetttingData>(), val);
             }
+            else if (e.Command == EpgCmds.ChgRecEnabled)
+            {
+                var val = CmdExeUtil.ReadIdData(e, 0, 1) == 0;
+                infoList.ForEach(info => info.IsEnable = val);
+            }
             else if (e.Command == EpgCmds.ChgRecmode)
             {
-                var val = (byte)CmdExeUtil.ReadIdData(e, 0, 5);
+                var val = (byte)CmdExeUtil.ReadIdData(e, 0, 4);
                 infoList.ForEach(info => info.RecMode = val);
             }
             else if (e.Command == EpgCmds.ChgPriority)
@@ -692,7 +698,7 @@ namespace EpgTimer
                     }
                     var list = dataList.OfType<AutoAddData>().ToList();
                     bool? value = list.All(info => info.IsEnabled == list[0].IsEnabled) ? (bool?)list[0].IsEnabled : null;
-                    subMenu.Header = string.Format("自動登録有効(_A) : {0}", value == null ? "*" : (value == true ? "有効" : "無効"));
+                    subMenu.Header = string.Format("自動登録有効(_A) : {0}", value == null ? "*" : CommonManager.ConvertIsEnableText((bool)value));
                     SetCheckmarkSubMenus(subMenu, value == true ? 0 : value == false ? 1 : int.MinValue);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgOnPresetMenu)
@@ -742,6 +748,12 @@ namespace EpgTimer
                 {
                     if (recSettings.Count < 2 || typeof(T) != typeof(EpgAutoAddData)) subMenu.Visibility = Visibility.Collapsed;
                     subMenu.Header = "まとめてジャンル絞り込みを変更(_J)...";
+                }
+                else if (subMenu.Tag == EpgCmdsEx.ChgRecEnableMenu)
+                {
+                    bool? value = recSettings.All(info => info.IsEnable == recSettings[0].IsEnable) ? (bool?)recSettings[0].IsEnable : null;
+                    subMenu.Header = string.Format("録画有効(_O) : {0}", value == null ? "*" : CommonManager.ConvertIsEnableText((bool)value));
+                    SetCheckmarkSubMenus(subMenu, value == true ? 0 : value == false ? 1 : int.MinValue);
                 }
                 else if (subMenu.Tag == EpgCmdsEx.ChgRecmodeMenu)
                 {
@@ -835,6 +847,7 @@ namespace EpgTimer
             cmdMessage.Add(EpgCmds.ChgResMode, "予約モードを変更");
             cmdMessage.Add(EpgCmds.ChgBulkRecSet, "録画設定を変更");
             cmdMessage.Add(EpgCmds.ChgGenre, "ジャンル絞り込みを変更");
+            cmdMessage.Add(EpgCmds.ChgRecEnabled, "有効/無効を変更");
             cmdMessage.Add(EpgCmds.ChgRecmode, "録画モードを変更");
             cmdMessage.Add(EpgCmds.ChgPriority, "優先度を変更");
             cmdMessage.Add(EpgCmds.ChgRelay, "イベントリレー追従設定を変更");

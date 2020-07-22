@@ -81,6 +81,15 @@ namespace EpgTimer
                 return preset;
             }
         }
+        public virtual string RecEnabled
+        {
+            get
+            {
+                if (RecSettingInfo == null) return "";
+                //
+                return CommonManager.ConvertIsEnableText(RecSettingInfo.IsEnable);
+            }
+        }
         public virtual string RecMode
         {
             get
@@ -177,7 +186,8 @@ namespace EpgTimer
         {
             if (RecSettingInfo == null) return "";
             //
-            string view = "録画モード : " + RecMode + "\r\n";
+            string view = "録画有効 : " + RecEnabled + "\r\n";
+            view += "録画モード : " + RecMode + "\r\n";
             view += "優先度 : " + Priority + "\r\n";
             view += "追従 : " + Tuijyu + "\r\n";
             view += "ぴったり(?): " + Pittari + "\r\n";

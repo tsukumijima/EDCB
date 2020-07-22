@@ -290,7 +290,7 @@ namespace EpgTimer
             if (MenuUtil.CautionManyMessage(dataList.Count, "変更の確認") == false)
             { return; }
 
-            MenuUtil.ReserveChangeOnOff(dataList.OfType<ReserveData>().DeepClone(), null, false);
+            MenuUtil.ReserveChangeOnOff(dataList.OfType<ReserveData>().DeepClone(), false);
             MenuUtil.RecinfoChgProtect(dataList.OfType<RecFileInfo>().DeepClone(), false);
             MenuUtil.AutoAddChangeKeyEnabled(dataList.OfType<AutoAddData>().DeepClone());
 

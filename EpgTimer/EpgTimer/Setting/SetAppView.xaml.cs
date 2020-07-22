@@ -237,6 +237,7 @@ namespace EpgTimer.Setting
             text_RecInfo2RegExp.Text = IniFileHandler.GetPrivateProfileString("SET", "RecInfo2RegExp", "", SettingPath.TimerSrvIniPath);
             checkBox_RetryOtherTuners.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RetryOtherTuners", false, SettingPath.TimerSrvIniPath);
             checkBox_CommentAutoAdd.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "CommentAutoAdd", false, SettingPath.TimerSrvIniPath);
+            checkBox_FixNoRecToServiceOnly.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "FixNoRecToServiceOnly", false, SettingPath.TimerSrvIniPath);
             checkBox_recInfoFolderOnly.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecInfoFolderOnly", true, SettingPath.TimerSrvIniPath);
             checkBox_autoDelRecInfo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "AutoDelRecInfo", false, SettingPath.TimerSrvIniPath);
             textBox_autoDelRecInfo.Text = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfoNum", 100, SettingPath.TimerSrvIniPath).ToString();
@@ -338,6 +339,7 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "FixedTunerPriority", checkBox_fixedTunerPriority.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RetryOtherTuners", checkBox_RetryOtherTuners.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "CommentAutoAdd", checkBox_CommentAutoAdd.IsChecked, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "FixNoRecToServiceOnly", checkBox_FixNoRecToServiceOnly.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecInfoFolderOnly", checkBox_recInfoFolderOnly.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecInfo2RegExp", text_RecInfo2RegExp.Text, "", SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfo", checkBox_autoDelRecInfo.IsChecked, SettingPath.TimerSrvIniPath);

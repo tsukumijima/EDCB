@@ -38,7 +38,7 @@ namespace EpgTimer
         public bool IsAutoAdded { get { return Comment != "" && Comment.EndsWith("$", StringComparison.Ordinal) == false; } }
         public void ReleaseAutoAdd() { if (IsAutoAdded == true) Comment += "$"; }
 
-        public bool IsEnabled { get { return RecSetting.RecMode != 5; } }
+        public bool IsEnabled { get { return RecSetting.IsEnable; } }
         public bool IsWatchMode { get { return RecSetting.RecMode == 4; } }
 
         public bool IsOnRec(DateTime? time = null) { return OnTime(time) == 0; }

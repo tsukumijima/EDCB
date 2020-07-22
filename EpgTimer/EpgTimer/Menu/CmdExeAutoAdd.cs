@@ -13,7 +13,7 @@ namespace EpgTimer
         public CmdExeAutoAdd(UIElement owner) : base(owner) { }
         protected override void mc_ChangeKeyEnabled(object sender, ExecutedRoutedEventArgs e)
         {
-            IsCommandExecuted = MenuUtil.AutoAddChangeKeyEnabled(dataList, (byte)CmdExeUtil.ReadIdData(e, 0, 1) == 0);
+            IsCommandExecuted = MenuUtil.AutoAddChangeKeyEnabled(dataList, CmdExeUtil.ReadIdData(e, 0, 1) == 0);
         }
         protected override void mc_ChangeOnOffKeyEnabled(object sender, ExecutedRoutedEventArgs e)
         {

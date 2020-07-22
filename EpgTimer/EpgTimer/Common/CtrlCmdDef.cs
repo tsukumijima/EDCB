@@ -101,6 +101,8 @@ namespace EpgTimer
     /// <summary>録画設定情報</summary>
     public partial class RecSettingData : ICtrlCmdReadWrite, IDeepCloneObj
     {
+        /// <summary>録画有効</summary>
+        public bool IsEnable;
         /// <summary>録画モード</summary>
         public byte RecMode;
         /// <summary>優先度</summary>
@@ -137,6 +139,7 @@ namespace EpgTimer
         public List<RecFileSetInfo> PartialRecFolder;
         public RecSettingData()
         {
+            IsEnable = true;
             RecMode = 1;
             Priority = 2;
             TuijyuuFlag = 1;
@@ -159,7 +162,7 @@ namespace EpgTimer
         {
             var w = new CtrlCmdWriter(s, version);
             w.Begin();
-            w.Write(RecMode);
+            w.Write((byte)(IsEnable ? RecMode : 5 + (RecMode + 4) % 5));
             w.Write(Priority);
             w.Write(TuijyuuFlag);
             w.Write(ServiceMode);
@@ -185,6 +188,8 @@ namespace EpgTimer
             var r = new CtrlCmdReader(s, version);
             r.Begin();
             r.Read(ref RecMode);
+            IsEnable = RecMode / 5 % 2 == 0;
+            RecMode = (byte)((RecMode + RecMode / 5 % 2) % 5);
             r.Read(ref Priority);
             r.Read(ref TuijyuuFlag);
             r.Read(ref ServiceMode);

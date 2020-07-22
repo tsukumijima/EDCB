@@ -225,6 +225,7 @@
                     </StackPanel>
                     <StackPanel Name="grid_AppReserve2">
                         <CheckBox Margin="0,0,0,4" Content="キーワード予約をプログラム予約化したとき、再び追加されないようにする" Name="checkBox_CommentAutoAdd" />
+                        <CheckBox Margin="0,0,0,4" Content="予約を無効にするとき、録画モードを「指定サービス」にする(旧ver互換用)" Name="checkBox_FixNoRecToServiceOnly" />
                         <CheckBox Margin="0,0,0,4" Content="録画情報保存フォルダ指定時は録画ファイルの場所を参照しない" Name="checkBox_recInfoFolderOnly" />
                         <StackPanel Margin="0,0,0,4" Orientation="Horizontal" Name="stackPanel_autoDelRecInfo" >
                             <CheckBox Content="録画結果を自動的に削除する  保持件数" Name="checkBox_autoDelRecInfo" />

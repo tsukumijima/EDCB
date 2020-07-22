@@ -369,7 +369,7 @@ namespace EpgTimer
                 //番組表へジャンプ時の強調表示
                 if (NowJumpingTable != 0 || ReserveInfo == null) return base.ForeColor;
                 //
-                return Settings.BrushCache.RecModeForeColor[ReserveInfo.RecSetting.RecMode];
+                return Settings.BrushCache.RecModeForeColor[ReserveInfo.IsEnabled ? ReserveInfo.RecSetting.RecMode : 5];
             }
         }
         public double Opacity

@@ -455,9 +455,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
+        //ver履歴 20200721、20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20200528; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200721; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -1251,6 +1251,20 @@ namespace EpgTimer
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200721) return;
+
+            //録画無効モード導入の調整。
+            Instance.CustomEpgTabList.ForEach(tab =>
+            {
+                if (tab.RecSetting != null)
+                {
+                    tab.RecSetting.IsEnable = tab.RecSetting.RecMode / 5 % 2 == 0;
+                    tab.RecSetting.RecMode = (byte)((tab.RecSetting.RecMode + tab.RecSetting.RecMode / 5 % 2) % 5); ;
+                }
+            });
+            //互換用コード。カラム名の変更追従。
+            ReplaceColumTag("RecEnabled", CommonUtil.NameOf(() => new SearchItem().IsEnabled), Instance.ReserveListColumn);
+
             if (Instance.verSaved >= 20200528) return;
 
             //フォーク元との擦り合せ。ショートカットキーの変更に伴い、該当部分を初期化。

@@ -123,7 +123,7 @@ namespace EpgTimer
             //多数アイテム処理の警告。合計数に対して出すので、結構扱いづらい。
             if (MenuUtil.CautionManyMessage(dataList.Count + eventListEx.Count, "簡易予約/有効←→無効") == false) return;
 
-            bool ret1 = MenuUtil.ReserveChangeOnOff(dataList, GetRecSetting(), false);
+            bool ret1 = MenuUtil.ReserveChangeOnOff(dataList, false);
             var eList = dataList.Count == 0 ? eventListEx :
                 HasList == true ? eventListEx.FindAll(data => data.IsReservable == true) : new List<EpgEventInfo>();
             bool ret2 = MenuUtil.ReserveAdd(eList, GetRecSetting(), 0, false);

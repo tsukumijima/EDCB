@@ -86,7 +86,7 @@ namespace EpgTimer
             view += "曜日 : " + DayOfWeek + "\r\n";
             view += "時間 : " + CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, false, true, true) + "\r\n";
             view += "サービス : " + ServiceName + "(" + NetworkName + ")" + "\r\n";
-            view += "自動登録 : " + (KeyEnabled == true ? "有効" : "無効") + "\r\n\r\n";
+            view += "自動登録 : " + CommonManager.ConvertIsEnableText(KeyEnabled) + "\r\n\r\n";
 
             view += ConvertRecSettingText() + "\r\n\r\n";
 

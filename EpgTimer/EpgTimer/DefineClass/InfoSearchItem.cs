@@ -208,6 +208,14 @@ namespace EpgTimer
                 else                                        return base.RecFolder;
             }
         }
+        public override string RecMode
+        {
+            get
+            {
+                if      (ViewItem is AutoAddDataItem)       return ((AutoAddDataItem)ViewItem).RecMode;
+                else                                        return base.RecMode;
+            }
+        }
 
         public string GetSearchText(bool TitleOnly)
         {
