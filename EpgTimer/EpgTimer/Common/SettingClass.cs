@@ -455,9 +455,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20200721、20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
+        //ver履歴 20200723、20200721、20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20200721; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200723; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -1251,6 +1251,11 @@ namespace EpgTimer
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200723) return;
+
+            //互換用コード。カラム名の変更追従。
+            ReplaceColumTag("StartTimeNoDuration", CommonUtil.NameOf(() => new ReserveItem().StartTime), Instance.ReserveListColumn, Instance.RecInfoListColumn);
+
             if (Instance.verSaved >= 20200721) return;
 
             //録画無効モード導入の調整。
@@ -1543,6 +1548,7 @@ namespace EpgTimer
                 return new List<ListColumnInfo>
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
@@ -1560,6 +1566,7 @@ namespace EpgTimer
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.IsProtect) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
@@ -1589,6 +1596,7 @@ namespace EpgTimer
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.DayOfWeek) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.RecMode) },
@@ -1602,6 +1610,7 @@ namespace EpgTimer
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Status) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },

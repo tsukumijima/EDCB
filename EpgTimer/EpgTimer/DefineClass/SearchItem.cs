@@ -68,7 +68,7 @@ namespace EpgTimer
                 if (EventInfo == null) return "";
                 if (EventInfo.StartTimeFlag == 0) return "未定";
                 //
-                return CommonManager.ConvertTimeText(EventInfo.start_time, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond);
+                return CommonManager.ConvertTimeText(EventInfo.start_time, EventInfo.durationSec, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond);
             }
         }
         public virtual long StartTimeValue

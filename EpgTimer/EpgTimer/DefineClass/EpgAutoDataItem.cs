@@ -60,6 +60,19 @@ namespace EpgTimer
                 return new ReserveItem(Data.GetNextReserve()).StartTimeValue;
             }
         }
+        public string NextReserveDuration
+        {
+            get { return new ReserveItem(Data.GetNextReserve()).Duration; }
+        }
+        public long NextReserveDurationValue
+        {
+            get
+            {
+                if (Data.GetNextReserve() == null) return long.MaxValue;
+                //
+                return new ReserveItem(Data.GetNextReserve()).DurationValue;
+            }
+        }
         public virtual string NetworkName { get { return ""; } }
         public virtual string ServiceName { get { return ""; } }
         public virtual bool KeyEnabled

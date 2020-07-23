@@ -119,6 +119,16 @@
                 </GridViewColumn>
                 <GridViewColumn>
                     <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="次の予約長さ" Uid="NextReserveDuration" />
+                    </GridViewColumn.Header>
+                    <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding NextReserveDuration}" HorizontalAlignment="Right" />
+                        </DataTemplate>
+                    </GridViewColumn.CellTemplate>
+                </GridViewColumn>
+                <GridViewColumn>
+                    <GridViewColumn.Header>
                         <GridViewColumnHeader Content="有効" Tag="有効/無効" Uid="KeyEnabled" />
                     </GridViewColumn.Header>
                     <GridViewColumn.CellTemplate>
