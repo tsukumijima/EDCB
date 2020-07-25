@@ -181,13 +181,17 @@ namespace EpgTimer
                 return ret.Substring(0, Math.Min(50, ret.Length));
             }
         }
-        public List<string> RecFileName
+        public string RecFileName
+        {
+            get { return RecFileNameList.FirstOrDefault() ?? ""; }
+        }
+        public List<string> RecFileNameList
         {
             get
             {
-                if      (ViewItem is ReserveItem)           return ((ReserveItem)ViewItem).RecFileName;
+                if      (ViewItem is ReserveItem)           return ((ReserveItem)ViewItem).RecFileNameList;
                 else if (ViewItem is RecInfoItem)           return new List<string> { Path.GetFileName(((RecInfoItem)ViewItem).RecFilePath) };
-                else if (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).RecFileName;
+                else if (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).RecFileNameList;
                 else                                        return new List<string>();
             }
         }

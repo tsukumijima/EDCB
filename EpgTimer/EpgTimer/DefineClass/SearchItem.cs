@@ -218,7 +218,11 @@ namespace EpgTimer
                 return s;
             }
         }
-        public List<string> RecFileName
+        public string RecFileName
+        {
+            get { return RecFileNameList.FirstOrDefault() ?? ""; }
+        }
+        public List<string> RecFileNameList
         {
             get
             {

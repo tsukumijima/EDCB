@@ -52,6 +52,7 @@ namespace EpgTimer
                 list_columns.RenameHeader("IsEnabled", "有効・プロテクト", "有効・無効/プロテクト切替え");
                 list_columns.RenameHeader("Comment", "予約/録画状況");
                 list_columns.RenameHeader("RecFileName", "予定/録画ファイル名");
+                list_columns.RenameHeader("RecFileNameList", "予定/録画ファイル名リスト");
 
                 lstCtrl = new ListViewController<InfoSearchItem>(this);
                 lstCtrl.SetSavePath(CommonUtil.NameOf(() => Settings.Instance.InfoSearchWndColumn)
