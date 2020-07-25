@@ -158,12 +158,13 @@ namespace EpgTimer
             if (Visible)
             {
                 const uint NIF_INFO = 0x10;
+                const uint NIF_REALTIME = 0x40;
                 const uint NIIF_INFO = 1;
                 var nid = new NOTIFYICONDATA();
                 nid.cbSize = Marshal.SizeOf(nid);
                 nid.hWnd = hwndDictionary[this].Handle;
                 nid.uID = 1;
-                nid.uFlags = NIF_INFO;
+                nid.uFlags = NIF_INFO | (BalloonTipRealtime ? NIF_REALTIME : 0);
                 nid.szTip = "";
                 nid.szInfo = tips.Length > 255 ? tips.Substring(0, 252) + "..." : tips;
                 nid.uTimeoutOrVersion = (uint)timeOutMSec;

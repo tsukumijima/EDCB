@@ -403,6 +403,7 @@ namespace EpgTimer
             }
             TrayManager.UpdateInfo();
             TrayManager.Tray.ForceHideBalloonTipSec = Settings.Instance.ForceHideBalloonTipSec;
+            TrayManager.Tray.BalloonTipRealtime = Settings.Instance.BalloonTipRealtime;
             TrayManager.Tray.Visible = true;
         }
         public void TaskTrayLeftClick()

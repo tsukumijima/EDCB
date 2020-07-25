@@ -465,6 +465,7 @@ namespace EpgTimer
         public bool NoToolTip { get; set; }
         public double ToolTipWidth { get; set; }
         public bool NoBallonTips { get; set; }
+        public bool BalloonTipRealtime { get; set; }
         public int ForceHideBalloonTipSec { get; set; }
         public bool PlayDClick { get; set; }
         public bool ConfirmDelRecInfoFileDelete { get; set; }
@@ -805,6 +806,7 @@ namespace EpgTimer
             NoToolTip = false;
             ToolTipWidth = 400;
             NoBallonTips = false;
+            BalloonTipRealtime = false;
             ForceHideBalloonTipSec = 0;
             PlayDClick = false;
             ConfirmDelRecInfoFileDelete = true;

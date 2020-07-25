@@ -193,7 +193,9 @@ namespace EpgTimer.Setting
             checkBox_srvShowTray.IsChecked = residentMode >= 2;
             checkBox_NotifyTipStyle.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "NotifyTipStyle", false, SettingPath.TimerSrvIniPath);
             checkBox_blinkPreRec.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "BlinkPreRec", false, SettingPath.TimerSrvIniPath);
-            checkBox_srvNoBalloonTip.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "NoBalloonTip", false, SettingPath.TimerSrvIniPath);
+            int NoBalloonTip = IniFileHandler.GetPrivateProfileInt("SET", "NoBalloonTip", 0, SettingPath.TimerSrvIniPath);
+            checkBox_srvBalloonTip.IsChecked = NoBalloonTip != 1;
+            checkBox_srvBalloonTipRealtime.IsChecked = NoBalloonTip == 2;
 
             checkBox_srvSaveNotifyLog.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "SaveNotifyLog", false, SettingPath.TimerSrvIniPath);
             checkBox_srvSaveDebugLog.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "SaveDebugLog", false, SettingPath.TimerSrvIniPath);
@@ -301,7 +303,8 @@ namespace EpgTimer.Setting
                 checkBox_srvResident.IsChecked == false ? 0 : checkBox_srvShowTray.IsChecked == false ? 1 : 2, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "NotifyTipStyle", checkBox_NotifyTipStyle.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "BlinkPreRec", checkBox_blinkPreRec.IsChecked, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "NoBalloonTip", checkBox_srvNoBalloonTip.IsChecked, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "NoBalloonTip", checkBox_srvBalloonTip.IsChecked != true ?
+                1 : checkBox_srvBalloonTipRealtime.IsChecked == true ? 2 : 0, SettingPath.TimerSrvIniPath);
 
             IniFileHandler.WritePrivateProfileString("SET", "SaveNotifyLog", checkBox_srvSaveNotifyLog.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "SaveDebugLog", checkBox_srvSaveDebugLog.IsChecked, SettingPath.TimerSrvIniPath);
