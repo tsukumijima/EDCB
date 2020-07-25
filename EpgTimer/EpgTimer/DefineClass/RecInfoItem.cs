@@ -41,7 +41,7 @@ namespace EpgTimer
         }
         public string StartTime
         {
-            get { return CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, Settings.Instance.RecInfoNoYear, Settings.Instance.RecInfoNoSecond); }
+            get { return CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, Settings.Instance.RecInfoNoYear, Settings.Instance.RecInfoNoSecond, isNoEnd: Settings.Instance.RecInfoNoEnd); }
         }
         public long StartTimeValue
         {

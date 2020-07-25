@@ -588,7 +588,8 @@
                             <Label Content="リスト表示で省略する" />
                             <CheckBox Content="'年'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoYear}" />
                             <CheckBox Content="'秒'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoSecond}" />
-                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0"  IsChecked="{Binding RecInfoNoDurSecond}" />
+                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoDurSecond}" />
+                            <CheckBox Content="終了時刻" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoEnd}" />
                         </StackPanel >
                     </StackPanel>
                 </GroupBox>
@@ -670,9 +671,10 @@
                             <StackPanel Margin="0,0,12,0" >
                                 <Label Content="リスト表示で省略する(録画済み一覧以外)" />
                                 <WrapPanel Margin="14,-2,0,0" >
-                                    <CheckBox Content="'年' 　" IsChecked="{Binding ResInfoNoYear}" />
-                                    <CheckBox Content="'秒' 　" IsChecked="{Binding ResInfoNoSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
-                                    <CheckBox Content="長さの'秒'" IsChecked="{Binding ResInfoNoDurSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    <CheckBox Content="'年'" IsChecked="{Binding ResInfoNoYear}" />
+                                    <CheckBox Content="'秒'" Margin="12,0,0,0" IsChecked="{Binding ResInfoNoSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    <CheckBox Content="長さの'秒'" Margin="12,0,0,0" IsChecked="{Binding ResInfoNoDurSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    <CheckBox Content="終了時刻" Margin="12,0,0,0" IsChecked="{Binding ResInfoNoEnd}" />
                                 </WrapPanel>
                             </StackPanel>
                             <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" IsChecked="{Binding TrimSortTitle}" />

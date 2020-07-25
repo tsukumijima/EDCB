@@ -588,8 +588,10 @@ namespace EpgTimer
             string[] src = reftxt.Split(new char[] { ' ', '～' });
             return src[0].Substring(6, 1) + " " + src[1] + " ～ " + src[2].Substring(6, 1) + " " + src[3];
         }
-        public static String ConvertTimeText(DateTime start, uint duration, bool isNoYear, bool isNoSecond, bool isNoEndDay = true, bool isNoStartDay = false)
+        public static String ConvertTimeText(DateTime start, uint duration, bool isNoYear, bool isNoSecond, bool isNoEndDay = true, bool isNoStartDay = false, bool isNoEnd = false)
         {
+            if (isNoEnd) return ConvertTimeText(start, isNoYear, isNoSecond, isNoStartDay);
+
             DateTime end = start + TimeSpan.FromSeconds(duration);
 
             if (Settings.Instance.LaterTimeUse == true)

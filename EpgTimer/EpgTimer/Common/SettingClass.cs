@@ -550,9 +550,11 @@ namespace EpgTimer
         public bool RecInfoNoYear { get; set; }
         public bool RecInfoNoSecond { get; set; }
         public bool RecInfoNoDurSecond { get; set; }
+        public bool RecInfoNoEnd { get; set; }
         public bool ResInfoNoYear { get; set; }
         public bool ResInfoNoSecond { get; set; }
         public bool ResInfoNoDurSecond { get; set; }
+        public bool ResInfoNoEnd { get; set; }
         public string TvTestExe { get; set; }
         public string TvTestCmd { get; set; }
         public bool NwTvMode { get; set; }
@@ -885,9 +887,11 @@ namespace EpgTimer
             RecInfoNoYear = false;
             RecInfoNoSecond = false;
             RecInfoNoDurSecond = false;
+            RecInfoNoEnd = false;
             ResInfoNoYear = false;
             ResInfoNoSecond = false;
             ResInfoNoDurSecond = false;
+            ResInfoNoEnd = false;
             TvTestExe = "";
             TvTestCmd = "";
             NwTvMode = false;

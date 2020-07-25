@@ -75,7 +75,7 @@ namespace EpgTimer
             get
             {
                 if  (ViewItem is AutoAddDataItem)           return ((AutoAddDataItem)ViewItem).NextReserve;
-                else if (Data is IBasicPgInfo)              return ReserveItem.GetTimeStringReserveStyle(((IBasicPgInfo)Data).PgStartTime, ((IBasicPgInfo)Data).PgDurationSecond);
+                else if (Data is IBasicPgInfo)              return SearchItem.GetTimeStringReserveStyle(((IBasicPgInfo)Data).PgStartTime, ((IBasicPgInfo)Data).PgDurationSecond);
                 else                                        return "";
             }
         }
@@ -93,7 +93,7 @@ namespace EpgTimer
             get
             {
                 if      (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).Duration;
-                else if (Data is IBasicPgInfo)              return ReserveItem.GetDurationStringReserveStyle(((IBasicPgInfo)Data).PgDurationSecond);
+                else if (Data is IBasicPgInfo)              return SearchItem.GetDurationStringReserveStyle(((IBasicPgInfo)Data).PgDurationSecond);
                 else                                        return "";
             }
         }

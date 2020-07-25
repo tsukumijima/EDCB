@@ -54,7 +54,7 @@ namespace EpgTimer
         }
         public string StartTime
         {
-            get { return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, Settings.Instance.ResInfoNoSecond, true, true); }
+            get { return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, Settings.Instance.ResInfoNoSecond, true, true, Settings.Instance.ResInfoNoEnd); }
         }
         public UInt32 StartTimeValue
         {

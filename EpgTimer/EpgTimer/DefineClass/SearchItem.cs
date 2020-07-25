@@ -68,8 +68,12 @@ namespace EpgTimer
                 if (EventInfo == null) return "";
                 if (EventInfo.StartTimeFlag == 0) return "未定";
                 //
-                return CommonManager.ConvertTimeText(EventInfo.start_time, EventInfo.durationSec, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond);
+                return GetTimeStringReserveStyle(EventInfo.start_time, EventInfo.durationSec);
             }
+        }
+        public static string GetTimeStringReserveStyle(DateTime time, uint durationSecond)
+        {
+            return CommonManager.ConvertTimeText(time, durationSecond, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond, isNoEnd: Settings.Instance.ResInfoNoEnd);
         }
         public virtual long StartTimeValue
         {
@@ -90,8 +94,12 @@ namespace EpgTimer
                 if (EventInfo == null) return "";
                 if (EventInfo.DurationFlag == 0) return "不明";
                 //
-                return CommonManager.ConvertDurationText(EventInfo.durationSec, Settings.Instance.ResInfoNoDurSecond);
+                return GetDurationStringReserveStyle(EventInfo.durationSec);
             }
+        }
+        public static string GetDurationStringReserveStyle(uint durationSecond)
+        {
+            return CommonManager.ConvertDurationText(durationSecond, Settings.Instance.ResInfoNoDurSecond);
         }
         public virtual UInt32 DurationValue
         {
