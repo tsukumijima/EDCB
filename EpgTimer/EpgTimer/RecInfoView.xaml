@@ -15,6 +15,16 @@
         <ListView Name="listView_recinfo" Style="{StaticResource DataListViewStyle}" >
             <ListView.View>
                 <GridView x:Name="gridView_recinfo" >
+                    <GridViewColumn Width="10" >
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader IsEnabled="False"/>
+                        </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Margin="-6,0" Background="{Binding BackColor2}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn>
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Tag="プロテクト" Uid="IsProtect">

@@ -3,6 +3,18 @@
              xmlns:my="clr-namespace:EpgTimer">
 
     <my:GridViewColumnList x:Key="ReserveItemViewColumns">
+        <GridViewColumn Width="10">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader IsEnabled="False"/>
+            </GridViewColumn.Header>
+            <GridViewColumn.CellTemplate>
+                <DataTemplate>
+                    <Grid Margin="-6,0" Background="{Binding BackColor2}" >
+                        <TextBlock Width="5" Background="{Binding BorderBrush}" HorizontalAlignment="Left" />
+                    </Grid>
+                </DataTemplate>
+            </GridViewColumn.CellTemplate>
+        </GridViewColumn>
         <GridViewColumn Width="35">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="状態" Uid="Status" />

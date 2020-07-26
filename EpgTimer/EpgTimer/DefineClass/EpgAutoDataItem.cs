@@ -98,14 +98,16 @@ namespace EpgTimer
         }
         public override Brush BackColor
         {
-            get
-            {
-                //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0 || Data.IsEnabled == true) return base.BackColor;
-                //
-                //無効の場合
-                return Settings.BrushCache.ResBackColor[1];
-            }
+            get { return NowJumpingTable != 0 ? base.BackColor : BackColorBrush(); }
+        }
+        public override Brush BackColor2
+        {
+            get { return BackColorBrush(true); }
+        }
+        private Brush BackColorBrush(bool defTransParent = false)
+        {
+            int idx = Data.IsEnabled == false ? 1 : defTransParent ? -1 : 0;
+            return idx < 0 ? null : Settings.BrushCache.ResBackColor[idx];
         }
     }
 

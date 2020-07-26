@@ -399,6 +399,10 @@ namespace EpgTimer
                 return ViewUtil.ReserveErrBrush(ReserveInfo);
             }
         }
+        public override Brush BackColor2
+        {
+            get { return ViewUtil.ReserveErrBrush(ReserveInfo, true); }
+        }
         public override Brush BorderBrush
         {
             get { return ViewUtil.EpgDataContentBrush(EventInfo, EpgSettingIndex); }

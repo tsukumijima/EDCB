@@ -77,29 +77,31 @@ namespace EpgTimer
         }
         public override Brush BackColor
         {
-            get
+            get { return NowJumpingTable != 0 ? base.BackColor : BackColorBrush(); }
+        }
+        public override Brush BackColor2
+        {
+            get { return BackColorBrush(true); }
+        }
+        private Brush BackColorBrush(bool defTransParent = false)
+        {
+            //通常表示
+            long drops = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Drops : RecInfo.DropsCritical;
+            long scrambles = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Scrambles : RecInfo.ScramblesCritical;
+
+            int idx = defTransParent ? -1 : 0;
+            if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
+                || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
             {
-                //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0) return base.BackColor;
-
-                //通常表示
-                long drops = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Drops : RecInfo.DropsCritical;
-                long scrambles = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Scrambles : RecInfo.ScramblesCritical;
-
-                int idx = 0;
-                if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
-                    || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
-                {
-                    idx = 1;
-                }
-                else if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
-                    || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
-                    || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
-                {
-                    idx = 2;
-                }
-                return Settings.BrushCache.RecEndBackColor[idx];
+                idx = 1;
             }
+            else if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
+                || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
+                || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
+            {
+                idx = 2;
+            }
+            return idx < 0 ? null : Settings.BrushCache.RecEndBackColor[idx];
         }
         public override string ConvertInfoText(object param = null)
         {

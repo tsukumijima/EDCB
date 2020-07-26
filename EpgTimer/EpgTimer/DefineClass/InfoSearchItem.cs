@@ -255,6 +255,10 @@ namespace EpgTimer
         {
             get { return ViewItem.BackColor; }
         }
+        public override Brush BackColor2
+        {
+            get { return ViewItem.BackColor2; }
+        }
         public override Brush BorderBrush
         {
             get { return ViewItem.BorderBrush; }
