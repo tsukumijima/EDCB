@@ -94,7 +94,7 @@
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
                             <Grid Margin="-6,0" Background="{Binding BackColor2}" >
-                                <TextBlock Width="5" Background="{Binding BorderBrush}" HorizontalAlignment="Left" />
+                                <TextBlock Width="5" Background="{Binding BorderBrushLeft}" HorizontalAlignment="Left" />
                             </Grid>
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>

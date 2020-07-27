@@ -256,6 +256,10 @@ namespace EpgTimer
         }
         public override Brush BorderBrush
         {
+            get { return Settings.Instance.ListRuledLineContent ? BorderBrushLeft : base.BorderBrush; }
+        }
+        public override Brush BorderBrushLeft
+        {
             get
             {
                 if (EpgAutoAddInfo.searchInfo.contentList.Count == 0 || EpgAutoAddInfo.searchInfo.notContetFlag != 0)
@@ -265,7 +269,5 @@ namespace EpgTimer
                 return ViewUtil.EpgDataContentBrush(EpgAutoAddInfo.searchInfo.contentList);
             }
         }
-
     }
-
 }

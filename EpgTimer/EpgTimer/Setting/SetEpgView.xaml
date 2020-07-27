@@ -734,7 +734,7 @@
                 </TabItem>
                 <TabItem Header="色など">
                     <StackPanel Style="{StaticResource colorGrid}">
-                        <GroupBox Header="各画面共通デフォルトフォント・文字色" Margin="6,6,6,0" >
+                        <GroupBox Header="各画面共通デフォルトフォント・文字色等" Margin="6,6,6,0" >
                             <Grid>
                                 <Grid>
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
@@ -742,6 +742,14 @@
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="316,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="368,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeListView, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" Margin="413,11,0,0" IsChecked="{Binding FontBoldListView}" VerticalAlignment="Top" />
+                                    <DockPanel Margin="6,40,0,0">
+                                        <CheckBox Content="行区切り線を引く" IsChecked="{Binding ListRuledLine}" />
+                                        <DockPanel Margin="12,0,0,0" IsEnabled="{Binding ListRuledLine}">
+                                            <ComboBox Name="cmb_ListRuledLineColor" />
+                                            <Button Margin="6,0,0,0" Name="btn_ListRuledLineColor" />
+                                            <CheckBox Margin="12,0,0,0" Content="ジャンル色を優先する" IsChecked="{Binding ListRuledLineContent}" />
+                                        </DockPanel>
+                                    </DockPanel>
                                 </Grid>
                                 <Grid Margin="488,0,0,0">
                                     <ComboBox Margin="0,6,0,0" Name="cmb_ListDefFontColor" />

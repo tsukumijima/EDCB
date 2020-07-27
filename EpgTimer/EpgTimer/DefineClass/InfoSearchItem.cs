@@ -263,5 +263,9 @@ namespace EpgTimer
         {
             get { return ViewItem.BorderBrush; }
         }
+        public override Brush BorderBrushLeft
+        {
+            get { return ViewItem.BorderBrushLeft; }
+        }
     }
 }

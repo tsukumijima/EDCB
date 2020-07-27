@@ -31,6 +31,7 @@ namespace EpgTimer
         {
             get { return null; }
         }
-        public virtual Brush BorderBrush { get { return null; } }
+        public virtual Brush BorderBrush { get { return Settings.BrushCache.ListRuledLineColor; } }
+        public virtual Brush BorderBrushLeft { get { return null; } }
     }
 }

@@ -594,6 +594,10 @@ namespace EpgTimer
         public List<uint> RecEndCustColors { get; set; }
         public string ListDefColor { get; set; }
         public UInt32 ListDefCustColor { get; set; }
+        public string ListRuledLineColor { get; set; }
+        public UInt32 ListRuledLineCustColor { get; set; }
+        public bool ListRuledLine { get; set; }
+        public bool ListRuledLineContent { get; set; }
         public List<string> RecModeFontColors { get; set; }
         public List<uint> RecModeFontCustColors { get; set; }
         public List<string> ResBackColors { get; set; }
@@ -793,6 +797,10 @@ namespace EpgTimer
             RecEndCustColors = new List<uint>();
             ListDefColor = "カスタム";
             ListDefCustColor = 0xFF042271;
+            ListRuledLineColor = "LightGray";
+            ListRuledLineCustColor = 0xFFFFFFFF;
+            ListRuledLine = true;
+            ListRuledLineContent = true;
             RecModeFontColors = new List<string>();
             RecModeFontCustColors = new List<uint>();
             ResBackColors = new List<string>();
@@ -1886,6 +1894,7 @@ namespace EpgTimer
             public DashStyle TunerDashStyle { get; private set; }
             public List<Brush> ResBackColor { get; private set; }
             public Brush ListDefForeColor { get; private set; }
+            public Brush ListRuledLineColor { get; private set; }
             public List<Brush> RecModeForeColor { get; private set; }
             public List<Brush> ResStatusColor { get; private set; }
             public List<Brush> RecEndBackColor { get; private set; }
@@ -1958,6 +1967,7 @@ namespace EpgTimer
                 SimpleColorSet(TunerResBorderColor, Instance.TunerServiceColors, Instance.TunerServiceCustColors, 7 + 8, 7 + 8 + 4);
 
                 ListDefForeColor = CustColorBrush(Instance.ListDefColor, Instance.ListDefCustColor);
+                ListRuledLineColor = Instance.ListRuledLine == false ? null : CustColorBrush(Instance.ListRuledLineColor, Instance.ListRuledLineCustColor);
 
                 SimpleColorSet(RecModeForeColor, Instance.RecModeFontColors, Instance.RecModeFontCustColors);
                 SimpleColorSet(ResBackColor, Instance.ResBackColors, Instance.ResBackCustColors);

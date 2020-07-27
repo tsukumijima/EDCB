@@ -405,6 +405,10 @@ namespace EpgTimer
         }
         public override Brush BorderBrush
         {
+            get { return Settings.Instance.ListRuledLineContent ? BorderBrushLeft : base.BorderBrush; }
+        }
+        public override Brush BorderBrushLeft
+        {
             get { return ViewUtil.EpgDataContentBrush(EventInfo, EpgSettingIndex); }
         }
     }
