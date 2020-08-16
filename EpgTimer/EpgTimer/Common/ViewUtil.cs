@@ -523,9 +523,9 @@ namespace EpgTimer
         {
             return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath, defaultPath);
         }
-        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "")
+        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
         {
-            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath);
+            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath, checkExist);
         }
 
         public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, StringComparison type = StringComparison.OrdinalIgnoreCase)

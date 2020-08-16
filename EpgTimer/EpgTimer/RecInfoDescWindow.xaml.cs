@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -26,6 +26,13 @@ namespace EpgTimer
         public RecInfoDescWindow(RecFileInfo info = null)
         {
             InitializeComponent();
+
+            if (CommonManager.Instance.NWMode == true)
+            {
+                label_recFilePath.IsEnabled = false;
+                textBox_recFilePath.SetReadOnlyWithEffect(true);
+                button_rename.ToolTip = "EpgTimerNWでは使用不可";
+            }
 
             try
             {
@@ -65,6 +72,13 @@ namespace EpgTimer
                 grid_protect.ToolTipOpening += (sender, e) => grid_protect.ToolTip =
                         ("" + MenuBinds.GetInputGestureTextView(EpgCmds.ProtectChange, mBinds.View) + "\r\nプロテクト設定/解除").Trim();
 
+                button_rename_opne.Click += ViewUtil.OpenFileNameDialog(textBox_recFilePath, false, "", "", true, "", false);
+                if (CommonManager.Instance.NWMode == false)
+                {
+                    textBox_recFilePath.TextChanged += textBox_recFilePath_TextChanged;
+                    button_rename.Click += button_rename_Click;
+                }
+
                 //ステータスバーの設定
                 this.statusBar.Status.Visibility = Visibility.Collapsed;
                 StatusManager.RegisterStatusbar(this.statusBar, this);
@@ -101,6 +115,8 @@ namespace EpgTimer
                 }
                 textBox_pgInfo.Document = CommonManager.ConvertDisplayText(recInfo.ProgramInfo);
                 textBox_errLog.Text = recInfo.ErrInfo;
+                textBox_recFilePath.Text = info.RecFilePath;
+                button_rename.IsEnabled = false;
             }
             UpdateViewSelection(0);
         }
@@ -163,6 +179,108 @@ namespace EpgTimer
                 toRefData = true;
             }
             base.MoveViewNextItem(direction, toRefData);
+        }
+        private void textBox_recFilePath_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            button_rename.IsEnabled = recInfo != null &&
+                                      recInfo.RecFilePath.Length > 0 &&
+                                      textBox_recFilePath.Text.Length > 0 &&
+                                      recInfo.RecFilePath != textBox_recFilePath.Text;
+        }
+        private void button_rename_Click(object sender, RoutedEventArgs e)
+        {
+            if (recInfo != null && recInfo.RecFilePath.Length > 0)
+            {
+                string destPath = null;
+                try
+                {
+                    // 絶対パスであること
+                    string path = textBox_recFilePath.Text;
+                    if (Path.GetFullPath(path).Equals(path, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // 拡張子は変更できない
+                        if (Path.GetExtension(path).Equals(Path.GetExtension(recInfo.RecFilePath), StringComparison.OrdinalIgnoreCase))
+                        {
+                            // 移動先のディレクトリは存在しなければならない
+                            if (Directory.Exists(Path.GetDirectoryName(path)))
+                            {
+                                destPath = path;
+                            }
+                        }
+                    }
+                }
+                catch { }
+
+                if (destPath == null)
+                {
+                    MessageBox.Show("拡張子または移動先が不正です。", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                    textBox_recFilePath.Text = recInfo.RecFilePath;
+                }
+                else
+                {
+                    // データベースを変更
+                    ErrCode err = ErrCode.CMD_ERR;
+                    string originalPath = recInfo.RecFilePath;
+                    recInfo.RecFilePath = destPath;
+                    try
+                    {
+                        err = CommonManager.CreateSrvCtrl().SendChgPathRecInfo(new List<RecFileInfo>() { recInfo });
+                        StatusManager.StatusNotifySet(err == ErrCode.CMD_SUCCESS, "録画ファイル名を変更");
+                        if (err != ErrCode.CMD_SUCCESS)
+                        {
+                            MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "録画ファイル名の変更に失敗しました。", "録画ファイル名の変更", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString());
+                    }
+                    if (err != ErrCode.CMD_SUCCESS)
+                    {
+                        textBox_recFilePath.Text = recInfo.RecFilePath = originalPath;
+                    }
+                    else
+                    {
+                        // ファイルが存在すれば移動する
+                        var errFileList = new List<string>();
+                        try
+                        {
+                            File.Move(originalPath, destPath);
+                        }
+                        catch (FileNotFoundException) { }
+                        catch
+                        {
+                            errFileList.Add(originalPath);
+                        }
+                        try
+                        {
+                            // 拡張子が付加されたファイルも移動する
+                            foreach (string path in Directory.GetFiles(Path.GetDirectoryName(originalPath), Path.GetFileName(originalPath) + ".*"))
+                            {
+                                if (path.Length > originalPath.Length &&
+                                    string.Compare(path, 0, originalPath, 0, originalPath.Length, StringComparison.OrdinalIgnoreCase) == 0)
+                                {
+                                    try
+                                    {
+                                        File.Move(path, destPath + path.Substring(originalPath.Length));
+                                    }
+                                    catch
+                                    {
+                                        errFileList.Add(path);
+                                    }
+                                }
+                            }
+                        }
+                        catch { }
+                        if (errFileList.Any())
+                        {
+                            StatusManager.StatusNotifyAppend("リネームに失敗 < ");
+                            MessageBox.Show("録画済み一覧の情報は更新されましたが、リネームまたは移動に失敗したファイルがあります。\r\n\r\n" + string.Join("\r\n", errFileList), "録画ファイル名の変更", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                    }
+                }
+            }
+            button_rename.IsEnabled = false;
         }
     }
     public class RecInfoDescWindowBase : ReserveWindowBase<RecInfoDescWindow> { }

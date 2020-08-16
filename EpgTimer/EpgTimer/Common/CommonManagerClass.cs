@@ -1072,11 +1072,11 @@ namespace EpgTimer
             return null;
         }
 
-        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "")
+        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt), defaultPath);
+            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt, checkExist), defaultPath);
         }
-        public static string GetFileNameByDialog(string InitialPath = "", bool isNameOnly = false, string Title = "", string DefaultExt = "")
+        public static string GetFileNameByDialog(string InitialPath = "", bool isNameOnly = false, string Title = "", string DefaultExt = "", bool checkExist = true)
         {
             try
             {
@@ -1084,6 +1084,8 @@ namespace EpgTimer
                 dlg.Title = Title;
                 dlg.FileName = Path.GetFileName(InitialPath);
                 dlg.InitialDirectory = GetDirectoryName2(InitialPath);
+                dlg.CheckFileExists = checkExist;
+                dlg.CheckPathExists = checkExist;
                 switch (DefaultExt)
                 {
                     case ".exe":
