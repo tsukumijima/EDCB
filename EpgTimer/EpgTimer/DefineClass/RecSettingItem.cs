@@ -184,6 +184,12 @@ namespace EpgTimer
 
         public string ConvertRecSettingText()
         {
+            var recfolderString = new Func<string, string, string, string>((folder, wp, fp) =>
+            {
+                return (folder != "!Default" ? folder + " (" : Settings.Instance.DefRecFolders[0] + " (デフォルトフォルダ, ") +
+                            wp + ", " + (fp.Length > 0 ? fp : "ファイル名PlugInなし") + ")";
+            });
+
             if (RecSettingInfo == null) return "";
             //
             string view = "録画有効 : " + RecEnabled + "\r\n";
@@ -194,24 +200,22 @@ namespace EpgTimer
             view += "指定サービス対象データ : 字幕含" + (RecSettingInfo.ServiceCaptionActual ? "める" : "めない")
                                             + " データカルーセル含" + (RecSettingInfo.ServiceDataActual ? "める" : "めない")
                                             + (RecSettingInfo.ServiceModeIsDefault ? " (デフォルト)" : "") + "\r\n";
-            view += "録画実行bat : " + (RecSettingInfo.BatFilePath == "" ? "なし" : RecSettingInfo.BatFilePath) + "\r\n";
+            view += "録画後実行bat : " + (RecSettingInfo.BatFilePath == "" ? "なし" : RecSettingInfo.BatFilePath) + "\r\n";
+
+            view += "録画フォルダ :" + (RecSettingInfo.RecFolderList.Any() ? "" : " (デフォルト)") + "\r\n";
+            if (RecSettingInfo.RecFolderList.Any())
             {
-                List<RecFileSetInfo> recFolderList = RecSettingInfo.RecFolderList;
-                view += "録画フォルダ : " + (recFolderList.Count == 0 ? "(デフォルト)" : "") + "\r\n";
-                if (recFolderList.Count == 0)
+                foreach (RecFileSetInfo info in RecSettingInfo.RecFolderList)
                 {
-                    string plugInFile = IniFileHandler.GetPrivateProfileString("SET", "RecNamePlugInFile", "RecName_Macro.dll", SettingPath.TimerSrvIniPath);
-                    foreach (string info in Settings.Instance.DefRecFolders)
-                    {
-                        view += info + " (WritePlugIn:Write_Default.dll ファイル名PlugIn:" + plugInFile + ")\r\n";
-                    }
+                    view += recfolderString(info.RecFolder, info.WritePlugIn, info.RecNamePlugIn) + "\r\n";
                 }
-                else
+            }
+            else
+            {
+                string plugInFile = IniFileHandler.GetPrivateProfileString("SET", "RecNamePlugInFile", "RecName_Macro.dll", SettingPath.TimerSrvIniPath);
+                foreach (string info in Settings.Instance.DefRecFolders)
                 {
-                    foreach (RecFileSetInfo info in RecSettingInfo.RecFolderList)
-                    {
-                        view += info.RecFolder + " (WritePlugIn:" + info.WritePlugIn + " ファイル名PlugIn:" + info.RecNamePlugIn + ")\r\n";
-                    }
+                    view += recfolderString(info, "Write_Default.dll", plugInFile) + "\r\n";
                 }
             }
             view += "録画タグ : " + RecSettingInfo.RecTag + "\r\n";
@@ -223,18 +227,11 @@ namespace EpgTimer
                 + (RecSettingInfo.RebootFlagActual == 1 ? " 復帰後再起動する" : "")
                 + (RecSettingInfo.RecEndIsDefault == true ? " (デフォルト)" : "") + "\r\n";
 
-            if (RecSettingInfo.PartialRecFlag == 0)
+            view += "部分受信 : 同時出力" + (RecSettingInfo.PartialRecFlag == 0 ? "なし" : "あり") + "\r\n";
+            view += "部分受信 指定フォルダ :" + (RecSettingInfo.PartialRecFolder.Any() ? "" : " なし") + "\r\n";
+            foreach (RecFileSetInfo info in RecSettingInfo.PartialRecFolder)
             {
-                view += "部分受信 : 同時出力なし\r\n";
-            }
-            else
-            {
-                view += "部分受信 : 同時出力あり\r\n";
-                view += "部分受信　録画フォルダ : \r\n";
-                foreach (RecFileSetInfo info in RecSettingInfo.PartialRecFolder)
-                {
-                    view += info.RecFolder + " (WritePlugIn:" + info.WritePlugIn + " ファイル名PlugIn:" + info.RecNamePlugIn + ")\r\n";
-                }
+                view += recfolderString(info.RecFolder, info.WritePlugIn, info.RecNamePlugIn) + "\r\n";
             }
             view += "連続録画動作 : " + (RecSettingInfo.ContinueRecFlag == 0 ? "分割" : "同一ファイル出力") + "\r\n";
             view += "使用チューナー強制指定 : " + TunerID;

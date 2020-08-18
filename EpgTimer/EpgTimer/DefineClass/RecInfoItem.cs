@@ -112,8 +112,8 @@ namespace EpgTimer
             view += ServiceName + "(" + NetworkName + ")" + "\r\n";
             view += EventName + "\r\n\r\n";
 
-            view += "録画結果 : " + Result + "\r\n";
-            view += "録画ファイルパス : " + RecFilePath + "\r\n";
+            view += "結果 : " + Result + "\r\n";
+            view += "録画ファイル : " + RecFilePath + "\r\n";
             view += ConvertDropText() + "\r\n";
             view += ConvertScrambleText() + "\r\n\r\n";
 
@@ -126,7 +126,7 @@ namespace EpgTimer
         {
             get { return ConvertDropText("D:") + " " + ConvertScrambleText("S:"); }
         }
-        private string ConvertDropText(string title = "Drops : ")
+        private string ConvertDropText(string title = "Drop : ")
         {
             if (Settings.Instance.RecinfoErrCriticalDrops == true)
             {
@@ -137,7 +137,7 @@ namespace EpgTimer
                 return title + RecInfo.Drops.ToString();
             }
         }
-        private string ConvertScrambleText(string title = "Scrambles : ")
+        private string ConvertScrambleText(string title = "Scramble : ")
         {
             if (Settings.Instance.RecinfoErrCriticalDrops == true)
             {

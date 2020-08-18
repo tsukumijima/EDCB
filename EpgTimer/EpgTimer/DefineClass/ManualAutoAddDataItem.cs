@@ -88,7 +88,7 @@ namespace EpgTimer
             view += "サービス : " + ServiceName + "(" + NetworkName + ")" + "\r\n";
             view += "自動登録 : " + CommonManager.ConvertIsEnableText(KeyEnabled) + "\r\n\r\n";
 
-            view += ConvertRecSettingText() + "\r\n\r\n";
+            view += "【録画設定】\r\n" + ConvertRecSettingText() + "\r\n\r\n";
 
             view += "プログラム自動予約ID : " + string.Format("{0} (0x{0:X})", DisplayID);
             return view;

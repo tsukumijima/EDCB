@@ -238,7 +238,8 @@ namespace EpgTimer
         }
         public override string ConvertInfoText(object param = null)
         {
-            string view = "Andキーワード : " + EventName + "\r\n";
+            string view = "【検索条件】\r\n";
+            view += "Andキーワード : " + EventName + "\r\n";
             view += "Notキーワード : " + NotKey + "\r\n";
             view += "正規表現モード : " + RegExp + "\r\n";
             view += "あいまい検索モード : " + Aimai + "\r\n";
@@ -249,7 +250,7 @@ namespace EpgTimer
             view += "時間絞り込み : " + DateKey + "\r\n";
             view += "検索対象サービス : " + _ServiceName(10, true) + "\r\n\r\n";
 
-            view += ConvertRecSettingText() + "\r\n\r\n";
+            view += "【録画設定】\r\n" + ConvertRecSettingText() + "\r\n\r\n";
 
             view += "キーワード予約ID : " + string.Format("{0} (0x{0:X})", DisplayID);
             return view;
