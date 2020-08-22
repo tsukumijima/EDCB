@@ -341,18 +341,6 @@ namespace EpgTimer
                         }
                     }
                 }
-                else
-                {
-                    menu.Visibility = Visibility.Visible;
-                    if (view == CtxmCode.TunerReserveView && Settings.Instance.MenuSet.IsManualAssign.Contains(view) == false)
-                    {
-                        //簡易メニュー時は、無効列非表示のとき表示しない。
-                        if( Settings.Instance.TunerDisplayOffReserve == false)
-                        {
-                            menu.Visibility = Visibility.Collapsed;
-                        }
-                    }
-                }
             }
             else if (menu.Tag == EpgCmdsEx.AddMenu)
             {

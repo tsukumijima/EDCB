@@ -849,7 +849,7 @@ namespace EpgTimer
             TunerPopupWidth = 1;
             TunerChangeBorderMode = 1;
             TunerColorModeUse = false;
-            TunerDisplayOffReserve = false;
+            TunerDisplayOffReserve = true;
             TunerToolTipMode = 0;
             TunerEpgInfoOpenMode = 0;
             FontReplacePatternEdit = "";
