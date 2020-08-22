@@ -443,11 +443,11 @@ namespace EpgTimer
         protected virtual void mc_CopyRecTag(object sender, ExecutedRoutedEventArgs e)
         {
             string tag = mcs_getRecTag();
-            if (tag != null) Clipboard.SetDataObject(mcs_getRecTag());
+            if (tag != null) Clipboard.SetDataObject(tag);
         }
         protected virtual string mcs_getRecTag()
         {
-            var data = SelectSingleData(true) as IRecSetttingData;
+            var data = (SelectSingleData(true) ?? dataList.FirstOrDefault()) as IRecSetttingData;
             IsCommandExecuted = data != null && data.RecSettingInfo != null;
             return IsCommandExecuted == true ? data.RecSettingInfo.RecTag : null;
         }
