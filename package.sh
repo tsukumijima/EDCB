@@ -97,6 +97,7 @@ do
 done
 
 cp -fp "${src_bin_dir}/EdcbPlugIn.tvtp" "${dst_dir}/EdcbPlugIn/EdcbPlugIn.tvtp"
+cp -fp "${src_bin_dir}/Write/Write_OneService.dll" "${dst_dir}/EdcbPlugIn/Write_OneService.dll"
 cp -fpr ini/HttpPublic "${dst_dir}"
 cp -fpr ini/PostBatExamples "${dst_dir}"
 cp -fp "${src_bin_dir}/RecName/RecName_Macro.dll" "${dst_dir}/RecName/RecName_Macro.dll"
