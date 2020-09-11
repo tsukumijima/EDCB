@@ -10,9 +10,7 @@
 #include <shellapi.h>
 #include <tlhelp32.h>
 #include <lm.h>
-#pragma comment (lib, "netapi32.lib")
 #include <commctrl.h>
-#pragma comment(lib, "comctl32.lib")
 
 namespace
 {
@@ -64,7 +62,7 @@ struct MAIN_WINDOW_CONTEXT {
 	vector<RESERVE_DATA> autoAddCheckAddList;
 	bool autoAddCheckAddCountUpdated;
 	bool taskFlag;
-	bool showBalloonTip;
+	int noBalloonTip;
 	//0,1,2:NOTIFY_UPDATE_SRV_STATUSの値, 3:無効, 3<:点滅
 	DWORD notifySrvStatus;
 	DWORD notifyCount;
@@ -78,7 +76,7 @@ struct MAIN_WINDOW_CONTEXT {
 		, shutdownPendingTick(0)
 		, queryShutdownContext((HWND)NULL, pair<BYTE, bool>())
 		, taskFlag(false)
-		, showBalloonTip(false)
+		, noBalloonTip(1)
 		, notifySrvStatus(0)
 		, notifyCount(0)
 		, notifyTipActiveTime(LLONG_MAX) {}
@@ -89,7 +87,7 @@ struct MAIN_WINDOW_CONTEXT {
 CEpgTimerSrvMain::CEpgTimerSrvMain()
 	: reserveManager(notifyManager, epgDB)
 	, hwndMain(NULL)
-#ifdef LUA_BUILD_AS_DLL
+#ifndef EPGTIMERSRV_WITHLUA
 	, hLuaDll(NULL)
 #endif
 	, nwtvUdp(false)
@@ -158,7 +156,7 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 			DispatchMessage(&msg);
 		}
 	}
-#ifdef LUA_BUILD_AS_DLL
+#ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
 		FreeLibrary(this->hLuaDll);
 		this->hLuaDll = NULL;
@@ -476,7 +474,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		ctx->sys->reserveManager.Finalize();
 		OutputDebugString(L"*** Server finalized ***\r\n");
 		//タスクトレイから削除
-		SendMessage(hwnd, WM_APP_SHOW_TRAY, FALSE, FALSE);
+		SendMessage(hwnd, WM_APP_SHOW_TRAY, FALSE, 0);
 		ctx->sys->hwndMain = NULL;
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
 		RemoveProp(hwnd, L"PopupSel");
@@ -653,13 +651,13 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 					}
 				}
 			}
-			if( ctx->showBalloonTip && CNotifyManager::ExtractTitleFromInfo(&info).first[0] ){
+			if( ctx->noBalloonTip != 1 && CNotifyManager::ExtractTitleFromInfo(&info).first[0] ){
 				//バルーンチップ表示
 				NOTIFYICONDATA nid = {};
 				nid.cbSize = NOTIFYICONDATA_V2_SIZE;
 				nid.hWnd = hwnd;
 				nid.uID = 1;
-				nid.uFlags = NIF_INFO;
+				nid.uFlags = NIF_INFO | (ctx->noBalloonTip == 2 ? 0x40 : 0); //NIF_REALTIME
 				nid.dwInfoFlags = NIIF_INFO;
 				nid.uTimeout = 10000; //効果はない
 				wcsncpy_s(nid.szInfoTitle, CNotifyManager::ExtractTitleFromInfo(&info).first, _TRUNCATE);
@@ -701,7 +699,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			Shell_NotifyIcon(NIM_DELETE, &nid);
 		}
 		ctx->taskFlag = wParam != FALSE;
-		ctx->showBalloonTip = ctx->taskFlag && lParam;
+		ctx->noBalloonTip = ctx->taskFlag ? (int)lParam : 1;
 		if( ctx->taskFlag ){
 			SetTimer(hwnd, TIMER_RETRY_ADD_TRAY, 0, NULL);
 		}
@@ -1040,7 +1038,7 @@ void CEpgTimerSrvMain::InitReserveMenuPopup(HMENU hMenu, vector<RESERVE_DATA>& l
 {
 	__int64 maxTime = GetNowI64Time() + 24 * 3600 * I64_1SEC;
 	list.erase(std::remove_if(list.begin(), list.end(), [=](const RESERVE_DATA& a) {
-		return a.recSetting.recMode == RECMODE_NO || ConvertI64Time(a.startTime) > maxTime;
+		return a.recSetting.IsNoRec() || ConvertI64Time(a.startTime) > maxTime;
 	}), list.end());
 	std::sort(list.begin(), list.end(), [](const RESERVE_DATA& a, const RESERVE_DATA& b) {
 		return ConvertI64Time(a.startTime) < ConvertI64Time(b.startTime);
@@ -1060,7 +1058,7 @@ void CEpgTimerSrvMain::InitReserveMenuPopup(HMENU hMenu, vector<RESERVE_DATA>& l
 		WCHAR text[128];
 		swprintf_s(text, L"%02d:%02d-%02d:%02d%ls %.31ls 【%.31ls】",
 		           list[i].startTime.wHour, list[i].startTime.wMinute, endTime.wHour, endTime.wMinute,
-		           list[i].recSetting.recMode == RECMODE_VIEW ? L"▲" : L"",
+		           list[i].recSetting.GetRecMode() == RECMODE_VIEW ? L"▲" : L"",
 		           list[i].title.c_str(), list[i].stationName.c_str());
 		std::replace(text, text + wcslen(text), L'　', L' ');
 		std::replace(text, text + wcslen(text), L'&', L'＆');
@@ -1120,7 +1118,7 @@ void CEpgTimerSrvMain::ReloadSetting(bool initialize)
 	if( initialize ){
 		this->stoppingFlag = false;
 		this->reserveManager.Initialize(s);
-#ifdef LUA_BUILD_AS_DLL
+#ifndef EPGTIMERSRV_WITHLUA
 		//存在を確認しているだけ
 		this->hLuaDll = LoadLibrary(GetModulePath().replace_filename(LUA_DLL_NAME).c_str());
 		if( this->hLuaDll )
@@ -1142,7 +1140,7 @@ void CEpgTimerSrvMain::ReloadSetting(bool initialize)
 			//常駐する(CMD2_EPG_SRV_CLOSEを無視)
 			this->residentFlag = true;
 			//タスクトレイに表示するかどうか
-			PostMessage(this->hwndMain, WM_APP_SHOW_TRAY, this->setting.residentMode >= 2, !this->setting.noBalloonTip);
+			PostMessage(this->hwndMain, WM_APP_SHOW_TRAY, this->setting.residentMode >= 2, this->setting.noBalloonTip);
 		}
 	}else if( this->setting.residentMode >= 2 ){
 		//チップヘルプを更新するため
@@ -1159,7 +1157,8 @@ RESERVE_DATA CEpgTimerSrvMain::GetDefaultReserveData(__int64 startTime) const
 	r.reserveID = 0x7FFFFFFF;
 	ConvertSystemTime(startTime, &r.startTime);
 	r.startTimeEpg = r.startTime;
-	r.recSetting.recMode = RECMODE_SERVICE;
+	//無効かどうかを定数ではなくフラグで解釈することを示す(以前はRECMODE_SERVICE)
+	r.recSetting.recMode = REC_SETTING_DATA::DIV_RECMODE;
 	r.recSetting.priority = 1;
 	r.recSetting.suspendMode = (this->setting.recEndMode + 3) % 4 + 1;
 	r.recSetting.rebootFlag = this->setting.reboot;
@@ -1171,6 +1170,16 @@ RESERVE_DATA CEpgTimerSrvMain::GetDefaultReserveData(__int64 startTime) const
 	//*以降をBatFileTagとして扱うことを示す
 	r.recSetting.batFilePath = L"*";
 	return r;
+}
+
+void CEpgTimerSrvMain::AdjustRecModeRange(REC_SETTING_DATA& recSetting) const
+{
+	if( recSetting.IsNoRec() ){
+		CBlockLock lock(&this->settingLock);
+		if( this->setting.fixNoRecToServiceOnly ){
+			recSetting.recMode = REC_SETTING_DATA::DIV_RECMODE;
+		}
+	}
 }
 
 bool CEpgTimerSrvMain::SetResumeTimer(HANDLE* resumeTimer, __int64* resumeTime, DWORD marginSec)
@@ -1478,7 +1487,9 @@ void CEpgTimerSrvMain::AutoAddReserveEPG(const EPG_AUTO_ADD_DATA& data, vector<R
 					item.eventID = info.event_id;
 					item.recSetting = data.recSetting;
 					if( data.searchInfo.chkRecEnd != 0 && this->reserveManager.IsFindRecEventInfo(info, data.searchInfo.chkRecDay) ){
-						item.recSetting.recMode = RECMODE_NO;
+						//無効にする
+						item.recSetting.recMode = REC_SETTING_DATA::DIV_RECMODE +
+							(item.recSetting.GetRecMode() + REC_SETTING_DATA::DIV_RECMODE - 1) % REC_SETTING_DATA::DIV_RECMODE;
 					}
 					item.comment = L"EPG自動予約";
 					if( resultList[i].second.empty() == false ){
@@ -1808,6 +1819,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						val[i].dataID = sys->epgAutoAdd.AddData(val[i]);
 						sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
 						sys->AutoAddReserveEPG(val[i], addList);
@@ -1844,6 +1856,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						if( sys->epgAutoAdd.ChgData(val[i]) ){
 							sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
 							sys->AutoAddReserveEPG(val[i], addList);
@@ -1879,6 +1892,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						val[i].dataID = sys->manualAutoAdd.AddData(val[i]);
 						sys->AutoAddReserveProgram(val[i], addList);
 					}
@@ -1912,6 +1926,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						if( sys->manualAutoAdd.ChgData(val[i]) ){
 							sys->AutoAddReserveProgram(val[i], addList);
 						}
@@ -2385,6 +2400,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						val[i].dataID = sys->epgAutoAdd.AddData(val[i]);
 						sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
 						sys->AutoAddReserveEPG(val[i], addList);
@@ -2410,6 +2426,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						if( sys->epgAutoAdd.ChgData(val[i]) ){
 							sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
 							sys->AutoAddReserveEPG(val[i], addList);
@@ -2453,6 +2470,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						val[i].dataID = sys->manualAutoAdd.AddData(val[i]);
 						sys->AutoAddReserveProgram(val[i], addList);
 					}
@@ -2477,6 +2495,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
 					for( size_t i = 0; i < val.size(); i++ ){
+						sys->AdjustRecModeRange(val[i].recSetting);
 						if( sys->manualAutoAdd.ChgData(val[i]) ){
 							sys->AutoAddReserveProgram(val[i], addList);
 						}
@@ -2601,6 +2620,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 				{
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
+					sys->AdjustRecModeRange(item.recSetting);
 					item.dataID = sys->epgAutoAdd.AddData(item);
 					sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
 					sys->AutoAddReserveEPG(item, addList);
@@ -2635,6 +2655,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, CMD_STREAM* cmdPar
 				{
 					CBlockLock lock(&sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
+					sys->AdjustRecModeRange(item.recSetting);
 					if( sys->epgAutoAdd.ChgData(item) ){
 						sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
 						sys->AutoAddReserveEPG(item, addList);
@@ -2966,7 +2987,7 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(CMD_STREAM& cmdParam, CMD_STREAM
 	return false;
 }
 
-#ifndef LUA_BUILD_AS_DLL
+#ifdef EPGTIMERSRV_WITHLUA
 extern "C" int luaopen_zlib(lua_State*);
 #endif
 
@@ -3015,7 +3036,7 @@ void CEpgTimerSrvMain::InitLuaCallback(lua_State* L, LPCSTR serverRandom)
 		{ NULL, NULL }
 	};
 	//必要な領域をヒントに与えて"edcb"メタテーブルを作成
-	lua_createtable(L, 0, _countof(closures) - 1 + 2 + 2 + 1);
+	lua_createtable(L, 0, array_size(closures) - 1 + 2 + 2 + 1);
 	lua_pushlightuserdata(L, this);
 	luaL_setfuncs(L, closures, 1);
 	LuaHelp::reg_int(L, "htmlEscape", 0);
@@ -3067,6 +3088,7 @@ void CEpgTimerSrvMain::InitLuaCallback(lua_State* L, LPCSTR serverRandom)
 		"   name=d[i]==0 and 'Default' or gp(n,'SetName','',p),"
 		"   recSetting={"
 		"    recMode=tonumber(gp(n,'RecMode',1,p)) or 1,"
+		"    noRecMode=tonumber(gp(n,'NoRecMode',1,p)) or 1,"
 		"    priority=tonumber(gp(n,'Priority',2,p)) or 2,"
 		"    tuijyuuFlag=gp(n,'TuijyuuFlag',1,p)~='0',"
 		"    serviceMode=tonumber(gp(n,'ServiceMode',0,p)) or 0,"
@@ -3103,7 +3125,7 @@ void CEpgTimerSrvMain::InitLuaCallback(lua_State* L, LPCSTR serverRandom)
 		" return r;"
 		"end");
 
-#ifndef LUA_BUILD_AS_DLL
+#ifdef EPGTIMERSRV_WITHLUA
 	//組み込みのzlibをロード済みにする
 	luaL_requiref(L, "zlib", luaopen_zlib, 0);
 #endif
@@ -3847,6 +3869,7 @@ int CEpgTimerSrvMain::LuaAddOrChgAutoAdd(lua_State* L)
 				bool modified = true;
 				{
 					CBlockLock lock(&ws.sys->autoAddLock);
+					ws.sys->AdjustRecModeRange(item.recSetting);
 					if( item.dataID == 0 ){
 						item.dataID = ws.sys->epgAutoAdd.AddData(item);
 					}else{
@@ -3892,6 +3915,7 @@ int CEpgTimerSrvMain::LuaAddOrChgManuAdd(lua_State* L)
 			bool modified = true;
 			{
 				CBlockLock lock(&ws.sys->autoAddLock);
+				ws.sys->AdjustRecModeRange(item.recSetting);
 				if( item.dataID == 0 ){
 					item.dataID = ws.sys->manualAutoAdd.AddData(item);
 				}else{
@@ -4147,7 +4171,8 @@ void CEpgTimerSrvMain::PushReserveData(CLuaWorkspace& ws, const RESERVE_DATA& r)
 void CEpgTimerSrvMain::PushRecSettingData(CLuaWorkspace& ws, const REC_SETTING_DATA& rs)
 {
 	lua_State* L = ws.L;
-	LuaHelp::reg_int(L, "recMode", rs.recMode);
+	LuaHelp::reg_int(L, "recMode", rs.IsNoRec() ? REC_SETTING_DATA::DIV_RECMODE : rs.GetRecMode());
+	LuaHelp::reg_int(L, "noRecMode", rs.GetRecMode());
 	LuaHelp::reg_int(L, "priority", rs.priority);
 	LuaHelp::reg_boolean(L, "tuijyuuFlag", rs.tuijyuuFlag != 0);
 	LuaHelp::reg_int(L, "serviceMode", (int)rs.serviceMode);
@@ -4269,6 +4294,12 @@ void CEpgTimerSrvMain::FetchRecSettingData(CLuaWorkspace& ws, REC_SETTING_DATA& 
 {
 	lua_State* L = ws.L;
 	rs.recMode = (BYTE)LuaHelp::get_int(L, "recMode");
+	if( rs.IsNoRec() ){
+		//無効状態と録画モード情報をマージ
+		rs.recMode = REC_SETTING_DATA::DIV_RECMODE +
+			((BYTE)(LuaHelp::get_boolean(L, "noRecMode") ? LuaHelp::get_int(L, "noRecMode") : RECMODE_SERVICE) +
+				REC_SETTING_DATA::DIV_RECMODE - 1) % REC_SETTING_DATA::DIV_RECMODE;
+	}
 	rs.priority = (BYTE)LuaHelp::get_int(L, "priority");
 	rs.tuijyuuFlag = LuaHelp::get_boolean(L, "tuijyuuFlag");
 	rs.serviceMode = (BYTE)LuaHelp::get_int(L, "serviceMode");
