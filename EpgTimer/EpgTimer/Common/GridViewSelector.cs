@@ -10,6 +10,7 @@ namespace EpgTimer
     {
         GridView gridView = null;
         Dictionary<String, GridViewColumn> columnList = new Dictionary<String, GridViewColumn>();   //カラムの一覧を保存しておく
+        List<GridViewColumn> columnFixed = new List<GridViewColumn>();   //固定カラム
         Func<List<ListColumnInfo>> getResetColumns = null;
         Func<List<ListColumnInfo>> getInitColumns = null;
         private bool CanResetColumns { get { return getResetColumns != null; } }
@@ -57,6 +58,11 @@ namespace EpgTimer
                 foreach (GridViewColumn info in gridView.Columns)
                 {
                     var header = info.Header as GridViewColumnHeader;
+                    if (string.IsNullOrEmpty(header.Uid))
+                    {
+                        columnFixed.Add(info);
+                        continue;
+                    }
 
                     //セレクト用のメニュー生成
                     var menu = new MenuItem();
@@ -93,11 +99,12 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
-        private void ResetGridViewColumns(IEnumerable<ListColumnInfo> setting)
+        private void ResetGridViewColumns(IEnumerable<ListColumnInfo> setting = null)
         {
+            gridView.Columns.Clear();
+            columnFixed.ForEach(col => gridView.Columns.Add(col));
             if (setting != null)
             {
-                gridView.Columns.Clear();
                 foreach (ListColumnInfo info in setting)
                 {
                     if (info != null && columnList.ContainsKey(info.Tag))
@@ -129,7 +136,7 @@ namespace EpgTimer
                         foreach (var val in list) gridView.Columns.Add(val);
                         break;
                     case gvsCmds.Clear:
-                        gridView.Columns.Clear();
+                        ResetGridViewColumns();
                         break;
                     case gvsCmds.Delete:
                         var trg = (sender as MenuItem).DataContext as MenuItem;
@@ -163,8 +170,8 @@ namespace EpgTimer
                 }
 
                 cmdsMenu[gvsCmds.Delete].IsEnabled = menu_cmd.DataContext != null;
-                cmdsMenu[gvsCmds.All].IsEnabled = gridView.Columns.Count != columnList.Count;
-                cmdsMenu[gvsCmds.Clear].IsEnabled = gridView.Columns.Count != 0;
+                cmdsMenu[gvsCmds.All].IsEnabled = gridView.Columns.Count - columnFixed.Count != columnList.Count;
+                cmdsMenu[gvsCmds.Clear].IsEnabled = gridView.Columns.Count - columnFixed.Count != 0;
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
@@ -179,7 +186,7 @@ namespace EpgTimer
                 if (setting == null) return;
 
                 setting.Clear();
-                setting.AddRange(gridView.Columns.Select(info => new ListColumnInfo(((GridViewColumnHeader)info.Header).Uid, info.Width)));
+                setting.AddRange(gridView.Columns.Select(info => new ListColumnInfo(((GridViewColumnHeader)info.Header).Uid, info.Width)).Where(cInfo => !string.IsNullOrEmpty(cInfo.Tag)));
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }

@@ -87,6 +87,18 @@
                 </GridViewColumn>
             </local:GridViewColumnList>
             <local:GridViewColumnList x:Key="CommonColumns">
+                <GridViewColumn Width="10">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader IsEnabled="False"/>
+                    </GridViewColumn.Header>
+                    <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid Margin="-6,0" Background="{Binding BackColor2}" >
+                                <TextBlock Width="5" Background="{Binding BorderBrushLeft}" HorizontalAlignment="Left" />
+                            </Grid>
+                        </DataTemplate>
+                    </GridViewColumn.CellTemplate>
+                </GridViewColumn>
                 <GridViewColumn DisplayMemberBinding="{Binding SearchCount}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="検索数" Uid="SearchCount" />
@@ -116,6 +128,16 @@
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="次の予約時間" Uid="NextReserve" />
                     </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn>
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="次の予約長さ" Uid="NextReserveDuration" />
+                    </GridViewColumn.Header>
+                    <GridViewColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding NextReserveDuration}" HorizontalAlignment="Right" />
+                        </DataTemplate>
+                    </GridViewColumn.CellTemplate>
                 </GridViewColumn>
                 <GridViewColumn>
                     <GridViewColumn.Header>

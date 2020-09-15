@@ -117,6 +117,19 @@ namespace EpgTimer
             return false;
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern uint RegisterWindowMessage(string lpString);
+
+        static uint msgTaskbarCreated;
+        public static uint RegisterTaskbarCreatedWindowMessage()
+        {
+            if (msgTaskbarCreated == 0)
+            {
+                msgTaskbarCreated = RegisterWindowMessage("TaskbarCreated");
+            }
+            return msgTaskbarCreated;
+        }
+
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 

@@ -69,6 +69,8 @@ namespace EpgTimer
 
             Data = new RecSettingData();
             Data.RecMode = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "RecMode", 1, SettingPath.TimerSrvIniPath);
+            Data.IsEnable = Data.RecMode / 5 % 2 == 0;
+            if (!Data.IsEnable) Data.RecMode = (byte)(IniFileHandler.GetPrivateProfileInt(defName, "NoRecMode", 1, SettingPath.TimerSrvIniPath) % 5);
             Data.Priority = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "Priority", 2, SettingPath.TimerSrvIniPath);
             Data.TuijyuuFlag = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "TuijyuuFlag", 1, SettingPath.TimerSrvIniPath);
             Data.ServiceMode = (Byte)IniFileHandler.GetPrivateProfileInt(defName, "ServiceMode", 16, SettingPath.TimerSrvIniPath);
@@ -107,7 +109,8 @@ namespace EpgTimer
             string defName = "REC_DEF" + IDS;
 
             IniFileHandler.WritePrivateProfileString(defName, "SetName", DisplayName, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString(defName, "RecMode", Data.RecMode, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "RecMode", Data.IsEnable ? Data.RecMode : 5, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString(defName, "NoRecMode", Data.RecMode, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "Priority", Data.Priority, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "TuijyuuFlag", Data.TuijyuuFlag, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString(defName, "ServiceMode", Data.ServiceMode, SettingPath.TimerSrvIniPath);

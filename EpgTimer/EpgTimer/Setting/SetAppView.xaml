@@ -19,11 +19,16 @@
                     <StackPanel Margin="18,0,12,0" IsEnabled="{Binding ShowTray}" >
                         <CheckBox Content="最小化時にタスクトレイに格納する" Margin="0,4,0,0" IsChecked="{Binding MinHide}" />
                         <CheckBox Content="最小化起動時に静かに起動する" Margin="0,4,0,0" IsChecked="{Binding WakeMinTraySilent}" ToolTip="最初からタスクアイコンで起動しますが、アイコンからの最初の復帰時に時間がかかります。"/>
-                        <CheckBox Margin="0,4,0,0" Content="バルーンチップ/トーストでの動作通知を抑制する" IsChecked="{Binding NoBallonTips}" />
-                        <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" >
-                            <Label Content="バルーンチップを強制的に閉じる" ToolTip="0でタイムアウト無し"/>
-                            <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ForceHideBalloonTipSec, Converter={StaticResource vcheck},ConverterParameter='255,0'}"/>
-                            <Label Content="秒後" />
+                        <StackPanel>
+                            <CheckBox Content="バルーンチップ/トーストで通知する" Margin="0,4,0,0" IsChecked="{Binding NoBallonTips, Converter={StaticResource invert}}" />
+                            <StackPanel Margin="18,0,0,0" IsEnabled="{Binding NoBallonTips, Converter={StaticResource invert}}">
+                                <CheckBox Content="リアルタイムで表示できなかった通知を捨てる" Margin="0,4,0,0" IsChecked="{Binding BalloonTipRealtime}" />
+                                <StackPanel Margin="0,4,0,-2" Orientation="Horizontal" >
+                                    <Label Content="通知を強制的に閉じる" ToolTip="0でタイムアウト無し"/>
+                                    <TextBox Margin="6,0,0,0" Width="62" Text="{Binding ForceHideBalloonTipSec, Converter={StaticResource vcheck},ConverterParameter='255,0'}"/>
+                                    <Label Content="秒後" />
+                                </StackPanel>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -35,7 +40,10 @@
                             <CheckBox Content="ツールチップに次の予約を表示する" Margin="0,4,0,0" Name="checkBox_NotifyTipStyle" />
                             <CheckBox Content="開始準備で点滅させる" Margin="0,4,0,0" Name="checkBox_blinkPreRec" />
                         </StackPanel>
-                        <CheckBox Content="バルーンチップ/トーストでの動作通知を抑制する" Margin="0,4,0,0" Name="checkBox_srvNoBalloonTip" />
+                        <StackPanel>
+                            <CheckBox Content="バルーンチップ/トーストで通知する" Margin="0,4,0,0" Name="checkBox_srvBalloonTip" />
+                            <CheckBox Content="リアルタイムで表示できなかった通知を捨てる" Margin="18,4,0,0" Name="checkBox_srvBalloonTipRealtime" IsEnabled="{Binding IsChecked, ElementName=checkBox_srvBalloonTip}" />
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
                 <Button Content="EpgTimerSrvの設定画面を開く" Margin="0,6,0,0" Name="button_srvSetting" HorizontalAlignment="Left" ToolTip="※設定項目は、この設定画面と重複します。"/>
@@ -225,6 +233,7 @@
                     </StackPanel>
                     <StackPanel Name="grid_AppReserve2">
                         <CheckBox Margin="0,0,0,4" Content="キーワード予約をプログラム予約化したとき、再び追加されないようにする" Name="checkBox_CommentAutoAdd" />
+                        <CheckBox Margin="0,0,0,4" Content="予約を無効にするとき、録画モードを「指定サービス」にする(旧ver互換用)" Name="checkBox_FixNoRecToServiceOnly" />
                         <CheckBox Margin="0,0,0,4" Content="録画情報保存フォルダ指定時は録画ファイルの場所を参照しない" Name="checkBox_recInfoFolderOnly" />
                         <StackPanel Margin="0,0,0,4" Orientation="Horizontal" Name="stackPanel_autoDelRecInfo" >
                             <CheckBox Content="録画結果を自動的に削除する  保持件数" Name="checkBox_autoDelRecInfo" />

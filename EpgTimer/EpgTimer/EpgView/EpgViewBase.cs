@@ -180,7 +180,7 @@ namespace EpgTimer.EpgView
         protected CustomEpgTabInfo viewInfo { get { return viewData.EpgTabInfo; } }
         protected virtual bool viewCustNeedTimeOnly { get { return viewInfo.NeedTimeOnlyBasic; } }
         public int EpgSettingIndex { get { return viewData.EpgSettingIndex; } }
-        protected bool IsDataDefPeriod { get { return viewData.IsDefPeriod; } }
+        protected bool IsDataDefPeriod { get { return viewData.IsDefPeriod; } set { viewData.IsDefPeriod = value; } }
         protected EpgViewPeriodDef DefPeriod { get { return viewData.DefPeriod; } }
         protected EpgViewPeriod ViewPeriod = new EpgViewPeriod();
         protected EpgViewPeriod DataPeriod { get { return viewData.Period; } }
@@ -346,6 +346,7 @@ namespace EpgTimer.EpgView
             period = period ?? DefPeriod.DefPeriod;
             if (period.Equals(ViewPeriod)) return;
             ViewPeriod = period.DeepClone();
+            IsDataDefPeriod = false;
             UpdateInfo(true);
         }
         protected virtual void RefreshMoveButtonStatus()
@@ -400,7 +401,7 @@ namespace EpgTimer.EpgView
         /// <summary>EPGデータ更新</summary>
         protected override bool ReloadInfoData()
         {
-            EpgViewPeriod newPeriod = RestoreState.isDefPeriod == true ? DefPeriod.DefPeriod : RestoreState.period ?? ViewPeriod;
+            EpgViewPeriod newPeriod = RestoreState.isDefPeriod == true ? DefPeriod.DefPeriod : RestoreState.period ?? (IsDataDefPeriod ? DefPeriod.DefPeriod : ViewPeriod);
             if (!viewData.ReloadEpgData(newPeriod, !this.IsVisible)) return false;
             ViewPeriod = DataPeriod.DeepClone();
             RefreshMoveButtonStatus();

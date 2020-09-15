@@ -106,10 +106,12 @@ namespace EpgTimer.Setting
 
             //予約一覧・共通画面
             SetBindingColorButton(btn_ListDefFontColor, CommonUtil.NameOf(() => settings.ListDefCustColor));
+            SetBindingColorButton(btn_ListRuledLineColor, CommonUtil.NameOf(() => settings.ListRuledLineCustColor));
             setButtonColors(CommonUtil.NameOf(() => settings.RecModeFontCustColors), grid_ReserveRecModeColors);
             setButtonColors(CommonUtil.NameOf(() => settings.ResBackCustColors), grid_ReserveBackColors);
             setButtonColors(CommonUtil.NameOf(() => settings.StatCustColors), grid_StatColors);
             setComboColor1(CommonUtil.NameOf(() => settings.ListDefColor), cmb_ListDefFontColor);
+            setComboColor1(CommonUtil.NameOf(() => settings.ListRuledLineColor), cmb_ListRuledLineColor);
             setComboColors(CommonUtil.NameOf(() => settings.RecModeFontColors), grid_ReserveRecModeColors);
             setComboColors(CommonUtil.NameOf(() => settings.ResBackColors), grid_ReserveBackColors);
             setComboColors(CommonUtil.NameOf(() => settings.StatColors), grid_StatColors);

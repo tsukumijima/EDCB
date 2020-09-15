@@ -39,7 +39,7 @@ namespace EpgTimer
             InitializeComponent();
 
             //設定ウィンドウについては最低サイズを決めておく。
-            if (Height < 580) Height = 580;
+            if (Height < 650) Height = 650;
             if (Width < 780) Width = 780;
 
             base.SetParam(false, new CheckBox());

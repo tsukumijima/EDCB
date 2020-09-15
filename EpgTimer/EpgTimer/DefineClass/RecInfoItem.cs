@@ -41,7 +41,7 @@ namespace EpgTimer
         }
         public string StartTime
         {
-            get { return CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, Settings.Instance.RecInfoNoYear, Settings.Instance.RecInfoNoSecond); }
+            get { return CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, Settings.Instance.RecInfoNoYear, Settings.Instance.RecInfoNoSecond, isNoEnd: Settings.Instance.RecInfoNoEnd); }
         }
         public long StartTimeValue
         {
@@ -77,29 +77,31 @@ namespace EpgTimer
         }
         public override Brush BackColor
         {
-            get
+            get { return NowJumpingTable != 0 ? base.BackColor : BackColorBrush(); }
+        }
+        public override Brush BackColor2
+        {
+            get { return BackColorBrush(true); }
+        }
+        private Brush BackColorBrush(bool defTransParent = false)
+        {
+            //通常表示
+            long drops = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Drops : RecInfo.DropsCritical;
+            long scrambles = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Scrambles : RecInfo.ScramblesCritical;
+
+            int idx = defTransParent ? -1 : 0;
+            if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
+                || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
             {
-                //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0) return base.BackColor;
-
-                //通常表示
-                long drops = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Drops : RecInfo.DropsCritical;
-                long scrambles = Settings.Instance.RecinfoErrCriticalDrops == false ? RecInfo.Scrambles : RecInfo.ScramblesCritical;
-
-                int idx = 0;
-                if (Settings.Instance.RecInfoDropErrIgnore >= 0 && drops > Settings.Instance.RecInfoDropErrIgnore
-                    || RecInfo.RecStatusBasic == RecEndStatusBasic.ERR)
-                {
-                    idx = 1;
-                }
-                else if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
-                    || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
-                    || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
-                {
-                    idx = 2;
-                }
-                return Settings.BrushCache.RecEndBackColor[idx];
+                idx = 1;
             }
+            else if (Settings.Instance.RecInfoDropWrnIgnore >= 0 && drops > Settings.Instance.RecInfoDropWrnIgnore
+                || Settings.Instance.RecInfoScrambleIgnore >= 0 && scrambles > Settings.Instance.RecInfoScrambleIgnore
+                || RecInfo.RecStatusBasic == RecEndStatusBasic.WARN)
+            {
+                idx = 2;
+            }
+            return idx < 0 ? null : Settings.BrushCache.RecEndBackColor[idx];
         }
         public override string ConvertInfoText(object param = null)
         {
@@ -110,8 +112,8 @@ namespace EpgTimer
             view += ServiceName + "(" + NetworkName + ")" + "\r\n";
             view += EventName + "\r\n\r\n";
 
-            view += "録画結果 : " + Result + "\r\n";
-            view += "録画ファイルパス : " + RecFilePath + "\r\n";
+            view += "結果 : " + Result + "\r\n";
+            view += "録画ファイル : " + RecFilePath + "\r\n";
             view += ConvertDropText() + "\r\n";
             view += ConvertScrambleText() + "\r\n\r\n";
 
@@ -124,7 +126,7 @@ namespace EpgTimer
         {
             get { return ConvertDropText("D:") + " " + ConvertScrambleText("S:"); }
         }
-        private string ConvertDropText(string title = "Drops : ")
+        private string ConvertDropText(string title = "Drop : ")
         {
             if (Settings.Instance.RecinfoErrCriticalDrops == true)
             {
@@ -135,7 +137,7 @@ namespace EpgTimer
                 return title + RecInfo.Drops.ToString();
             }
         }
-        private string ConvertScrambleText(string title = "Scrambles : ")
+        private string ConvertScrambleText(string title = "Scramble : ")
         {
             if (Settings.Instance.RecinfoErrCriticalDrops == true)
             {

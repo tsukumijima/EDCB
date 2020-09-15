@@ -60,12 +60,29 @@ namespace EpgTimer
                 return new ReserveItem(Data.GetNextReserve()).StartTimeValue;
             }
         }
+        public string NextReserveDuration
+        {
+            get { return new ReserveItem(Data.GetNextReserve()).Duration; }
+        }
+        public long NextReserveDurationValue
+        {
+            get
+            {
+                if (Data.GetNextReserve() == null) return long.MaxValue;
+                //
+                return new ReserveItem(Data.GetNextReserve()).DurationValue;
+            }
+        }
         public virtual string NetworkName { get { return ""; } }
         public virtual string ServiceName { get { return ""; } }
         public virtual bool KeyEnabled
         {
             set { EpgCmds.ChgOnOffCheck.Execute(this, null); }
             get { return Data.IsEnabled; }
+        }
+        public new string RecMode
+        {
+            get { return RecEnabled + "/" + base.RecMode; }
         }
         public override string ConvertInfoText(object param = null) { return ""; }
         public override Brush ForeColor
@@ -81,14 +98,16 @@ namespace EpgTimer
         }
         public override Brush BackColor
         {
-            get
-            {
-                //番組表へジャンプ時の強調表示
-                if (NowJumpingTable != 0 || Data.IsEnabled == true) return base.BackColor;
-                //
-                //無効の場合
-                return Settings.BrushCache.ResBackColor[1];
-            }
+            get { return NowJumpingTable != 0 ? base.BackColor : BackColorBrush(); }
+        }
+        public override Brush BackColor2
+        {
+            get { return BackColorBrush(true); }
+        }
+        private Brush BackColorBrush(bool defTransParent = false)
+        {
+            int idx = Data.IsEnabled == false ? 1 : defTransParent ? -1 : 0;
+            return idx < 0 ? null : Settings.BrushCache.ResBackColor[idx];
         }
     }
 
@@ -219,23 +238,28 @@ namespace EpgTimer
         }
         public override string ConvertInfoText(object param = null)
         {
-            string view = "Andキーワード : " + EventName + "\r\n";
+            string view = "【検索条件】\r\n";
+            view += "Andキーワード : " + EventName + "\r\n";
             view += "Notキーワード : " + NotKey + "\r\n";
             view += "正規表現モード : " + RegExp + "\r\n";
             view += "あいまい検索モード : " + Aimai + "\r\n";
             view += "番組名のみ検索対象 : " + TitleOnly + "\r\n";
             view += "大小文字区別 : " + CaseSensitive + "\r\n";
-            view += "自動登録 : " + (KeyEnabled == true ? "有効" : "無効") + "\r\n";
+            view += "自動登録 : " + CommonManager.ConvertIsEnableText(KeyEnabled) + "\r\n";
             view += "ジャンル絞り込み : " + JyanruKey + "\r\n";
             view += "時間絞り込み : " + DateKey + "\r\n";
             view += "検索対象サービス : " + _ServiceName(10, true) + "\r\n\r\n";
 
-            view += ConvertRecSettingText() + "\r\n\r\n";
+            view += "【録画設定】\r\n" + ConvertRecSettingText() + "\r\n\r\n";
 
             view += "キーワード予約ID : " + string.Format("{0} (0x{0:X})", DisplayID);
             return view;
         }
         public override Brush BorderBrush
+        {
+            get { return Settings.Instance.ListRuledLineContent ? BorderBrushLeft : base.BorderBrush; }
+        }
+        public override Brush BorderBrushLeft
         {
             get
             {
@@ -246,7 +270,5 @@ namespace EpgTimer
                 return ViewUtil.EpgDataContentBrush(EpgAutoAddInfo.searchInfo.contentList);
             }
         }
-
     }
-
 }

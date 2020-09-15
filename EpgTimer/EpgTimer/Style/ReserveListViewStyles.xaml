@@ -3,6 +3,18 @@
              xmlns:my="clr-namespace:EpgTimer">
 
     <my:GridViewColumnList x:Key="ReserveItemViewColumns">
+        <GridViewColumn Width="10">
+            <GridViewColumn.Header>
+                <GridViewColumnHeader IsEnabled="False"/>
+            </GridViewColumn.Header>
+            <GridViewColumn.CellTemplate>
+                <DataTemplate>
+                    <Grid Margin="-6,0" Background="{Binding BackColor2}" >
+                        <TextBlock Width="5" Background="{Binding BorderBrushLeft}" HorizontalAlignment="Left" />
+                    </Grid>
+                </DataTemplate>
+            </GridViewColumn.CellTemplate>
+        </GridViewColumn>
         <GridViewColumn Width="35">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="状態" Uid="Status" />
@@ -84,17 +96,22 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <ComboBox ItemsSource="{Binding ErrComment}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
+                    <ComboBox ItemsSource="{Binding ErrComment}" SelectedIndex="0" Padding="6,0,5,0"/>
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
-        <GridViewColumn>
+        <GridViewColumn DisplayMemberBinding="{Binding RecFileName}">
             <GridViewColumn.Header>
                 <GridViewColumnHeader Content="予定ファイル名" Uid="RecFileName" />
             </GridViewColumn.Header>
+        </GridViewColumn>
+        <GridViewColumn>
+            <GridViewColumn.Header>
+                <GridViewColumnHeader Content="予定ファイル名リスト" Uid="RecFileNameList" />
+            </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <ComboBox ItemsSource="{Binding RecFileName}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
+                    <ComboBox ItemsSource="{Binding RecFileNameList}" SelectedIndex="0" Padding="6,0,5,0"/>
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>
@@ -172,7 +189,7 @@
             </GridViewColumn.Header>
             <GridViewColumn.CellTemplate>
                 <DataTemplate>
-                    <ComboBox ItemsSource="{Binding RecFolder}" SelectedIndex="0" Padding="6,0,5,0"></ComboBox>
+                    <ComboBox ItemsSource="{Binding RecFolder}" SelectedIndex="0" Padding="6,0,5,0"/>
                 </DataTemplate>
             </GridViewColumn.CellTemplate>
         </GridViewColumn>

@@ -75,7 +75,7 @@ namespace EpgTimer
             get
             {
                 if  (ViewItem is AutoAddDataItem)           return ((AutoAddDataItem)ViewItem).NextReserve;
-                else if (Data is IBasicPgInfo)              return ReserveItem.GetTimeStringReserveStyle(((IBasicPgInfo)Data).PgStartTime, ((IBasicPgInfo)Data).PgDurationSecond);
+                else if (Data is IBasicPgInfo)              return SearchItem.GetTimeStringReserveStyle(((IBasicPgInfo)Data).PgStartTime, ((IBasicPgInfo)Data).PgDurationSecond);
                 else                                        return "";
             }
         }
@@ -93,7 +93,7 @@ namespace EpgTimer
             get
             {
                 if      (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).Duration;
-                else if (Data is IBasicPgInfo)              return ReserveItem.GetDurationStringReserveStyle(((IBasicPgInfo)Data).PgDurationSecond);
+                else if (Data is IBasicPgInfo)              return SearchItem.GetDurationStringReserveStyle(((IBasicPgInfo)Data).PgDurationSecond);
                 else                                        return "";
             }
         }
@@ -181,13 +181,17 @@ namespace EpgTimer
                 return ret.Substring(0, Math.Min(50, ret.Length));
             }
         }
-        public List<string> RecFileName
+        public string RecFileName
+        {
+            get { return RecFileNameList.FirstOrDefault() ?? ""; }
+        }
+        public List<string> RecFileNameList
         {
             get
             {
-                if      (ViewItem is ReserveItem)           return ((ReserveItem)ViewItem).RecFileName;
+                if      (ViewItem is ReserveItem)           return ((ReserveItem)ViewItem).RecFileNameList;
                 else if (ViewItem is RecInfoItem)           return new List<string> { Path.GetFileName(((RecInfoItem)ViewItem).RecFilePath) };
-                else if (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).RecFileName;
+                else if (Data is EpgAutoAddData)            return new ReserveItem(((EpgAutoAddData)Data).GetNextReserve()).RecFileNameList;
                 else                                        return new List<string>();
             }
         }
@@ -206,6 +210,14 @@ namespace EpgTimer
             {
                 if      (ViewItem is RecInfoItem)           return new List<string> { Path.GetDirectoryName(((RecInfoItem)ViewItem).RecFilePath) };
                 else                                        return base.RecFolder;
+            }
+        }
+        public override string RecMode
+        {
+            get
+            {
+                if      (ViewItem is AutoAddDataItem)       return ((AutoAddDataItem)ViewItem).RecMode;
+                else                                        return base.RecMode;
             }
         }
 
@@ -243,9 +255,17 @@ namespace EpgTimer
         {
             get { return ViewItem.BackColor; }
         }
+        public override Brush BackColor2
+        {
+            get { return ViewItem.BackColor2; }
+        }
         public override Brush BorderBrush
         {
             get { return ViewItem.BorderBrush; }
+        }
+        public override Brush BorderBrushLeft
+        {
+            get { return ViewItem.BorderBrushLeft; }
         }
     }
 }

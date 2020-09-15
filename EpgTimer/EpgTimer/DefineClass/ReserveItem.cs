@@ -67,10 +67,6 @@ namespace EpgTimer
                 return GetTimeStringReserveStyle(ReserveInfo.StartTime, ReserveInfo.DurationSecond);
             }
         }
-        public static string GetTimeStringReserveStyle(DateTime time, uint durationSecond)
-        {
-            return CommonManager.ConvertTimeText(time, durationSecond, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond);
-        }
         public override long StartTimeValue
         {
             get
@@ -97,10 +93,6 @@ namespace EpgTimer
                 //
                 return GetDurationStringReserveStyle(ReserveInfo.DurationSecond);
             }
-        }
-        public static string GetDurationStringReserveStyle(uint durationSecond)
-        {
-            return CommonManager.ConvertDurationText(durationSecond, Settings.Instance.ResInfoNoDurSecond);
         }
         public override UInt32 DurationValue
         {

@@ -27,6 +27,11 @@ namespace EpgTimer
         {
             get { return NowJumpingTable == 2 ? Brushes.Red : Settings.BrushCache.ResBackColor[0]; }
         }
-        public virtual Brush BorderBrush { get { return null; } }
+        public virtual Brush BackColor2
+        {
+            get { return null; }
+        }
+        public virtual Brush BorderBrush { get { return Settings.BrushCache.ListRuledLineColor; } }
+        public virtual Brush BorderBrushLeft { get { return null; } }
     }
 }

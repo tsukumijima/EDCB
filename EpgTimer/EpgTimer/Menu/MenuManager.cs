@@ -50,8 +50,8 @@ namespace EpgTimer
             //予約変更サブメニューの各サブメニュー
             ////自動登録の有効/無効
             var cm_ChgKeyEnabledMenu = new CtxmItemData("自動登録有効(仮)", EpgCmdsEx.ChgKeyEnabledMenu);
-            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData("有効(_0)", EpgCmds.ChgKeyEnabled, 0));
-            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData("無効(_1)", EpgCmds.ChgKeyEnabled, 1));
+            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData(CommonManager.ConvertIsEnableText(true) + "(_0)", EpgCmds.ChgKeyEnabled, 0));
+            cm_ChgKeyEnabledMenu.Items.Add(new CtxmItemData(CommonManager.ConvertIsEnableText(false) + "(_1)", EpgCmds.ChgKeyEnabled, 1));
 
             ////プリセット変更 実行時、サブメニューにプリセットを展開する。
             var cm_ChgOnPresetMenu = new CtxmItemData("プリセットへ変更(仮)", EpgCmdsEx.ChgOnPresetMenu);
@@ -63,9 +63,14 @@ namespace EpgTimer
             cm_ChgResModeMenu.Items.Add(new CtxmItemData("プログラム予約(_P)", EpgCmds.ChgResMode, 1));
             cm_ChgResModeMenu.Items.Add(new CtxmItemData(cm_Separator));
 
+            ////録画有効
+            var cm_ChgRecEnableMenu = new CtxmItemData("録画有効(仮)", EpgCmdsEx.ChgRecEnableMenu);
+            cm_ChgRecEnableMenu.Items.Add(new CtxmItemData(CommonManager.ConvertIsEnableText(true) + "(_0)", EpgCmds.ChgRecEnabled, 0));
+            cm_ChgRecEnableMenu.Items.Add(new CtxmItemData(CommonManager.ConvertIsEnableText(false) + "(_1)", EpgCmds.ChgRecEnabled, 1));
+
             ////録画モード
             var cm_ChgRecmodeMenu = new CtxmItemData("録画モード(仮)", EpgCmdsEx.ChgRecmodeMenu);
-            for (int i = 0; i <= 5; i++)
+            for (int i = 0; i <= 4; i++)
             {
                 cm_ChgRecmodeMenu.Items.Add(new CtxmItemData(string.Format("{0}(_{1})"
                     , CommonManager.ConvertRecModeText(i), i), EpgCmds.ChgRecmode, i));
@@ -147,6 +152,7 @@ namespace EpgTimer
             cm_ChangeMenu.Items.Add(new CtxmItemData("まとめて録画設定を変更...", EpgCmds.ChgBulkRecSet));
             cm_ChangeMenu.Items.Add(new CtxmItemData("まとめてジャンル絞り込みを変更...", EpgCmds.ChgGenre));
             cm_ChangeMenu.Items.Add(new CtxmItemData(cm_Separator));
+            cm_ChangeMenu.Items.Add(new CtxmItemData("録画有効", cm_ChgRecEnableMenu));
             cm_ChangeMenu.Items.Add(new CtxmItemData("録画モード", cm_ChgRecmodeMenu));
             cm_ChangeMenu.Items.Add(new CtxmItemData("優先度", cm_ChgPriorityMenu));
             cm_ChangeMenu.Items.Add(new CtxmItemData("イベントリレー追従", cm_ChgRelayMenu));

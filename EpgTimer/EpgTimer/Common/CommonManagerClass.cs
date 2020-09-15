@@ -63,8 +63,9 @@ namespace EpgTimer
         }
 
         public static readonly string[] DayOfWeekArray = Enumerable.Range(0, 7).Select(i => (new DateTime(2000, 1, 2 + i)).ToString("ddd")).ToArray();
-        public static readonly string[] RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴", "無効" };
+        public static readonly string[] RecModeList = new string[] { "全サービス", "指定サービス", "全サービス(デコード処理なし)", "指定サービス(デコード処理なし)", "視聴" };
         public static readonly string[] RecEndModeList = new string[] { "何もしない", "スタンバイ", "休止", "シャットダウン" };
+        public static readonly string[] IsEnableList = new string[] { "無効", "有効" };
         public static readonly string[] YesNoList = new string[] { "しない", "する" };
         public static readonly string[] PriorityList = new string[] { "1 (低)", "2", "3", "4", "5 (高)" };
         public static readonly Dictionary<char, List<KeyValuePair<string, string>>> ReplaceUrlDictionary = CreateReplaceDictionary(",０,0,１,1,２,2,３,3,４,4,５,5,６,6,７,7,８,8,９,9" +
@@ -587,8 +588,10 @@ namespace EpgTimer
             string[] src = reftxt.Split(new char[] { ' ', '～' });
             return src[0].Substring(6, 1) + " " + src[1] + " ～ " + src[2].Substring(6, 1) + " " + src[3];
         }
-        public static String ConvertTimeText(DateTime start, uint duration, bool isNoYear, bool isNoSecond, bool isNoEndDay = true, bool isNoStartDay = false)
+        public static String ConvertTimeText(DateTime start, uint duration, bool isNoYear, bool isNoSecond, bool isNoEndDay = true, bool isNoStartDay = false, bool isNoEnd = false)
         {
+            if (isNoEnd) return ConvertTimeText(start, isNoYear, isNoSecond, isNoStartDay);
+
             DateTime end = start + TimeSpan.FromSeconds(duration);
 
             if (Settings.Instance.LaterTimeUse == true)
@@ -940,6 +943,11 @@ namespace EpgTimer
             return ConvertValueText(val, RecEndModeList);
         }
 
+        public static string ConvertIsEnableText(bool val)
+        {
+            return ConvertValueText(val ? 1 : 0, IsEnableList);
+        }
+
         public static String ConvertYesNoText(int val)
         {
             return ConvertValueText(val, YesNoList);
@@ -1064,11 +1072,11 @@ namespace EpgTimer
             return null;
         }
 
-        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "")
+        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt), defaultPath);
+            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt, checkExist), defaultPath);
         }
-        public static string GetFileNameByDialog(string InitialPath = "", bool isNameOnly = false, string Title = "", string DefaultExt = "")
+        public static string GetFileNameByDialog(string InitialPath = "", bool isNameOnly = false, string Title = "", string DefaultExt = "", bool checkExist = true)
         {
             try
             {
@@ -1076,6 +1084,8 @@ namespace EpgTimer
                 dlg.Title = Title;
                 dlg.FileName = Path.GetFileName(InitialPath);
                 dlg.InitialDirectory = GetDirectoryName2(InitialPath);
+                dlg.CheckFileExists = checkExist;
+                dlg.CheckPathExists = checkExist;
                 switch (DefaultExt)
                 {
                     case ".exe":
@@ -1415,7 +1425,7 @@ namespace EpgTimer
             var now = CommonUtil.EdcbNowEpg;
             var start = now.AddMinutes(1 + Settings.Instance.RecAppWakeTime);
             var past = start.AddMinutes(-Settings.Instance.NoWakeUpHddMin);
-            List<ReserveData> reslist = Instance.DB.ReserveList.Values.Where(info => info.RecSetting.RecMode < 4).ToList();
+            List<ReserveData> reslist = Instance.DB.ReserveList.Values.Where(info => info.RecSetting.IsEnable && info.RecSetting.RecMode < 4).ToList();
             List<ReserveData> onlist = reslist.Where(info => info.IsOnRec(now)).ToList();
             List<ReserveData> stlist = reslist.Where(info => info.OnTime(start) >= 0).Except(onlist).ToList();
 

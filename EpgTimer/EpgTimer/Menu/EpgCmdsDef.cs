@@ -16,6 +16,7 @@ namespace EpgTimer
         public static RoutedUICommand ChgResMode { get; private set; }
         public static RoutedUICommand ChgBulkRecSet { get; private set; }
         public static RoutedUICommand ChgGenre { get; private set; }
+        public static RoutedUICommand ChgRecEnabled { get; private set; }
         public static RoutedUICommand ChgRecmode { get; private set; }
         public static RoutedUICommand ChgPriority { get; private set; }
         public static RoutedUICommand ChgRelay { get; private set; }
@@ -94,6 +95,7 @@ namespace EpgTimer
         public static RoutedUICommand ChgMenu { get; private set; }
         public static RoutedUICommand ShowAutoAddDialogMenu { get; private set; }
         public static RoutedUICommand ShowReserveDialogMenu { get; private set; }
+        public static RoutedUICommand ChgRecEnableMenu { get; private set; }
         public static RoutedUICommand ChgRecmodeMenu { get; private set; }
         public static RoutedUICommand ChgPriorityMenu { get; private set; }
         public static RoutedUICommand ChgRelayMenu { get; private set; }

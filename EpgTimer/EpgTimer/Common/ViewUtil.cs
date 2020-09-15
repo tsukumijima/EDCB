@@ -84,9 +84,9 @@ namespace EpgTimer
             return colorList[0x10];
         }
 
-        public static Brush ReserveErrBrush(ReserveData ReserveData)
+        public static Brush ReserveErrBrush(ReserveData ReserveData, bool defTransParent = false)
         {
-            int idx = 0;
+            int idx = defTransParent ? -1 : 0;
             if (ReserveData != null)
             {
                 if (ReserveData.IsEnabled == false)
@@ -110,7 +110,7 @@ namespace EpgTimer
                     idx = 5;
                 }
             }
-            return Settings.BrushCache.ResBackColor[idx];
+            return idx < 0 ? null : Settings.BrushCache.ResBackColor[idx];
         }
 
         public static void SetSpecificChgAppearance(Control obj)
@@ -523,9 +523,9 @@ namespace EpgTimer
         {
             return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath, defaultPath);
         }
-        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "")
+        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
         {
-            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath);
+            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath, checkExist);
         }
 
         public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, StringComparison type = StringComparison.OrdinalIgnoreCase)

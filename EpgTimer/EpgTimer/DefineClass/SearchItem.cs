@@ -68,8 +68,12 @@ namespace EpgTimer
                 if (EventInfo == null) return "";
                 if (EventInfo.StartTimeFlag == 0) return "未定";
                 //
-                return CommonManager.ConvertTimeText(EventInfo.start_time, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond);
+                return GetTimeStringReserveStyle(EventInfo.start_time, EventInfo.durationSec);
             }
+        }
+        public static string GetTimeStringReserveStyle(DateTime time, uint durationSecond)
+        {
+            return CommonManager.ConvertTimeText(time, durationSecond, Settings.Instance.ResInfoNoYear, Settings.Instance.ResInfoNoSecond, isNoEnd: Settings.Instance.ResInfoNoEnd);
         }
         public virtual long StartTimeValue
         {
@@ -90,8 +94,12 @@ namespace EpgTimer
                 if (EventInfo == null) return "";
                 if (EventInfo.DurationFlag == 0) return "不明";
                 //
-                return CommonManager.ConvertDurationText(EventInfo.durationSec, Settings.Instance.ResInfoNoDurSecond);
+                return GetDurationStringReserveStyle(EventInfo.durationSec);
             }
+        }
+        public static string GetDurationStringReserveStyle(uint durationSecond)
+        {
+            return CommonManager.ConvertDurationText(durationSecond, Settings.Instance.ResInfoNoDurSecond);
         }
         public virtual UInt32 DurationValue
         {
@@ -210,7 +218,11 @@ namespace EpgTimer
                 return s;
             }
         }
-        public List<string> RecFileName
+        public string RecFileName
+        {
+            get { return RecFileNameList.FirstOrDefault() ?? ""; }
+        }
+        public List<string> RecFileNameList
         {
             get
             {
@@ -369,7 +381,7 @@ namespace EpgTimer
                 //番組表へジャンプ時の強調表示
                 if (NowJumpingTable != 0 || ReserveInfo == null) return base.ForeColor;
                 //
-                return Settings.BrushCache.RecModeForeColor[ReserveInfo.RecSetting.RecMode];
+                return Settings.BrushCache.RecModeForeColor[ReserveInfo.IsEnabled ? ReserveInfo.RecSetting.RecMode : 5];
             }
         }
         public double Opacity
@@ -387,7 +399,15 @@ namespace EpgTimer
                 return ViewUtil.ReserveErrBrush(ReserveInfo);
             }
         }
+        public override Brush BackColor2
+        {
+            get { return ViewUtil.ReserveErrBrush(ReserveInfo, true); }
+        }
         public override Brush BorderBrush
+        {
+            get { return Settings.Instance.ListRuledLineContent ? BorderBrushLeft : base.BorderBrush; }
+        }
+        public override Brush BorderBrushLeft
         {
             get { return ViewUtil.EpgDataContentBrush(EventInfo, EpgSettingIndex); }
         }

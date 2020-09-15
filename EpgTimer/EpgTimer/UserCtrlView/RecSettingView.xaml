@@ -25,14 +25,13 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
                 <Grid>
-                    <Label Content="録画モード" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                    <ComboBox HorizontalAlignment="Left" Margin="77,3,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="180" />
-                    <Label Content="イベントリレー追従" HorizontalAlignment="Left" Margin="294,0,0,0" VerticalAlignment="Top" />
-                    <ComboBox HorizontalAlignment="Left" Margin="414,3,0,0" Name="comboBox_tuijyu" VerticalAlignment="Top" Width="75" />
-                    <Label Content="ぴったり(?)録画" HorizontalAlignment="Left" Margin="294,27,0,0" VerticalAlignment="Top" />
-                    <ComboBox HorizontalAlignment="Left" Margin="414,30,0,0" Name="comboBox_pittari" VerticalAlignment="Top" Width="75" />
-                    <Label Content="優先度" HorizontalAlignment="Left" Margin="0,27,0,0" VerticalAlignment="Top" />
-                    <ComboBox HorizontalAlignment="Left" Margin="77,30,0,0" Name="comboBox_priority" VerticalAlignment="Top" Width="75" />
+                    <CheckBox Content="有効"  Margin="0,5,0,0" Name="checkBox_enabled" VerticalAlignment="Top" />
+                    <Label Content="録画モード" Margin="64,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <ComboBox HorizontalAlignment="Left" Margin="141,3,0,0" Name="comboBox_recMode" VerticalAlignment="Top" Width="180" />
+                    <Label Content="優先度" Margin="64,27,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <ComboBox HorizontalAlignment="Left" Margin="141,30,0,0" Name="comboBox_priority" VerticalAlignment="Top" Width="75" />
+                    <CheckBox Content="イベントリレー追従" Margin="364,5,0,0" Name="checkBox_tuijyu" VerticalAlignment="Top" />
+                    <CheckBox Content="ぴったり(?)録画" Margin="364,32,0,0" Name="checkBox_pittari" VerticalAlignment="Top"/>
                     <Label Content="録画マージン" HorizontalAlignment="Left" Margin="0,54,0,0" VerticalAlignment="Top" />
                     <CheckBox Content="デフォルト" Height="16" HorizontalAlignment="Left" Margin="154,59,0,0" Name="checkBox_margineDef" VerticalAlignment="Top" Checked="checkBox_margineDef_Checked" Unchecked="checkBox_margineDef_Checked" />
                     <Label Content="開始" HorizontalAlignment="Left" Margin="249,54,0,0" VerticalAlignment="Top" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_margineDef, Converter={StaticResource invert}}" />

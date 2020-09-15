@@ -236,20 +236,9 @@ namespace EpgTimer
             return ReserveCmdSend(list, CommonManager.CreateSrvCtrl().SendAddReserve, "予約追加", cautionMany, "エラーが発生しました。\r\n終了時間がすでに過ぎている可能性があります。");
         }
 
-        public static bool ReserveChangeOnOff(List<ReserveData> itemlist, RecSettingData setInfo = null, bool cautionMany = true)
+        public static bool ReserveChangeOnOff(List<ReserveData> itemlist, bool cautionMany = true)
         {
-            //設定の録画モード無効ならデフォルト優先。デフォルトも無効なら、指定サービス。
-            byte defMode = setInfo != null && setInfo.RecMode != 5 ? setInfo.RecMode : Settings.Instance.RecPresetList[0].Data.RecMode;
-            if (defMode == 5) defMode = 1;
-
-            itemlist.ForEach(item =>
-            {
-                //予約の元プリセットがあればそれを使う。
-                RecPresetItem itemPreset = item.RecSetting.LookUpPreset(item.IsManual, false, true);
-                byte mode = itemPreset.Data != null && itemPreset.Data.RecMode != 5 ? itemPreset.Data.RecMode : defMode;
-                item.RecSetting.RecMode = (item.RecSetting.RecMode == 5 ? mode : (byte)5);
-            });
-
+            itemlist.ForEach(item => item.RecSetting.IsEnable = !item.RecSetting.IsEnable);
             return ReserveChange(itemlist, cautionMany);
         }
 
@@ -495,9 +484,9 @@ namespace EpgTimer
                         ReserveData rdata = resinfo.DeepClone();//変更かけるのでコピーする
                         rdata.RecSetting = data.RecSettingInfo.DeepClone();
                         //無効は保持する
-                        if (resinfo.RecSetting.RecMode == 5)
+                        if (resinfo.RecSetting.IsEnable == false)
                         {
-                            rdata.RecSetting.RecMode = 5;
+                            rdata.RecSetting.IsEnable = false;
                         }
                         //プログラム予約の場合は名前も追従させる。
                         if (data.IsManual == true && resinfo.IsManual == true)
@@ -839,9 +828,9 @@ namespace EpgTimer
                 {
                     RecPresetItem recPreSet = item_r.RecSettingInfo.LookUpPreset(item_r.IsManual, true);
                     RecSettingData recSet = recPreSet.Data;
-                    if (recPreSet.IsCustom == true && recSet.RecMode == 5)
+                    if (recPreSet.IsCustom == true && recSet.IsEnable == false)
                     {
-                        recSet.RecMode = 1;
+                        recSet.IsEnable = true;
                     }
                     dlg.SetRecSetting(recSet);
                 }

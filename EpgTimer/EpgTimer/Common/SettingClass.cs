@@ -455,9 +455,9 @@ namespace EpgTimer
     }
     public class Settings
     {
-        //ver履歴 20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
+        //ver履歴 20200723、20200721、20200528、20200411、20200320、20190520、20190321、20190217、20170717、20170512
         private int verSaved = 0;
-        public int SettingFileVer { get { return 20200528; } set { verSaved = value; } }
+        public int SettingFileVer { get { return 20200723; } set { verSaved = value; } }
 
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
@@ -465,6 +465,7 @@ namespace EpgTimer
         public bool NoToolTip { get; set; }
         public double ToolTipWidth { get; set; }
         public bool NoBallonTips { get; set; }
+        public bool BalloonTipRealtime { get; set; }
         public int ForceHideBalloonTipSec { get; set; }
         public bool PlayDClick { get; set; }
         public bool ConfirmDelRecInfoFileDelete { get; set; }
@@ -550,9 +551,11 @@ namespace EpgTimer
         public bool RecInfoNoYear { get; set; }
         public bool RecInfoNoSecond { get; set; }
         public bool RecInfoNoDurSecond { get; set; }
+        public bool RecInfoNoEnd { get; set; }
         public bool ResInfoNoYear { get; set; }
         public bool ResInfoNoSecond { get; set; }
         public bool ResInfoNoDurSecond { get; set; }
+        public bool ResInfoNoEnd { get; set; }
         public string TvTestExe { get; set; }
         public string TvTestCmd { get; set; }
         public bool NwTvMode { get; set; }
@@ -591,6 +594,10 @@ namespace EpgTimer
         public List<uint> RecEndCustColors { get; set; }
         public string ListDefColor { get; set; }
         public UInt32 ListDefCustColor { get; set; }
+        public string ListRuledLineColor { get; set; }
+        public UInt32 ListRuledLineCustColor { get; set; }
+        public bool ListRuledLine { get; set; }
+        public bool ListRuledLineContent { get; set; }
         public List<string> RecModeFontColors { get; set; }
         public List<uint> RecModeFontCustColors { get; set; }
         public List<string> ResBackColors { get; set; }
@@ -790,6 +797,10 @@ namespace EpgTimer
             RecEndCustColors = new List<uint>();
             ListDefColor = "カスタム";
             ListDefCustColor = 0xFF042271;
+            ListRuledLineColor = "LightGray";
+            ListRuledLineCustColor = 0xFFFFFFFF;
+            ListRuledLine = true;
+            ListRuledLineContent = true;
             RecModeFontColors = new List<string>();
             RecModeFontCustColors = new List<uint>();
             ResBackColors = new List<string>();
@@ -803,6 +814,7 @@ namespace EpgTimer
             NoToolTip = false;
             ToolTipWidth = 400;
             NoBallonTips = false;
+            BalloonTipRealtime = false;
             ForceHideBalloonTipSec = 0;
             PlayDClick = false;
             ConfirmDelRecInfoFileDelete = true;
@@ -837,7 +849,7 @@ namespace EpgTimer
             TunerPopupWidth = 1;
             TunerChangeBorderMode = 1;
             TunerColorModeUse = false;
-            TunerDisplayOffReserve = false;
+            TunerDisplayOffReserve = true;
             TunerToolTipMode = 0;
             TunerEpgInfoOpenMode = 0;
             FontReplacePatternEdit = "";
@@ -885,9 +897,11 @@ namespace EpgTimer
             RecInfoNoYear = false;
             RecInfoNoSecond = false;
             RecInfoNoDurSecond = false;
+            RecInfoNoEnd = false;
             ResInfoNoYear = false;
             ResInfoNoSecond = false;
             ResInfoNoDurSecond = false;
+            ResInfoNoEnd = false;
             TvTestExe = "";
             TvTestCmd = "";
             NwTvMode = false;
@@ -1251,6 +1265,25 @@ namespace EpgTimer
         private static void CompatibilityCheck()
         {
             //最新
+            if (Instance.verSaved >= 20200723) return;
+
+            //互換用コード。カラム名の変更追従。
+            ReplaceColumTag("StartTimeNoDuration", CommonUtil.NameOf(() => new ReserveItem().StartTime), Instance.ReserveListColumn, Instance.RecInfoListColumn);
+
+            if (Instance.verSaved >= 20200721) return;
+
+            //録画無効モード導入の調整。
+            Instance.CustomEpgTabList.ForEach(tab =>
+            {
+                if (tab.RecSetting != null)
+                {
+                    tab.RecSetting.IsEnable = tab.RecSetting.RecMode / 5 % 2 == 0;
+                    tab.RecSetting.RecMode = (byte)((tab.RecSetting.RecMode + tab.RecSetting.RecMode / 5 % 2) % 5); ;
+                }
+            });
+            //互換用コード。カラム名の変更追従。
+            ReplaceColumTag("RecEnabled", CommonUtil.NameOf(() => new SearchItem().IsEnabled), Instance.ReserveListColumn);
+
             if (Instance.verSaved >= 20200528) return;
 
             //フォーク元との擦り合せ。ショートカットキーの変更に伴い、該当部分を初期化。
@@ -1529,6 +1562,7 @@ namespace EpgTimer
                 return new List<ListColumnInfo>
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
@@ -1546,6 +1580,7 @@ namespace EpgTimer
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.IsProtect) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
@@ -1575,6 +1610,7 @@ namespace EpgTimer
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.DayOfWeek) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.RecMode) },
@@ -1588,6 +1624,7 @@ namespace EpgTimer
                 {
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Status) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.StartTime) },
+                    new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.Duration) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.NetworkName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.ServiceName) },
                     new ListColumnInfo { Tag = CommonUtil.NameOf(() => obj.EventName) },
@@ -1857,6 +1894,7 @@ namespace EpgTimer
             public DashStyle TunerDashStyle { get; private set; }
             public List<Brush> ResBackColor { get; private set; }
             public Brush ListDefForeColor { get; private set; }
+            public Brush ListRuledLineColor { get; private set; }
             public List<Brush> RecModeForeColor { get; private set; }
             public List<Brush> ResStatusColor { get; private set; }
             public List<Brush> RecEndBackColor { get; private set; }
@@ -1929,6 +1967,7 @@ namespace EpgTimer
                 SimpleColorSet(TunerResBorderColor, Instance.TunerServiceColors, Instance.TunerServiceCustColors, 7 + 8, 7 + 8 + 4);
 
                 ListDefForeColor = CustColorBrush(Instance.ListDefColor, Instance.ListDefCustColor);
+                ListRuledLineColor = Instance.ListRuledLine == false ? null : CustColorBrush(Instance.ListRuledLineColor, Instance.ListRuledLineCustColor);
 
                 SimpleColorSet(RecModeForeColor, Instance.RecModeFontColors, Instance.RecModeFontCustColors);
                 SimpleColorSet(ResBackColor, Instance.ResBackColors, Instance.ResBackCustColors);

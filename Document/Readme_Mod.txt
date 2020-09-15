@@ -86,10 +86,6 @@ EpgDataCap_Bon.exe.errというテキストファイルに出力します。ま�
 れるEpgDataCap_Bon.pdbが同じフォルダにあれば出力内容が詳細になります。
 EpgTimerSrv.exeも同様です。
 
-◇ウィンドウのフォント変更【追加】
-EpgDataCap_Bon.iniのSETにDialogTemplateキーを追加して、主ウィンドウのフォントを
-Meiryo UI(=1)またはYu Gothic UI(=2)に変更できます。既定(=0)はMS UI Gothicです。
-
 ■Readme_EpgTimer.txt■
 "EpgTimer.exe"を"EpgTimerNW～.exe"にファイル名をリネームすることで、EpgTimerNW相
 当の動作になります。～には任意の文字列を指定可能で、この文字列が異なるEpgTimerNW
@@ -146,6 +142,8 @@ OSのタイムゾーンの影響を受けなくなりました。予約管理や
       同一サービスかどうかのチェックを省略し、同一番組名のみで判断します。
 
 ◇録画設定
+  ・有効【追加】
+    以前の録画モード「無効」がチェックボックスとして分離しました。
   ・追従
     プログラム予約に切り替えるのと実質的な違いがほとんど無いため、「イベントリレ
     ー追従」に意味を変更しました。
@@ -222,6 +220,9 @@ OSのタイムゾーンの影響を受けなくなりました。予約管理や
         されませんが、チューナー強制指定が異なる予約に限ってこれを可能にします。
       ・EPG自動予約をプログラム化したとき、再び追加されないようにする【追加】
         次のEPG再読み込みで同じ番組が追加されないよう予約状況に注釈を入れます。
+      ・予約を無効にするとき、録画モードを「指定サービス」にする【追加】
+        無効時の録画モードは、録画モードを表す数値の拡張で実現しているため、外部
+        ツールに不具合がでる場合は有効にしてください。
       ・録画情報保存フォルダ指定時は録画ファイルと同じ場所を参照しない【追加】
         録画済み一覧で使用される録画情報(.program.txt/.err)は、録画ファイルと同
         じ場所→録画情報保存フォルダの順に参照しますが、この挙動を変更します。
@@ -270,6 +271,8 @@ OSのタイムゾーンの影響を受けなくなりました。予約管理や
         ・開始準備で点滅させる【追加】
           「予約録画開始準備」(使用BonDriver通知を除く)の通知で点滅させます。
         ・バルーンチップ/トーストでの動作通知を抑制する【追加】
+          ・リアルタイムで表示できなかった通知を捨てる【追加】
+            過去の通知が遅れてバルーンチップ/トースト表示されないようにします。
           ※これらはEpgTimerSrv.exeが直接表示するものについての設定です
       ・情報通知ログをファイルに保存する【追加】
         情報通知ログをEpgTimerSrvのあるフォルダのEpgTimerSrvNotify.logに保存しま
@@ -1002,6 +1005,7 @@ edcb.EnumRecPresetInfo=function()
         name=d[i]==0 and 'Default' or gp(n,'SetName','',p),
         recSetting={
           recMode=tonumber(gp(n,'RecMode',1,p)) or 1,
+          noRecMode=tonumber(gp(n,'NoRecMode',1,p)) or 1,
           priority=tonumber(gp(n,'Priority',2,p)) or 2,
           tuijyuuFlag=gp(n,'TuijyuuFlag',1,p)~='0',
           serviceMode=tonumber(gp(n,'ServiceMode',0,p)) or 0,
@@ -1131,7 +1135,8 @@ end
 }
 
 <録画設定>={
-  recMode:I=録画モード
+  recMode:I=録画モード(0～5)
+  noRecMode:I|nil=無効時の録画モード(0～4。recModeが5でないとき無意味。recModeが5のとき、nilならば1とみなす)
   priority:I=優先度
   tuijyuuFlag:B=イベントリレー追従するかどうか
   serviceMode:I=処理対象データモード

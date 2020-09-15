@@ -588,7 +588,8 @@
                             <Label Content="リスト表示で省略する" />
                             <CheckBox Content="'年'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoYear}" />
                             <CheckBox Content="'秒'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoSecond}" />
-                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0"  IsChecked="{Binding RecInfoNoDurSecond}" />
+                            <CheckBox Content="長さの'秒'" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoDurSecond}" />
+                            <CheckBox Content="終了時刻" Margin="12,0,0,0" IsChecked="{Binding RecInfoNoEnd}" />
                         </StackPanel >
                     </StackPanel>
                 </GroupBox>
@@ -670,9 +671,10 @@
                             <StackPanel Margin="0,0,12,0" >
                                 <Label Content="リスト表示で省略する(録画済み一覧以外)" />
                                 <WrapPanel Margin="14,-2,0,0" >
-                                    <CheckBox Content="'年' 　" IsChecked="{Binding ResInfoNoYear}" />
-                                    <CheckBox Content="'秒' 　" IsChecked="{Binding ResInfoNoSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
-                                    <CheckBox Content="長さの'秒'" IsChecked="{Binding ResInfoNoDurSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    <CheckBox Content="'年'" IsChecked="{Binding ResInfoNoYear}" />
+                                    <CheckBox Content="'秒'" Margin="12,0,0,0" IsChecked="{Binding ResInfoNoSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    <CheckBox Content="長さの'秒'" Margin="12,0,0,0" IsChecked="{Binding ResInfoNoDurSecond}" ToolTip="たまに'秒'単位の番組も存在します。" />
+                                    <CheckBox Content="終了時刻" Margin="12,0,0,0" IsChecked="{Binding ResInfoNoEnd}" />
                                 </WrapPanel>
                             </StackPanel>
                             <CheckBox Margin="0,6,12,0" Content="番組名で並べ替えるとき記号類を無視する" IsChecked="{Binding TrimSortTitle}" />
@@ -732,7 +734,7 @@
                 </TabItem>
                 <TabItem Header="色など">
                     <StackPanel Style="{StaticResource colorGrid}">
-                        <GroupBox Header="各画面共通デフォルトフォント・文字色" Margin="6,6,6,0" >
+                        <GroupBox Header="各画面共通デフォルトフォント・文字色等" Margin="6,6,6,0" >
                             <Grid>
                                 <Grid>
                                     <Label Content="フォント" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" />
@@ -740,6 +742,14 @@
                                     <Label Content="サイズ" HorizontalAlignment="Left" Margin="316,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="368,6,0,0" VerticalAlignment="Top" Width="39" Text="{Binding FontSizeListView, Converter={StaticResource vcheck},ConverterParameter='72,1'}"/>
                                     <CheckBox Content="太字" Margin="413,11,0,0" IsChecked="{Binding FontBoldListView}" VerticalAlignment="Top" />
+                                    <DockPanel Margin="6,40,0,0">
+                                        <CheckBox Content="行区切り線を引く" IsChecked="{Binding ListRuledLine}" />
+                                        <DockPanel Margin="12,0,0,0" IsEnabled="{Binding ListRuledLine}">
+                                            <ComboBox Name="cmb_ListRuledLineColor" />
+                                            <Button Margin="6,0,0,0" Name="btn_ListRuledLineColor" />
+                                            <CheckBox Margin="12,0,0,0" Content="ジャンル色を優先する" IsChecked="{Binding ListRuledLineContent}" />
+                                        </DockPanel>
+                                    </DockPanel>
                                 </Grid>
                                 <Grid Margin="488,0,0,0">
                                     <ComboBox Margin="0,6,0,0" Name="cmb_ListDefFontColor" />

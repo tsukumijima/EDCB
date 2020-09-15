@@ -8,6 +8,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <WrapPanel Margin="12,12,0,6">
             <Button Content="再生" Name="button_play" Width="70" />
@@ -31,7 +32,13 @@
                 </TabItem>
             </TabControl>
         </Grid>
-        <DockPanel Grid.Row="2" Margin="12,0,12,5" >
+        <DockPanel Grid.Row="2" Margin="12,6" >
+            <Label Content="ファイル" Name="label_recFilePath" />
+            <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="リネーム" IsEnabled="False" Name="button_rename" ToolTip="ファイルが存在すれば同時に移動します。拡張子が付加されたファイルも移動します。" />
+            <Button DockPanel.Dock="Right" Margin="6,0,0,0" Content="開く" Name="button_rename_opne"/>
+            <TextBox Name="textBox_recFilePath" />
+        </DockPanel>
+        <DockPanel Grid.Row="3" Margin="12,0,12,5" >
             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
                 <CheckBox Content="このウィンドウにデータを開く" Margin="6,0,0,0" Name="checkBox_dataReplace" />
                 <CheckBox Content="メインウィンドウの前面に表示" Margin="6,0,0,0" Name="checkBox_windowPinned" />
