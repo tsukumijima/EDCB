@@ -13,15 +13,17 @@ CEpgDataCap3Main::~CEpgDataCap3Main(void)
 	decodeUtilClass.SetEpgDB(NULL);
 }
 
-//解析対象のTSパケット１つを読み込ませる
-// data		[IN]TSパケット１つ
+//解析対象のTSパケットを読み込ませる
+// data		[IN]TSパケット
+// size		[IN]dataのサイズ（188の整数倍であること）
 void CEpgDataCap3Main::AddTSPacket(
-	BYTE* data
+	BYTE* data,
+	DWORD size
 	)
 {
 	CBlockLock lock(&this->utilLock);
 
-	this->decodeUtilClass.AddTSData(data);
+	this->decodeUtilClass.AddTSData(data, size);
 }
 
 //解析データの現在のストリームＩＤを取得する
@@ -190,6 +192,26 @@ EPG_SECTION_STATUS CEpgDataCap3Main::GetSectionStatusService(
 {
 	CBlockLock lock(&this->utilLock);
 	return this->epgDBUtilClass.GetSectionStatusService(originalNetworkID, transportStreamID, serviceID, l_eitFlag);
+}
+
+//取得するロゴタイプをフラグで指定する
+void CEpgDataCap3Main::SetLogoTypeFlags(
+	DWORD flags,
+	const WORD** additionalNeededPids
+	)
+{
+	CBlockLock lock(&this->utilLock);
+	this->decodeUtilClass.SetLogoTypeFlags(flags, additionalNeededPids);
+}
+
+//全ロゴを列挙する
+BOOL CEpgDataCap3Main::EnumLogoList(
+	BOOL (CALLBACK *enumLogoListProc)(DWORD, const LOGO_INFO*, LPVOID),
+	LPVOID param
+	)
+{
+	CBlockLock lock(&this->utilLock);
+	return this->decodeUtilClass.EnumLogoList(enumLogoListProc, param);
 }
 
 //PC時計を元としたストリーム時間との差を取得する

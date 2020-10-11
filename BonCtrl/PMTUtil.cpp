@@ -10,11 +10,8 @@ CPMTUtil::CPMTUtil(void)
 	this->PCR_PID = 0xFFFF;
 }
 
-BOOL CPMTUtil::AddPacket(CTSPacketUtil* packet)
+BOOL CPMTUtil::AddPacket(const CTSPacketUtil& packet)
 {
-	if( packet == NULL ){
-		return FALSE;
-	}
 	if( buffUtil.Add188TS(packet) == TRUE ){
 		BYTE* section = NULL;
 		DWORD sectionSize = 0;
@@ -56,22 +53,22 @@ BOOL CPMTUtil::DecodePMT(BYTE* data, DWORD dataSize)
 
 	if( section_syntax_indicator != 1 ){
 		//固定値がおかしい
-		_OutputDebugString(L"CPMTUtil::section_syntax_indicator Err");
+		AddDebugLog(L"CPMTUtil::section_syntax_indicator Err");
 		return FALSE;
 	}
 	if( table_id != 0x02 ){
 		//table_idがおかしい
-		_OutputDebugString(L"CPMTUtil::table_id Err");
+		AddDebugLog(L"CPMTUtil::table_id Err");
 		return FALSE;
 	}
 	if( readSize+section_length > dataSize || section_length < 4){
 		//サイズ異常
-		_OutputDebugString(L"CPMTUtil::section_length %d Err", section_length);
+		AddDebugLogFormat(L"CPMTUtil::section_length %d Err", section_length);
 		return FALSE;
 	}
 	//CRCチェック
 	if( CalcCrc32(3+section_length, data) != 0 ){
-		_OutputDebugString(L"CPMTUtil::crc32 Err");
+		AddDebugLog(L"CPMTUtil::crc32 Err");
 		return FALSE;
 	}
 

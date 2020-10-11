@@ -10,11 +10,13 @@ public:
 	CEpgDataCap3Main(void);
 	~CEpgDataCap3Main(void);
 
-	//解析対象のTSパケット１つを読み込ませる
+	//解析対象のTSパケットを読み込ませる
 	//引数：
-	// data		[IN]TSパケット１つ
+	// data		[IN]TSパケット
+	// size		[IN]dataのサイズ（188の整数倍であること）
 	void AddTSPacket(
-		BYTE* data
+		BYTE* data,
+		DWORD size
 		);
 
 	//解析データの現在のストリームＩＤを取得する
@@ -126,6 +128,18 @@ public:
 		WORD transportStreamID,
 		WORD serviceID,
 		BOOL l_eitFlag
+		);
+
+	//取得するロゴタイプをフラグで指定する
+	void SetLogoTypeFlags(
+		DWORD flags,
+		const WORD** additionalNeededPids
+		);
+
+	//全ロゴを列挙する
+	BOOL EnumLogoList(
+		BOOL (CALLBACK *enumLogoListProc)(DWORD, const LOGO_INFO*, LPVOID),
+		LPVOID param
 		);
 
 	//PC時計を元としたストリーム時間との差を取得する

@@ -5,6 +5,7 @@
 #include "EpgTimerSrvMain.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/ServiceUtil.h"
+#include "../../Common/StackTrace.h"
 #include "../../Common/ThreadUtil.h"
 #include "../../Common/CommonDef.h"
 #include <winsvc.h>
@@ -22,12 +23,10 @@ recursive_mutex_ g_debugLogLock;
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
 }
 
-#ifdef USE_WINMAIN_A
+#ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-#else
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 #endif
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	SetDllDirectory(L"");
 
@@ -66,6 +65,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		}
 	}
 
+#ifndef SUPPRESS_OUTPUT_STACK_TRACE
+	SetOutputStackTraceOnUnhandledException(GetModulePath().concat(L".err").c_str());
+#endif
 
 	if( IsInstallService(SERVICE_NAME) == FALSE ){
 		//普通にexeとして起動を行う
@@ -77,7 +79,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 				CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 				CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
 				if( pMain->Main(false) == false ){
-					OutputDebugString(L"_tWinMain(): Failed to start\r\n");
+					AddDebugLog(L"_tWinMain(): Failed to start");
 				}
 				delete pMain;
 				CoUninitialize();
@@ -91,12 +93,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		if( hMutex != NULL ){
 			if( GetLastError() != ERROR_ALREADY_EXISTS ){
 				SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
+				WCHAR serviceName[] = SERVICE_NAME;
 				SERVICE_TABLE_ENTRY dispatchTable[] = {
-					{ SERVICE_NAME, service_main },
+					{ serviceName, service_main },
 					{ NULL, NULL }
 				};
 				if( StartServiceCtrlDispatcher(dispatchTable) == FALSE ){
-					OutputDebugString(L"_tWinMain(): StartServiceCtrlDispatcher failed\r\n");
+					AddDebugLog(L"_tWinMain(): StartServiceCtrlDispatcher failed");
 				}
 				SetSaveDebugLog(false);
 			}
@@ -129,7 +132,7 @@ void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 		ReportServiceStatus(SERVICE_RUNNING, SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN | SERVICE_ACCEPT_POWEREVENT, 0, 0);
 
 		if( g_pMain->Main(true) == false ){
-			OutputDebugString(L"service_main(): Failed to start\r\n");
+			AddDebugLog(L"service_main(): Failed to start");
 		}
 		delete g_pMain;
 		g_pMain = NULL;
@@ -150,13 +153,13 @@ DWORD WINAPI service_ctrl(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData
 		case SERVICE_CONTROL_POWEREVENT:
 			if( dwEventType == PBT_APMQUERYSUSPEND ){
 				//Vista以降は呼ばれない
-				OutputDebugString(L"PBT_APMQUERYSUSPEND\r\n");
+				AddDebugLog(L"PBT_APMQUERYSUSPEND");
 				if( g_pMain->IsSuspendOK() == false ){
-					OutputDebugString(L"BROADCAST_QUERY_DENY\r\n");
+					AddDebugLog(L"BROADCAST_QUERY_DENY");
 					return BROADCAST_QUERY_DENY;
 				}
 			}else if( dwEventType == PBT_APMRESUMESUSPEND ){
-				OutputDebugString(L"PBT_APMRESUMESUSPEND\r\n");
+				AddDebugLog(L"PBT_APMRESUMESUSPEND");
 			}
 			return NO_ERROR;
 		default:
@@ -181,7 +184,7 @@ void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD d
 }
 }
 
-void OutputDebugStringWrapper(LPCWSTR lpOutputString)
+void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutput)
 {
 	{
 		//デバッグ出力ログ保存
@@ -198,12 +201,14 @@ void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
 			}
 			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
-				fwrite(L"<NOBR>\r\n", sizeof(WCHAR), 8, g_debugLog);
+				fwrite(L"<NOBR>" UTIL_NEWLINE, sizeof(WCHAR), array_size(L"<NOBR>" UTIL_NEWLINE) - 1, g_debugLog);
 			}
 			fflush(g_debugLog);
 		}
 	}
-	OutputDebugStringW(lpOutputString);
+	if( suppressDebugOutput == false ){
+		OutputDebugString(lpOutputString);
+	}
 }
 
 void SetSaveDebugLog(bool saveDebugLog)
@@ -218,10 +223,10 @@ void SetSaveDebugLog(bool saveDebugLog)
 			g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
 		}
 		if( g_debugLog ){
-			OutputDebugString(L"****** LOG START ******\r\n");
+			AddDebugLog(L"****** LOG START ******");
 		}
 	}else if( g_debugLog && saveDebugLog == false ){
-		OutputDebugString(L"****** LOG STOP ******\r\n");
+		AddDebugLog(L"****** LOG STOP ******");
 		fclose(g_debugLog);
 		g_debugLog = NULL;
 	}

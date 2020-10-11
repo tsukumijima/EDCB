@@ -124,7 +124,7 @@ void ReadOldArchiveEventInfo(FILE* fp, const vector<__int64>& index, size_t inde
 
 void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 {
-	OutputDebugString(L"Start Load EpgData\r\n");
+	AddDebugLog(L"Start Load EpgData");
 	DWORD time = GetTickCount();
 
 	if( sys->loadForeground == false ){
@@ -133,7 +133,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 	}
 	CEpgDataCap3Util epgUtil;
 	if( epgUtil.Initialize(FALSE) != NO_ERR ){
-		OutputDebugString(L"★EpgDataCap3の初期化に失敗しました。\r\n");
+		AddDebugLog(L"★EpgDataCap3の初期化に失敗しました。");
 		sys->loadForeground = false;
 		sys->initialLoadDone = true;
 		sys->loadStop = true;
@@ -173,7 +173,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 		if( (*itr)[0] == L'0' ){
 			//1週間以上前のファイルなので削除
 			DeleteFile(path.c_str());
-			_OutputDebugString(L"★delete %ls\r\n", path.c_str());
+			AddDebugLogFormat(L"★delete %ls", path.c_str());
 		}else{
 			BYTE readBuff[188*256];
 			bool swapped = false;
@@ -182,7 +182,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 			bool mightExist = false;
 			if( UtilFileExists(fs_path(path).concat(L".tmp"), &mightExist).first || mightExist ){
 				//一時ファイルがある→もうすぐ上書きされるかもしれないので共有で開いて退避させる
-				_OutputDebugString(L"★lockless read %ls\r\n", path.c_str());
+				AddDebugLogFormat(L"★lockless read %ls", path.c_str());
 				for( int retry = 0; retry < 25; retry++ ){
 					std::unique_ptr<FILE, decltype(&fclose)> masterFile(UtilOpenFile(path, UTIL_SHARED_READ), fclose);
 					if( !masterFile ){
@@ -233,7 +233,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 				file.reset(UtilOpenFile(path, UTIL_SECURE_READ));
 			}
 			if( !file ){
-				_OutputDebugString(L"Error %ls\r\n", path.c_str());
+				AddDebugLogFormat(L"Error %ls", path.c_str());
 			}else{
 				//PATを送る(ストリームを確実にリセットするため)
 				DWORD seekPos = 0;
@@ -264,12 +264,19 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 				}
 				_fseeki64(file.get(), seekPos, SEEK_SET);
 				for( size_t n; (n = fread(readBuff, 1, sizeof(readBuff), file.get())) != 0; ){
-					for( size_t i = 0; i + 188 <= n; i += 188 ){
-						if( ignoreTOT && ((readBuff[i+1] & 0x1F) << 8 | readBuff[i+2]) == 0x14 ){
-							ignoreTOT = false;
-						}else{
-							epgUtil.AddTSPacket(readBuff+i, 188);
+					size_t i = 0;
+					if( ignoreTOT ){
+						for( ; i + 188 <= n; i += 188 ){
+							if( ((readBuff[i + 1] & 0x1F) << 8 | readBuff[i + 2]) == 0x14 ){
+								ignoreTOT = false;
+								i += 188;
+								break;
+							}
+							epgUtil.AddTSPacket(readBuff + i, 188);
 						}
+					}
+					if( n - i >= 188 ){
+						epgUtil.AddTSPacket(readBuff + i, (DWORD)((n - i) / 188 * 188));
 					}
 					if( sys->loadForeground == false ){
 						//処理速度がだいたい2/3になるように休む。I/O負荷軽減が狙い
@@ -559,7 +566,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 		}
 	}
 
-	_OutputDebugString(L"End Load EpgData %dmsec\r\n", GetTickCount()-time);
+	AddDebugLogFormat(L"End Load EpgData %dmsec", GetTickCount() - time);
 
 	sys->loadForeground = false;
 	sys->initialLoadDone = true;
@@ -843,7 +850,7 @@ bool CEpgDBManager::IsMatchEvent(SEARCH_CONTEXT* ctxs, size_t ctxsSize, const EP
 					if( itrEvent->hasComponentInfo == false ){
 						continue;
 					}
-					WORD type = itrEvent->componentInfo.stream_content << 8 || itrEvent->componentInfo.component_type;
+					WORD type = itrEvent->componentInfo.stream_content << 8 | itrEvent->componentInfo.component_type;
 					if( std::find(key.videoList.begin(), key.videoList.end(), type) == key.videoList.end() ){
 						continue;
 					}
@@ -1440,8 +1447,8 @@ void CEpgDBManager::ConvertSearchText(wstring& str)
 	//最初の文字(UTF-16)をキーとしてソート済み。同一キー内の順序はマッチの優先順
 	static const WCHAR convertFrom[][2] = {
 		L"’", L"”", L"　",
-		L"！", L"＃", L"＄", L"％", L"＆", L"（", L"）", L"＊", L"＋", L"，", L"\xFF0D", L"．", L"／",
-		L"：", L"；", L"＜", L"＝", L"＞", L"？", L"＠", L"［", L"］", L"＾", L"＿", L"｀", L"｛", L"｜", L"｝", L"\xFF5E",
+		L"！", L"＃", L"＄", L"％", L"＆", L"（", L"）", L"＊", L"＋", L"，", L"－", L"．", L"／",
+		L"：", L"；", L"＜", L"＝", L"＞", L"？", L"＠", L"［", L"］", L"＾", L"＿", L"｀", L"｛", L"｜", L"｝", L"～",
 		L"｡", L"｢", L"｣", L"､", L"･", L"ｦ", L"ｧ", L"ｨ", L"ｩ", L"ｪ", L"ｫ", L"ｬ", L"ｭ", L"ｮ", L"ｯ", L"ｰ", L"ｱ", L"ｲ", L"ｳ", L"ｴ", L"ｵ",
 		{L'ｶ', L'ﾞ'}, L"ｶ", {L'ｷ', L'ﾞ'}, L"ｷ", {L'ｸ', L'ﾞ'}, L"ｸ", {L'ｹ', L'ﾞ'}, L"ｹ", {L'ｺ', L'ﾞ'}, L"ｺ",
 		{L'ｻ', L'ﾞ'}, L"ｻ", {L'ｼ', L'ﾞ'}, L"ｼ", {L'ｽ', L'ﾞ'}, L"ｽ", {L'ｾ', L'ﾞ'}, L"ｾ", {L'ｿ', L'ﾞ'}, L"ｿ",
@@ -1478,9 +1485,9 @@ void CEpgDBManager::ConvertSearchText(wstring& str)
 			}else if( L'ａ' <= c && c <= L'ｚ' ){
 				*itr = c - L'ａ' + L'a';
 			}else{
-				const WCHAR (*f)[2] = std::lower_bound(convertFrom, convertFrom + _countof(convertFrom), &*itr,
+				const WCHAR (*f)[2] = std::lower_bound(convertFrom, convertFrom + array_size(convertFrom), &*itr,
 				                                       [](LPCWSTR a, LPCWSTR b) { return (unsigned short)a[0] < (unsigned short)b[0]; });
-				for( ; f != convertFrom + _countof(convertFrom) && (*f)[0] == c; f++ ){
+				for( ; f != convertFrom + array_size(convertFrom) && (*f)[0] == c; f++ ){
 					if( (*f)[1] == L'\0' ){
 						*itr = convertTo[f - convertFrom];
 						break;

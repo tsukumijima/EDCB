@@ -92,7 +92,7 @@ void CTimeShiftUtil::Send(
 		}
 		if( info->mutex ){
 			//開始
-			OutputDebugString((info->key + L"\r\n").c_str());
+			AddDebugLogFormat(L"%ls", info->key.c_str());
 			sendNW->Initialize();
 			sendNW->AddSendAddr(ip, info->port, false);
 			sendNW->StartSend();
@@ -251,7 +251,7 @@ void CTimeShiftUtil::ReadThread(CTimeShiftUtil* sys)
 		for( DWORD i = 0; i < dataSize; i += 188 ){
 			CTSPacketUtil packet;
 			if( packet.Set188TS(data + i, 188) ){
-				if( packet.adaptation_field_length > 0 && packet.PCR_flag == 1 ){
+				if( packet.has_adaptation_field_flags && packet.PCR_flag ){
 					//最初に3回PCRが出現したPIDをPCR_PIDとする
 					//PCR_PIDが現れることなく5回別のPCRが出現すればPCR_PIDを変更する
 					if( packet.PID != sys->PCR_PID ){
