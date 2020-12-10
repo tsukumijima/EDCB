@@ -117,8 +117,8 @@ namespace EpgTimer.Setting
             setComboColors(CommonUtil.NameOf(() => settings.StatColors), grid_StatColors);
 
             button_clearSerchKeywords.ToolTip = SearchKeyView.ClearButtonTooltip;
-            checkBox_NotNoStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", System.IO.Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location) + ".rd.xaml");
-            checkBox_ApplyContextMenuStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", System.IO.Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location) + ".rdcm.xaml");
+            checkBox_NotNoStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", SettingPath.ModuleName + ".rd.xaml");
+            checkBox_ApplyContextMenuStyle.ToolTip = string.Format("チェック時、テーマファイル「{0}」があればそれを、無ければ既定のテーマ(Aero)を適用します。", SettingPath.ModuleName + ".rdcm.xaml");
 
             comboBox_startTab.ItemsSource = new Dictionary<CtxmCode, string> {
                         { CtxmCode.ReserveView, "予約一覧" },{ CtxmCode.TunerReserveView, "使用予定チューナー" },

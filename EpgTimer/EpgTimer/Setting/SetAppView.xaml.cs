@@ -93,7 +93,7 @@ namespace EpgTimer.Setting
                     catch (Exception ex) { MessageBox.Show(ex.ToString()); }
                 };
             });
-            SetScButton(button_shortCut, SettingPath.ModuleName, Assembly.GetEntryAssembly().Location);
+            SetScButton(button_shortCut, Path.GetFileNameWithoutExtension(SettingPath.ModuleName), Path.Combine(SettingPath.ModulePath, SettingPath.ModuleName));
             SetScButton(button_shortCutSrv, "EpgTimerSrv", Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe"));
 
             //1 録画動作
