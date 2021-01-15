@@ -109,6 +109,7 @@ do
 done
 
 cp -fp "ini/Tools/tsidmove/${arch2}/${target}/tsidmove.exe" "${dst_dir}/Tools/tsidmove.exe"
+cp -fp "ini/Tools/${arch2}/${target}/asyncbuf.exe" "${dst_dir}/Tools/asyncbuf.exe"
 cp -fp "ini/Tools/${arch2}/${target}/readex.exe" "${dst_dir}/Tools/readex.exe"
 cp -fp "ini/Tools/${arch2}/${target}/relayread.exe" "${dst_dir}/Tools/relayread.exe"
 
