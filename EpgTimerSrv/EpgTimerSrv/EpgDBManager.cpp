@@ -124,7 +124,7 @@ void ReadOldArchiveEventInfo(FILE* fp, const vector<__int64>& index, size_t inde
 
 void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 {
-	OutputDebugString(L"Start Load EpgData\r\n");
+	AddDebugLog(L"Start Load EpgData");
 	DWORD time = GetTickCount();
 
 	if( sys->loadForeground == false ){
@@ -133,13 +133,12 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 	}
 	CEpgDataCap3Util epgUtil;
 	if( epgUtil.Initialize(FALSE) != NO_ERR ){
-		OutputDebugString(L"★EpgDataCap3の初期化に失敗しました。\r\n");
+		AddDebugLog(L"★EpgDataCap3の初期化に失敗しました。");
 		sys->loadForeground = false;
 		sys->initialLoadDone = true;
 		sys->loadStop = true;
 		return;
 	}
-	bool addMultiplePackets = epgUtil.CanAddMultipleTSPackets();
 
 	__int64 utcNow = GetNowI64Time() - I64_UTIL_TIMEZONE;
 
@@ -174,7 +173,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 		if( (*itr)[0] == L'0' ){
 			//1週間以上前のファイルなので削除
 			DeleteFile(path.c_str());
-			_OutputDebugString(L"★delete %ls\r\n", path.c_str());
+			AddDebugLogFormat(L"★delete %ls", path.c_str());
 		}else{
 			BYTE readBuff[188*256];
 			bool swapped = false;
@@ -183,7 +182,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 			bool mightExist = false;
 			if( UtilFileExists(fs_path(path).concat(L".tmp"), &mightExist).first || mightExist ){
 				//一時ファイルがある→もうすぐ上書きされるかもしれないので共有で開いて退避させる
-				_OutputDebugString(L"★lockless read %ls\r\n", path.c_str());
+				AddDebugLogFormat(L"★lockless read %ls", path.c_str());
 				for( int retry = 0; retry < 25; retry++ ){
 					std::unique_ptr<FILE, decltype(&fclose)> masterFile(UtilOpenFile(path, UTIL_SHARED_READ), fclose);
 					if( !masterFile ){
@@ -234,7 +233,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 				file.reset(UtilOpenFile(path, UTIL_SECURE_READ));
 			}
 			if( !file ){
-				_OutputDebugString(L"Error %ls\r\n", path.c_str());
+				AddDebugLogFormat(L"Error %ls", path.c_str());
 			}else{
 				//PATを送る(ストリームを確実にリセットするため)
 				DWORD seekPos = 0;
@@ -266,20 +265,17 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 				_fseeki64(file.get(), seekPos, SEEK_SET);
 				for( size_t n; (n = fread(readBuff, 1, sizeof(readBuff), file.get())) != 0; ){
 					size_t i = 0;
-					if( ignoreTOT || addMultiplePackets == false ){
+					if( ignoreTOT ){
 						for( ; i + 188 <= n; i += 188 ){
-							if( ignoreTOT && ((readBuff[i + 1] & 0x1F) << 8 | readBuff[i + 2]) == 0x14 ){
+							if( ((readBuff[i + 1] & 0x1F) << 8 | readBuff[i + 2]) == 0x14 ){
 								ignoreTOT = false;
-								if( addMultiplePackets ){
-									i += 188;
-									break;
-								}
-							}else{
-								epgUtil.AddTSPacket(readBuff + i, 188);
+								i += 188;
+								break;
 							}
+							epgUtil.AddTSPacket(readBuff + i, 188);
 						}
 					}
-					if( addMultiplePackets && n - i >= 188 ){
+					if( n - i >= 188 ){
 						epgUtil.AddTSPacket(readBuff + i, (DWORD)((n - i) / 188 * 188));
 					}
 					if( sys->loadForeground == false ){
@@ -570,7 +566,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 		}
 	}
 
-	_OutputDebugString(L"End Load EpgData %dmsec\r\n", GetTickCount()-time);
+	AddDebugLogFormat(L"End Load EpgData %dmsec", GetTickCount() - time);
 
 	sys->loadForeground = false;
 	sys->initialLoadDone = true;

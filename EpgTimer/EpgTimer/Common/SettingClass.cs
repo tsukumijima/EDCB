@@ -975,7 +975,7 @@ namespace EpgTimer
             DisplayNotifyJumpTime = 3;
             DisplayReserveAutoAddMissing = false;
             DisplayReserveMultiple = true;
-            TryEpgSetting = true;
+            TryEpgSetting = false;
             LaterTimeUse = false;
             LaterTimeHour = 28 - 24;
             DisplayPresetOnSearch = false;

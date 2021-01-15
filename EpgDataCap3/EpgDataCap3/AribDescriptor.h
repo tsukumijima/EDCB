@@ -20,12 +20,21 @@ namespace AribDescriptor
 		D_BEGIN_FOR,
 		D_BEGIN_FOR_TO_END,
 		D_DESCRIPTOR_LOOP,
+		D_ASSERT_CRC_32,
 		D_LOCAL,
 		D_LOCAL_TO_END,
 		D_BINARY,
 		D_BINARY_TO_END,
 		D_IMMEDIATE_MAX = 0x1FFF,
-		reserved,
+	};
+
+	enum property_id
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+		: short
+#endif
+	{
+		d_invalid = 0,
+		reserved = D_IMMEDIATE_MAX + 1,
 		descriptor_tag,
 		descriptor_length,
 		stream_content,
@@ -266,6 +275,12 @@ namespace AribDescriptor
 		broadcast_view_propriety,
 		first_descriptors_length,
 		broadcaster_descriptors_length,
+		data_type,
+		data_module_byte,
+		PCR_PID,
+		program_info_length,
+		elementary_PID,
+		ES_info_length,
 	};
 
 	enum {
@@ -287,7 +302,7 @@ namespace AribDescriptor
 		//time_shifted_event_descriptor				= 0x4F,
 		component_descriptor						= 0x50,
 		//mosaic_descriptor							= 0x51,
-		//stream_identifier_descriptor				= 0x52,
+		stream_identifier_descriptor				= 0x52,
 		//CA_identifier_descriptor					= 0x53,
 		content_descriptor							= 0x54,
 		//parental_rating_descriptor				= 0x55,
@@ -305,7 +320,7 @@ namespace AribDescriptor
 		//Download_content_descriptor				= 0xC9,
 		ts_information_descriptor					= 0xCD,
 		//extended_broadcaster_descriptor			= 0xCE,
-		//logo_transmission_descriptor				= 0xCF,
+		logo_transmission_descriptor				= 0xCF,
 		//series_descriptor							= 0xD5,
 		event_group_descriptor						= 0xD6,
 		//SI_parameter_descriptor					= 0xD7,
@@ -326,6 +341,8 @@ namespace AribDescriptor
 
 	enum si_type {
 		TYPE_PAT,
+		TYPE_PMT,
+		TYPE_DSMCC_HEAD,
 		TYPE_NIT,
 		TYPE_SDT,
 		TYPE_EIT,
@@ -333,13 +350,14 @@ namespace AribDescriptor
 		TYPE_TOT,
 		TYPE_SIT,
 		TYPE_BIT,
+		TYPE_CDT,
 	};
 
 	struct PARSER_PAIR {
 		BYTE tag;
 		const short* parser;
 	};
-	extern const PARSER_PAIR parserMap[15];
+	extern const PARSER_PAIR parserMap[17];
 
 	class CDescriptor
 	{
@@ -360,14 +378,15 @@ namespace AribDescriptor
 		bool Decode(const BYTE* data, DWORD dataSize, DWORD* decodeReadSize, const PARSER_PAIR* customParserList = NULL);
 		bool EnterLoop(CLoopPointer& lp, DWORD offset = 0) const;
 		bool SetLoopIndex(CLoopPointer& lp, DWORD index) const;
+		bool NextLoopIndex(CLoopPointer& lp) const { return SetLoopIndex(lp, lp.index + 1); }
 		DWORD GetLoopSize(CLoopPointer lp = CLoopPointer()) const { return lp.pl != NULL ? (DWORD)lp.pl->size() : 1; }
-		bool Has(short id, CLoopPointer lp = CLoopPointer()) const { return FindProperty(id, lp) != NULL; }
-		DWORD GetNumber(short id, CLoopPointer lp = CLoopPointer()) const;
-		bool SetNumber(short id, DWORD n, CLoopPointer lp = CLoopPointer());
-		const BYTE* GetBinary(short id, DWORD* size = NULL, CLoopPointer lp = CLoopPointer()) const;
+		bool Has(property_id id, CLoopPointer lp = CLoopPointer()) const { return FindProperty(id, lp) != NULL; }
+		DWORD GetNumber(property_id id, CLoopPointer lp = CLoopPointer()) const;
+		bool SetNumber(property_id id, DWORD n, CLoopPointer lp = CLoopPointer());
+		const BYTE* GetBinary(property_id id, DWORD* size = NULL, CLoopPointer lp = CLoopPointer()) const;
 	private:
 		struct DESCRIPTOR_PROPERTY {
-			short id;
+			property_id id;
 			short type;
 			union {
 				DWORD n;
@@ -376,12 +395,10 @@ namespace AribDescriptor
 				BYTE* pb;
 			};
 			enum {
-				TYPE_N = 0,
-				TYPE_P = 1,
-				TYPE_MASK = 0xFFF,
-				TYPE_B = 0x1000,
+				TYPE_N = -2,
+				TYPE_P = -1,
 			};
-			DESCRIPTOR_PROPERTY() : type(TYPE_N) {}
+			DESCRIPTOR_PROPERTY() : id(d_invalid), type(TYPE_N) {}
 			~DESCRIPTOR_PROPERTY();
 			DESCRIPTOR_PROPERTY(const DESCRIPTOR_PROPERTY& o);
 			DESCRIPTOR_PROPERTY& operator=(DESCRIPTOR_PROPERTY&& o) NOEXCEPT;
@@ -389,17 +406,14 @@ namespace AribDescriptor
 			DESCRIPTOR_PROPERTY& operator=(const DESCRIPTOR_PROPERTY& o) { return *this = DESCRIPTOR_PROPERTY(o); }
 		};
 		struct LOCAL_PROPERTY {
-			short id;
-			short type;
+			property_id id;
 			DWORD n;
 		};
 		static int DecodeProperty(const BYTE* data, DWORD dataSize, const short** parser, vector<DESCRIPTOR_PROPERTY>* pp, LOCAL_PROPERTY* ppLocal, const PARSER_PAIR* customParserList);
 		static DWORD GetOperand(short id, const LOCAL_PROPERTY* ppLocal);
 		static DWORD DecodeNumber(const BYTE* data, DWORD bitSize, DWORD* readSize, DWORD* bitOffset);
-		const DESCRIPTOR_PROPERTY* FindProperty(short id, CLoopPointer lp) const;
+		const DESCRIPTOR_PROPERTY* FindProperty(property_id id, CLoopPointer lp) const;
 
 		vector<DESCRIPTOR_PROPERTY> rootProperty;
 	};
-
-	BOOL CreateDescriptors(const BYTE* data, DWORD dataSize, vector<CDescriptor>* descriptorList, DWORD* decodeReadSize, const PARSER_PAIR* customParserList = NULL);
 }
