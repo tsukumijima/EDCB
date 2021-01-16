@@ -5,117 +5,16 @@
 #include "stdafx.h"
 #include "EpgDataCap_Bon.h"
 #include "EpgDataCap_BonDlg.h"
-
+#include "../../Common/StackTrace.h"
 #include "../../Common/ThreadUtil.h"
 #include <objbase.h>
 #include <shellapi.h>
-
-#ifndef SUPPRESS_OUTPUT_STACK_TRACE
-#include <tlhelp32.h>
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
-#endif
 
 namespace
 {
 
 FILE* g_debugLog;
 recursive_mutex_ g_debugLogLock;
-
-#ifndef SUPPRESS_OUTPUT_STACK_TRACE
-// 例外によってアプリケーションが終了する直前にスタックトレースを"実行ファイル名.exe.err"に出力する
-// デバッグ情報(.pdbファイル)が存在すれば出力はより詳細になる
-
-void OutputStackTrace(DWORD exceptionCode, const PVOID* addrOffsets)
-{
-	WCHAR path[MAX_PATH + 4];
-	path[GetModuleFileName(NULL, path, MAX_PATH)] = L'\0';
-	wcscat_s(path, L".err");
-	HANDLE hFile = CreateFile(path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if( hFile != INVALID_HANDLE_VALUE ){
-		char buff[384];
-		DWORD written;
-		int len = sprintf_s(buff, "ExceptionCode = 0x%08X\r\n", exceptionCode);
-		WriteFile(hFile, buff, len, &written, NULL);
-		for( int i = 0; addrOffsets[i]; i++ ){
-			SYMBOL_INFO symbol[1 + (256 + sizeof(SYMBOL_INFO)) / sizeof(SYMBOL_INFO)];
-			symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-			symbol->MaxNameLen = 256;
-			DWORD64 displacement;
-			if( SymFromAddr(GetCurrentProcess(), (DWORD64)addrOffsets[i], &displacement, symbol) ){
-				len = sprintf_s(buff, "Trace%02d 0x%p = 0x%p(%s) + 0x%X\r\n", i, addrOffsets[i], (PVOID)symbol->Address, symbol->Name, (DWORD)displacement);
-			}else{
-				len = sprintf_s(buff, "Trace%02d 0x%p = ?\r\n", i, addrOffsets[i]);
-			}
-			WriteFile(hFile, buff, len, &written, NULL);
-		}
-		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, 0);
-		if( hSnapshot != INVALID_HANDLE_VALUE ){
-			MODULEENTRY32W modent;
-			modent.dwSize = sizeof(modent);
-			if( Module32FirstW(hSnapshot, &modent) ){
-				do{
-					char moduleA[256] = {};
-					for( int i = 0; i == 0 || i < 255 && moduleA[i - 1]; i++ ){
-						//文字化けしても構わない
-						moduleA[i] = (char)modent.szModule[i];
-					}
-					len = sprintf_s(buff, "0x%p - 0x%p = %s\r\n", modent.modBaseAddr, modent.modBaseAddr + modent.modBaseSize - 1, moduleA);
-					WriteFile(hFile, buff, len, &written, NULL);
-				}while( Module32NextW(hSnapshot, &modent) );
-			}
-			CloseHandle(hSnapshot);
-		}
-		CloseHandle(hFile);
-	}
-}
-
-LONG WINAPI TopLevelExceptionFilter(_EXCEPTION_POINTERS* exceptionInfo)
-{
-	static struct {
-		LONG used;
-		CONTEXT contextRecord;
-		STACKFRAME64 stackFrame;
-		PVOID addrOffsets[32];
-	} work;
-
-	if( InterlockedExchange(&work.used, 1) == 0 ){
-		SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
-		if( SymInitialize(GetCurrentProcess(), NULL, TRUE) ){
-			work.addrOffsets[0] = exceptionInfo->ExceptionRecord->ExceptionAddress;
-			work.contextRecord = *exceptionInfo->ContextRecord;
-			work.stackFrame.AddrPC.Mode = AddrModeFlat;
-			work.stackFrame.AddrFrame.Mode = AddrModeFlat;
-			work.stackFrame.AddrStack.Mode = AddrModeFlat;
-#if defined(_M_IX86) || defined(_M_X64)
-#ifdef _M_X64
-			work.stackFrame.AddrPC.Offset = work.contextRecord.Rip;
-			work.stackFrame.AddrFrame.Offset = work.contextRecord.Rbp;
-			work.stackFrame.AddrStack.Offset = work.contextRecord.Rsp;
-#else
-			work.stackFrame.AddrPC.Offset = work.contextRecord.Eip;
-			work.stackFrame.AddrFrame.Offset = work.contextRecord.Ebp;
-			work.stackFrame.AddrStack.Offset = work.contextRecord.Esp;
-#endif
-			for( int i = 1; i < _countof(work.addrOffsets) - 1 && StackWalk64(
-#ifdef _M_X64
-				IMAGE_FILE_MACHINE_AMD64,
-#else
-				IMAGE_FILE_MACHINE_I386,
-#endif
-				GetCurrentProcess(), GetCurrentThread(), &work.stackFrame, &work.contextRecord,
-				NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL); i++ ){
-				work.addrOffsets[i] = (PVOID)work.stackFrame.AddrPC.Offset;
-			}
-#endif
-			OutputStackTrace(exceptionInfo->ExceptionRecord->ExceptionCode, work.addrOffsets);
-			SymCleanup(GetCurrentProcess());
-		}
-	}
-	return EXCEPTION_CONTINUE_SEARCH;
-}
-
-#endif // SUPPRESS_OUTPUT_STACK_TRACE
 
 // 唯一の CEpgDataCap_BonApp オブジェクトです。
 
@@ -148,7 +47,7 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	SetProcessShutdownParameters(0x300, 0);
 
 #ifndef SUPPRESS_OUTPUT_STACK_TRACE
-	SetUnhandledExceptionFilter(TopLevelExceptionFilter);
+	SetOutputStackTraceOnUnhandledException(GetModulePath().concat(L".err").c_str());
 #endif
 
 	CEpgDataCap_BonDlg dlg;
@@ -191,12 +90,12 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 		}
 		if (optUpperD) {
 			dlg.SetInitBon(optUpperD);
-			OutputDebugString(optUpperD);
+			AddDebugLogFormat(L"%ls", optUpperD);
 		}
 		// 原作の挙動に合わせるため
 		if (optLowerD) {
 			dlg.SetInitBon(optLowerD);
-			OutputDebugString(optLowerD);
+			AddDebugLogFormat(L"%ls", optLowerD);
 		}
 		LocalFree(argv);
 	}
@@ -219,12 +118,10 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	return FALSE;
 }
 
-#ifdef USE_WINMAIN_A
+#ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-#else
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 #endif
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	SetDllDirectory(L"");
 	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
@@ -236,7 +133,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	return 0;
 }
 
-void OutputDebugStringWrapper(LPCWSTR lpOutputString)
+void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutput)
 {
 	{
 		//デバッグ出力ログ保存
@@ -253,12 +150,14 @@ void OutputDebugStringWrapper(LPCWSTR lpOutputString)
 				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
 			}
 			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
-				fwrite(L"<NOBR>\r\n", sizeof(WCHAR), 8, g_debugLog);
+				fwrite(L"<NOBR>" UTIL_NEWLINE, sizeof(WCHAR), array_size(L"<NOBR>" UTIL_NEWLINE) - 1, g_debugLog);
 			}
 			fflush(g_debugLog);
 		}
 	}
-	OutputDebugStringW(lpOutputString);
+	if( suppressDebugOutput == false ){
+		OutputDebugString(lpOutputString);
+	}
 }
 
 void SetSaveDebugLog(bool saveDebugLog)
@@ -277,12 +176,12 @@ void SetSaveDebugLog(bool saveDebugLog)
 				g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
 			}
 			if( g_debugLog ){
-				OutputDebugString(L"****** LOG START ******\r\n");
+				AddDebugLog(L"****** LOG START ******");
 				break;
 			}
 		}
 	}else if( g_debugLog && saveDebugLog == false ){
-		OutputDebugString(L"****** LOG STOP ******\r\n");
+		AddDebugLog(L"****** LOG STOP ******");
 		fclose(g_debugLog);
 		g_debugLog = NULL;
 	}

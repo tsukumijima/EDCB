@@ -88,7 +88,6 @@ adaptation_field() {
 class CTSPacketUtil
 {
 public:
-	BYTE sync_byte;
 	BYTE transport_error_indicator;
 	BYTE payload_unit_start_indicator;
 	BYTE transport_priority;
@@ -97,9 +96,10 @@ public:
 	BYTE adaptation_field_control;
 	BYTE continuity_counter;
 	BYTE data_byteSize;
-	BYTE* data_byte;
+	const BYTE* data_byte;
 
-	BYTE adaptation_field_length;
+	BYTE has_adaptation_field_flags;
+	// the following are unset if has_adaptation_field_flags == 0
 	BYTE discontinuity_indicator;
 	BYTE random_access_indicator;
 	BYTE elementary_stream_priority_indicator;
@@ -129,5 +129,12 @@ public:
 public:
 	CTSPacketUtil(void);
 
-	BOOL Set188TS(BYTE* data, DWORD dataSize);
+	BOOL Set188TS(const BYTE* data, DWORD dataSize);
+	static BYTE GetTransportErrorIndicatorFrom188TS(const BYTE* data) { return data[1] >> 7; }
+	static BYTE GetPayloadUnitStartIndicatorFrom188TS(const BYTE* data) { return (data[1] >> 6) & 0x01; }
+	static BYTE GetTransportPriorityFrom188TS(const BYTE* data) { return (data[1] >> 5) & 0x01; }
+	static WORD GetPidFrom188TS(const BYTE* data) { return (data[1] << 8 | data[2]) & 0x1FFF; }
+	static BYTE GetTransportScramblingControlFrom188TS(const BYTE* data) { return data[3] >> 6; }
+	static BYTE GetAdaptationFieldControlFrom188TS(const BYTE* data) { return (data[3] >> 4) & 0x03; }
+	static BYTE GetContinuityCounterFrom188TS(const BYTE* data) { return data[3] & 0x0F; }
 };

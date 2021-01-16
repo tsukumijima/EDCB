@@ -5,8 +5,6 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "iphlpapi.lib")
 #else
 #include <ifaddrs.h>
 #include <netdb.h>
@@ -127,7 +125,7 @@ void CUpnpSsdpServer::SsdpThread(CUpnpSsdpServer* sys)
 		}else{
 			int opt = 1;
 			if( setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt)) != 0 ){
-				OutputDebugString(L"SSDP setsockopt(SO_REUSEADDR) failed.\r\n");
+				AddDebugLog(L"SSDP setsockopt(SO_REUSEADDR) failed.");
 			}
 			nicList[i].addr.sin_port = htons(1900);
 			ip_mreq mreq = {};
@@ -144,10 +142,9 @@ void CUpnpSsdpServer::SsdpThread(CUpnpSsdpServer* sys)
 			}
 		}
 	}
-	debug += "\r\n";
 	wstring debugW;
 	UTF8toW(debug, debugW);
-	OutputDebugString(debugW.c_str());
+	AddDebugLogFormat(L"%ls", debugW.c_str());
 
 	struct SSDP_REPLY_INFO {
 		string msg;
@@ -182,7 +179,7 @@ void CUpnpSsdpServer::SsdpThread(CUpnpSsdpServer* sys)
 #endif
 				int recvLen = (int)recvfrom(nicList[i].sock, recvData, RECV_BUFF_SIZE - 1, 0, (sockaddr*)&info.addr, &fromLen);
 				if( recvLen < 0 || fromLen != sizeof(info.addr) ){
-					OutputDebugString(L"SSDP recvfrom() failed.\r\n");
+					AddDebugLog(L"SSDP recvfrom() failed.");
 				}else{
 					recvData[recvLen] = '\0';
 					if( strncmp(recvData, "M-SEARCH ", 9) == 0 && replyList.size() < 100 ){
@@ -205,7 +202,7 @@ void CUpnpSsdpServer::SsdpThread(CUpnpSsdpServer* sys)
 				                     , 0);
 				if( sock != INVALID_SOCKET ){
 					if( sendto(sock, itr->msg.c_str(), (int)itr->msg.size(), 0, (const sockaddr*)&itr->addr, sizeof(itr->addr)) != (int)itr->msg.size() ){
-						OutputDebugString(L"SSDP sendto() failed.\r\n");
+						AddDebugLog(L"SSDP sendto() failed.");
 					}
 					closesocket(sock);
 				}
@@ -321,7 +318,7 @@ void SendNotifyAliveOrByebye(bool byebyeFlag, const vector<SSDP_NIC_INFO>& nicLi
 								"USN: " + itr->usn + "\r\n\r\n";
 						}
 						if( sendto(sock, sendMsg.c_str(), (int)sendMsg.size(), 0, (const sockaddr*)&addr, sizeof(addr)) != (int)sendMsg.size() ){
-							OutputDebugString(L"SSDP sendto() failed.\r\n");
+							AddDebugLog(L"SSDP sendto() failed.");
 							break;
 						}
 					}

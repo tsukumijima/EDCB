@@ -3,6 +3,7 @@
 #include "../Common/PathUtil.h"
 #include "../Common/StringUtil.h"
 #include "../Common/TimeUtil.h"
+#include "../Common/TSPacketUtil.h"
 
 CDropCount::CDropCount(void)
 {
@@ -23,21 +24,17 @@ void CDropCount::AddData(const BYTE* data, DWORD size)
 		return ;
 	}
 	DROP_INFO item = {};
-	for( DWORD i=0; i<size; i+=188 ){
-		BYTE sync_byte = data[i];
-		BYTE transport_error_indicator = data[i + 1] & 0x80;
-		if( sync_byte == 0x47 && transport_error_indicator == 0 ){
-			item.PID = (data[i + 1] << 8 | data[i + 2]) & 0x1FFF;
-			vector<DROP_INFO>::iterator itr;
-			itr = std::lower_bound(this->infoList.begin(), this->infoList.end(), item,
-			                       [](const DROP_INFO& a, const DROP_INFO& b) { return a.PID < b.PID; });
-			if( itr == this->infoList.end() || itr->PID != item.PID ){
-				BYTE continuity_counter = data[i + 3] & 0x0F;
-				item.lastCounter = (continuity_counter + 15) & 0x0F;
+	for( DWORD i = 0; i + 188 <= size; i += 188 ){
+		if( CTSPacketUtil::GetTransportErrorIndicatorFrom188TS(data + i) == 0 ){
+			item.first = CTSPacketUtil::GetPidFrom188TS(data + i);
+			vector<DROP_INFO>::iterator itr =
+				lower_bound_first(this->infoList.begin(), this->infoList.end(), item.first);
+			if( itr == this->infoList.end() || itr->first != item.first ){
+				item.lastCounter = (CTSPacketUtil::GetContinuityCounterFrom188TS(data + i) + 15) & 0x0F;
 				itr = this->infoList.insert(itr, item);
 			}
 			itr->total++;
-			if( itr->PID != 0x1FFF ){
+			if( itr->first != 0x1FFF ){
 				CheckCounter(data + i, &(*itr));
 			}
 		}
@@ -113,11 +110,10 @@ ULONGLONG CDropCount::GetScrambleCount()
 
 void CDropCount::CheckCounter(const BYTE* packet, DROP_INFO* info)
 {
-	BYTE transport_scrambling_control = packet[3] >> 6;
-	BYTE adaptation_field_control = (packet[3] >> 4) & 0x03;
-	BYTE continuity_counter = packet[3] & 0x0F;
+	BYTE adaptation_field_control = CTSPacketUtil::GetAdaptationFieldControlFrom188TS(packet);
+	BYTE continuity_counter = CTSPacketUtil::GetContinuityCounterFrom188TS(packet);
 
-	if( transport_scrambling_control != 0 ){
+	if( CTSPacketUtil::GetTransportScramblingControlFrom188TS(packet) != 0 ){
 		info->scramble++;
 		this->scramble++;
 	}
@@ -170,7 +166,7 @@ void CDropCount::SaveLog(const wstring& filePath, BOOL asUtf8)
 		string strA;
 		for( vector<DROP_INFO>::const_iterator itr = this->infoList.begin(); itr != this->infoList.end(); itr++ ){
 			LPCSTR desc = "";
-			switch( itr->PID ){
+			switch( itr->first ){
 			case 0x0000:
 				desc = "PAT";
 				break;
@@ -230,15 +226,15 @@ void CDropCount::SaveLog(const wstring& filePath, BOOL asUtf8)
 				break;
 			default:
 				vector<pair<WORD, wstring>>::const_iterator itrPID =
-					std::lower_bound(this->pidName.begin(), this->pidName.end(), std::make_pair(itr->PID, wstring()));
-				if( itrPID != this->pidName.end() && itrPID->first == itr->PID ){
+					lower_bound_first(this->pidName.begin(), this->pidName.end(), itr->first);
+				if( itrPID != this->pidName.end() && itrPID->first == itr->first ){
 					WtoA(itrPID->second, strA, asUtf8 ? UTIL_CONV_UTF8 : UTIL_CONV_DEFAULT);
 					desc = strA.c_str();
 				}
 				break;
 			}
 			fprintf_s(fp.get(), "PID: 0x%04X  Total:%9lld  Drop:%9lld  Scramble: %9lld  %s\r\n",
-			          itr->PID, itr->total, itr->drop, itr->scramble, desc);
+			          itr->first, itr->total, itr->drop, itr->scramble, desc);
 		}
 
 		WtoA(L"使用BonDriver : " + bonFile, strA, asUtf8 ? UTIL_CONV_UTF8 : UTIL_CONV_DEFAULT);
@@ -249,7 +245,7 @@ void CDropCount::SaveLog(const wstring& filePath, BOOL asUtf8)
 void CDropCount::SetPIDName(WORD pid, const wstring& name)
 {
 	vector<pair<WORD, wstring>>::iterator itr =
-		std::lower_bound(this->pidName.begin(), this->pidName.end(), std::make_pair(pid, wstring()));
+		lower_bound_first(this->pidName.begin(), this->pidName.end(), pid);
 	if( itr == this->pidName.end() || itr->first != pid ){
 		itr = this->pidName.insert(itr, std::make_pair(pid, wstring()));
 	}

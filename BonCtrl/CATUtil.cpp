@@ -4,15 +4,8 @@
 #include "../Common/EpgTimerUtil.h"
 
 
-CCATUtil::CCATUtil(void)
+BOOL CCATUtil::AddPacket(const CTSPacketUtil& packet)
 {
-}
-
-BOOL CCATUtil::AddPacket(CTSPacketUtil* packet)
-{
-	if( packet == NULL ){
-		return FALSE;
-	}
 	if( buffUtil.Add188TS(packet) == TRUE ){
 		BYTE* section = NULL;
 		DWORD sectionSize = 0;
@@ -82,7 +75,7 @@ BOOL CCATUtil::DecodeCAT(BYTE* data, DWORD dataSize)
 					WORD CA_PID = ((WORD)data[readSize+2]&0x1F)<<8 | (WORD)data[readSize+3];
 					if (CA_PID != 0x1fff) {
 						PIDList.push_back(CA_PID);
-						//_OutputDebugString(L"CA_PID:0x%04x\r\n",CA_PID);
+						//AddDebugLogFormat(L"CA_PID:0x%04x", CA_PID);
 					}
 				}
 				readSize += descriptor_length;

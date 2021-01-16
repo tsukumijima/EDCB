@@ -3,7 +3,6 @@
 #if !defined(SEND_CTRL_CMD_NO_TCP) && defined(_WIN32)
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#pragma comment(lib, "Ws2_32.lib")
 #endif
 #include "StringUtil.h"
 #ifndef _WIN32
@@ -142,7 +141,7 @@ DWORD SendPipe(const wstring& pipeName, DWORD timeOut, const CMD_STREAM* cmd, CM
 	//接続
 	HANDLE pipe = CreateFile((L"\\\\.\\pipe\\" + pipeName).c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if( pipe == INVALID_HANDLE_VALUE ){
-		_OutputDebugString(L"*+* ConnectPipe Err:%d\r\n", GetLastError());
+		AddDebugLogFormat(L"*+* ConnectPipe Err:%d", GetLastError());
 		return CMD_ERR_CONNECT;
 	}
 	auto closeFile = [=]() { return CloseHandle(pipe); };

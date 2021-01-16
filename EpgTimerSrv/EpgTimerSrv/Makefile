@@ -1,15 +1,16 @@
-TARGET ?= EpgTimerSrv.exe
-CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_WINMAIN_A -DUSE_LUA -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 $(CPPFLAGS)
+TARGET ?= EpgTimerSrv
+CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_LUA -DUSE_IPV6 -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 $(CPPFLAGS)
 #CPPFLAGS += -DEPGDB_STD_WREGEX
 CFLAGS := -Os $(CFLAGS)
-CXXFLAGS := -Os $(CXXFLAGS)
-LDFLAGS := -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
-LDLIBS := -lws2_32 -lole32 -lcomctl32 -lwinhttp -loleaut32 -lcrypt32 -liphlpapi -luuid -lnetapi32 $(LDLIBS)
+CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
+LDFLAGS2 = -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDLIBS := -lws2_32 -lole32 -lcomctl32 -lwinhttp -loleaut32 -lcrypt32 -liphlpapi -luuid -lnetapi32 -ldbghelp $(LDLIBS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
 CUR_ALL_H := $(wildcard *.h *.inl)
 
 ifdef withlua
+  CPPFLAGS += -DEPGTIMERSRV_WITHLUA
   SOURCES_LUA = \
     lua__lapi.c \
     lua__lauxlib.c \
@@ -56,13 +57,17 @@ ifdef withlua
     lua_zlib1__uncompr.c \
     lua_zlib1__zutil.c
 else
-  # Lazy loading fails with segfault if LUA_LIB undefined.
-  CPPFLAGS += -DLUA_BUILD_AS_DLL -DLUA_LIB
+  # Lazy loading fails with segfault if LUA_BUILD_AS_DLL defined.
   SOURCES_LUA =
-  LDLIBS := -L. -llua52-mingw-lazy-$(MSYSTEM_CARCH) $(LDLIBS)
+  LDLIBS := -L. -llua52-mingw-lazy-$(or $(MSYSTEM_CARCH),$(findstring x86_64,$(MAKE_HOST)),i686) $(LDLIBS)
 endif
 
-$(TARGET): $(addsuffix .obj, \
+ifndef MSYSTEM
+  # Assume non-pthread threading model
+  CPPFLAGS += -DMUST_IMPLEMENT_CLOCK_GETTIME
+endif
+
+$(TARGET).exe: $(addsuffix .obj, \
   $(SOURCES_LUA) \
   BonCtrl__CreatePATPacket.cpp \
   BonCtrl__PacketInit.cpp \
@@ -77,6 +82,7 @@ $(TARGET): $(addsuffix .obj, \
   Common__ReNamePlugInUtil.cpp \
   Common__SendCtrlCmd.cpp \
   Common__ServiceUtil.cpp \
+  Common__StackTrace.cpp \
   Common__StringUtil.cpp \
   Common__TCPServer.cpp \
   Common__TimeShiftUtil.cpp \
@@ -98,7 +104,7 @@ $(TARGET): $(addsuffix .obj, \
   UpnpSsdpServer.cpp \
   EpgTimerSrv.rc \
   )
-	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
 	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch $(DEP_ALL_H)
@@ -113,7 +119,13 @@ lua_zlib1__%.c.obj: lua/zlib1/%.c
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 %.c.obj: %.c $(CUR_ALL_H)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
-%.rc.obj: %.rc resource.h targetver.h
-	iconv -f UTF-16LE -t UTF-8 $< | $(WINDRES) $(CPPFLAGS) -c 65001 -J rc -O coff $(OUTPUT_OPTION)
+%.rc.obj: %.rc.u.obj resource.h targetver.h
+	$(WINDRES) $(CPPFLAGS) -c 65001 -J rc -O coff $(OUTPUT_OPTION) $<
+%.rc.u.obj: %.rc
+ifdef MSYSTEM
+	iconv -f UTF-16LE -t UTF-8 $< >$@
+else
+	powershell -NoProfile -Command "&{cat $<|Out-File -Encoding UTF8 $@}"
+endif
 clean:
-	$(RM) stdafx.h.gch *.obj $(TARGET)
+	$(RM) stdafx.h.gch *.obj $(TARGET).exe $(TARGET).map

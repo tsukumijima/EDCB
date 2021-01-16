@@ -32,7 +32,8 @@ public:
 		BOOL enableScramble,
 		BOOL needCaption,
 		BOOL needData,
-		BOOL allService
+		BOOL allService,
+		DWORD logoTypeFlags
 		);
 
 	//ネットワーク送信と統計の対象サービスIDを取得する
@@ -55,6 +56,7 @@ public:
 	// bonDriverFile	[IN]BonDriverのファイル名
 	BOOL OpenBonDriver(
 		LPCWSTR bonDriverFile,
+		int traceLevel,
 		int openWait,
 		DWORD tsBuffMaxCount
 		);
@@ -460,6 +462,8 @@ protected:
 	BOOL epgCapBackCS2Basic;
 	BOOL epgCapBackCS3Basic;
 	DWORD epgCapBackStartWaitSec;
+
+	DWORD tsOutLogoTypeFlags;
 protected:
 	BOOL ProcessSetCh(
 		DWORD space,
@@ -479,5 +483,6 @@ protected:
 	void StartBackgroundEpgCap();
 	void StopBackgroundEpgCap();
 	void CheckEpgCapBack();
+	void CheckLogo();
 };
 

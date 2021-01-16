@@ -37,35 +37,22 @@
 ・EpgTimer.exeについては[その他]を参照
 
 
-[ビルド(VisualStudio2010)]
+[ビルド(Mingw-w64)] ※ビルド環境が最もコンパクト
 
-0.以下を順番に入れる
-  Visual C++ 2010 Express
-  https://go.microsoft.com/fwlink/?LinkId=190491
-  Visual C# 2010 Express
-  https://go.microsoft.com/fwlink/?LinkId=190492
-  Visual Studio 2010 Service Pack 1（リンク切れ、たぶんWindowsUpdateで更新可能）
-  https://www.microsoft.com/ja-jp/download/details.aspx?id=23691
-  Windows SDK 7.1
-  https://www.microsoft.com/en-us/download/details.aspx?id=8279
-  # Visual C++ Compilers のチェックを外してインストールする。でないと失敗する
-  # Visual C++ x86/x64 2010 Redistributable を事前にアンインストールしておく必要があるかもしれない
-  Windows SDK 7.1 用 Microsoft Visual C++ 2010 Service Pack 1 コンパイラ更新プログラム
-  https://www.microsoft.com/ja-jp/download/details.aspx?id=4422
+0.https://sourceforge.net/projects/mingw-w64/files/ の「MinGW-W64 GCC-8.1.0」（上位バージョンがあればそれでもOK）のリストから
+  i686-win32-dwarf(x86ビルド用) または x86_64-win32-seh(x64ビルド用) の7z圧縮ファイルをダウンロードしてどこかに展開
+  （以下、"C:\mingw32"または"C:\mingw64"に展開したと仮定）
+  （Online InstallerでもOK。i686/win32/dwarfまたはx86_64/win32/sehを選び、"C:\mingw32"または"C:\mingw64"にインストール）
 
-1."Document\EDCB_VCALL.sln"を開き、ツールバーを[Release][Win32]にしてビルド→ソリューションのビルド
-
-2."EpgTimer\EpgTimer.sln"を 右クリック→プログラムから開く→C# 2010 Express で開き（.NET Framework v4.0への再ターゲットのダイアログが出るときは従う）
-  ツール(T)→設定→上級者設定にチェック、[Release][x86]にしてビルド
+1.RunMake.batを実行（クリーンしたいときはRunMakeClean.batを実行）
 
 （注意）
-・プロジェクトを開くのに失敗する場合は"EpgTimer\EpgTimer\EpgTimer.csproj"をメモ帳で開き
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  となっている部分を
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-  に変更する
+・libwinpthread-1.dllは不要。ほかの注意事項は「ビルド(MSYS2/Mingw-w64)」と同様
 
-3.（EpgTimerNWが必要な場合のみ）生成された"EpgTimer.exe"を"EpgTimerNW.exe"というファイル名でコピー
+
+[ビルド(VisualStudio2010)]
+
+※VisualStudio2010の延長サポートが終了したため、内容を削除した。必要なら2020年以前のコミットを参照
 
 
 [その他]

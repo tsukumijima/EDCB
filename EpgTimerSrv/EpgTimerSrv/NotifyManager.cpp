@@ -13,7 +13,7 @@ CNotifyManager::CNotifyManager()
 	this->srvStatus = 0;
 	this->notifyCount = 1;
 	this->activeOrIdleCount = 0;
-	std::fill_n(this->notifyUpdateCount, _countof(this->notifyUpdateCount), 0);
+	std::fill_n(this->notifyUpdateCount, array_size(this->notifyUpdateCount), 0);
 	this->guiFlag = false;
 }
 
@@ -134,7 +134,7 @@ bool CNotifyManager::WaitForIdle(DWORD timeoutMsec) const
 
 int CNotifyManager::GetNotifyUpdateCount(DWORD notifyID) const
 {
-	if( 1 <= notifyID && notifyID < _countof(this->notifyUpdateCount) ){
+	if( 1 <= notifyID && notifyID < array_size(this->notifyUpdateCount) ){
 		CBlockLock lock(&this->managerLock);
 		return this->notifyUpdateCount[notifyID] & 0x7FFFFFFF;
 	}
@@ -281,7 +281,7 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 			if( sys->notifySentList.size() > 100 ){
 				sys->notifySentList.erase(sys->notifySentList.begin());
 			}
-			if( notifyInfo.notifyID < _countof(sys->notifyUpdateCount) ){
+			if( notifyInfo.notifyID < array_size(sys->notifyUpdateCount) ){
 				//更新系の通知をカウント
 				sys->notifyUpdateCount[notifyInfo.notifyID]++;
 			}
@@ -321,7 +321,7 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 					sendCtrl.SetSendMode(TRUE);
 					sendCtrl.SetNWSetting(registTCP[i].first, registTCP[i].second);
 #else
-					OutputDebugString(L"CNotifyManager: Notification by TCP/IP registration is not supported.\r\n");
+					AddDebugLog(L"CNotifyManager: Notification by TCP/IP registration is not supported.");
 					continue;
 #endif
 				}else{
@@ -349,12 +349,12 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 				}
 				if( tcp && err != CMD_SUCCESS && err != CMD_NON_SUPPORT ){
 					//送信できなかったもの削除
-					_OutputDebugString(L"notifyErr %ls:%d\r\n", registTCP[i].first.c_str(), registTCP[i].second);
+					AddDebugLogFormat(L"notifyErr %ls:%d", registTCP[i].first.c_str(), registTCP[i].second);
 					sys->UnRegistTCP(registTCP[i].first.c_str(), registTCP[i].second);
 				}
 				if( !tcp && err == CMD_ERR_CONNECT && sendCtrl.PipeExists() == false ){
 					//存在しないので削除
-					_OutputDebugString(L"notifyErr %ls:%d\r\n", L"PID", registGUI[i]);
+					AddDebugLogFormat(L"notifyErr %ls:%d", L"PID", registGUI[i]);
 					sys->UnRegistGUI(registGUI[i]);
 				}
 			}
