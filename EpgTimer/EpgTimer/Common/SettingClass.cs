@@ -575,6 +575,8 @@ namespace EpgTimer
         public string NWMacAdd { get; set; }
         public List<NWPresetItem> NWPreset { get; set; }
         public bool WakeReconnectNW { get; set; }
+        public bool WakeCheckService { get; set; }
+        public bool WakeCheckServiceDialog { get; set; }
         public bool WoLWaitRecconect { get; set; }
         public double WoLWaitSecond { get; set; }
         public bool SuspendCloseNW { get; set; }
@@ -921,6 +923,8 @@ namespace EpgTimer
             NWMacAdd = "";
             NWPreset = new List<NWPresetItem>();
             WakeReconnectNW = false;
+            WakeCheckService = false;
+            WakeCheckServiceDialog = true;
             WoLWaitRecconect = false;
             WoLWaitSecond= 30;
             SuspendCloseNW = false;

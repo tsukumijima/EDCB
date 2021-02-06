@@ -187,6 +187,9 @@ namespace EpgTimer
                         Thread.Sleep(100);
                     }
 
+                    //TSIDの変更チェック
+                    WakeCheckService();
+
                     //予約一覧の表示に使用したりするのであらかじめ読込んでおく(暫定処置)
                     CommonManager.Instance.DB.ReloadReserveInfo(true);
                     CommonManager.Instance.DB.ReloadEpgAutoAddInfo(true);
@@ -658,6 +661,8 @@ namespace EpgTimer
 
             IniFileHandler.UpdateSrvProfileIni();
 
+            WakeCheckService();
+
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.PlugInFile);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.EpgData);
@@ -692,6 +697,15 @@ namespace EpgTimer
             {
                 TrayManager.SrvLosted();
                 ChkTimerWork();
+            }
+        }
+
+        private void WakeCheckService()
+        {
+            if (Settings.Instance.WakeCheckService == true)
+            {
+                bool ret = SettingWindow.CheckServiceSettings(Settings.Instance, !Settings.Instance.WakeCheckServiceDialog);
+                if (ret) SettingWindow.UpdatesInfo("TSID情報の更新");
             }
         }
 
