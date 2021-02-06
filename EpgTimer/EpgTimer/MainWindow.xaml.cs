@@ -593,11 +593,11 @@ namespace EpgTimer
                 connectTimer.Interval = TimeSpan.FromSeconds(Math.Max(Settings.Instance.WoLWaitSecond, 1));
                 connectTimer.Tick += (sender, e) =>
                 {
+                    connectTimer.Stop();
                     StatusManager.StatusNotifyAppend("EpgTimerSrvへ接続中... < ", interval);
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        try { ConnectSrv(); }
-                        catch { }
+                        ConnectSrv();
                         CheckIsConnected();
                     }), DispatcherPriority.Render);
                 };
@@ -607,20 +607,26 @@ namespace EpgTimer
             StatusManager.StatusNotifySet("EpgTimerSrvへ接続中...", interval);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                try
+                if (ConnectSrv() == false && Settings.Instance.WoLWaitRecconect == true)
                 {
-                    if (ConnectSrv() == false && Settings.Instance.WoLWaitRecconect == true)
-                    {
-                        string msg = string.Format("{0}再接続待機中({1}秒間)...", showDialog == true ? "" : "起動時自動", Settings.Instance.WoLWaitSecond);
-                        StatusManager.StatusNotifySet(msg, interval);
-                        return;
-                    }
+                    var msg = string.Format("{0}再接続待機中({1}秒間)...", showDialog == true ? "" : "起動時自動", Settings.Instance.WoLWaitSecond);
+                    StatusManager.StatusNotifySet(msg, interval);
+                    return;
                 }
-                catch { }
                 CheckIsConnected();
             }), DispatcherPriority.Render);
         }
+        bool connectingSrv = false;
         bool ConnectSrv()
+        {
+            if (connectingSrv == false)
+            {
+                connectingSrv = true;
+                try { return ConnectSrvMain(); } catch { } finally { connectingSrv = false; }
+            }
+            return false;
+        }
+        bool ConnectSrvMain()
         {
             var connected = false;
             try
