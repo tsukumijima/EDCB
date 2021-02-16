@@ -19,14 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A690F4ED-0014-4346-AC5B-9FB4F2B3D05F}</ProjectGuid>
-    <RootNamespace>EpgDataCap_Bon</RootNamespace>
-    <Keyword>MFCProj</Keyword>
+    <ProjectGuid>{92EA5AE6-B81F-4BE4-809E-275F32F166EC}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Write_OneService</RootNamespace>
     <WindowsTargetPlatformVersion Condition="'$(VisualStudioVersion)' == '15.0'">10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == ''">v100</PlatformToolset>
@@ -35,7 +35,7 @@
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == ''">Windows7.1SDK</PlatformToolset>
@@ -44,7 +44,7 @@
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
@@ -54,7 +54,7 @@
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '16.0'">v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
@@ -81,72 +81,46 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\x86\$(Configuration)\</OutDir>
-    <GenerateManifest>false</GenerateManifest>
+    <OutDir>$(SolutionDir)..\x86\$(Configuration)\Write\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\$(Platform)\$(Configuration)\</OutDir>
-    <GenerateManifest>false</GenerateManifest>
+    <OutDir>$(SolutionDir)..\$(Platform)\$(Configuration)\Write\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\x86\$(Configuration)\</OutDir>
-    <GenerateManifest>false</GenerateManifest>
+    <OutDir>$(SolutionDir)..\x86\$(Configuration)\Write\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\$(Platform)\$(Configuration)\</OutDir>
-    <GenerateManifest>false</GenerateManifest>
+    <OutDir>$(SolutionDir)..\$(Platform)\$(Configuration)\Write\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WRITE_ONESERVICE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;comctl32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>Write_PlugIn.def</ModuleDefinitionFile>
     </Link>
-    <Midl>
-      <MkTypLibCompatible>false</MkTypLibCompatible>
-      <ValidateAllParameters>true</ValidateAllParameters>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </Midl>
-    <ResourceCompile>
-      <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WRITE_ONESERVICE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;comctl32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <Midl>
-      <MkTypLibCompatible>false</MkTypLibCompatible>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </Midl>
-    <ResourceCompile>
-      <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -155,28 +129,16 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WRITE_ONESERVICE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalOptions>/PDBALTPATH:%_PDB% %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ws2_32.lib;comctl32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>Write_PlugIn.def</ModuleDefinitionFile>
     </Link>
-    <Midl>
-      <MkTypLibCompatible>false</MkTypLibCompatible>
-      <ValidateAllParameters>true</ValidateAllParameters>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </Midl>
-    <ResourceCompile>
-      <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -185,70 +147,28 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WRITE_ONESERVICE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalOptions>/PDBALTPATH:%_PDB% %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ws2_32.lib;comctl32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <Midl>
-      <MkTypLibCompatible>false</MkTypLibCompatible>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </Midl>
-    <ResourceCompile>
-      <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="res\EpgDataCap_Bon.ico" />
-    <None Include="res\EpgDataCap_Bon_Vista_blue_rev2.ico" />
-    <None Include="res\EpgDataCap_Bon_Vista_gray_rev2.ico" />
-    <None Include="res\EpgDataCap_Bon_Vista_green_rev2.ico" />
-    <None Include="res\EpgDataCap_Bon_Vista_vio_rev2.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\BonCtrl\BonCtrl.h" />
-    <ClInclude Include="..\..\BonCtrl\BonCtrlDef.h" />
-    <ClInclude Include="..\..\BonCtrl\BonDriverUtil.h" />
     <ClInclude Include="..\..\BonCtrl\CATUtil.h" />
-    <ClInclude Include="..\..\BonCtrl\ChSetUtil.h" />
     <ClInclude Include="..\..\BonCtrl\CreatePATPacket.h" />
-    <ClInclude Include="..\..\BonCtrl\CreatePMTPacket.h" />
-    <ClInclude Include="..\..\BonCtrl\DropCount.h" />
-    <ClInclude Include="..\..\BonCtrl\IB25Decoder.h" />
-    <ClInclude Include="..\..\BonCtrl\IBonDriver.h" />
-    <ClInclude Include="..\..\BonCtrl\IBonDriver2.h" />
-    <ClInclude Include="..\..\BonCtrl\OneServiceUtil.h" />
     <ClInclude Include="..\..\BonCtrl\PacketInit.h" />
     <ClInclude Include="..\..\BonCtrl\PMTUtil.h" />
-    <ClInclude Include="..\..\BonCtrl\ScrambleDecoderUtil.h" />
     <ClInclude Include="..\..\BonCtrl\ServiceFilter.h" />
-    <ClInclude Include="..\..\BonCtrl\TSOut.h" />
-    <ClInclude Include="..\..\BonCtrl\WriteTSFile.h" />
     <ClInclude Include="..\..\Common\Common.h" />
-    <ClInclude Include="..\..\Common\CommonDef.h" />
-    <ClInclude Include="..\..\Common\CtrlCmdDef.h" />
-    <ClInclude Include="..\..\Common\CtrlCmdUtil.h" />
     <ClInclude Include="..\..\Common\EpgDataCap3Def.h" />
-    <ClInclude Include="..\..\Common\EpgDataCap3Util.h" />
     <ClInclude Include="..\..\Common\EpgTimerUtil.h" />
     <ClInclude Include="..\..\Common\ErrDef.h" />
-    <ClInclude Include="..\..\Common\ParseText.h" />
-    <ClInclude Include="..\..\Common\ParseTextInstances.h" />
+    <ClInclude Include="..\..\Common\InstanceManager.h" />
     <ClInclude Include="..\..\Common\PathUtil.h" />
-    <ClInclude Include="..\..\Common\PipeServer.h" />
-    <ClInclude Include="..\..\Common\SendCtrlCmd.h" />
-    <ClInclude Include="..\..\Common\SendTSTCPDllUtil.h" />
-    <ClInclude Include="..\..\Common\StackTrace.h" />
     <ClInclude Include="..\..\Common\StringUtil.h" />
     <ClInclude Include="..\..\Common\StructDef.h" />
     <ClInclude Include="..\..\Common\ThreadUtil.h" />
@@ -256,76 +176,47 @@
     <ClInclude Include="..\..\Common\TSBuffUtil.h" />
     <ClInclude Include="..\..\Common\TSPacketUtil.h" />
     <ClInclude Include="..\..\Common\WritePlugInUtil.h" />
-    <ClInclude Include="EpgDataCap_Bon.h" />
-    <ClInclude Include="EpgDataCap_BonDef.h" />
-    <ClInclude Include="EpgDataCap_BonDlg.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="SetDlgApp.h" />
-    <ClInclude Include="SetDlgAppBtn.h" />
-    <ClInclude Include="SetDlgBasic.h" />
-    <ClInclude Include="SetDlgEpg.h" />
-    <ClInclude Include="SetDlgNetwork.h" />
-    <ClInclude Include="SetDlgService.h" />
-    <ClInclude Include="SettingDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TaskbarList.h" />
+    <ClInclude Include="WriteMain.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\BonCtrl\BonCtrl.cpp" />
-    <ClCompile Include="..\..\BonCtrl\BonDriverUtil.cpp" />
     <ClCompile Include="..\..\BonCtrl\CATUtil.cpp" />
-    <ClCompile Include="..\..\BonCtrl\ChSetUtil.cpp" />
     <ClCompile Include="..\..\BonCtrl\CreatePATPacket.cpp" />
-    <ClCompile Include="..\..\BonCtrl\CreatePMTPacket.cpp" />
-    <ClCompile Include="..\..\BonCtrl\DropCount.cpp" />
-    <ClCompile Include="..\..\BonCtrl\OneServiceUtil.cpp" />
     <ClCompile Include="..\..\BonCtrl\PacketInit.cpp" />
     <ClCompile Include="..\..\BonCtrl\PMTUtil.cpp" />
-    <ClCompile Include="..\..\BonCtrl\ScrambleDecoderUtil.cpp" />
     <ClCompile Include="..\..\BonCtrl\ServiceFilter.cpp" />
-    <ClCompile Include="..\..\BonCtrl\TSOut.cpp" />
-    <ClCompile Include="..\..\BonCtrl\WriteTSFile.cpp" />
-    <ClCompile Include="..\..\Common\CtrlCmdUtil.cpp" />
-    <ClCompile Include="..\..\Common\EpgDataCap3Util.cpp" />
     <ClCompile Include="..\..\Common\EpgTimerUtil.cpp" />
-    <ClCompile Include="..\..\Common\ParseTextInstances.cpp" />
     <ClCompile Include="..\..\Common\PathUtil.cpp" />
-    <ClCompile Include="..\..\Common\PipeServer.cpp" />
-    <ClCompile Include="..\..\Common\SendCtrlCmd.cpp" />
-    <ClCompile Include="..\..\Common\SendTSTCPDllUtil.cpp" />
-    <ClCompile Include="..\..\Common\StackTrace.cpp" />
     <ClCompile Include="..\..\Common\StringUtil.cpp" />
     <ClCompile Include="..\..\Common\TimeUtil.cpp" />
     <ClCompile Include="..\..\Common\TSBuffUtil.cpp" />
     <ClCompile Include="..\..\Common\TSPacketUtil.cpp" />
     <ClCompile Include="..\..\Common\WritePlugInUtil.cpp" />
-    <ClCompile Include="EpgDataCap_Bon.cpp" />
-    <ClCompile Include="EpgDataCap_BonDlg.cpp" />
-    <ClCompile Include="SetDlgApp.cpp" />
-    <ClCompile Include="SetDlgAppBtn.cpp" />
-    <ClCompile Include="SetDlgBasic.cpp" />
-    <ClCompile Include="SetDlgEpg.cpp" />
-    <ClCompile Include="SetDlgNetwork.cpp" />
-    <ClCompile Include="SetDlgService.cpp" />
-    <ClCompile Include="SettingDlg.cpp" />
+    <ClCompile Include="dllmain.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TaskbarList.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="EpgDataCap_Bon.rc" />
+    <ClCompile Include="WriteMain.cpp" />
+    <ClCompile Include="Write_OneService.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties RESOURCE_FILE="EpgDataCap_Bon.rc" />
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>

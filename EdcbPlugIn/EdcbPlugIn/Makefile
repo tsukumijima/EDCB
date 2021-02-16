@@ -1,27 +1,17 @@
-TARGET ?= EpgDataCap_Bon
-CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 $(CPPFLAGS)
+TARGET ?= EdcbPlugIn
+CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE $(CPPFLAGS)
 CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
-LDFLAGS2 = -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
-LDLIBS := -lole32 -lcomctl32 -ldbghelp -lcomdlg32 $(LDLIBS)
+LDFLAGS2 = -Wl,-s,--dynamicbase,--nxcompat,--kill-at -static-libgcc -static-libstdc++ -shared $(LDFLAGS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
 CUR_ALL_H := $(wildcard *.h)
 
-$(TARGET).exe: $(addsuffix .obj, \
-  BonCtrl__BonCtrl.cpp \
-  BonCtrl__BonDriverUtil.cpp \
+$(TARGET).tvtp: $(addsuffix .obj, \
   BonCtrl__CATUtil.cpp \
-  BonCtrl__ChSetUtil.cpp \
   BonCtrl__CreatePATPacket.cpp \
-  BonCtrl__CreatePMTPacket.cpp \
   BonCtrl__DropCount.cpp \
-  BonCtrl__OneServiceUtil.cpp \
-  BonCtrl__PacketInit.cpp \
   BonCtrl__PMTUtil.cpp \
-  BonCtrl__ScrambleDecoderUtil.cpp \
   BonCtrl__ServiceFilter.cpp \
-  BonCtrl__TSOut.cpp \
-  BonCtrl__WriteTSFile.cpp \
   Common__CtrlCmdUtil.cpp \
   Common__EpgDataCap3Util.cpp \
   Common__EpgTimerUtil.cpp \
@@ -30,24 +20,12 @@ $(TARGET).exe: $(addsuffix .obj, \
   Common__PipeServer.cpp \
   Common__SendCtrlCmd.cpp \
   Common__SendTSTCPDllUtil.cpp \
-  Common__StackTrace.cpp \
   Common__StringUtil.cpp \
   Common__TimeUtil.cpp \
   Common__TSBuffUtil.cpp \
   Common__TSPacketUtil.cpp \
-  Common__WritePlugInUtil.cpp \
-  EpgDataCap_Bon.cpp \
-  EpgDataCap_BonDlg.cpp \
-  SetDlgApp.cpp \
-  SetDlgAppBtn.cpp \
-  SetDlgBasic.cpp \
-  SetDlgEpg.cpp \
-  SetDlgNetwork.cpp \
-  SetDlgService.cpp \
-  SettingDlg.cpp \
+  EdcbPlugIn.cpp \
   stdafx.cpp \
-  TaskbarList.cpp \
-  EpgDataCap_Bon.rc \
   )
 	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
@@ -67,4 +45,4 @@ else
 	powershell -NoProfile -Command "&{cat $<|Out-File -Encoding UTF8 $@}"
 endif
 clean:
-	$(RM) stdafx.h.gch *.obj $(TARGET).exe $(TARGET).map
+	$(RM) stdafx.h.gch *.obj $(TARGET).tvtp $(TARGET).map
