@@ -315,7 +315,7 @@ namespace EpgTimer
         }
         public static string ModuleName
         {
-            get { return Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location); }
+            get { return Path.GetFileName(Assembly.GetEntryAssembly().Location); }
         }
     }
 
@@ -575,6 +575,8 @@ namespace EpgTimer
         public string NWMacAdd { get; set; }
         public List<NWPresetItem> NWPreset { get; set; }
         public bool WakeReconnectNW { get; set; }
+        public bool WakeCheckService { get; set; }
+        public bool WakeCheckServiceDialog { get; set; }
         public bool WoLWaitRecconect { get; set; }
         public double WoLWaitSecond { get; set; }
         public bool SuspendCloseNW { get; set; }
@@ -921,6 +923,8 @@ namespace EpgTimer
             NWMacAdd = "";
             NWPreset = new List<NWPresetItem>();
             WakeReconnectNW = false;
+            WakeCheckService = false;
+            WakeCheckServiceDialog = true;
             WoLWaitRecconect = false;
             WoLWaitSecond= 30;
             SuspendCloseNW = false;
@@ -1094,11 +1098,11 @@ namespace EpgTimer
                     {
                         try
                         {
-                            if (File.Exists(Assembly.GetEntryAssembly().Location + ".rd.xaml"))
+                            string path = Path.Combine(SettingPath.ModulePath, SettingPath.ModuleName + ".rd.xaml");
+                            if (File.Exists(path))
                             {
                                 //ResourceDictionaryを定義したファイルがあるので本体にマージする
-                                _appResourceDictionary = (ResourceDictionary)System.Windows.Markup.XamlReader.Load(
-                                    System.Xml.XmlReader.Create(Assembly.GetEntryAssembly().Location + ".rd.xaml"));
+                                _appResourceDictionary = (ResourceDictionary)System.Windows.Markup.XamlReader.Load(System.Xml.XmlReader.Create(path));
                             }
                             else
                             {
@@ -1127,11 +1131,11 @@ namespace EpgTimer
                     {
                         try
                         {
-                            if (File.Exists(Assembly.GetEntryAssembly().Location + ".rdcm.xaml"))
+                            string path = Path.Combine(SettingPath.ModulePath, SettingPath.ModuleName + ".rdcm.xaml");
+                            if (File.Exists(path))
                             {
                                 //ResourceDictionaryを定義したファイルがあるので本体にマージする
-                                _contextMenuResourceDictionary = (ResourceDictionary)System.Windows.Markup.XamlReader.Load(
-                                    System.Xml.XmlReader.Create(Assembly.GetEntryAssembly().Location + ".rdcm.xaml"));
+                                _contextMenuResourceDictionary = (ResourceDictionary)System.Windows.Markup.XamlReader.Load(System.Xml.XmlReader.Create(path));
                             }
                             else
                             {
@@ -1428,7 +1432,7 @@ namespace EpgTimer
 
         private static string GetSettingPath()
         {
-            return Assembly.GetEntryAssembly().Location + ".xml";
+            return Path.Combine(SettingPath.ModulePath, SettingPath.ModuleName + ".xml");
         }
 
         public void SetSettings(string propertyName, object value)

@@ -75,8 +75,12 @@
                 </StackPanel>
                 <CheckBox Margin="0,6,12,0" Content="引数つきで起動したとき(iEPG予約追加など)はすぐに終了する" IsChecked="{Binding ExitAfterProcessingArgs}" />
                 <CheckBox Margin="0,6,0,0" Content="起動時に前回接続サーバーに接続する" Name="checkBox_wakeReconnect" IsEnabled="False" IsChecked="{Binding WakeReconnectNW}" />
+                <StackPanel Margin="0,0,12,0">
+                    <CheckBox Margin="0,6,0,0" Content="起動時/接続時にTSIDの変更を確認する" Name="checkBox_wakeCheckService" IsChecked="{Binding WakeCheckService}" ToolTip="未チェックでも設定画面を開いたときは確認が行われます"/>
+                    <CheckBox Margin="18,4,0,0" Content="変更検出時に確認ダイアログを表示する" Name="checkBox_wakeCheckServiceSilent" IsChecked="{Binding WakeCheckServiceDialog}" IsEnabled="{Binding WakeCheckService}" ToolTip="ダイアログによる起動時の一時停止を抑制できますが、電波状況などには注意してください。"/>
+                </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,6,12,0" Name="stackPanel_WoLWait" IsEnabled="False">
-                    <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" IsChecked="{Binding WoLWaitRecconect}" ToolTip="WoL→接続(→待機→再接続)&#10;最初にマジックパケットを投げてから接続処理を行います。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です" />
+                    <CheckBox Content="接続失敗時にWoLで再接続を試みる" Margin="0,6,0,0" IsChecked="{Binding WoLWaitRecconect}" ToolTip="WoL→接続(→待機→再接続)&#10;最初にマジックパケットを投げてから接続処理を行います。&#10;接続失敗時はEpgTimerNWが一時的に反応しにくくなっているので注意が必要です。" />
                     <TextBox Margin="6,0,0,0" Width="62" Text="{Binding WoLWaitSecond, Converter={StaticResource vcheck},ConverterParameter='3600,1'}"/>
                     <Label Content="秒後" />
                 </StackPanel>

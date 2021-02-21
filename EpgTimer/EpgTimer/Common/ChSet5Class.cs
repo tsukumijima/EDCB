@@ -141,35 +141,43 @@ namespace EpgTimer
             return IsDttv(ONID) == false && IsBS(ONID) == false && IsCS(ONID) == false && IsSPHD(ONID) == false;
         }
 
-        private static Encoding fileEncoding = Encoding.GetEncoding(932);
         public static bool LoadFile()
         {
             try
             {
-                using (var sr = new StreamReader(SettingPath.SettingFolderPath + "\\ChSet5.txt", Encoding.GetEncoding(932)))
+                using (var fs = new FileStream(SettingPath.SettingFolderPath + "\\ChSet5.txt", FileMode.Open, FileAccess.Read))
                 {
-                    sr.Peek();//CurrentEncodingが更新される
-                    fileEncoding = sr.CurrentEncoding;
-                    return ChSet5.Load(sr);
+                    return LoadWithStreamReader(fs);
                 }
             }
             catch { }
             return false;
         }
-        public static bool Load(StreamReader reader)
+        private static Encoding enc = Encoding.UTF8;
+        public static bool LoadWithStreamReader(Stream stream)
         {
+            try
+            {
+                enc = Encoding.GetEncoding(932);
+            }
+            catch
+            {
+                enc = Encoding.UTF8;
+            }
+
             try
             {
                 chList = new Dictionary<UInt64, EpgServiceInfo>();
                 chListOrderByIndex = new List<EpgServiceInfo>();
-                for (string buff = reader.ReadLine(); buff != null; buff = reader.ReadLine())
+                using (var reader = new System.IO.StreamReader(stream, enc))
                 {
-                    if (buff.StartsWith(";", StringComparison.Ordinal))
+                    for (string buff = reader.ReadLine(); buff != null; buff = reader.ReadLine())
                     {
-                        //コメント行
-                    }
-                    else
-                    {
+                        if (buff.StartsWith(";", StringComparison.Ordinal))
+                        {
+                            //コメント行
+                            continue;
+                        }
                         string[] list = buff.Split('\t');
                         var item = new EpgServiceInfo();
                         try
@@ -209,7 +217,7 @@ namespace EpgTimer
             {
                 if (chListOrderByIndex == null) return false;
                 //
-                using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, fileEncoding))
+                using (var writer = new StreamWriter(SettingPath.SettingFolderPath + "\\ChSet5.txt", false, enc))
                 {
                     foreach (EpgServiceInfo info in chListOrderByIndex)
                     {

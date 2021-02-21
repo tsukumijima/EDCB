@@ -34,7 +34,7 @@ namespace EpgTimer
 
         public MainWindow()
         {
-            string appName = SettingPath.ModuleName;
+            string appName = Path.GetFileNameWithoutExtension(SettingPath.ModuleName);
 #if DEBUG
             appName += "(debug)";
 #endif
@@ -171,16 +171,24 @@ namespace EpgTimer
 
                 if (CommonManager.Instance.NWMode == false)
                 {
+                    int pid;
+                    using (var process = System.Diagnostics.Process.GetCurrentProcess())
+                    {
+                        pid = process.Id;
+                    }
                     //コールバックは別スレッドかもしれないので設定は予めキャプチャする
                     uint execBat = Settings.Instance.ExecBat;
-                    pipeServer = new PipeServer("Global\\EpgTimerGUI_Ctrl_BonConnect_" + System.Diagnostics.Process.GetCurrentProcess().Id,
-                                                "EpgTimerGUI_Ctrl_BonPipe_" + System.Diagnostics.Process.GetCurrentProcess().Id,
+                    pipeServer = new PipeServer("Global\\EpgTimerGUI_Ctrl_BonConnect_" + pid,
+                                                "EpgTimerGUI_Ctrl_BonPipe_" + pid,
                                                 (c, r) => OutsideCmdCallback(c, r, false, execBat));
 
-                    for (int i = 0; i < 150 && CommonManager.CreateSrvCtrl().SendRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id) != ErrCode.CMD_SUCCESS; i++)
+                    for (int i = 0; i < 150 && CommonManager.CreateSrvCtrl().SendRegistGUI((uint)pid) != ErrCode.CMD_SUCCESS; i++)
                     {
                         Thread.Sleep(100);
                     }
+
+                    //TSIDの変更チェック
+                    WakeCheckService();
 
                     //予約一覧の表示に使用したりするのであらかじめ読込んでおく(暫定処置)
                     CommonManager.Instance.DB.ReloadReserveInfo(true);
@@ -300,7 +308,7 @@ namespace EpgTimer
                         byte[] binData;
                         if (cmd.SendFileCopy("ChSet5.txt", out binData) == ErrCode.CMD_SUCCESS)
                         {
-                            connected = ChSet5.Load(new System.IO.StreamReader(new System.IO.MemoryStream(binData), Encoding.GetEncoding(932)));
+                            connected = ChSet5.LoadWithStreamReader(new System.IO.MemoryStream(binData));
                             break;
                         }
                     }
@@ -316,7 +324,7 @@ namespace EpgTimer
             {
                 byte[] binData;
                 if (cmd.SendFileCopy("ChSet5.txt", out binData) != ErrCode.CMD_SUCCESS ||
-                    ChSet5.Load(new System.IO.StreamReader(new System.IO.MemoryStream(binData), Encoding.GetEncoding(932))) == false)
+                    ChSet5.LoadWithStreamReader(new System.IO.MemoryStream(binData)) == false)
                 {
                     MessageBox.Show("EpgTimerSrvとの接続に失敗しました。");
                     return true;
@@ -588,11 +596,11 @@ namespace EpgTimer
                 connectTimer.Interval = TimeSpan.FromSeconds(Math.Max(Settings.Instance.WoLWaitSecond, 1));
                 connectTimer.Tick += (sender, e) =>
                 {
+                    connectTimer.Stop();
                     StatusManager.StatusNotifyAppend("EpgTimerSrvへ接続中... < ", interval);
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        try { ConnectSrv(); }
-                        catch { }
+                        ConnectSrv();
                         CheckIsConnected();
                     }), DispatcherPriority.Render);
                 };
@@ -602,20 +610,26 @@ namespace EpgTimer
             StatusManager.StatusNotifySet("EpgTimerSrvへ接続中...", interval);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                try
+                if (ConnectSrv() == false && Settings.Instance.WoLWaitRecconect == true)
                 {
-                    if (ConnectSrv() == false && Settings.Instance.WoLWaitRecconect == true)
-                    {
-                        string msg = string.Format("{0}再接続待機中({1}秒間)...", showDialog == true ? "" : "起動時自動", Settings.Instance.WoLWaitSecond);
-                        StatusManager.StatusNotifySet(msg, interval);
-                        return;
-                    }
+                    var msg = string.Format("{0}再接続待機中({1}秒間)...", showDialog == true ? "" : "起動時自動", Settings.Instance.WoLWaitSecond);
+                    StatusManager.StatusNotifySet(msg, interval);
+                    return;
                 }
-                catch { }
                 CheckIsConnected();
             }), DispatcherPriority.Render);
         }
+        bool connectingSrv = false;
         bool ConnectSrv()
+        {
+            if (connectingSrv == false)
+            {
+                connectingSrv = true;
+                try { return ConnectSrvMain(); } catch { } finally { connectingSrv = false; }
+            }
+            return false;
+        }
+        bool ConnectSrvMain()
         {
             var connected = false;
             try
@@ -646,6 +660,8 @@ namespace EpgTimer
             StatusManager.StatusNotifySet("EpgTimerSrvへ接続完了");
 
             IniFileHandler.UpdateSrvProfileIni();
+
+            WakeCheckService();
 
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.RecInfo);
             CommonManager.Instance.DB.SetUpdateNotify(UpdateNotifyItem.PlugInFile);
@@ -681,6 +697,15 @@ namespace EpgTimer
             {
                 TrayManager.SrvLosted();
                 ChkTimerWork();
+            }
+        }
+
+        private void WakeCheckService()
+        {
+            if (Settings.Instance.WakeCheckService == true)
+            {
+                bool ret = SettingWindow.CheckServiceSettings(Settings.Instance, !Settings.Instance.WakeCheckServiceDialog);
+                if (ret) SettingWindow.UpdatesInfo("TSID情報の更新");
             }
         }
 
@@ -786,7 +811,10 @@ namespace EpgTimer
                 {
                     var cmd = CommonManager.CreateSrvCtrl();
                     cmd.SetConnectTimeOut(3000);
-                    cmd.SendUnRegistGUI((uint)System.Diagnostics.Process.GetCurrentProcess().Id);
+                    using (var process = System.Diagnostics.Process.GetCurrentProcess())
+                    {
+                        cmd.SendUnRegistGUI((uint)process.Id);
+                    }
                     //オリジナルのmutex名をもつEpgTimerか
                     if (mutexName == "2")
                     {

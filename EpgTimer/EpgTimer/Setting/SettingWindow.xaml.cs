@@ -59,7 +59,7 @@ namespace EpgTimer
             try
             {
                 DataContext = Settings.Instance.DeepCloneStaticSettings();
-                if (init == true) CheckServiceSettings((Settings)DataContext, false);
+                if (init == true) CheckServiceSettings((Settings)DataContext, false, true);
                 setBasicView.LoadSetting();
                 setAppView.LoadSetting();
                 setEpgView.LoadSetting();
@@ -133,15 +133,16 @@ namespace EpgTimer
             }
         }
 
-        private static void CheckServiceSettings(Settings settings, bool apply)
+        public static bool CheckServiceSettings(Settings settings, bool apply, bool onSettingWindow = false)
         {
             //サービス一覧に見つからず、TSIDを無視すれば見つかるサービスがないか調べる
+            bool isDetected = false;
             string searchDefault = "";
             foreach(SearchPresetItem info in settings.SearchPresetList)
             {
                 for (int i = 0; i < info.Data.serviceList.Count; i++)
                 {
-                    CheckService(apply, (ulong)info.Data.serviceList[i], newId => info.Data.serviceList[i] = (long)newId, ref searchDefault);
+                    isDetected |= CheckService(apply, (ulong)info.Data.serviceList[i], newId => info.Data.serviceList[i] = (long)newId, ref searchDefault);
                 }
             }
 
@@ -151,35 +152,38 @@ namespace EpgTimer
             {
                 for (int i = 0; i < info.ViewServiceList.Count; i++)
                 {
-                    CheckService(apply, info.ViewServiceList[i], newId => info.ViewServiceList[i] = newId, ref viewService);
+                    isDetected |= CheckService(apply, info.ViewServiceList[i], newId => info.ViewServiceList[i] = newId, ref viewService);
                 }
                 for (int i = 0; i < info.SearchKey.serviceList.Count; i++)
                 {
-                    CheckService(apply, (ulong)info.SearchKey.serviceList[i], newId => info.SearchKey.serviceList[i] = (long)newId, ref searchKey);
+                    isDetected |= CheckService(apply, (ulong)info.SearchKey.serviceList[i], newId => info.SearchKey.serviceList[i] = (long)newId, ref searchKey);
                 }
             }
 
             string iepgStation = "";
             foreach (IEPGStationInfo info in settings.IEpgStationList)
             {
-                CheckService(apply, info.Key, newId => info.Key = newId, ref iepgStation);
+                isDetected |= CheckService(apply, info.Key, newId => info.Key = newId, ref iepgStation);
             }
 
-            if (searchDefault != "" || viewService != "" || searchKey != "" || iepgStation != "")
+            if (!apply && isDetected)
             {
+                var msg1 = onSettingWindow ? "変更を設定ウィンドウに適用しますか？\r\n（「適用」ボタンを押すか、「OK」ボタンにより設定ウィンドウを閉じるまで変更は保存されません）" : "変更を適用しますか？";
+                var msg2 = onSettingWindow ? "設定" : "EpgTimer";
                 if (MessageBox.Show("TransportStreamIDの変更を検出しました。\r\n\r\n" +
                                     (searchDefault != "" ? "【検索プリセットのサービス絞り込み】\r\n" : "") + searchDefault +
                                     (viewService != "" ? "【番組表の表示条件の表示サービス】\r\n" : "") + viewService +
                                     (searchKey != "" ? "【番組表の表示条件の検索条件のサービス絞り込み】\r\n" : "") + searchKey +
                                     (iepgStation != "" ? "【iEPG Ver.1の放送局リスト】\r\n" : "") + iepgStation +
-                                    "\r\n変更を設定ウィンドウに適用しますか？\r\n（「適用」ボタンを押すか、「OK」ボタンにより設定ウィンドウを閉じるまで変更は保存されません）",
-                                    "設定 - サービス情報変更の検出", MessageBoxButton.OKCancel, MessageBoxImage.Information, MessageBoxResult.Cancel) == MessageBoxResult.OK)
+                                    "\r\n" + msg1, msg2 + " - サービス情報変更の検出"
+                                    , MessageBoxButton.OKCancel, MessageBoxImage.Information, MessageBoxResult.Cancel) == MessageBoxResult.OK)
                 {
-                    CheckServiceSettings(settings, true);
+                    return CheckServiceSettings(settings, true, onSettingWindow);
                 }
             }
+            return apply && isDetected;
         }
-        private static void CheckService(bool apply, ulong id, Action<ulong> SetNewId, ref string log)
+        private static bool CheckService(bool apply, ulong id, Action<ulong> SetNewId, ref string log)
         {
             EpgServiceInfo item = ChSet5.ChItem(id, true, true);
             if (item.Key != id)
@@ -196,7 +200,9 @@ namespace EpgTimer
                 {
                     log += "  ...\r\n";
                 }
+                return true;
             }
+            return false;
         }
     }
 }
