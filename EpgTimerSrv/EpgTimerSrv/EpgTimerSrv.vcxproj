@@ -194,6 +194,9 @@
       <AdditionalDependencies>ws2_32.lib;comctl32.lib;winhttp.lib;crypt32.lib;iphlpapi.lib;netapi32.lib;dbghelp.lib;lua52.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>lua52.dll</DelayLoadDLLs>
     </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>EDCB_RC_DIALOG_FONT_MEIRYO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-withlua|Win32'">
     <ClCompile>
@@ -233,6 +236,9 @@
       <AdditionalDependencies>ws2_32.lib;comctl32.lib;winhttp.lib;crypt32.lib;iphlpapi.lib;netapi32.lib;dbghelp.lib;lua52-x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>lua52.dll</DelayLoadDLLs>
     </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>EDCB_RC_DIALOG_FONT_MEIRYO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-withlua|x64'">
     <ClCompile>
