@@ -52,6 +52,7 @@ protected:
 protected:
 	HWND m_hWnd;
 	HHOOK m_hKeyboardHook;
+	HBRUSH m_hDlgBgBrush;
 	HICON m_hIcon;
 	HICON m_hIcon2;
 

@@ -23,6 +23,7 @@ BOOL CEpgDataCap_BonDlg::disableKeyboardHook = FALSE;
 CEpgDataCap_BonDlg::CEpgDataCap_BonDlg()
 	: m_hWnd(NULL)
 	, m_hKeyboardHook(NULL)
+	, m_hDlgBgBrush(NULL)
 {
 	HMODULE hModule = GetModuleHandle(NULL);
 	HRESULT (WINAPI* pfnLoadIconMetric)(HINSTANCE,PCWSTR,int,HICON*) =
@@ -1252,8 +1253,20 @@ INT_PTR CALLBACK CEpgDataCap_BonDlg::DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
 		pSys = (CEpgDataCap_BonDlg*)lParam;
 		pSys->m_hWnd = hDlg;
 		pSys->m_hKeyboardHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
+		pSys->m_hDlgBgBrush = CreateSolidBrush(RGB(250, 250, 250));
 		return pSys->OnInitDialog();
+	// ダイヤログの背景色を白に変更
+	case WM_CTLCOLORDLG:
+		return (INT_PTR) pSys->m_hDlgBgBrush;
+	// コントロールの背景色を白に変更
+	case WM_CTLCOLORSTATIC:
+		SetBkMode(((HDC) wParam), TRANSPARENT);
+		return (INT_PTR) pSys->m_hDlgBgBrush;
 	case WM_NCDESTROY:
+		if( pSys->m_hDlgBgBrush ){
+			DeleteBrush(pSys->m_hDlgBgBrush);
+			pSys->m_hDlgBgBrush = NULL;
+		}
 		UnhookWindowsHookEx(pSys->m_hKeyboardHook);
 		pSys->m_hWnd = NULL;
 		break;
