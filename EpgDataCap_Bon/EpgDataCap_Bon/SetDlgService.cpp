@@ -258,6 +258,13 @@ INT_PTR CALLBACK CSetDlgService::DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LP
 		pSys = (CSetDlgService*)lParam;
 		pSys->m_hWnd = hDlg;
 		return pSys->OnInitDialog();
+	// ダイヤログの背景色を白に変更
+	case WM_CTLCOLORDLG:
+		return (INT_PTR) GetStockBrush(WHITE_BRUSH);
+	// コントロールの背景色を白に変更
+	case WM_CTLCOLORSTATIC:
+		SetBkMode(((HDC) wParam), TRANSPARENT);
+		return (INT_PTR) GetStockBrush(WHITE_BRUSH);
 	case WM_NCDESTROY:
 		pSys->m_hWnd = NULL;
 		break;
