@@ -13,12 +13,6 @@ namespace EpgTimer
 {
     public static class CommonUtil
     {
-        [DllImport("user32.dll")]
-        static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
-
-        [DllImport("kernel32.dll")]
-        static extern uint GetTickCount();
-
         // Struct we'll need to pass to the function
         [StructLayout(LayoutKind.Sequential)]
         struct LASTINPUTINFO
@@ -38,10 +32,10 @@ namespace EpgTimer
             LastInputInfo.dwTime = 0;
 
             // If we have a value from the function
-            if (GetLastInputInfo(ref LastInputInfo))
+            if (NativeMethods.GetLastInputInfo(ref LastInputInfo))
             {
                 // Number of idle ticks = system uptime ticks - number of ticks at last input
-                IdleTicks = unchecked(GetTickCount() - LastInputInfo.dwTime);
+                IdleTicks = unchecked(NativeMethods.GetTickCount() - LastInputInfo.dwTime);
             }
             return (int)(IdleTicks / 1000);
         }
@@ -83,25 +77,16 @@ namespace EpgTimer
             shortcutType.InvokeMember("Save", BindingFlags.InvokeMethod, null, shortCut, null);
         }
 
-        [DllImport("kernel32", CharSet = CharSet.Unicode)]
-        static extern IntPtr LoadLibrary(string lpFileName);
-
-        [DllImport("kernel32")]
-        static extern bool FreeLibrary(IntPtr hModule);
-
-        [DllImport("kernel32")]
-        static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
-
         delegate void Setting(IntPtr parentWnd);
 
         public static bool ShowPlugInSetting(string dllFilePath, IntPtr parentWnd)
         {
-            IntPtr module = LoadLibrary(dllFilePath);
+            IntPtr module = NativeMethods.LoadLibrary(dllFilePath);
             if (module != IntPtr.Zero)
             {
                 try
                 {
-                    IntPtr func = GetProcAddress(module, "Setting");
+                    IntPtr func = NativeMethods.GetProcAddress(module, "Setting");
                     if (func != IntPtr.Zero)
                     {
                         Setting settingDelegate = (Setting)Marshal.GetDelegateForFunctionPointer(func, typeof(Setting));
@@ -111,27 +96,21 @@ namespace EpgTimer
                 }
                 finally
                 {
-                    FreeLibrary(module);
+                    NativeMethods.FreeLibrary(module);
                 }
             }
             return false;
         }
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        static extern uint RegisterWindowMessage(string lpString);
 
         static uint msgTaskbarCreated;
         public static uint RegisterTaskbarCreatedWindowMessage()
         {
             if (msgTaskbarCreated == 0)
             {
-                msgTaskbarCreated = RegisterWindowMessage("TaskbarCreated");
+                msgTaskbarCreated = NativeMethods.RegisterWindowMessage("TaskbarCreated");
             }
             return msgTaskbarCreated;
         }
-
-        [DllImport("user32.dll")]
-        public static extern bool SetForegroundWindow(IntPtr hWnd);
 
         /// <summary>ÉÅÉìÉoñºÇï‘Ç∑ÅB</summary>
         public static string NameOf<T>(Expression<Func<T>> e)
@@ -173,6 +152,35 @@ namespace EpgTimer
                 s = s.Substring(0, pos) + tag + s.Substring(s.Length - (sel_len - pos));
             }
             return s;
+        }
+
+        public static bool SetForegroundWindow(IntPtr hWnd)
+        {
+            return NativeMethods.SetForegroundWindow(hWnd);
+        }
+
+        private static class NativeMethods
+        {
+            [DllImport("user32.dll")]
+            public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+
+            [DllImport("kernel32.dll")]
+            public static extern uint GetTickCount();
+
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+            public static extern IntPtr LoadLibrary(string lpFileName);
+
+            [DllImport("kernel32.dll")]
+            public static extern bool FreeLibrary(IntPtr hModule);
+
+            [DllImport("kernel32.dll", BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+            public static extern uint RegisterWindowMessage(string lpString);
+
+            [DllImport("user32.dll")]
+            public static extern bool SetForegroundWindow(IntPtr hWnd);
         }
     }
 
