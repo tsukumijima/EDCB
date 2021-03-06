@@ -97,6 +97,9 @@ do
 done
 
 cp -fp "${src_bin_dir}/EdcbPlugIn.tvtp" "${dst_dir}/EdcbPlugIn/EdcbPlugIn.tvtp"
+cp -fp "EdcbPlugIn/EdcbPlugIn/ch2chset.vbs" "${dst_dir}/EdcbPlugIn/ch2chset.vbs"
+cp -fp "EdcbPlugIn/EdcbPlugIn/EdcbPlugIn.ini" "${dst_dir}/EdcbPlugIn/EdcbPlugIn.ini"
+cp -fp "EdcbPlugIn/EdcbPlugIn/EdcbPlugIn_Readme.txt" "${dst_dir}/EdcbPlugIn/EdcbPlugIn_Readme.txt"
 cp -fp "${src_bin_dir}/Write/Write_OneService.dll" "${dst_dir}/EdcbPlugIn/Write_OneService.dll"
 cp -fpr ini/HttpPublic "${dst_dir}"
 cp -fpr ini/PostBatExamples "${dst_dir}"
