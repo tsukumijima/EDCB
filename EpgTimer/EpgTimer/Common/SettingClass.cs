@@ -20,90 +20,64 @@ namespace EpgTimer
     {
         public static bool ReadOnly { get; set; }
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        private static extern uint
-          GetPrivateProfileString(string lpAppName,
-          string lpKeyName, string lpDefault,
-          StringBuilder lpReturnedString, uint nSize,
-          string lpFileName);
-
-        [DllImport("kernel32.dll", EntryPoint = "GetPrivateProfileStringA")]
-        private static extern uint
-          GetPrivateProfileStringByByteArray(string lpAppName,
-          string lpKeyName, string lpDefault,
-          byte[] lpReturnedString, uint nSize,
-          string lpFileName);
-        
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        public static extern int
-          GetPrivateProfileInt(string lpAppName,
-          string lpKeyName, int nDefault, string lpFileName);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        private static extern uint WritePrivateProfileString(
-          string lpAppName,
-          string lpKeyName,
-          string lpString,
-          string lpFileName);
-
         /// <summary>書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()。ただし空のstringはnull。</summary>
-        public static uint WritePrivateProfileString(string lpAppName, string lpKeyName, object val, string lpFileName)
+        public static bool WritePrivateProfileString(string appName, string keyName, object val, string fileName)
         {
-            if (ReadOnly == true) return 0;
-            string lpString = val == null ? null : !(val is bool) ? val.ToString() : (bool)val ? "1" : "0";
-            return WritePrivateProfileString(lpAppName, lpKeyName, lpString == "" ? null : lpString, lpFileName);
+            if (ReadOnly == true) return false;
+            string valstr = val == null ? null : !(val is bool) ? val.ToString() : (bool)val ? "1" : "0";
+            return NativeMethods.WritePrivateProfileString(appName, keyName, valstr == "" ? null : valstr, fileName);
         }
         /// <summary>デフォルト値の時キーを削除する。書き込み値はbool型のみtrue:"1",false:"0"、他はvalue.ToString()</summary>
-        public static uint WritePrivateProfileString<T>(string lpAppName, string lpKeyName, T val, T defval, string lpFileName)
+        public static bool WritePrivateProfileString<T>(string appName, string keyName, T val, T defval, string fileName)
         {
             //引数をTからobjectにすると、valueがdoubleなどのときEqualsで失敗する
-            return WritePrivateProfileString(lpAppName, lpKeyName, object.Equals(val, defval) == true ? null : (object)val, lpFileName);
+            return WritePrivateProfileString(appName, keyName, object.Equals(val, defval) == true ? null : (object)val, fileName);
         }
 
-        public static string
-          GetPrivateProfileString(string lpAppName,
-          string lpKeyName, string lpDefault, string lpFileName)
+        public static int GetPrivateProfileInt(string appName, string keyName, int nDefault, string fileName)
+        {
+            return NativeMethods.GetPrivateProfileInt(appName, keyName, nDefault, fileName);
+        }
+        public static string GetPrivateProfileString(string appName, string keyName, string def, string fileName)
         {
             StringBuilder buff = null;
             for (uint n = 512; n <= 1024 * 1024; n *= 2)
             {
                 //セクション名取得などのNUL文字分割された結果は先頭要素のみ格納される
                 buff = new StringBuilder((int)n);
-                if (GetPrivateProfileString(lpAppName, lpKeyName, lpDefault, buff, n, lpFileName) < n - 2)
+                if (NativeMethods.GetPrivateProfileString(appName, keyName, def, buff, n, fileName) < n - 2)
                 {
                     break;
                 }
             }
             return buff.ToString();
         }
-
-        public static string GetPrivateProfileFolder(string lpAppName, string lpKeyName, string lpFileName)
-        {
-            var path = IniFileHandler.GetPrivateProfileString(lpAppName ?? "", lpKeyName ?? "", "", lpFileName ?? "");
-            return SettingPath.CheckFolder(path);
-        }
-
         /// <summary>"0"をfalse、それ以外をtrueで読み込む。</summary>
-        public static bool GetPrivateProfileBool(string lpAppName, string lpKeyName, bool defval, string lpFileName)
+        public static bool GetPrivateProfileBool(string appName, string keyName, bool defval, string fileName)
         {
-            return GetPrivateProfileString(lpAppName, lpKeyName, defval == false ? "0" : "1", lpFileName) != "0";
+            return GetPrivateProfileString(appName, keyName, defval == false ? "0" : "1", fileName) != "0";
         }
-        public static double GetPrivateProfileDouble(string lpAppName, string lpKeyName, double defval, string lpFileName)
+        public static double GetPrivateProfileDouble(string appName, string keyName, double defval, string fileName)
         {
-            string s = GetPrivateProfileString(lpAppName, lpKeyName, defval.ToString(), lpFileName);
+            string s = GetPrivateProfileString(appName, keyName, defval.ToString(), fileName);
             double.TryParse(s, out defval);
             return defval;
         }
+        public static string GetPrivateProfileFolder(string appName, string keyName, string fileName)
+        {
+            var path = GetPrivateProfileString(appName ?? "", keyName ?? "", "", fileName ?? "");
+            return SettingPath.CheckFolder(path);
+        }
 
         /// <summary>INIファイルから指定セクションのキー一覧を取得する。lpAppNameにnullを指定すると全セクションの一覧を取得する。</summary>
-        public static string[] GetPrivateProfileKeys(string lpAppName, string lpFileName)
+        public static string[] GetPrivateProfileKeys(string appName, string fileName)
         {
             byte[] buff = null;
             uint resultSize = 0;
             for (uint n = 1024; n <= 1024 * 1024; n *= 2)
             {
                 buff = new byte[n];
-                resultSize = GetPrivateProfileStringByByteArray(lpAppName, null, null, buff, n, lpFileName);
+                resultSize = NativeMethods.GetPrivateProfileStringByByteArray(appName, null, null, buff, n, fileName);
                 if (resultSize < n - 2)
                 {
                     break;
@@ -113,21 +87,21 @@ namespace EpgTimer
         }
 
         /// <summary>INIファイルから連番のキー/セクションを削除する。lpAppNameにnullを指定すると連番セクションを削除する。</summary>
-        public static void DeletePrivateProfileNumberKeys(string lpAppName, string lpFileName, string BaseFront = "", string BaseRear = "", bool deleteBaseName = false)
+        public static void DeletePrivateProfileNumberKeys(string appName, string fileName, string BaseFront = "", string BaseRear = "", bool deleteBaseName = false)
         {
             if (ReadOnly == true) return;
             string numExp = string.IsNullOrEmpty(BaseFront + BaseRear) == false && deleteBaseName == true ? "*" : "+";
-            foreach (string key in IniFileHandler.GetPrivateProfileKeys(lpAppName, lpFileName))
+            foreach (string key in GetPrivateProfileKeys(appName, fileName))
             {
                 if (Regex.Match(key, "^" + BaseFront + "\\d" + numExp + BaseRear + "$").Success == true)
                 {
-                    if (lpAppName != null)
+                    if (appName != null)
                     {
-                        WritePrivateProfileString(lpAppName, key, null, lpFileName);
+                        NativeMethods.WritePrivateProfileString(appName, key, null, fileName);
                     }
                     else
                     {
-                        WritePrivateProfileString(key, null, null, lpFileName);
+                        NativeMethods.WritePrivateProfileString(key, null, null, fileName);
                     }
                 }
             }
@@ -191,6 +165,22 @@ namespace EpgTimer
             }
             catch { err = ErrCode.CMD_ERR; }
             return err;
+        }
+
+        private static class NativeMethods
+        {
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+            public static extern uint GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault,
+                                                              StringBuilder lpReturnedString, uint nSize, string lpFileName);
+
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+            public static extern int GetPrivateProfileInt(string lpAppName, string lpKeyName, int nDefault, string lpFileName);
+
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+            public static extern bool WritePrivateProfileString(string lpAppName, string lpKeyName, string lpString, string lpFileName);
+
+            [DllImport("kernel32.dll", EntryPoint = "GetPrivateProfileStringA")]
+            public static extern uint GetPrivateProfileStringByByteArray(string lpAppName, string lpKeyName, string lpDefault, byte[] lpReturnedString, uint nSize, string lpFileName);
         }
     }
 
