@@ -104,7 +104,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;EPGDATACAP_BON_APPLICATION;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -120,8 +120,7 @@
     </Midl>
     <ResourceCompile>
       <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPGDATACAP_BON_APPLICATION;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -129,7 +128,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;EPGDATACAP_BON_APPLICATION;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -144,8 +143,7 @@
     </Midl>
     <ResourceCompile>
       <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPGDATACAP_BON_APPLICATION;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -155,7 +153,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;EPGDATACAP_BON_APPLICATION;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -174,8 +172,7 @@
     </Midl>
     <ResourceCompile>
       <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPGDATACAP_BON_APPLICATION;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -185,7 +182,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;EPGDATACAP_BON_APPLICATION;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -204,8 +201,7 @@
     </Midl>
     <ResourceCompile>
       <Culture>0x0411</Culture>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EPGDATACAP_BON_APPLICATION;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -231,8 +227,6 @@
     <ClInclude Include="..\..\BonCtrl\PacketInit.h" />
     <ClInclude Include="..\..\BonCtrl\PMTUtil.h" />
     <ClInclude Include="..\..\BonCtrl\ScrambleDecoderUtil.h" />
-    <ClInclude Include="..\..\BonCtrl\SendTCP.h" />
-    <ClInclude Include="..\..\BonCtrl\SendUDP.h" />
     <ClInclude Include="..\..\BonCtrl\ServiceFilter.h" />
     <ClInclude Include="..\..\BonCtrl\TSOut.h" />
     <ClInclude Include="..\..\BonCtrl\WriteTSFile.h" />
@@ -249,6 +243,7 @@
     <ClInclude Include="..\..\Common\PathUtil.h" />
     <ClInclude Include="..\..\Common\PipeServer.h" />
     <ClInclude Include="..\..\Common\SendCtrlCmd.h" />
+    <ClInclude Include="..\..\Common\SendTSTCPDllUtil.h" />
     <ClInclude Include="..\..\Common\StackTrace.h" />
     <ClInclude Include="..\..\Common\StringUtil.h" />
     <ClInclude Include="..\..\Common\StructDef.h" />
@@ -284,8 +279,6 @@
     <ClCompile Include="..\..\BonCtrl\PacketInit.cpp" />
     <ClCompile Include="..\..\BonCtrl\PMTUtil.cpp" />
     <ClCompile Include="..\..\BonCtrl\ScrambleDecoderUtil.cpp" />
-    <ClCompile Include="..\..\BonCtrl\SendTCP.cpp" />
-    <ClCompile Include="..\..\BonCtrl\SendUDP.cpp" />
     <ClCompile Include="..\..\BonCtrl\ServiceFilter.cpp" />
     <ClCompile Include="..\..\BonCtrl\TSOut.cpp" />
     <ClCompile Include="..\..\BonCtrl\WriteTSFile.cpp" />
@@ -296,6 +289,7 @@
     <ClCompile Include="..\..\Common\PathUtil.cpp" />
     <ClCompile Include="..\..\Common\PipeServer.cpp" />
     <ClCompile Include="..\..\Common\SendCtrlCmd.cpp" />
+    <ClCompile Include="..\..\Common\SendTSTCPDllUtil.cpp" />
     <ClCompile Include="..\..\Common\StackTrace.cpp" />
     <ClCompile Include="..\..\Common\StringUtil.cpp" />
     <ClCompile Include="..\..\Common\TimeUtil.cpp" />

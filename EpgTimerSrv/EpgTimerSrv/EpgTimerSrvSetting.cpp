@@ -400,6 +400,13 @@ INT_PTR CEpgTimerSrvSetting::OnInitDialog()
 		ListBox_SetCurSel(GetDlgItem(hwnd, IDC_LIST_SET_BON), 0);
 	}
 
+	WCHAR versionText[128] = L"Ver.";
+	LoadString(GetModuleHandle(NULL), IDS_VERSION_TEXT, versionText + 4, (int)array_size(versionText) - 4);
+	if( wcslen(versionText) > 4 ){
+		//バージョン文字列を表示
+		SetDlgItemText(hwnd, IDC_STATIC_VERSION_TEXT, versionText);
+	}
+
 	//EPG取得
 	hwnd = this->hwndEpg;
 	ListView_SetExtendedListViewStyleEx(GetDlgItem(hwnd, IDC_LIST_SET_EPG_SERVICE), LVS_EX_CHECKBOXES, LVS_EX_CHECKBOXES);
@@ -1094,7 +1101,16 @@ INT_PTR CALLBACK CEpgTimerSrvSetting::ChildDlgProc(HWND hDlg, UINT uMsg, WPARAM 
 		return TRUE;
 	case WM_CTLCOLORDLG:
 	case WM_CTLCOLORSTATIC:
-		return (INT_PTR)GetStockBrush(WHITE_BRUSH);
+		{
+			//ダイアログが灰色背景のときタブコントロールは白背景の可能性が高いので合わせる
+			//ハイコントラスト等で破綻しないよう条件を絞る
+			DWORD c = GetSysColor(COLOR_BTNFACE);
+			DWORD v = ((c & 0xFF) + (c >> 8 & 0xFF) + (c >> 16 & 0xFF)) / 3;
+			if( 0xE0 <= v && v < 0xFF ){
+				return (INT_PTR)GetStockBrush(WHITE_BRUSH);
+			}
+		}
+		break;
 	case WM_NOTIFY:
 		if( ((NMHDR*)lParam)->idFrom == IDC_LIST_SET_EPG_SERVICE && ((NMHDR*)lParam)->code == LVN_ITEMCHANGED ){
 			sys->OnLbnSelchangeListSetEpgService();

@@ -1,5 +1,5 @@
 TARGET ?= EpgTimerSrv
-CPPFLAGS := -I. -DNDEBUG -DWIN32 -D_WINDOWS -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_LUA -DUSE_IPV6 -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 $(CPPFLAGS)
+CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGTIMERSRV_APPLICATION -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_LUA -DUSE_IPV6 -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 $(CPPFLAGS)
 #CPPFLAGS += -DEPGDB_STD_WREGEX
 CFLAGS := -Os $(CFLAGS)
 CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
@@ -71,8 +71,6 @@ $(TARGET).exe: $(addsuffix .obj, \
   $(SOURCES_LUA) \
   BonCtrl__CreatePATPacket.cpp \
   BonCtrl__PacketInit.cpp \
-  BonCtrl__SendTCP.cpp \
-  BonCtrl__SendUDP.cpp \
   Common__CtrlCmdUtil.cpp \
   Common__EpgDataCap3Util.cpp \
   Common__EpgTimerUtil.cpp \
@@ -81,6 +79,7 @@ $(TARGET).exe: $(addsuffix .obj, \
   Common__PipeServer.cpp \
   Common__ReNamePlugInUtil.cpp \
   Common__SendCtrlCmd.cpp \
+  Common__SendTSTCPDllUtil.cpp \
   Common__ServiceUtil.cpp \
   Common__StackTrace.cpp \
   Common__StringUtil.cpp \
