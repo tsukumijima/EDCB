@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Collections.ObjectModel;
@@ -71,6 +72,9 @@ namespace EpgTimer.Setting
             bxr.TargetBox.SelectionChanged += ViewUtil.ListBox_TextBoxSyncSelectionChanged(bxr.TargetBox, textBox_recFolder);
             bxr.TargetBox.KeyDown += ViewUtil.KeyDown_Enter(button_rec_open);
             bxr.targetBoxAllowDoubleClick(bxr.TargetBox, (sender, e) => button_rec_open.RaiseEvent(new RoutedEventArgs(Button.ClickEvent)));
+
+            // バージョン文字列を表示
+            textBlock_versionText.Text = App.VERSION_TEXT != "" ? "バージョン情報 : " + ((AssemblyInformationalVersionAttribute)Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute))).InformationalVersion : "";
 
             if (CommonManager.Instance.NWMode == false)
             {
