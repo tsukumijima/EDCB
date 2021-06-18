@@ -1,4 +1,7 @@
-﻿using System.Windows;
+using System.Reflection;
+using System.Windows;
+
+[assembly: AssemblyInformationalVersion("0.10.70.0" + EpgTimer.App.VERSION_TEXT)]
 
 namespace EpgTimer
 {
