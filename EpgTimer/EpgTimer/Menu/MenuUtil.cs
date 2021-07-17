@@ -18,7 +18,7 @@ namespace EpgTimer
         public static void CopyTitle2Clipboard(string Title, bool NotToggle = false)
         {
             Title = TrimKeywordCheckToggled(Title, Settings.Instance.MenuSet.CopyTitle_Trim, NotToggle);
-            Clipboard.SetDataObject(Title, true);
+            ToClipBoard(Title);
         }
 
         public static void CopyContent2Clipboard(EpgEventInfo eventInfo, bool NotToggle = false)
@@ -27,7 +27,7 @@ namespace EpgTimer
             var mode = setting == true ? EventInfoTextMode.BasicOnly : EventInfoTextMode.All;
             string text = CommonManager.ConvertProgramText(eventInfo, mode).TrimEnd();
             if (text != "") text += "\r\n";
-            Clipboard.SetDataObject(text, true);
+            ToClipBoard(text);
         }
 
         public static void CopyContent2Clipboard(ReserveData resInfo, bool NotToggle = false)
@@ -48,7 +48,12 @@ namespace EpgTimer
                 }
                 text = text.TrimEnd() + "\r\n";
             }
-            Clipboard.SetDataObject(text, true);
+            ToClipBoard(text);
+        }
+
+        private static void ToClipBoard(string text)
+        {
+            try { Clipboard.SetDataObject(text, true); } catch { }
         }
 
         public static void SearchTextWeb(string KeyWord, bool? NotToggle = null)
