@@ -647,10 +647,6 @@ namespace EpgTimer
             }
         }
 
-        public static string ConvertProgramText(SearchItem searchInfo, EventInfoTextMode textMode)
-        {
-            return ConvertProgramText(searchInfo.EventInfo, textMode, searchInfo.ReserveInfo);
-        }
         public static string ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode, ReserveData resInfo = null)
         {
             if (eventInfo == null) return "";
@@ -667,156 +663,155 @@ namespace EpgTimer
                 }
             });
 
-            string retText = ConvertChInfoText(eventInfo) + "\r\n";
-            retText += ConvertTimeText(eventInfo) + "\r\n";
-
-            string extText = "";
-            if (eventInfo.ShortInfo != null)
-            {
-                retText += eventInfo.ShortInfo.event_name + "\r\n\r\n";
-                extText = eventInfo.ShortInfo.text_char + "\r\n\r\n";
-            }
+            string retText = "";
+            string termination = "\r\n\r\n";
 
             //基本情報
-            if (textMode == EventInfoTextMode.BasicOnly)
+            if (textMode == EventInfoTextMode.BasicInfo)
             {
-                return retText.TrimEnd('\r', '\n');
-            }
-
-            retText += extText;
-
-            //基本情報+説明(番組表のツールチップなど)
-            if (textMode == EventInfoTextMode.BasicText)
-            {
-                return retText.TrimEnd('\r', '\n');
-            }
-
-            if (eventInfo.ExtInfo != null)
-            {
-                retText += eventInfo.ExtInfo.text_char + "\r\n\r\n";
-            }
-
-            //テキスト情報全て(番組表のツールチップなど)
-            if (textMode == EventInfoTextMode.TextAll)
-            {
-                return retText.TrimEnd('\r', '\n');
-            }
-
-            //ジャンル
-            retText += "ジャンル :\r\n";
-            var contentList = new List<ContentKindInfo>();
-            if (eventInfo.ContentInfo != null)
-            {
-                contentList = eventInfo.ContentInfo.nibbleList.Select(data => ContentKindInfoForDisplay(data)).ToList();
-            }
-            foreach (ContentKindInfo info in contentList.Where(info => info.Data.IsAttributeInfo == false))
-            {
-                retText += info.ListBoxView + "\r\n";
-            }
-            retText += "\r\n";
-
-            //映像
-            retText += "映像 :";
-            if (eventInfo.ComponentInfo != null)
-            {
-                int streamContent = eventInfo.ComponentInfo.stream_content;
-                int componentType = eventInfo.ComponentInfo.component_type;
-                UInt16 componentKey = (UInt16)(streamContent << 8 | componentType);
-                if (ComponentKindDictionary.ContainsKey(componentKey) == true)
+                retText = ConvertChInfoText(eventInfo) + "\r\n";
+                retText += ConvertTimeText(eventInfo) + "\r\n";
+                if (eventInfo.ShortInfo != null)
                 {
-                    retText += ComponentKindDictionary[componentKey];
-                }
-                if (eventInfo.ComponentInfo.text_char.Length > 0)
-                {
-                    retText += "\r\n";
-                    retText += eventInfo.ComponentInfo.text_char;
+                    retText += eventInfo.ShortInfo.event_name;
                 }
             }
-            retText += "\r\n";
-
-            //音声
-            retText += "音声 :";
-            if (eventInfo.AudioInfo != null)
+            //説明(番組表のツールチップなど)
+            else if (textMode == EventInfoTextMode.BasicText)
             {
-                foreach (EpgAudioComponentInfoData info in eventInfo.AudioInfo.componentList)
+                if (eventInfo.ShortInfo != null)
                 {
-                    int streamContent = info.stream_content;
-                    int componentType = info.component_type;
+                    retText = eventInfo.ShortInfo.text_char;
+                }
+            }
+            else if (textMode == EventInfoTextMode.ExtendedText)
+            {
+                if (eventInfo.ExtInfo != null)
+                {
+                    retText = eventInfo.ExtInfo.text_char;
+                }
+            }
+            else if (textMode == EventInfoTextMode.PropertyInfo)
+            {
+                termination = "\r\n";
+
+                //ジャンル
+                retText += "ジャンル :\r\n";
+                var contentList = new List<ContentKindInfo>();
+                if (eventInfo.ContentInfo != null)
+                {
+                    contentList = eventInfo.ContentInfo.nibbleList.Select(data => ContentKindInfoForDisplay(data)).ToList();
+                }
+                foreach (ContentKindInfo info in contentList.Where(info => info.Data.IsAttributeInfo == false))
+                {
+                    retText += info.ListBoxView + "\r\n";
+                }
+                retText += "\r\n";
+
+                //映像
+                retText += "映像 :";
+                if (eventInfo.ComponentInfo != null)
+                {
+                    int streamContent = eventInfo.ComponentInfo.stream_content;
+                    int componentType = eventInfo.ComponentInfo.component_type;
                     UInt16 componentKey = (UInt16)(streamContent << 8 | componentType);
                     if (ComponentKindDictionary.ContainsKey(componentKey) == true)
                     {
                         retText += ComponentKindDictionary[componentKey];
                     }
-                    if (info.text_char.Length > 0)
+                    if (eventInfo.ComponentInfo.text_char.Length > 0)
                     {
                         retText += "\r\n";
-                        retText += info.text_char;
+                        retText += eventInfo.ComponentInfo.text_char;
                     }
-                    retText += "\r\n";
-                    retText += "サンプリングレート :";
-                    switch (info.sampling_rate)
-                    {
-                        case 1:
-                            retText += "16kHz";
-                            break;
-                        case 2:
-                            retText += "22.05kHz";
-                            break;
-                        case 3:
-                            retText += "24kHz";
-                            break;
-                        case 5:
-                            retText += "32kHz";
-                            break;
-                        case 6:
-                            retText += "44.1kHz";
-                            break;
-                        case 7:
-                            retText += "48kHz";
-                            break;
-                        default:
-                            break;
-                    }
-                    retText += "\r\n";
                 }
-            }
-            retText += "\r\n";
+                retText += "\r\n";
 
-            //スクランブル
-            if (!ChSet5.IsDttv(eventInfo.original_network_id))
-            {
-                retText += (eventInfo.FreeCAFlag == 0 ? "無料放送" : "有料放送") + "\r\n\r\n";
-            }
-
-            //イベントリレー
-            if (eventInfo.EventRelayInfo != null)
-            {
-                if (eventInfo.EventRelayInfo.eventDataList.Count > 0)
+                //音声
+                retText += "音声 :";
+                if (eventInfo.AudioInfo != null)
                 {
-                    retText += "イベントリレーあり：\r\n";
-                    foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
+                    foreach (EpgAudioComponentInfoData info in eventInfo.AudioInfo.componentList)
                     {
-                        //Epgデータが無いときや過去番組は探せない場合がある
-                        UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime == DateTime.MaxValue ? DateTime.MaxValue : eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
-                        var relayInfo = MenuUtil.GetPgInfoUidAll(key) ?? new EpgEventInfo { original_network_id = info.original_network_id, transport_stream_id = info.transport_stream_id, service_id = info.service_id };
-                        retText += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle + "\r\n";
+                        int streamContent = info.stream_content;
+                        int componentType = info.component_type;
+                        UInt16 componentKey = (UInt16)(streamContent << 8 | componentType);
+                        if (ComponentKindDictionary.ContainsKey(componentKey) == true)
+                        {
+                            retText += ComponentKindDictionary[componentKey];
+                        }
+                        if (info.text_char.Length > 0)
+                        {
+                            retText += "\r\n";
+                            retText += info.text_char;
+                        }
+                        retText += "\r\n";
+                        retText += "サンプリングレート :";
+                        switch (info.sampling_rate)
+                        {
+                            case 1:
+                                retText += "16kHz";
+                                break;
+                            case 2:
+                                retText += "22.05kHz";
+                                break;
+                            case 3:
+                                retText += "24kHz";
+                                break;
+                            case 5:
+                                retText += "32kHz";
+                                break;
+                            case 6:
+                                retText += "44.1kHz";
+                                break;
+                            case 7:
+                                retText += "48kHz";
+                                break;
+                            default:
+                                break;
+                        }
+                        retText += "\r\n";
                     }
-                    retText += "\r\n";
                 }
+                retText += "\r\n";
+
+                //スクランブル
+                if (!ChSet5.IsDttv(eventInfo.original_network_id))
+                {
+                    retText += (eventInfo.FreeCAFlag == 0 ? "無料放送" : "有料放送") + "\r\n\r\n";
+                }
+
+                //イベントリレー
+                if (eventInfo.EventRelayInfo != null)
+                {
+                    if (eventInfo.EventRelayInfo.eventDataList.Count > 0)
+                    {
+                        retText += "イベントリレーあり：\r\n";
+                        foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
+                        {
+                            //Epgデータが無いときや過去番組は探せない場合がある
+                            UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime == DateTime.MaxValue ? DateTime.MaxValue : eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
+                            var relayInfo = MenuUtil.GetPgInfoUidAll(key) ?? new EpgEventInfo { original_network_id = info.original_network_id, transport_stream_id = info.transport_stream_id, service_id = info.service_id };
+                            retText += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle + "\r\n";
+                        }
+                        retText += "\r\n";
+                    }
+                }
+
+                //その他情報(番組特性コード関係)
+                var attStr = string.Join("\r\n", contentList.Where(info => info.Data.IsAttributeInfo == true).Select(info => info.SubName));
+                if (attStr != "")
+                {
+                    retText += attStr + "\r\n\r\n";
+                }
+
+                retText += Convert64PGKeyString(eventInfo.Create64PgKey());
+
+                if (resInfo != null) retText += "\r\n\r\n予約中/ID : " + string.Format("{0} (0x{0:X})", resInfo.ReserveID);
             }
 
-            //その他情報(番組特性コード関係)
-            var attStr = string.Join("\r\n", contentList.Where(info => info.Data.IsAttributeInfo == true).Select(info => info.SubName));
-            if (attStr != "")
-            {
-                retText += attStr + "\r\n\r\n";
-            }
-
-            retText += Convert64PGKeyString(eventInfo.Create64PgKey());
-
-            if (resInfo != null) retText += "\r\n\r\n予約中/ID : " + string.Format("{0} (0x{0:X})", resInfo.ReserveID);
-
-            return retText + "\r\n";
+            //余分な空白は消す
+            return string.IsNullOrWhiteSpace(retText) ? "" : retText.TrimEnd() + termination;
         }
 
         //主にジャンル項目の設定リスト表示用
@@ -978,16 +973,125 @@ namespace EpgTimer
             return ConvertValueText(viewMode, new string[] { "標準モード", "1週間モード", "リスト表示モード" }, "");
         }
 
+        public static string TrimHyphenSpace(string text)
+        {
+            //行ごとに処理
+            for (int lineStart = 0, lineEnd; lineStart < text.Length; lineStart = lineEnd)
+            {
+                lineEnd = text.IndexOf('\n', lineStart);
+                lineEnd = lineEnd < 0 ? text.Length : lineEnd + 1;
+                if (lineEnd - lineStart >= 2 && text[lineStart] == '-')
+                {
+                    if (text[lineStart + 1] == ' ')
+                    {
+                        //"- "を取り除く
+                        text = text.Remove(lineStart, 2);
+                        lineEnd -= 2;
+                    }
+                    else
+                    {
+                        //"-- "などで始まるものは"-"を1つだけ減らす
+                        for (lineStart++; lineStart < lineEnd && text[lineStart] == '-'; lineStart++) { }
+                        if (lineStart < lineEnd && text[lineStart] == ' ')
+                        {
+                            text = text.Remove(lineStart - 1, 1);
+                            lineEnd--;
+                        }
+                    }
+                }
+            }
+            return text;
+        }
+
         public static FlowDocument ConvertDisplayText(SearchItem searchInfo)
         {
             return ConvertDisplayText(searchInfo.EventInfo, searchInfo.ReserveInfo);
         }
         public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo, ReserveData resInfo = null)
         {
-            string text = ConvertProgramText(eventInfo, EventInfoTextMode.All, resInfo);
-            if (text == "") text = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。";
+            string basicInfo = ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfo) + ConvertProgramText(eventInfo, EventInfoTextMode.BasicText);
+            string extText = ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedText);
+            string propertyInfo = ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo, resInfo);
+            if (string.IsNullOrWhiteSpace(basicInfo)) basicInfo = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。\r\n";
 
-            return ConvertDisplayText(text);
+            return ConvertDisplayText(basicInfo, extText, propertyInfo);
+        }
+        public static FlowDocument ConvertDisplayText(string basicInfo, string extText, string propertyInfo)
+        {
+            int plainStart = 0;
+            var para = new Paragraph();
+            string text = basicInfo + extText + propertyInfo;
+            string rtext = ReplaceText(text, ReplaceUrlDictionary);
+            if (rtext.Length == text.Length)
+            {
+                var reEscapedHyphenSpace = new Regex(@"\G--+ ");
+                var reHyperlink = new Regex(@"(?:https?://|(?<![0-9A-Za-z%_/.-])[0-9A-Za-z%_.-]+\.(?:com|jp|tv)/)[0-9A-Za-z!#$%&'()~=@;:?_+*/.-]+");
+
+                //行ごとに処理
+                for (int lineStart = 0, lineEnd; lineStart < text.Length; lineStart = lineEnd)
+                {
+                    lineEnd = text.IndexOf('\n', lineStart);
+                    lineEnd = lineEnd < 0 ? text.Length : lineEnd + 1;
+                    //extTextの各行について"- "で始まるものは装飾する
+                    if (lineStart >= basicInfo.Length &&
+                        lineStart < basicInfo.Length + extText.Length &&
+                        lineEnd - lineStart >= 2 && text[lineStart] == '-' && text[lineStart + 1] == ' ')
+                    {
+                        //非装飾
+                        para.Inlines.Add(text.Substring(plainStart, lineStart - plainStart));
+                        //非表示
+                        var run = new Run("- ");
+                        run.FontSize = 1;
+                        run.Foreground = Brushes.Transparent;
+                        para.Inlines.Add(run);
+                        lineStart += 2;
+                        //太字
+                        para.Inlines.Add(new Bold(new Run(text.Substring(lineStart, lineEnd - lineStart))));
+                        plainStart = lineEnd;
+                    }
+                    else
+                    {
+                        //extTextの各行について"-- "などで始まるものは"-"を1つだけ減らす
+                        if (lineStart >= basicInfo.Length &&
+                            lineStart < basicInfo.Length + extText.Length &&
+                            reEscapedHyphenSpace.IsMatch(text, lineStart))
+                        {
+                            para.Inlines.Add(text.Substring(plainStart, lineStart - plainStart));
+                            var run = new Run("-");
+                            run.FontSize = 1;
+                            run.Foreground = Brushes.Transparent;
+                            para.Inlines.Add(run);
+                            plainStart = ++lineStart;
+                        }
+                        //http(s)スキームで始まるか特定のTLDっぽい文字列を含むものを探す
+                        for (Match m = reHyperlink.Match(rtext, lineStart, lineEnd - lineStart); m.Success; m = m.NextMatch())
+                        {
+                            para.Inlines.Add(text.Substring(plainStart, m.Index - plainStart));
+                            plainStart = m.Index;
+                            var h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
+                            h.MouseLeftButtonDown += (sender, e) =>
+                            {
+                                try
+                                {
+                                    using (Process.Start(((Hyperlink)sender).NavigateUri.ToString())) { }
+                                }
+                                catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                            };
+                            h.Foreground = SystemColors.HotTrackBrush;
+                            h.Cursor = Cursors.Hand;
+                            try
+                            {
+                                h.NavigateUri = new Uri((Regex.IsMatch(m.Value, "^https?://") ? "" : "https://") + m.Value);
+                                para.Inlines.Add(h);
+                                plainStart = m.Index + m.Length;
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+            para.Inlines.Add(text.Substring(plainStart));
+            return new FlowDocument(para);
         }
         public static FlowDocument ConvertDisplayText(string text)
         {

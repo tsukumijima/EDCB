@@ -119,8 +119,14 @@ namespace EpgTimer.EpgView
             var info = toolInfo as ProgramViewItem;
             if (info.TitleDrawErr == false && this.EpgStyle().EpgToolTipNoViewOnly == true) return;
 
-            Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(CommonManager.ConvertProgramText(info.Data,
-                this.EpgStyle().EpgExtInfoTooltip == true ? EventInfoTextMode.All : EventInfoTextMode.BasicText));
+            string text = CommonManager.ConvertProgramText(info.Data, EventInfoTextMode.BasicInfo)
+                + CommonManager.ConvertProgramText(info.Data, EventInfoTextMode.BasicText);
+            if (this.EpgStyle().EpgExtInfoTooltip)
+            {
+                text += CommonManager.TrimHyphenSpace(CommonManager.ConvertProgramText(info.Data, EventInfoTextMode.ExtendedText))
+                    + CommonManager.ConvertProgramText(info.Data, EventInfoTextMode.PropertyInfo);
+            }
+            Tooltip.ToolTip = ViewUtil.GetTooltipBlockStandard(text.TrimEnd());
         }
 
         public IEnumerable<ReserveViewItem> GetReserveViewData(Point cursorPos)

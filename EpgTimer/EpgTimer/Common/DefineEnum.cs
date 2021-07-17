@@ -54,10 +54,10 @@ namespace EpgTimer
 
     public enum EventInfoTextMode : uint
     {
-        All = 0, //番組情報全て
-        BasicOnly = 1, //時間+タイトル
-        BasicText = 2, //基本+説明
-        TextAll = 3, //基本+説明+詳細説明
+        BasicInfo,
+        BasicText,
+        ExtendedText,
+        PropertyInfo,
     };
 
     //StructDef.hより

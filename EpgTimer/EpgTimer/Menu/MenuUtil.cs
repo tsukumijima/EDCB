@@ -23,11 +23,14 @@ namespace EpgTimer
 
         public static void CopyContent2Clipboard(EpgEventInfo eventInfo, bool NotToggle = false)
         {
-            bool setting = CheckShiftToggled(Settings.Instance.MenuSet.CopyContentBasic, NotToggle);
-            var mode = setting == true ? EventInfoTextMode.BasicOnly : EventInfoTextMode.All;
-            string text = CommonManager.ConvertProgramText(eventInfo, mode).TrimEnd();
-            if (text != "") text += "\r\n";
-            ToClipBoard(text);
+            string text = CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfo);
+            if (CheckShiftToggled(Settings.Instance.MenuSet.CopyContentBasic, NotToggle) == false)
+            {
+                text += CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicText)
+                    + CommonManager.TrimHyphenSpace(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedText))
+                    + CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo);
+            }
+            ToClipBoard(text.TrimEnd() + "\r\n");
         }
 
         public static void CopyContent2Clipboard(ReserveData resInfo, bool NotToggle = false)
@@ -41,14 +44,19 @@ namespace EpgTimer
             string text = "";
             if (recInfo != null)
             {
-                text = recInfo.ProgramInfo;
+                recInfo.ProgramInfoSet();
+
                 if (CheckShiftToggled(Settings.Instance.MenuSet.CopyContentBasic, NotToggle) == true)
                 {
-                    text = string.Join("\r\n", text.Replace("\r\n", "\n").Split('\n').Take(3));
+                    text = string.Join("\r\n", recInfo.ProgramInfo.Replace("\r\n", "\n").Split('\n').Take(3));
                 }
-                text = text.TrimEnd() + "\r\n";
+                else
+                {
+                    string[] parts = recInfo.GetProgramInfoParts();
+                    text = parts[0] + CommonManager.TrimHyphenSpace(parts[1]) + parts[2];
+                }
             }
-            ToClipBoard(text);
+            ToClipBoard(text.TrimEnd() + "\r\n");
         }
 
         private static void ToClipBoard(string text)
