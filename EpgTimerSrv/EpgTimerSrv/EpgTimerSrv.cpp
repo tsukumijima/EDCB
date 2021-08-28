@@ -26,7 +26,7 @@ void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
 #ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
 #endif
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	SetDllDirectory(L"");
 
@@ -120,6 +120,8 @@ void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD d
 
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 {
+	(void)dwArgc;
+	(void)lpszArgv;
 	g_hStatusHandle = RegisterServiceCtrlHandlerEx(SERVICE_NAME, service_ctrl, NULL);
 	if( g_hStatusHandle != NULL ){
 		ReportServiceStatus(SERVICE_START_PENDING, 0, 1, 10000);
@@ -144,6 +146,8 @@ void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 
 DWORD WINAPI service_ctrl(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext)
 {
+	(void)lpEventData;
+	(void)lpContext;
 	switch (dwControl){
 		case SERVICE_CONTROL_STOP:
 		case SERVICE_CONTROL_SHUTDOWN:
@@ -188,7 +192,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 {
 	{
 		//デバッグ出力ログ保存
-		CBlockLock lock(&g_debugLogLock);
+		lock_recursive_mutex lock(g_debugLogLock);
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
@@ -213,7 +217,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 
 void SetSaveDebugLog(bool saveDebugLog)
 {
-	CBlockLock lock(&g_debugLogLock);
+	lock_recursive_mutex lock(g_debugLogLock);
 	if( g_debugLog == NULL && saveDebugLog ){
 		fs_path logPath = GetCommonIniPath().replace_filename(L"EpgTimerSrvDebugLog.txt");
 		g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);

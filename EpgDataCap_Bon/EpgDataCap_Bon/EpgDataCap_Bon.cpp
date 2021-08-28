@@ -121,7 +121,7 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 #ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
 #endif
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	SetDllDirectory(L"");
 	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
@@ -137,7 +137,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 {
 	{
 		//デバッグ出力ログ保存
-		CBlockLock lock(&g_debugLogLock);
+		lock_recursive_mutex lock(g_debugLogLock);
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
@@ -162,7 +162,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 
 void SetSaveDebugLog(bool saveDebugLog)
 {
-	CBlockLock lock(&g_debugLogLock);
+	lock_recursive_mutex lock(g_debugLogLock);
 	if( g_debugLog == NULL && saveDebugLog ){
 		for( int i = 0; i < 100; i++ ){
 			//パスに添え字をつけて書き込み可能な最初のものに記録する
