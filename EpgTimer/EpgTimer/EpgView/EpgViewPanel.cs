@@ -62,7 +62,7 @@ namespace EpgTimer.EpgView
                     if (useHeight < drawRect.Height)
                     {
                         string detail = info.Data.ShortInfo.text_char.TrimEnd('\r', '\n');
-                        detail += extraInfo == false || info.Data.ExtInfo == null ? "" : "\r\n\r\n" + info.Data.ExtInfo.text_char;
+                        detail += extraInfo == false || info.Data.ExtInfo == null ? "" : "\r\n\r\n" + CommonManager.TrimHyphenSpace(info.Data.ExtInfo.text_char);
                         detail = CommonManager.ReplaceText(detail.TrimEnd(), DictionaryNormal);
                         if (detail != "") useHeight += sizeNormal / 3 + RenderText(textDrawList, detail, ItemFontNormal, sizeNormal, drawRect, indentNormal, useHeight, colorNormal);
                     }

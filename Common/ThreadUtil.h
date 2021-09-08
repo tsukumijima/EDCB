@@ -38,23 +38,33 @@ class thread_
 {
 public:
 	thread_() : m_h(nullptr) {}
+	explicit thread_(void(*f)()) {
+		struct Th {
+			static UINT WINAPI func(void* p) {
+				reinterpret_cast<void(*)()>(p)();
+				return 0;
+			}
+		};
+		m_h = reinterpret_cast<void*>(_beginthreadex(nullptr, 0, Th::func, reinterpret_cast<void*>(f), 0, nullptr));
+		if (!m_h) throw std::runtime_error("");
+	}
 	template<class Arg> thread_(void(*f)(Arg), Arg arg) {
 		struct Th {
 			static UINT WINAPI func(void* p) {
-				void(*thf)(Arg) = static_cast<Th*>(p)->f;
-				Arg tharg = static_cast<Th*>(p)->arg;
-				static_cast<Th*>(p)->b = false;
-				thf(tharg);
+				std::unique_ptr<Th> th(static_cast<Th*>(p));
+				th->f(std::move(th->arg));
 				return 0;
 			}
-			Th(void(*thf)(Arg), Arg tharg) : b(true), f(thf), arg(tharg) {}
-			atomic_bool_ b;
+			Th(void(*thf)(Arg), Arg tharg) : f(thf), arg(tharg) {}
 			void(*f)(Arg);
 			Arg arg;
-		} th(f, arg);
-		m_h = reinterpret_cast<void*>(_beginthreadex(nullptr, 0, Th::func, &th, 0, nullptr));
-		if (!m_h) throw std::runtime_error("");
-		while (th.b) Sleep(0);
+		};
+		Th* pth = new Th(f, arg);
+		m_h = reinterpret_cast<void*>(_beginthreadex(nullptr, 0, Th::func, pth, 0, nullptr));
+		if (!m_h) {
+			delete pth;
+			throw std::runtime_error("");
+		}
 	}
 	~thread_() { if (m_h) std::terminate(); }
 	bool joinable() const { return !!m_h; }
@@ -90,6 +100,17 @@ private:
 	CRITICAL_SECTION m_cs;
 };
 
+class lock_recursive_mutex
+{
+public:
+	lock_recursive_mutex(recursive_mutex_& mtx) : m_mtx(mtx) { m_mtx.lock(); }
+	~lock_recursive_mutex() { m_mtx.unlock(); }
+private:
+	lock_recursive_mutex(const recursive_mutex_&);
+	recursive_mutex_& operator=(const recursive_mutex_&);
+	recursive_mutex_& m_mtx;
+};
+
 #else
 #include <thread>
 #include <mutex>
@@ -102,18 +123,8 @@ typedef std::atomic_int atomic_int_;
 typedef std::atomic_bool atomic_bool_;
 typedef std::thread thread_;
 typedef std::recursive_mutex recursive_mutex_;
+typedef std::lock_guard<recursive_mutex_> lock_recursive_mutex;
 #endif
-
-class CBlockLock
-{
-public:
-	CBlockLock(recursive_mutex_* mtx) : m_mtx(mtx) { m_mtx->lock(); }
-	~CBlockLock() { m_mtx->unlock(); }
-private:
-	CBlockLock(const CBlockLock&);
-	CBlockLock& operator=(const CBlockLock&);
-	recursive_mutex_* m_mtx;
-};
 
 class CAutoResetEvent
 {

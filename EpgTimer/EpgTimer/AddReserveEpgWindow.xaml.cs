@@ -114,7 +114,7 @@ namespace EpgTimer
 
             eventInfo = info;
             Title = ViewUtil.WindowTitleText(eventInfo.DataTitle, "予約登録");
-            textBox_info.Text = CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicOnly);
+            textBox_info.Text = CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfo);
             richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(eventInfo);
             tabStr = eventInfo.IsOver() == true ? "放映終了" : "予約";
 

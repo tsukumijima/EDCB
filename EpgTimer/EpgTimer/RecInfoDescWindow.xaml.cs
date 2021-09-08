@@ -108,14 +108,14 @@ namespace EpgTimer
             if (recInfo != data)
             {
                 recInfo = info;
+                recInfo.ProgramInfoSet();
                 this.Title = ViewUtil.WindowTitleText(recInfo.Title, "録画情報");
-                if (recInfo.ID != 0 && recInfo.ProgramInfo == null)//.program.txtがない
-                {
-                    recInfo.ProgramInfo = CommonManager.ConvertProgramText(recInfo.GetPgInfo(), EventInfoTextMode.All);
-                }
-                textBox_pgInfo.Document = CommonManager.ConvertDisplayText(recInfo.ProgramInfo);
+
+                // 詳細情報を分離して表示に送る
+                string[] parts = recInfo.GetProgramInfoParts();
+                textBox_pgInfo.Document = CommonManager.ConvertDisplayText(parts[0], parts[1], parts[2]);
                 textBox_errLog.Text = recInfo.ErrInfo;
-                textBox_recFilePath.Text = info.RecFilePath;
+                textBox_recFilePath.Text = recInfo.RecFilePath;
                 button_rename.IsEnabled = false;
             }
             UpdateViewSelection(0);

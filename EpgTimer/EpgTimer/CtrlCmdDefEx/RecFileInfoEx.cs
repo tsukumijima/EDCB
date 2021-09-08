@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace EpgTimer
 {
@@ -38,8 +39,42 @@ namespace EpgTimer
             }
         }
 
+        public string[] GetProgramInfoParts()
+        {
+            // 分離した情報として返す
+            var parts = new string[3] { ProgramInfo ?? "", "", "" };
+            // 2個目の空行までマッチ
+            Match m = Regex.Match(parts[0], @"^[\s\S]*?\r?\n\r?\n[\s\S]*?\r?\n\r?\n");
+            if (m.Success)
+            {
+                parts[2] = parts[0].Substring(m.Length);
+                parts[0] = parts[0].Substring(0, m.Length);
+                // "詳細情報"のとき空行2行までマッチ
+                m = Regex.Match(parts[2], @"^詳細情報\r?\n[\s\S]*?\r?\n\r?\n\r?\n");
+                if (m.Success)
+                {
+                    parts[1] = parts[2].Substring(0, m.Length);
+                    parts[2] = parts[2].Substring(m.Length);
+                }
+            }
+            return parts;
+        }
+        public void ProgramInfoSet()
+        {
+            if (ProgramInfo == null)//.program.txtがない
+            {
+                EpgEventInfo pg = GetPgInfo();
+                ProgramInfo = pg == null ? "番組情報がありません。" :
+                    CommonManager.ConvertProgramText(pg, EventInfoTextMode.BasicInfo)
+                    + CommonManager.ConvertProgramText(pg, EventInfoTextMode.BasicText)
+                    + "詳細情報\r\n" + CommonManager.ConvertProgramText(pg, EventInfoTextMode.ExtendedText)
+                    + CommonManager.ConvertProgramText(pg, EventInfoTextMode.PropertyInfo);
+            }
+        }
         public EpgEventInfo GetPgInfo(bool isSrv = true)
         {
+            if (ID == 0) return null;
+
             //まずは手持ちのデータを探す
             EpgEventInfo pg = MenuUtil.GetPgInfoUidAll(CurrentPgUID());
             if (pg != null || isSrv == false) return pg;
