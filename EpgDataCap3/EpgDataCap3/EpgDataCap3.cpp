@@ -29,6 +29,7 @@ DWORD WINAPI InitializeEP(
 	DWORD* id
 	)
 {
+	(void)asyncFlag;
 	if (id == NULL) {
 		return ERR_INVALID_ARG;
 	}
@@ -455,7 +456,7 @@ DWORD WINAPI SetDebugLogCallbackEP(
 	void (CALLBACK *debugLogProc)(const WCHAR* s)
 	)
 {
-	CBlockLock lock(&g_debugLogLock);
+	lock_recursive_mutex lock(g_debugLogLock);
 
 	if (debugLogProc) {
 		g_debugLogProc = debugLogProc;
@@ -474,7 +475,7 @@ DWORD WINAPI SetDebugLogCallbackEP(
 void AddDebugLogNoNewline(const wchar_t* s)
 {
 	{
-		CBlockLock lock(&g_debugLogLock);
+		lock_recursive_mutex lock(g_debugLogLock);
 		if (g_debugLogProc) {
 			g_debugLogProc(s);
 		}
