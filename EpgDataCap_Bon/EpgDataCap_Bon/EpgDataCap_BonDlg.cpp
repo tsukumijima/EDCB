@@ -124,11 +124,14 @@ void CEpgDataCap_BonDlg::ReloadSetting()
 			if( item.ipString.size() >= 2 && item.ipString[0] == L'[' ){
 				item.ipString.erase(0, 1).pop_back();
 			}else{
-				UINT ip = _wtoi(item.ipString.c_str());
+				UINT ip = (int)wcstol(item.ipString.c_str(), NULL, 10);
 				Format(item.ipString, L"%d.%d.%d.%d", ip >> 24, ip >> 16 & 0xFF, ip >> 8 & 0xFF, ip & 0xFF);
 			}
 			swprintf_s(key, L"Port%d", i);
-			item.port = GetPrivateProfileInt(tcp ? L"SET_TCP" : L"SET_UDP", key, tcp ? BON_TCP_PORT_BEGIN : BON_UDP_PORT_BEGIN, appIniPath.c_str());
+			item.port = 0;
+			if( item.ipString != BON_NW_SRV_PIPE_IP ){
+				item.port = GetPrivateProfileInt(tcp ? L"SET_TCP" : L"SET_UDP", key, tcp ? BON_TCP_PORT_BEGIN : BON_UDP_PORT_BEGIN, appIniPath.c_str());
+			}
 			swprintf_s(key, L"BroadCast%d", i);
 			item.broadcastFlag = tcp ? 0 : GetPrivateProfileInt(L"SET_UDP", key, 0, appIniPath.c_str());
 			item.udpMaxSendSize = tcp ? 0 : GetPrivateProfileInt(L"SET", L"UDPPacket", 128, appIniPath.c_str()) * 188;
