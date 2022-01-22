@@ -73,11 +73,7 @@ ct:Append([=[
 <div id="main">
 ]=])
 
-onid,tsid,sid,eid=(mg.get_var(mg.request_info.query_string,'id') or ''):match('^(%d?%d?%d?%d?%d)%-(%d?%d?%d?%d?%d)%-(%d?%d?%d?%d?%d)%-(%d?%d?%d?%d?%d)$')
-onid=tonumber(onid) or 0
-tsid=tonumber(tsid) or 0
-sid=tonumber(sid) or 0
-eid=tonumber(eid) or 0
+onid,tsid,sid,eid=GetVarEventID(mg.request_info.query_string,'id')
 presetID=GetVarInt(mg.request_info.query_string,'presetID') or 65535
 
 post=AssertPost()
@@ -100,7 +96,7 @@ if not r and presetID==65535 then
 end
 
 ct:Append('  <dl>\n'
-  ..'    <dt>番組情報</dt><dd>\n'..ConvertEpgInfoText2(onid,tsid,sid,eid):gsub('\r?\n','<br>\n')..'</dd>\n')
+  ..'    <dt>番組情報</dt><dd>\n'..ConvertProgramText(edcb.SearchEpg(onid,tsid,sid,eid)):gsub('\r?\n','<br>\n')..'</dd>\n')
 if r then
   dur=r.startTime.hour*3600+r.startTime.min*60+r.startTime.sec+r.durationSecond
   ct:Append('    <dt>プログラム予約化（プログラム予約化は元に戻せません。番組を特定できなくなるため追従もできません。）</dt><dd>\n'
