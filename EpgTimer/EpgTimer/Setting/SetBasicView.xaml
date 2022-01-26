@@ -163,6 +163,8 @@
         </TabItem>
         <TabItem Header="ネットワーク" Name="tab_NW" >
             <StackPanel Margin="10,10,6,6">
+                <TextBlock Text="　※必ず信頼できるPCのみアクセスできるようにしてください。" Foreground="Red" Margin="0,6,0,0"/>
+                <TextBlock Text="　　また、Httpサーバのセキュリティ関係の設定については、ReadMe_Mod.txtの「■CivetWebの組み込みについて■」を参照してください。" Foreground="Red" Margin="0,6,0,6"/>
                 <GroupBox Header="ネットワーク">
                     <StackPanel Margin="6,6,6,0">
                         <StackPanel Margin="0,6,0,0" Orientation="Horizontal" Name="grid_tcpServer">
@@ -199,7 +201,6 @@
                         </DockPanel>
                         <CheckBox Name="checkBox_httpLog" Content="ログを保存する" Margin="0,6,0,0" />
                         <CheckBox Name="checkBox_dlnaServer" Content="DLNA の DMS ぽい機能を使用する" Margin="0,6,0,0" ToolTip="DLNA の DMS ぽい機能を利用するには ini\HttpPublic フォルダにある dlna 以下のフォルダを公開フォルダにコピーしてください。"/>
-                        <TextBlock Text="　※セキュリティ関係の設定など、詳しくはReadMe_Mod.txtの「■CivetWebの組み込みについて■」を参照のこと" Foreground="Red" Margin="0,12,0,0"/>
                     </StackPanel>
                 </GroupBox>
             </StackPanel>
