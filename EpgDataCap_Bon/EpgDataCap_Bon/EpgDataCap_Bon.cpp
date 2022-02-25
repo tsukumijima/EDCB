@@ -121,7 +121,7 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 #ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
 #endif
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	SetDllDirectory(L"");
 	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
@@ -135,9 +135,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutput)
 {
-	{
+	if( lpOutputString[0] ){
 		//デバッグ出力ログ保存
-		CBlockLock lock(&g_debugLogLock);
+		lock_recursive_mutex lock(g_debugLogLock);
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
@@ -145,13 +145,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
 			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 			fwrite(t, sizeof(WCHAR), n, g_debugLog);
-			size_t m = lpOutputString ? wcslen(lpOutputString) : 0;
-			if( m > 0 ){
-				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
-			}
-			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
-				fwrite(L"<NOBR>" UTIL_NEWLINE, sizeof(WCHAR), array_size(L"<NOBR>" UTIL_NEWLINE) - 1, g_debugLog);
-			}
+			fwrite(lpOutputString, sizeof(WCHAR), wcslen(lpOutputString), g_debugLog);
 			fflush(g_debugLog);
 		}
 	}
@@ -162,7 +156,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 
 void SetSaveDebugLog(bool saveDebugLog)
 {
-	CBlockLock lock(&g_debugLogLock);
+	lock_recursive_mutex lock(g_debugLogLock);
 	if( g_debugLog == NULL && saveDebugLog ){
 		for( int i = 0; i < 100; i++ ){
 			//パスに添え字をつけて書き込み可能な最初のものに記録する
