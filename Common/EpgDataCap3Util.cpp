@@ -123,6 +123,9 @@ DWORD CEpgDataCap3Util::GetTSID(
 	if( module == NULL ){
 		return ERR_NOT_INIT;
 	}
+	if( originalNetworkID == NULL && pfnEnumEpgInfoListEP3 == NULL ){
+		return ERR_INVALID_ARG;
+	}
 	return pfnGetTSIDEP3(id, originalNetworkID, transportStreamID);
 }
 
@@ -284,6 +287,7 @@ void CALLBACK CEpgDataCap3Util::DebugLogCallback(
 	const WCHAR* s
 	)
 {
+	(void)s;
 #ifdef WRAP_DEBUG_OUTPUT
 	AddDebugLogNoNewline(s, true);
 #endif

@@ -135,9 +135,7 @@ BOOL CBonCtrl::GetOpenBonDriver(
 }
 
 BOOL CBonCtrl::SetCh(
-	DWORD space,
-	DWORD ch,
-	WORD serviceID
+	const CH_DATA4& chData
 )
 {
 	if( this->tsOut.IsRec() == TRUE ){
@@ -145,8 +143,8 @@ BOOL CBonCtrl::SetCh(
 	}
 	StopEpgCap();
 
-	if( ProcessSetCh(space, ch, FALSE) ){
-		this->nwCtrlServiceID = serviceID;
+	if( ProcessSetCh(chData.space, chData.ch, chData.originalNetworkID) ){
+		this->nwCtrlServiceID = chData.serviceID;
 		this->tsOut.SetServiceID(this->nwCtrlID, this->nwCtrlAllService ? 0xFFFF : this->nwCtrlServiceID);
 		return TRUE;
 	}
@@ -157,7 +155,7 @@ BOOL CBonCtrl::SetCh(
 BOOL CBonCtrl::ProcessSetCh(
 	DWORD space,
 	DWORD ch,
-	BOOL chScan
+	int onidOrChScan
 	)
 {
 	DWORD spaceNow=0;
@@ -169,7 +167,7 @@ BOOL CBonCtrl::ProcessSetCh(
 		DWORD elapsed;
 		if( this->bonUtil.GetNowCh(&spaceNow, &chNow) == false || space != spaceNow || ch != chNow || this->tsOut.IsChUnknown(&elapsed) && elapsed > 15000 ){
 			StopBackgroundEpgCap();
-			this->tsOut.SetChChangeEvent(chScan);
+			this->tsOut.SetChChangeEvent((WORD)(onidOrChScan < 0 ? 0xFFFF : onidOrChScan), onidOrChScan < 0);
 			AddDebugLogFormat(L"SetCh space %d, ch %d", space, ch);
 			ret = this->bonUtil.SetCh(space, ch);
 			StartBackgroundEpgCap();
@@ -242,7 +240,7 @@ void CBonCtrl::RecvCallback(BYTE* data, DWORD size, DWORD remain, DWORD tsBuffMa
 	BYTE* outData;
 	DWORD outSize;
 	if( data != NULL && size != 0 && this->packetInit.GetTSData(data, size, &outData, &outSize) ){
-		CBlockLock lock(&this->buffLock);
+		lock_recursive_mutex lock(this->buffLock);
 		while( outSize != 0 ){
 			if( this->tsFreeList.empty() ){
 				//バッファを増やす
@@ -270,7 +268,7 @@ void CBonCtrl::RecvCallback(BYTE* data, DWORD size, DWORD remain, DWORD tsBuffMa
 
 void CBonCtrl::StatusCallback(float signalLv, int space, int ch)
 {
-	CBlockLock lock(&this->buffLock);
+	lock_recursive_mutex lock(this->buffLock);
 	this->statusSignalLv = signalLv;
 	this->viewSpace = space;
 	this->viewCh = ch;
@@ -284,7 +282,7 @@ void CBonCtrl::AnalyzeThread(CBonCtrl* sys)
 		//バッファからデータ取り出し
 		float signalLv;
 		{
-			CBlockLock lock(&sys->buffLock);
+			lock_recursive_mutex lock(sys->buffLock);
 			if( data.empty() == false ){
 				//返却
 				data.front().clear();
@@ -302,18 +300,6 @@ void CBonCtrl::AnalyzeThread(CBonCtrl* sys)
 			sys->analyzeEvent.WaitOne(1000);
 		}
 	}
-}
-
-//サービス一覧を取得する
-//戻り値：
-// エラーコード
-//引数：
-// serviceList				[OUT]サービス情報のリスト
-DWORD CBonCtrl::GetServiceList(
-	vector<CH_DATA4>* serviceList
-	)
-{
-	return this->chUtil.GetEnumService(serviceList);
 }
 
 DWORD CBonCtrl::CreateServiceCtrl(
@@ -600,7 +586,7 @@ void CBonCtrl::CheckChScan()
 				return;
 			}
 			this->chScanIndexOrStatus = chkCount;
-			if( this->ProcessSetCh(this->chScanChkList[chkCount].space, this->chScanChkList[chkCount].ch, TRUE) ){
+			if( this->ProcessSetCh(this->chScanChkList[chkCount].space, this->chScanChkList[chkCount].ch, -1) ){
 				this->chScanTick = GetTickCount();
 				this->chScanChkNext = FALSE;
 			}
@@ -795,35 +781,27 @@ void CBonCtrl::CheckEpgCap()
 
 		if( this->epgCapChkNext ){
 			//次のチャンネルへ
-			chkCount++;
-			if( this->epgCapChList.size() <= (size_t)chkCount ){
-				//全部チェック終わったので終了
-				this->epgCapIndexOrStatus = ST_COMPLETE;
-				return;
-			}
-			if( this->epgCapChList[chkCount].ONID == 4 && this->epgCapBSBasic && this->epgCapChkBS ||
-			    this->epgCapChList[chkCount].ONID == 6 && this->epgCapCS1Basic && this->epgCapChkCS1 ||
-			    this->epgCapChList[chkCount].ONID == 7 && this->epgCapCS2Basic && this->epgCapChkCS2 ||
-			    this->epgCapChList[chkCount].ONID == 10 && this->epgCapCS3Basic && this->epgCapChkCS3 ){
+			for(;;){
 				chkCount++;
-				while( (size_t)chkCount < this->epgCapChList.size() ){
-					if( this->epgCapChList[chkCount].ONID != this->epgCapChList[chkCount - 1].ONID ){
-						break;
-					}
-					chkCount++;
-				}
 				if( this->epgCapChList.size() <= (size_t)chkCount ){
 					//全部チェック終わったので終了
 					this->epgCapIndexOrStatus = ST_COMPLETE;
 					return;
 				}
+				if( this->epgCapChList[chkCount].ONID == 4 && this->epgCapBSBasic && this->epgCapChkBS ||
+				    this->epgCapChList[chkCount].ONID == 6 && this->epgCapCS1Basic && this->epgCapChkCS1 ||
+				    this->epgCapChList[chkCount].ONID == 7 && this->epgCapCS2Basic && this->epgCapChkCS2 ||
+				    this->epgCapChList[chkCount].ONID == 10 && this->epgCapCS3Basic && this->epgCapChkCS3 ){
+					continue;
+				}
+				break;
 			}
 			this->epgCapIndexOrStatus = chkCount;
 			DWORD space;
 			DWORD ch;
 			if( this->chUtil.GetCh(this->epgCapChList[chkCount].ONID, this->epgCapChList[chkCount].TSID,
 			                       this->epgCapChList[chkCount].SID, space, ch) &&
-			    this->ProcessSetCh(space, ch, FALSE) ){
+			    this->ProcessSetCh(space, ch, this->epgCapChList[chkCount].ONID) ){
 				this->epgCapSetChState = 0;
 				this->epgCapChkNext = FALSE;
 			}
@@ -1065,7 +1043,7 @@ void CBonCtrl::GetViewStatusInfo(
 {
 	this->tsOut.GetErrCount(this->nwCtrlID, drop, scramble);
 
-	CBlockLock lock(&this->buffLock);
+	lock_recursive_mutex lock(this->buffLock);
 	*signalLv = this->statusSignalLv;
 	*space = this->viewSpace;
 	*ch = this->viewCh;

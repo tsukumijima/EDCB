@@ -60,19 +60,21 @@ public:
 protected:
 	CAutoResetEvent m_stopSendEvent;
 	thread_ m_sendThread;
-
 	recursive_mutex_ m_sendLock;
-
+	int m_wsaStartupResult;
 	std::list<vector<BYTE>> m_TSBuff;
 
 	struct SEND_INFO {
 		string strIP;
-		DWORD dwPort;
+		WORD port;
+		bool bSuppressHeader;
 		SOCKET sock;
-		HANDLE pipe;
-		HANDLE olEvent;
-		OVERLAPPED ol;
-		BOOL bConnect;
+		HANDLE pipe[2];
+		HANDLE olEvent[2];
+		OVERLAPPED ol[2];
+		bool bConnect[2];
+		bool bPipeWriting[2];
+		DWORD writeAheadCount[2];
 	};
 	std::list<SEND_INFO> m_SendList;
 

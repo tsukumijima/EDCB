@@ -29,6 +29,7 @@ DWORD WINAPI InitializeEP(
 	DWORD* id
 	)
 {
+	(void)asyncFlag;
 	if (id == NULL) {
 		return ERR_INVALID_ARG;
 	}
@@ -103,11 +104,12 @@ DWORD WINAPI AddTSPacketEP(
 }
 
 //解析データの現在のストリームＩＤを取得する
+//古い（EnumEpgInfoListEPが追加される以前の）バージョンでoriginalNetworkIDをNULLにしてはいけない
 //戻り値：
 // エラーコード
 //引数：
 // id						[IN]識別ID
-// originalNetworkID		[OUT]現在のoriginalNetworkID
+// originalNetworkID		[OUT]現在のoriginalNetworkID。NULL可
 // transportStreamID		[OUT]現在のtransportStreamID
 DLL_EXPORT
 DWORD WINAPI GetTSIDEP(
@@ -120,7 +122,7 @@ DWORD WINAPI GetTSIDEP(
 	if (ptr == NULL) {
 		return ERR_NOT_INIT;
 	}
-	if (originalNetworkID == NULL || transportStreamID == NULL) {
+	if (transportStreamID == NULL) {
 		return ERR_INVALID_ARG;
 	}
 
@@ -455,7 +457,7 @@ DWORD WINAPI SetDebugLogCallbackEP(
 	void (CALLBACK *debugLogProc)(const WCHAR* s)
 	)
 {
-	CBlockLock lock(&g_debugLogLock);
+	lock_recursive_mutex lock(g_debugLogLock);
 
 	if (debugLogProc) {
 		g_debugLogProc = debugLogProc;
@@ -474,7 +476,7 @@ DWORD WINAPI SetDebugLogCallbackEP(
 void AddDebugLogNoNewline(const wchar_t* s)
 {
 	{
-		CBlockLock lock(&g_debugLogLock);
+		lock_recursive_mutex lock(g_debugLogLock);
 		if (g_debugLogProc) {
 			g_debugLogProc(s);
 		}
