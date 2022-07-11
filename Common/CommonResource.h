@@ -1,4 +1,4 @@
-#define EDCB_VERSION_TAG "tkntrec-220225"
+#define EDCB_VERSION_TAG "tkntrec-220624"
 
 // Only ASCII characters can be used here.
 
