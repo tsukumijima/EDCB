@@ -26,7 +26,7 @@ void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
 #ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
 #endif
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	SetDllDirectory(L"");
 
@@ -120,6 +120,8 @@ void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD d
 
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 {
+	(void)dwArgc;
+	(void)lpszArgv;
 	g_hStatusHandle = RegisterServiceCtrlHandlerEx(SERVICE_NAME, service_ctrl, NULL);
 	if( g_hStatusHandle != NULL ){
 		ReportServiceStatus(SERVICE_START_PENDING, 0, 1, 10000);
@@ -144,6 +146,8 @@ void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 
 DWORD WINAPI service_ctrl(DWORD dwControl, DWORD dwEventType, LPVOID lpEventData, LPVOID lpContext)
 {
+	(void)lpEventData;
+	(void)lpContext;
 	switch (dwControl){
 		case SERVICE_CONTROL_STOP:
 		case SERVICE_CONTROL_SHUTDOWN:
@@ -186,9 +190,9 @@ void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD d
 
 void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutput)
 {
-	{
+	if( lpOutputString[0] ){
 		//デバッグ出力ログ保存
-		CBlockLock lock(&g_debugLogLock);
+		lock_recursive_mutex lock(g_debugLogLock);
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
@@ -196,13 +200,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
 			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 			fwrite(t, sizeof(WCHAR), n, g_debugLog);
-			size_t m = lpOutputString ? wcslen(lpOutputString) : 0;
-			if( m > 0 ){
-				fwrite(lpOutputString, sizeof(WCHAR), m, g_debugLog);
-			}
-			if( m == 0 || lpOutputString[m - 1] != L'\n' ){
-				fwrite(L"<NOBR>" UTIL_NEWLINE, sizeof(WCHAR), array_size(L"<NOBR>" UTIL_NEWLINE) - 1, g_debugLog);
-			}
+			fwrite(lpOutputString, sizeof(WCHAR), wcslen(lpOutputString), g_debugLog);
 			fflush(g_debugLog);
 		}
 	}
@@ -213,7 +211,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 
 void SetSaveDebugLog(bool saveDebugLog)
 {
-	CBlockLock lock(&g_debugLogLock);
+	lock_recursive_mutex lock(g_debugLogLock);
 	if( g_debugLog == NULL && saveDebugLog ){
 		fs_path logPath = GetCommonIniPath().replace_filename(L"EpgTimerSrvDebugLog.txt");
 		g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);

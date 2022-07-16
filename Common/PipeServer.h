@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "StructDef.h"
+#include "CtrlCmdUtil.h"
 #include "ThreadUtil.h"
 #include <functional>
 
@@ -12,7 +12,7 @@ public:
 
 	bool StartServer(
 		const wstring& pipeName,
-		const std::function<void(CMD_STREAM*, CMD_STREAM*)>& cmdProc_,
+		const std::function<void(CCmdStream&, CCmdStream&)>& cmdProc_,
 		bool insecureFlag = false,
 		bool doNotCreateNoWaitPipe = false
 		);
@@ -24,7 +24,7 @@ public:
 #endif
 
 protected:
-	std::function<void(CMD_STREAM*, CMD_STREAM*)> cmdProc;
+	std::function<void(CCmdStream&, CCmdStream&)> cmdProc;
 	atomic_bool_ exitingFlag;
 	CAutoResetEvent stopEvent;
 	thread_ workThread;
@@ -34,7 +34,7 @@ protected:
 	HANDLE hEventConnects[2];
 	HANDLE hPipes[2];
 
-	static BOOL GrantAccessToKernelObject(HANDLE handle, WCHAR* trusteeName, DWORD permissions);
+	static BOOL GrantAccessToKernelObject(HANDLE handle, WCHAR* trusteeName, bool trusteeIsSid, DWORD permissions);
 #else
 	int srvSock;
 	string sockPath;
