@@ -149,7 +149,7 @@ namespace EpgTimer
                         try
                         {
                             string path = Path.Combine(SettingPath.SettingFolderPath, data.Name);
-                            if (data.Size == 0)
+                            if (data.Data == null)
                             {
                                 File.Delete(path);
                                 continue;
