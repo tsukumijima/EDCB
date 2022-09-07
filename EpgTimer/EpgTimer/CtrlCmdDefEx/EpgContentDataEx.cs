@@ -6,6 +6,7 @@ namespace EpgTimer
 {
     public partial class EpgContentData
     {
+        public EpgContentData() { }
         public EpgContentData(UInt32 key)
         {
             this.content_nibble_level_1 = (byte)(key >> 24);
