@@ -49,6 +49,12 @@ namespace EpgTimer
             return (uint)(info.PgDurationSecond - (LimitedStart(info) - info.PgStartTime).TotalSeconds);
         }
 
+        /// <summary>サービスロゴの再描画</summary>
+        protected override void ReloadServiceLogo()
+        {
+            serviceView.RefreshLogo();
+        }
+
         /// <summary>予約情報の再描画</summary>
         protected override void ReloadReserveViewItem()
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -41,7 +42,7 @@ namespace EpgTimer.EpgView
                     var serviceInfo = ((FrameworkElement)sender).DataContext as EpgServiceInfo;
                     CommonManager.Instance.TVTestCtrl.SetLiveCh(serviceInfo.ONID, serviceInfo.TSID, serviceInfo.SID);
                 };
-                service1.DataContext = info;
+                //service1.DataContext = info;
 
                 var text = ViewUtil.GetPanelTextBlock(CommonManager.ReplaceUrl(info.service_name));
                 text.Margin = new Thickness(1, 0, 1, 0);
@@ -56,11 +57,47 @@ namespace EpgTimer.EpgView
 
                 service1.ToolTip = this.EpgStyle().EpgServiceNameTooltip != true ? null : ViewUtil.ServiceHeaderToToolTip(service1);
 
-                var grid1 = new Grid();
-                grid1.Background = this.EpgBrushCache().ServiceBackColor;
-                grid1.Margin = new Thickness(0, 1, 1, 1);
-                grid1.Children.Add(service1);
-                stackPanel_service.Children.Add(grid1);
+                var stack = new StackPanel();
+                stack.Orientation = Orientation.Horizontal;
+                stack.Background = this.EpgBrushCache().ServiceBackColor;
+                stack.Margin = new Thickness(0, 1, 1, 1);
+                stack.Tag = service1.Width;
+                stack.DataContext = info;
+                stack.Children.Add(service1);
+                stackPanel_service.Children.Add(stack);
+            }
+
+            RefreshLogo();
+        }
+
+        public void RefreshLogo()
+        {
+            foreach (StackPanel stack in stackPanel_service.Children)
+            {
+                Image logoItem = stack.Children.OfType<Image>().FirstOrDefault();
+                if (logoItem != null)
+                {
+                    stack.Children.Remove(logoItem);
+                }
+
+                StackPanel item = stack.Children.OfType<StackPanel>().First();
+                double serviceWidth = (double)stack.Tag;
+
+                var info = (EpgServiceInfo)stack.DataContext;
+                if (Settings.Instance.ShowLogo && info.Logo != null && serviceWidth >= 30 + 1 + 2)
+                {
+                    logoItem = new Image();
+                    logoItem.Source = info.Logo;
+                    logoItem.Width = 30;
+                    logoItem.VerticalAlignment = VerticalAlignment.Top;
+                    logoItem.Margin = new Thickness(1, 2, 0, 0);
+                    stack.Children.Insert(0, logoItem);
+                    item.Width = serviceWidth - logoItem.Width - logoItem.Margin.Left;
+                }
+                else
+                {
+                    item.Width = serviceWidth;
+                }
             }
         }
     }

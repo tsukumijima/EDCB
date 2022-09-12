@@ -139,6 +139,7 @@ namespace EpgTimer.EpgView
         public static event ViewUpdatedHandler ViewReserveUpdated = null;
 
         protected CmdExeReserve mc; //予約系コマンド集
+        protected bool ReloadLogoFlg = true;
         protected bool ReloadReserveInfoFlg = true;
         protected bool RefreshMenuFlg = true;
 
@@ -374,6 +375,24 @@ namespace EpgTimer.EpgView
         protected virtual void MoveNowTime() { }
 
         /// <summary>
+        /// ロゴ更新通知
+        /// </summary>
+        public void UpdateLogo(bool immediately = true)
+        {
+            ReloadLogoFlg = true;
+            if (immediately == true) ReloadLogo();
+        }
+        protected void ReloadLogo()
+        {
+            if (ReloadLogoFlg == true)
+            {
+                ReloadServiceLogo();
+                ReloadLogoFlg = false;
+            }
+        }
+        protected virtual void ReloadServiceLogo() { }
+
+        /// <summary>
         /// 予約情報更新通知
         /// </summary>
         public void UpdateReserveInfo(bool immediately = true)
@@ -427,6 +446,7 @@ namespace EpgTimer.EpgView
             RefreshMenu();
             JumpDate(BlackoutWindow.HasItemData ? SearchJumpPeriod(BlackoutWindow.ItemData.PgStartTime) : DataPeriod);
             ReloadInfo();//JumpDate()が実行された場合は、何もしない
+            ReloadLogo();
             ReloadReserveInfo();//JumpDate() or ReloadInfo()が実行された場合は、何もしない
 
             if (BlackoutWindow.HasItemData)

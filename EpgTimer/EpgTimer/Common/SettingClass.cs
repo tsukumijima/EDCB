@@ -611,6 +611,7 @@ namespace EpgTimer
         public ListSortDirection SearchSortDirection { get; set; }
         public Int32 SearchEpgInfoOpenMode { get; set; }
         public bool SaveSearchKeyword { get; set; }
+        public bool ShowLogo { get; set; }
         public List<ListColumnInfo> InfoSearchWndColumn { get; set; }
         public string InfoSearchColumnHead { get; set; }
         public ListSortDirection InfoSearchSortDirection { get; set; }
@@ -945,6 +946,7 @@ namespace EpgTimer
             SearchSortDirection = ListSortDirection.Ascending;
             SearchEpgInfoOpenMode = 0;
             SaveSearchKeyword = true;
+            ShowLogo = false;
             InfoSearchWndColumn = new List<ListColumnInfo>();
             InfoSearchColumnHead = "";
             InfoSearchSortDirection = ListSortDirection.Ascending;

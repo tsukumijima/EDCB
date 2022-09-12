@@ -48,6 +48,7 @@ namespace EpgTimer
         EpgDataSearch, //EPG表示用データの一部更新
         EpgDataAddLoaded, //EPGデータの追加更新
         ReserveInfo, //予約情報更新
+        ChSet5Logo, //ロゴの更新
     };
 
     public enum EventInfoTextMode : uint

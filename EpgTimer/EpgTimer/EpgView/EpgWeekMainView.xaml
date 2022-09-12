@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              xmlns:local="clr-namespace:EpgTimer.EpgView"
-             d:DesignHeight="300" d:DesignWidth="300" IsVisibleChanged="UserControl_IsVisibleChanged">
+             d:DesignHeight="300" d:DesignWidth="500" IsVisibleChanged="UserControl_IsVisibleChanged">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />
@@ -20,7 +20,8 @@
         <local:TimeJumpView Grid.ColumnSpan="2" x:Name="timeJumpView" Margin="0,1,0,5"/>
         <local:TimeMoveView Grid.Row="1" x:Name="timeMoveView" MouseRightButtonUp="button_erea_MouseRightButtonUp" />
         <DockPanel Grid.Row="1" Grid.Column="1" Background="Transparent" MouseRightButtonUp="button_erea_MouseRightButtonUp" >
-            <ComboBox Height="23" Margin="15,0,0,0" HorizontalAlignment="Left" Name="comboBox_service" Width="227" SelectedValuePath="Key" DisplayMemberPath="Value" SelectionChanged="comboBox_service_SelectionChanged"/>
+            <Image Width="64" Margin="10,0,0,0" Name="image_Logo" />
+            <ComboBox Height="23" Margin="6,0,0,0" HorizontalAlignment="Left" Name="comboBox_service" Width="227" SelectedValuePath="Key" DisplayMemberPath="Value" SelectionChanged="comboBox_service_SelectionChanged"/>
             <Button Content="標準モード" Height="23" HorizontalAlignment="Left" Margin="6,0,0,0" Name="button_go_Main" Width="66" />
         </DockPanel>
         <Button Grid.Row="2" Content="初期&#10;表示" Padding="1" IsHitTestVisible="False" Visibility="Hidden"/>
