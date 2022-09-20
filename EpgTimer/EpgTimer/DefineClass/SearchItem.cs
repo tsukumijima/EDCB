@@ -257,16 +257,20 @@ namespace EpgTimer
                 return reserveTuner;
             }
         }
-        private string _estimatedRecSize;
+        private double _estimatedRecSize = -1;
         public string EstimatedRecSize
+        {
+            get { return EstimatedRecSizeValue <= 0 ? "" : _estimatedRecSize.ToString("0.0 GB"); }
+        }
+        public double EstimatedRecSizeValue
         {
             get
             {
-                if (ReserveInfo == null) return "";
+                if (ReserveInfo == null) return -1;
                 //
-                if (_estimatedRecSize == null)
+                if (_estimatedRecSize < 0)
                 {
-                    _estimatedRecSize = "";
+                    _estimatedRecSize = 0;
                     if (ReserveInfo.IsWatchMode == false)
                     {
                         int bitrate = 0;
@@ -278,7 +282,7 @@ namespace EpgTimer
                             bitrate = IniFileHandler.GetPrivateProfileInt("BITRATE", key, 0, SettingPath.BitrateIniPath);
                             bitrate = bitrate <= 0 && i == 3 ? 19456 : bitrate;
                         }
-                        _estimatedRecSize = ((double)Math.Max(bitrate / 8 * 1000 * ReserveInfo.DurationActual, 0) / 1024 / 1024 / 1024).ToString("0.0 GB");
+                        _estimatedRecSize = (double)Math.Max(bitrate / 8 * 1000 * ReserveInfo.DurationActual, 0) / 1024 / 1024 / 1024;
                     }
                 }
                 return _estimatedRecSize;
