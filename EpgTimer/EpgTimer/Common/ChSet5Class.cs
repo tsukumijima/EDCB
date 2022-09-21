@@ -433,8 +433,7 @@ namespace EpgTimer
                         int i = copyNameList.IndexOf(name);
                         if (0 <= i && i < bitmapList.Count())
                         {
-                            //ch.Logo = bitmapList[copyNameList.IndexOf(name)];
-                            LogoList[ch.Key] = bitmapList[copyNameList.IndexOf(name)];
+                            LogoList[ch.Key] = bitmapList[i];
                             changed = true;
                         }
                     }
