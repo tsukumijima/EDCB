@@ -9,29 +9,29 @@ namespace EpgTimer
     // sed s/BYTE/byte/g StructDef.h |
     // sed s/DWORD/uint/g |
     // sed s/WORD/ushort/g |
-    // sed s/INT/int/g |
     // sed s/BOOL/int/g |
-    // sed s/FALSE/0/g |
-    // sed s/TRUE/1/g |
-    // sed 's/L""/""/g' |
     // sed s/__int64/long/g |
     // sed s/wstring/string/g |
     // sed s/SYSTEMTIME/DateTime/g |
     // sed s/vector/List/g |
-    // tr -d '*' |
     // sed 's/}.*$/}/' |
     // sed 's/^\t\([A-Za-z].*;\)/\tpublic \1/' |
     // sed 's#^\(\t[A-Za-z].*;\)\t*//\(.*\)$#\t/// <summary>\2</summary>\n\1#' |
-    // sed 's/typedef struct _/public class /' |
-    // sed 's/_\(.*\)(void){$/public \1(){/' |
+    // sed 's/\(public string [A-Za-z].*\);/\1 = "";/' |
+    // sed 's/struct /public class /' |
+    // sed 's/\([A-Za-z].*\)(void) {$/public \1() {/' |
+    // sed 's/^/    /' |
     // sed 's/\t/    /g'
+
+    // 原則として値型フィールドは既定値、参照型フィールドは既定コンストラクタの値で初期化。
+    // ただし、互換のため一部の値型フィールドは例外的に非0で初期化している。
+    // nullが意味をもつ一部の参照型フィールドは"= null"で明示的に初期化。
 
     /// <summary>転送ファイルデータ</summary>
     public class FileData : ICtrlCmdReadWrite
     {
         public string Name = "";
-        public uint Size = 0;
-        public uint Status = 0;
+        public uint Status;
         public byte[] Data = null;
 
         public void Read(MemoryStream s, ushort version)
@@ -39,10 +39,15 @@ namespace EpgTimer
             var r = new CtrlCmdReader(s, version);
             r.Begin();
             r.Read(ref Name);
-            r.Read(ref Size);
+            uint size = 0;
+            r.Read(ref size);
             r.Read(ref Status);
             Data = null;
-            if (Size != 0) Data = r.ReadBytes((int)Size);
+            if (size != 0)
+            {
+                Data = new byte[size];
+                r.ReadToArray(Data);
+            }
             r.End();
         }
         public void Write(MemoryStream s, ushort version)
@@ -50,9 +55,9 @@ namespace EpgTimer
             var w = new CtrlCmdWriter(s, version);
             w.Begin();
             w.Write(Name);
-            w.Write(Size);
+            w.Write((uint)(Data == null ? 0 : Data.Length));
             w.Write(Status);
-            if (Size != 0) w.Stream.Write(Data, 0, (int)Size);
+            if (Data != null) w.Stream.Write(Data, 0, Data.Length);
             w.End();
         }
     }
@@ -61,20 +66,14 @@ namespace EpgTimer
     public class RecFileSetInfo : ICtrlCmdReadWrite, IDeepCloneObj
     {
         /// <summary>録画フォルダ</summary>
-        public string RecFolder;
+        public string RecFolder = "";
         /// <summary>出力PlugIn</summary>
-        public string WritePlugIn;
+        public string WritePlugIn = "";
         /// <summary>ファイル名変換PlugInの使用</summary>
-        public string RecNamePlugIn;
+        public string RecNamePlugIn = "";
         /// <summary>ファイル名個別対応 録画開始処理時に内部で使用。予約情報としては必要なし</summary>
-        public string RecFileName;
-        public RecFileSetInfo()
-        {
-            RecFolder = "";
-            WritePlugIn = "";
-            RecNamePlugIn = "";
-            RecFileName = "";
-        }
+        public string RecFileName = "";
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -102,33 +101,33 @@ namespace EpgTimer
     public partial class RecSettingData : ICtrlCmdReadWrite, IDeepCloneObj
     {
         /// <summary>録画有効</summary>
-        public bool IsEnable;
+        public bool IsEnable = true;
         /// <summary>録画モード</summary>
-        public byte RecMode;
+        public byte RecMode = 2;
         /// <summary>優先度</summary>
-        public byte Priority;
+        public byte Priority = 1;
         /// <summary>イベントリレー追従するかどうか</summary>
-        public byte TuijyuuFlag;
+        public byte TuijyuuFlag = 1;
         /// <summary>処理対象データモード</summary>
-        public uint ServiceMode;
+        public uint ServiceMode = 16;
         /// <summary>ぴったり？録画</summary>
         public byte PittariFlag;
         /// <summary>録画後BATファイルパス</summary>
-        public string BatFilePath;
+        public string BatFilePath = "";
         /// <summary>録画タグ/summary>
-        public string RecTag;
+        public string RecTag = "";
         /// <summary>録画フォルダパス</summary>
-        public List<RecFileSetInfo> RecFolderList;
+        public List<RecFileSetInfo> RecFolderList = new List<RecFileSetInfo>();
         /// <summary>休止モード</summary>
-        public byte SuspendMode;
+        public byte SuspendMode = 2;
         /// <summary>録画後再起動する</summary>
         public byte RebootFlag;
         /// <summary>録画マージンを個別指定</summary>
         public byte UseMargineFlag;
         /// <summary>録画開始時のマージン</summary>
-        public int StartMargine;
+        public int StartMargine = 5;
         /// <summary>録画終了時のマージン</summary>
-        public int EndMargine;
+        public int EndMargine = 2;
         /// <summary>後続同一サービス時、同一ファイルで録画</summary>
         public byte ContinueRecFlag;
         /// <summary>物理CHに部分受信サービスがある場合、同時録画するかどうか</summary>
@@ -136,28 +135,7 @@ namespace EpgTimer
         /// <summary>強制的に使用Tunerを固定</summary>
         public uint TunerID;
         /// <summary>部分受信サービス録画のフォルダ</summary>
-        public List<RecFileSetInfo> PartialRecFolder;
-        public RecSettingData()
-        {
-            IsEnable = true;
-            RecMode = 1;
-            Priority = 2;
-            TuijyuuFlag = 1;
-            ServiceMode = 16;
-            PittariFlag = 0;
-            BatFilePath = "";
-            RecTag = "";
-            RecFolderList = new List<RecFileSetInfo>();
-            SuspendMode = 2;
-            RebootFlag = 0;
-            UseMargineFlag = 0;
-            StartMargine = 5;
-            EndMargine = 2;
-            ContinueRecFlag = 0;
-            PartialRecFlag = 0;
-            TunerID = 0;
-            PartialRecFolder = new List<RecFileSetInfo>();
-        }
+        public List<RecFileSetInfo> PartialRecFolder = new List<RecFileSetInfo>();
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -234,13 +212,13 @@ namespace EpgTimer
     public partial class ReserveData : ICtrlCmdReadWrite, IDeepCloneObj
     {
         /// <summary>番組名</summary>
-        public string Title;
+        public string Title = "";
         /// <summary>録画開始時間</summary>
         public DateTime StartTime;
         /// <summary>録画総時間</summary>
         public uint DurationSecond;
         /// <summary>サービス名</summary>
-        public string StationName;
+        public string StationName = "";
         /// <summary>ONID</summary>
         public ushort OriginalNetworkID;
         /// <summary>TSID</summary>
@@ -250,7 +228,7 @@ namespace EpgTimer
         /// <summary>EventID</summary>
         public ushort EventID;
         /// <summary>コメント</summary>
-        public string Comment;
+        public string Comment = "";
         /// <summary>予約識別ID 予約登録時は0</summary>
         public uint ReserveID;
         /// <summary>予約待機入った？ 内部で使用（廃止）</summary>
@@ -258,38 +236,18 @@ namespace EpgTimer
         /// <summary>かぶり状態 1:かぶってチューナー足りない予約あり 2:チューナー足りなくて予約できない</summary>
         public byte OverlapMode;
         /// <summary>録画ファイルパス 旧バージョン互換用 未使用（廃止）</summary>
-        private string UnusedRecFilePath;
+        private string UnusedRecFilePath = "";
         /// <summary>予約時の開始時間</summary>
         public DateTime StartTimeEpg;
         /// <summary>録画設定</summary>
-        public RecSettingData RecSetting;
+        public RecSettingData RecSetting = new RecSettingData();
         /// <summary>予約追加状態 内部で使用</summary>
         public uint ReserveStatus;
         /// <summary>録画予定ファイル名</summary>
-        public List<string> RecFileNameList;
+        public List<string> RecFileNameList = new List<string>();
         /// <summary>将来用</summary>
         private uint UnusedParam1;
-        public ReserveData()
-        {
-            Title = "";
-            StartTime = new DateTime();
-            DurationSecond = 0;
-            StationName = "";
-            OriginalNetworkID = 0;
-            TransportStreamID = 0;
-            ServiceID = 0;
-            EventID = 0;
-            Comment = "";
-            ReserveID = 0;
-            UnusedRecWaitFlag = 0;
-            OverlapMode = 0;
-            UnusedRecFilePath = "";
-            StartTimeEpg = new DateTime();
-            RecSetting = new RecSettingData();
-            ReserveStatus = 0;
-            RecFileNameList = new List<string>();
-            UnusedParam1 = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -358,15 +316,15 @@ namespace EpgTimer
         /// <summary>ID</summary>
         public uint ID;
         /// <summary>録画ファイルパス</summary>
-        public string RecFilePath;
+        public string RecFilePath = "";
         /// <summary>番組名</summary>
-        public string Title;
+        public string Title = "";
         /// <summary>開始時間</summary>
         public DateTime StartTime;
         /// <summary>録画時間</summary>
         public uint DurationSecond;
         /// <summary>サービス名</summary>
-        public string ServiceName;
+        public string ServiceName = "";
         /// <summary>ONID</summary>
         public ushort OriginalNetworkID;
         /// <summary>TSID</summary>
@@ -384,33 +342,12 @@ namespace EpgTimer
         /// <summary>予約時の開始時間</summary>
         public DateTime StartTimeEpg;
         /// <summary>コメント</summary>
-        public string Comment;
+        public string Comment = "";
         /// <summary>.program.txtファイルの内容</summary>
-        public string _ProgramInfo;
+        public string _ProgramInfo = "";
         /// <summary>.errファイルの内容</summary>
-        public string _ErrInfo;
+        public string _ErrInfo = "";
         public byte ProtectFlag;
-        public RecFileInfo()
-        {
-            ID = 0;
-            RecFilePath = "";
-            Title = "";
-            StartTime = new DateTime();
-            DurationSecond = 0;
-            ServiceName = "";
-            OriginalNetworkID = 0;
-            TransportStreamID = 0;
-            ServiceID = 0;
-            EventID = 0;
-            Drops = 0;
-            Scrambles = 0;
-            RecStatus = 0;
-            StartTimeEpg = new DateTime();
-            Comment = "";
-            _ProgramInfo = "";
-            _ErrInfo = "";
-            ProtectFlag = 0;
-        }
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -471,14 +408,9 @@ namespace EpgTimer
     public class TunerReserveInfo : ICtrlCmdReadWrite
     {
         public uint tunerID;
-        public string tunerName;
-        public List<uint> reserveList;
-        public TunerReserveInfo()
-        {
-            tunerID = 0;
-            tunerName = "";
-            reserveList = new List<uint>();
-        }
+        public string tunerName = "";
+        public List<uint> reserveList = new List<uint>();
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -503,14 +435,10 @@ namespace EpgTimer
     public class EpgShortEventInfo : ICtrlCmdReadWrite
     {
         /// <summary>イベント名</summary>
-        public string event_name;
+        public string event_name = "";
         /// <summary>情報</summary>
-        public string text_char;
-        public EpgShortEventInfo()
-        {
-            event_name = "";
-            text_char = "";
-        }
+        public string text_char = "";
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -533,11 +461,8 @@ namespace EpgTimer
     public class EpgExtendedEventInfo : ICtrlCmdReadWrite
     {
         /// <summary>詳細情報</summary>
-        public string text_char;
-        public EpgExtendedEventInfo()
-        {
-            text_char = "";
-        }
+        public string text_char = "";
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -561,13 +486,7 @@ namespace EpgTimer
         public byte content_nibble_level_2;
         public byte user_nibble_1;
         public byte user_nibble_2;
-        public EpgContentData()
-        {
-            content_nibble_level_1 = 0;
-            content_nibble_level_2 = 0;
-            user_nibble_1 = 0;
-            user_nibble_2 = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -594,11 +513,8 @@ namespace EpgTimer
     /// <summary>EPGジャンル情報</summary>
     public class EpgContentInfo : ICtrlCmdReadWrite
     {
-        public List<EpgContentData> nibbleList;
-        public EpgContentInfo()
-        {
-            nibbleList = new List<EpgContentData>();
-        }
+        public List<EpgContentData> nibbleList = new List<EpgContentData>();
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -622,14 +538,8 @@ namespace EpgTimer
         public byte component_type;
         public byte component_tag;
         /// <summary>情報</summary>
-        public string text_char;
-        public EpgComponentInfo()
-        {
-            stream_content = 0;
-            component_type = 0;
-            component_tag = 0;
-            text_char = "";
-        }
+        public string text_char = "";
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -665,20 +575,8 @@ namespace EpgTimer
         public byte quality_indicator;
         public byte sampling_rate;
         /// <summary>詳細情報</summary>
-        public string text_char;
-        public EpgAudioComponentInfoData()
-        {
-            stream_content = 0;
-            component_type = 0;
-            component_tag = 0;
-            stream_type = 0;
-            simulcast_group_tag = 0;
-            ES_multi_lingual_flag = 0;
-            main_component_flag = 0;
-            quality_indicator = 0;
-            sampling_rate = 0;
-            text_char = "";
-        }
+        public string text_char = "";
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -716,11 +614,8 @@ namespace EpgTimer
     /// <summary>EPG音声情報</summary>
     public class EpgAudioComponentInfo : ICtrlCmdReadWrite
     {
-        public List<EpgAudioComponentInfoData> componentList;
-        public EpgAudioComponentInfo()
-        {
-            componentList = new List<EpgAudioComponentInfoData>();
-        }
+        public List<EpgAudioComponentInfoData> componentList = new List<EpgAudioComponentInfoData>();
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -744,13 +639,7 @@ namespace EpgTimer
         public ushort transport_stream_id;
         public ushort service_id;
         public ushort event_id;
-        public EpgEventData()
-        {
-            original_network_id = 0;
-            transport_stream_id = 0;
-            service_id = 0;
-            event_id = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -777,12 +666,8 @@ namespace EpgTimer
     public class EpgEventGroupInfo : ICtrlCmdReadWrite
     {
         public byte group_type;
-        public List<EpgEventData> eventDataList;
-        public EpgEventGroupInfo()
-        {
-            group_type = 0;
-            eventDataList = new List<EpgEventData>();
-        }
+        public List<EpgEventData> eventDataList = new List<EpgEventData>();
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -817,41 +702,21 @@ namespace EpgTimer
         /// <summary>総時間（単位：秒）</summary>
         public uint durationSec;
         /// <summary>基本情報</summary>
-        public EpgShortEventInfo ShortInfo;
+        public EpgShortEventInfo ShortInfo = null;
         /// <summary>拡張情報</summary>
-        public EpgExtendedEventInfo ExtInfo;
+        public EpgExtendedEventInfo ExtInfo = null;
         /// <summary>ジャンル情報</summary>
-        public EpgContentInfo ContentInfo;
+        public EpgContentInfo ContentInfo = null;
         /// <summary>映像情報</summary>
-        public EpgComponentInfo ComponentInfo;
+        public EpgComponentInfo ComponentInfo = null;
         /// <summary>音声情報</summary>
-        public EpgAudioComponentInfo AudioInfo;
+        public EpgAudioComponentInfo AudioInfo = null;
         /// <summary>イベントグループ情報</summary>
-        public EpgEventGroupInfo EventGroupInfo;
+        public EpgEventGroupInfo EventGroupInfo = null;
         /// <summary>イベントリレー情報</summary>
-        public EpgEventGroupInfo EventRelayInfo;
+        public EpgEventGroupInfo EventRelayInfo = null;
         /// <summary>ノンスクランブルフラグ</summary>
         public byte FreeCAFlag;
-
-        public EpgEventInfo()
-        {
-            original_network_id = 0;
-            transport_stream_id = 0;
-            service_id = 0;
-            event_id = 0;
-            StartTimeFlag = 0;
-            start_time = new DateTime();
-            DurationFlag = 0;
-            durationSec = 0;
-            ShortInfo = null;
-            ExtInfo = null;
-            ContentInfo = null;
-            ComponentInfo = null;
-            AudioInfo = null;
-            EventGroupInfo = null;
-            EventRelayInfo = null;
-            FreeCAFlag = 0;
-        }
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -960,13 +825,7 @@ namespace EpgTimer
         public ushort transport_stream_id;
         public ushort service_id;
         public ushort event_id;
-        public EpgEventInfoMinimum()
-        {
-            original_network_id = 0;
-            transport_stream_id = 0;
-            service_id = 0;
-            event_id = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1013,25 +872,13 @@ namespace EpgTimer
         public ushort TSID;
         public ushort SID;
         public byte service_type;
-        private byte partialReceptionFlag;
-        public string service_provider_name;
-        public string service_name;
-        public string network_name;
-        public string ts_name;
+        public byte partialReceptionFlag;
+        public string service_provider_name = "";
+        public string service_name = "";
+        public string network_name = "";
+        public string ts_name = "";
         public byte remote_control_key_id;
-        public EpgServiceInfo()
-        {
-            ONID = 0;
-            TSID = 0;
-            SID = 0;
-            service_type = 0;
-            partialReceptionFlag = 0;
-            service_provider_name = "";
-            service_name = "";
-            network_name = "";
-            ts_name = "";
-            remote_control_key_id = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1068,13 +915,9 @@ namespace EpgTimer
 
     public class EpgServiceEventInfo : ICtrlCmdReadWrite
     {
-        public EpgServiceInfo serviceInfo;
-        public List<EpgEventInfo> eventList;
-        public EpgServiceEventInfo()
-        {
-            serviceInfo = new EpgServiceInfo();
-            eventList = new List<EpgEventInfo>();
-        }
+        public EpgServiceInfo serviceInfo = new EpgServiceInfo();
+        public List<EpgEventInfo> eventList = new List<EpgEventInfo>();
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1101,15 +944,7 @@ namespace EpgTimer
         public byte endDayOfWeek;
         public ushort endHour;
         public ushort endMin;
-        public EpgSearchDateInfo()
-        {
-            startDayOfWeek = 0;
-            startHour = 0;
-            startMin = 0;
-            endDayOfWeek = 0;
-            endHour = 0;
-            endMin = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1140,15 +975,15 @@ namespace EpgTimer
     /// <summary>検索条件</summary>
     public class EpgSearchKeyInfo : ICtrlCmdReadWrite, IDeepCloneObj
     {
-        public string andKey;
-        public string notKey;
+        public string andKey = "";
+        public string notKey = "";
         public int regExpFlag;
         public int titleOnlyFlag;
-        public List<EpgContentData> contentList;
-        public List<EpgSearchDateInfo> dateList;
-        public List<long> serviceList;
-        public List<ushort> videoList;
-        public List<ushort> audioList;
+        public List<EpgContentData> contentList = new List<EpgContentData>();
+        public List<EpgSearchDateInfo> dateList = new List<EpgSearchDateInfo>();
+        public List<long> serviceList = new List<long>();
+        public List<ushort> videoList = new List<ushort>();
+        public List<ushort> audioList = new List<ushort>();
         public byte aimaiFlag;
         public byte notContetFlag;
         public byte notDateFlag;
@@ -1156,7 +991,7 @@ namespace EpgTimer
         /// <summary>(自動予約登録の条件専用)録画済かのチェックあり</summary>
         public byte chkRecEnd;
         /// <summary>(自動予約登録の条件専用)録画済かのチェック対象期間</summary>
-        public ushort chkRecDay;
+        public ushort chkRecDay = 6;
         /// <summary>(自動予約登録の条件専用)録画済かのチェックの際、同一サービスのチェックを省略する</summary>
         public byte chkRecNoService;
         /// <summary>最低番組長(分/0は無制限)</summary>
@@ -1171,29 +1006,6 @@ namespace EpgTimer
         /// <summary>自動登録を無効にする</summary>
         public byte keyDisabledFlag;
 
-        public EpgSearchKeyInfo()
-        {
-            andKey = "";
-            notKey = "";
-            regExpFlag = 0;
-            titleOnlyFlag = 0;
-            contentList = new List<EpgContentData>();
-            dateList = new List<EpgSearchDateInfo>();
-            serviceList = new List<long>();
-            videoList = new List<ushort>();
-            audioList = new List<ushort>();
-            aimaiFlag = 0;
-            notContetFlag = 0;
-            notDateFlag = 0;
-            freeCAFlag = 0;
-            chkRecEnd = 0;
-            chkRecDay = 6;
-            chkRecNoService = 0;
-            chkDurationMin = 0;
-            chkDurationMax = 0;
-            caseFlag = 0;
-            keyDisabledFlag = 0;
-        }
         public void Write(MemoryStream s, ushort version)
         {
             //装飾フラグをここで処理
@@ -1299,15 +1111,10 @@ namespace EpgTimer
 
     public class SearchPgParam : ICtrlCmdReadWrite
     {
-        public List<EpgSearchKeyInfo> keyList;
+        public List<EpgSearchKeyInfo> keyList = new List<EpgSearchKeyInfo>();
         public long enumStart;
         public long enumEnd;
-        public SearchPgParam()
-        {
-            keyList = new List<EpgSearchKeyInfo>();
-            enumStart = 0;
-            enumEnd = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1333,18 +1140,12 @@ namespace EpgTimer
     {
         public uint dataID;
         /// <summary>検索キー</summary>
-        public EpgSearchKeyInfo searchInfo;
+        public EpgSearchKeyInfo searchInfo = new EpgSearchKeyInfo();
         /// <summary>録画設定</summary>
-        public RecSettingData recSetting;
+        public RecSettingData recSetting = new RecSettingData();
         /// <summary>予約登録数</summary>
         public uint addCount;
-        public EpgAutoAddData()
-        {
-            dataID = 0;
-            searchInfo = new EpgSearchKeyInfo();
-            recSetting = new RecSettingData();
-            addCount = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1390,9 +1191,9 @@ namespace EpgTimer
         /// <summary>録画総時間</summary>
         public uint durationSecond;
         /// <summary>番組名</summary>
-        public string title;
+        public string title = "";
         /// <summary>サービス名</summary>
-        public string stationName;
+        public string stationName = "";
         /// <summary>ONID</summary>
         public ushort originalNetworkID;
         /// <summary>TSID</summary>
@@ -1400,26 +1201,12 @@ namespace EpgTimer
         /// <summary>SID</summary>
         public ushort serviceID;
         /// <summary>録画設定</summary>
-        public RecSettingData recSetting;
+        public RecSettingData recSetting = new RecSettingData();
 
         //以下は、titleを装飾してEpgTimer側で実装する。
         /// <summary>自動登録を無効にする</summary>
         public byte keyDisabledFlag;
 
-        public ManualAutoAddData()
-        {
-            dataID = 0;
-            dayOfWeekFlag = 0;
-            startTime = 0;
-            durationSecond = 0;
-            title = "";
-            stationName = "";
-            originalNetworkID = 0;
-            transportStreamID = 0;
-            serviceID = 0;
-            recSetting = new RecSettingData();
-            keyDisabledFlag = 0;
-        }
         public void Write(MemoryStream s, ushort version)
         {
             //andKey装飾のフラグをここで処理。dayOfWeekFlagをtitleに移動して保存。
@@ -1486,16 +1273,7 @@ namespace EpgTimer
         public int space;
         /// <summary>物理チャンネル（NetworkTV関連では送信モード）</summary>
         public int ch;
-        public SetChInfo()
-        {
-            useSID = 0;
-            ONID = 0;
-            TSID = 0;
-            SID = 0;
-            useBonCh = 0;
-            space = 0;
-            ch = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1526,13 +1304,9 @@ namespace EpgTimer
 
     public class TvTestChChgInfo : ICtrlCmdReadWrite
     {
-        public string bonDriver;
-        public SetChInfo chInfo;
-        public TvTestChChgInfo()
-        {
-            bonDriver = "";
-            chInfo = new SetChInfo();
-        }
+        public string bonDriver = "";
+        public SetChInfo chInfo = new SetChInfo();
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1557,21 +1331,11 @@ namespace EpgTimer
         public uint ctrlID;
         public uint serverIP;
         public uint serverPort;
-        public string filePath;
+        public string filePath = "";
         public int udpSend;
         public int tcpSend;
         public int timeShiftMode;
-        public TVTestStreamingInfo()
-        {
-            enableMode = 0;
-            ctrlID = 0;
-            serverIP = 0;
-            serverPort = 0;
-            filePath = "";
-            udpSend = 0;
-            tcpSend = 0;
-            timeShiftMode = 0;
-        }
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1605,12 +1369,8 @@ namespace EpgTimer
     public class NWPlayTimeShiftInfo : ICtrlCmdReadWrite
     {
         public uint ctrlID;
-        public string filePath;
-        public NWPlayTimeShiftInfo()
-        {
-            ctrlID = 0;
-            filePath = "";
-        }
+        public string filePath = "";
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);
@@ -1643,22 +1403,12 @@ namespace EpgTimer
         /// <summary>パラメーター３（通知の巡回カウンタ）</summary>
         public uint param3;
         /// <summary>パラメーター４（種類によって内容変更）</summary>
-        public string param4;
+        public string param4 = "";
         /// <summary>パラメーター５（種類によって内容変更）</summary>
-        public string param5;
+        public string param5 = "";
         /// <summary>パラメーター６（種類によって内容変更）</summary>
-        public string param6;
-        public NotifySrvInfo()
-        {
-            notifyID = 0;
-            time = new DateTime();
-            param1 = 0;
-            param2 = 0;
-            param3 = 0;
-            param4 = "";
-            param5 = "";
-            param6 = "";
-        }
+        public string param6 = "";
+
         public void Write(MemoryStream s, ushort version)
         {
             var w = new CtrlCmdWriter(s, version);

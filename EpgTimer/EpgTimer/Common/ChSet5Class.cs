@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace EpgTimer
 {
     static class ChSet5
     {
+        public static event Action LogoChanged;
+
+        private static DispatcherTimer loadLogoTimer;
         private static List<EpgServiceInfo> chListOrderByIndex = null;
         private static Dictionary<UInt64, EpgServiceInfo> chList = null;
         public static Dictionary<UInt64, EpgServiceInfo> ChList
@@ -18,7 +23,7 @@ namespace EpgTimer
                 return chList ?? new Dictionary<UInt64, EpgServiceInfo>();
             }
         }
-        public static void Clear() { chList = null; chListOrderByIndex = null; bsmin = null; }
+        public static void Clear() { chList = null; chListOrderByIndex = null; bsmin = null; ClearLogo(); }
 
         public static EpgServiceInfo ChItem(UInt64 key, bool noNullReturn = false, bool TryIgnoreTSID = false)
         {
@@ -71,9 +76,7 @@ namespace EpgTimer
                 bsmin = (chListOrderByIndex ?? new List<EpgServiceInfo>()).GroupBy(d => d.TSID, d => d.SID)
                     .ToDictionary(d => d.Key, d => d.Min());
             }
-            ushort ret = 0;
-            bsmin.TryGetValue(item.TSID, out ret);
-            return ret;
+            return bsmin.GetValue(item.TSID);
         }
 
         public static void SetRemoconID(IEnumerable<EpgServiceInfo> infoList, bool addOnly = false)
@@ -91,9 +94,7 @@ namespace EpgTimer
         }
         public static byte RemoconID(this EpgServiceInfo item)
         {
-            byte ret = 0;
-            if (item.IsDttv) Settings.Instance.RemoconIDList.TryGetValue(item.TSID, out ret);
-            return ret;
+            return item.IsDttv ? Settings.Instance.RemoconIDList.GetValue(item.TSID) : (byte)0;
         }
         public static int ChNumber(this EpgServiceInfo item)
         {
@@ -143,15 +144,17 @@ namespace EpgTimer
 
         public static bool LoadFile()
         {
+            bool ret = false;
             try
             {
                 using (var fs = new FileStream(SettingPath.SettingFolderPath + "\\ChSet5.txt", FileMode.Open, FileAccess.Read))
                 {
-                    return LoadWithStreamReader(fs);
+                    ret = LoadWithStreamReader(fs);
                 }
+                ReLoadLogo();
             }
             catch { }
-            return false;
+            return ret;
         }
         private static Encoding enc = Encoding.UTF8;
         public static bool LoadWithStreamReader(Stream stream)
@@ -169,7 +172,7 @@ namespace EpgTimer
             {
                 chList = new Dictionary<UInt64, EpgServiceInfo>();
                 chListOrderByIndex = new List<EpgServiceInfo>();
-                using (var reader = new System.IO.StreamReader(stream, enc))
+                using (var reader = new StreamReader(stream, enc))
                 {
                     for (string buff = reader.ReadLine(); buff != null; buff = reader.ReadLine())
                     {
@@ -240,6 +243,211 @@ namespace EpgTimer
             }
             return true;
         }
+
+        //ロゴ関係
+        public static Dictionary<ulong, BitmapSource> LogoList;
+
+        public static void ReLoadLogo()
+        {
+            if (Settings.Instance.ShowLogo && LogoList == null)
+            {
+                loadLogoTimer = new DispatcherTimer();
+                loadLogoTimer.Tick += (sender, e) =>
+                {
+                    //2回目以降は間を開ける。
+                    loadLogoTimer.Interval = TimeSpan.FromMilliseconds(500);
+                    if (LoadLogo())
+                    {
+                        loadLogoTimer.Stop();
+                    }
+                };
+                loadLogoTimer.Start();
+            }
+        }
+        private static bool logoLoadCompleted = true;
+        private static byte[] logoIniBinary;
+        private static byte[] logoIndexBinary;
+        private static bool logoIndexLoaded;
+        private static Dictionary<uint, uint> chLogoIDs;
+        private static Dictionary<uint, string> logoNames;
+        private static int logoNamesLoadedCount;
+
+        private static void ClearLogo()
+        {
+            LogoList = null;
+            logoLoadCompleted = true;
+            logoIniBinary = null;
+            logoIndexBinary = null;
+            logoIndexLoaded = false;
+            chLogoIDs = null;
+            logoNames = null;
+            logoNamesLoadedCount = 0;
+    }
+    /// <summary>
+    /// ロゴを取得してChSet5に格納する。完了すればtrueが返る
+    /// </summary>
+    public static bool LoadLogo()
+        {
+            if (logoLoadCompleted)
+            {
+                //取得開始
+                if (logoIndexLoaded == false)
+                {
+                    logoIniBinary = null;
+                    logoIndexBinary = null;
+                    logoIndexLoaded = true;
+                    try
+                    {
+                        var dataList = new List<FileData>();
+                        if (Settings.Instance.ShowLogo &&
+                            CommonManager.CreateSrvCtrl().SendFileCopy2(new List<string> { "LogoData.ini", "LogoData\\*.*" }, ref dataList) == ErrCode.CMD_SUCCESS)
+                        {
+                            logoIniBinary = dataList.Count < 1 ? null : dataList[0].Data;
+                            logoIndexBinary = dataList.Count < 2 ? null : dataList[1].Data;
+                        }
+                    }
+                    catch { }
+                }
+                logoLoadCompleted = false;
+                LogoList = new Dictionary<ulong, BitmapSource>();
+            }
+
+            bool changed = false;
+            if (logoIndexLoaded)
+            {
+                //インデックス情報が更新された
+                logoIndexLoaded = false;
+                /*foreach (EpgServiceInfo ch in ChList.Values)
+                {
+                    changed = changed || ch.Logo != null;
+                    ch.Logo = null;
+                }*/
+
+                string logoIni = null;
+                string logoIndex = null;
+                if (logoIniBinary != null && logoIniBinary.Length > 2 && logoIniBinary[0] == 0xFF && logoIniBinary[1] == 0xFE &&
+                    logoIndexBinary != null && logoIndexBinary.Length > 2 && logoIndexBinary[0] == 0xFF && logoIndexBinary[1] == 0xFE)
+                {
+                    try
+                    {
+                        //必ずUTF-16LE
+                        logoIni = Encoding.Unicode.GetString(logoIniBinary, 2, logoIniBinary.Length - 2);
+                        logoIndex = Encoding.Unicode.GetString(logoIndexBinary, 2, logoIndexBinary.Length - 2);
+                    }
+                    catch { }
+                }
+                if (logoIni == null || logoIndex == null)
+                {
+                    //インデックス情報を取得できていない
+                    if (LogoChanged != null && changed)
+                    {
+                        LogoChanged();
+                    }
+                    logoLoadCompleted = true;
+                    return logoLoadCompleted;
+                }
+
+                //ChSet5のサービスとロゴ識別との対照表を作る
+                string[] lines = logoIni.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                Array.Sort(lines, StringComparer.OrdinalIgnoreCase); 
+                chLogoIDs = new Dictionary<uint, uint>();
+                foreach (EpgServiceInfo ch in ChList.Values)
+                {
+                    uint chID = (uint)ch.ONID << 16 | ch.SID;
+                    string startKey = chID.ToString("X8") + "=";
+                    int index = Array.BinarySearch(lines, startKey, StringComparer.OrdinalIgnoreCase);
+                    index = index < 0 ? ~index : index;
+                    if (index < lines.Length && lines[index].StartsWith(startKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        int logoID;
+                        if (int.TryParse(lines[index].Substring(9), out logoID) && 0 <= logoID && logoID <= 0x1FF)
+                        {
+                            chLogoIDs[chID] = (uint)ch.ONID << 16 | (uint)logoID;
+                        }
+                    }
+                }
+
+                //インデックス情報からファイル名を抽出してソート
+                lines = logoIndex.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string s = lines[i];
+                    lines[i] = s.Count(c => c == ' ') < 3 ? "" : s.Substring(s.IndexOf(' ', s.IndexOf(' ', s.IndexOf(' ') + 1) + 1) + 1);
+                }
+                Array.Sort(lines, StringComparer.OrdinalIgnoreCase);
+
+                //ロゴ識別とロゴファイル名との対照表を作る
+                logoNames = new Dictionary<uint, string>();
+                var logoTypes = new int[] { 5, 2, 4, 1, 3, 0 };
+                foreach (uint onidLogoID in chLogoIDs.Values.Distinct())
+                {
+                    string startKey = (onidLogoID >> 16).ToString("X4") + "_" + (onidLogoID & 0x1FF).ToString("X3") + "_";
+                    int index = Array.BinarySearch(lines, startKey, StringComparer.OrdinalIgnoreCase);
+                    index = index < 0 ? ~index : index;
+                    for (int logoTypeIndex = 0; logoTypeIndex < logoTypes.Length; logoTypeIndex++)
+                    {
+                        string endKey = "_0" + logoTypes[logoTypeIndex] + ".png";
+                        for (int i = index; i < lines.Length && lines[i].StartsWith(startKey, StringComparison.OrdinalIgnoreCase); i++)
+                        {
+                            if (lines[i].EndsWith(endKey, StringComparison.OrdinalIgnoreCase))
+                            {
+                                logoNames[onidLogoID] = "LogoData\\" + lines[i];
+                                logoTypeIndex = logoTypes.Length - 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+                logoNamesLoadedCount = 0;
+            }
+
+            //サーバーの負荷を考慮して少しずつ取得する
+            var copyNameList = logoNames.Values.Skip(logoNamesLoadedCount).Take(20).ToList();
+            if (copyNameList.Count > 0)
+            {
+                logoNamesLoadedCount += copyNameList.Count;
+                var bitmapList = new List<BitmapSource>();
+                try
+                {
+                    var dataList = new List<FileData>();
+                    if (CommonManager.CreateSrvCtrl().SendFileCopy2(copyNameList, ref dataList) == ErrCode.CMD_SUCCESS)
+                    {
+                        foreach (FileData data in dataList)
+                        {
+                            var decoder = new PngBitmapDecoder(new MemoryStream(data.Data),
+                                                               BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                            bitmapList.Add(decoder.Frames[0]);
+                            bitmapList.Last().Freeze();
+                        }
+                    }
+                }
+                catch { }
+
+                foreach (EpgServiceInfo ch in ChList.Values)
+                {
+                    uint onidLogoID;
+                    string name;
+                    if (chLogoIDs.TryGetValue((uint)ch.ONID << 16 | ch.SID, out onidLogoID) &&
+                        logoNames.TryGetValue(onidLogoID, out name))
+                    {
+                        int i = copyNameList.IndexOf(name);
+                        if (0 <= i && i < bitmapList.Count())
+                        {
+                            LogoList[ch.Key] = bitmapList[i];
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+            if (LogoChanged != null && changed)
+            {
+                LogoChanged();
+            }
+
+            logoLoadCompleted = logoNamesLoadedCount == logoNames.Count;
+            return logoLoadCompleted;
+        }
     }
 
     public partial class EpgServiceInfo
@@ -247,7 +455,7 @@ namespace EpgTimer
         public bool PartialFlag { get { return partialReceptionFlag == 1; } set { partialReceptionFlag = (byte)(value ? 1 : 0); } }
         public bool EpgCapFlag = false;
         public bool SearchFlag = false;
-
+        public BitmapSource Logo { get { return ChSet5.LogoList.GetValue(Key); } }
         public bool IsVideo { get { return ChSet5.IsVideo(service_type); } }
         public bool IsDttv { get { return ChSet5.IsDttv(ONID); } }
         public bool IsBS { get { return ChSet5.IsBS(ONID); } }

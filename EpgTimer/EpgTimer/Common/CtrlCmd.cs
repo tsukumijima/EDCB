@@ -115,6 +115,14 @@ namespace EpgTimer
             }
             return buff;
         }
+        /// <summary>配列のサイズだけストリームから読み込む</summary>
+        public void ReadToArray(byte[] v)
+        {
+            if (Stream.Read(v, 0, v.Length) != v.Length)
+            {
+                throw new EndOfStreamException();
+            }
+        }
         /// <summary>ストリームから読み込む</summary>
         public void Read(ref byte v) { v = ReadBytes(1)[0]; }
         /// <summary>ストリームから読み込む</summary>

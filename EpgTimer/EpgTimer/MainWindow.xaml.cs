@@ -169,6 +169,9 @@ namespace EpgTimer
                 CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgData] = () => MainProc(MainProcItem.EpgDataLoaded);
                 CommonManager.Instance.DB.DBChanged[UpdateNotifyItem.EpgDataAdd] = () => MainProc(MainProcItem.EpgDataAddLoaded);
 
+                //ロゴは読み込みがゆっくりなので更新用の設定。番組表表示に時間がかかっているときなどは間引かれる。
+                ChSet5.LogoChanged += () => MainProc(MainProcItem.ChSet5Logo, () => epgView.UpdateLog());
+
                 if (CommonManager.Instance.NWMode == false)
                 {
                     int pid;
@@ -1030,6 +1033,8 @@ namespace EpgTimer
                 CommonManager.CreateSrvCtrl().SendReloadSetting();
                 CommonManager.CreateSrvCtrl().SendNotifyProfileUpdate(mutexName);
             }
+
+            ChSet5.ReLoadLogo();
 
             if (setting.setEpgView.IsChangeRecInfoDropExcept == true)
             {

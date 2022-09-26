@@ -125,6 +125,13 @@ namespace EpgTimer
             return new List<T> { item };
         }
 
+        /// <summary>TryGetValueの代わりに見つからないときデフォルト値を返す</summary>
+        public static TValue GetValue<TKey, TValue>(this IDictionary<TKey, TValue> dic, TKey key, TValue def = default(TValue))
+        {
+            TValue val;
+            return (dic == null || !dic.TryGetValue(key, out val)) ? def : val;
+        }
+
         /// <summary>非同期のメッセージボックスを表示</summary>
         public static void DispatcherMsgBoxShow(string message, string caption = "", MessageBoxButton button = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None)
         {

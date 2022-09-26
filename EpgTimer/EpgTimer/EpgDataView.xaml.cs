@@ -71,6 +71,9 @@ namespace EpgTimer
             grid_tab.Margin = new Thickness(m, -m, m, m);
         }
 
+        /// <summary>ロゴの更新通知</summary>//ストックにもフラグを立てる。
+        public void UpdateLog() { foreach (var tb in Tabs) tb.UpdateLog(); }
+
         /// <summary>予約情報の更新通知</summary>//ストックにもフラグを立てる。
         public void UpdateReserveInfo() { foreach (var tb in Tabs) tb.UpdateReserveInfo(); }
 
@@ -651,6 +654,7 @@ namespace EpgTimer
         public void SaveViewData() { foreach (var v in vItems.Values) v.SaveViewData(); }//これは非表示でも実行
         public void UpdateMenu(bool refresh = true) { foreach (var v in vItems.Values) v.UpdateMenu(refresh); }
         public void UpdateReserveInfo() { foreach (var v in vItems) v.Value.UpdateReserveInfo(IsDisplay(v.Key)); }
+        public void UpdateLog() { foreach (var v in vItems) v.Value.UpdateLogo(IsDisplay(v.Key)); }
 
         //更新時の動作
         //PrebuildEpg==false → 表示中の番組のみ構築

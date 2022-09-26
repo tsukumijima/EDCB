@@ -56,6 +56,22 @@ namespace EpgTimer
             return time.AddHours(-viewInfo.StartTimeWeek).Date;
         }
 
+        /// <summary>サービスロゴの再描画</summary>
+        protected override void ReloadServiceLogo()
+        {
+            int idx = comboBox_service.SelectedIndex;
+            if (idx < 0) return;
+            if(Settings.Instance.ShowLogo)
+            {
+                image_Logo.Source = serviceListOrderAdjust[idx].Logo;
+                image_Logo.Width = 64;
+            }
+            else
+            {
+                image_Logo.Source = null;
+                image_Logo.Width = 0; //隙間調整もあるので非表示にはしない。
+            }
+        }
         /// <summary>予約情報の再描画</summary>
         protected override void ReloadReserveViewItem()
         {
@@ -164,6 +180,7 @@ namespace EpgTimer
         private void comboBox_service_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (serviceChanging == true) return;
+            ReloadServiceLogo();
             UpdateProgramView();
             ReloadReserveViewItem();
             UpdateStatus();
