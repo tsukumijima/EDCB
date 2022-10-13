@@ -61,12 +61,15 @@
                             </GroupBox>
                             <GroupBox Header="表示設定" Margin="6,6,6,0" >
                                 <Grid>
-                                    <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
+                                    <Label Content="マウス縦スクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding ScrollSize}" VerticalAlignment="Top" Width="55" />
                                     <CheckBox Content="自動" Margin="226,11,0,0" IsChecked="{Binding MouseScrollAuto}" VerticalAlignment="Top" />
-                                    <Label Content="サービス１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
-                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding ServiceWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
-                                    <CheckBox Content="ツールチップ" Margin="226,41,0,0" IsChecked="{Binding EpgServiceNameTooltip}" VerticalAlignment="Top" ToolTip="サービス名をツールチップに表示します"/>
+                                    <Label Content="マウス横スクロールサイズ" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding HorizontalScrollSize}" VerticalAlignment="Top" Width="55" />
+                                    <CheckBox Content="自動" Margin="226,41,0,0" IsChecked="{Binding MouseHorizontalScrollAuto}" VerticalAlignment="Top" />
+                                    <Label Content="サービス１つの幅" HorizontalAlignment="Left" Margin="11,66,0,0" VerticalAlignment="Top" />
+                                    <TextBox Height="24" HorizontalAlignment="Left" Margin="165,66,0,0" Text="{Binding ServiceWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                    <CheckBox Content="ツールチップ" Margin="226,71,0,0" IsChecked="{Binding EpgServiceNameTooltip}" VerticalAlignment="Top" ToolTip="サービス名をツールチップに表示します"/>
                                     <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding MinHeight, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
                                     <Label Content="ドラッグスクロール倍率" HorizontalAlignment="Left" Margin="327,36,0,0" VerticalAlignment="Top" />
@@ -76,7 +79,7 @@
                                     <Label Content="枠線の幅" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding EpgBorderLeftSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(サービス区切り)"/>
                                     <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding EpgBorderTopSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
-                                    <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
+                                    <StackPanel Margin="11,94,0,0" Width="304" HorizontalAlignment="Left">
                                         <CheckBox Content="番組内容のポップアップ表示" Margin="0,6,0,0" IsChecked="{Binding EpgPopup}"/>
                                         <StackPanel Margin="20,0,0,0" IsEnabled="{Binding EpgPopup}" >
                                             <WrapPanel Name="panel_epgPopup">
@@ -105,7 +108,7 @@
                                             <CheckBox Content="ツールチップ" Margin="0,6,12,0" IsChecked="{Binding EpgExtInfoTooltip}" />
                                         </WrapPanel>
                                     </StackPanel>
-                                    <StackPanel Margin="327,64,0,0" >
+                                    <StackPanel Margin="327,94,0,0" >
                                         <CheckBox Content="シングルクリックで予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding EpgInfoSingleClick}" />
                                         <CheckBox Content="番組詳細タブを選択した状態で予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding EpgInfoOpenMode}" />
                                         <CheckBox Content="番組名と番組内容の表示位置をあわせる" Margin="0,6,0,0" IsChecked="{Binding EpgTitleIndent}" />
@@ -447,12 +450,15 @@
                         </GroupBox>
                         <GroupBox Header="表示設定" Margin="6,6,6,0">
                             <Grid>
-                                <Label Content="マウススクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
+                                <Label Content="マウス縦スクロールサイズ" HorizontalAlignment="Left" Margin="11,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="165,6,0,0" Text="{Binding TunerScrollSize}" VerticalAlignment="Top" Width="55" />
                                 <CheckBox Content="自動" Margin="226,11,0,0" IsChecked="{Binding TunerMouseScrollAuto}" VerticalAlignment="Top" />
-                                <Label Content="チューナー１つの幅" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
-                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding TunerWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
-                                <CheckBox Content="ツールチップ" Margin="226,41,0,0" IsChecked="{Binding TunerNameTooltip}" VerticalAlignment="Top" ToolTip="チューナー名をツールチップに表示します"/>
+                                <Label Content="マウス横スクロールサイズ" HorizontalAlignment="Left" Margin="11,36,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,36,0,0" Text="{Binding TunerHorizontalScrollSize}" VerticalAlignment="Top" Width="55" />
+                                <CheckBox Content="自動" Margin="226,41,0,0" IsChecked="{Binding TunerMouseHorizontalScrollAuto}" VerticalAlignment="Top" />
+                                <Label Content="チューナー１つの幅" HorizontalAlignment="Left" Margin="11,66,0,0" VerticalAlignment="Top" />
+                                <TextBox Height="24" HorizontalAlignment="Left" Margin="165,66,0,0" Text="{Binding TunerWidth, Converter={StaticResource vcheck},ConverterParameter='max,16'}" VerticalAlignment="Top" Width="55" />
+                                <CheckBox Content="ツールチップ" Margin="226,71,0,0" IsChecked="{Binding TunerNameTooltip}" VerticalAlignment="Top" ToolTip="チューナー名をツールチップに表示します"/>
                                 <Label Content="1分あたりの高さ" HorizontalAlignment="Left" Margin="327,6,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="470,6,0,0" Text="{Binding TunerMinHeight, Converter={StaticResource vcheck},ConverterParameter='max,0.1'}" VerticalAlignment="Top" Width="55" />
                                 <Label Content="最低表示行数" HorizontalAlignment="Left" Margin="551,6,0,0" VerticalAlignment="Top" />
@@ -462,7 +468,7 @@
                                 <Label Content="枠線の幅" HorizontalAlignment="Left" Margin="551,36,0,0" VerticalAlignment="Top" />
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="634,38,0,0" Text="{Binding TunerBorderLeftSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="横(チューナー区切り)"/>
                                 <TextBox Height="24" HorizontalAlignment="Left" Margin="672,38,0,0" Text="{Binding TunerBorderTopSize, Converter={StaticResource vcheck},ConverterParameter='max,0'}" VerticalAlignment="Top" Width="33" ToolTip="縦(番組区切り)"/>
-                                <StackPanel Margin="11,64,0,0" Width="304" HorizontalAlignment="Left">
+                                <StackPanel Margin="11,94,0,0" Width="304" HorizontalAlignment="Left">
                                     <CheckBox Content="予約のポップアップ表示" Margin="0,6,0,0" IsChecked="{Binding TunerPopup}"/>
                                     <StackPanel Margin="20,0,0,0" IsEnabled="{Binding TunerPopup}" >
                                         <WrapPanel>
@@ -488,7 +494,7 @@
                                         </WrapPanel>
                                     </StackPanel>
                                 </StackPanel>
-                                <StackPanel Margin="327,64,0,0" >
+                                <StackPanel Margin="327,94,0,0" >
                                     <CheckBox Content="シングルクリックで予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding TunerInfoSingleClick}" />
                                     <CheckBox Content="番組詳細タブを選択した状態で予約ダイアログを開く" Margin="0,6,0,0" IsChecked="{Binding TunerEpgInfoOpenMode}" />
                                     <CheckBox Content="サービス名と番組名の表示位置をあわせる" Margin="0,6,0,0" IsChecked="{Binding TunerTitleIndent}" />

@@ -17,6 +17,8 @@ namespace EpgTimer.EpgView
         protected override double DragScroll { get { return this.EpgStyle().DragScroll; } }
         protected override bool IsMouseScrollAuto { get { return this.EpgStyle().MouseScrollAuto; } }
         protected override double ScrollSize { get { return this.EpgStyle().ScrollSize; } }
+        protected override bool IsMouseHorizontalScrollAuto { get { return this.EpgStyle().MouseHorizontalScrollAuto; } }
+        protected override double HorizontalScrollSize { get { return this.EpgStyle().HorizontalScrollSize; } }
         protected override bool IsPopEnabled { get { return this.EpgStyle().EpgPopup == true; } }
         protected override bool PopOnOver { get { return this.EpgStyle().EpgPopupMode != 1; } }
         protected override bool PopOnClick { get { return this.EpgStyle().EpgPopupMode != 0; } }

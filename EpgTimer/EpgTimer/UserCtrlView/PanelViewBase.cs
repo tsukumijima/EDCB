@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -202,11 +203,15 @@ namespace EpgTimer
         protected double lastDownVOffset;
         protected bool isDrag = false;
         protected bool isDragMoved = false;
+        protected HwndSource scrollViewerHwndSource;
+        protected HwndSourceHook horizontalScrollMessageHook;
 
         protected virtual bool IsSingleClickOpen { get { return false; } }
         protected virtual double DragScroll { get { return 1; } }
         protected virtual bool IsMouseScrollAuto { get { return false; } }
         protected virtual double ScrollSize { get { return 240; } }
+        protected virtual bool IsMouseHorizontalScrollAuto { get { return false; } }
+        protected virtual double HorizontalScrollSize { get { return 150; } }
 
         protected virtual bool IsPopEnabled { get { return false; } }
         protected virtual bool PopOnOver { get { return false; } }
@@ -417,36 +422,54 @@ namespace EpgTimer
         /// <summary>マウスホイールイベント呼び出し</summary>
         protected virtual void scrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            try
+            if (e.Delta != 0)
             {
-                e.Handled = true;
+                //負のとき下方向
+                double delta = IsMouseScrollAuto ? e.Delta : ScrollSize * (e.Delta < 0 ? -1 : 1);
+                scroll.ScrollToVerticalOffset(scroll.VerticalOffset - delta);
+            }
+            e.Handled = true;
+        }
 
-                if (IsMouseScrollAuto == true)
+        protected virtual void scrollViewer_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (horizontalScrollMessageHook == null && (IsMouseHorizontalScrollAuto || HorizontalScrollSize != 0))
+            {
+                scrollViewerHwndSource = PresentationSource.FromVisual(scroll) as HwndSource;
+                if (scrollViewerHwndSource != null)
                 {
-                    scroll.ScrollToVerticalOffset(scroll.VerticalOffset - e.Delta);
-                }
-                else
-                {
-                    if (e.Delta < 0)
+                    horizontalScrollMessageHook = (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
                     {
-                        //下方向
-                        scroll.ScrollToVerticalOffset(scroll.VerticalOffset + ScrollSize);
-                    }
-                    else
-                    {
-                        //上方向
-                        if (scroll.VerticalOffset < ScrollSize)
+                        const int WM_MOUSEHWHEEL = 0x020E;
+                        if (msg == WM_MOUSEHWHEEL)
                         {
-                            scroll.ScrollToVerticalOffset(0);
+                            toolTipTimer.Stop();
+                            TooltipClear();
+
+                            double delta = (short)((wParam.ToInt64() >> 16) & 0xFFFF);
+                            if (delta != 0)
+                            {
+                                //負のとき左方向
+                                delta = IsMouseHorizontalScrollAuto ? delta : HorizontalScrollSize * (delta < 0 ? -1 : 1);
+                                scroll.ScrollToHorizontalOffset(scroll.HorizontalOffset + delta);
+                            }
+                            handled = true;
                         }
-                        else
-                        {
-                            scroll.ScrollToVerticalOffset(scroll.VerticalOffset - ScrollSize);
-                        }
-                    }
+                        return IntPtr.Zero;
+                    };
+                    scrollViewerHwndSource.AddHook(horizontalScrollMessageHook);
                 }
             }
-            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+        }
+
+        protected virtual void scrollViewer_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (horizontalScrollMessageHook != null)
+            {
+                scrollViewerHwndSource.RemoveHook(horizontalScrollMessageHook);
+                horizontalScrollMessageHook = null;
+                scrollViewerHwndSource = null;
+            }
         }
 
         protected virtual void scrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)

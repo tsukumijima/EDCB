@@ -14,6 +14,8 @@ namespace EpgTimer.TunerReserveViewCtrl
         protected override double DragScroll { get { return Settings.Instance.TunerDragScroll; } }
         protected override bool IsMouseScrollAuto { get { return Settings.Instance.TunerMouseScrollAuto; } }
         protected override double ScrollSize { get { return Settings.Instance.TunerScrollSize; } }
+        protected override bool IsMouseHorizontalScrollAuto { get { return Settings.Instance.TunerMouseHorizontalScrollAuto; } }
+        protected override double HorizontalScrollSize { get { return Settings.Instance.TunerHorizontalScrollSize; } }
         protected override bool IsPopEnabled { get { return Settings.Instance.TunerPopup == true; } }
         protected override bool PopOnOver { get { return Settings.Instance.TunerPopupMode == 0; } }
         protected override bool PopOnClick { get { return Settings.Instance.TunerPopupMode == 1; } }
