@@ -330,6 +330,8 @@ namespace EpgTimer
         public UInt32 TitleCustColor2 { get; set; }
         public double ScrollSize { get; set; }
         public bool MouseScrollAuto { get; set; }
+        public double HorizontalScrollSize { get; set; }
+        public bool MouseHorizontalScrollAuto { get; set; }
         public double ServiceWidth { get; set; }
         public bool EpgServiceNameTooltip { get; set; }
         public double MinHeight { get; set; }
@@ -389,6 +391,8 @@ namespace EpgTimer
             TitleCustColor2 = 0xFFFFFFFF;
             ScrollSize = 240;
             MouseScrollAuto = false;
+            HorizontalScrollSize = 150;
+            MouseHorizontalScrollAuto = false;
             ServiceWidth = 150;
             EpgServiceNameTooltip = false;
             MinHeight = 2;
@@ -477,6 +481,8 @@ namespace EpgTimer
         public double TunerDragScroll { get; set; }
         public double TunerScrollSize { get; set; }
         public bool TunerMouseScrollAuto { get; set; }
+        public double TunerHorizontalScrollSize { get; set; }
+        public bool TunerMouseHorizontalScrollAuto { get; set; }
         public double TunerWidth { get; set; }
         public bool TunerNameTooltip { get; set; }
         public bool TunerServiceNoWrap { get; set; }
@@ -827,6 +833,8 @@ namespace EpgTimer
             TunerDragScroll = 1.5;
             TunerScrollSize = 240;
             TunerMouseScrollAuto = false;
+            TunerHorizontalScrollSize = 150;
+            TunerMouseHorizontalScrollAuto = false;
             TunerWidth = 150;
             TunerNameTooltip = false;
             TunerServiceNoWrap = true;

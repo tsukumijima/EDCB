@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:EpgTimer"
              xmlns:my="clr-namespace:EpgTimer.EpgView">
 
-    <ScrollViewer Name="scrollViewer" HorizontalScrollBarVisibility="Visible" ScrollChanged="scrollViewer_ScrollChanged" PreviewMouseWheel="scrollViewer_PreviewMouseWheel">
+    <ScrollViewer Name="scrollViewer" HorizontalScrollBarVisibility="Visible" MouseEnter="scrollViewer_MouseEnter" MouseLeave="scrollViewer_MouseLeave" ScrollChanged="scrollViewer_ScrollChanged" PreviewMouseWheel="scrollViewer_PreviewMouseWheel">
         <Grid Background="Transparent" MouseRightButtonDown="canvas_MouseRightButtonDown" >
             <Canvas Name="canvas" HorizontalAlignment="Left" VerticalAlignment="Top" MouseMove="canvas_MouseMove" MouseLeftButtonDown="canvas_MouseLeftButtonDown" MouseLeftButtonUp="canvas_MouseLeftButtonUp" MouseLeave="canvas_MouseLeave" >
                 <my:EpgViewPanel x:Name="epgViewPanel"/>
