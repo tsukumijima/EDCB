@@ -6,7 +6,9 @@
 #define _CRT_STDIO_ISO_WIDE_SPECIFIERS
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include <string>
 #include <utility>
 #include <map>
@@ -26,6 +28,13 @@ using std::pair;
 using std::map;
 using std::multimap;
 using std::vector;
+
+#ifndef _WIN32
+#include "WinAdapter.h"
+#endif
+
+// EDCB_INI_ROOT には EDCB の設定ファイル類のディレクトリパスを指定する (暫定で決め打ち)
+#define EDCB_INI_ROOT L"/Develop/EpgDataCap_Bon"
 
 template<class RndIt, class T>
 RndIt lower_bound_first(RndIt first, RndIt last, const T& key)
@@ -84,7 +93,9 @@ RndIt upper_bound_first(RndIt first, RndIt last, const T& key)
 #ifndef WRAP_DEBUG_OUTPUT
 inline void AddDebugLogNoNewline(const WCHAR* s)
 {
+#ifdef _WIN32
 	OutputDebugString(s);
+#endif
 }
 #endif
 

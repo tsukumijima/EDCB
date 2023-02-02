@@ -5,7 +5,9 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include "targetver.h"
+#endif
 
 #include "../../Common/Common.h"
 #define SEND_CTRL_CMD_NO_TCP
