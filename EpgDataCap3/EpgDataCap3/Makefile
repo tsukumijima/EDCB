@@ -1,7 +1,12 @@
 TARGET ?= EpgDataCap3
-CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGDATACAP3_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+ifeq ($(OS),Windows_NT)
+  CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGDATACAP3_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+else
+  CPPFLAGS := -I. -DNDEBUG -fPIC -DEPGDATACAP3_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+endif
 CXXFLAGS := -std=c++17 -pedantic-errors -O2 $(CXXFLAGS)
 LDFLAGS2 = -Wl,-s,--dynamicbase,--nxcompat,--kill-at -static-libgcc -static-libstdc++ -shared $(LDFLAGS)
+LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ -shared $(LDFLAGS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
 CUR_ALL_H := $(wildcard *.h)
@@ -22,10 +27,28 @@ SOURCES_BASE = \
   stdafx.cpp \
   EpgDataCap3.rc
 
+SOURCES_BASE_LINUX = \
+  Common__EpgTimerUtil.cpp \
+  Common__PathUtil.cpp \
+  Common__StringUtil.cpp \
+  Common__TimeUtil.cpp \
+  Common__TSBuffUtil.cpp \
+  Common__TSPacketUtil.cpp \
+  AribDescriptor.cpp \
+  DecodeUtil.cpp \
+  EpgDataCap3.cpp \
+  EpgDataCap3Main.cpp \
+  EpgDBUtil.cpp \
+  stdafx.cpp \
+
 $(TARGET).dll: $(addsuffix .obj,$(SOURCES_BASE) ARIB8CharDecode.cpp) $(TARGET)_Unicode.dll
 	$(CXX) $(LDFLAGS2) $(filter %.obj,$^) $(LDLIBS) -o $@
 $(TARGET)_Unicode.dll: $(addsuffix .obj,$(SOURCES_BASE) USE_UNICODE_ARIB8CharDecode.cpp)
 	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
+$(TARGET).so: $(addsuffix .obj,$(SOURCES_BASE_LINUX) ARIB8CharDecode.cpp) $(TARGET)_Unicode.dll
+	$(CXX) $(LDFLAGS2_LINUX) $(filter %.obj,$^) $(LDLIBS) -o $@
+$(TARGET)_Unicode.so: $(addsuffix .obj,$(SOURCES_BASE_LINUX) USE_UNICODE_ARIB8CharDecode.cpp)
+	$(CXX) $(LDFLAGS2_LINUX) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
 	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch $(DEP_ALL_H)
@@ -45,4 +68,4 @@ else
 	powershell -NoProfile -Command "&{cat $<|Out-File -Encoding UTF8 $@}"
 endif
 clean:
-	$(RM) stdafx.h.gch *.obj $(TARGET).dll $(TARGET).map $(TARGET)_Unicode.dll $(TARGET)_Unicode.map
+	$(RM) stdafx.h.gch *.obj $(TARGET).dll $(TARGET).so $(TARGET).map $(TARGET)_Unicode.dll $(TARGET)_Unicode.so $(TARGET)_Unicode.map

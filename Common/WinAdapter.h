@@ -231,6 +231,7 @@
 #define MAXDWORD    0xffffffff
 
 #define Sleep(x) usleep(x * 1000)
+#define wcscpy_s(dst, n, src) wcsncpy(dst, src, n)
 
 //===--------------------- HRESULT Related Macros -------------------------===//
 
@@ -363,6 +364,7 @@
 #define __thiscall
 #define __fastcall
 #define __clrcall
+#define WINAPI __stdcall
 #endif // __GNUC____GNUC__
 
 //===----------------------------------------------------------------------===//

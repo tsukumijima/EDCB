@@ -8,7 +8,11 @@ CWriteMain::CWriteMain(void)
 	this->file = INVALID_HANDLE_VALUE;
 	this->teeFile = INVALID_HANDLE_VALUE;
 	{
+#ifdef _WIN32
 		fs_path iniPath = GetModuleIniPath(g_instance);
+#else
+		fs_path iniPath = GetModuleIniPath();
+#endif
 		this->writeBuffSize = GetPrivateProfileInt(L"SET", L"Size", 770048, iniPath.c_str());
 		this->writeBuff.reserve(this->writeBuffSize);
 		this->teeCmd = GetPrivateProfileToString(L"SET", L"TeeCmd", L"", iniPath.c_str());

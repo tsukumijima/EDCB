@@ -4,15 +4,23 @@
 #include "stdafx.h"
 
 #include "WriteMain.h"
+#ifdef _WIN32
 #include "SettingDlg.h"
+#endif
 #include "../../Common/InstanceManager.h"
 
 CInstanceManager<CWriteMain> g_instMng;
 
+#ifdef _WIN32
 extern HINSTANCE g_instance;
+#endif
 
 #define PLUGIN_NAME L"デフォルト 188バイトTS出力 PlugIn"
+#ifdef _WIN32
 #define DLL_EXPORT extern "C" __declspec(dllexport)
+#else
+#define DLL_EXPORT extern "C"
+#endif
 
 
 //PlugInの名前を取得する
@@ -50,6 +58,7 @@ BOOL WINAPI GetPlugInName(
 	return TRUE;
 }
 
+#ifdef _WIN32
 //PlugInで設定が必要な場合、設定用のダイアログなどを表示する
 //引数：
 // parentWnd				[IN]親ウインドウ
@@ -73,6 +82,7 @@ void WINAPI Setting(
 		}
 	}
 }
+#endif
 
 //////////////////////////////////////////////////////////
 //基本的な保存時のAPIの呼ばれ方

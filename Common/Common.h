@@ -95,6 +95,8 @@ inline void AddDebugLogNoNewline(const WCHAR* s)
 {
 #ifdef _WIN32
 	OutputDebugString(s);
+#else
+	wprintf(L"%s", s);
 #endif
 }
 #endif

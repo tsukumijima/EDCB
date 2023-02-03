@@ -2,15 +2,23 @@
 //
 
 #include "stdafx.h"
+#ifdef _WIN32
 #include "SettingDlg.h"
+#endif
 #include "ConvertMacro2.h"
 #include "../../Common/PathUtil.h"
 #include <stddef.h>
 
 #define PLUGIN_NAME L"マクロ PlugIn"
+#ifdef _WIN32
 #define DLL_EXPORT extern "C" __declspec(dllexport)
+#else
+#define DLL_EXPORT extern "C"
+#endif
 
+#ifdef _WIN32
 extern HINSTANCE g_instance;
+#endif
 
 //PlugInの名前を取得する
 //nameがNULL時は必要なサイズをnameSizeで返す
@@ -47,6 +55,7 @@ BOOL WINAPI GetPlugInName(
 	return TRUE;
 }
 
+#ifdef _WIN32
 //PlugInで設定が必要な場合、設定用のダイアログなどを表示する
 //引数：
 // parentWnd				[IN]親ウインドウ
@@ -67,6 +76,7 @@ void WINAPI Setting(
 		}
 	}
 }
+#endif
 
 //入力された予約情報と変換パターンを元に、録画時のファイル名を作成する（拡張子含む）
 //recNameがNULL時は必要なサイズをrecNamesizeで返す
@@ -91,7 +101,12 @@ BOOL WINAPI ConvertRecName3(
 	}
 	wstring buff;
 	if( pattern == NULL ){
-		buff = GetPrivateProfileToString(L"SET", L"Macro", L"$Title$.ts", GetModuleIniPath(g_instance).c_str());
+#ifdef _WIN32
+		fs_path iniPath = GetModuleIniPath(g_instance);
+#else
+		fs_path iniPath = GetModuleIniPath();
+#endif
+		buff = GetPrivateProfileToString(L"SET", L"Macro", L"$Title$.ts", iniPath.c_str());
 		pattern = buff.c_str();
 	}
 

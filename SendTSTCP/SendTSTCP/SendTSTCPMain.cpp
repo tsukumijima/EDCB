@@ -38,7 +38,9 @@ CSendTSTCPMain::~CSendTSTCPMain(void)
 	ClearSendAddr();
 
 	if( m_wsaStartupResult == 0 ){
+#ifdef _WIN32
 		WSACleanup();
+#endif
 	}
 }
 

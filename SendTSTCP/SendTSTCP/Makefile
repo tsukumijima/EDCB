@@ -1,7 +1,12 @@
 TARGET ?= SendTSTCP
-CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DSENDTSTCP_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+ifeq ($(OS),Windows_NT)
+  CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DSENDTSTCP_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+else
+  CPPFLAGS := -I. -DNDEBUG -fPIC -DSENDTSTCP_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+endif
 CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
 LDFLAGS2 = -Wl,-s,--dynamicbase,--nxcompat,--kill-at -static-libgcc -static-libstdc++ -shared $(LDFLAGS)
+LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ -shared $(LDFLAGS)
 LDLIBS := -lws2_32 $(LDLIBS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
@@ -15,7 +20,13 @@ $(TARGET).dll: $(addsuffix .obj, \
   stdafx.cpp \
   SendTSTCP.rc \
   )
-	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
+$(TARGET).so: $(addsuffix .obj, \
+  Common__StringUtil.cpp \
+  SendTSTCP.cpp \
+  SendTSTCPMain.cpp \
+  stdafx.cpp \
+  )
+	$(CXX) $(LDFLAGS2_LINUX) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
 	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch $(DEP_ALL_H)
@@ -33,4 +44,4 @@ else
 	powershell -NoProfile -Command "&{cat $<|Out-File -Encoding UTF8 $@}"
 endif
 clean:
-	$(RM) stdafx.h.gch *.obj $(TARGET).dll $(TARGET).map
+	$(RM) stdafx.h.gch *.obj $(TARGET).dll $(TARGET).so $(TARGET).map
