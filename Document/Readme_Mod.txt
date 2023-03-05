@@ -639,6 +639,14 @@ OSのタイムゾーンの影響を受けなくなりました。予約管理や
   デフォルトではEpgTimerSrv.exeと同じ場所のEpgTimer.exeを実行しますが、EpgTimer
   という名前のショートカットファイルがあればこちらを実行します。
 
+#### ■EpgTimerSrvの起動オプション 【追加】
+  - `/setting`  
+    設定ダイアログを表示します
+  - `/task`  
+    EpgTimerTaskとして動作します
+  - `/luapost {script}`  
+    起動中のEpgTimerSrvにLuaスクリプトの実行をウィンドウメッセージで要求します
+
 #### ■Write_DefaultのTeeコマンド機能について 【追加】
 
 Write_Defaultの通常のファイル出力に平行して、出力と同じデータをPlugIn設定で指定
