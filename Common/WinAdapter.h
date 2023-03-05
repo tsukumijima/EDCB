@@ -1,4 +1,4 @@
-// ref: https://github.com/microsoft/DirectXShaderCompiler/blob/main/include/dxc/Support/WinAdapter.h
+// Based on: https://github.com/microsoft/DirectXShaderCompiler/blob/main/include/dxc/Support/WinAdapter.h
 
 //===- WinAdapter.h - Windows Adapter for non-Windows platforms -*- C++ -*-===//
 //
@@ -232,6 +232,14 @@
 
 #define Sleep(x) usleep(x * 1000)
 #define wcscpy_s(dst, n, src) wcsncpy(dst, src, n)
+
+// ref: https://stackoverflow.com/a/47357548/17124142
+uint64_t GetTickCount()
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)(ts.tv_nsec / 1000000) + ((uint64_t)ts.tv_sec * 1000ull);
+}
 
 //===--------------------- HRESULT Related Macros -------------------------===//
 
