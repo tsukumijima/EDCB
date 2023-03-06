@@ -134,6 +134,7 @@ __int64 UtilGetStorageFreeBytes(const fs_path& directoryPath);
 wstring UtilGetStorageID(const fs_path& directoryPath);
 
 #ifndef _WIN32
+DWORD GetPrivateProfileSection(LPCWSTR section, LPWSTR buffer, DWORD bufferSize, LPCWSTR fileName);
 int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName);
 BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpString, LPCWSTR fileName);
 #endif

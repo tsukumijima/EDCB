@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "IniUtil.h"
+#include "PathUtil.h"
 
 vector<WCHAR> GetPrivateProfileSectionBuffer(LPCWSTR appName, LPCWSTR fileName)
 {

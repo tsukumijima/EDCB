@@ -81,7 +81,6 @@ $(TARGET).exe: $(addsuffix .obj, \
   Common__ReNamePlugInUtil.cpp \
   Common__SendCtrlCmd.cpp \
   Common__SendTSTCPDllUtil.cpp \
-  Common__ServiceUtil.cpp \
   Common__StackTrace.cpp \
   Common__StringUtil.cpp \
   Common__TCPServer.cpp \

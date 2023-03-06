@@ -128,7 +128,9 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 
 	if( sys->loadForeground == false ){
 		//バックグラウンドに移行
+#ifdef _WIN32
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+#endif
 	}
 	CEpgDataCap3Util epgUtil;
 	if( epgUtil.Initialize(FALSE) != NO_ERR ){
@@ -411,7 +413,9 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 
 	if( sys->loadForeground == false ){
 		//フォアグラウンドに復帰
+#ifdef _WIN32
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+#endif
 	}
 	for(;;){
 		//データベースを排他する
@@ -545,7 +549,9 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 	}
 	if( sys->loadForeground == false ){
 		//バックグラウンドに移行
+#ifdef _WIN32
 		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+#endif
 	}
 	nextMap.clear();
 

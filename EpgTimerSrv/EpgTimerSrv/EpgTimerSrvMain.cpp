@@ -9,10 +9,12 @@
 #include "../../Common/PathUtil.h"
 #include "../../Common/TimeUtil.h"
 #include "resource.h"
+#ifdef _WIN32
 #include <shellapi.h>
 #include <tlhelp32.h>
 #include <lm.h>
 #include <commctrl.h>
+#endif
 
 namespace
 {

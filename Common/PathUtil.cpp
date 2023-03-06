@@ -604,6 +604,64 @@ wstring UtilGetStorageID(const fs_path& directoryPath)
 }
 
 #ifndef _WIN32
+// Written by ChatGPT
+int GetPrivateProfileSection(const char* section, char* buffer, size_t bufferSize, const char* fileName)
+{
+	FILE* file = fopen(fileName, "r");
+	if (!file)
+	{
+		return 0;
+	}
+
+	int sectionFound = 0;
+	int bytesRead = 0;
+	char line[1024];
+	while (fgets(line, 1024, file))
+	{
+		if (line[0] == '[' && line[strlen(line) - 2] == ']') // section header
+		{
+			if (sectionFound)
+			{
+				// We've reached the end of the section
+				break;
+			}
+			else if (strncmp(line + 1, section, strlen(section)) == 0)
+			{
+				// We've found the section
+				sectionFound = 1;
+			}
+		}
+		else if (sectionFound) // key-value pair
+		{
+			char key[1024];
+			char value[1024];
+			if (sscanf(line, "%[^=]=%[^\n]", key, value) == 2)
+			{
+				size_t keySize = strlen(key);
+				size_t valueSize = strlen(value);
+
+				if (bytesRead + keySize + valueSize + 2 <= bufferSize) // 2 for the null terminator and the '=' separator
+				{
+					memcpy(buffer + bytesRead, key, keySize);
+					buffer[bytesRead + keySize] = '=';
+					memcpy(buffer + bytesRead + keySize + 1, value, valueSize);
+					buffer[bytesRead + keySize + valueSize + 1] = '\0';
+					bytesRead += keySize + valueSize + 2;
+				}
+				else
+				{
+					// Buffer overflow
+					fclose(file);
+					return 0;
+				}
+			}
+		}
+	}
+
+	fclose(file);
+	return bytesRead;
+}
+
 int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName)
 {
 	wstring ret = GetPrivateProfileToString(appName, keyName, L"", fileName);

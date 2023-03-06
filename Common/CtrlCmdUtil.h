@@ -35,6 +35,8 @@ inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, int val ){ CCUT
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, int* val ){ CCUTIL_BASETYPE_READ_; }
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, DWORD val ){ CCUTIL_BASETYPE_WRITE_; }
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, DWORD* val ){ CCUTIL_BASETYPE_READ_; }
+inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, BOOL val ){ CCUTIL_BASETYPE_WRITE_; }
+inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, BOOL* val ){ CCUTIL_BASETYPE_READ_; }
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, __int64 val ){ CCUTIL_BASETYPE_WRITE_; }
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, __int64* val ){ CCUTIL_BASETYPE_READ_; }

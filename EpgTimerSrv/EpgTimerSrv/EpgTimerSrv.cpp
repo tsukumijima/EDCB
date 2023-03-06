@@ -5,24 +5,38 @@
 #include "EpgTimerSrvMain.h"
 #include "EpgTimerTask.h"
 #include "../../Common/PathUtil.h"
+#ifdef _WIN32
 #include "../../Common/ServiceUtil.h"
+#endif
 #include "../../Common/StackTrace.h"
 #include "../../Common/ThreadUtil.h"
 #include "../../Common/CommonDef.h"
+
+#ifdef _WIN32
 #include <winsvc.h>
 #include <objbase.h>
 #include <shellapi.h>
+#endif
 
 namespace
 {
+#ifdef _WIN32
 SERVICE_STATUS_HANDLE g_hStatusHandle;
+#endif
 CEpgTimerSrvMain* g_pMain;
 FILE* g_debugLog;
 recursive_mutex_ g_debugLogLock;
 
+#ifdef _WIN32
 //サービス動作用のメイン
 void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv);
+#endif
 }
+
+#ifndef _WIN32
+int main(int argc, char* argv[])
+{
+#else
 
 #ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
@@ -86,11 +100,13 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 			return 0;
 		}
 	}
+#endif
 
 #ifndef SUPPRESS_OUTPUT_STACK_TRACE
 	SetOutputStackTraceOnUnhandledException(GetModulePath().concat(L".err").c_str());
 #endif
 
+#ifdef _WIN32
 	if( IsInstallService(SERVICE_NAME) == FALSE ){
 		//普通にexeとして起動を行う
 		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
@@ -128,10 +144,21 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 			CloseHandle(hMutex);
 		}
 	}
+#else
+	//普通にexeとして起動を行う
+	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
+	CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
+	if( pMain->Main(false) == false ){
+		OutputDebugString(L"_tWinMain(): Failed to start");
+	}
+	delete pMain;
+	SetSaveDebugLog(false);
+#endif
 
 	return 0;
 }
 
+#ifdef _WIN32
 namespace
 {
 //サービスからのコマンドのコールバック
@@ -209,6 +236,7 @@ void ReportServiceStatus(DWORD dwCurrentState, DWORD dwControlsAccepted, DWORD d
 	SetServiceStatus(g_hStatusHandle, &ss);
 }
 }
+#endif
 
 void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutput)
 {
@@ -243,10 +271,18 @@ void SetSaveDebugLog(bool saveDebugLog)
 			g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
 		}
 		if( g_debugLog ){
+#ifdef _WIN32
 			AddDebugLog(L"****** LOG START ******");
+#else
+			OutputDebugString(L"****** LOG START ******");
+#endif
 		}
 	}else if( g_debugLog && saveDebugLog == false ){
+#ifdef _WIN32
 		AddDebugLog(L"****** LOG STOP ******");
+#else
+		OutputDebugString(L"****** LOG STOP ******");
+#endif
 		fclose(g_debugLog);
 		g_debugLog = NULL;
 	}

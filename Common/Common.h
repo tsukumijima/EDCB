@@ -30,11 +30,17 @@ using std::multimap;
 using std::vector;
 
 #ifndef _WIN32
+
+// Windows API の Polyfill 的なもの
 #include "WinAdapter.h"
-#endif
 
 // EDCB_INI_ROOT には EDCB の設定ファイル類のディレクトリパスを指定する (暫定で決め打ち)
 #define EDCB_INI_ROOT L"/Develop/EpgDataCap_Bon"
+
+// スタックトレースを出力しない (そもそも Windows 向けのため動作しない)
+#define SUPPRESS_OUTPUT_STACK_TRACE
+
+#endif
 
 template<class RndIt, class T>
 RndIt lower_bound_first(RndIt first, RndIt last, const T& key)
