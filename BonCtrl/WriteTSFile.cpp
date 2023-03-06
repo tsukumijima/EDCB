@@ -40,7 +40,7 @@ BOOL CWriteTSFile::StartSave(
 		AddDebugLog(L"CWriteTSFile::StartSave Err saveFolder 0");
 		return FALSE;
 	}
-	
+
 	if( this->outThread.joinable() == false ){
 		this->fileList.clear();
 		this->mainSaveFilePath = L"";
@@ -56,7 +56,11 @@ BOOL CWriteTSFile::StartSave(
 			item.freeChk = FALSE;
 			item.writePlugIn = saveFolder[i].writePlugIn;
 			if( item.writePlugIn.size() == 0 ){
+#ifdef _WIN32
 				item.writePlugIn = L"Write_Default.dll";
+#else
+				item.writePlugIn = L"Write_Default.so";
+#endif
 			}
 			item.recFolder = saveFolder[i].recFolder;
 			item.recFileName = saveFolder[i].recFileName;

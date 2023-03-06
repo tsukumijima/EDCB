@@ -3,7 +3,9 @@
 
 #include "stdafx.h"
 #include "EpgTimerSrvMain.h"
+#ifdef _WIN32
 #include "EpgTimerTask.h"
+#endif
 #include "../../Common/PathUtil.h"
 #ifdef _WIN32
 #include "../../Common/ServiceUtil.h"

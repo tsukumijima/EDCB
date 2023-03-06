@@ -23,6 +23,7 @@ public:
 	//休止／スタンバイに移行して構わない状況かどうか
 	bool IsSuspendOK() const;
 private:
+#ifdef _WIN32
 	//メインウィンドウ
 	static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	//シャットダウン問い合わせダイアログ
@@ -35,6 +36,10 @@ private:
 	static void InitReserveMenuPopup(HMENU hMenu, vector<RESERVE_DATA>& list);
 	//「配信停止」ポップアップを作成する
 	void InitStreamingMenuPopup(HMENU hMenu) const;
+#else
+	//メインウィンドウ
+	LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
 	void ReloadNetworkSetting();
 	void ReloadSetting(bool initialize = false);
 	//デフォルト指定可能なフィールドのデフォルト値を特別な予約情報(ID=0x7FFFFFFF)として取得する
@@ -143,7 +148,11 @@ private:
 	mutable recursive_mutex_ settingLock;
 	HWND hwndMain;
 #ifndef EPGTIMERSRV_WITHLUA
+#ifdef _WIN32
 	HMODULE hLuaDll;
+#else
+	void* hLuaDll;
+#endif
 #endif
 	atomic_bool_ stoppingFlag;
 

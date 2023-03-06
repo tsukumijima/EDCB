@@ -9,6 +9,10 @@
 #include <io.h>
 #include <fcntl.h>
 #include <wincrypt.h>
+#else
+#include <codecvt>
+#include <dlfcn.h>
+#include <locale>
 #endif
 
 namespace
@@ -144,7 +148,12 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 
 #ifndef EPGTIMERSRV_WITHLUA
 	//LuaのDLLが無いとき分かりにくいタイミングでエラーになるので事前に読んでおく(必須ではない)
+#ifdef _WIN32
 	this->hLuaDll = LoadLibrary(GetModulePath().replace_filename(LUA_DLL_NAME).c_str());
+#else
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	this->hLuaDll = dlopen(converter.to_bytes(GetModulePath().replace_filename(LUA_DLL_NAME).native()).c_str(), RTLD_LAZY);
+#endif
 	if( this->hLuaDll == NULL ){
 		AddDebugLog(L"CHttpServer::StartServer(): " LUA_DLL_NAME L" not found.");
 		return false;
@@ -249,7 +258,11 @@ bool CHttpServer::StopServer(bool checkOnly)
 	}
 #ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
+#ifdef _WIN32
 		FreeLibrary(this->hLuaDll);
+#else
+		dlclose(this->hLuaDll);
+#endif
 		this->hLuaDll = NULL;
 	}
 #endif

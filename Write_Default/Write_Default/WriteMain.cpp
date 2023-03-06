@@ -2,8 +2,8 @@
 #include "WriteMain.h"
 
 #ifndef _WIN32
-#include <fcntl.h>
 #include <codecvt>
+#include <fcntl.h>
 #include <locale>
 #endif
 

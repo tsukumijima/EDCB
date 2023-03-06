@@ -67,6 +67,13 @@ ifndef MSYSTEM
   CPPFLAGS += -DMUST_IMPLEMENT_CLOCK_GETTIME
 endif
 
+build:
+ifeq ($(OS),Windows_NT)
+	$(MAKE) $(TARGET).exe
+else
+	$(MAKE) $(TARGET).elf
+endif
+
 $(TARGET).exe: $(addsuffix .obj, \
   $(SOURCES_LUA) \
   BonCtrl__CreatePATPacket.cpp \
@@ -103,6 +110,42 @@ $(TARGET).exe: $(addsuffix .obj, \
   TunerBankCtrl.cpp \
   UpnpSsdpServer.cpp \
   EpgTimerSrv.rc \
+  )
+	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
+$(TARGET).elf: $(addsuffix .obj, \
+  $(SOURCES_LUA) \
+  BonCtrl__CreatePATPacket.cpp \
+  BonCtrl__PacketInit.cpp \
+  Common__CtrlCmdUtil.cpp \
+  Common__EpgDataCap3Util.cpp \
+  Common__EpgTimerUtil.cpp \
+  Common__IniUtil.cpp \
+  Common__ParseTextInstances.cpp \
+  Common__PathUtil.cpp \
+  Common__PipeServer.cpp \
+  Common__ReNamePlugInUtil.cpp \
+  Common__SendCtrlCmd.cpp \
+  Common__SendTSTCPDllUtil.cpp \
+  Common__StackTrace.cpp \
+  Common__StringUtil.cpp \
+  Common__TCPServer.cpp \
+  Common__TimeShiftUtil.cpp \
+  Common__TimeUtil.cpp \
+  Common__TSPacketUtil.cpp \
+  BatManager.cpp \
+  civetweb.c \
+  EpgDBManager.cpp \
+  EpgTimerSrv.cpp \
+  EpgTimerSrvMain.cpp \
+  EpgTimerSrvSetting.cpp \
+  HttpServer.cpp \
+  NotifyManager.cpp \
+  RegExp.cpp \
+  ReserveManager.cpp \
+  stdafx.cpp \
+  SyoboiCalUtil.cpp \
+  TunerBankCtrl.cpp \
+  UpnpSsdpServer.cpp \
   )
 	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)

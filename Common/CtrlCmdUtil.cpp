@@ -1292,7 +1292,11 @@ bool DeprecatedReadVALUE( RESERVE_DATA* val, const BYTE* buff, DWORD buffSize )
 	val->recSetting.recMode = dwRecMode & 0xFF;
 	val->recSetting.pittariFlag = dwPittariFlag != 0;
 	if( folder.recFolder.empty() == false ){
+#ifdef _WIN32
 		folder.writePlugIn = L"Write_Default.dll";
+#else
+		folder.writePlugIn = L"Write_Default.so";
+#endif
 		val->recSetting.recFolderList.push_back(folder);
 	}
 	//旧→新のみなぜかこの数値変換が入る(互換のため修正しない)
@@ -1408,7 +1412,11 @@ bool DeprecatedReadVALUE( EPG_AUTO_ADD_DATA* val, const BYTE* buff, DWORD buffSi
 	val->recSetting.recMode = dwRecMode & 0xFF;
 	val->recSetting.pittariFlag = dwPittariFlag != 0;
 	if( folder.recFolder.empty() == false ){
+#ifdef _WIN32
 		folder.writePlugIn = L"Write_Default.dll";
+#else
+		folder.writePlugIn = L"Write_Default.so";
+#endif
 		val->recSetting.recFolderList.push_back(folder);
 	}
 	val->recSetting.suspendMode = (wSuspendMode == 0 ? 4 : wSuspendMode == 4 ? 0 : wSuspendMode) & 0xFF;

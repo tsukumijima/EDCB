@@ -90,7 +90,11 @@ void ParseRecFolderList(LPCWSTR* token, vector<REC_FILE_SET_INFO>& list)
 			Separate(list[i].recFolder, L"*", list[i].recFolder, list[i].writePlugIn);
 			Separate(list[i].writePlugIn, L"*", list[i].writePlugIn, list[i].recNamePlugIn);
 			if( list[i].writePlugIn.empty() ){
+#ifdef _WIN32
 				list[i].writePlugIn = L"Write_Default.dll";
+#else
+				list[i].writePlugIn = L"Write_Default.so";
+#endif
 			}
 			i++;
 		}

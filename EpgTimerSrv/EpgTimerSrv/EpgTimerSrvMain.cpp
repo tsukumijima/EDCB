@@ -14,6 +14,10 @@
 #include <tlhelp32.h>
 #include <lm.h>
 #include <commctrl.h>
+#else
+#include <codecvt>
+#include <dlfcn.h>
+#include <locale>
 #endif
 
 namespace
@@ -41,7 +45,9 @@ enum {
 
 struct MAIN_WINDOW_CONTEXT {
 	CEpgTimerSrvMain* const sys;
+#ifdef _WIN32
 	const UINT msgTaskbarCreated;
+#endif
 	CPipeServer pipeServer;
 	CPipeServer noWaitPipeServer;
 	CTCPServer tcpServer;
@@ -51,7 +57,9 @@ struct MAIN_WINDOW_CONTEXT {
 	BYTE shutdownModePending;
 	bool rebootFlagPending;
 	DWORD shutdownPendingTick;
+#ifdef _WIN32
 	pair<HWND, pair<BYTE, bool>> queryShutdownContext;
+#endif
 	DWORD autoAddCheckTick;
 	vector<RESERVE_DATA> autoAddCheckAddList;
 	bool autoAddCheckAddCountUpdated;
@@ -64,11 +72,15 @@ struct MAIN_WINDOW_CONTEXT {
 	RESERVE_DATA notifyTipReserve;
 	MAIN_WINDOW_CONTEXT(CEpgTimerSrvMain* sys_)
 		: sys(sys_)
+#ifdef _WIN32
 		, msgTaskbarCreated(RegisterWindowMessage(L"TaskbarCreated"))
+#endif
 		, resumeTimer(NULL)
 		, shutdownModePending(SD_MODE_INVALID)
 		, shutdownPendingTick(0)
+#ifdef _WIN32
 		, queryShutdownContext((HWND)NULL, pair<BYTE, bool>())
+#endif
 		, taskFlag(false)
 		, noBalloonTip(1)
 		, notifySrvStatus(0)
@@ -172,7 +184,11 @@ CEpgTimerSrvMain::CEpgTimerSrvMain()
 
 bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 {
+#ifdef _WIN32
 	this->notifyManager.SetGUI(!serviceFlag_);
+#else
+	this->notifyManager.SetGUI(false);
+#endif
 	this->residentFlag = serviceFlag_;
 
 	this->compatFlags = 4095;
@@ -181,6 +197,7 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 	this->epgAutoAdd.ParseText(fs_path(settingPath).append(EPG_AUTO_ADD_TEXT_NAME).c_str());
 	this->manualAutoAdd.ParseText(fs_path(settingPath).append(MANUAL_AUTO_ADD_TEXT_NAME).c_str());
 
+#ifdef _WIN32
 	//非表示のメインウィンドウを作成
 	WNDCLASSEX wc = {};
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -204,9 +221,14 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 			DispatchMessage(&msg);
 		}
 	}
+#endif
 #ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
+#ifdef _WIN32
 		FreeLibrary(this->hLuaDll);
+#else
+		dlclose(this->hLuaDll);
+#endif
 		this->hLuaDll = NULL;
 	}
 #endif
@@ -226,16 +248,22 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 	};
 	static const DWORD SRV_STATUS_PRE_REC = 100;
 
+#ifdef _WIN32
 	MAIN_WINDOW_CONTEXT* ctx = (MAIN_WINDOW_CONTEXT*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	if( uMsg != WM_CREATE && ctx == NULL ){
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
+#else
+	MAIN_WINDOW_CONTEXT* ctx = new MAIN_WINDOW_CONTEXT(this);
+#endif
 
 	switch( uMsg ){
 	case WM_CREATE:
+#ifdef _WIN32
 		ctx = (MAIN_WINDOW_CONTEXT*)((LPCREATESTRUCT)lParam)->lpCreateParams;
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)ctx);
 		ctx->sys->hwndMain = hwnd;
+#endif
 		ctx->sys->ReloadSetting(true);
 		if( ctx->sys->reserveManager.GetTunerReserveAll().size() <= 1 ){
 			//チューナなし
@@ -274,13 +302,18 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		ctx->sys->reserveManager.Finalize();
 		AddDebugLog(L"*** Server finalized ***");
 		//タスクトレイから削除
+#ifdef _WIN32
 		SendMessage(hwnd, WM_APP_SHOW_TRAY, FALSE, 0);
+#endif
 		ctx->sys->hwndMain = NULL;
+#ifdef _WIN32
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
 		RemoveProp(hwnd, L"PopupSel");
 		RemoveProp(hwnd, L"PopupSelData");
 		PostQuitMessage(0);
+#endif
 		return 0;
+#ifdef _WIN32
 	case WM_ENDSESSION:
 		if( wParam ){
 			DestroyWindow(hwnd);
@@ -314,6 +347,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			}
 		}
 		return FALSE;
+#endif
 	case WM_APP_RESET_SERVER:
 		{
 			//サーバリセット処理
@@ -358,8 +392,10 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			if( wParam == SD_MODE_STANDBY || wParam == SD_MODE_SUSPEND ){
 				//ストリーミングを終了する
 				ctx->sys->streamingManager.clear();
+#ifdef _WIN32
 				//スリープ抑止解除
 				SetThreadExecutionState(ES_CONTINUOUS);
+#endif
 				//rebootFlag時は(指定+5分前)に復帰
 				DWORD marginSec;
 				{
@@ -387,6 +423,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 	case WM_APP_QUERY_SHUTDOWN:
 		if( ctx->sys->notifyManager.IsGUI() ){
 			//直接尋ねる
+#ifdef _WIN32
 			if( ctx->queryShutdownContext.first == NULL ){
 				INITCOMMONCONTROLSEX icce;
 				icce.dwSize = sizeof(icce);
@@ -396,6 +433,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 				ctx->queryShutdownContext.second.second = lParam != FALSE;
 				CreateDialogParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_EPGTIMERSRV_DIALOG), hwnd, QueryShutdownDlgProc, (LPARAM)&ctx->queryShutdownContext);
 			}
+#endif
 		}else if( ctx->sys->QueryShutdown(lParam != FALSE, (BYTE)wParam) == false ){
 			//GUI経由で問い合わせ開始できなかった
 			return FALSE;
@@ -437,6 +475,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 							SetTimer(hwnd, TIMER_INC_SRV_STATUS, 1000, NULL);
 						}
 					}
+#ifdef _WIN32
 					if( ctx->taskFlag ){
 						NOTIFYICONDATA nid = {};
 						nid.cbSize = NOTIFYICONDATA_V2_SIZE;
@@ -478,9 +517,11 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 							DestroyIcon(nid.hIcon);
 						}
 					}
+#endif
 				}
 			}
 			if( ctx->noBalloonTip != 1 && CNotifyManager::ExtractTitleFromInfo(&info).first[0] ){
+#ifdef _WIN32
 				//バルーンチップ表示
 				NOTIFYICONDATA nid = {};
 				nid.cbSize = NOTIFYICONDATA_V2_SIZE;
@@ -492,9 +533,11 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 				wcsncpy_s(nid.szInfoTitle, CNotifyManager::ExtractTitleFromInfo(&info).first, _TRUNCATE);
 				wcsncpy_s(nid.szInfo, CNotifyManager::ExtractTitleFromInfo(&info).second, _TRUNCATE);
 				Shell_NotifyIcon(NIM_MODIFY, &nid);
+#endif
 			}
 		}
 		break;
+#ifdef _WIN32
 	case WM_APP_TRAY_PUSHICON:
 		//タスクトレイ関係
 		switch( LOWORD(lParam) ){
@@ -533,6 +576,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			SetTimer(hwnd, TIMER_RETRY_ADD_TRAY, 0, NULL);
 		}
 		return TRUE;
+#endif
 	case WM_TIMER:
 		switch( wParam ){
 		case TIMER_RELOAD_EPG_CHK_PENDING:
@@ -622,10 +666,12 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 				}
 			}
 			break;
+#ifdef _WIN32
 		case TIMER_RETRY_ADD_TRAY:
 			KillTimer(hwnd, TIMER_RETRY_ADD_TRAY);
 			SendMessage(hwnd, WM_APP_RECEIVE_NOTIFY, TRUE, 0);
 			break;
+#endif
 		case TIMER_INC_SRV_STATUS:
 			//最大20秒
 			if( SRV_STATUS_PRE_REC <= ctx->notifySrvStatus && ctx->notifySrvStatus < SRV_STATUS_PRE_REC + 20 ){
@@ -644,6 +690,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 					marginSec = ctx->sys->setting.wakeTime * 60;
 				}
 				ctx->sys->SetResumeTimer(&ctx->resumeTimer, &ctx->resumeTime, marginSec);
+#ifdef _WIN32
 				//スリープ抑止
 				EXECUTION_STATE esFlags = ES_CONTINUOUS;
 				EXECUTION_STATE esLastFlags;
@@ -674,6 +721,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 					ctx->notifyTipReserve = std::move(r);
 					SetTimer(hwnd, TIMER_RETRY_ADD_TRAY, 0, NULL);
 				}
+#endif
 			}
 			break;
 		case TIMER_CHECK:
@@ -733,6 +781,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			break;
 		}
 		break;
+#ifdef _WIN32
 	case WM_INITMENUPOPUP:
 		{
 			UINT id = GetMenuItemID((HMENU)wParam, 0);
@@ -807,8 +856,13 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		break;
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+#else
+	}
+	return 0;
+#endif
 }
 
+#ifdef _WIN32
 INT_PTR CALLBACK CEpgTimerSrvMain::QueryShutdownDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	pair<HWND, pair<BYTE, bool>>* ctx = (pair<HWND, pair<BYTE, bool>>*)GetWindowLongPtr(hDlg, GWLP_USERDATA);
@@ -937,6 +991,7 @@ void CEpgTimerSrvMain::InitStreamingMenuPopup(HMENU hMenu) const
 	}
 	EnableMenuItem(hMenu, IDC_BUTTON_STREAMING_NWPLAY, this->streamingManager.empty() ? MF_GRAYED : MF_ENABLED);
 }
+#endif
 
 void CEpgTimerSrvMain::StopMain()
 {
@@ -991,7 +1046,12 @@ void CEpgTimerSrvMain::ReloadSetting(bool initialize)
 		this->reserveManager.Initialize(s);
 #ifndef EPGTIMERSRV_WITHLUA
 		//存在を確認しているだけ
+#ifdef _WIN32
 		this->hLuaDll = LoadLibrary(GetModulePath().replace_filename(LUA_DLL_NAME).c_str());
+#else
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+		this->hLuaDll = dlopen(converter.to_bytes(GetModulePath().replace_filename(LUA_DLL_NAME).native()).c_str(), RTLD_LAZY);
+#endif
 		if( this->hLuaDll )
 #endif
 		{
@@ -1010,12 +1070,16 @@ void CEpgTimerSrvMain::ReloadSetting(bool initialize)
 		if( this->setting.residentMode >= 1 ){
 			//常駐する(CMD2_EPG_SRV_CLOSEを無視)
 			this->residentFlag = true;
+#ifdef _WIN32
 			//タスクトレイに表示するかどうか
 			PostMessage(this->hwndMain, WM_APP_SHOW_TRAY, this->setting.residentMode >= 2, this->setting.noBalloonTip);
+#endif
 		}
 	}else if( this->setting.residentMode >= 2 ){
+#ifdef _WIN32
 		//チップヘルプを更新するため
 		PostMessage(this->hwndMain, WM_APP_RECEIVE_NOTIFY, TRUE, 0);
+#endif
 	}
 	this->useSyoboi = GetPrivateProfileInt(L"SYOBOI", L"use", 0, iniPath.c_str()) != 0;
 }
@@ -1086,6 +1150,7 @@ bool CEpgTimerSrvMain::SetResumeTimer(HANDLE* resumeTimer, __int64* resumeTime, 
 
 void CEpgTimerSrvMain::SetShutdown(BYTE shutdownMode)
 {
+#ifdef _WIN32
 	HANDLE hToken;
 	if ( OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken) ){
 		TOKEN_PRIVILEGES tokenPriv;
@@ -1108,6 +1173,21 @@ void CEpgTimerSrvMain::SetShutdown(BYTE shutdownMode)
 		//再起動(非同期)
 		ExitWindowsEx(EWX_REBOOT, 0);
 	}
+#else
+	if( shutdownMode == 1 ){
+		//スタンバイ(同期)
+		system("systemctl suspend");
+	}else if( shutdownMode == 2 ){
+		//休止(同期)
+		system("systemctl hibernate");
+	}else if( shutdownMode == 3 ){
+		//電源断(非同期)
+		system("systemctl poweroff");
+	}else if( shutdownMode == 4 ){
+		//再起動(非同期)
+		system("systemctl reboot");
+	}
+#endif
 }
 
 bool CEpgTimerSrvMain::QueryShutdown(BYTE rebootFlag, BYTE suspendMode)
@@ -1906,6 +1986,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 			WORD mode;
 			if( cmd.ReadVALUE(&mode) && (mode == 1 || mode == 2) ){
 				vector<wstring> fileList;
+#ifdef _WIN32
 				EnumFindFile(GetModulePath().replace_filename(mode == 1 ? fs_path(L"RecName").append(L"RecName*.dll") : fs_path(L"Write").append(L"Write*.dll")),
 				             [&](UTIL_FIND_DATA& findData) -> bool {
 					if( findData.isDir == false && UtilPathEndsWith(findData.fileName.c_str(), L".dll") ){
@@ -1913,6 +1994,15 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 					}
 					return true;
 				});
+#else
+				EnumFindFile(GetModulePath().replace_filename(mode == 1 ? fs_path(L"RecName").append(L"RecName*.so") : fs_path(L"Write").append(L"Write*.so")),
+				             [&](UTIL_FIND_DATA& findData) -> bool {
+					if( findData.isDir == false && UtilPathEndsWith(findData.fileName.c_str(), L".so") ){
+						fileList.push_back(std::move(findData.fileName));
+					}
+					return true;
+				});
+#endif
 				if( fileList.empty() == false ){
 					res.WriteVALUE(fileList);
 					res.SetParam(CMD_SUCCESS);
@@ -2648,6 +2738,7 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStrea
 			wstring path;
 			if( cmd.ReadVALUE(&path) ){
 				wstring netPath;
+#ifdef _WIN32
 				//UNCパスはそのまま返す
 				if( path.compare(0, 2, L"\\\\") == 0 ){
 					netPath = path;
@@ -2683,6 +2774,10 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStrea
 						NetApiBufferFree(bufPtr);
 					}
 				}
+#else
+				// TODO: 未実装 (適当にそのまま来たパスを返す)
+				netPath = path;
+#endif
 				if( netPath.empty() == false ){
 					res.WriteVALUE(netPath);
 					res.SetParam(CMD_SUCCESS);

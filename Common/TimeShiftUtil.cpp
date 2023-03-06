@@ -380,11 +380,7 @@ __int64 CTimeShiftUtil::GetAvailableFileSize() const
 						}
 					}
 					//安定のため有効なデータの境目からさらに512KBだけ手前にする
-#ifdef _WIN32
 					fileSize = max(pos - range / 2 - 512 * 1024, 0LL);
-#else
-					fileSize = max(pos - range / 2 - 512 * 1024, 0L);
-#endif
 				}
 				return fileSize;
 			}

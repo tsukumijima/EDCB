@@ -30,6 +30,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string>
+#include <sys/time.h>
 #include <typeindex>
 #include <typeinfo>
 #include <unistd.h>
@@ -220,6 +221,35 @@
 
 // Additional
 
+#define WM_NULL                         0x0000
+#define WM_CREATE                       0x0001
+#define WM_DESTROY                      0x0002
+#define WM_MOVE                         0x0003
+#define WM_SIZE                         0x0005
+
+#define WM_ACTIVATE                     0x0006
+
+#define WM_INITDIALOG                   0x0110
+#define WM_COMMAND                      0x0111
+#define WM_SYSCOMMAND                   0x0112
+#define WM_TIMER                        0x0113
+#define WM_HSCROLL                      0x0114
+#define WM_VSCROLL                      0x0115
+#define WM_INITMENU                     0x0116
+#define WM_INITMENUPOPUP                0x0117
+#define WM_GESTURE                      0x0119
+#define WM_GESTURENOTIFY                0x011A
+#define WM_MENUSELECT                   0x011F
+#define WM_MENUCHAR                     0x0120
+#define WM_ENTERIDLE                    0x0121
+#define WM_MENURBUTTONUP                0x0122
+#define WM_MENUDRAG                     0x0123
+#define WM_MENUGETOBJECT                0x0124
+#define WM_UNINITMENUPOPUP              0x0125
+#define WM_MENUCOMMAND                  0x0126
+
+#define WM_APP                          0x8000
+
 #define MINCHAR		 0x80
 #define MAXCHAR		 0x7f
 #define MINSHORT		0x8000
@@ -233,6 +263,20 @@
 #define Sleep(x) usleep(x * 1000)
 
 #define _TRUNCATE ((size_t)-1)
+
+typedef long long __int64;
+
+// Written by ChatGPT
+inline constexpr uint8_t LOBYTE(uint16_t value)
+{
+    return static_cast<uint8_t>(value & 0xff);
+}
+
+// Written by ChatGPT
+inline constexpr uint8_t HIBYTE(uint16_t value)
+{
+    return static_cast<uint8_t>((value >> 8) & 0xff);
+}
 
 // Written by ChatGPT
 inline int swscanf_s(const wchar_t *str, const wchar_t *format, ...)
@@ -255,13 +299,13 @@ inline int sprintf_s(char *str, const char *format, ...)
 }
 
 // Written by ChatGPT
-inline long long int _ftelli64(FILE *stream)
+inline long long _ftelli64(FILE *stream)
 {
 	off_t result = lseek(fileno(stream), 0, SEEK_CUR);
 	if (result == (off_t)-1) {
 		return -1;
 	}
-	return (long long int)result;
+	return (long long)result;
 }
 
 // Written by ChatGPT
@@ -320,7 +364,7 @@ inline int _wcsnicmp(const wchar_t* s1, const wchar_t* s2, size_t n)
 }
 
 // Written by ChatGPT
-inline long long int _wcstoi64(const wchar_t *nptr, wchar_t **endptr, int base)
+inline __int64 _wcstoi64(const wchar_t *nptr, wchar_t **endptr, int base)
 {
 	long long int result = 0;
 	int sign = 1;
@@ -541,6 +585,7 @@ typedef BOOL *LPBOOL;
 typedef int INT;
 typedef long LONG;
 typedef unsigned int UINT;
+typedef unsigned int UINT_PTR;
 typedef unsigned long ULONG;
 typedef long long LONGLONG;
 typedef long long LONG_PTR;
@@ -550,6 +595,7 @@ typedef unsigned long long ULONGLONG;
 typedef uint16_t WORD;
 typedef uint32_t DWORD;
 typedef DWORD *LPDWORD;
+typedef unsigned long int DWORD_PTR;
 
 typedef uint32_t UINT32;
 typedef uint64_t UINT64;
@@ -581,7 +627,11 @@ typedef std::nullptr_t nullptr_t;
 
 typedef signed int HRESULT;
 
-typedef __int64_t __int64;
+// Additional
+
+typedef UINT_PTR            WPARAM;
+typedef LONG_PTR            LPARAM;
+typedef LONG_PTR            LRESULT;
 
 //===--------------------- Handle Types -----------------------------------===//
 
@@ -600,6 +650,10 @@ typedef void *HMODULE;
 #define STD_INPUT_HANDLE ((DWORD)-10)
 #define STD_OUTPUT_HANDLE ((DWORD)-11)
 #define STD_ERROR_HANDLE ((DWORD)-12)
+
+// Additional
+
+typedef void *HWND;
 
 //===--------------------- ID Types and Macros for COM --------------------===//
 
@@ -750,6 +804,21 @@ inline void GetLocalTime(SYSTEMTIME* st)
 	st->wMinute = tm.tm_min;
 	st->wSecond = tm.tm_sec;
 	st->wMilliseconds = 0;
+}
+
+inline void GetSystemTime(SYSTEMTIME* lpSystemTime) {
+    struct timeval tv;
+    struct tm* tm;
+    gettimeofday(&tv, NULL);
+    tm = localtime(&tv.tv_sec);
+    lpSystemTime->wYear = tm->tm_year + 1900;
+    lpSystemTime->wMonth = tm->tm_mon + 1;
+    lpSystemTime->wDayOfWeek = tm->tm_wday;
+    lpSystemTime->wDay = tm->tm_mday;
+    lpSystemTime->wHour = tm->tm_hour;
+    lpSystemTime->wMinute = tm->tm_min;
+    lpSystemTime->wSecond = tm->tm_sec;
+    lpSystemTime->wMilliseconds = tv.tv_usec / 1000;
 }
 
 //===--------------------- UUID Related Macros ----------------------------===//

@@ -35,13 +35,16 @@ inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, int val ){ CCUT
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, int* val ){ CCUTIL_BASETYPE_READ_; }
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, DWORD val ){ CCUTIL_BASETYPE_WRITE_; }
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, DWORD* val ){ CCUTIL_BASETYPE_READ_; }
-inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, BOOL val ){ CCUTIL_BASETYPE_WRITE_; }
-inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, BOOL* val ){ CCUTIL_BASETYPE_READ_; }
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, __int64 val ){ CCUTIL_BASETYPE_WRITE_; }
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, __int64* val ){ CCUTIL_BASETYPE_READ_; }
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, ULONGLONG val ){ CCUTIL_BASETYPE_WRITE_; }
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, ULONGLONG* val ){ CCUTIL_BASETYPE_READ_; }
+
+#ifndef _WIN32
+inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, BOOL val ){ CCUTIL_BASETYPE_WRITE_; }
+inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, BOOL* val ){ CCUTIL_BASETYPE_READ_; }
+#endif
 
 inline DWORD WriteVALUE( WORD ver, BYTE* buff, DWORD buffOffset, const vector<unsigned short>& val ){ CCUTIL_VECTOR_WRITE_; }
 inline bool ReadVALUE( WORD ver, const BYTE** buff, const BYTE* buffEnd, vector<unsigned short>* val ){ CCUTIL_VECTOR_READ_; }
