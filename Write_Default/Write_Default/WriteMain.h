@@ -51,7 +51,11 @@ public:
 		);
 
 protected:
+#ifdef _WIN32
 	HANDLE file;
+#else
+	FILE* file;
+#endif
 	wstring savePath;
 
 	vector<BYTE> writeBuff;
@@ -59,7 +63,11 @@ protected:
 	__int64 wrotePos;
 	recursive_mutex_ wroteLock;
 
+#ifdef _WIN32
 	HANDLE teeFile;
+#else
+	FILE* teeFile;
+#endif
 	thread_ teeThread;
 	CAutoResetEvent teeThreadStopEvent;
 	wstring teeCmd;
