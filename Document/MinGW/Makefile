@@ -1,16 +1,42 @@
-TARGETS = EpgDataCap_Bon \
-          EpgDataCap3 \
-          EpgTimerAdminProxy \
-          EpgTimerPlugIn \
-          RecName_Macro \
-          SendTSTCP \
-          Write_Default \
-          Write_OneService \
-          EdcbPlugIn \
-          EpgTimerSrv
+ifeq ($(OS),Windows_NT)
+	TARGETS = EpgDataCap_Bon \
+              EpgDataCap3 \
+              EpgTimerAdminProxy \
+              EpgTimerPlugIn \
+              RecName_Macro \
+              SendTSTCP \
+              Write_Default \
+              Write_OneService \
+              EdcbPlugIn \
+              EpgTimerSrv
+else
+	TARGETS = EpgDataCap3 \
+              RecName_Macro \
+              SendTSTCP \
+              Write_Default \
+              EpgTimerSrv
+endif
 
-all: asyncbuf.exe relayread.exe tsidmove.exe cp_dep $(addsuffix .all, $(TARGETS))
-clean: $(addsuffix .clean, $(TARGETS)) rm_dep rm_tools
+ifeq ($(OS),Windows_NT)
+	MUNICODE := -municode
+else
+	MUNICODE :=
+endif
+
+all:
+ifeq ($(OS),Windows_NT)
+	asyncbuf.exe relayread.exe tsidmove.exe cp_dep $(addsuffix .all, $(TARGETS))
+else
+	$(MAKE) $(addsuffix .all, $(TARGETS))
+endif
+
+clean:
+ifeq ($(OS),Windows_NT)
+	$(addsuffix .clean, $(TARGETS)) rm_dep rm_tools
+else
+	$(MAKE) $(addsuffix .clean, $(TARGETS))
+endif
+
 %.all:
 	$(MAKE) -C ../../$*/$* TARGET=../../Document/MinGW/$*
 %.clean:
@@ -22,14 +48,14 @@ endif
 rm_dep:
 	$(RM) libwinpthread-1.dll
 asyncbuf.exe: ../../ini/Tools/asyncbuf.c
-	$(CC) -municode -Wl,-s -static -D_UNICODE -Os -o $@ $<
+	$(CC) $(MUNICODE) -Wl,-s -static -D_UNICODE -Os -o $@ $<
 relayread.exe: ../../ini/Tools/relayread.c
-	$(CC) -municode -Wl,-s -static -D_UNICODE -Os -o $@ $<
+	$(CC) $(MUNICODE) -Wl,-s -static -D_UNICODE -Os -o $@ $<
 tsidmove.exe: ../../Common/ParseTextInstances.cpp \
               ../../Common/PathUtil.cpp \
               ../../Common/StringUtil.cpp \
               ../../Common/TimeUtil.cpp \
               ../../ini/Tools/tsidmove/tsidmove.cpp
-	$(CXX) -municode -Wl,-s -static-libgcc -static-libstdc++ -I../../ini/Tools/tsidmove -D_UNICODE -std=c++17 -pedantic-errors -Os -o $@ $+
+	$(CXX) $(MUNICODE) -Wl,-s -static-libgcc -static-libstdc++ -I../../ini/Tools/tsidmove -D_UNICODE -std=c++17 -pedantic-errors -Os -o $@ $+
 rm_tools:
 	$(RM) asyncbuf.exe relayread.exe tsidmove.exe

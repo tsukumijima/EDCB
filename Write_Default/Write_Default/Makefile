@@ -11,6 +11,13 @@ WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
 CUR_ALL_H := $(wildcard *.h)
 
+build:
+ifeq ($(OS),Windows_NT)
+	$(MAKE) $(TARGET).dll
+else
+	$(MAKE) $(TARGET).so
+endif
+
 $(TARGET).dll: $(addsuffix .obj, \
   Common__PathUtil.cpp \
   Common__StringUtil.cpp \

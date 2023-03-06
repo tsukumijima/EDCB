@@ -1,8 +1,8 @@
 TARGET ?= EpgDataCap3
 ifeq ($(OS),Windows_NT)
-  CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGDATACAP3_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+	CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGDATACAP3_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
 else
-  CPPFLAGS := -I. -DNDEBUG -fPIC -DEPGDATACAP3_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
+	CPPFLAGS := -I. -DNDEBUG -fPIC -DEPGDATACAP3_EXPORTS -D_UNICODE -DUNICODE $(CPPFLAGS)
 endif
 CXXFLAGS := -std=c++17 -pedantic-errors -O2 $(CXXFLAGS)
 LDFLAGS2 = -Wl,-s,--dynamicbase,--nxcompat,--kill-at -static-libgcc -static-libstdc++ -shared $(LDFLAGS)
@@ -40,6 +40,13 @@ SOURCES_BASE_LINUX = \
   EpgDataCap3Main.cpp \
   EpgDBUtil.cpp \
   stdafx.cpp \
+
+build:
+ifeq ($(OS),Windows_NT)
+	$(MAKE) $(TARGET).dll
+else
+	$(MAKE) $(TARGET).so
+endif
 
 $(TARGET).dll: $(addsuffix .obj,$(SOURCES_BASE) ARIB8CharDecode.cpp) $(TARGET)_Unicode.dll
 	$(CXX) $(LDFLAGS2) $(filter %.obj,$^) $(LDLIBS) -o $@

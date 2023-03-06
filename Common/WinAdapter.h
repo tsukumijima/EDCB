@@ -234,7 +234,7 @@
 #define wcscpy_s(dst, n, src) wcsncpy(dst, src, n)
 
 // ref: https://stackoverflow.com/a/47357548/17124142
-uint64_t GetTickCount()
+inline uint64_t GetTickCount()
 {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);

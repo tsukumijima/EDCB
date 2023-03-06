@@ -11,6 +11,13 @@ WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
 CUR_ALL_H := $(wildcard *.h)
 
+build:
+ifeq ($(OS),Windows_NT)
+	$(MAKE) $(TARGET).dll
+else
+	$(MAKE) $(TARGET).so
+endif
+
 $(TARGET).dll: $(addsuffix .obj, \
   Common__EpgTimerUtil.cpp \
   Common__PathUtil.cpp \
@@ -23,6 +30,7 @@ $(TARGET).dll: $(addsuffix .obj, \
   stdafx.cpp \
   RecName_Macro.rc \
   )
+	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
 $(TARGET).so: $(addsuffix .obj, \
   Common__EpgTimerUtil.cpp \
   Common__PathUtil.cpp \
