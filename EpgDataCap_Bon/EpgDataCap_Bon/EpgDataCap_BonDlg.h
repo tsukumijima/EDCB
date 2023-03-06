@@ -7,7 +7,9 @@
 #include "../../BonCtrl/BonCtrl.h"
 #include "../../Common/PipeServer.h"
 #include "EpgDataCap_BonDef.h"
+#ifdef _WIN32
 #include "SettingDlg.h"
+#endif
 
 // CEpgDataCap_BonDlg ダイアログ
 class CEpgDataCap_BonDlg

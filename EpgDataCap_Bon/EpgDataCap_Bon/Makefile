@@ -7,6 +7,13 @@ WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
 CUR_ALL_H := $(wildcard *.h)
 
+build:
+ifeq ($(OS),Windows_NT)
+	$(MAKE) $(TARGET).exe
+else
+	$(MAKE) $(TARGET).elf
+endif
+
 $(TARGET).exe: $(addsuffix .obj, \
   BonCtrl__BonCtrl.cpp \
   BonCtrl__BonDriverUtil.cpp \
@@ -49,6 +56,42 @@ $(TARGET).exe: $(addsuffix .obj, \
   stdafx.cpp \
   TaskbarList.cpp \
   EpgDataCap_Bon.rc \
+  )
+	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
+
+$(TARGET).elf: $(addsuffix .obj, \
+  BonCtrl__BonCtrl.cpp \
+  BonCtrl__BonDriverUtil.cpp \
+  BonCtrl__CATUtil.cpp \
+  BonCtrl__ChSetUtil.cpp \
+  BonCtrl__CreatePATPacket.cpp \
+  BonCtrl__CreatePMTPacket.cpp \
+  BonCtrl__DropCount.cpp \
+  BonCtrl__OneServiceUtil.cpp \
+  BonCtrl__PacketInit.cpp \
+  BonCtrl__PMTUtil.cpp \
+  BonCtrl__ScrambleDecoderUtil.cpp \
+  BonCtrl__ServiceFilter.cpp \
+  BonCtrl__TSOut.cpp \
+  BonCtrl__WriteTSFile.cpp \
+  Common__CtrlCmdUtil.cpp \
+  Common__EpgDataCap3Util.cpp \
+  Common__EpgTimerUtil.cpp \
+  Common__IniUtil.cpp \
+  Common__ParseTextInstances.cpp \
+  Common__PathUtil.cpp \
+  Common__PipeServer.cpp \
+  Common__SendCtrlCmd.cpp \
+  Common__SendTSTCPDllUtil.cpp \
+  Common__StackTrace.cpp \
+  Common__StringUtil.cpp \
+  Common__TimeUtil.cpp \
+  Common__TSBuffUtil.cpp \
+  Common__TSPacketUtil.cpp \
+  Common__WritePlugInUtil.cpp \
+  EpgDataCap_Bon.cpp \
+  EpgDataCap_BonDlg.cpp \
+  stdafx.cpp \
   )
 	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)

@@ -7,8 +7,10 @@
 #include "EpgDataCap_BonDlg.h"
 #include "../../Common/StackTrace.h"
 #include "../../Common/ThreadUtil.h"
+#ifdef _WIN32
 #include <objbase.h>
 #include <shellapi.h>
+#endif
 
 namespace
 {
@@ -32,8 +34,13 @@ CEpgDataCap_BonApp::CEpgDataCap_BonApp()
 
 // CEpgDataCap_BonApp 初期化
 
+#ifdef _WIN32
 BOOL CEpgDataCap_BonApp::InitInstance()
+#else
+BOOL CEpgDataCap_BonApp::InitInstance(int argc, char* argv_[])
+#endif
 {
+#ifdef _WIN32
 	// アプリケーション マニフェストが visual スタイルを有効にするために、
 	// ComCtl32.dll Version 6 以降の使用を指定する場合は、
 	// Windows XP に InitCommonControlsEx() が必要です。さもなければ、ウィンドウ作成はすべて失敗します。
@@ -45,6 +52,7 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 
 	SetProcessShutdownParameters(0x300, 0);
+#endif
 
 #ifndef SUPPRESS_OUTPUT_STACK_TRACE
 	SetOutputStackTraceOnUnhandledException(GetModulePath().concat(L".err").c_str());
@@ -56,8 +64,16 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 	dlg.SetIniNW(TRUE);
 
 	// コマンドオプションを解析
+#ifdef _WIN32
 	int argc;
 	LPWSTR *argv = CommandLineToArgvW(GetCommandLine(), &argc);
+#else
+	LPWSTR *argv = new LPWSTR[argc];
+	for (int i = 0; i < argc; i++) {
+		argv[i] = new WCHAR[strlen(argv_[i]) + 1];
+		mbstowcs(argv[i], argv_[i], strlen(argv_[i]) + 1);
+	}
+#endif
 	if (argv != NULL) {
 		LPCWSTR curr = L"";
 		LPCWSTR optUpperD = NULL;
@@ -97,10 +113,13 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 			dlg.SetInitBon(optLowerD);
 			AddDebugLogFormat(L"%ls", optLowerD);
 		}
+#ifdef _WIN32
 		LocalFree(argv);
+#endif
 	}
 
 
+#ifdef _WIN32
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
@@ -112,23 +131,33 @@ BOOL CEpgDataCap_BonApp::InitInstance()
 		// TODO: ダイアログが <キャンセル> で消された時のコードを
 		//  記述してください。
 	}
+#endif
 
 	// ダイアログは閉じられました。アプリケーションのメッセージ ポンプを開始しないで
 	//  アプリケーションを終了するために FALSE を返してください。
 	return FALSE;
 }
 
+#ifndef _WIN32
+int main(int argc, char* argv[])
+{
+#else
 #ifdef __MINGW32__
 __declspec(dllexport) //ASLRを無効にしないため(CVE-2018-5392)
 #endif
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	SetDllDirectory(L"");
+#endif
 	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
+#ifdef _WIN32
 	//メインスレッドに対するCOMの初期化
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 	theApp.InitInstance();
 	CoUninitialize();
+#else
+	theApp.InitInstance(argc, argv);
+#endif
 	SetSaveDebugLog(false);
 	return 0;
 }

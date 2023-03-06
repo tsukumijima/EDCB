@@ -10,7 +10,8 @@ ifeq ($(OS),Windows_NT)
               EdcbPlugIn \
               EpgTimerSrv
 else
-	TARGETS = EpgDataCap3 \
+	TARGETS = EpgDataCap_Bon \
+              EpgDataCap3 \
               RecName_Macro \
               SendTSTCP \
               Write_Default \

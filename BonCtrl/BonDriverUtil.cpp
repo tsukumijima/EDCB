@@ -6,7 +6,6 @@
 #ifdef _WIN32
 #include <objbase.h>
 #else
-#include "StringUtil.h"
 #include <dlfcn.h>
 #endif
 

@@ -279,6 +279,16 @@ inline constexpr uint8_t HIBYTE(uint16_t value)
 }
 
 // Written by ChatGPT
+inline int fprintf_s(FILE *file, const char *format, ...)
+  {
+    va_list args;
+    va_start(args, format);
+    int ret = vfprintf(file, format, args);
+    va_end(args);
+    return ret;
+  }
+
+// Written by ChatGPT
 inline int swscanf_s(const wchar_t *str, const wchar_t *format, ...)
 {
     va_list args;
@@ -628,6 +638,8 @@ typedef std::nullptr_t nullptr_t;
 typedef signed int HRESULT;
 
 // Additional
+
+#define LPCTSTR const char*
 
 typedef UINT_PTR            WPARAM;
 typedef LONG_PTR            LPARAM;

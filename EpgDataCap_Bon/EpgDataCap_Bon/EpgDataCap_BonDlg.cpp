@@ -10,9 +10,11 @@
 #include "../../Common/CtrlCmdUtil.h"
 #include "../../Common/IniUtil.h"
 #include "../../Common/TimeUtil.h"
+#ifdef _WIN32
 #include <shellapi.h>
 #include <objbase.h>
 #include "TaskbarList.h"
+#endif
 
 
 // CEpgDataCap_BonDlg ダイアログ

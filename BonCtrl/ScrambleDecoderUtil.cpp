@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "ScrambleDecoderUtil.h"
 #ifndef _WIN32
-#include "StringUtil.h"
+#include "../Common/StringUtil.h"
 #include <dlfcn.h>
 #endif
 
