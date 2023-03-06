@@ -1,8 +1,10 @@
 ﻿#include "stdafx.h"
 #include "SyoboiCalUtil.h"
 
+#ifdef _WIN32
 #include <winhttp.h>
 #include <wincrypt.h>
+#endif
 
 #include "../../Common/CommonDef.h"
 #include "../../Common/PathUtil.h"
@@ -38,7 +40,7 @@ BOOL CSyoboiCalUtil::UrlEncodeUTF8(LPCWSTR src, DWORD srcSize, string& dest)
 	for( size_t i=0; i<dest.size(); ){
 		if( ( dest[i] >= 'A' && dest[i] <= 'Z' ) ||
 			( dest[i] >= 'a' && dest[i] <= 'z' ) ||
-			( dest[i] >= '0' && dest[i] <= '9' ) 
+			( dest[i] >= '0' && dest[i] <= '9' )
 			)
 		{
 			i++;
@@ -107,7 +109,7 @@ BOOL CSyoboiCalUtil::SendReserve(const vector<RESERVE_DATA>* reserveList, const 
 	int slot = GetPrivateProfileInt(L"SYOBOI", L"slot", 0, iniAppPath.c_str());
 
 	wstring devcolors=GetPrivateProfileToString(L"SYOBOI", L"devcolors", L"", iniAppPath.c_str());
-	
+
 	wstring epgurl=GetPrivateProfileToString(L"SYOBOI", L"epgurl", L"", iniAppPath.c_str());
 
 	if( id.size() == 0 ){

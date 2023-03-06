@@ -143,7 +143,6 @@ $(TARGET).elf: $(addsuffix .obj, \
   RegExp.cpp \
   ReserveManager.cpp \
   stdafx.cpp \
-  SyoboiCalUtil.cpp \
   TunerBankCtrl.cpp \
   UpnpSsdpServer.cpp \
   )

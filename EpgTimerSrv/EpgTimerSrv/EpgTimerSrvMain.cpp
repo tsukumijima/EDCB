@@ -1,6 +1,8 @@
 ﻿#include "stdafx.h"
 #include "EpgTimerSrvMain.h"
+#ifdef _WIN32
 #include "SyoboiCalUtil.h"
+#endif
 #include "../../BonCtrl/BonCtrlDef.h"
 #include "../../Common/PipeServer.h"
 #include "../../Common/TCPServer.h"
@@ -88,8 +90,13 @@ struct MAIN_WINDOW_CONTEXT {
 		, notifyTipActiveTime(LLONG_MAX) {}
 };
 
+#ifndef _WIN32
+MAIN_WINDOW_CONTEXT* g_ctx = NULL;
+#endif
+
 void CtrlCmdResponseThreadCallback(const CCmdStream& cmd, CCmdStream& res, CTCPServer::RESPONSE_THREAD_STATE state, void*& param)
 {
+#ifdef _WIN32
 	struct RELAY_STREAM_CONTEXT {
 		HANDLE hFile;
 		HANDLE hEvent;
@@ -167,6 +174,9 @@ void CtrlCmdResponseThreadCallback(const CCmdStream& cmd, CCmdStream& res, CTCPS
 		CloseHandle(context->hFile);
 		delete context;
 	}
+#else
+	// TODO: Linux では現状未実装 (どう実装すればいいんだろう…)
+#endif
 }
 
 }
@@ -221,6 +231,13 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 			DispatchMessage(&msg);
 		}
 	}
+#else
+	// コンテキストを初期化して g_ctx にセット
+	MAIN_WINDOW_CONTEXT ctx(this);
+	g_ctx = &ctx;
+
+	// CEpgTimerSrvMain::MainWndProc() の WM_CREATE コマンドを実行 (超強引)
+	MainWndProc(NULL, WM_CREATE, 0, 0);
 #endif
 #ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
@@ -254,7 +271,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 #else
-	MAIN_WINDOW_CONTEXT* ctx = new MAIN_WINDOW_CONTEXT(this);
+	MAIN_WINDOW_CONTEXT* ctx = g_ctx;
 #endif
 
 	switch( uMsg ){
@@ -634,6 +651,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 
 				ctx->sys->reserveManager.CheckTuijyu();
 
+#ifdef _WIN32
 				if( ctx->sys->useSyoboi ){
 					//しょぼいカレンダー対応
 					CSyoboiCalUtil syoboi;
@@ -641,6 +659,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 					vector<TUNER_RESERVE_INFO> tunerList = ctx->sys->reserveManager.GetTunerReserveAll();
 					syoboi.SendReserve(&reserveList, &tunerList);
 				}
+#endif
 				AddDebugLogFormat(L"Done PostLoad EpgData %dmsec", GetTickCount() - ctx->autoAddCheckTick);
 			}
 			break;
@@ -1207,6 +1226,7 @@ bool CEpgTimerSrvMain::QueryShutdown(BYTE rebootFlag, BYTE suspendMode)
 
 bool CEpgTimerSrvMain::IsUserWorking() const
 {
+#ifdef _WIN32
 	lock_recursive_mutex lock(this->settingLock);
 
 	//最終入力時刻取得
@@ -1220,10 +1240,15 @@ bool CEpgTimerSrvMain::IsUserWorking() const
 		return true;
 	}
 	return false;
+#else
+	// Linux では当面常に false を返す
+	return false;
+#endif
 }
 
 bool CEpgTimerSrvMain::IsFindShareTSFile() const
 {
+#ifdef _WIN32
 	bool found = false;
 	WCHAR ext[10] = {};
 	{
@@ -1261,10 +1286,15 @@ bool CEpgTimerSrvMain::IsFindShareTSFile() const
 		}
 	}
 	return found;
+#else
+	// Linux では当面常に false を返す
+	return false;
+#endif
 }
 
 bool CEpgTimerSrvMain::IsFindNoSuspendExe() const
 {
+#ifdef _WIN32
 	lock_recursive_mutex lock(this->settingLock);
 
 	if( this->setting.noSuspendExeList.empty() == false ){
@@ -1292,6 +1322,10 @@ bool CEpgTimerSrvMain::IsFindNoSuspendExe() const
 		}
 	}
 	return false;
+#else
+	// Linux では当面常に false を返す
+	return false;
+#endif
 }
 
 vector<RESERVE_DATA>& CEpgTimerSrvMain::PreChgReserveData(vector<RESERVE_DATA>& reserveList) const
@@ -1495,7 +1529,7 @@ void CEpgTimerSrvMain::AutoAddReserveProgram(const MANUAL_AUTO_ADD_DATA& data, v
 					setList.resize(setList.size() + 1);
 					RESERVE_DATA& item = setList.back();
 					item.title = data.title;
-					ConvertSystemTime(startTime, &item.startTime); 
+					ConvertSystemTime(startTime, &item.startTime);
 					item.startTimeEpg = item.startTime;
 					item.durationSecond = data.durationSecond;
 					item.stationName = data.stationName;

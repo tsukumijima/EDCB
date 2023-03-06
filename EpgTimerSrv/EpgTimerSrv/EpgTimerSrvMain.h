@@ -23,9 +23,9 @@ public:
 	//休止／スタンバイに移行して構わない状況かどうか
 	bool IsSuspendOK() const;
 private:
-#ifdef _WIN32
 	//メインウィンドウ
 	static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#ifdef _WIN32
 	//シャットダウン問い合わせダイアログ
 	static INT_PTR CALLBACK QueryShutdownDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	//アイコンを読み込む
@@ -36,9 +36,6 @@ private:
 	static void InitReserveMenuPopup(HMENU hMenu, vector<RESERVE_DATA>& list);
 	//「配信停止」ポップアップを作成する
 	void InitStreamingMenuPopup(HMENU hMenu) const;
-#else
-	//メインウィンドウ
-	LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
 	void ReloadNetworkSetting();
 	void ReloadSetting(bool initialize = false);
