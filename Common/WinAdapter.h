@@ -196,6 +196,7 @@
 
 #define StringCchCopyW(dst, n, src) wcsncpy(dst, src, n)
 
+#define OutputDebugString(msg) fputws(msg, stderr)
 #define OutputDebugStringW(msg) fputws(msg, stderr)
 
 #define OutputDebugStringA(msg) fputs(msg, stderr)
@@ -373,6 +374,7 @@ inline uint64_t GetTickCount()
 #define __fastcall
 #define __clrcall
 #define WINAPI __stdcall
+#define CALLBACK __stdcall
 #endif // __GNUC____GNUC__
 
 //===----------------------------------------------------------------------===//

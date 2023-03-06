@@ -52,7 +52,7 @@ $(TARGET).dll: $(addsuffix .obj,$(SOURCES_BASE) ARIB8CharDecode.cpp) $(TARGET)_U
 	$(CXX) $(LDFLAGS2) $(filter %.obj,$^) $(LDLIBS) -o $@
 $(TARGET)_Unicode.dll: $(addsuffix .obj,$(SOURCES_BASE) USE_UNICODE_ARIB8CharDecode.cpp)
 	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
-$(TARGET).so: $(addsuffix .obj,$(SOURCES_BASE_LINUX) ARIB8CharDecode.cpp) $(TARGET)_Unicode.dll
+$(TARGET).so: $(addsuffix .obj,$(SOURCES_BASE_LINUX) ARIB8CharDecode.cpp) $(TARGET)_Unicode.so
 	$(CXX) $(LDFLAGS2_LINUX) $(filter %.obj,$^) $(LDLIBS) -o $@
 $(TARGET)_Unicode.so: $(addsuffix .obj,$(SOURCES_BASE_LINUX) USE_UNICODE_ARIB8CharDecode.cpp)
 	$(CXX) $(LDFLAGS2_LINUX) $^ $(LDLIBS) -o $@

@@ -93,11 +93,7 @@ RndIt upper_bound_first(RndIt first, RndIt last, const T& key)
 #ifndef WRAP_DEBUG_OUTPUT
 inline void AddDebugLogNoNewline(const WCHAR* s)
 {
-#ifdef _WIN32
 	OutputDebugString(s);
-#else
-	wprintf(L"%s", s);
-#endif
 }
 #endif
 
