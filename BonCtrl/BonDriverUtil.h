@@ -73,7 +73,9 @@ private:
 	//BonDriverへのアクセスを監視するスレッド
 	static void WatchdogThread(CBonDriverUtil* sys);
 
+#ifdef _WIN32
 	static class CInit { public: CInit(); } s_init;
+#endif
 	recursive_mutex_ utilLock;
 	wstring loadDllFolder;
 	wstring loadDllFileName;

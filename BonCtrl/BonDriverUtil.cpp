@@ -66,6 +66,7 @@ IBonDriver* CastB(IBonDriver2** if2, IBonDriver* (*funcCreate)())
 #endif
 }
 
+#ifdef _WIN32
 CBonDriverUtil::CInit CBonDriverUtil::s_init;
 
 CBonDriverUtil::CInit::CInit()
@@ -77,6 +78,7 @@ CBonDriverUtil::CInit::CInit()
 	wc.lpszClassName = L"BonDriverUtilWorker";
 	RegisterClassEx(&wc);
 }
+#endif
 
 CBonDriverUtil::CBonDriverUtil(void)
 	: hwndDriver(NULL)
@@ -108,6 +110,7 @@ bool CBonDriverUtil::OpenBonDriver(LPCWSTR bonDriverFolder, LPCWSTR bonDriverFil
 			this->watchdogThread = thread_(WatchdogThread, this);
 		}
 		this->driverThread = thread_(DriverThread, this);
+#ifdef _WIN32
 		//Open処理が完了するまで待つ
 		while( WaitForSingleObject(this->driverThread.native_handle(), 10) == WAIT_TIMEOUT ){
 			lock_recursive_mutex lock(this->utilLock);
@@ -115,6 +118,16 @@ bool CBonDriverUtil::OpenBonDriver(LPCWSTR bonDriverFolder, LPCWSTR bonDriverFil
 				break;
 			}
 		}
+#else
+		// Open処理が完了するまで待つ
+		while( this->driverThread.joinable() ){
+			lock_recursive_mutex lock(this->utilLock);
+			if( this->hwndDriver ){
+				break;
+			}
+			usleep(10000);
+		}
+#endif
 		if( this->hwndDriver ){
 			return true;
 		}

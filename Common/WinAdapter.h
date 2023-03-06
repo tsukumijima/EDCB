@@ -229,6 +229,24 @@
 
 #define WM_ACTIVATE                     0x0006
 
+#define WM_SETFOCUS                     0x0007
+#define WM_KILLFOCUS                    0x0008
+#define WM_ENABLE                       0x000A
+#define WM_SETREDRAW                    0x000B
+#define WM_SETTEXT                      0x000C
+#define WM_GETTEXT                      0x000D
+#define WM_GETTEXTLENGTH                0x000E
+#define WM_PAINT                        0x000F
+#define WM_CLOSE                        0x0010
+#define WM_QUERYENDSESSION              0x0011
+#define WM_QUERYOPEN                    0x0013
+#define WM_ENDSESSION                   0x0016
+#define WM_QUIT                         0x0012
+#define WM_ERASEBKGND                   0x0014
+#define WM_SYSCOLORCHANGE               0x0015
+#define WM_SHOWWINDOW                   0x0018
+#define WM_WININICHANGE                 0x001A
+
 #define WM_INITDIALOG                   0x0110
 #define WM_COMMAND                      0x0111
 #define WM_SYSCOMMAND                   0x0112
@@ -336,6 +354,21 @@ inline int wcscpy_s(wchar_t* dest, size_t destsz, const wchar_t* src)
 	}
 	size_t len = wcslen(src);
 	if (len >= destsz) {
+		dest[0] = L'\0';
+		return ERANGE;
+	}
+	wcsncpy(dest, src, len);
+	dest[len] = L'\0';
+	return 0;
+}
+
+inline int wcsncpy_s(wchar_t* dest, const wchar_t* src, size_t count)
+{
+	if (dest == NULL || src == NULL || count == 0) {
+		return EINVAL;
+	}
+	size_t len = wcslen(src);
+	if (len >= count) {
 		dest[0] = L'\0';
 		return ERANGE;
 	}
@@ -639,7 +672,7 @@ typedef signed int HRESULT;
 
 // Additional
 
-#define LPCTSTR const char*
+typedef const wchar_t *LPCTSTR;
 
 typedef UINT_PTR            WPARAM;
 typedef LONG_PTR            LPARAM;
