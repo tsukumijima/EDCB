@@ -2,7 +2,9 @@
 #include "WriteTSFile.h"
 
 #include "../Common/PathUtil.h"
+#ifdef _WIN32
 #include <objbase.h>
+#endif
 
 CWriteTSFile::CWriteTSFile(void)
 {
@@ -148,8 +150,10 @@ BOOL CWriteTSFile::AddTSBuff(
 
 void CWriteTSFile::OutThread(CWriteTSFile* sys)
 {
+#ifdef _WIN32
 	//プラグインがCOMを利用するかもしれないため
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+#endif
 
 	BOOL emptyFlag = TRUE;
 	for( size_t i=0; i<sys->fileList.size(); i++ ){
@@ -207,7 +211,9 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 	}
 	if( emptyFlag ){
 		AddDebugLog(L"CWriteTSFile::StartSave Err fileList 0");
+#ifdef _WIN32
 		CoUninitialize();
+#endif
 		sys->outStopState = 1;
 		sys->outStopEvent.Set();
 		return;
@@ -312,7 +318,9 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 		}
 	}
 
+#ifdef _WIN32
 	CoUninitialize();
+#endif
 }
 
 wstring CWriteTSFile::GetSaveFilePath()

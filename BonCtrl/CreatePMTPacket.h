@@ -72,7 +72,7 @@ protected:
 	vector<WORD> elementaryPIDList;
 
 	vector<BYTE> createPSI;
-	
+
 	vector<BYTE> createPacket;
 
 	BYTE createVer;

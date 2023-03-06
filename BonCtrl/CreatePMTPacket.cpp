@@ -227,7 +227,7 @@ void CCreatePMTPacket::CreatePMT()
 
 	//SectionLength
 	this->createPSI[2] = (this->createPSI.size()+4-4)>>8&0x0F;
-	this->createPSI[2] |= 0xB0; 
+	this->createPSI[2] |= 0xB0;
 	this->createPSI[3] = (this->createPSI.size()+4-4)&0xFF;
 	//バージョン
 	this->createPSI[6] = this->createVer<<1;

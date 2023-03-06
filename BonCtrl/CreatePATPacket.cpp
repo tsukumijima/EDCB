@@ -71,7 +71,7 @@ void CCreatePATPacket::CreatePAT()
 	this->PSI[0] = 0;
 	this->PSI[1] = 0;
 	this->PSI[2] = (this->PSI.size()-4)>>8&0x0F;
-	this->PSI[2] |= 0xB0; 
+	this->PSI[2] |= 0xB0;
 	this->PSI[3] = (this->PSI.size()-4)&0xFF;
 	this->PSI[4] = (BYTE)((this->TSID&0xFF00)>>8);
 	this->PSI[5] = (BYTE)(this->TSID&0x00FF);

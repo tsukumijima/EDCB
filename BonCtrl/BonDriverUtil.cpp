@@ -3,7 +3,12 @@
 #include "../Common/PathUtil.h"
 #include "../Common/StringUtil.h"
 #include "IBonDriver2.h"
+#ifdef _WIN32
 #include <objbase.h>
+#else
+#include "StringUtil.h"
+#include <dlfcn.h>
+#endif
 
 namespace
 {
@@ -14,6 +19,7 @@ enum {
 	WM_APP_GET_NOW_CH,
 };
 
+#ifdef _WIN32
 #ifndef _MSC_VER
 IBonDriver* CastB(IBonDriver2** if2, IBonDriver* (*funcCreate)())
 {
@@ -57,6 +63,7 @@ IBonDriver* CastB(IBonDriver2** if2, IBonDriver* (*funcCreate)())
 	*if2 = NULL;
 	return new CCastB(hModule, pBase, table, NULL);
 }
+#endif
 #endif
 }
 
@@ -139,18 +146,28 @@ void CBonDriverUtil::CloseBonDriver()
 
 void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 {
+#ifdef _WIN32
 	//BonDriverがCOMを利用するかもしれないため
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+#endif
 
 	IBonDriver* bonIF = NULL;
 	sys->bon2IF = NULL;
 	CBonStructAdapter bonAdapter;
 	CBonStruct2Adapter bon2Adapter;
+#ifdef _WIN32
 	HMODULE hModule = LoadLibrary(fs_path(sys->loadDllFolder).append(sys->loadDllFileName).c_str());
+	auto getProcAddr = [=](const char* name) { return GetProcAddress((HMODULE)hModule, name); };
+#else
+	string strPath;
+	WtoUTF8(fs_path(sys->loadDllFolder).append(sys->loadDllFileName).c_str(), strPath);
+	HMODULE hModule = dlopen(strPath.c_str(), RTLD_LAZY);
+	auto getProcAddr = [=](const char* name) { return dlsym(hModule, name); };
+#endif
 	if( hModule == NULL ){
 		AddDebugLog(L"★BonDriverがロードできません");
 	}else{
-		const STRUCT_IBONDRIVER* (*funcCreateBonStruct)() = (const STRUCT_IBONDRIVER*(*)())GetProcAddress(hModule, "CreateBonStruct");
+		const STRUCT_IBONDRIVER* (*funcCreateBonStruct)() = (const STRUCT_IBONDRIVER*(*)())getProcAddr("CreateBonStruct");
 		if( funcCreateBonStruct ){
 			//特定コンパイラに依存しないI/Fを使う
 			const STRUCT_IBONDRIVER* st = funcCreateBonStruct();
@@ -163,10 +180,11 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 				}
 			}
 		}else{
-			IBonDriver* (*funcCreateBonDriver)() = (IBonDriver*(*)())GetProcAddress(hModule, "CreateBonDriver");
+			IBonDriver* (*funcCreateBonDriver)() = (IBonDriver*(*)())getProcAddr("CreateBonDriver");
 			if( funcCreateBonDriver == NULL ){
 				AddDebugLog(L"★GetProcAddressに失敗しました");
 			}else{
+#ifdef _WIN32
 #ifdef _MSC_VER
 				if( (bonIF = funcCreateBonDriver()) != NULL ){
 					sys->bon2IF = dynamic_cast<IBonDriver2*>(bonIF);
@@ -174,6 +192,11 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 #else
 				//MSVC++オブジェクトを変換する
 				bonIF = CastB(&sys->bon2IF, funcCreateBonDriver);
+#endif
+#else
+				if( (bonIF = funcCreateBonDriver()) != NULL ){
+					sys->bon2IF = dynamic_cast<IBonDriver2*>(bonIF);
+				}
 #endif
 			}
 		}
@@ -221,13 +244,22 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 			bonIF->Release();
 		}
 		if( hModule ){
+#ifdef _WIN32
 			FreeLibrary(hModule);
+#else
+			dlclose(hModule);
+#endif
 		}
+#ifdef _WIN32
 		CoUninitialize();
+#endif
 		return;
 	}
+
+#ifdef _WIN32
 	//割り込み遅延への耐性はBonDriverのバッファ能力に依存するので、相対優先順位を上げておく
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
+#endif
 
 	//メッセージループ
 	MSG msg;
@@ -236,9 +268,15 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 	}
 	sys->bon2IF->CloseTuner();
 	bonIF->Release();
+#ifdef _WIN32
 	FreeLibrary(hModule);
+#else
+	dlclose(hModule);
+#endif
 
+#ifdef _WIN32
 	CoUninitialize();
+#endif
 }
 
 LRESULT CALLBACK CBonDriverUtil::DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

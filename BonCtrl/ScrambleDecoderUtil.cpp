@@ -1,6 +1,11 @@
 ﻿#include "stdafx.h"
 #include "ScrambleDecoderUtil.h"
+#ifndef _WIN32
+#include "StringUtil.h"
+#include <dlfcn.h>
+#endif
 
+#ifdef _WIN32
 namespace
 {
 IB25Decoder* CastB(IB25Decoder2** if2, IB25Decoder* (*funcCreate)(), const LPVOID* (WINAPI* funcCast)(LPCSTR, void*))
@@ -65,6 +70,7 @@ IB25Decoder* CastB(IB25Decoder2** if2, IB25Decoder* (*funcCreate)(), const LPVOI
 	return b;
 }
 }
+#endif
 
 CScrambleDecoderUtil::CScrambleDecoderUtil(void)
 {
@@ -87,16 +93,25 @@ BOOL CScrambleDecoderUtil::LoadDll(LPCWSTR dllPath)
 	UnLoadDll();
 	BOOL ret = TRUE;
 
+#ifdef _WIN32
 	this->module = ::LoadLibrary(dllPath);
+	auto getProcAddr = [=](const char* name) { return GetProcAddress((HMODULE)this->module, name); };
+#else
+	string strPath;
+	WtoUTF8(dllPath, strPath);
+	this->module = dlopen(strPath.c_str(), RTLD_LAZY);
+	auto getProcAddr = [=](const char* name) { return dlsym(this->module, name); };
+#endif
 	if( this->module == NULL ){
 		return FALSE;
 	}
 	IB25Decoder* (*func)();
-	func = (IB25Decoder* (*)())::GetProcAddress( this->module, "CreateB25Decoder");
+	func = (IB25Decoder* (*)())getProcAddr("CreateB25Decoder");
 	if( !func ){
 		ret = FALSE;
 		goto ERR_END;
 	}
+#ifdef _WIN32
 	const LPVOID* (WINAPI* funcCast)(LPCSTR, void*);
 	funcCast = (const LPVOID*(WINAPI*)(LPCSTR,void*))GetProcAddress(this->module, "Cast");
 #ifdef _MSC_VER
@@ -108,6 +123,9 @@ BOOL CScrambleDecoderUtil::LoadDll(LPCWSTR dllPath)
 		ret = FALSE;
 		goto ERR_END;
 	}
+#else
+	this->decodeIF = func();
+#endif
 	if( this->decodeIF->Initialize() == FALSE ){
 		ret = FALSE;
 	}else{
@@ -148,7 +166,11 @@ void CScrambleDecoderUtil::UnLoadDll()
 		this->decodeIF2 = NULL;
 	}
 	if( this->module != NULL ){
+#ifdef _WIN32
 		::FreeLibrary( this->module );
+#else
+		dlclose(this->module);
+#endif
 		this->module = NULL;
 	}
 	this->currentDll = L"";
@@ -171,20 +193,37 @@ BOOL CScrambleDecoderUtil::SetNetwork(WORD ONID, WORD TSID)
 
 	wstring dllPath = GetModulePath().parent_path().native();
 	if( loadDll.size() > 0 ){
+#ifdef _WIN32
 		dllPath += L"\\";
+#else
+		dllPath += L"/";
+#endif
 		dllPath += loadDll;
 		this->loadDll = loadDll;
 	}else if( networkDefDll.size() > 0 ){
+#ifdef _WIN32
 		dllPath += L"\\";
+#else
+		dllPath += L"/";
+#endif
 		dllPath += networkDefDll;
 		this->loadDll = networkDefDll;
 	}else if( defDll.size() > 0 ){
+#ifdef _WIN32
 		dllPath += L"\\";
+#else
+		dllPath += L"/";
+#endif
 		dllPath += defDll;
 		this->loadDll = defDll;
 	}else{
+#ifdef _WIN32
 		dllPath += L"\\B25Decoder.dll";
 		this->loadDll = L"B25Decoder.dll";
+#else
+		dllPath += L"/B25Decoder.so";
+		this->loadDll = L"B25Decoder.so";
+#endif
 	}
 
 	if( CompareNoCase(dllPath, this->currentDll) != 0 ){

@@ -1,5 +1,8 @@
 ﻿#include "stdafx.h"
 #include "TSOut.h"
+#ifndef _WIN32
+#include <filesystem>
+#endif
 
 #include "../Common/TimeUtil.h"
 #include "../Common/EpgTimerUtil.h"
@@ -388,7 +391,11 @@ void CTSOut::StopSaveEPG(
 	this->epgFile.reset();
 
 	if( copy == TRUE ){
+#ifdef _WIN32
 		CopyFile(this->epgTempFilePath.c_str(), this->epgFilePath.c_str(), FALSE );
+#else
+		std::filesystem::copy_file(this->epgTempFilePath, this->epgFilePath, std::filesystem::copy_options::overwrite_existing);
+#endif
 	}
 	DeleteFile(this->epgTempFilePath.c_str());
 }

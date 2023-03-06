@@ -46,6 +46,7 @@ BOOL CChSetUtil::SaveChSet(
 	fs_path chSet4FilePath = fs_path(settingPath).append(fs_path(driverName).stem().concat(L"(" + tunerName + L").ChSet4.txt").native());
 	fs_path chSet5FilePath = fs_path(settingPath).append(L"ChSet5.txt");
 
+#ifdef _WIN32
 	//接続待ち
 	HANDLE waitEvent = CreateEvent(NULL, FALSE, TRUE, CHSET_SAVE_EVENT_WAIT);
 	if( waitEvent == NULL ){
@@ -55,6 +56,10 @@ BOOL CChSetUtil::SaveChSet(
 		CloseHandle(waitEvent);
 		return FALSE;
 	}
+#else
+	// TODO: 接続待ちとあるが何の接続を待っているのか不明
+	// おそらく待たなくても動くと思われたので未実装
+#endif
 
 	BOOL ret = TRUE;
 	this->chText4.SetFilePath(chSet4FilePath.c_str());
@@ -80,8 +85,10 @@ BOOL CChSetUtil::SaveChSet(
 	//最新版を再読み込み
 	this->chText5.ParseText(chSet5FilePath.c_str());
 
+#ifdef _WIN32
 	SetEvent(waitEvent);
 	CloseHandle(waitEvent);
+#endif
 
 	return ret;
 }
