@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "PipeServer.h"
+#include "PathUtil.h"
 #include "StringUtil.h"
 #include "CtrlCmdDef.h"
 #include "ErrDef.h"
@@ -105,7 +106,7 @@ bool CPipeServer::StartServer(
 		break;
 	}
 #else
-	WtoUTF8(EDCB_INI_ROOT + pipeName, this->sockPath);
+	WtoUTF8(GetModulePath().append(pipeName).c_str(), this->sockPath);
 	sockaddr_un addr;
 	if( this->sockPath.size() < sizeof(addr.sun_path) ){
 		this->srvSock = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);

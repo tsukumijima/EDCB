@@ -92,9 +92,9 @@ void CTimeShiftUtil::Send(
 			}
 #else
 			if( scanNum == 4 ){
-				Format(info->key, L"%ls%ls%u_%u.lock", EDCB_INI_ROOT, mutexName, u[0], info->port);
+				Format(info->key, L"%ls%ls%u_%u.lock", GetModulePath().c_str(), mutexName, u[0], info->port);
 			}else{
-				Format(info->key, L"%ls%ls%ls_%u.lock", EDCB_INI_ROOT, mutexName, ip, info->port);
+				Format(info->key, L"%ls%ls%ls_%u.lock", GetModulePath().c_str(), mutexName, ip, info->port);
 			}
 			info->mutex = UtilOpenFile(info->key, UTIL_SECURE_WRITE);
 			if( info->mutex ){

@@ -34,9 +34,6 @@ using std::vector;
 // Windows API の Polyfill 的なもの
 #include "WinAdapter.h"
 
-// EDCB_INI_ROOT には EDCB の設定ファイル類のディレクトリパスを指定する (暫定で決め打ち)
-#define EDCB_INI_ROOT L"/Develop/EpgDataCap_Bon"
-
 // スタックトレースを出力しない (そもそも Windows 向けのため動作しない)
 #define SUPPRESS_OUTPUT_STACK_TRACE
 

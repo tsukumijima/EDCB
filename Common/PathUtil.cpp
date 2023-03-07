@@ -389,19 +389,15 @@ fs_path GetModulePath()
 fs_path GetModuleIniPath(LPCWSTR moduleName)
 {
 	if( moduleName ){
-		return fs_path(EDCB_INI_ROOT).append(moduleName).concat(L".ini");
+		return GetModulePath().append(moduleName).concat(L".ini");
 	}
-	return fs_path(EDCB_INI_ROOT).append(GetModulePath().filename().native()).replace_extension(L".ini");
+	return GetModulePath().replace_extension(L".ini");
 }
 #endif
 
 fs_path GetCommonIniPath()
 {
-#ifdef _WIN32
 	return GetModulePath().replace_filename(L"Common.ini");
-#else
-	return fs_path(EDCB_INI_ROOT).append(L"Common.ini");
-#endif
 }
 
 fs_path GetRecFolderPath(int index)
