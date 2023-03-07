@@ -136,15 +136,14 @@ $(TARGET).elf: $(addsuffix .obj, \
   civetweb.c \
   EpgDBManager.cpp \
   EpgTimerSrv.cpp \
-  EpgTimerSrvMain.cpp \
   EpgTimerSrvSetting.cpp \
   HttpServer.cpp \
   NotifyManager.cpp \
-  RegExp.cpp \
   ReserveManager.cpp \
   stdafx.cpp \
   TunerBankCtrl.cpp \
   UpnpSsdpServer.cpp \
+  EpgTimerSrvMain.cpp \
   )
 	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)

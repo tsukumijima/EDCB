@@ -61,13 +61,11 @@ $(TARGET).exe: $(addsuffix .obj, \
 
 $(TARGET).elf: $(addsuffix .obj, \
   BonCtrl__BonCtrl.cpp \
-  BonCtrl__BonDriverUtil.cpp \
   BonCtrl__CATUtil.cpp \
   BonCtrl__ChSetUtil.cpp \
   BonCtrl__CreatePATPacket.cpp \
   BonCtrl__CreatePMTPacket.cpp \
   BonCtrl__DropCount.cpp \
-  BonCtrl__OneServiceUtil.cpp \
   BonCtrl__PacketInit.cpp \
   BonCtrl__PMTUtil.cpp \
   BonCtrl__ScrambleDecoderUtil.cpp \
@@ -89,9 +87,11 @@ $(TARGET).elf: $(addsuffix .obj, \
   Common__TSBuffUtil.cpp \
   Common__TSPacketUtil.cpp \
   Common__WritePlugInUtil.cpp \
+  stdafx.cpp \
+  BonCtrl__BonDriverUtil.cpp \
+  BonCtrl__OneServiceUtil.cpp \
   EpgDataCap_Bon.cpp \
   EpgDataCap_BonDlg.cpp \
-  stdafx.cpp \
   )
 	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
