@@ -22,8 +22,6 @@ private:
     std::queue<Message> m_MessageQueue;
     UINT_PTR m_NextTimerId;
     std::map<UINT_PTR, std::chrono::system_clock::time_point> m_Timers;
-    std::mutex m_Mutex;
-    std::condition_variable m_CondVar;
 };
 
 LRESULT SendMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

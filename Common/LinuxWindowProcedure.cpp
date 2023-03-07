@@ -21,30 +21,25 @@ CLinuxWindowProcedure::CLinuxWindowProcedure(LRESULT(*WindowProc)(HWND, UINT, WP
 // Windows API の SendMessage 的なもの
 LRESULT CLinuxWindowProcedure::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
     return m_WindowProc(this, uMsg, wParam, lParam);
 }
 
 // Windows API の PostMessage 的なもの
 BOOL CLinuxWindowProcedure::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
     m_MessageQueue.push({ uMsg, wParam, lParam });
-    m_CondVar.notify_one();
     return TRUE;
 }
 
 // Windows API の SetTimer 的なもの
 void CLinuxWindowProcedure::SetTimer(UINT_PTR nIDEvent, UINT uElapse)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
     m_Timers[nIDEvent] = std::chrono::system_clock::now() + std::chrono::milliseconds(uElapse);
 }
 
 // Windows API の KillTimer 的なもの
 void CLinuxWindowProcedure::KillTimer(UINT_PTR uIDEvent)
 {
-    std::lock_guard<std::mutex> lock(m_Mutex);
     m_Timers.erase(uIDEvent);
 }
 
@@ -54,19 +49,12 @@ void CLinuxWindowProcedure::Run()
     SendMessage(WM_CREATE, 0, 0);
 
     while (m_Run) {
-        std::unique_lock<std::mutex> lock(m_Mutex);
-        if (m_MessageQueue.empty()) {
-            m_CondVar.wait(lock);
-        }
 
         while (!m_MessageQueue.empty()) {
             auto message = m_MessageQueue.front();
             m_MessageQueue.pop();
-            lock.unlock();
 
             SendMessage(message.uMsg, message.wParam, message.lParam);
-
-            lock.lock();
         }
 
         auto now = std::chrono::system_clock::now();
@@ -81,7 +69,6 @@ void CLinuxWindowProcedure::Run()
             }
             ++it;
         }
-        lock.unlock();
 
         std::this_thread::sleep_for(1ms);
     }
@@ -91,7 +78,6 @@ void CLinuxWindowProcedure::Run()
 void CLinuxWindowProcedure::Quit()
 {
     m_Run = false;
-    m_CondVar.notify_one();
 }
 
 // HWND は Linux 環境では void* で定義されているので (WinAdapter.h を参照) 、これを LinuxWindowProcedure* にキャストして使う
