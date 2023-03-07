@@ -1,4 +1,8 @@
-// Based on: https://github.com/microsoft/DirectXShaderCompiler/blob/main/include/dxc/Support/WinAdapter.h
+/**
+ * Microsoft Visual C++ 固有の型・マクロ・関数・API を、Linux で使用できるようにするためのアダプター
+ * https://github.com/microsoft/DirectXShaderCompiler/blob/main/include/dxc/Support/WinAdapter.h をベースに
+ * 足りない部分を適宜追加したもの（そのため、EDCB では使われていない定義も多く含まれる）
+ */
 
 //===- WinAdapter.h - Windows Adapter for non-Windows platforms -*- C++ -*-===//
 //
@@ -626,6 +630,7 @@ typedef bool BOOL;
 typedef BOOL *LPBOOL;
 
 typedef int INT;
+typedef int INT_PTR;
 typedef long LONG;
 typedef unsigned int UINT;
 typedef unsigned int UINT_PTR;
@@ -699,6 +704,7 @@ typedef void *HMODULE;
 // Additional
 
 typedef void *HWND;
+typedef void (CALLBACK *TIMERPROC)(HWND, UINT, UINT_PTR, DWORD);
 
 //===--------------------- ID Types and Macros for COM --------------------===//
 

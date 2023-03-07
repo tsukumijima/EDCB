@@ -7,6 +7,12 @@
 #include <objbase.h>
 #else
 #include <dlfcn.h>
+// Win32 API のウインドウプロシージャに依存しているコードを極力そのまま動かせるようにするためのユーティリティ
+#include "../Common/LinuxWindowProcedure.h"
+#endif
+
+#ifndef _WIN32
+CBonDriverUtil* g_sys = NULL;
 #endif
 
 namespace
@@ -163,6 +169,11 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 #endif
 
+#ifndef _WIN32
+	// Windows API の HWND の代わり的なもの
+	CLinuxWindowProcedure* windowProcesure = new CLinuxWindowProcedure(DriverWindowProc);
+#endif
+
 	IBonDriver* bonIF = NULL;
 	sys->bon2IF = NULL;
 	CBonStructAdapter bonAdapter;
@@ -238,7 +249,11 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 						sys->loadChList.back().second.push_back(chName);
 					}
 				}
+#ifdef _WIN32
 				HWND hwnd = CreateWindow(L"BonDriverUtilWorker", NULL, WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, HWND_MESSAGE, NULL, GetModuleHandle(NULL), sys);
+#else
+				HWND hwnd = windowProcesure;
+#endif
 				if( hwnd == NULL ){
 					sys->loadChList.clear();
 					sys->loadTunerName.clear();
@@ -273,11 +288,17 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
 #endif
 
+#ifdef _WIN32
 	//メッセージループ
 	MSG msg;
 	while( GetMessage(&msg, NULL, 0, 0) > 0 ){
 		DispatchMessage(&msg);
 	}
+#else
+	// メッセージループを開始
+	g_sys = sys;
+	windowProcesure->Run();
+#endif
 	sys->bon2IF->CloseTuner();
 	bonIF->Release();
 #ifdef _WIN32
@@ -293,14 +314,20 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 
 LRESULT CALLBACK CBonDriverUtil::DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+#ifdef _WIN32
 	CBonDriverUtil* sys = (CBonDriverUtil*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	if( uMsg != WM_CREATE && sys == NULL ){
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
+#else
+	CBonDriverUtil* sys = g_sys;
+#endif
 	switch( uMsg ){
 	case WM_CREATE:
+#ifdef _WIN32
 		sys = (CBonDriverUtil*)((LPCREATESTRUCT)lParam)->lpCreateParams;
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)sys);
+#endif
 		SetTimer(hwnd, 1, 20, NULL);
 		sys->statusTimeout = 0;
 		if( sys->traceLevel ){
@@ -319,8 +346,13 @@ LRESULT CALLBACK CBonDriverUtil::DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM w
 		if( sys->statusFunc ){
 			sys->statusFunc(0.0f, -1, -1);
 		}
+#ifdef _WIN32
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
 		PostQuitMessage(0);
+#else
+		// hwnd を LinuxWindowProcedure* にキャストしてから windowProcesure->Quit() を呼ぶ
+		((CLinuxWindowProcedure*)hwnd)->Quit();
+#endif
 		return 0;
 	case WM_TIMER:
 		if( wParam == 1 ){
@@ -418,6 +450,7 @@ LRESULT CALLBACK CBonDriverUtil::DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM w
 				sys->callingName = L"GetNowCh";
 				sys->callingTick = GetTickCount();
 			}
+			// TODO: GCC では warning: cast to pointer from integer of different size [-Wint-to-pointer-cast] が出る
 			*(DWORD*)wParam = sys->bon2IF->GetCurSpace();
 			*(DWORD*)lParam = sys->bon2IF->GetCurChannel();
 			if( sys->traceLevel ){
@@ -428,7 +461,11 @@ LRESULT CALLBACK CBonDriverUtil::DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM w
 		}
 		return FALSE;
 	}
+#ifdef _WIN32
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+#else
+	return 0;
+#endif
 }
 
 void CBonDriverUtil::WatchdogThread(CBonDriverUtil* sys)
@@ -479,7 +516,12 @@ bool CBonDriverUtil::SetCh(DWORD space, DWORD ch)
 bool CBonDriverUtil::GetNowCh(DWORD* space, DWORD* ch)
 {
 	if( this->hwndDriver ){
+#ifdef _WIN32
 		if( SendMessage(this->hwndDriver, WM_APP_GET_NOW_CH, (WPARAM)space, (LPARAM)ch) ){
+#else
+		// なぜか WPARAM にキャストしようとすると GCC から怒られるので (桁溢れ防止？)、やむを得ず LPARAM にキャストする
+		if( SendMessage(this->hwndDriver, WM_APP_GET_NOW_CH, (LPARAM)space, (LPARAM)ch) ){
+#endif
 			return true;
 		}
 	}

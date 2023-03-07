@@ -61,6 +61,7 @@ $(TARGET).exe: $(addsuffix .obj, \
 
 $(TARGET).elf: $(addsuffix .obj, \
   BonCtrl__BonCtrl.cpp \
+  BonCtrl__BonDriverUtil.cpp \
   BonCtrl__CATUtil.cpp \
   BonCtrl__ChSetUtil.cpp \
   BonCtrl__CreatePATPacket.cpp \
@@ -76,6 +77,7 @@ $(TARGET).elf: $(addsuffix .obj, \
   Common__EpgDataCap3Util.cpp \
   Common__EpgTimerUtil.cpp \
   Common__IniUtil.cpp \
+  Common__LinuxWindowProcedure.cpp \
   Common__ParseTextInstances.cpp \
   Common__PathUtil.cpp \
   Common__PipeServer.cpp \
@@ -88,7 +90,6 @@ $(TARGET).elf: $(addsuffix .obj, \
   Common__TSPacketUtil.cpp \
   Common__WritePlugInUtil.cpp \
   stdafx.cpp \
-  BonCtrl__BonDriverUtil.cpp \
   BonCtrl__OneServiceUtil.cpp \
   EpgDataCap_Bon.cpp \
   EpgDataCap_BonDlg.cpp \

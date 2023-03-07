@@ -20,6 +20,8 @@
 #include <codecvt>
 #include <dlfcn.h>
 #include <locale>
+// Win32 API のウインドウプロシージャに依存しているコードを極力そのまま動かせるようにするためのユーティリティ
+#include "../../Common/LinuxWindowProcedure.h"
 #endif
 
 namespace
@@ -197,6 +199,7 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 #ifdef _WIN32
 	this->notifyManager.SetGUI(!serviceFlag_);
 #else
+	// Linux では常に GUI なしを指定
 	this->notifyManager.SetGUI(false);
 #endif
 	this->residentFlag = serviceFlag_;
@@ -236,8 +239,9 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 	MAIN_WINDOW_CONTEXT ctx(this);
 	g_ctx = &ctx;
 
-	// CEpgTimerSrvMain::MainWndProc() の WM_CREATE コマンドを実行 (超強引)
-	MainWndProc(NULL, WM_CREATE, 0, 0);
+	// メッセージループを開始
+	CLinuxWindowProcedure* windowProcesure = new CLinuxWindowProcedure(MainWndProc);
+	windowProcesure->Run();
 #endif
 #ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
@@ -279,8 +283,8 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 #ifdef _WIN32
 		ctx = (MAIN_WINDOW_CONTEXT*)((LPCREATESTRUCT)lParam)->lpCreateParams;
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)ctx);
-		ctx->sys->hwndMain = hwnd;
 #endif
+		ctx->sys->hwndMain = hwnd;
 		ctx->sys->ReloadSetting(true);
 		if( ctx->sys->reserveManager.GetTunerReserveAll().size() <= 1 ){
 			//チューナなし
@@ -537,8 +541,8 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 #endif
 				}
 			}
-			if( ctx->noBalloonTip != 1 && CNotifyManager::ExtractTitleFromInfo(&info).first[0] ){
 #ifdef _WIN32
+			if( ctx->noBalloonTip != 1 && CNotifyManager::ExtractTitleFromInfo(&info).first[0] ){
 				//バルーンチップ表示
 				NOTIFYICONDATA nid = {};
 				nid.cbSize = NOTIFYICONDATA_V2_SIZE;
@@ -550,8 +554,8 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 				wcsncpy_s(nid.szInfoTitle, CNotifyManager::ExtractTitleFromInfo(&info).first, _TRUNCATE);
 				wcsncpy_s(nid.szInfo, CNotifyManager::ExtractTitleFromInfo(&info).second, _TRUNCATE);
 				Shell_NotifyIcon(NIM_MODIFY, &nid);
-#endif
 			}
+#endif
 		}
 		break;
 #ifdef _WIN32
@@ -659,6 +663,8 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 					vector<TUNER_RESERVE_INFO> tunerList = ctx->sys->reserveManager.GetTunerReserveAll();
 					syoboi.SendReserve(&reserveList, &tunerList);
 				}
+#else
+				// しょぼいカレンダー対応は移植が面倒そうな上に誰も使ってなさそうなので、一旦オミット
 #endif
 				AddDebugLogFormat(L"Done PostLoad EpgData %dmsec", GetTickCount() - ctx->autoAddCheckTick);
 			}
@@ -1016,7 +1022,9 @@ void CEpgTimerSrvMain::StopMain()
 {
 	HWND hwndMain_ = this->hwndMain;
 	if( hwndMain_ ){
+#ifdef _WIN32
 		SendNotifyMessage(hwndMain_, WM_CLOSE, 0, 0);
+#endif
 	}
 }
 
@@ -2809,7 +2817,7 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStrea
 					}
 				}
 #else
-				// TODO: 未実装 (適当にそのまま来たパスを返す)
+				// TODO: どう実装すればいいかわからんので未実装 (適当にそのまま来たパスを返す)
 				netPath = path;
 #endif
 				if( netPath.empty() == false ){

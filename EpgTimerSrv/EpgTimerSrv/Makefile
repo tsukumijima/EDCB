@@ -120,6 +120,7 @@ $(TARGET).elf: $(addsuffix .obj, \
   Common__EpgDataCap3Util.cpp \
   Common__EpgTimerUtil.cpp \
   Common__IniUtil.cpp \
+  Common__LinuxWindowProcedure.cpp \
   Common__ParseTextInstances.cpp \
   Common__PathUtil.cpp \
   Common__PipeServer.cpp \

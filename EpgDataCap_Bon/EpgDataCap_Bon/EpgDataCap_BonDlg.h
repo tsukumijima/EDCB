@@ -9,6 +9,9 @@
 #include "EpgDataCap_BonDef.h"
 #ifdef _WIN32
 #include "SettingDlg.h"
+#else
+// Win32 API のウインドウプロシージャに依存しているコードを極力そのまま動かせるようにするためのユーティリティ
+#include "../../Common/LinuxWindowProcedure.h"
 #endif
 
 // CEpgDataCap_BonDlg ダイアログ
