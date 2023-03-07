@@ -286,6 +286,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 
 	switch( uMsg ){
 	case WM_CREATE:
+		AddDebugLog(L"### WM_CREATE ###");
 #ifdef _WIN32
 		ctx = (MAIN_WINDOW_CONTEXT*)((LPCREATESTRUCT)lParam)->lpCreateParams;
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)ctx);
@@ -314,6 +315,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		AddDebugLog(L"*** Server initialized ***");
 		return 0;
 	case WM_DESTROY:
+		AddDebugLog(L"### WM_DESTROY ###");
 #ifdef _WIN32
 		if( ctx->resumeTimer ){
 			CloseHandle(ctx->resumeTimer);
@@ -384,6 +386,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 #endif
 	case WM_APP_RESET_SERVER:
 		{
+			AddDebugLog(L"### WM_APP_RESET_SERVER ###");
 			//サーバリセット処理
 			unsigned short tcpPort_;
 			bool tcpIPv6_;
@@ -407,10 +410,12 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		}
 		break;
 	case WM_APP_RELOAD_EPG:
+		AddDebugLog(L"### WM_APP_RELOAD_EPG ###");
 		//EPGリロードを開始
 		ctx->sys->epgDB.ReloadEpgData();
 		//FALL THROUGH!
 	case WM_APP_RELOAD_EPG_CHK:
+		AddDebugLog(L"### WM_APP_RELOAD_EPG_CHK ###");
 		//EPGリロード完了のチェックを開始
 		{
 			lock_recursive_mutex lock(ctx->sys->autoAddLock);
@@ -421,6 +426,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		ctx->shutdownPendingTick = GetTickCount();
 		break;
 	case WM_APP_REQUEST_SHUTDOWN:
+		AddDebugLog(L"### WM_APP_REQUEST_SHUTDOWN ###");
 		//シャットダウン処理
 		if( ctx->sys->IsSuspendOK() ){
 			if( wParam == SD_MODE_STANDBY || wParam == SD_MODE_SUSPEND ){
@@ -451,10 +457,12 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		}
 		break;
 	case WM_APP_REQUEST_REBOOT:
+		AddDebugLog(L"### WM_APP_REQUEST_REBOOT ###");
 		//再起動
 		SetShutdown(4);
 		break;
 	case WM_APP_QUERY_SHUTDOWN:
+		AddDebugLog(L"### WM_APP_QUERY_SHUTDOWN ###");
 		if( ctx->sys->notifyManager.IsGUI() ){
 			//直接尋ねる
 #ifdef _WIN32
@@ -474,6 +482,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		}
 		return TRUE;
 	case WM_APP_RECEIVE_NOTIFY:
+		AddDebugLog(L"### WM_APP_RECEIVE_NOTIFY ###");
 		//通知を受け取る
 		{
 			NOTIFY_SRV_INFO info = {};
@@ -614,6 +623,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 	case WM_TIMER:
 		switch( wParam ){
 		case TIMER_RELOAD_EPG_CHK_PENDING:
+			AddDebugLog(L"### WM_TIMER: TIMER_RELOAD_EPG_CHK_PENDING ###");
 			if( GetTickCount() - ctx->shutdownPendingTick > 30000 ){
 				//30秒以内にシャットダウン問い合わせできなければキャンセル
 				if( ctx->shutdownModePending ){
@@ -683,6 +693,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			}
 			break;
 		case TIMER_QUERY_SHUTDOWN_PENDING:
+			AddDebugLog(L"### WM_TIMER: TIMER_QUERY_SHUTDOWN_PENDING ###");
 			if( GetTickCount() - ctx->shutdownPendingTick >= 100000 ){
 				if( GetTickCount() - ctx->shutdownPendingTick - 100000 > 30000 ){
 					//30秒以内にシャットダウン問い合わせできなければキャンセル
@@ -711,6 +722,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			break;
 #endif
 		case TIMER_INC_SRV_STATUS:
+			AddDebugLog(L"### WM_TIMER: TIMER_INC_SRV_STATUS ###");
 			//最大20秒
 			if( SRV_STATUS_PRE_REC <= ctx->notifySrvStatus && ctx->notifySrvStatus < SRV_STATUS_PRE_REC + 20 ){
 				ctx->notifySrvStatus++;
@@ -721,6 +733,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			break;
 		case TIMER_SET_RESUME:
 			{
+				AddDebugLog(L"### WM_TIMER: TIMER_SET_RESUME ###");
 				//復帰タイマ更新(powercfg /waketimersでデバッグ可能)
 				DWORD marginSec;
 				{
@@ -764,6 +777,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			break;
 		case TIMER_CHECK:
 			{
+				AddDebugLog(L"### WM_TIMER: TIMER_CHECK ###");
 				pair<CReserveManager::CHECK_STATUS, int> ret = ctx->sys->reserveManager.Check();
 				switch( ret.first ){
 				case CReserveManager::CHECK_EPGCAP_END:
@@ -801,6 +815,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			}
 			break;
 		case TIMER_RESET_HTTP_SERVER:
+			AddDebugLog(L"### WM_TIMER: TIMER_RESET_HTTP_SERVER ###");
 			if( ctx->httpServer.StopServer(true) ){
 				KillTimer(hwnd, TIMER_RESET_HTTP_SERVER);
 				CHttpServer::SERVER_OPTIONS op;
