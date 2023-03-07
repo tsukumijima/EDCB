@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <string>
 #include <sys/time.h>
+#include <sys/timerfd.h>
 #include <typeindex>
 #include <typeinfo>
 #include <unistd.h>
@@ -843,6 +844,14 @@ typedef struct _SYSTEMTIME {
 
 // Additional
 
+typedef struct _SECURITY_ATTRIBUTES {
+    DWORD nLength;
+    LPVOID lpSecurityDescriptor;
+    BOOL bInheritHandle;
+} SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
+
+typedef void (CALLBACK *LPTIMERCALLBACK)(HWND, UINT, UINT_PTR, DWORD);
+
 inline void GetLocalTime(SYSTEMTIME* st)
 {
 	time_t t = time(NULL);
@@ -870,6 +879,29 @@ inline void GetSystemTime(SYSTEMTIME* lpSystemTime) {
     lpSystemTime->wMinute = tm->tm_min;
     lpSystemTime->wSecond = tm->tm_sec;
     lpSystemTime->wMilliseconds = tv.tv_usec / 1000;
+}
+
+// Written by ChatGPT
+// HANDLE ではなくファイルディスクリプタ (int) を返すため注意
+inline int CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCSTR lpTimerName)
+{
+    int fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
+    if (fd == -1) {
+        return -1;
+    }
+    return fd;
+}
+
+// Written by ChatGPT
+// hTimer は HANDLE ではなくファイルディスクリプタ (int) であることに注意
+inline BOOL SetWaitableTimer(int hTimer, const LARGE_INTEGER* pDueTime, LONG lPeriod, LPTIMERCALLBACK pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, BOOL fResume)
+{
+    struct itimerspec new_value;
+    new_value.it_interval.tv_sec = lPeriod / 1000;
+    new_value.it_interval.tv_nsec = (lPeriod % 1000) * 1000000;
+    new_value.it_value.tv_sec = pDueTime->QuadPart / 10000000;
+    new_value.it_value.tv_nsec = (pDueTime->QuadPart % 10000000) * 100;
+    return (timerfd_settime(hTimer, 0, &new_value, NULL) == 0);
 }
 
 //===--------------------- UUID Related Macros ----------------------------===//

@@ -56,7 +56,11 @@ struct MAIN_WINDOW_CONTEXT {
 	CPipeServer noWaitPipeServer;
 	CTCPServer tcpServer;
 	CHttpServer httpServer;
+#ifdef _WIN32
 	HANDLE resumeTimer;
+#else
+	int resumeTimer;
+#endif
 	__int64 resumeTime;
 	BYTE shutdownModePending;
 	bool rebootFlagPending;
@@ -78,8 +82,10 @@ struct MAIN_WINDOW_CONTEXT {
 		: sys(sys_)
 #ifdef _WIN32
 		, msgTaskbarCreated(RegisterWindowMessage(L"TaskbarCreated"))
-#endif
 		, resumeTimer(NULL)
+#else
+		, resumeTimer(-1)
+#endif
 		, shutdownModePending(SD_MODE_INVALID)
 		, shutdownPendingTick(0)
 #ifdef _WIN32
@@ -308,9 +314,16 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		AddDebugLog(L"*** Server initialized ***");
 		return 0;
 	case WM_DESTROY:
+#ifdef _WIN32
 		if( ctx->resumeTimer ){
 			CloseHandle(ctx->resumeTimer);
 		}
+#else
+		if( ctx->resumeTimer != -1 ){
+			// ファイルディスクリプタを閉じる
+			close(ctx->resumeTimer);
+		}
+#endif
 		if( ctx->sys->doLuaWorkerThread.joinable() ){
 			ctx->sys->doLuaWorkerThread.join();
 		}
@@ -1144,33 +1157,63 @@ void CEpgTimerSrvMain::AdjustRecModeRange(REC_SETTING_DATA& recSetting) const
 	}
 }
 
+#ifdef _WIN32
 bool CEpgTimerSrvMain::SetResumeTimer(HANDLE* resumeTimer, __int64* resumeTime, DWORD marginSec)
+#else
+bool CEpgTimerSrvMain::SetResumeTimer(int* resumeTimer, __int64* resumeTime, DWORD marginSec)
+#endif
 {
 	__int64 returnTime = this->reserveManager.GetSleepReturnTime(GetNowI64Time() + marginSec * I64_1SEC);
 	if( returnTime == LLONG_MAX ){
+#ifdef _WIN32
 		if( *resumeTimer != NULL ){
 			CloseHandle(*resumeTimer);
 			*resumeTimer = NULL;
 		}
+#else
+		if( *resumeTimer != -1 ){
+			// ファイルディスクリプタを閉じる
+			close(*resumeTimer);
+			*resumeTimer = -1;
+		}
+#endif
 		return true;
 	}
 	__int64 setTime = returnTime - marginSec * I64_1SEC;
+#ifdef _WIN32
 	if( *resumeTimer != NULL && *resumeTime == setTime ){
+#else
+	if( *resumeTimer != -1 && *resumeTime == setTime ){
+#endif
 		//同時刻でセット済み
 		return true;
 	}
+#ifdef _WIN32
 	if( *resumeTimer == NULL ){
+#else
+	if( *resumeTimer == -1 ){
+#endif
 		*resumeTimer = CreateWaitableTimer(NULL, FALSE, NULL);
 	}
+#ifdef _WIN32
 	if( *resumeTimer != NULL ){
+#else
+	if( *resumeTimer != -1 ){
+#endif
 		LARGE_INTEGER liTime;
 		liTime.QuadPart = setTime - I64_UTIL_TIMEZONE;
 		if( SetWaitableTimer(*resumeTimer, &liTime, 0, NULL, NULL, TRUE) != FALSE ){
 			*resumeTime = setTime;
 			return true;
 		}
+#ifdef _WIN32
 		CloseHandle(*resumeTimer);
 		*resumeTimer = NULL;
+#else
+		// ファイルディスクリプタを閉じる
+		close(*resumeTimer);
+		*resumeTimer = -1;
+#endif
 	}
 	return false;
 }

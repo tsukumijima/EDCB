@@ -44,7 +44,11 @@ private:
 	//REC_SETTING_DATA::recModeの値域を調整する
 	void AdjustRecModeRange(REC_SETTING_DATA& recSetting) const;
 	//現在の予約状態に応じた復帰タイマをセットする
+#ifdef _WIN32
 	bool SetResumeTimer(HANDLE* resumeTimer, __int64* resumeTime, DWORD marginSec);
+#else
+	bool SetResumeTimer(int* resumeTimer, __int64* resumeTime, DWORD marginSec);
+#endif
 	//システムをシャットダウンする
 	static void SetShutdown(BYTE shutdownMode);
 	//GUIにシャットダウン可能かどうかの問い合わせを開始させる

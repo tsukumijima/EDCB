@@ -4,6 +4,8 @@ CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGTIMERSRV_APPLICATION -D_UNICODE -DUNICO
 CFLAGS := -Os $(CFLAGS)
 CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
 LDFLAGS2 = -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDLIBS_LINUX := -ldl -pthread -luuid $(LDLIBS)  # LDLIBS が上書きされる前に実行する
 LDLIBS := -lws2_32 -lole32 -lcomctl32 -lwinhttp -loleaut32 -lcrypt32 -liphlpapi -luuid -lnetapi32 -ldbghelp $(LDLIBS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
@@ -59,7 +61,11 @@ ifdef withlua
 else
   # Lazy loading fails with segfault if LUA_BUILD_AS_DLL defined.
   SOURCES_LUA =
+ifeq ($(OS),Windows_NT)
   LDLIBS := -L. -llua52-mingw-lazy-$(or $(MSYSTEM_CARCH),$(findstring x86_64,$(MAKE_HOST)),i686) $(LDLIBS)
+else
+  LDLIBS_LINUX := -L. -llua5.2 $(LDLIBS_LINUX)
+endif
 endif
 
 ifndef MSYSTEM
@@ -137,6 +143,7 @@ $(TARGET).elf: $(addsuffix .obj, \
   civetweb.c \
   EpgDBManager.cpp \
   EpgTimerSrv.cpp \
+  EpgTimerSrvMain.cpp \
   EpgTimerSrvSetting.cpp \
   HttpServer.cpp \
   NotifyManager.cpp \
@@ -144,9 +151,8 @@ $(TARGET).elf: $(addsuffix .obj, \
   stdafx.cpp \
   TunerBankCtrl.cpp \
   UpnpSsdpServer.cpp \
-  EpgTimerSrvMain.cpp \
   )
-	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
+	$(CXX) $(LDFLAGS2_LINUX) $^ $(LDLIBS_LINUX) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
 	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch $(DEP_ALL_H)

@@ -2,6 +2,8 @@ TARGET ?= EpgDataCap_Bon
 CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGDATACAP_BON_APPLICATION -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 $(CPPFLAGS)
 CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
 LDFLAGS2 = -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDLIBS_LINUX := -ldl $(LDLIBS)  # LDLIBS が上書きされる前に実行する
 LDLIBS := -lole32 -lcomctl32 -ldbghelp -lcomdlg32 $(LDLIBS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
@@ -94,7 +96,7 @@ $(TARGET).elf: $(addsuffix .obj, \
   EpgDataCap_Bon.cpp \
   EpgDataCap_BonDlg.cpp \
   )
-	$(CXX) $(LDFLAGS2) $^ $(LDLIBS) -o $@
+	$(CXX) $(LDFLAGS2_LINUX) $^ $(LDLIBS_LINUX) -o $@
 BonCtrl__%.cpp.obj: ../../BonCtrl/%.cpp stdafx.h.gch $(DEP_ALL_H)
 	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 Common__%.cpp.obj: ../../Common/%.cpp stdafx.h.gch $(DEP_ALL_H)
