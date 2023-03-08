@@ -273,18 +273,10 @@ void SetSaveDebugLog(bool saveDebugLog)
 			g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
 		}
 		if( g_debugLog ){
-#ifdef _WIN32
 			AddDebugLog(L"****** LOG START ******");
-#else
-			OutputDebugString(L"****** LOG START ******");
-#endif
 		}
 	}else if( g_debugLog && saveDebugLog == false ){
-#ifdef _WIN32
 		AddDebugLog(L"****** LOG STOP ******");
-#else
-		OutputDebugString(L"****** LOG STOP ******");
-#endif
 		fclose(g_debugLog);
 		g_debugLog = NULL;
 	}

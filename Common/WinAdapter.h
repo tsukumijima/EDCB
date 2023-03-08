@@ -197,7 +197,6 @@
 #define strcpy_s(dst, n, src) strncpy(dst, src, n)
 #define _vscwprintf vwprintf
 #define vswprintf_s vswprintf
-#define swprintf_s(buf, ...) swprintf((buf), sizeof(buf), __VA_ARGS__)
 
 #define StringCchCopyW(dst, n, src) wcsncpy(dst, src, n)
 
@@ -292,33 +291,43 @@ typedef long long __int64;
 // Written by ChatGPT
 inline constexpr uint8_t LOBYTE(uint16_t value)
 {
-    return static_cast<uint8_t>(value & 0xff);
+	return static_cast<uint8_t>(value & 0xff);
 }
 
 // Written by ChatGPT
 inline constexpr uint8_t HIBYTE(uint16_t value)
 {
-    return static_cast<uint8_t>((value >> 8) & 0xff);
+	return static_cast<uint8_t>((value >> 8) & 0xff);
 }
 
 // Written by ChatGPT
 inline int fprintf_s(FILE *file, const char *format, ...)
-  {
-    va_list args;
-    va_start(args, format);
-    int ret = vfprintf(file, format, args);
-    va_end(args);
-    return ret;
-  }
+{
+	va_list args;
+	va_start(args, format);
+	int ret = vfprintf(file, format, args);
+	va_end(args);
+	return ret;
+}
+
+// Written by ChatGPT
+inline int swprintf_s(wchar_t *buffer, const wchar_t *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	int ret = vswprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
+	return ret;
+}
 
 // Written by ChatGPT
 inline int swscanf_s(const wchar_t *str, const wchar_t *format, ...)
 {
-    va_list args;
-    va_start(args, format);
-    int result = vswscanf(str, format, args);
-    va_end(args);
-    return result;
+	va_list args;
+	va_start(args, format);
+	int result = vswscanf(str, format, args);
+	va_end(args);
+	return result;
 }
 
 // Written by ChatGPT
@@ -401,14 +410,14 @@ inline int wcsncpy_s(wchar_t* dest, size_t destsz, const wchar_t* src, size_t co
 // Written by ChatGPT
 inline int _wcsnicmp(const wchar_t* s1, const wchar_t* s2, size_t n)
 {
-    for (size_t i = 0; i < n; i++) {
-        wint_t c1 = towlower(s1[i]);
-        wint_t c2 = towlower(s2[i]);
-        if (c1 < c2) return -1;
-        if (c1 > c2) return 1;
-        if (c1 == 0 || c2 == 0) break;
-    }
-    return 0;
+	for (size_t i = 0; i < n; i++) {
+		wint_t c1 = towlower(s1[i]);
+		wint_t c2 = towlower(s2[i]);
+		if (c1 < c2) return -1;
+		if (c1 > c2) return 1;
+		if (c1 == 0 || c2 == 0) break;
+	}
+	return 0;
 }
 
 // Written by ChatGPT
@@ -680,9 +689,9 @@ typedef signed int HRESULT;
 
 typedef const wchar_t *LPCTSTR;
 
-typedef UINT_PTR            WPARAM;
-typedef LONG_PTR            LPARAM;
-typedef LONG_PTR            LRESULT;
+typedef UINT_PTR WPARAM;
+typedef LONG_PTR LPARAM;
+typedef LONG_PTR LRESULT;
 
 //===--------------------- Handle Types -----------------------------------===//
 
@@ -845,9 +854,9 @@ typedef struct _SYSTEMTIME {
 // Additional
 
 typedef struct _SECURITY_ATTRIBUTES {
-    DWORD nLength;
-    LPVOID lpSecurityDescriptor;
-    BOOL bInheritHandle;
+	DWORD nLength;
+	LPVOID lpSecurityDescriptor;
+	BOOL bInheritHandle;
 } SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
 
 typedef void (CALLBACK *LPTIMERCALLBACK)(HWND, UINT, UINT_PTR, DWORD);
@@ -867,41 +876,41 @@ inline void GetLocalTime(SYSTEMTIME* st)
 }
 
 inline void GetSystemTime(SYSTEMTIME* lpSystemTime) {
-    struct timeval tv;
-    struct tm* tm;
-    gettimeofday(&tv, NULL);
-    tm = localtime(&tv.tv_sec);
-    lpSystemTime->wYear = tm->tm_year + 1900;
-    lpSystemTime->wMonth = tm->tm_mon + 1;
-    lpSystemTime->wDayOfWeek = tm->tm_wday;
-    lpSystemTime->wDay = tm->tm_mday;
-    lpSystemTime->wHour = tm->tm_hour;
-    lpSystemTime->wMinute = tm->tm_min;
-    lpSystemTime->wSecond = tm->tm_sec;
-    lpSystemTime->wMilliseconds = tv.tv_usec / 1000;
+	struct timeval tv;
+	struct tm* tm;
+	gettimeofday(&tv, NULL);
+	tm = localtime(&tv.tv_sec);
+	lpSystemTime->wYear = tm->tm_year + 1900;
+	lpSystemTime->wMonth = tm->tm_mon + 1;
+	lpSystemTime->wDayOfWeek = tm->tm_wday;
+	lpSystemTime->wDay = tm->tm_mday;
+	lpSystemTime->wHour = tm->tm_hour;
+	lpSystemTime->wMinute = tm->tm_min;
+	lpSystemTime->wSecond = tm->tm_sec;
+	lpSystemTime->wMilliseconds = tv.tv_usec / 1000;
 }
 
 // Written by ChatGPT
 // HANDLE ではなくファイルディスクリプタ (int) を返すため注意
 inline int CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCSTR lpTimerName)
 {
-    int fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
-    if (fd == -1) {
-        return -1;
-    }
-    return fd;
+	int fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
+	if (fd == -1) {
+		return -1;
+	}
+	return fd;
 }
 
 // Written by ChatGPT
 // hTimer は HANDLE ではなくファイルディスクリプタ (int) であることに注意
 inline BOOL SetWaitableTimer(int hTimer, const LARGE_INTEGER* pDueTime, LONG lPeriod, LPTIMERCALLBACK pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, BOOL fResume)
 {
-    struct itimerspec new_value;
-    new_value.it_interval.tv_sec = lPeriod / 1000;
-    new_value.it_interval.tv_nsec = (lPeriod % 1000) * 1000000;
-    new_value.it_value.tv_sec = pDueTime->QuadPart / 10000000;
-    new_value.it_value.tv_nsec = (pDueTime->QuadPart % 10000000) * 100;
-    return (timerfd_settime(hTimer, 0, &new_value, NULL) == 0);
+	struct itimerspec new_value;
+	new_value.it_interval.tv_sec = lPeriod / 1000;
+	new_value.it_interval.tv_nsec = (lPeriod % 1000) * 1000000;
+	new_value.it_value.tv_sec = pDueTime->QuadPart / 10000000;
+	new_value.it_value.tv_nsec = (pDueTime->QuadPart % 10000000) * 100;
+	return (timerfd_settime(hTimer, 0, &new_value, NULL) == 0);
 }
 
 //===--------------------- UUID Related Macros ----------------------------===//
