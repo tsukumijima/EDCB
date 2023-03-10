@@ -147,7 +147,7 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		}
 	}
 #else
-	//普通にexeとして起動を行う
+	// 起動開始
 	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
 	CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
 	if( pMain->Main(false) == false ){
