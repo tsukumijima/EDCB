@@ -602,55 +602,55 @@ wstring UtilGetStorageID(const fs_path& directoryPath)
 #ifndef _WIN32
 // Written by ChatGPT
 DWORD GetPrivateProfileSection(LPCWSTR lpAppName, LPWSTR lpReturnedString, DWORD nSize, LPCWSTR lpFileName) {
-    FILE* file;
-    wchar_t sectionName[256], line[1024];
-    uint32_t sectionNameLength, lineLength, copied = 0;
+	FILE* file;
+	wchar_t sectionName[256], line[1024];
+	uint32_t sectionNameLength, lineLength, copied = 0;
 
 	string lpFileNameString;
 	WtoUTF8(lpFileName, lpFileNameString);
 	FILE* fp = fopen(lpFileNameString.c_str(), "r");
 
-    if (fp == NULL) {
+	if (fp == NULL) {
 		return 0;
 	}
 
-    swprintf(sectionName, 256, L"[%ls]", lpAppName);
-    sectionNameLength = wcslen(sectionName);
+	swprintf(sectionName, 256, L"[%ls]", lpAppName);
+	sectionNameLength = wcslen(sectionName);
 
-    while (fgetws(line, 1024, file) != NULL) {
-        lineLength = wcslen(line);
+	while (fgetws(line, 1024, file) != NULL) {
+		lineLength = wcslen(line);
 
-        if (line[0] == L'[' && line[lineLength-2] == L']') {
-            // Found a new section, stop searching
-            break;
-        }
+		if (line[0] == L'[' && line[lineLength-2] == L']') {
+			// Found a new section, stop searching
+			break;
+		}
 
-        if (wcsncmp(line, sectionName, sectionNameLength) == 0) {
-            // Found the requested section
-            while (fgetws(line, 1024, file) != NULL) {
-                lineLength = wcslen(line);
-                if (line[0] == L'[' && line[lineLength-2] == L']') {
-                    // Found a new section, stop copying
-                    break;
-                }
+		if (wcsncmp(line, sectionName, sectionNameLength) == 0) {
+			// Found the requested section
+			while (fgetws(line, 1024, file) != NULL) {
+				lineLength = wcslen(line);
+				if (line[0] == L'[' && line[lineLength-2] == L']') {
+					// Found a new section, stop copying
+					break;
+				}
 
-                if (copied + lineLength + 1 <= nSize) {
-                    // Enough space to copy the line
-                    wcscpy(lpReturnedString + copied, line);
-                    copied += lineLength;
-                } else {
-                    // Not enough space, stop copying
-                    copied = nSize - 1;
-                    break;
-                }
-            }
-            break;
-        }
-    }
+				if (copied + lineLength + 1 <= nSize) {
+					// Enough space to copy the line
+					wcscpy(lpReturnedString + copied, line);
+					copied += lineLength;
+				} else {
+					// Not enough space, stop copying
+					copied = nSize - 1;
+					break;
+				}
+			}
+			break;
+		}
+	}
 
-    fclose(file);
-    lpReturnedString[copied] = L'\0';
-    return copied + 1;
+	fclose(file);
+	lpReturnedString[copied] = L'\0';
+	return copied + 1;
 }
 
 int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName)
