@@ -297,7 +297,9 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 			//ログ保存
 			std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(path, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ), fclose);
 			if( fp ){
+#ifdef _WIN32
 				fwrite(L"\xFEFF", sizeof(WCHAR), 1, fp.get());
+#endif
 			}else{
 				fp.reset(UtilOpenFile(path, UTIL_O_CREAT_APPEND | UTIL_SH_READ));
 			}

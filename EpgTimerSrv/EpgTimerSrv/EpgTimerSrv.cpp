@@ -248,11 +248,25 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 		if( g_debugLog ){
 			SYSTEMTIME st;
 			GetLocalTime(&st);
+#ifdef _WIN32
 			WCHAR t[128];
 			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
 			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 			fwrite(t, sizeof(WCHAR), n, g_debugLog);
 			fwrite(lpOutputString, sizeof(WCHAR), wcslen(lpOutputString), g_debugLog);
+#else
+			size_t len = 0;
+			while( lpOutputString[len] != L'\0' ){
+				len++;
+			}
+			char* buf = new char[len * 4 + 1];
+			size_t n = wcstombs(buf, lpOutputString, len * 4 + 1);
+			if( n != (size_t)-1 ){
+				buf[n] = '\0';
+				fprintf(g_debugLog, "[%02d%02d%02d%02d%02d%02d.%03d] %s",
+				        st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, buf);
+			}
+#endif
 			fflush(g_debugLog);
 		}
 	}
@@ -268,7 +282,9 @@ void SetSaveDebugLog(bool saveDebugLog)
 		fs_path logPath = GetCommonIniPath().replace_filename(L"EpgTimerSrvDebugLog.txt");
 		g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);
 		if( g_debugLog ){
+#ifdef _WIN32
 			fwrite(L"\xFEFF", sizeof(WCHAR), 1, g_debugLog);
+#endif
 		}else{
 			g_debugLog = UtilOpenFile(logPath, UTIL_O_CREAT_APPEND | UTIL_SH_READ);
 		}
