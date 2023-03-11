@@ -12,6 +12,9 @@
 #include <unistd.h>
 #endif
 
+// -O0 でデバッグビルドするために定義しておく必要がある
+const int CTunerBankCtrl::READY_MARGIN;
+
 CTunerBankCtrl::CTunerBankCtrl(DWORD tunerID_, LPCWSTR bonFileName_, WORD epgCapMax, const map<DWORD, CH_DATA4>& chMap_, CNotifyManager& notifyManager_, CEpgDBManager& epgDBManager_)
 	: tunerID(tunerID_)
 	, bonFileName(bonFileName_)

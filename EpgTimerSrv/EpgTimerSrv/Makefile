@@ -1,10 +1,13 @@
 TARGET ?= EpgTimerSrv
-CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGTIMERSRV_APPLICATION -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_LUA -DUSE_IPV6 -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 -fsanitize=address -g $(CPPFLAGS)
+CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGTIMERSRV_APPLICATION -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 -DUSE_LUA -DUSE_IPV6 -DNO_CGI -DNO_POPEN -DOPENSSL_API_1_1 $(CPPFLAGS)
 #CPPFLAGS += -DEPGDB_STD_WREGEX
-CFLAGS := -Os $(CFLAGS)
-CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
+#CFLAGS := -Os $(CFLAGS)
+CFLAGS := -fsanitize=address -g -O0 $(CFLAGS)
+#CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
+CXXFLAGS := -std=c++17 -pedantic-errors -fsanitize=address -g -O0 $(CXXFLAGS)
 LDFLAGS2 = -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
-LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ $(LDFLAGS)
+#LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDFLAGS2_LINUX = -static-libgcc -static-libstdc++ -g $(LDFLAGS)
 LDLIBS_LINUX := -ldl -pthread -luuid -lasan $(LDLIBS)  # LDLIBS が上書きされる前に実行する
 LDLIBS := -lws2_32 -lole32 -lcomctl32 -lwinhttp -loleaut32 -lcrypt32 -liphlpapi -luuid -lnetapi32 -ldbghelp $(LDLIBS)
 WINDRES ?= windres
