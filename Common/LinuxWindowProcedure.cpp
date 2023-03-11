@@ -16,68 +16,81 @@ using namespace std::chrono_literals;
 */
 
 CLinuxWindowProcedure::CLinuxWindowProcedure(LRESULT(*WindowProc)(HWND, UINT, WPARAM, LPARAM))
-        : m_WindowProc(WindowProc), m_Run(true), m_NextTimerId(1) {}
+	: m_WindowProc(WindowProc), m_Run(true) {}
 
 // Windows API の SendMessage 的なもの
 LRESULT CLinuxWindowProcedure::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    return m_WindowProc(this, uMsg, wParam, lParam);
+	return m_WindowProc(this, uMsg, wParam, lParam);
 }
 
 // Windows API の PostMessage 的なもの
 BOOL CLinuxWindowProcedure::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    m_MessageQueue.push({ uMsg, wParam, lParam });
-    return TRUE;
+	m_MessageQueue.push({ uMsg, wParam, lParam });
+	return TRUE;
 }
 
 // Windows API の SetTimer 的なもの
 void CLinuxWindowProcedure::SetTimer(UINT_PTR nIDEvent, UINT uElapse)
 {
-    m_Timers[nIDEvent] = std::chrono::system_clock::now() + std::chrono::milliseconds(uElapse);
+	std::lock_guard<std::mutex> lock(m_TimersMutex);
+	// 新しいエントリがすでに存在するかどうかを確認する
+	auto it = m_Timers.find(nIDEvent);
+	if (it == m_Timers.end()) {
+		it = m_Timers.insert({ nIDEvent, std::chrono::system_clock::now() }).first;
+	}
+	// タイマーの時間を更新する
+	it->second = std::chrono::system_clock::now() + std::chrono::milliseconds(uElapse);
 }
 
 // Windows API の KillTimer 的なもの
 void CLinuxWindowProcedure::KillTimer(UINT_PTR uIDEvent)
 {
-    m_Timers.erase(uIDEvent);
+	std::lock_guard<std::mutex> lock(m_TimersMutex);
+	// 削除されるエントリが存在するかどうかを確認する
+	auto it = m_Timers.find(uIDEvent);
+	if (it != m_Timers.end()) {
+		m_Timers.erase(it);
+	}
 }
 
 // メッセージループを開始する
 void CLinuxWindowProcedure::Run()
 {
-    SendMessage(WM_CREATE, 0, 0);
+	SendMessage(WM_CREATE, 0, 0);
 
-    while (m_Run) {
+	while (m_Run) {
 
-        while (!m_MessageQueue.empty()) {
-            auto message = m_MessageQueue.front();
-            m_MessageQueue.pop();
+		while (!m_MessageQueue.empty()) {
+			auto message = m_MessageQueue.front();
+			m_MessageQueue.pop();
 
-            SendMessage(message.uMsg, message.wParam, message.lParam);
-        }
+			SendMessage(message.uMsg, message.wParam, message.lParam);
+		}
 
-        auto now = std::chrono::system_clock::now();
-        for (auto it = m_Timers.begin(); it != m_Timers.end();) {
-            if (it->second <= now) {
-                SendMessage(WM_TIMER, it->first, 0);
-                it->second += std::chrono::milliseconds(it->first);
-            }
-            if (it->second <= now) {
-                // Timer event was not processed in time, skip it
-                it->second = now + std::chrono::milliseconds(it->first);
-            }
-            ++it;
-        }
+		auto now = std::chrono::system_clock::now();
+		for (auto it = m_Timers.begin(); it != m_Timers.end();) {
+			std::lock_guard<std::mutex> lock(m_TimersMutex);
+			if (it->second <= now) {
+				SendMessage(WM_TIMER, it->first, 0);
+				it->second += std::chrono::milliseconds(it->first);
+			}
+			if (it->second <= now) {
+				// Timer event was not processed in time, skip it
+				it->second = now + std::chrono::milliseconds(it->first);
+			}
+			++it;
+		}
 
-        std::this_thread::sleep_for(10ms);
-    }
+		std::this_thread::sleep_for(10ms);
+	}
 }
 
 // メッセージループを終了する
 void CLinuxWindowProcedure::Quit()
 {
-    m_Run = false;
+	m_Run = false;
 }
 
 // HWND は Linux 環境では void* で定義されているので (WinAdapter.h を参照) 、これを LinuxWindowProcedure* にキャストして使う
