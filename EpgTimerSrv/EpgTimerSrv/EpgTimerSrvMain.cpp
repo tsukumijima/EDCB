@@ -1623,21 +1623,25 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 
 	switch( cmd.GetParam() ){
 	case CMD2_EPG_SRV_RELOAD_EPG:
+		AddDebugLog(L"CMD2_EPG_SRV_RELOAD_EPG");
 		PostMessage(sys->hwndMain, WM_APP_RELOAD_EPG, 0, 0);
 		res.SetParam(CMD_SUCCESS);
 		break;
 	case CMD2_EPG_SRV_RELOAD_SETTING:
+		AddDebugLog(L"CMD2_EPG_SRV_RELOAD_SETTING");
 		sys->ReloadSetting();
 		sys->ReloadNetworkSetting();
 		res.SetParam(CMD_SUCCESS);
 		break;
 	case CMD2_EPG_SRV_CLOSE:
+		AddDebugLog(L"CMD2_EPG_SRV_CLOSE");
 		if( sys->residentFlag == false ){
 			sys->StopMain();
 			res.SetParam(CMD_SUCCESS);
 		}
 		break;
 	case CMD2_EPG_SRV_REGIST_GUI:
+		AddDebugLog(L"CMD2_EPG_SRV_REGIST_GUI");
 		if( tcpFlag == false ){
 			DWORD processID;
 			if( cmd.ReadVALUE(&processID) ){
@@ -1653,6 +1657,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		}
 		break;
 	case CMD2_EPG_SRV_UNREGIST_GUI:
+		AddDebugLog(L"CMD2_EPG_SRV_UNREGIST_GUI");
 		if( tcpFlag == false ){
 			DWORD processID;
 			if( cmd.ReadVALUE(&processID) ){
@@ -1666,6 +1671,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		}
 		break;
 	case CMD2_EPG_SRV_REGIST_GUI_TCP:
+		AddDebugLog(L"CMD2_EPG_SRV_REGIST_GUI_TCP");
 		if( clientIP ){
 			DWORD port;
 			if( cmd.ReadVALUE(&port) ){
@@ -1675,6 +1681,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		}
 		break;
 	case CMD2_EPG_SRV_UNREGIST_GUI_TCP:
+		AddDebugLog(L"CMD2_EPG_SRV_UNREGIST_GUI_TCP");
 		if( clientIP ){
 			DWORD port;
 			if( cmd.ReadVALUE(&port) ){
@@ -1694,6 +1701,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_GET_RESERVE:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_GET_RESERVE");
 			RESERVE_DATA info;
 			if( cmd.ReadVALUE(&info.reserveID) ){
 				if( info.reserveID == 0x7FFFFFFF ){
@@ -1708,6 +1716,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_ADD_RESERVE:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_ADD_RESERVE");
 			vector<RESERVE_DATA> list;
 			if( cmd.ReadVALUE(&list) &&
 			    sys->reserveManager.AddReserveData(list) ){
@@ -1717,6 +1726,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_DEL_RESERVE:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_DEL_RESERVE");
 			vector<DWORD> list;
 			if( cmd.ReadVALUE(&list) ){
 				sys->reserveManager.DelReserveData(list);
@@ -1726,6 +1736,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_CHG_RESERVE:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_CHG_RESERVE");
 			vector<RESERVE_DATA> list;
 			if( cmd.ReadVALUE(&list) &&
 			    sys->reserveManager.ChgReserveData(sys->PreChgReserveData(list)) ){
@@ -1740,6 +1751,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_DEL_RECINFO:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_CHG_RESERVE");
 			vector<DWORD> list;
 			if( cmd.ReadVALUE(&list) ){
 				sys->reserveManager.DelRecFileInfo(list);
@@ -1822,12 +1834,14 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		}
 		break;
 	case CMD2_EPG_SRV_CHK_SUSPEND:
+		AddDebugLog(L"CMD2_EPG_SRV_CHK_SUSPEND");
 		if( sys->IsSuspendOK() ){
 			res.SetParam(CMD_SUCCESS);
 		}
 		break;
 	case CMD2_EPG_SRV_SUSPEND:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_SUSPEND");
 			WORD val;
 			if( cmd.ReadVALUE(&val) && sys->IsSuspendOK() ){
 				lock_recursive_mutex lock(sys->settingLock);
@@ -1838,10 +1852,12 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		}
 		break;
 	case CMD2_EPG_SRV_REBOOT:
+		AddDebugLog(L"CMD2_EPG_SRV_REBOOT");
 		PostMessage(sys->hwndMain, WM_APP_REQUEST_REBOOT, 0, 0);
 		res.SetParam(CMD_SUCCESS);
 		break;
 	case CMD2_EPG_SRV_EPG_CAP_NOW:
+		AddDebugLog(L"CMD2_EPG_SRV_EPG_CAP_NOW");
 		if( sys->epgDB.IsInitialLoadingDataDone() == false ){
 			res.SetParam(CMD_ERR_BUSY);
 		}else if( sys->reserveManager.RequestStartEpgCap() ){
@@ -1864,6 +1880,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_ADD_AUTO_ADD:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_ADD_AUTO_ADD");
 			vector<EPG_AUTO_ADD_DATA> val;
 			if( cmd.ReadVALUE(&val) ){
 				{
@@ -1885,6 +1902,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_DEL_AUTO_ADD:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_DEL_AUTO_ADD");
 			vector<DWORD> val;
 			if( cmd.ReadVALUE(&val) ){
 				lock_recursive_mutex lock(sys->autoAddLock);
@@ -1901,6 +1919,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_CHG_AUTO_ADD:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_CHG_AUTO_ADD");
 			vector<EPG_AUTO_ADD_DATA> val;
 			if( cmd.ReadVALUE(&val) ){
 				{
@@ -1937,6 +1956,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_ADD_MANU_ADD:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_ADD_MANU_ADD");
 			vector<MANUAL_AUTO_ADD_DATA> val;
 			if( cmd.ReadVALUE(&val) ){
 				{
@@ -1957,6 +1977,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_DEL_MANU_ADD:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_DEL_MANU_ADD");
 			vector<DWORD> val;
 			if( cmd.ReadVALUE(&val) ){
 				lock_recursive_mutex lock(sys->autoAddLock);
@@ -1971,6 +1992,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_CHG_MANU_ADD:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_CHG_MANU_ADD");
 			vector<MANUAL_AUTO_ADD_DATA> val;
 			if( cmd.ReadVALUE(&val) ){
 				{
@@ -1997,6 +2019,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_FILE_COPY:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_FILE_COPY");
 			wstring val;
 			if( cmd.ReadVALUE(&val) && UtilComparePath(val.c_str(), L"ChSet5.txt") == 0 ){
 				//読み込み済みのデータを返す
@@ -2025,6 +2048,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_GET_PG_INFO_MINMAX:
 	case CMD2_EPG_SRV_GET_PG_ARC_MINMAX:
+		AddDebugLog(L"CMD2_EPG_SRV_GET_PG_INFO_MINMAX/ARC_MINMAX");
 		if( sys->epgDB.IsInitialLoadingDataDone() == false ){
 			res.SetParam(CMD_ERR_BUSY);
 		}else{
@@ -2407,6 +2431,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_GET_RESERVE2:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_GET_RESERVE2");
 			WORD ver;
 			RESERVE_DATA info;
 			if( cmd.ReadVALUE2WithVersion(&ver, &info.reserveID) ){
@@ -2621,6 +2646,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_GET_RECINFO2:
 		{
+			AddDebugLog(L"CMD2_EPG_SRV_GET_RECINFO2");
 			WORD ver;
 			REC_FILE_INFO info;
 			if( cmd.ReadVALUE2WithVersion(&ver, &info.id) &&
