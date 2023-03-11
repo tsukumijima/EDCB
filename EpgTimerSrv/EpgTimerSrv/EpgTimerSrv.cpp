@@ -147,6 +147,9 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		}
 	}
 #else
+	// ロケールを UTF-8 に設定 (これを設定しておかないと文字化けする)
+	setlocale(LC_ALL, "ja_JP.UTF-8");
+
 	// 起動開始
 	SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
 	CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
