@@ -1,5 +1,9 @@
 ﻿#include "stdafx.h"
 #include "OneServiceUtil.h"
+#include "../Common/PathUtil.h"
+#ifndef _WIN32
+#include <sys/stat.h>
+#endif
 
 
 COneServiceUtil::COneServiceUtil(BOOL sendUdpTcp_)
@@ -54,14 +58,25 @@ BOOL COneServiceUtil::SendUdpTcp(
 	vector<NW_SEND_INFO>* sendList,
 	BOOL tcpFlag,
 	CSendTSTCPDllUtil& sendNW,
+#ifdef _WIN32
 	vector<HANDLE>& portMutexList,
+#else
+	vector<FILE*>& portMutexList,
+#endif
 	LPCWSTR mutexName
 	)
 {
 	sendNW.StopSend();
 	sendNW.UnInitialize();
 	while( portMutexList.empty() == false ){
+#ifdef _WIN32
 		CloseHandle(portMutexList.back());
+#else
+		// TODO: ファイルハンドルに一致するロックファイルを DeleteFile() で削除する
+		// たぶん消さないと色々まずいんだけど、ファイルハンドルからファイルパスを取得できないので、
+		// おそらく portMutexList にファイルパスとファイルハンドルの両方を入れるように改修する必要がある
+		fclose(portMutexList.back());
+#endif
 		portMutexList.pop_back();
 	}
 
@@ -73,11 +88,17 @@ BOOL COneServiceUtil::SendUdpTcp(
 			        return (c < L'0' || L'9' < c) && (c < L'A' || L'Z' < c) && (c < L'a' || L'z' < c) && c != L'%' && c != L'.' && c != L':'; }) != itr->ipString.end() ){
 				continue;
 			}
+#ifdef _WIN32
 			HANDLE portMutex = NULL;
+#else
+			FILE* portMutex = NULL;
+#endif
 			for( int i = 0; i < BON_NW_PORT_RANGE; i++ ){
 				wstring key;
 				UINT u[4];
-				if( swscanf_s(itr->ipString.c_str(), L"%u.%u.%u.%u", &u[0], &u[1], &u[2], &u[3]) == 4 ){
+				int scanNum = swscanf_s(itr->ipString.c_str(), L"%u.%u.%u.%u", &u[0], &u[1], &u[2], &u[3]);
+#ifdef _WIN32
+				if( scanNum == 4 ){
 					Format(key, L"Global\\%ls%d_%d", mutexName, (u[0] << 24) | (u[1] << 16) | (u[2] << 8) | u[3], itr->port);
 				}else{
 					Format(key, L"Global\\%ls%ls_%d", mutexName, itr->ipString.c_str(), itr->port);
@@ -89,6 +110,24 @@ BOOL COneServiceUtil::SendUdpTcp(
 					CloseHandle(portMutex);
 					portMutex = NULL;
 					itr->port++;
+#else
+				if( scanNum == 4 ){
+					Format(key, L"%ls%ls%d_%d.lock", GetModulePath().c_str(), mutexName, (u[0] << 24) | (u[1] << 16) | (u[2] << 8) | u[3], itr->port);
+				}else{
+					Format(key, L"%ls%ls%ls_%d.lock", GetModulePath().c_str(), mutexName, itr->ipString.c_str(), itr->port);
+				}
+				portMutex = UtilOpenFile(key, UTIL_SECURE_WRITE);
+				if( portMutex ){
+					string strKey;
+					WtoUTF8(key, strKey);
+					struct stat st[2];
+					if( fstat(fileno(portMutex), st) == 0 && stat(strKey.c_str(), st + 1) == 0 && st[0].st_ino == st[1].st_ino ){
+						break;
+					}
+					fclose(portMutex);
+					portMutex = NULL;
+					itr->port++;
+#endif
 				}else{
 					AddDebugLogFormat(L"%ls", key.c_str());
 					portMutexList.push_back(portMutex);

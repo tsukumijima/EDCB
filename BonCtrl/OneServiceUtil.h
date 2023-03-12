@@ -178,8 +178,13 @@ protected:
 
 	int enableScramble;
 
+#ifdef _WIN32
 	vector<HANDLE> udpPortMutex;
 	vector<HANDLE> tcpPortMutex;
+#else
+	vector<FILE*> udpPortMutex;
+	vector<FILE*> tcpPortMutex;
+#endif
 
 	CSendTSTCPDllUtil sendUdp;
 	CSendTSTCPDllUtil sendTcp;
@@ -202,7 +207,11 @@ protected:
 		vector<NW_SEND_INFO>* sendList,
 		BOOL tcpFlag,
 		CSendTSTCPDllUtil& sendNW,
+#ifdef _WIN32
 		vector<HANDLE>& portMutexList,
+#else
+		vector<FILE*>& portMutexList,
+#endif
 		LPCWSTR mutexName
 		);
 	void StratPittariRec();
