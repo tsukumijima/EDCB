@@ -119,7 +119,6 @@ BOOL CEpgDataCap_BonApp::InitInstance(int argc, char* argv_[])
 	}
 
 
-#ifdef _WIN32
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
@@ -131,7 +130,6 @@ BOOL CEpgDataCap_BonApp::InitInstance(int argc, char* argv_[])
 		// TODO: ダイアログが <キャンセル> で消された時のコードを
 		//  記述してください。
 	}
-#endif
 
 	// ダイアログは閉じられました。アプリケーションのメッセージ ポンプを開始しないで
 	//  アプリケーションを終了するために FALSE を返してください。

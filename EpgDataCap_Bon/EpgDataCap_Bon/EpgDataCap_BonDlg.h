@@ -37,19 +37,25 @@ protected:
 	static UINT taskbarCreated;
 	static BOOL disableKeyboardHook;
 protected:
+#ifdef _WIN32
 	static HICON LoadLargeOrSmallIcon(int iconID, bool isLarge);
+#endif
 	//現在値と異なるときだけSetDlgItemText()を呼ぶ
 	static void CheckAndSetDlgItemText(HWND wnd, int id, LPCWSTR text);
 	void ReloadSetting();
 	void BtnUpdate(DWORD guiMode);
+#ifdef _WIN32
 	//タスクトレイ
 	BOOL DeleteTaskBar(HWND wnd, UINT id);
 	BOOL AddTaskBar(HWND wnd, UINT msg, UINT id, HICON icon, wstring tips);
 	BOOL ChgTipsTaskBar(HWND wnd, UINT id, HICON icon, wstring tips);
+#endif
 	void ChgIconStatus();
 
+#ifdef _WIN32
 	void SetOverlayIcon(HICON icon);
 	void UpdateTitleBarText();
+#endif
 	int ReloadServiceList(int selONID = -1, int selTSID = -1, int selSID = -1);
 	void ReloadNWSet();
 	BOOL SelectBonDriver(LPCWSTR fileName);
@@ -60,10 +66,12 @@ protected:
 // 実装
 protected:
 	HWND m_hWnd;
+#ifdef _WIN32
 	HHOOK m_hKeyboardHook;
 	HBRUSH m_hDlgBgBrush;
 	HICON m_hIcon;
 	HICON m_hIcon2;
+#endif
 
 	BOOL modifyTitleBarText;
 	BOOL overlayTaskIcon;
@@ -109,11 +117,16 @@ protected:
 
 	// 生成された、メッセージ割り当て関数
 	BOOL OnInitDialog();
+#ifdef _WIN32
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam, BOOL* pbProcessed);
+#endif
 	afx_msg void OnDestroy();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+#ifdef _WIN32
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+#endif
 	LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+#ifdef _WIN32
 	afx_msg LRESULT OnTaskbarCreated(WPARAM, LPARAM);
 	afx_msg void OnCbnSelchangeComboTuner();
 	afx_msg void OnCbnSelchangeComboService();
@@ -130,8 +143,11 @@ protected:
 	afx_msg BOOL OnQueryEndSession();
 	afx_msg void OnEndSession(BOOL bEnding);
 	static LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
-	static INT_PTR CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
+	static LRESULT CALLBACK DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#ifdef _WIN32
 	HWND GetDlgItem(int nID) const{ return ::GetDlgItem(m_hWnd, nID); }
+#endif
 	UINT_PTR SetTimer(UINT_PTR nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc){ return ::SetTimer(m_hWnd, nIDEvent, uElapse, lpTimerFunc); }
 	BOOL KillTimer(UINT_PTR uIDEvent){ return ::KillTimer(m_hWnd, uIDEvent); }
 };

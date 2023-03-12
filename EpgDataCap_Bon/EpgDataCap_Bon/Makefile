@@ -1,9 +1,12 @@
 TARGET ?= EpgDataCap_Bon
 CPPFLAGS := -I. -DNDEBUG -D_WINDOWS -DEPGDATACAP_BON_APPLICATION -D_UNICODE -DUNICODE -D_WIN32_WINNT=0x0600 $(CPPFLAGS)
-CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
+#CXXFLAGS := -std=c++17 -pedantic-errors -Os $(CXXFLAGS)
+CXXFLAGS := -std=c++17 -pedantic-errors -fsanitize=address -g -O0 $(CXXFLAGS)
 LDFLAGS2 = -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
-LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ $(LDFLAGS)
-LDLIBS_LINUX := -ldl $(LDLIBS)  # LDLIBS が上書きされる前に実行する
+#LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ $(LDFLAGS)
+LDFLAGS2_LINUX = -static-libgcc -static-libstdc++ -g $(LDFLAGS)
+#LDLIBS_LINUX := -ldl $(LDLIBS)  # LDLIBS が上書きされる前に実行する
+LDLIBS_LINUX := -ldl -lasan $(LDLIBS)  # LDLIBS が上書きされる前に実行する
 LDLIBS := -lole32 -lcomctl32 -ldbghelp -lcomdlg32 $(LDLIBS)
 WINDRES ?= windres
 DEP_ALL_H := $(wildcard ../../BonCtrl/*.h ../../Common/*.h)
@@ -69,6 +72,7 @@ $(TARGET).elf: $(addsuffix .obj, \
   BonCtrl__CreatePATPacket.cpp \
   BonCtrl__CreatePMTPacket.cpp \
   BonCtrl__DropCount.cpp \
+  BonCtrl__OneServiceUtil.cpp \
   BonCtrl__PacketInit.cpp \
   BonCtrl__PMTUtil.cpp \
   BonCtrl__ScrambleDecoderUtil.cpp \
@@ -92,7 +96,6 @@ $(TARGET).elf: $(addsuffix .obj, \
   Common__TSPacketUtil.cpp \
   Common__WritePlugInUtil.cpp \
   stdafx.cpp \
-  BonCtrl__OneServiceUtil.cpp \
   EpgDataCap_Bon.cpp \
   EpgDataCap_BonDlg.cpp \
   )

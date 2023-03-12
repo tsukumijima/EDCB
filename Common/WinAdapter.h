@@ -225,6 +225,22 @@
 
 // Additional
 
+/*
+ * Dialog Box Command IDs
+ */
+#define IDOK                1
+#define IDCANCEL            2
+#define IDABORT             3
+#define IDRETRY             4
+#define IDIGNORE            5
+#define IDYES               6
+#define IDNO                7
+#define IDCLOSE         8
+#define IDHELP          9
+#define IDTRYAGAIN      10
+#define IDCONTINUE      11
+#define IDTIMEOUT 32000
+
 #define WM_NULL                         0x0000
 #define WM_CREATE                       0x0001
 #define WM_DESTROY                      0x0002
@@ -269,6 +285,8 @@
 #define WM_MENUGETOBJECT                0x0124
 #define WM_UNINITMENUPOPUP              0x0125
 #define WM_MENUCOMMAND                  0x0126
+
+#define WM_USER                         0x0400
 
 #define WM_APP                          0x8000
 
@@ -860,6 +878,11 @@ typedef struct _SECURITY_ATTRIBUTES {
 } SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
 
 typedef void (CALLBACK *LPTIMERCALLBACK)(HWND, UINT, UINT_PTR, DWORD);
+
+inline DWORD GetCurrentProcessId()
+{
+	return (DWORD)getpid();
+}
 
 inline void GetLocalTime(SYSTEMTIME* st)
 {
