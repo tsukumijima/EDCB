@@ -9,7 +9,7 @@ public:
 	void SetTimer(UINT_PTR nIDEvent, UINT uElapse);
 	void KillTimer(UINT_PTR uIDEvent);
 	void Run();
-	void Quit();
+	void Exit();
 private:
 	struct Message {
 		UINT uMsg;

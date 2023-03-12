@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LinuxWindowProcedure.h"
 #include <chrono>
+#include <csignal>
 #include <condition_variable>
 #include <csignal>
 #include <iostream>
@@ -9,6 +10,13 @@
 #include <thread>
 
 using namespace std::chrono_literals;
+
+bool g_Terminated = false;
+
+void SignalHandler(int signum)
+{
+	g_Terminated = true;
+}
 
 /**
  * Win32 API のウインドウプロシージャに依存しているコードを極力そのまま動かせるようにするためのユーティリティ
@@ -58,6 +66,11 @@ void CLinuxWindowProcedure::KillTimer(UINT_PTR uIDEvent)
 // メッセージループを開始する
 void CLinuxWindowProcedure::Run()
 {
+	// SIGINT / SIGTERM を受け取ったら g_Terminated を true にする
+	signal(SIGINT, SignalHandler);
+	signal(SIGTERM, SignalHandler);
+
+	// 起動処理を行うために WM_CREATE を送信する
 	SendMessage(WM_CREATE, 0, 0);
 
 	while (m_Run) {
@@ -67,6 +80,12 @@ void CLinuxWindowProcedure::Run()
 			m_MessageQueue.pop();
 
 			SendMessage(message.uMsg, message.wParam, message.lParam);
+
+			// 送られてきたメッセージが WM_CLOSE だった場合はメッセージループを終了する
+			if (message.uMsg == WM_CLOSE) {
+				Exit();
+				break;
+			}
 		}
 
 		auto now = std::chrono::system_clock::now();
@@ -83,13 +102,21 @@ void CLinuxWindowProcedure::Run()
 			++it;
 		}
 
+		// SIGINT が送られてきた場合は終了処理を行った上でメッセージループを終了する
+		if (g_Terminated) {
+			Exit();
+			break;
+		}
+
 		std::this_thread::sleep_for(10ms);
 	}
 }
 
 // メッセージループを終了する
-void CLinuxWindowProcedure::Quit()
+void CLinuxWindowProcedure::Exit()
 {
+	// 終了処理を行うために WM_DESTROY を送信する
+	SendMessage(WM_DESTROY, 0, 0);
 	m_Run = false;
 }
 

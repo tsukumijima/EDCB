@@ -349,9 +349,6 @@ LRESULT CALLBACK CBonDriverUtil::DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM w
 #ifdef _WIN32
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
 		PostQuitMessage(0);
-#else
-		// hwnd を LinuxWindowProcedure* にキャストしてから windowProcesure->Quit() を呼ぶ
-		((CLinuxWindowProcedure*)hwnd)->Quit();
 #endif
 		return 0;
 	case WM_TIMER:

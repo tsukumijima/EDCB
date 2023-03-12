@@ -1052,6 +1052,8 @@ void CEpgTimerSrvMain::StopMain()
 	if( hwndMain_ ){
 #ifdef _WIN32
 		SendNotifyMessage(hwndMain_, WM_CLOSE, 0, 0);
+#else
+		SendMessage(hwndMain_, WM_CLOSE, 0, 0);
 #endif
 	}
 }
