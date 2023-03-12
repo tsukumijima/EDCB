@@ -67,8 +67,8 @@ void CLinuxWindowProcedure::KillTimer(UINT_PTR uIDEvent)
 void CLinuxWindowProcedure::Run()
 {
 	// SIGINT / SIGTERM を受け取ったら g_signalReceived を true にする
-	signal(SIGINT, SignalHandler);
-	signal(SIGTERM, SignalHandler);
+	// signal(SIGINT, SignalHandler);
+	// signal(SIGTERM, SignalHandler);
 
 	// 起動処理を行うために WM_CREATE を送信する
 	SendMessage(WM_CREATE, 0, 0);
