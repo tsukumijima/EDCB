@@ -23,30 +23,30 @@ void SignalHandler(int signum)
  * Written with ChatGPT
 */
 
-CLinuxWindowProcedure::CLinuxWindowProcedure(LRESULT(*WindowProc)(HWND, UINT, WPARAM, LPARAM))
-	: m_WindowProc(WindowProc), m_Run(true) {}
+CLinuxWindowProcedure::CLinuxWindowProcedure(LRESULT(*windowProc)(HWND, UINT, WPARAM, LPARAM))
+	: m_windowProc(windowProc), m_run(true) {}
 
 // Windows API の SendMessage 的なもの
 LRESULT CLinuxWindowProcedure::SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	return m_WindowProc(this, uMsg, wParam, lParam);
+	return m_windowProc(this, uMsg, wParam, lParam);
 }
 
 // Windows API の PostMessage 的なもの
 BOOL CLinuxWindowProcedure::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	m_MessageQueue.push({ uMsg, wParam, lParam });
+	m_messageQueue.push({ uMsg, wParam, lParam });
 	return TRUE;
 }
 
 // Windows API の SetTimer 的なもの
 void CLinuxWindowProcedure::SetTimer(UINT_PTR nIDEvent, UINT uElapse)
 {
-	std::lock_guard<std::mutex> lock(m_TimersMutex);
+	std::lock_guard<std::mutex> lock(m_timersMutex);
 	// 新しいエントリがすでに存在するかどうかを確認する
-	auto it = m_Timers.find(nIDEvent);
-	if (it == m_Timers.end()) {
-		it = m_Timers.insert({ nIDEvent, std::chrono::system_clock::now() }).first;
+	auto it = m_timers.find(nIDEvent);
+	if (it == m_timers.end()) {
+		it = m_timers.insert({ nIDEvent, std::chrono::system_clock::now() }).first;
 	}
 	// タイマーの時間を更新する
 	it->second = std::chrono::system_clock::now() + std::chrono::milliseconds(uElapse);
@@ -55,11 +55,11 @@ void CLinuxWindowProcedure::SetTimer(UINT_PTR nIDEvent, UINT uElapse)
 // Windows API の KillTimer 的なもの
 void CLinuxWindowProcedure::KillTimer(UINT_PTR uIDEvent)
 {
-	std::lock_guard<std::mutex> lock(m_TimersMutex);
+	std::lock_guard<std::mutex> lock(m_timersMutex);
 	// 削除されるエントリが存在するかどうかを確認する
-	auto it = m_Timers.find(uIDEvent);
-	if (it != m_Timers.end()) {
-		m_Timers.erase(it);
+	auto it = m_timers.find(uIDEvent);
+	if (it != m_timers.end()) {
+		m_timers.erase(it);
 	}
 }
 
@@ -73,11 +73,11 @@ void CLinuxWindowProcedure::Run()
 	// 起動処理を行うために WM_CREATE を送信する
 	SendMessage(WM_CREATE, 0, 0);
 
-	while (m_Run) {
+	while (m_run) {
 
-		while (!m_MessageQueue.empty()) {
-			auto message = m_MessageQueue.front();
-			m_MessageQueue.pop();
+		while (!m_messageQueue.empty()) {
+			auto message = m_messageQueue.front();
+			m_messageQueue.pop();
 
 			SendMessage(message.uMsg, message.wParam, message.lParam);
 
@@ -89,8 +89,8 @@ void CLinuxWindowProcedure::Run()
 		}
 
 		auto now = std::chrono::system_clock::now();
-		for (auto it = m_Timers.begin(); it != m_Timers.end();) {
-			std::lock_guard<std::mutex> lock(m_TimersMutex);
+		for (auto it = m_timers.begin(); it != m_timers.end();) {
+			std::lock_guard<std::mutex> lock(m_timersMutex);
 			if (it->second <= now) {
 				SendMessage(WM_TIMER, it->first, 0);
 				it->second += std::chrono::milliseconds(it->first);
@@ -117,7 +117,7 @@ void CLinuxWindowProcedure::Exit()
 {
 	// 終了処理を行うために WM_DESTROY を送信する
 	SendMessage(WM_DESTROY, 0, 0);
-	m_Run = false;
+	m_run = false;
 }
 
 // HWND は Linux 環境では void* で定義されているので (WinAdapter.h を参照) 、これを LinuxWindowProcedure* にキャストして使う
