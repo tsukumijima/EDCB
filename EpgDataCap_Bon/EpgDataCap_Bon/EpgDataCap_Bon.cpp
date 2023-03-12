@@ -201,8 +201,13 @@ void SetSaveDebugLog(bool saveDebugLog)
 	if( g_debugLog == NULL && saveDebugLog ){
 		for( int i = 0; i < 100; i++ ){
 			//パスに添え字をつけて書き込み可能な最初のものに記録する
+#ifdef _WIN32
 			WCHAR logFileName[64];
 			swprintf_s(logFileName, L"EpgDataCap_Bon_DebugLog-%d.txt", i);
+#else
+			WCHAR logFileName[128];
+			swprintf(logFileName, 128, L"EpgDataCap_Bon_DebugLog-%d.txt", i);
+#endif
 			fs_path logPath = GetCommonIniPath().replace_filename(logFileName);
 			g_debugLog = UtilOpenFile(logPath, UTIL_O_EXCL_CREAT_APPEND | UTIL_SH_READ);
 			if( g_debugLog ){
