@@ -12,7 +12,7 @@
 #endif
 
 #ifndef _WIN32
-CBonDriverUtil* g_sys = NULL;
+CBonDriverUtil* g_pBonDriverUtilSys = NULL;
 #endif
 
 namespace
@@ -295,8 +295,8 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 		DispatchMessage(&msg);
 	}
 #else
+	g_pBonDriverUtilSys = sys;
 	// メッセージループを開始
-	g_sys = sys;
 	windowProcesure->Run();
 #endif
 	sys->bon2IF->CloseTuner();
@@ -320,7 +320,7 @@ LRESULT CALLBACK CBonDriverUtil::DriverWindowProc(HWND hwnd, UINT uMsg, WPARAM w
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 #else
-	CBonDriverUtil* sys = g_sys;
+	CBonDriverUtil* sys = g_pBonDriverUtilSys;
 #endif
 	switch( uMsg ){
 	case WM_CREATE:

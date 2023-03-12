@@ -11,11 +11,11 @@
 
 using namespace std::chrono_literals;
 
-bool g_Terminated = false;
+bool g_signalReceived = false;
 
 void SignalHandler(int signum)
 {
-	g_Terminated = true;
+	g_signalReceived = true;
 }
 
 /**
@@ -66,7 +66,7 @@ void CLinuxWindowProcedure::KillTimer(UINT_PTR uIDEvent)
 // メッセージループを開始する
 void CLinuxWindowProcedure::Run()
 {
-	// SIGINT / SIGTERM を受け取ったら g_Terminated を true にする
+	// SIGINT / SIGTERM を受け取ったら g_signalReceived を true にする
 	signal(SIGINT, SignalHandler);
 	signal(SIGTERM, SignalHandler);
 
@@ -103,7 +103,7 @@ void CLinuxWindowProcedure::Run()
 		}
 
 		// SIGINT が送られてきた場合は終了処理を行った上でメッセージループを終了する
-		if (g_Terminated) {
+		if (g_signalReceived) {
 			Exit();
 			break;
 		}

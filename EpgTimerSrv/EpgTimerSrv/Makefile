@@ -8,6 +8,7 @@ CXXFLAGS := -std=c++17 -pedantic-errors -fsanitize=address -g -O0 $(CXXFLAGS)
 LDFLAGS2 = -municode -mwindows -Wl,-s,--dynamicbase,--nxcompat -static-libgcc -static-libstdc++ $(LDFLAGS)
 #LDFLAGS2_LINUX = -Wl,-s -static-libgcc -static-libstdc++ $(LDFLAGS)
 LDFLAGS2_LINUX = -static-libgcc -static-libstdc++ -g $(LDFLAGS)
+#LDLIBS_LINUX := -ldl -pthread -luuid $(LDLIBS)  # LDLIBS が上書きされる前に実行する
 LDLIBS_LINUX := -ldl -pthread -luuid -lasan $(LDLIBS)  # LDLIBS が上書きされる前に実行する
 LDLIBS := -lws2_32 -lole32 -lcomctl32 -lwinhttp -loleaut32 -lcrypt32 -liphlpapi -luuid -lnetapi32 -ldbghelp $(LDLIBS)
 WINDRES ?= windres

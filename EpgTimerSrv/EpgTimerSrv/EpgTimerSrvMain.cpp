@@ -99,7 +99,7 @@ struct MAIN_WINDOW_CONTEXT {
 };
 
 #ifndef _WIN32
-MAIN_WINDOW_CONTEXT* g_ctx = NULL;
+MAIN_WINDOW_CONTEXT* g_pEpgTimerSrvCtx = NULL;
 #endif
 
 void CtrlCmdResponseThreadCallback(const CCmdStream& cmd, CCmdStream& res, CTCPServer::RESPONSE_THREAD_STATE state, void*& param)
@@ -241,9 +241,9 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 		}
 	}
 #else
-	// コンテキストを初期化して g_ctx にセット
+	// コンテキストを初期化して g_pEpgTimerSrvCtx にセット
 	MAIN_WINDOW_CONTEXT ctx(this);
-	g_ctx = &ctx;
+	g_pEpgTimerSrvCtx = &ctx;
 
 	// メッセージループを開始
 	CLinuxWindowProcedure* windowProcesure = new CLinuxWindowProcedure(MainWndProc);
@@ -281,7 +281,7 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 #else
-	MAIN_WINDOW_CONTEXT* ctx = g_ctx;
+	MAIN_WINDOW_CONTEXT* ctx = g_pEpgTimerSrvCtx;
 #endif
 
 	switch( uMsg ){
