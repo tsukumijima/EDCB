@@ -101,7 +101,7 @@ cp -a ../../ini/ContentTypeText.txt ../../Debug/ContentTypeText.txt
 sed -i -e 's/\.dll/\.so/g' ../../Debug/BonCtrl.ini
 
 # /usr/lib/x86_64-linux-gnu/liblua5.2.so (インストールされているはず) を Debug/ 以下にシンボリックリンクを貼る
-ln -sf /usr/lib/x86_64-linux-gnu/liblua5.2.so ../../Debug/liblua5.2.so
+ln -sf /usr/lib/x86_64-linux-gnu/liblua5.2.so ../../Debug/lua52.so
 
 # Debug/ 以下に HttpPublic フォルダをコピーする
 cp -ar ../../ini/HttpPublic/ ../../Debug/
