@@ -4,6 +4,11 @@
 #include <queue>
 #include <thread>
 
+struct TimerData {
+	std::chrono::time_point<std::chrono::_V2::system_clock, std::chrono::milliseconds> lastUpdatedAt;
+	std::chrono::milliseconds intervalSeconds;
+};
+
 class CLinuxMessageLoop {
 public:
 	CLinuxMessageLoop(LRESULT(*windowProc)(HWND, UINT, WPARAM, LPARAM));
@@ -25,7 +30,7 @@ private:
 	LRESULT(*m_windowProc)(HWND, UINT, WPARAM, LPARAM);
 	bool m_run;
 	std::queue<Message> m_messageQueue;
-	std::map<UINT_PTR, std::chrono::system_clock::time_point> m_timers;
+	std::map<UINT_PTR, TimerData> m_timers;
 	std::mutex m_timersMutex;
 };
 

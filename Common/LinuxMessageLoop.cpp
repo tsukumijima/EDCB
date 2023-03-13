@@ -16,7 +16,7 @@ void SignalHandler(int signum)
 */
 
 CLinuxMessageLoop::CLinuxMessageLoop(LRESULT(*windowProc)(HWND, UINT, WPARAM, LPARAM))
-	: m_windowProc(windowProc), m_run(true) {}
+	: m_windowProc(windowProc), m_run(false) {}
 
 // 初期化時に指定されたウインドウプロシージャ関数を実行する
 LRESULT CLinuxMessageLoop::RunWindowProcedure(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -44,10 +44,11 @@ void CLinuxMessageLoop::SetTimer(UINT_PTR nIDEvent, UINT uElapse)
 	std::lock_guard<std::mutex> lock(m_timersMutex);
 	auto it = m_timers.find(nIDEvent);
 	if (it == m_timers.end()) {
-		it = m_timers.insert({ nIDEvent, std::chrono::system_clock::now() }).first;
+		TimerData timerData;
+		timerData.lastUpdatedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+		timerData.intervalSeconds = std::chrono::milliseconds(uElapse);
+		it = m_timers.insert({ nIDEvent, timerData }).first;
 	}
-	// タイマーの時間を更新する
-	it->second = std::chrono::system_clock::now() + std::chrono::milliseconds(uElapse);
 }
 
 // Windows API の KillTimer 的なもの
@@ -79,12 +80,14 @@ void CLinuxMessageLoop::Run()
 	// 起動処理を行うために WM_CREATE を送信する
 	RunWindowProcedure(WM_CREATE, 0, 0);
 
+	m_run = true;
 	while (m_run) {
 
 		while (!m_messageQueue.empty()) {
 			auto message = m_messageQueue.front();
 			m_messageQueue.pop();
 
+			// 送られてきたメッセージをウインドウプロシージャに渡す
 			RunWindowProcedure(message.uMsg, message.wParam, message.lParam);
 
 			// 送られてきたメッセージが WM_CLOSE だった場合はメッセージループを終了する
@@ -99,18 +102,21 @@ void CLinuxMessageLoop::Run()
 			}
 		}
 
-		auto now = std::chrono::system_clock::now();
 		for (auto it = m_timers.begin(); it != m_timers.end();) {
 			std::lock_guard<std::mutex> lock(m_timersMutex);
-			if (it->second <= now) {
+			auto now = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+			auto timerDispatchedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(it->second.lastUpdatedAt + it->second.intervalSeconds);
+
+			if (timerDispatchedAt <= now) {
 				RunWindowProcedure(WM_TIMER, it->first, 0);
-				it->second += std::chrono::milliseconds(it->first);
-			}
-			if (it->second <= now) {
-				// Timer event was not processed in time, skip it
-				it->second = now + std::chrono::milliseconds(it->first);
+				it->second.lastUpdatedAt = std::chrono::time_point_cast<std::chrono::milliseconds>(timerDispatchedAt + it->second.intervalSeconds);
 			}
 			++it;
+
+			// m_run が false になっていた場合はメッセージループを終了する
+			if (!m_run) {
+				break;
+			}
 		}
 
 		// SIGINT が送られてきた場合は終了処理を行った上でメッセージループを終了する
@@ -119,7 +125,8 @@ void CLinuxMessageLoop::Run()
 			break;
 		}
 
-		std::this_thread::sleep_for(10ms);
+		// ビジーにならないように少し待機する
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 }
 
