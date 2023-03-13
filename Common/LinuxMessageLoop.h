@@ -1,9 +1,10 @@
 #include <condition_variable>
 #include <queue>
 
-class CLinuxWindowProcedure {
+class CLinuxMessageLoop {
 public:
-	CLinuxWindowProcedure(LRESULT(*windowProc)(HWND, UINT, WPARAM, LPARAM));
+	CLinuxMessageLoop(LRESULT(*windowProc)(HWND, UINT, WPARAM, LPARAM));
+	LRESULT RunWindowProcedure(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT SendMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	BOOL PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	void SetTimer(UINT_PTR nIDEvent, UINT uElapse);

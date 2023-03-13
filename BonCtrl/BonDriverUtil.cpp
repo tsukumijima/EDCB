@@ -8,7 +8,7 @@
 #else
 #include <dlfcn.h>
 // Win32 API のウインドウプロシージャに依存しているコードを極力そのまま動かせるようにするためのユーティリティ
-#include "../Common/LinuxWindowProcedure.h"
+#include "../Common/LinuxMessageLoop.h"
 #endif
 
 #ifndef _WIN32
@@ -170,8 +170,8 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 #endif
 
 #ifndef _WIN32
-	// Windows API の HWND の代わり的なもの
-	CLinuxWindowProcedure* windowProcesure = new CLinuxWindowProcedure(DriverWindowProc);
+	// メッセージループを初期化
+	CLinuxMessageLoop* messageLoop = new CLinuxMessageLoop(DriverWindowProc);
 #endif
 
 	IBonDriver* bonIF = NULL;
@@ -252,7 +252,7 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 #ifdef _WIN32
 				HWND hwnd = CreateWindow(L"BonDriverUtilWorker", NULL, WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, HWND_MESSAGE, NULL, GetModuleHandle(NULL), sys);
 #else
-				HWND hwnd = windowProcesure;
+				HWND hwnd = messageLoop;
 #endif
 				if( hwnd == NULL ){
 					sys->loadChList.clear();
@@ -297,7 +297,7 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 #else
 	g_pBonDriverUtilSys = sys;
 	// メッセージループを開始
-	windowProcesure->Run();
+	messageLoop->Run();
 #endif
 	sys->bon2IF->CloseTuner();
 	bonIF->Release();

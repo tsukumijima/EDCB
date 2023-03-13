@@ -99,8 +99,8 @@ INT_PTR CEpgDataCap_BonDlg::DoModal()
 #else
 	g_pEpgDataCap_BonDlgSys = this;
 	// メッセージループを開始
-	CLinuxWindowProcedure* windowProcesure = new CLinuxWindowProcedure(DlgProc);
-	windowProcesure->Run();
+	CLinuxMessageLoop* messageLoop = new CLinuxMessageLoop(DlgProc);
+	messageLoop->Run();
 	return TRUE;
 #endif
 }

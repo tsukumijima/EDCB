@@ -11,7 +11,7 @@
 #include "SettingDlg.h"
 #else
 // Win32 API のウインドウプロシージャに依存しているコードを極力そのまま動かせるようにするためのユーティリティ
-#include "../../Common/LinuxWindowProcedure.h"
+#include "../../Common/LinuxMessageLoop.h"
 #endif
 
 // CEpgDataCap_BonDlg ダイアログ

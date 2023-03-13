@@ -21,7 +21,7 @@
 #include <dlfcn.h>
 #include <locale>
 // Win32 API のウインドウプロシージャに依存しているコードを極力そのまま動かせるようにするためのユーティリティ
-#include "../../Common/LinuxWindowProcedure.h"
+#include "../../Common/LinuxMessageLoop.h"
 #endif
 
 namespace
@@ -246,8 +246,8 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 	g_pEpgTimerSrvCtx = &ctx;
 
 	// メッセージループを開始
-	CLinuxWindowProcedure* windowProcesure = new CLinuxWindowProcedure(MainWndProc);
-	windowProcesure->Run();
+	CLinuxMessageLoop* messageLoop = new CLinuxMessageLoop(MainWndProc);
+	messageLoop->Run();
 #endif
 #ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
