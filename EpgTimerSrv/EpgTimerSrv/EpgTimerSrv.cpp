@@ -269,6 +269,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 				fprintf(g_debugLog, "[%02d%02d%02d%02d%02d%02d.%03d] %s",
 				        st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, buf);
 			}
+			delete[] buf;
 #endif
 			fflush(g_debugLog);
 		}

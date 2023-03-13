@@ -248,6 +248,7 @@ bool CEpgTimerSrvMain::Main(bool serviceFlag_)
 	// メッセージループを開始
 	CLinuxMessageLoop* messageLoop = new CLinuxMessageLoop(MainWndProc);
 	messageLoop->Run();
+	delete messageLoop;
 #endif
 #ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){

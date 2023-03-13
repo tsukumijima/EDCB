@@ -101,6 +101,7 @@ INT_PTR CEpgDataCap_BonDlg::DoModal()
 	// メッセージループを開始
 	CLinuxMessageLoop* messageLoop = new CLinuxMessageLoop(DlgProc);
 	messageLoop->Run();
+	delete messageLoop;
 	return TRUE;
 #endif
 }

@@ -298,6 +298,7 @@ void CBonDriverUtil::DriverThread(CBonDriverUtil* sys)
 	g_pBonDriverUtilSys = sys;
 	// メッセージループを開始
 	messageLoop->Run();
+	delete messageLoop;
 #endif
 	sys->bon2IF->CloseTuner();
 	bonIF->Release();

@@ -74,8 +74,8 @@ void CLinuxMessageLoop::KillTimerAsync(UINT_PTR uIDEvent)
 void CLinuxMessageLoop::Run()
 {
 	// SIGINT / SIGTERM を受け取ったら g_signalReceived を true にする
-	// signal(SIGINT, SignalHandler);
-	// signal(SIGTERM, SignalHandler);
+	signal(SIGINT, SignalHandler);
+	signal(SIGTERM, SignalHandler);
 
 	// 起動処理を行うために WM_CREATE を送信する
 	RunWindowProcedure(WM_CREATE, 0, 0);
@@ -135,6 +135,11 @@ void CLinuxMessageLoop::Exit()
 {
 	// 終了処理を行うために WM_DESTROY を送信する
 	RunWindowProcedure(WM_DESTROY, 0, 0);
+
+	// すべてのタイマーを削除する
+	std::lock_guard<std::mutex> lock(m_timersMutex);
+	m_timers.clear();
+
 	m_run = false;
 }
 
