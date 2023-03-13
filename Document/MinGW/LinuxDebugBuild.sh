@@ -118,7 +118,7 @@ if [ "$1" = "rebuild" ]; then
     make clean
 fi
 
-# 今のところ、SendTSTCP.so は移植できていないのでビルドに失敗する
+# 今のところ、SendTSTCP.so は移植できていない
 # エラー終了を無視する
 make -j4 || true
 

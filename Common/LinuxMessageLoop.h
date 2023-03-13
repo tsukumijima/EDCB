@@ -1,5 +1,8 @@
-#include <condition_variable>
+#include <chrono>
+#include <csignal>
+#include <mutex>
 #include <queue>
+#include <thread>
 
 class CLinuxMessageLoop {
 public:
@@ -12,6 +15,7 @@ public:
 	void Run();
 	void Exit();
 private:
+	void KillTimerAsync(UINT_PTR uIDEvent);
 	struct Message {
 		UINT uMsg;
 		WPARAM wParam;

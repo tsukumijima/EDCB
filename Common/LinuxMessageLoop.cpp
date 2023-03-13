@@ -1,13 +1,5 @@
 #include "stdafx.h"
 #include "LinuxMessageLoop.h"
-#include <chrono>
-#include <csignal>
-#include <condition_variable>
-#include <csignal>
-#include <iostream>
-#include <mutex>
-#include <queue>
-#include <thread>
 
 using namespace std::chrono_literals;
 
@@ -48,8 +40,8 @@ BOOL CLinuxMessageLoop::PostMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 // Windows API の SetTimer 的なもの
 void CLinuxMessageLoop::SetTimer(UINT_PTR nIDEvent, UINT uElapse)
 {
-	std::lock_guard<std::mutex> lock(m_timersMutex);
 	// 新しいエントリがすでに存在するかどうかを確認する
+	std::lock_guard<std::mutex> lock(m_timersMutex);
 	auto it = m_timers.find(nIDEvent);
 	if (it == m_timers.end()) {
 		it = m_timers.insert({ nIDEvent, std::chrono::system_clock::now() }).first;
@@ -61,8 +53,16 @@ void CLinuxMessageLoop::SetTimer(UINT_PTR nIDEvent, UINT uElapse)
 // Windows API の KillTimer 的なもの
 void CLinuxMessageLoop::KillTimer(UINT_PTR uIDEvent)
 {
-	std::lock_guard<std::mutex> lock(m_timersMutex);
+	// スレッド上で非同期に KillTimerAsync を実行する
+	std::thread([this, uIDEvent]() {
+		KillTimerAsync(uIDEvent);
+	}).detach();
+}
+
+void CLinuxMessageLoop::KillTimerAsync(UINT_PTR uIDEvent)
+{
 	// 削除されるエントリが存在するかどうかを確認する
+	std::lock_guard<std::mutex> lock(m_timersMutex);
 	auto it = m_timers.find(uIDEvent);
 	if (it != m_timers.end()) {
 		m_timers.erase(it);
@@ -90,6 +90,11 @@ void CLinuxMessageLoop::Run()
 			// 送られてきたメッセージが WM_CLOSE だった場合はメッセージループを終了する
 			if (message.uMsg == WM_CLOSE) {
 				Exit();
+				break;
+			}
+
+			// m_run が false になっていた場合はメッセージループを終了する
+			if (!m_run) {
 				break;
 			}
 		}

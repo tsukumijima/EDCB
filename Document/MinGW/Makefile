@@ -14,8 +14,8 @@ else
               EpgDataCap3 \
               RecName_Macro \
               Write_Default \
-              EpgTimerSrv \
-              SendTSTCP
+              EpgTimerSrv
+#             SendTSTCP
 endif
 
 all:
