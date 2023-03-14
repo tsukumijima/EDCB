@@ -80,6 +80,9 @@ void CLinuxMessageLoop::Run()
 	// 起動処理を行うために WM_CREATE を送信する
 	RunWindowProcedure(WM_CREATE, 0, 0);
 
+	// EpgDataCap_Bon は WM_CREATE ではなく WM_INITDIALOG を受け取るため、WM_INITDIALOG も送信する
+	RunWindowProcedure(WM_INITDIALOG, 0, 0);
+
 	m_run = true;
 	while (m_run) {
 
@@ -143,7 +146,7 @@ void CLinuxMessageLoop::Exit()
 	m_run = false;
 }
 
-// HWND は Linux 環境では void* で定義されているので (WinAdapter.h を参照) 、これを LinuxMessageLoop* にキャストして使う
+// HWND は Linux 環境では void* として定義されているので (WinAdapter.h を参照) 、これを LinuxMessageLoop* にキャストして使う
 
 // Windows API の SendMessage と同じインターフェイスを持つ Polyfill
 LRESULT SendMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

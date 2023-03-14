@@ -766,9 +766,11 @@ LRESULT CEpgDataCap_BonDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lPara
 	// TODO: ここに特定なコードを追加するか、もしくは基本クラスを呼び出してください。
 	switch(message){
 	case WM_INVOKE_CTRL_CMD:
+		AddDebugLog(L"### WM_INVOKE_CTRL_CMD ###");
 		CtrlCmdCallbackInvoked();
 		break;
 	case WM_VIEW_APP_OPEN:
+		AddDebugLog(L"### WM_VIEW_APP_OPEN ###");
 		if( this->viewPath.empty() == false ){
 #ifdef _WIN32
 			ShellExecute(NULL, NULL, this->viewPath.c_str(), this->viewOpt.c_str(), NULL, SW_SHOWNORMAL);
@@ -1459,18 +1461,18 @@ LRESULT CALLBACK CEpgDataCap_BonDlg::DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
 	CEpgDataCap_BonDlg* pSys = (CEpgDataCap_BonDlg*)GetWindowLongPtr(hDlg, GWLP_USERDATA);
 #else
 	CEpgDataCap_BonDlg* pSys = g_pEpgDataCap_BonDlgSys;
+	pSys->m_hWnd = hDlg;
 #endif
 	if( pSys == NULL && uMsg != WM_INITDIALOG ){
 		return FALSE;
 	}
 	switch( uMsg ){
 	case WM_INITDIALOG:
+		AddDebugLog(L"### WM_INITDIALOG ###");
 #ifdef _WIN32
 		SetWindowLongPtr(hDlg, GWLP_USERDATA, lParam);
-#endif
 		pSys = (CEpgDataCap_BonDlg*)lParam;
 		pSys->m_hWnd = hDlg;
-#ifdef _WIN32
 		pSys->m_hKeyboardHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
 		pSys->m_hDlgBgBrush = CreateSolidBrush(RGB(250, 250, 250));
 #endif
@@ -1493,9 +1495,11 @@ LRESULT CALLBACK CEpgDataCap_BonDlg::DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
 		break;
 #endif
 	case WM_DESTROY:
+		AddDebugLog(L"### WM_DESTROY ###");
 		pSys->OnDestroy();
 		break;
 	case WM_TIMER:
+		AddDebugLog(L"### WM_TIMER ###");
 		pSys->OnTimer(wParam);
 		break;
 #ifdef _WIN32
@@ -1566,9 +1570,7 @@ LRESULT CALLBACK CEpgDataCap_BonDlg::DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
 			SetWindowLongPtr(hDlg, DWLP_MSGRESULT, 0);
 			return TRUE;
 		}
-#endif
 		break;
-#ifdef _WIN32
 	case WM_SYSCOMMAND:
 		{
 			BOOL bProcessed = FALSE;
