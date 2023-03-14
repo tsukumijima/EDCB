@@ -600,57 +600,54 @@ wstring UtilGetStorageID(const fs_path& directoryPath)
 }
 
 #ifndef _WIN32
-// Written by ChatGPT
-DWORD GetPrivateProfileSection(LPCWSTR lpAppName, LPWSTR lpReturnedString, DWORD nSize, LPCWSTR lpFileName) {
-	FILE* file;
-	wchar_t sectionName[256], line[1024];
-	uint32_t sectionNameLength, lineLength, copied = 0;
-
-	string lpFileNameString;
-	WtoUTF8(lpFileName, lpFileNameString);
-	FILE* fp = fopen(lpFileNameString.c_str(), "r");
-
-	if (fp == NULL) {
-		return 0;
-	}
-
-	swprintf(sectionName, 256, L"[%ls]", lpAppName);
-	sectionNameLength = wcslen(sectionName);
-
-	while (fgetws(line, 1024, file) != NULL) {
-		lineLength = wcslen(line);
-
-		if (line[0] == L'[' && line[lineLength-2] == L']') {
-			// Found a new section, stop searching
-			break;
-		}
-
-		if (wcsncmp(line, sectionName, sectionNameLength) == 0) {
-			// Found the requested section
-			while (fgetws(line, 1024, file) != NULL) {
-				lineLength = wcslen(line);
-				if (line[0] == L'[' && line[lineLength-2] == L']') {
-					// Found a new section, stop copying
-					break;
-				}
-
-				if (copied + lineLength + 1 <= nSize) {
-					// Enough space to copy the line
-					wcscpy(lpReturnedString + copied, line);
-					copied += lineLength;
-				} else {
-					// Not enough space, stop copying
-					copied = nSize - 1;
-					break;
-				}
+DWORD GetPrivateProfileSection(LPCWSTR appName, LPWSTR lpReturnedString, DWORD nSize, LPCWSTR fileName) {
+	std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(wstring(fileName), UTIL_SECURE_READ), fclose);
+	if( fp ){
+		string app, key, line, buff;
+		buff.reserve(nSize);
+		WtoUTF8(L'[' + wstring(appName) + L']', app);
+		bool isApp = false;
+		int c;
+		do{
+			c = fgetc(fp.get());
+			if( c >= 0 && (char)c && (char)c != '\n' ){
+				line += (char)c;
+				continue;
 			}
-			break;
-		}
-	}
+			size_t n = line.find_last_not_of("\t\r ");
+			line.erase(n == string::npos ? 0 : n + 1);
+			line.erase(0, line.find_first_not_of("\t\r "));
+			if( CompareNoCase(app, line) == 0 ){
+				isApp = true;
+			}else if( line[0] == '[' ){
+				isApp = false;
+			}else if( isApp && (n = line.find('=')) != string::npos ){
+				size_t m = line.find_last_not_of("\t\r =", n);
+				key = line.substr(0, m == string::npos ? n : m + 1);
+				m = line.find_first_not_of("\t\r =", n + 1);
+				string keyvalue = key + '=' + (m == string::npos ? "" : line.substr(m)) + "\r\n";
+				buff.append(keyvalue);
+			}
+			line.clear();
+		}while( c >= 0 && (char)c );
 
-	fclose(file);
-	lpReturnedString[copied] = L'\0';
-	return copied + 1;
+		// 末尾の \r\n を削除
+		if( buff.size() >= 2 ){
+			buff.erase(buff.size() - 2);
+		}
+
+		wstring wbuff;
+		UTF8toW(buff, wbuff);
+		const wchar_t* cstr = wbuff.c_str();
+		size_t len = wbuff.length();
+		if (len >= nSize) {
+			len = nSize - 1;
+		}
+		wcsncpy(lpReturnedString, cstr, len);
+		lpReturnedString[len] = L'\0';
+		return (DWORD)len + 1;
+	}
+	return 0;
 }
 
 int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName)
@@ -754,6 +751,39 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 	}
 	return wstring(szBuff, szBuff + n);
 #else
+	if( appName == NULL ){
+		// すべてのセクション名を取得し、\0 で区切って返す
+		std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(wstring(fileName), UTIL_SECURE_READ), fclose);
+		if( fp ){
+			string line;
+			wstring ret;
+			int c;
+			do{
+				c = fgetc(fp.get());
+				if( c >= 0 && (char)c && (char)c != '\n' ){
+					line += (char)c;
+					continue;
+				}
+				size_t n = line.find_last_not_of("\t\r ");
+				line.erase(n == string::npos ? 0 : n + 1);
+				line.erase(0, line.find_first_not_of("\t\r "));
+				if( line[0] == '[' ){
+					n = line.find_last_not_of("\t\r ]");
+					n = (n == string::npos ? 1 : n + 1);
+					char d = line[n];
+					line[n] = '\0';
+					wstring tmp;
+					UTF8toW(line.c_str() + 1, tmp);
+					ret += tmp;
+					ret += L'\0';
+					line[n] = d;
+				}
+				line.clear();
+			}while( c >= 0 && (char)c );
+			ret += L'\0';
+			return ret;
+		}
+	}
 	for( int retry = 0; appName && keyName; ){
 		bool mightExist = false;
 		std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(wstring(fileName), UTIL_SECURE_READ), fclose);

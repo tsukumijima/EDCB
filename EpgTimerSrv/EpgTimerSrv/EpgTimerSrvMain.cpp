@@ -3065,8 +3065,14 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStrea
 								break;
 							}
 							totalSizeRemain -= strData.size();
+#ifdef _WIN32
 							//BOMつきUTF-16
 							result[i].Data.assign((const BYTE*)strData.c_str(), (const BYTE*)(strData.c_str() + strData.size()));
+#else
+							std::wstring_convert<std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>> converter;
+							string strDataUTF16 = converter.to_bytes(strData);
+							result[i].Data.assign((const BYTE*)strDataUTF16.c_str(), (const BYTE*)(strDataUTF16.c_str() + strDataUTF16.size()));
+#endif
 						}else if( UtilPathEndsWith(path.c_str(), L".ini") ){
 							//ファイルロックを邪魔しないようAPI経由で読む
 							wstring strData = L"\xFEFF";
@@ -3099,8 +3105,14 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStrea
 									break;
 								}
 								totalSizeRemain -= strData.size();
+#ifdef _WIN32
 								//BOMつきUTF-16
 								result[i].Data.assign((const BYTE*)strData.c_str(), (const BYTE*)(strData.c_str() + strData.size()));
+#else
+								std::wstring_convert<std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>> converter;
+								string strDataUTF16 = converter.to_bytes(strData);
+								result[i].Data.assign((const BYTE*)strDataUTF16.c_str(), (const BYTE*)(strDataUTF16.c_str() + strDataUTF16.size()));
+#endif
 							}
 						}else{
 							std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(path, UTIL_SECURE_READ), fclose);
