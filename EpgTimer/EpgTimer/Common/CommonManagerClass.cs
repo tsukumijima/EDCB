@@ -1467,6 +1467,13 @@ namespace EpgTimer
                                 if (comment >= 0 && comment < end) continue;
                                 list.Add(buff.Substring(start + 1, end + 3 - start));
                             }
+                            int endLinux = buff.LastIndexOf(".so]", StringComparison.OrdinalIgnoreCase);
+                            if (start >= 0 && endLinux >= start + 2)
+                            {
+                                int comment = buff.IndexOf(';');
+                                if (comment >= 0 && comment < endLinux) continue;
+                                list.Add(buff.Substring(start + 1, endLinux + 2 - start));
+                            }
                         }
                     }
                 }
