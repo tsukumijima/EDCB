@@ -192,9 +192,10 @@
 #define _strdup strdup
 #define _strnicmp strnicmp
 
-#define vsnprintf_s vsnprintf
+#define fprintf_s fprintf
 #define strcat_s strcat
 #define strcpy_s(dst, n, src) strncpy(dst, src, n)
+#define swscanf_s swscanf
 #define _vscwprintf vwprintf
 #define vswprintf_s vswprintf
 
@@ -235,11 +236,11 @@
 #define IDIGNORE            5
 #define IDYES               6
 #define IDNO                7
-#define IDCLOSE         8
-#define IDHELP          9
-#define IDTRYAGAIN      10
-#define IDCONTINUE      11
-#define IDTIMEOUT 32000
+#define IDCLOSE             8
+#define IDHELP              9
+#define IDTRYAGAIN          10
+#define IDCONTINUE          11
+#define IDTIMEOUT           32000
 
 #define WM_NULL                         0x0000
 #define WM_CREATE                       0x0001
@@ -290,220 +291,28 @@
 
 #define WM_APP                          0x8000
 
-#define MINCHAR		 0x80
-#define MAXCHAR		 0x7f
-#define MINSHORT		0x8000
-#define MAXSHORT		0x7fff
-#define MINLONG		 0x80000000
-#define MAXLONG		 0x7fffffff
-#define MAXBYTE		 0xff
-#define MAXWORD		 0xffff
-#define MAXDWORD		0xffffffff
+#define MINCHAR      0x80
+#define MAXCHAR      0x7f
+#define MINSHORT     0x8000
+#define MAXSHORT     0x7fff
+#define MINLONG      0x80000000
+#define MAXLONG      0x7fffffff
+#define MAXBYTE      0xff
+#define MAXWORD      0xffff
+#define MAXDWORD     0xffffffff
 
 #define Sleep(x) usleep(x * 1000)
 
 #define _TRUNCATE ((size_t)-1)
+#define STRUNCATE 80
 
-typedef long long __int64;
+#define _I64_MAX    0x7fffffffffffffffLL
+#define _I64_MIN    (-_I64_MAX-1)
+#define _UI64_MAX   0xffffffffffffffffULL
 
-// Written by ChatGPT
-inline constexpr uint8_t LOBYTE(uint16_t value)
-{
-	return static_cast<uint8_t>(value & 0xff);
-}
-
-// Written by ChatGPT
-inline constexpr uint8_t HIBYTE(uint16_t value)
-{
-	return static_cast<uint8_t>((value >> 8) & 0xff);
-}
-
-// Written by ChatGPT
-inline int fprintf_s(FILE *file, const char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	int ret = vfprintf(file, format, args);
-	va_end(args);
-	return ret;
-}
-
-// Written by ChatGPT
-inline int swprintf_s(wchar_t *buffer, const wchar_t *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	int ret = vswprintf(buffer, sizeof(buffer), format, args);
-	va_end(args);
-	return ret;
-}
-
-// Written by ChatGPT
-inline int swscanf_s(const wchar_t *str, const wchar_t *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	int result = vswscanf(str, format, args);
-	va_end(args);
-	return result;
-}
-
-// Written by ChatGPT
-inline int sprintf_s(char *str, const char *format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	int result = vsnprintf(str, sizeof(str), format, args);
-	va_end(args);
-	return result;
-}
-
-// Written by ChatGPT
-inline long long _ftelli64(FILE *stream)
-{
-	off_t result = lseek(fileno(stream), 0, SEEK_CUR);
-	if (result == (off_t)-1) {
-		return -1;
-	}
-	return (long long)result;
-}
-
-// Written by ChatGPT
-inline int _fseeki64(FILE *stream, long long offset, int origin)
-{
-	off_t result = lseek(fileno(stream), (off_t)offset, origin);
-	if (result == (off_t)-1) {
-		return -1;
-	}
-	return 0;
-}
-
-// Written by ChatGPT
-inline int wcscpy_s(wchar_t* dest, size_t destsz, const wchar_t* src)
-{
-	if (dest == NULL || src == NULL || destsz == 0) {
-		return EINVAL;
-	}
-	size_t len = wcslen(src);
-	if (len >= destsz) {
-		dest[0] = L'\0';
-		return ERANGE;
-	}
-	wcsncpy(dest, src, len);
-	dest[len] = L'\0';
-	return 0;
-}
-
-inline int wcsncpy_s(wchar_t* dest, const wchar_t* src, size_t count)
-{
-	if (dest == NULL || src == NULL || count == 0) {
-		return EINVAL;
-	}
-	size_t len = wcslen(src);
-	if (len >= count) {
-		dest[0] = L'\0';
-		return ERANGE;
-	}
-	wcsncpy(dest, src, len);
-	dest[len] = L'\0';
-	return 0;
-}
-
-// Written by ChatGPT
-inline int wcsncpy_s(wchar_t* dest, size_t destsz, const wchar_t* src, size_t count)
-{
-	if (dest == NULL || src == NULL || destsz == 0) {
-		return EINVAL;
-	}
-	size_t len = wcslen(src);
-	if (count == 0 || len >= destsz) {
-		dest[0] = L'\0';
-		return ERANGE;
-	}
-	wcsncpy(dest, src, count);
-	dest[count] = L'\0';
-	return 0;
-}
-
-// Written by ChatGPT
-inline int _wcsnicmp(const wchar_t* s1, const wchar_t* s2, size_t n)
-{
-	for (size_t i = 0; i < n; i++) {
-		wint_t c1 = towlower(s1[i]);
-		wint_t c2 = towlower(s2[i]);
-		if (c1 < c2) return -1;
-		if (c1 > c2) return 1;
-		if (c1 == 0 || c2 == 0) break;
-	}
-	return 0;
-}
-
-// Written by ChatGPT
-inline __int64 _wcstoi64(const wchar_t *nptr, wchar_t **endptr, int base)
-{
-	long long int result = 0;
-	int sign = 1;
-	const wchar_t* p = nptr;
-
-	// スペースを読み飛ばす
-	while (iswspace(*p)) {
-		++p;
-	}
-
-	// 符号を取得する
-	if (*p == L'+') {
-		++p;
-	}
-	else if (*p == L'-') {
-		sign = -1;
-		++p;
-	}
-
-	// 基数を確認する
-	if (base == 0) {
-		if (*p == L'0') {
-			++p;
-			if (*p == L'x' || *p == L'X') {
-				base = 16;
-				++p;
-			}
-			else {
-				base = 8;
-			}
-		}
-		else {
-			base = 10;
-		}
-	}
-
-	// 数字を変換する
-	while (iswdigit(*p)) {
-		int digit = *p - L'0';
-		if (digit >= base) {
-			break;
-		}
-		result = result * base + digit;
-		++p;
-	}
-
-	if (errno == ERANGE) {
-		return sign == -1 ? LLONG_MIN : LLONG_MAX;
-	}
-
-	if (endptr != NULL) {
-		*endptr = (wchar_t*)p;
-	}
-
-	return result * sign;
-}
-
-// ref: https://stackoverflow.com/a/47357548/17124142
-inline uint64_t GetTickCount()
-{
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return (uint64_t)(ts.tv_nsec / 1000000) + ((uint64_t)ts.tv_sec * 1000ull);
-}
+#define I64_MIN  _I64_MIN
+#define I64_MAX  _I64_MAX
+#define UI64_MAX _UI64_MAX
 
 //===--------------------- HRESULT Related Macros -------------------------===//
 
@@ -665,6 +474,7 @@ typedef unsigned int UINT_PTR;
 typedef unsigned long ULONG;
 typedef long long LONGLONG;
 typedef long long LONG_PTR;
+typedef long long __int64;
 typedef unsigned long long ULONG_PTR;
 typedef unsigned long long ULONGLONG;
 
@@ -690,6 +500,7 @@ typedef wchar_t *LPWSTR;
 typedef wchar_t *PWCHAR;
 typedef const wchar_t *LPCWSTR;
 typedef const wchar_t *PCWSTR;
+typedef const wchar_t *LPCTSTR;
 
 typedef WCHAR OLECHAR;
 typedef OLECHAR *BSTR;
@@ -705,21 +516,212 @@ typedef signed int HRESULT;
 
 // Additional
 
-typedef const wchar_t *LPCTSTR;
-
 typedef UINT_PTR WPARAM;
 typedef LONG_PTR LPARAM;
 typedef LONG_PTR LRESULT;
+
+// Written by ChatGPT
+inline constexpr uint8_t LOBYTE(uint16_t value)
+{
+	return static_cast<uint8_t>(value & 0xff);
+}
+
+// Written by ChatGPT
+inline constexpr uint8_t HIBYTE(uint16_t value)
+{
+	return static_cast<uint8_t>((value >> 8) & 0xff);
+}
+
+// ref: https://github.com/saramibreak/DiscImageCreator/blob/master/DiscImageCreator/_linux/defineForLinux.cpp#L301-L309
+inline int _fseeki64(FILE* fp, long long offset, int origin)
+{
+	return fseeko(fp, offset, origin);
+}
+inline long long _ftelli64(FILE* fp)
+{
+	return ftello(fp);
+}
+
+// ref: https://github.com/ufrisk/MemProcFS/blob/master/memprocfs/oscompatibility.h#L154
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/printf.c#L130-L139
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/printf.c#L199-L202
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/printf.c#L271-L280
+inline int _vsnprintf_s(char* str, size_t size, size_t len, const char* format, va_list args)
+{
+	return vsnprintf(str, min(size, len), format, args);
+}
+inline int vsprintf_s(char* str, size_t size, const char* format, va_list args)
+{
+	return _vsnprintf_s(str, size, size, format, args);
+}
+inline int sprintf_s(char* str, const char* format, ...)
+{
+	int ret;
+	va_list valist;
+	va_start(valist, format);
+	ret = vsprintf(str, format, valist);
+	va_end(valist);
+	return ret;
+}
+inline int sprintf_s(char* str, size_t size, const char* format, ...)
+{
+	int ret;
+	va_list valist;
+	va_start(valist, format);
+	ret = vsprintf_s(str, size, format, valist);
+	va_end(valist);
+	return ret;
+}
+
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/printf.c#L271-L280
+inline int swprintf_s(WCHAR* str, const WCHAR* format, ...)
+{
+	int ret;
+	va_list valist;
+	va_start(valist, format);
+	ret = vswprintf_s(str, sizeof(str), format, valist);
+	va_end(valist);
+	return ret;
+}
+inline int swprintf_s(WCHAR* str, size_t size, const WCHAR* format, ...)
+{
+	int ret;
+	va_list valist;
+	va_start(valist, format);
+	ret = vswprintf_s(str, size, format, valist);
+	va_end(valist);
+	return ret;
+}
+
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/wcstring.c#L195-L209
+inline errno_t __cdecl wcscpy_s(WCHAR* dst, size_t len, const WCHAR* src)
+{
+	size_t i;
+
+	if (!dst || !len) return EINVAL;
+	if (!src) {
+		*dst = 0;
+		return EINVAL;
+	}
+
+	for (i = 0; i < len; i++) if (!(dst[i] = src[i])) return 0;
+	*dst = 0;
+	return ERANGE;
+}
+
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/wcstring.c#L365-L401
+inline errno_t wcsncpy_s(WCHAR* dst, size_t len, const WCHAR* src, size_t count)
+{
+	size_t i, end;
+
+	if (!count) {
+		if (dst && len) *dst = 0;
+		return 0;
+	}
+	if (!dst || !len) return EINVAL;
+	if (!src) {
+		*dst = 0;
+		return EINVAL;
+	}
+
+	if (count != _TRUNCATE && count < len)
+		end = count;
+	else
+		end = len - 1;
+
+	for (i = 0; i < end; i++)
+		if (!(dst[i] = src[i])) return 0;
+
+	if (count == _TRUNCATE) {
+		dst[i] = 0;
+		return STRUNCATE;
+	}
+	if (end == count) {
+		dst[i] = 0;
+		return 0;
+	}
+	dst[0] = 0;
+	return ERANGE;
+}
+inline errno_t wcsncpy_s(WCHAR* dst, const WCHAR* src, size_t count)
+{
+	return wcsncpy_s(dst, sizeof(dst), src, count);
+}
+
+// ref: https://github.com/rhcad/x3c/blob/master/code/pkg_Core/Interface/Portability/linuximpl.h#L287-L290
+inline int _wcsnicmp(const WCHAR* s1, const WCHAR* s2, size_t n)
+{
+	return wcsncasecmp(s1, s2, n);
+}
+
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/wcstring.c#L645-L663
+// ref: https://github.com/wine-mirror/wine/blob/master/dlls/ntdll/wcstring.c#L759-L800
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+inline int wctoint(WCHAR c)
+{
+	static const WCHAR zeros[] = {
+		0x0660, 0x06f0, 0x0966, 0x09e6, 0x0a66, 0x0ae6, 0x0b66, 0x0c66, 0x0ce6,
+		0x0d66, 0x0e50, 0x0ed0, 0x0f20, 0x1040, 0x17e0, 0x1810, 0xff10
+	};
+	int i;
+
+	if ('0' <= c && c <= '9') return c - '0';
+	if ('A' <= c && c <= 'Z') return c - 'A' + 10;
+	if ('a' <= c && c <= 'z') return c - 'a' + 10;
+	for (i = 0; i < ARRAY_SIZE(zeros) && c >= zeros[i]; i++)
+		if (zeros[i] <= c && c <= zeros[i] + 9) return c - zeros[i];
+
+	return -1;
+}
+inline __int64 _wcstoi64(const WCHAR* s, WCHAR** end, int base)
+{
+	BOOL negative = FALSE, empty = TRUE;
+	__int64 ret = 0;
+
+	if (base < 0 || base == 1 || base > 36) return 0;
+	if (end) *end = (wchar_t *)s;
+	while (iswspace(*s)) s++;
+
+	if (*s == '-') {
+		negative = TRUE;
+		s++;
+	}
+	else if (*s == '+') s++;
+
+	if ((base == 0 || base == 16) && !wctoint( *s ) && (s[1] == 'x' || s[1] == 'X')) {
+		base = 16;
+		s += 2;
+	}
+	if (base == 0) base = wctoint( *s ) ? 10 : 8;
+
+	while (*s) {
+		int v = wctoint( *s );
+		if (v < 0 || v >= base) break;
+		if (negative) v = -v;
+		s++;
+		empty = FALSE;
+
+		if (!negative && (ret > I64_MAX / base || ret * base > I64_MAX - v))
+			ret = I64_MAX;
+		else if (negative && (ret < I64_MIN / base || ret * base < I64_MIN - v))
+			ret = I64_MIN;
+		else
+			ret = ret * base + v;
+	}
+
+	if (end && !empty) *end = (wchar_t *)s;
+	return ret;
+}
 
 //===--------------------- Handle Types -----------------------------------===//
 
 typedef void *HANDLE;
 typedef void *RPC_IF_HANDLE;
 
-#define DECLARE_HANDLE(name)																									 \
-	struct name##__ {																														\
-		int unused;																																\
-	};																																					 \
+#define DECLARE_HANDLE(name)	 \
+	struct name##__ {			 \
+		int unused;				 \
+	};							 \
 	typedef struct name##__ *name
 DECLARE_HANDLE(HINSTANCE);
 
@@ -878,6 +880,14 @@ typedef struct _SECURITY_ATTRIBUTES {
 } SECURITY_ATTRIBUTES, *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES;
 
 typedef void (CALLBACK *LPTIMERCALLBACK)(HWND, UINT, UINT_PTR, DWORD);
+
+// ref: https://stackoverflow.com/a/47357548/17124142
+inline DWORD GetTickCount()
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (DWORD)(ts.tv_nsec / 1000000) + ((DWORD)ts.tv_sec * 1000ull);
+}
 
 inline DWORD GetCurrentProcessId()
 {
