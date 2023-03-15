@@ -23,6 +23,11 @@
                         <GridViewColumnHeader Content="Notキーワード" Uid="NotKey" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
+                <GridViewColumn DisplayMemberBinding="{Binding Note}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="メモ" Uid="Note" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
                 <GridViewColumn DisplayMemberBinding="{Binding RegExp}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="正規表現" Uid="RegExp" />
