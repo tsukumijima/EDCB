@@ -154,6 +154,9 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	theApp.InitInstance();
 	CoUninitialize();
 #else
+	// ロケールを UTF-8 に設定 (これを設定しておかないと文字化けする)
+	setlocale(LC_ALL, "ja_JP.UTF-8");
+
 	theApp.InitInstance(argc, argv);
 #endif
 	SetSaveDebugLog(false);
