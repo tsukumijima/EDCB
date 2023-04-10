@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace EpgTimer
 {
@@ -977,6 +978,7 @@ namespace EpgTimer
     {
         public string andKey = "";
         public string notKey = "";
+        public string note = "";
         public int regExpFlag;
         public int titleOnlyFlag;
         public List<EpgContentData> contentList = new List<EpgContentData>();
@@ -1016,10 +1018,18 @@ namespace EpgTimer
             andKey_Send = (caseFlag == 1 ? "C!{999}" : "") + andKey_Send;
             andKey_Send = (keyDisabledFlag == 1 ? "^!{999}" : "") + andKey_Send;
 
+            //メモの処理
+            string notKey_Send = notKey;
+            if (note.Length > 0)
+            {
+                notKey_Send = ":note:" + note.Replace("\\", "\\\\").Replace(" ", "\\s").Replace("　", "\\m") +
+                             (notKey.Length > 0 ? " " + notKey : "");
+            }
+
             var w = new CtrlCmdWriter(s, version);
             w.Begin();
             w.Write(andKey_Send);
-            w.Write(notKey);
+            w.Write(notKey_Send);
             w.Write(regExpFlag);
             w.Write(titleOnlyFlag);
             w.Write(contentList);
@@ -1092,6 +1102,13 @@ namespace EpgTimer
                 andKey = andKey.Substring(13);
                 chkDurationMin = (ushort)(dur / 10000);
                 chkDurationMax = (ushort)(dur % 10000);
+            }
+            //メモを分離
+            var m = Regex.Match(notKey, "^:note:([^ 　]*)[ 　]?(.*)");
+            if (m.Success)
+            {
+                notKey = m.Groups[2].Value;
+                note = m.Groups[1].Value.Replace("\\s", " ").Replace("\\m", "　").Replace("\\\\", "\\");
             }
 
             //旧CS仮対応コード(+0x70)の処置

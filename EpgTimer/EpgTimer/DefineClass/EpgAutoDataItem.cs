@@ -153,6 +153,10 @@ namespace EpgTimer
         {
             get { return EpgAutoAddInfo.searchInfo.notKey; }
         }
+        public string Note
+        {
+            get { return EpgAutoAddInfo.searchInfo.note; }
+        }
         public string RegExp
         {
             get { return EpgAutoAddInfo.searchInfo.regExpFlag == 1 ? "○" : "×"; }

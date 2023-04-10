@@ -146,6 +146,8 @@ OSのタイムゾーンの影響を受けなくなりました。予約管理や
     例えばタイトルか映像情報に"[字]"が含まれるものを検索する場合  
       `:title:[字] | :video:[字]`  
     とします。先頭の:を::にする(::title:など)と個別に正規表現モードになります。
+  - メモ【追加】  
+    メモ欄です。実装上は`:note:`で始まるNOTキーワードです。
   - 正規表現モード  
     ConvertText.txtは廃止しました(後述)。全体を1つの正規表現とみなします。上述の
     OR検索や検索対象の指定はできません。
@@ -748,6 +750,7 @@ EpgTimerSrv.iniのSETセクションを編集し、EpgTimerSrv.exeを再起動�
   - CivetWebのdocument_rootに相当
   - フォルダパスに日本語(マルチバイト)文字を含まないこと
     - EDCBを日本語を含むフォルダに入れている場合は要注意
+  - 1つしか指定できないので、複数の場所を公開したいときはフォルダ内にmklinkコマンドでシンボリックリンクを作る
 - `HttpAuthenticationDomain` [=mydomain.com]  
   認証領域
   - CivetWebのauthentication_domainに相当

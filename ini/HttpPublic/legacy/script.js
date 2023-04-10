@@ -133,6 +133,45 @@ function setTSPacketHeader(packets,counters,pid){
   }
 }
 
+function progressPsiDataChatMixedStream(readCount,response,onData,onChat,ctx){
+  ctx=ctx||{};
+  if(!ctx.ctx){
+    ctx.ctx={};
+    ctx.counters=[];
+    ctx.atobRemain="";
+    ctx.psiData=new Uint8Array(0);
+  }
+  while(readCount<response.length){
+    var i=response.indexOf("<",readCount);
+    if(i==readCount){
+      i=response.indexOf("\n",readCount);
+      if(i<0)break;
+      if(onChat)onChat(response.substring(readCount,i));
+      readCount=i+1;
+    }else{
+      i=i<0?response.length:i;
+      var n=Math.floor((i-readCount+ctx.atobRemain.length)/4)*4;
+      if(n){
+        var addData=atob(ctx.atobRemain+response.substring(readCount,readCount+n-ctx.atobRemain.length));
+        ctx.atobRemain=response.substring(readCount+n-ctx.atobRemain.length,i);
+        var concatData=new Uint8Array(ctx.psiData.length+addData.length);
+        for(var j=0;j<ctx.psiData.length;j++)concatData[j]=ctx.psiData[j];
+        for(var j=0;j<addData.length;j++)concatData[ctx.psiData.length+j]=addData.charCodeAt(j);
+        ctx.psiData=readPsiData(concatData.buffer,function(sec,psiTS,pid){
+          setTSPacketHeader(psiTS,ctx.counters,pid);
+          if(onData)onData(psiTS,Math.floor(sec*90000));
+          return true;
+        },0,ctx.ctx);
+        if(ctx.psiData)ctx.psiData=new Uint8Array(ctx.psiData);
+      }else{
+        atobRemain+=response.substring(readCount,i);
+      }
+      readCount=i;
+    }
+  }
+  return readCount;
+}
+
 function decodeB24CaptionFromCueText(text,work){
   work=work||[];
   text=text.replace(/\r?\n/g,'');
@@ -233,4 +272,67 @@ function waitForHlsStart(src,interval,delay,onerror,onstart){
     }
     xhr.send();
   })();
+}
+
+function unescapeHtml(s){
+  return s.replace(/&(?:amp|lt|gt|quot|apos|#10|#13);/g,function(m){
+    return m[1]=="l"?"<":m[1]=="g"?">":m[1]=="q"?'"':m[3]=="p"?"&":m[3]=="o"?"'":m[3]=="0"?"\n":"\r";
+  });
+}
+
+var chatTagColors={
+  red:"#ff0000",
+  pink:"#ff8080",
+  orange:"#ffc000",
+  yellow:"#ffff00",
+  green:"#00ff00",
+  cyan:"#00ffff",
+  blue:"#0000ff",
+  purple:"#c000ff",
+  black:"#000000",
+  white2:"#cccc99",
+  niconicowhite:"#cccc99",
+  red2:"#cc0033",
+  truered:"#cc0033",
+  pink2:"#ff33cc",
+  orange2:"#ff6600",
+  passionorange:"#ff6600",
+  yellow2:"#999900",
+  madyellow:"#999900",
+  green2:"#00cc66",
+  elementalgreen:"#00cc66",
+  cyan2:"#00cccc",
+  blue2:"#3399ff",
+  marineblue:"#3399ff",
+  purple2:"#6633cc",
+  nobleviolet:"#6633cc",
+  black2:"#666666"
+};
+
+var getChatTagColorRe=new RegExp("(?:^| )(#[0-9A-Fa-f]{6}|"+Object.keys(chatTagColors).join("|")+")(?: |$)");
+
+function parseChatTag(tag){
+  var m=tag.match(/^<chat(?= )(.*)>(.*?)<\/chat>$/);
+  if(m){
+    var a=m[1];
+    var r={text:unescapeHtml(m[2])};
+    m=a.match(/ date="(\d+)"/);
+    if(m){
+      r.date=parseInt(m[1],10);
+      if(r.date>=0){
+        m=a.match(/ mail="(.*?)"/);
+        r.mail=m?m[1]:"";
+        m=r.mail.match(/(?:^| )(ue|shita)(?: |$)/);
+        r.type=!m?"right":m[1]=="ue"?"top":"bottom";
+        m=r.mail.match(getChatTagColorRe);
+        r.colorcode=!m?"#ffffff":m[1][0]=="#"?m[1]:chatTagColors[m[1]];
+        r.color=parseInt(r.colorcode.substring(1),16);
+        r.yourpost=/ yourpost="1"/.test(a);
+        m=a.match(/ user_id="([0-9A-Za-z_-]*)"/);
+        r.user=m?m[1]:"";
+        return r;
+      }
+    }
+  }
+  return null;
 }

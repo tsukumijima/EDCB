@@ -186,6 +186,7 @@ namespace EpgTimer
             {
                 key.andKey = comboBox_andKey.Text;
                 key.notKey = comboBox_notKey.Text;
+                key.note = textBox_note.Text.Trim();
                 key.regExpFlag = checkBox_regExp.IsChecked == true ? 1 : 0;
                 key.aimaiFlag = (byte)(checkBox_aimai.IsChecked == true ? 1 : 0);
                 key.titleOnlyFlag = checkBox_titleOnly.IsChecked == true ? 1 : 0;
@@ -226,6 +227,7 @@ namespace EpgTimer
                     comboBox_andKey.Text = key.andKey;
                     comboBox_notKey.Text = key.notKey;
                 }
+                textBox_note.Text = key.note;
                 checkBox_regExp.IsChecked = key.regExpFlag == 1;
                 checkBox_aimai.IsChecked = key.aimaiFlag == 1;
                 checkBox_titleOnly.IsChecked = key.titleOnlyFlag == 1;
