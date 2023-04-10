@@ -20,6 +20,8 @@ namespace EpgTimer
 
         private BoxExchangeEdit.BoxExchangeEditor bx = new BoxExchangeEdit.BoxExchangeEditor();
 
+        private ListViewHorizontalMouseScroller horizontalScroller = new ListViewHorizontalMouseScroller();
+
         private ListBoxItem ClickTarget = null;
 
         private string column_SavePath = null;
@@ -120,18 +122,18 @@ namespace EpgTimer
 
             if (defaultContextMenu == true)
             {
-                if (lv.ContextMenu == null) lv.ContextMenu = new ContextMenuEx();
+                if (listView.ContextMenu == null) listView.ContextMenu = new ContextMenuEx();
 
-                lv.ContextMenu.Opened += (sender, e) =>
+                listView.ContextMenu.Opened += (sender, e) =>
                 {
                     //コンテキストメニューを開いたとき、アイテムがあればそれを保存する。無ければNULLになる。
                     var lb = (sender as ContextMenu).PlacementTarget as ListBox;
                     if (lb != null) ClickTarget = lb.GetPlacementItem() as ListBoxItem;
                 };
-                lv.ContextMenu.Closed += (sender, e) => ClickTarget = null;
+                listView.ContextMenu.Closed += (sender, e) => ClickTarget = null;
             }
 
-            gvSelector = new GridViewSelector(gv,
+            gvSelector = new GridViewSelector(gridView,
                 column_SavePath == null ? null as Func<List<ListColumnInfo>> : () => Settings.Instance.GetSettings(column_SavePath) as List<ListColumnInfo>,
                 column_SavePath == null ? null as Func<List<ListColumnInfo>> : () => Settings.GetDefaultColumn(Owner.GetType()));
             gvSorter = new GridViewSorter();
@@ -139,6 +141,11 @@ namespace EpgTimer
 
             //Escapeキー及びアイテムの無い場所のクリックで、選択を解除する。
             bx.targetBoxAllowCancelAction(listView);
+
+            //チルトホイールの設定
+            listView.MouseEnter += new MouseEventHandler((sender, e) => horizontalScroller.OnMouseEnter(
+                listView, Settings.Instance.EpgSettingList[0].MouseHorizontalScrollAuto, Settings.Instance.EpgSettingList[0].HorizontalScrollSize));
+            listView.MouseLeave += new MouseEventHandler((sender, e) => horizontalScroller.OnMouseLeave());
         }
 
         public void SetSelectedItemDoubleClick(RoutedCommand cmd)

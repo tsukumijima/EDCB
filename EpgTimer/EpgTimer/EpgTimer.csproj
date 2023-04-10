@@ -85,6 +85,7 @@
     <Compile Include="AutoAddView.xaml.cs">
       <DependentUpon>AutoAddView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DefineClass\ListViewHorizontalMouseScroller.cs" />
     <Compile Include="EpgView\TimeMoveView.xaml.cs">
       <DependentUpon>TimeMoveView.xaml</DependentUpon>
     </Compile>
