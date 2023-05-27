@@ -21,9 +21,7 @@ const char UPNP_URN_AVT_1[] = "urn:schemas-upnp-org:service:AVTransport:1";
 
 CHttpServer::CHttpServer()
 	: mgContext(NULL)
-#ifndef EPGTIMERSRV_WITHLUA
 	, hLuaDll(NULL)
-#endif
 	, initedLibrary(false)
 {
 }
@@ -142,14 +140,12 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 		options[opCount++] = globalAuthPath.c_str();
 	}
 
-#ifndef EPGTIMERSRV_WITHLUA
 	//LuaのDLLが無いとき分かりにくいタイミングでエラーになるので事前に読んでおく(必須ではない)
 	this->hLuaDll = LoadLibrary(GetModulePath().replace_filename(LUA_DLL_NAME).c_str());
 	if( this->hLuaDll == NULL ){
 		AddDebugLog(L"CHttpServer::StartServer(): " LUA_DLL_NAME L" not found.");
 		return false;
 	}
-#endif
 
 	unsigned int feat = MG_FEATURES_FILES + MG_FEATURES_IPV6 + MG_FEATURES_LUA + MG_FEATURES_CACHE +
 	                    (ports.find('s') != string::npos ? MG_FEATURES_TLS : 0);
@@ -247,12 +243,10 @@ bool CHttpServer::StopServer(bool checkOnly)
 		mg_exit_library();
 		this->initedLibrary = false;
 	}
-#ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
 		FreeLibrary(this->hLuaDll);
 		this->hLuaDll = NULL;
 	}
-#endif
 	return true;
 }
 
@@ -307,8 +301,9 @@ string CHttpServer::CreateRandom()
 	return ret;
 }
 
-void CHttpServer::InitLua(const mg_connection* conn, void* luaContext)
+void CHttpServer::InitLua(const mg_connection* conn, void* luaContext, unsigned int contextFlags)
 {
+	(void)contextFlags;
 	const CHttpServer* sys = (CHttpServer*)mg_get_user_data(mg_get_context(conn));
 	lua_State* L = (lua_State*)luaContext;
 	sys->initLuaProc(L);
