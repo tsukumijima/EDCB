@@ -145,7 +145,7 @@ void CEpgDataCap_BonDlg::ReloadSetting()
 	vector<WCHAR> buffSet = GetPrivateProfileSectionBuffer(L"SET", appIniPath.c_str());
 
 	SetSaveDebugLog(GetBufferedProfileInt(buffSet.data(), L"SaveDebugLog", 0) != 0);
-	this->modifyTitleBarText  = GetBufferedProfileInt(buffSet.data(), L"ModifyTitleBarText", 0) != 0;
+	this->modifyTitleBarText  = GetBufferedProfileInt(buffSet.data(), L"ModifyTitleBarText", 1) != 0;
 	this->overlayTaskIcon     = GetBufferedProfileInt(buffSet.data(), L"OverlayTaskIcon", 1) != 0;
 	this->minTask             = GetBufferedProfileInt(buffSet.data(), L"MinTask", 0) != 0;
 	this->recFileName         = GetBufferedProfileToString(buffSet.data(), L"RecFileName",

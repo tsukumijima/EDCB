@@ -43,7 +43,7 @@ BOOL CSetDlgBasic::OnInitDialog()
 	}
 
 	fs_path appIniPath = GetModuleIniPath();
-	Button_SetCheck(GetDlgItem(IDC_CHECK_MODIFY_TITLE_BAR), GetPrivateProfileInt(L"SET", L"ModifyTitleBarText", 0, appIniPath.c_str()));
+	Button_SetCheck(GetDlgItem(IDC_CHECK_MODIFY_TITLE_BAR), GetPrivateProfileInt(L"SET", L"ModifyTitleBarText", 1, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_OVERLAY_TASK_ICON), GetPrivateProfileInt(L"SET", L"OverlayTaskIcon", 1, appIniPath.c_str()));
 	Button_SetCheck(GetDlgItem(IDC_CHECK_TASKMIN), GetPrivateProfileInt(L"SET", L"MinTask", 0, appIniPath.c_str()));
 	ComboBox_AddString(GetDlgItem(IDC_COMBO_DIALOG_TEMPLATE), L"Meiryo UI");

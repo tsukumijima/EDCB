@@ -148,12 +148,10 @@ private:
 	mutable recursive_mutex_ autoAddLock;
 	mutable recursive_mutex_ settingLock;
 	HWND hwndMain;
-#ifndef EPGTIMERSRV_WITHLUA
 #ifdef _WIN32
 	HMODULE hLuaDll;
 #else
 	void* hLuaDll;
-#endif
 #endif
 	atomic_bool_ stoppingFlag;
 
