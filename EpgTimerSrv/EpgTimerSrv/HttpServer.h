@@ -33,12 +33,10 @@ public:
 	static SERVER_OPTIONS LoadServerOptions(LPCWSTR iniPath);
 	static string CreateRandom();
 private:
-	static void InitLua(const mg_connection* conn, void* luaContext);
+	static void InitLua(const mg_connection* conn, void* luaContext, unsigned int contextFlags);
 	mg_context* mgContext;
 	std::function<void(lua_State*)> initLuaProc;
-#ifndef EPGTIMERSRV_WITHLUA
 	HMODULE hLuaDll;
-#endif
 	bool initedLibrary;
 	CUpnpSsdpServer upnpSsdpServer;
 };
