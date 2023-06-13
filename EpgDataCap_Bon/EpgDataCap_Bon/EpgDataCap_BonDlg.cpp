@@ -62,7 +62,7 @@ CEpgDataCap_BonDlg::~CEpgDataCap_BonDlg()
 
 INT_PTR CEpgDataCap_BonDlg::DoModal()
 {
-	int index = GetPrivateProfileInt(L"SET", L"DialogTemplate", 1, GetModuleIniPath().c_str());
+	int index = GetPrivateProfileInt(L"SET", L"DialogTemplate", 0, GetModuleIniPath().c_str());
 	return DialogBoxParam(GetModuleHandle(NULL),
 	                      MAKEINTRESOURCE(index == 1 ? IDD_EPGDATACAP_BON_DIALOG_1 :
 	                                      index == 2 ? IDD_EPGDATACAP_BON_DIALOG_2 : IDD),
