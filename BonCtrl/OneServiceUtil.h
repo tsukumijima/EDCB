@@ -7,11 +7,8 @@
 
 #include "BonCtrlDef.h"
 #include "WriteTSFile.h"
-#include "PMTUtil.h"
-#include "CATUtil.h"
-#include "CreatePMTPacket.h"
-#include "CreatePATPacket.h"
 #include "DropCount.h"
+#include "ServiceFilter.h"
 #include <functional>
 
 class COneServiceUtil
@@ -70,13 +67,11 @@ public:
 		const std::function<int(WORD, WORD, WORD)>& funcGetPresent
 		);
 
-	void SetPmtPID(
-		WORD TSID,
-		WORD pmtPID_
-		);
-
-	void SetEmmPID(
-		const vector<WORD>& pidList
+	//出力状態をクリアする（チャンネル変更など）
+	//引数：
+	// tsid		[IN]TransportStreamID
+	void Clear(
+		WORD tsid
 		);
 
 	//ファイル保存を開始する
@@ -167,16 +162,13 @@ public:
 	//引数：
 	// writeSize			[OUT]出力サイズ
 	void GetRecWriteSize(
-		__int64* writeSize
+		LONGLONG* writeSize
 		);
 
 	void SetBonDriver(
 		const wstring& bonDriver
 		);
-	void SetPIDName(
-		WORD pid,
-		const wstring& name
-		);
+
 	void SetNoLogScramble(
 		BOOL noLog
 		);
@@ -194,13 +186,7 @@ protected:
 	CWriteTSFile writeFile;
 
 	vector<BYTE> buff;
-
-	CCreatePATPacket createPat;
-	CCreatePMTPacket createPmt;
-
-	WORD pmtPID;
-	vector<WORD> emmPIDList;
-
+	CServiceFilter serviceFilter;
 	CDropCount dropCount;
 
 	WORD lastPMTVer;

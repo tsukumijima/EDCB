@@ -8,7 +8,7 @@
 class CEpgDBUtil
 {
 public:
-	BOOL AddEIT(WORD PID, const AribDescriptor::CDescriptor& eit, __int64 streamTime);
+	BOOL AddEIT(WORD PID, const AribDescriptor::CDescriptor& eit, LONGLONG streamTime);
 
 	BOOL AddServiceListNIT(const AribDescriptor::CDescriptor& nit);
 	BOOL AddServiceListSIT(WORD TSID, const AribDescriptor::CDescriptor& sit);
@@ -61,8 +61,8 @@ public:
 		WORD originalNetworkID,
 		WORD transportStreamID,
 		WORD serviceID,
-		BOOL (CALLBACK *enumEpgInfoListProc)(DWORD, EPG_EVENT_INFO*, LPVOID),
-		LPVOID param
+		BOOL (CALLBACK *enumEpgInfoListProc)(DWORD, EPG_EVENT_INFO*, void*),
+		void* param
 		);
 
 	//蓄積されたEPG情報のあるサービス一覧を取得する

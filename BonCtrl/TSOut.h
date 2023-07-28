@@ -250,7 +250,7 @@ public:
 	// writeSize			[OUT]出力サイズ
 	void GetRecWriteSize(
 		DWORD id,
-		__int64* writeSize
+		LONGLONG* writeSize
 		);
 
 	//指定サービスの現在or次のEPG情報を取得する
@@ -367,7 +367,7 @@ protected:
 
 	std::unique_ptr<FILE, decltype(&fclose)> epgFile;
 	enum { EPG_FILE_ST_NONE, EPG_FILE_ST_PAT, EPG_FILE_ST_TOT, EPG_FILE_ST_ALL } epgFileState;
-	__int64 epgFileTotPos;
+	LONGLONG epgFileTotPos;
 	wstring epgFilePath;
 	wstring epgTempFilePath;
 	vector<pair<LONGLONG, DWORD>> logoServiceListSizeMap;
@@ -379,15 +379,13 @@ protected:
 protected:
 	void ParseEpgPacket(BYTE* data, const CTSPacketUtil& packet);
 
-	void UpdateServiceUtil(BOOL updateFilterSID);
+	void UpdateFilterServiceID();
 
-	static BOOL CALLBACK EnumLogoListProc(DWORD logoListSize, const LOGO_INFO* logoList, LPVOID param);
+	static BOOL CALLBACK EnumLogoListProc(DWORD logoListSize, const LOGO_INFO* logoList, void* param);
 
 	DWORD GetNextID();
 
 	BOOL UpdateEnableDecodeFlag();
-
-	void ResetErrCount();
 
 	void OnChChanged(WORD onid, WORD tsid);
 };

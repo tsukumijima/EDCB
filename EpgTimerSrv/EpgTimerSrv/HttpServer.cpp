@@ -21,9 +21,7 @@ const char UPNP_URN_AVT_1[] = "urn:schemas-upnp-org:service:AVTransport:1";
 
 CHttpServer::CHttpServer()
 	: mgContext(NULL)
-#ifndef EPGTIMERSRV_WITHLUA
 	, hLuaDll(NULL)
-#endif
 	, initedLibrary(false)
 {
 }
@@ -142,14 +140,12 @@ bool CHttpServer::StartServer(const SERVER_OPTIONS& op, const std::function<void
 		options[opCount++] = globalAuthPath.c_str();
 	}
 
-#ifndef EPGTIMERSRV_WITHLUA
 	//LuaのDLLが無いとき分かりにくいタイミングでエラーになるので事前に読んでおく(必須ではない)
 	this->hLuaDll = LoadLibrary(GetModulePath().replace_filename(LUA_DLL_NAME).c_str());
 	if( this->hLuaDll == NULL ){
 		AddDebugLog(L"CHttpServer::StartServer(): " LUA_DLL_NAME L" not found.");
 		return false;
 	}
-#endif
 
 	unsigned int feat = MG_FEATURES_FILES + MG_FEATURES_IPV6 + MG_FEATURES_LUA + MG_FEATURES_CACHE +
 	                    (ports.find('s') != string::npos ? MG_FEATURES_TLS : 0);
@@ -229,13 +225,13 @@ bool CHttpServer::StopServer(bool checkOnly)
 		}else{
 			//正常であればmg_stop()はreqToを超えて待機することはない
 			DWORD reqTo = atoi(mg_get_option(this->mgContext, "request_timeout_ms"));
-			DWORD tick = GetTickCount();
-			while( GetTickCount() - tick < reqTo + 10000 ){
+			DWORD tick = GetU32Tick();
+			while( GetU32Tick() - tick < reqTo + 10000 ){
 				if( mg_check_stop(this->mgContext) ){
 					this->mgContext = NULL;
 					break;
 				}
-				Sleep(10);
+				SleepForMsec(10);
 			}
 			if( this->mgContext ){
 				AddDebugLog(L"CHttpServer::StopServer(): failed to stop service.");
@@ -247,12 +243,10 @@ bool CHttpServer::StopServer(bool checkOnly)
 		mg_exit_library();
 		this->initedLibrary = false;
 	}
-#ifndef EPGTIMERSRV_WITHLUA
 	if( this->hLuaDll ){
 		FreeLibrary(this->hLuaDll);
 		this->hLuaDll = NULL;
 	}
-#endif
 	return true;
 }
 
@@ -289,7 +283,7 @@ string CHttpServer::CreateRandom()
 #ifdef _WIN32
 	HCRYPTPROV prov;
 	if( CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) ){
-		unsigned __int64 r[4] = {};
+		ULONGLONG r[4] = {};
 		if( CryptGenRandom(prov, sizeof(r), (BYTE*)r) ){
 			sprintf_s(ret, "%016llx%016llx%016llx%016llx", r[0], r[1], r[2], r[3]);
 		}
@@ -298,7 +292,7 @@ string CHttpServer::CreateRandom()
 #else
 	std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(fs_path(L"/dev/urandom"), UTIL_SHARED_READ), fclose);
 	if( fp ){
-		unsigned long long r[4];
+		ULONGLONG r[4];
 		if( fread(r, 1, sizeof(r), fp.get()) == sizeof(r) ){
 			sprintf_s(ret, "%016llx%016llx%016llx%016llx", r[0], r[1], r[2], r[3]);
 		}
@@ -307,8 +301,9 @@ string CHttpServer::CreateRandom()
 	return ret;
 }
 
-void CHttpServer::InitLua(const mg_connection* conn, void* luaContext)
+void CHttpServer::InitLua(const mg_connection* conn, void* luaContext, unsigned int contextFlags)
 {
+	(void)contextFlags;
 	const CHttpServer* sys = (CHttpServer*)mg_get_user_data(mg_get_context(conn));
 	lua_State* L = (lua_State*)luaContext;
 	sys->initLuaProc(L);
@@ -332,7 +327,7 @@ void reg_int_(lua_State* L, const char* name, size_t size, int val)
 	lua_rawset(L, -3);
 }
 
-void reg_int64_(lua_State* L, const char* name, size_t size, __int64 val)
+void reg_int64_(lua_State* L, const char* name, size_t size, LONGLONG val)
 {
 	lua_pushlstring(L, name, size - 1);
 	lua_pushnumber(L, (lua_Number)val);
@@ -388,13 +383,13 @@ int get_int(lua_State* L, const char* name)
 	return ret;
 }
 
-__int64 get_int64(lua_State* L, const char* name)
+LONGLONG get_int64(lua_State* L, const char* name)
 {
 	lua_getfield(L, -1, name);
 	lua_Number ret = lua_tonumber(L, -1);
 	lua_pop(L, 1);
 	//整数を正しく表現できない範囲の値は制限する
-	return (__int64)min(max(ret, -1e+16), 1e+16);
+	return (LONGLONG)min(max(ret, -1e+16), 1e+16);
 }
 
 bool get_boolean(lua_State* L, const char* name)
@@ -418,7 +413,7 @@ SYSTEMTIME get_time(lua_State* L, const char* name)
 		st.wMinute = (WORD)get_int(L, "min");
 		st.wSecond = (WORD)get_int(L, "sec");
 		st.wMilliseconds = (WORD)get_int(L, "msec");
-		__int64 t = ConvertI64Time(st);
+		LONGLONG t = ConvertI64Time(st);
 		if( t != 0 && ConvertSystemTime(t, &st) ){
 			ret = st;
 		}
@@ -707,7 +702,7 @@ int f_seek(lua_State* L)
 	FILE* f = tofile(L);
 	int op = luaL_checkoption(L, 2, "cur", modenames);
 	lua_Number p3 = luaL_optnumber(L, 3, 0);
-	__int64 offset = (__int64)p3;
+	LONGLONG offset = (LONGLONG)p3;
 	luaL_argcheck(L, (lua_Number)offset == p3, 3, "not an integer in proper range");
 	op = _fseeki64(f, offset, mode[op]);
 	if( op )
