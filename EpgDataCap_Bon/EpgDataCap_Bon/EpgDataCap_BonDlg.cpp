@@ -254,7 +254,7 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 		//BonDriver指定時は一覧になくてもよい
 		if( SelectBonDriver(this->iniBonDriver.c_str()) ){
 			if( initOpenWait > 0 ){
-				Sleep(initOpenWait);
+				SleepForMsec(initOpenWait);
 			}
 			serviceIndex = ReloadServiceList(initONID, initTSID, initSID);
 		}
@@ -274,7 +274,7 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 		//チャンネル変更
 		if( SelectService(this->serviceList[serviceIndex]) ){
 			if( initONID >= 0 && initTSID >= 0 && initSID >= 0 && initChgWait > 0 ){
-				Sleep(initChgWait);
+				SleepForMsec(initChgWait);
 			}
 		}
 	}
@@ -1755,7 +1755,7 @@ void CEpgDataCap_BonDlg::CtrlCmdCallbackInvoked()
 		{
 			DWORD val;
 			if( cmd.ReadVALUE(&val) ){
-				__int64 writeSize = -1;
+				LONGLONG writeSize = -1;
 				this->bonCtrl.GetRecWriteSize(val, &writeSize);
 				res.WriteVALUE(writeSize);
 				res.SetParam(CMD_SUCCESS);

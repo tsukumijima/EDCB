@@ -328,12 +328,13 @@
                                     <Button Margin="614,94,0,0" Tag="4" />
                                     <Button Margin="292,124,0,0" Tag="5" />
                                     <Button Margin="614,124,0,0" Tag="6" />
+                                    <Label Content="※マークはオプション使用時のみ ([予約一覧・共通]-[基本]タブ参照)" Margin="12,154,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
                                     <DockPanel HorizontalAlignment="Left" Margin="12,184,0,0" VerticalAlignment="Top">
                                         <Label Content="塗りつぶしで表示 (不透明度)" />
                                         <Slider VerticalAlignment="Center" Margin="10,0" Value="{Binding ReserveRectFillOpacity}" AutoToolTipPlacement="TopLeft" LargeChange="10" Maximum="100" Name="slider_reserveFillOpacity" SmallChange="1" Width="145" />
                                         <CheckBox Content="影付きで塗りつぶす" IsChecked="{Binding ReserveRectFillWithShadow}"/>
+                                        <CheckBox Content="時刻軸に線を引く" Margin="30,0,0,0"  IsChecked="{Binding ReserveRectShowMarker}"/>
                                     </DockPanel>
-                                    <Label Content="※マークはオプション使用時のみ ([予約一覧・共通]-[基本]タブ参照)" Margin="12,154,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
                                 </Grid>
                             </GroupBox>
                         </StackPanel>

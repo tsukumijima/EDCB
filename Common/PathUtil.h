@@ -97,8 +97,8 @@ enum {
 };
 
 // ファイルを開く(継承不能、共有モード制御可)
-FILE* UtilOpenFile(const wstring& path, int flags);
-inline FILE* UtilOpenFile(const fs_path& path, int flags) { return UtilOpenFile(path.native(), flags); }
+FILE* UtilOpenFile(const wstring& path, int flags, int* apiError = NULL);
+inline FILE* UtilOpenFile(const fs_path& path, int flags, int* apiError = NULL) { return UtilOpenFile(path.native(), flags, apiError); }
 
 #ifndef _WIN32
 BOOL DeleteFile(LPCWSTR path);
@@ -110,8 +110,8 @@ fs_path GetSettingPath();
 fs_path GetModulePath(HMODULE hModule = NULL);
 fs_path GetModuleIniPath(HMODULE hModule = NULL);
 #else
-fs_path GetModulePath();
-fs_path GetModuleIniPath(LPCWSTR moduleName = NULL);
+fs_path GetModulePath(void* funcAddr = NULL);
+fs_path GetModuleIniPath(void* funcAddr = NULL);
 #endif
 fs_path GetCommonIniPath();
 fs_path GetRecFolderPath(int index = 0);
@@ -129,7 +129,7 @@ bool UtilCreateDirectory(const fs_path& path);
 // 再帰的にディレクトリを生成する
 bool UtilCreateDirectories(const fs_path& path);
 // フォルダがあるストレージの空き容量を取得する。失敗時は負値
-__int64 UtilGetStorageFreeBytes(const fs_path& directoryPath);
+LONGLONG UtilGetStorageFreeBytes(const fs_path& directoryPath);
 // フォルダがあるストレージの識別子を取得する。失敗時は空
 wstring UtilGetStorageID(const fs_path& directoryPath);
 
@@ -142,8 +142,8 @@ BOOL WritePrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int value, LPCWSTR
 
 struct UTIL_FIND_DATA {
 	bool isDir;
-	__int64 lastWriteTime;
-	__int64 fileSize;
+	LONGLONG lastWriteTime;
+	LONGLONG fileSize;
 	wstring fileName;
 };
 

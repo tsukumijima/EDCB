@@ -328,6 +328,7 @@ namespace EpgTimer
         public string TitleColor2 { get; set; }
         public UInt32 TitleCustColor1 { get; set; }
         public UInt32 TitleCustColor2 { get; set; }
+        public bool ReserveRectShowMarker { get; set; }
         public double ScrollSize { get; set; }
         public bool MouseScrollAuto { get; set; }
         public double HorizontalScrollSize { get; set; }
@@ -389,6 +390,7 @@ namespace EpgTimer
             TitleColor2 = "Black";
             TitleCustColor1 = 0xFFFFFFFF;
             TitleCustColor2 = 0xFFFFFFFF;
+            ReserveRectShowMarker = true;
             ScrollSize = 240;
             MouseScrollAuto = false;
             HorizontalScrollSize = 150;
