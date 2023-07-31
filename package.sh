@@ -73,6 +73,7 @@ then
 fi
 
 cp -fp "${src_bin_dir}/EpgTimer.exe" "${dst_dir}/EpgTimer.exe"
+cp -fp "${src_bin_dir}/EpgTimer.exe" "${dst_dir}/EpgTimerNW.exe"
 cp -fp "${src_bin_dir}/EpgTimerAdminProxy.exe" "${dst_dir}/EpgTimerAdminProxy.exe"
 cp -fp "${src_bin_dir}/EpgTimerPlugIn.tvtp" "${dst_dir}/EpgTimerPlugIn.tvtp"
 cp -fp "${src_bin_dir}/EpgTimerSrv.exe" "${dst_dir}/EpgTimerSrv.exe"
