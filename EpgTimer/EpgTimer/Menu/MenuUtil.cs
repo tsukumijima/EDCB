@@ -854,7 +854,7 @@ namespace EpgTimer
         }
         public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
         {
-            key = key ?? Settings.Instance.SearchPresetList[0].Data.DeepClone();
+            key = (key ?? Settings.Instance.SearchPresetList[0].Data).DeepClone();
             key.regExpFlag = 0;
             if (item == null) return key;
 

@@ -12,9 +12,9 @@ namespace EpgTimer
     {
         public static T DeepClone<T>(this T src) where T : IDeepCloneObj
         {
-            return (T)src.DeepCloneObj();
+            return src == null ? default(T) : (T)src.DeepCloneObj();
         }
-        //IDeepCloneを持っているクラスに拡張メソッド追加。
+        //IDeepCloneObjを持っているクラスに拡張メソッド追加。
         public static List<T> DeepClone<T>(this IEnumerable<T> src) where T : IDeepCloneObj
         {
             return src == null ? null : src.Select(a => a.DeepClone()).ToList();
