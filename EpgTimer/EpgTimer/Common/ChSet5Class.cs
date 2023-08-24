@@ -251,16 +251,20 @@ namespace EpgTimer
         {
             if (Settings.Instance.ShowLogo && LogoList == null)
             {
-                loadLogoTimer = new DispatcherTimer();
-                loadLogoTimer.Tick += (sender, e) =>
+                if (loadLogoTimer == null)
                 {
-                    //2回目以降は間を開ける。
-                    loadLogoTimer.Interval = TimeSpan.FromMilliseconds(500);
-                    if (LoadLogo())
+                    loadLogoTimer = new DispatcherTimer();
+                    loadLogoTimer.Tick += (sender, e) =>
                     {
-                        loadLogoTimer.Stop();
-                    }
-                };
+                        //2回目以降は間を開ける。
+                        loadLogoTimer.Interval = TimeSpan.FromMilliseconds(500);
+                        if (LoadLogo())
+                        {
+                            loadLogoTimer.Stop();
+                        }
+                    };
+                }
+                loadLogoTimer.Interval = TimeSpan.Zero;
                 loadLogoTimer.Start();
             }
         }
