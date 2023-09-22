@@ -24,7 +24,7 @@ void CEpgDBUtil::SetStreamChangeEvent()
 	//ここで[p/f]のリセットはしない
 }
 
-BOOL CEpgDBUtil::AddEIT(WORD PID, const Desc::CDescriptor& eit, __int64 streamTime)
+BOOL CEpgDBUtil::AddEIT(WORD PID, const Desc::CDescriptor& eit, LONGLONG streamTime)
 {
 	WORD original_network_id = (WORD)eit.GetNumber(Desc::original_network_id);
 	WORD transport_stream_id = (WORD)eit.GetNumber(Desc::transport_stream_id);
@@ -83,7 +83,7 @@ BOOL CEpgDBUtil::AddEIT(WORD PID, const Desc::CDescriptor& eit, __int64 streamTi
 	for( DWORD i = 0; i < eventLoopSize; i++ ){
 		eit.SetLoopIndex(lp, i);
 		WORD event_id = (WORD)eit.GetNumber(Desc::event_id, lp);
-		__int64 start_time = 0;
+		LONGLONG start_time = 0;
 		DWORD mjd = eit.GetNumber(Desc::start_time_mjd, lp);
 		DWORD bcd = eit.GetNumber(Desc::start_time_bcd, lp);
 		if( mjd != 0xFFFF || bcd != 0xFFFFFF ){
@@ -690,7 +690,7 @@ EPG_SECTION_STATUS CEpgDBUtil::GetSectionStatus(BOOL l_eitFlag)
 
 BOOL CEpgDBUtil::AddServiceListNIT(const Desc::CDescriptor& nit)
 {
-	wstring network_nameW = L"";
+	wstring network_nameW;
 
 	Desc::CDescriptor::CLoopPointer lp;
 	if( nit.EnterLoop(lp) ){
@@ -954,8 +954,8 @@ BOOL CEpgDBUtil::EnumEpgInfoList(
 	WORD originalNetworkID,
 	WORD transportStreamID,
 	WORD serviceID,
-	BOOL (CALLBACK *enumEpgInfoListProc)(DWORD, EPG_EVENT_INFO*, LPVOID),
-	LPVOID param
+	BOOL (CALLBACK *enumEpgInfoListProc)(DWORD, EPG_EVENT_INFO*, void*),
+	void* param
 	)
 {
 	map<ULONGLONG, SERVICE_EVENT_INFO>::iterator itr =

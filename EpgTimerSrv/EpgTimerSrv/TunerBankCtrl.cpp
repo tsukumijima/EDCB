@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "TunerBankCtrl.h"
 #include "../../Common/EpgTimerUtil.h"
+#include "../../Common/IniUtil.h"
 #include "../../Common/SendCtrlCmd.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/TimeUtil.h"
@@ -74,7 +75,7 @@ bool CTunerBankCtrl::AddReserve(const TUNER_RESERVE& reserve)
 	TUNER_RESERVE_WORK& r = this->reserveMap.insert(std::make_pair(reserve.reserveID, TUNER_RESERVE_WORK())).first->second;
 	static_cast<TUNER_RESERVE&>(r) = reserve;
 	r.startOrder = (r.startTime - r.startMargin) / I64_1SEC << 16 | (r.reserveID & 0xFFFF);
-	r.effectivePriority = (this->backPriority ? -1 : 1) * ((__int64)((this->backPriority ? r.priority : ~r.priority) & 7) << 60 | r.startOrder);
+	r.effectivePriority = (this->backPriority ? -1 : 1) * ((LONGLONG)((this->backPriority ? r.priority : ~r.priority) & 7) << 60 | r.startOrder);
 	r.state = TR_IDLE;
 	r.retryOpenCount = 0;
 	return true;
@@ -103,7 +104,7 @@ bool CTunerBankCtrl::ChgCtrlReserve(TUNER_RESERVE* reserve)
 		reserve->partialRecFolder = save.partialRecFolder;
 		//後方移動は注意。なお前方移動はどれだけ大きくても次のCheck()で予約終了するだけなので問題ない
 		if( reserve->startTime - reserve->startMargin > save.startTime - save.startMargin ){
-			__int64 now = GetNowI64Time() + this->delayTime;
+			LONGLONG now = GetNowI64Time() + this->delayTime;
 			if( reserve->startTime - reserve->startMargin - 60 * I64_1SEC > now ){
 				reserve->startTime = save.startTime;
 				reserve->startMargin = save.startMargin;
@@ -113,7 +114,7 @@ bool CTunerBankCtrl::ChgCtrlReserve(TUNER_RESERVE* reserve)
 		static_cast<TUNER_RESERVE&>(r) = *reserve;
 		//内部パラメータを再計算
 		r.startOrder = (r.startTime - r.startMargin) / I64_1SEC << 16 | (r.reserveID & 0xFFFF);
-		r.effectivePriority = (this->backPriority ? -1 : 1) * ((__int64)((this->backPriority ? r.priority : ~r.priority) & 7) << 60 | r.startOrder);
+		r.effectivePriority = (this->backPriority ? -1 : 1) * ((LONGLONG)((this->backPriority ? r.priority : ~r.priority) & 7) << 60 | r.startOrder);
 		return true;
 	}
 	return false;
@@ -181,7 +182,7 @@ bool CTunerBankCtrl::DelReserve(DWORD reserveID, vector<CHECK_RESULT>* retList)
 	return false;
 }
 
-void CTunerBankCtrl::ClearNoCtrl(__int64 startTime)
+void CTunerBankCtrl::ClearNoCtrl(LONGLONG startTime)
 {
 	for( auto itr = this->reserveMap.begin(); itr != this->reserveMap.end(); ){
 		if( itr->second.state == TR_IDLE && itr->second.startTime - itr->second.startMargin >= startTime ){
@@ -317,10 +318,10 @@ vector<CTunerBankCtrl::CHECK_RESULT> CTunerBankCtrl::Check(vector<DWORD>* starte
 			}
 		}
 	}
-	__int64 now = GetNowI64Time() + this->delayTime;
+	LONGLONG now = GetNowI64Time() + this->delayTime;
 
 	//終了時間を過ぎた予約を回収し、TR_IDLE->TR_READY以外の遷移をする
-	vector<pair<__int64, DWORD>> idleList;
+	vector<pair<LONGLONG, DWORD>> idleList;
 	bool ngResetLock = false;
 	for( auto itrRes = this->reserveMap.begin(); itrRes != this->reserveMap.end(); ){
 		TUNER_RESERVE_WORK& r = itrRes->second;
@@ -347,7 +348,7 @@ vector<CTunerBankCtrl::CHECK_RESULT> CTunerBankCtrl::Check(vector<DWORD>* starte
 				ret.type = CHECK_ERR_PASS;
 			}
 			//パイプコマンドにはチャンネル変更の完了を調べる仕組みがないので、妥当な時間だけ待つ
-			else if( GetTickCount() - this->tunerChChgTick > 5000 && r.startTime - r.startMargin < now ){
+			else if( GetU32Tick() - this->tunerChChgTick > 5000 && r.startTime - r.startMargin < now ){
 				//録画開始～
 				if( RecStart(r, now) ){
 					//途中から開始されたか
@@ -494,7 +495,7 @@ vector<CTunerBankCtrl::CHECK_RESULT> CTunerBankCtrl::Check(vector<DWORD>* starte
 	std::sort(idleList.begin(), idleList.end());
 
 	//TR_IDLE->TR_READY(TR_REC)の遷移をする
-	for( vector<pair<__int64, DWORD>>::const_iterator itrIdle = idleList.begin(); itrIdle != idleList.end(); itrIdle++ ){
+	for( vector<pair<LONGLONG, DWORD>>::const_iterator itrIdle = idleList.begin(); itrIdle != idleList.end(); itrIdle++ ){
 		auto itrRes = this->reserveMap.find(itrIdle->second);
 		TUNER_RESERVE_WORK& r = itrRes->second;
 		CHECK_RESULT ret;
@@ -513,7 +514,7 @@ vector<CTunerBankCtrl::CHECK_RESULT> CTunerBankCtrl::Check(vector<DWORD>* starte
 				this->tunerTSID = r.tsid;
 				this->tunerChLocked = true;
 				this->tunerResetLock = false;
-				this->tunerChChgTick = GetTickCount();
+				this->tunerChChgTick = GetU32Tick();
 				this->notifyManager.AddNotifyMsg(NOTIFY_UPDATE_PRE_REC_START, this->bonFileName);
 				ctrlCmd.SetPipeSetting(CMD2_VIEW_CTRL_PIPE, this->tunerPid);
 				r.retryOpenCount = 0;
@@ -625,7 +626,7 @@ vector<CTunerBankCtrl::CHECK_RESULT> CTunerBankCtrl::Check(vector<DWORD>* starte
 					if( ctrlCmd.SendViewSetCh(chgCh) == CMD_SUCCESS ){
 						this->tunerChLocked = true;
 						this->tunerResetLock = false;
-						this->tunerChChgTick = GetTickCount();
+						this->tunerChChgTick = GetU32Tick();
 					}
 				}
 				if( this->tunerChLocked ){
@@ -710,7 +711,7 @@ bool CTunerBankCtrl::IsNeedOpenTuner() const
 		return true;
 	}
 	//戻り値の振動を防ぐためdelayTimeを考慮してはいけない
-	__int64 now = GetNowI64Time();
+	LONGLONG now = GetNowI64Time();
 	for( auto itr = this->reserveMap.cbegin(); itr != this->reserveMap.end(); itr++ ){
 		if( itr->second.state != TR_IDLE || (itr->second.startTime - itr->second.startMargin - this->recWakeTime) / I64_1SEC < now / I64_1SEC ){
 			return true;
@@ -833,7 +834,7 @@ void CTunerBankCtrl::SaveProgramInfo(LPCWSTR recPath, const EPGDB_EVENT_INFO& in
 	}
 }
 
-bool CTunerBankCtrl::RecStart(const TUNER_RESERVE_WORK& reserve, __int64 now) const
+bool CTunerBankCtrl::RecStart(const TUNER_RESERVE_WORK& reserve, LONGLONG now) const
 {
 	if( this->tunerPid == 0 ){
 		return false;
@@ -935,9 +936,9 @@ CTunerBankCtrl::TR_STATE CTunerBankCtrl::GetState() const
 	return state;
 }
 
-__int64 CTunerBankCtrl::GetNearestReserveTime() const
+LONGLONG CTunerBankCtrl::GetNearestReserveTime() const
 {
-	__int64 minTime = LLONG_MAX;
+	LONGLONG minTime = LLONG_MAX;
 	for( auto itr = this->reserveMap.cbegin(); itr != this->reserveMap.end(); itr++ ){
 		minTime = min(itr->second.startTime - itr->second.startMargin, minTime);
 	}
@@ -1000,7 +1001,7 @@ int CTunerBankCtrl::GetEventPF(WORD sid, bool pfNextFlag, EPGDB_EVENT_INFO* resV
 {
 	//チャンネル変更を要求してから最初のEIT[p/f]が届く妥当な時間だけ待つ
 	//TODO: 視聴予約中(=GUIキープされていないとき)にチャンネル変更されると最新の情報でなくなる可能性がある。現仕様では解決策なし
-	if( this->tunerPid && this->specialState == TR_IDLE && (this->tunerChLocked == false || GetTickCount() - this->tunerChChgTick > 8000) ){
+	if( this->tunerPid && this->specialState == TR_IDLE && (this->tunerChLocked == false || GetU32Tick() - this->tunerChChgTick > 8000) ){
 		CWatchBlock watchBlock(&this->watchContext);
 		CSendCtrlCmd ctrlCmd;
 		ctrlCmd.SetPipeSetting(CMD2_VIEW_CTRL_PIPE, this->tunerPid);
@@ -1016,7 +1017,7 @@ int CTunerBankCtrl::GetEventPF(WORD sid, bool pfNextFlag, EPGDB_EVENT_INFO* resV
 				Replace(resVal->shortInfo.event_name, L"\r\n", L"");
 			}
 			return 0;
-		}else if( ret == CMD_ERR && (this->tunerChLocked == false || GetTickCount() - this->tunerChChgTick > 15000) ){
+		}else if( ret == CMD_ERR && (this->tunerChLocked == false || GetU32Tick() - this->tunerChChgTick > 15000) ){
 			return 1;
 		}
 		//最初のTOTが届くまでは、あるのに消える可能性がある
@@ -1024,7 +1025,7 @@ int CTunerBankCtrl::GetEventPF(WORD sid, bool pfNextFlag, EPGDB_EVENT_INFO* resV
 	return 2;
 }
 
-__int64 CTunerBankCtrl::DelayTime() const
+LONGLONG CTunerBankCtrl::DelayTime() const
 {
 	return this->specialState == TR_EPGCAP ? this->epgCapDelayTime : this->delayTime;
 }
@@ -1088,19 +1089,34 @@ bool CTunerBankCtrl::OpenTuner(bool minWake, bool noView, bool nwUdp, bool nwTcp
 		strExecute = GetModulePath().replace_filename(L"EpgDataCap_Bon.exe").native();
 	}
 
-	wstring strParam = L" " + GetPrivateProfileToString(L"APP_CMD_OPT", L"Bon", L"-d", strIni.c_str()) + L" " + this->bonFileName;
+	//セクション単位で処理するほうが軽い
+	vector<WCHAR> buffOpt = GetPrivateProfileSectionBuffer(L"APP_CMD_OPT", strIni.c_str());
+
+	wstring strParam = L" " + GetBufferedProfileToString(buffOpt.data(), L"Bon", L"-d") + L" " + this->bonFileName;
 
 	if( minWake ){
-		strParam += L" " + GetPrivateProfileToString(L"APP_CMD_OPT", L"Min", L"-min", strIni.c_str());
+		strParam += L" " + GetBufferedProfileToString(buffOpt.data(), L"Min", L"-min");
 	}
 	if( noView ){
-		strParam += L" " + GetPrivateProfileToString(L"APP_CMD_OPT", L"ViewOff", L"-noview", strIni.c_str());
+		strParam += L" " + GetBufferedProfileToString(buffOpt.data(), L"ViewOff", L"-noview");
 	}
 	if( nwUdp == false && nwTcp == false ){
-		strParam += L" " + GetPrivateProfileToString(L"APP_CMD_OPT", L"NetworkOff", L"-nonw", strIni.c_str());
+		strParam += L" " + GetBufferedProfileToString(buffOpt.data(), L"NetworkOff", L"-nonw");
 	}else{
 		strParam += nwUdp ? L" -nwudp" : L"";
 		strParam += nwTcp ? L" -nwtcp" : L"";
+	}
+
+	if( initCh && initCh->useSID ){
+		//チャンネルの初期値を指定しておく(あくまで補助的なもの)
+		wstring optONID = GetBufferedProfileToString(buffOpt.data(), L"ONID", L"-nid");
+		wstring optTSID = GetBufferedProfileToString(buffOpt.data(), L"TSID", L"-tsid");
+		wstring optSID = GetBufferedProfileToString(buffOpt.data(), L"SID", L"-sid");
+		if( optONID.empty() == false && optTSID.empty() == false && optSID.empty() == false ){
+			wstring ch;
+			Format(ch, L" %ls %d %ls %d %ls %d", optONID.c_str(), initCh->ONID, optTSID.c_str(), initCh->TSID, optSID.c_str(), initCh->SID);
+			strParam += ch;
+		}
 	}
 
 	//原作と異なりイベントオブジェクト"Global\\EpgTimerSrv_OpenTuner_Event"による排他制御はしない
@@ -1174,11 +1190,11 @@ bool CTunerBankCtrl::OpenTuner(bool minWake, bool noView, bool nwUdp, bool nwTcp
 		ctrlCmd.SetPipeSetting(CMD2_VIEW_CTRL_PIPE, this->tunerPid);
 		ctrlCmd.SetConnectTimeOut(0);
 		//起動完了まで最大30秒ほど待つ
-		for( DWORD tick = GetTickCount(); GetTickCount() - tick < 30000; ){
+		for( DWORD tick = GetU32Tick(); GetU32Tick() - tick < 30000; ){
 #ifdef _WIN32
 			if( WaitForSingleObject(this->hTunerProcess, 10) != WAIT_TIMEOUT ){
 #else
-			Sleep(10);
+			SleepForMsec(10);
 			if( waitpid(this->tunerPid, NULL, WNOHANG) != 0 ){
 #endif
 				CloseTuner();
@@ -1231,7 +1247,7 @@ void CTunerBankCtrl::CloseTuner()
 #else
 			int timeout = 30000;
 			for( ; timeout > 0 && waitpid(this->tunerPid, NULL, WNOHANG) == 0; timeout -= 10 ){
-				Sleep(10);
+				SleepForMsec(10);
 			}
 			if( timeout <= 0 ){
 				//ぶち殺す
@@ -1379,7 +1395,7 @@ void CTunerBankCtrl::Watch()
 	//チューナがフリーズするような非常事態ではCSendCtrlCmdのタイムアウトは当てにならない
 	//CWatchBlockで囲われた区間を40秒のタイムアウトで監視して、必要なら強制終了する
 	lock_recursive_mutex lock(this->watchContext.lock);
-	if( this->watchContext.count != 0 && GetTickCount() - this->watchContext.tick > 40000 ){
+	if( this->watchContext.count != 0 && GetU32Tick() - this->watchContext.tick > 40000 ){
 		if( this->tunerPid ){
 #ifdef _WIN32
 			//少なくともhTunerProcessはまだCloseHandle()されていない
@@ -1397,7 +1413,7 @@ CTunerBankCtrl::CWatchBlock::CWatchBlock(WATCH_CONTEXT* context_)
 {
 	lock_recursive_mutex lock(this->context->lock);
 	if( ++this->context->count == 1 ){
-		this->context->tick = GetTickCount();
+		this->context->tick = GetU32Tick();
 	}
 }
 
