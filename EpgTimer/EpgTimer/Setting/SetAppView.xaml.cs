@@ -224,7 +224,10 @@ namespace EpgTimer.Setting
             checkBox_ng_shareFile.IsChecked = IniFileHandler.GetPrivateProfileBool("NO_SUSPEND", "NoShareFile", false, SettingPath.TimerSrvIniPath);
 
             checkBox_appMin.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecMinWake", true, SettingPath.TimerSrvIniPath);
-            checkBox_appView.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecView", true, SettingPath.TimerSrvIniPath);
+            int recView= IniFileHandler.GetPrivateProfileInt("SET", "RecView", 1, SettingPath.TimerSrvIniPath);
+            checkBox_appOpenViewing.IsChecked = (recView & 1) != 0;
+            checkBox_appOpenRec.IsChecked = (recView & 2) != 0;
+            checkBox_appOpenAlways.IsChecked = (recView & 4) != 0;
             checkBox_appDrop.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "DropLog", true, SettingPath.TimerSrvIniPath);
             checkBox_addPgInfo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "PgInfoLog", true, SettingPath.TimerSrvIniPath);
             checkBox_PgInfoLogAsUtf8.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "PgInfoLogAsUtf8", false, SettingPath.TimerSrvIniPath);
@@ -328,7 +331,10 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "NoShareFile", checkBox_ng_shareFile.IsChecked, SettingPath.TimerSrvIniPath);
 
             IniFileHandler.WritePrivateProfileString("SET", "RecMinWake", checkBox_appMin.IsChecked, SettingPath.TimerSrvIniPath);
-            IniFileHandler.WritePrivateProfileString("SET", "RecView", checkBox_appView.IsChecked, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "RecView"
+                , Convert.ToInt32(checkBox_appOpenViewing.IsChecked)
+                + Convert.ToInt32(checkBox_appOpenRec.IsChecked) * 2
+                + Convert.ToInt32(checkBox_appOpenAlways.IsChecked) * 4, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "DropLog", checkBox_appDrop.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "PgInfoLog", checkBox_addPgInfo.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "PgInfoLogAsUtf8", checkBox_PgInfoLogAsUtf8.IsChecked, SettingPath.TimerSrvIniPath);
