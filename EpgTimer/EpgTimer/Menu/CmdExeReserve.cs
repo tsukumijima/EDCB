@@ -225,7 +225,7 @@ namespace EpgTimer
             else if (eventRefData != null)
             {
                 resData = ((EpgEventInfo)eventRefData).ToReserveData();
-                resData.RecSetting = GetRecSetting() ?? Settings.Instance.RecPresetList[0].Data.DeepClone();
+                resData.RecSetting = (GetRecSetting() ?? Settings.Instance.RecPresetList[0].Data).DeepClone();
             }
             else if (recinfoList.Count != 0)
             {

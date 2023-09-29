@@ -25,6 +25,7 @@ CEpgDataCap_BonDlg::CEpgDataCap_BonDlg()
 	: m_hWnd(NULL)
 	, m_hKeyboardHook(NULL)
 	, m_hDlgBgBrush(NULL)
+	, m_hViewProcess(NULL)
 {
 	m_hIcon = LoadLargeOrSmallIcon(IDI_ICON_BLUE, false);
 	m_hIcon2 = LoadLargeOrSmallIcon(IDI_ICON_BLUE, true);
@@ -36,6 +37,9 @@ CEpgDataCap_BonDlg::CEpgDataCap_BonDlg()
 	iniMin = FALSE;
 	this->iniUDP = FALSE;
 	this->iniTCP = FALSE;
+	this->iniONID = -1;
+	this->iniTSID = -1;
+	this->iniSID = -1;
 	this->outCtrlID = -1;
 	this->cmdCapture = NULL;
 	this->resCapture = NULL;
@@ -52,6 +56,9 @@ CEpgDataCap_BonDlg::CEpgDataCap_BonDlg()
 
 CEpgDataCap_BonDlg::~CEpgDataCap_BonDlg()
 {
+	if( m_hViewProcess ){
+		CloseHandle(m_hViewProcess);
+	}
 	if( m_hIcon2 ){
 		DestroyIcon(m_hIcon2);
 	}
@@ -74,9 +81,8 @@ HICON CEpgDataCap_BonDlg::LoadLargeOrSmallIcon(int iconID, bool isLarge)
 	HMODULE hModule = GetModuleHandle(L"comctl32.dll");
 	if( hModule ){
 		HICON hIcon;
-		HRESULT (WINAPI* pfnLoadIconMetric)(HINSTANCE, PCWSTR, int, HICON*) =
-			(HRESULT (WINAPI*)(HINSTANCE, PCWSTR, int, HICON*))GetProcAddress(hModule, "LoadIconMetric");
-		if( pfnLoadIconMetric &&
+		HRESULT (WINAPI* pfnLoadIconMetric)(HINSTANCE, PCWSTR, int, HICON*);
+		if( UtilGetProcAddress(hModule, "LoadIconMetric", pfnLoadIconMetric) &&
 		    pfnLoadIconMetric(GetModuleHandle(NULL), MAKEINTRESOURCE(iconID), isLarge ? LIM_LARGE : LIM_SMALL, &hIcon) == S_OK ){
 			return hIcon;
 		}
@@ -109,6 +115,8 @@ void CEpgDataCap_BonDlg::ReloadSetting()
 	this->overWriteFlag       = GetBufferedProfileInt(buffSet.data(), L"OverWrite", 0) != 0;
 	this->viewPath            = GetBufferedProfileToString(buffSet.data(), L"ViewPath", L"");
 	this->viewOpt             = GetBufferedProfileToString(buffSet.data(), L"ViewOption", L"");
+	this->viewSingle          = GetBufferedProfileInt(buffSet.data(), L"ViewSingle", 1) != 0;
+	this->viewCloseOnExit     = GetBufferedProfileInt(buffSet.data(), L"ViewCloseOnExit", 0) != 0;
 	this->dropSaveThresh      = GetBufferedProfileInt(buffSet.data(), L"DropSaveThresh", 0);
 	this->scrambleSaveThresh  = GetBufferedProfileInt(buffSet.data(), L"ScrambleSaveThresh", -1);
 	this->dropLogAsUtf8       = GetBufferedProfileInt(buffSet.data(), L"DropLogAsUtf8", 0) != 0;
@@ -201,31 +209,42 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 
 	fs_path appIniPath = GetModuleIniPath();
 
-	int initONID = -1;
-	int initTSID = -1;
-	int initSID = -1;
 	int initOpenWait = 0;
 	int initChgWait = 0;
 	if( this->iniBonDriver.empty() == false &&
 	    GetPrivateProfileInt(this->iniBonDriver.c_str(), L"OpenFix", 0, appIniPath.c_str()) ){
 		AddDebugLog(L"強制サービス指定 設定値ロード");
-		initONID = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"FixONID", -1, appIniPath.c_str());
-		initTSID = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"FixTSID", -1, appIniPath.c_str());
-		initSID = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"FixSID", -1, appIniPath.c_str());
+		int fixONID = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"FixONID", -1, appIniPath.c_str());
+		int fixTSID = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"FixTSID", -1, appIniPath.c_str());
+		int fixSID = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"FixSID", -1, appIniPath.c_str());
+		//強制指定されていればオプションによる初期値を上書きする
+		if( fixONID >= 0 && fixTSID >= 0 && fixSID >= 0 ){
+			this->iniONID = fixONID;
+			this->iniTSID = fixTSID;
+			this->iniSID = fixSID;
+		}
 		initOpenWait = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"OpenWait", 0, appIniPath.c_str());
 		initChgWait = GetPrivateProfileInt(this->iniBonDriver.c_str(), L"ChgWait", 0, appIniPath.c_str());
-		AddDebugLogFormat(L"%d,%d,%d,%d,%d", initONID, initTSID, initSID, initOpenWait, initChgWait);
+		AddDebugLogFormat(L"%d,%d,%d,%d,%d", this->iniONID, this->iniTSID, this->iniSID, initOpenWait, initChgWait);
 	}else if( GetPrivateProfileInt(L"SET", L"OpenLast", 1, appIniPath.c_str()) ){
-		initONID = GetPrivateProfileInt(L"SET", L"LastONID", -1, appIniPath.c_str());
-		initTSID = GetPrivateProfileInt(L"SET", L"LastTSID", -1, appIniPath.c_str());
-		initSID = GetPrivateProfileInt(L"SET", L"LastSID", -1, appIniPath.c_str());
+		if( this->iniONID < 0 || this->iniTSID < 0 || this->iniSID < 0 ){
+			this->iniONID = GetPrivateProfileInt(L"SET", L"LastONID", -1, appIniPath.c_str());
+			this->iniTSID = GetPrivateProfileInt(L"SET", L"LastTSID", -1, appIniPath.c_str());
+			this->iniSID = GetPrivateProfileInt(L"SET", L"LastSID", -1, appIniPath.c_str());
+		}
 		if( this->iniBonDriver.empty() ){
 			this->iniBonDriver = GetPrivateProfileToString(L"SET", L"LastBon", L"", appIniPath.c_str());
 		}
 	}else if( GetPrivateProfileInt(L"SET", L"OpenFix", 0, appIniPath.c_str()) ){
-		initONID = GetPrivateProfileInt(L"SET", L"FixONID", -1, appIniPath.c_str());
-		initTSID = GetPrivateProfileInt(L"SET", L"FixTSID", -1, appIniPath.c_str());
-		initSID = GetPrivateProfileInt(L"SET", L"FixSID", -1, appIniPath.c_str());
+		int fixONID = GetPrivateProfileInt(L"SET", L"FixONID", -1, appIniPath.c_str());
+		int fixTSID = GetPrivateProfileInt(L"SET", L"FixTSID", -1, appIniPath.c_str());
+		int fixSID = GetPrivateProfileInt(L"SET", L"FixSID", -1, appIniPath.c_str());
+		//強制指定されていればオプションによる初期値を上書きする
+		if( fixONID >= 0 && fixTSID >= 0 && fixSID >= 0 ){
+			this->iniONID = fixONID;
+			this->iniTSID = fixTSID;
+			this->iniSID = fixSID;
+		}
 		if( this->iniBonDriver.empty() ){
 			this->iniBonDriver = GetPrivateProfileToString(L"SET", L"FixBon", L"", appIniPath.c_str());
 		}
@@ -256,7 +275,7 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 			if( initOpenWait > 0 ){
 				SleepForMsec(initOpenWait);
 			}
-			serviceIndex = ReloadServiceList(initONID, initTSID, initSID);
+			serviceIndex = ReloadServiceList(this->iniONID, this->iniTSID, this->iniSID);
 		}
 	}else{
 		if( bonIndex >= 0 ){
@@ -273,7 +292,7 @@ BOOL CEpgDataCap_BonDlg::OnInitDialog()
 	if( serviceIndex >= 0 ){
 		//チャンネル変更
 		if( SelectService(this->serviceList[serviceIndex]) ){
-			if( initONID >= 0 && initTSID >= 0 && initSID >= 0 && initChgWait > 0 ){
+			if( this->iniONID >= 0 && this->iniTSID >= 0 && this->iniSID >= 0 && initChgWait > 0 ){
 				SleepForMsec(initChgWait);
 			}
 		}
@@ -344,6 +363,23 @@ void CEpgDataCap_BonDlg::OnSysCommand(UINT nID, LPARAM lParam, BOOL* pbProcessed
 }
 
 
+BOOL CALLBACK CEpgDataCap_BonDlg::CloseViewWindowsProc(HWND hwnd, LPARAM lParam)
+{
+	pair<int, DWORD>& modeAndProcessID = *(pair<int, DWORD>*)lParam;
+	DWORD processID;
+	if( GetWindowThreadProcessId(hwnd, &processID) && processID == modeAndProcessID.second ){
+		//オーナーのいるウィンドウと、モードにより不可視のウィンドウを除く
+		if( GetWindow(hwnd, GW_OWNER) == NULL && (modeAndProcessID.first >= 2 || IsWindowVisible(hwnd)) ){
+			AddDebugLogFormat(L"Post WM_CLOSE to%ls view window:0x%08llx", IsWindowVisible(hwnd) ? L"" : L" hidden", (LONGLONG)hwnd);
+			PostMessage(hwnd, WM_CLOSE, 0, 0);
+			//ウィンドウが見つかったことを示す
+			modeAndProcessID.first |= 1;
+		}
+	}
+	return TRUE;
+}
+
+
 void CEpgDataCap_BonDlg::OnDestroy()
 {
 	this->pipeServer.StopServer();
@@ -355,6 +391,20 @@ void CEpgDataCap_BonDlg::OnDestroy()
 	DeleteTaskBar(m_hWnd, TRAYICON_ID);
 	if( this->overlayTaskIcon ){
 		SetOverlayIcon(NULL);
+	}
+
+	if( m_hViewProcess && this->viewSingle && this->viewCloseOnExit &&
+	    WaitForSingleObject(m_hViewProcess, 0) == WAIT_TIMEOUT ){
+		//プロセスのトップレベルウィンドウすべてにWM_CLOSEを投げる
+		pair<int, DWORD> modeAndProcessID(0, GetProcessId(m_hViewProcess));
+		if( modeAndProcessID.second != 0 ){
+			EnumWindows(CloseViewWindowsProc, (LPARAM)&modeAndProcessID);
+			//ウィンドウが見つからなかったときは不可視のものを含める
+			if( modeAndProcessID.first == 0 ){
+				modeAndProcessID.first = 2;
+				EnumWindows(CloseViewWindowsProc, (LPARAM)&modeAndProcessID);
+			}
+		}
 	}
 
 	WINDOWPLACEMENT Pos;
@@ -678,8 +728,40 @@ LRESULT CEpgDataCap_BonDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lPara
 		CtrlCmdCallbackInvoked();
 		break;
 	case WM_VIEW_APP_OPEN:
-		if( this->viewPath.empty() == false ){
-			ShellExecute(NULL, NULL, this->viewPath.c_str(), this->viewOpt.c_str(), NULL, SW_SHOWNORMAL);
+		//前回起動プロセスの生存を確認する
+		if( m_hViewProcess && (this->viewSingle == FALSE || WaitForSingleObject(m_hViewProcess, 0) != WAIT_TIMEOUT) ){
+			CloseHandle(m_hViewProcess);
+			m_hViewProcess = NULL;
+		}
+		if( m_hViewProcess == NULL && this->viewPath.empty() == false ){
+			auto itrUdp = std::find_if(this->udpSendList.begin(), this->udpSendList.end(),
+				[](const NW_SEND_INFO& info) { return info.port < 0x10000; });
+			auto itrTcp = std::find_if(this->tcpSendList.begin(), this->tcpSendList.end(),
+				[](const NW_SEND_INFO& info) { return info.ipString != BON_NW_SRV_PIPE_IP && info.ipString != BON_NW_PIPE_IP && info.port < 0x10000; });
+			auto itrPipe = std::find_if(this->tcpSendList.begin(), this->tcpSendList.end(),
+				[](const NW_SEND_INFO& info) { return info.ipString == BON_NW_PIPE_IP && info.port < 0x10000; });
+			//実際に送信しているポート番号でマクロを置き換える
+			wstring opt = this->viewOpt;
+			WCHAR szPort[16];
+			swprintf_s(szPort, L"%d", itrUdp == this->udpSendList.end() ? BON_UDP_PORT_BEGIN : itrUdp->port);
+			Replace(opt, L"$UDPPort$", szPort);
+			swprintf_s(szPort, L"%d", itrTcp == this->tcpSendList.end() ? BON_TCP_PORT_BEGIN : itrTcp->port);
+			Replace(opt, L"$TCPPort$", szPort);
+			//歴史的な経緯でBonDriver_UDPをエミュレートしているため
+			swprintf_s(szPort, L"%d", (itrPipe == this->tcpSendList.end() ? 0 : itrPipe->port) + BON_UDP_PORT_BEGIN);
+			Replace(opt, L"$PipePort$", szPort);
+			swprintf_s(szPort, L"%d", itrPipe == this->tcpSendList.end() ? 0 : itrPipe->port);
+			Replace(opt, L"$PipeNumber$", szPort);
+
+			SHELLEXECUTEINFO sei = {};
+			sei.cbSize = sizeof(sei);
+			sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_NO_UI;
+			sei.lpFile = this->viewPath.c_str();
+			sei.lpParameters = opt.c_str();
+			sei.nShow = SW_SHOWNORMAL;
+			if( ShellExecuteEx(&sei) ){
+				m_hViewProcess = sei.hProcess;
+			}
 		}
 		break;
 	case WM_TRAY_PUSHICON:
