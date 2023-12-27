@@ -198,14 +198,21 @@
                         <CheckBox Content="最小化で起動する" Name="checkBox_appMin" />
                         <CheckBox Content="UDP、TCP送信を行う" Name="checkBox_appNW" Grid.Column="2" />
                         <CheckBox Content="ドロップログを出力する" Name="checkBox_appDrop" Grid.Column="4" />
-                        <CheckBox Content="視聴時はViewを起動する" Name="checkBox_appView" Grid.Row="2" />
+                        <CheckBox Content="同一ファイル名が存在した場合に上書きする" Name="checkBox_appOverWrite" Grid.Row="2" />
                         <CheckBox Content="録画ファイルの容量確保を行う" Name="checkBox_appKeepDisk" Grid.Row="2" Grid.Column="2" />
                         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="4" >
                             <CheckBox Content="番組情報を出力する　(" Name="checkBox_addPgInfo" />
                             <CheckBox Content="UTF-8で出力　)" Name="checkBox_PgInfoLogAsUtf8" Margin="12,0,0,0" IsEnabled="{Binding Path=IsChecked, ElementName=checkBox_addPgInfo}" />
                         </StackPanel>
                     </Grid>
-                    <CheckBox Margin="16,0,0,4" Content="同一ファイル名が存在した場合に上書きする" Name="checkBox_appOverWrite" />
+                    <StackPanel Orientation="Horizontal" Margin="16,-4,0,4" >
+                        <Label Content="Viewを起動する" />
+                        <StackPanel Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=checkBox_appOpenAlways, Converter={StaticResource invert}}">
+                            <CheckBox Margin="12,0,0,0" Content="視聴時" Name="checkBox_appOpenViewing" />
+                            <CheckBox Margin="12,0,0,0" Content="録画時" Name="checkBox_appOpenRec" />
+                        </StackPanel>
+                        <CheckBox Margin="12,0,0,0" Content="EPG取得を除く起動時" Name="checkBox_appOpenAlways" />
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="16,-4,0,4" >
                         <CheckBox Content="録画用アプリ起動時に録画先フォルダへのアクセスを発生させる[試験的]" IsChecked="{Binding WakeUpHdd}" ToolTip="EpgTimerが実行中であれば、録画するHDDのスリープ解除を試みます。&#10;EpgTimerは予約録画開始準備の通知を受け、録画フォルダに一時ファイルを作成・削除します。&#10;同じフォルダに録画中または情報保持期間内にアクセスの記録があれば何もしませんが、&#10;判定は録画先フォルダのみで行い、ドライブの確認を行いません。"/>
                         <StackPanel Orientation="Horizontal" ToolTip="録画用アプリの起動時間×2＋1分より大きい値を設定してください。&#10;それ以下に設定すると、情報の保持効果が不十分または失われます。">

@@ -116,16 +116,8 @@ namespace EpgTimer
                 DataListView = new AutoAddWinListView(listView_result);
                 this.grid_main.Children.Add(DataListView);
 
-                //その他のショートカット(検索ダイアログ固有の設定)。コマンドだとコンボボックスアイテムの処理と協調しにくいので‥。
-                //searchKeyView.InputBindings.Add(new InputBinding(EpgCmds.Search, new KeyGesture(Key.Enter)));
-                searchKeyView.KeyUp += (sender, e) =>
-                {
-                    if (e.Handled == false && Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && e.IsRepeat == false)
-                    {
-                        e.Handled = true;
-                        button_search_Click(null, null);
-                    };
-                };
+                //その他のショートカット(検索ダイアログ固有の設定)。
+                searchKeyView.InputBindings.Add(new InputBinding(EpgCmds.Search, new KeyGesture(Key.Enter)));
                 listView_result.PreviewKeyDown += (sender, e) => ViewUtil.OnKeyMoveNextReserve(sender, e, DataListView);
 
                 //録画設定タブ関係の設定

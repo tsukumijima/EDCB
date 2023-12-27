@@ -60,7 +60,10 @@
                         </DockPanel>
                     </StackPanel>
                 </Grid>
-                <TextBlock Margin="12,12,0,0" Name="textBlock_versionText" Text="バージョン情報 : "/>
+                <StackPanel Name="stackpanel_versionInfo" Orientation="Horizontal" Margin="12,12,0,0" >
+                    <Label Content="バージョン情報 :"/>
+                    <TextBox Name="textBlock_versionText" Text="{}" BorderThickness="0" IsReadOnly="True" />
+                </StackPanel>
             </StackPanel>
         </TabItem>
         <TabItem Header="EPG取得" Name="tabItem3">
