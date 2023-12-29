@@ -149,19 +149,19 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 
 	BOOL emptyFlag = TRUE;
 	for( size_t i=0; i<sys->fileList.size(); i++ ){
-		if( sys->fileList[i]->writeUtil.Initialize(GetModulePath().replace_filename(L"Write").append(sys->fileList[i]->writePlugIn).c_str()) == FALSE ){
+		if( sys->fileList[i]->writeUtil.Initialize(GetModulePath().replace_filename(L"Write").append(sys->fileList[i]->writePlugIn).native()) == FALSE ){
 			AddDebugLog(L"CWriteTSFile::StartSave Err 3");
 			sys->fileList[i].reset();
 		}else{
 			fs_path recFolder = sys->fileList[i]->recFolder;
 			//空き容量をあらかじめチェック
-			__int64 freeBytes = UtilGetStorageFreeBytes(recFolder);
-			bool isMainUnknownOrFree = (freeBytes < 0 || freeBytes > (__int64)sys->createSize + FREE_FOLDER_MIN_BYTES);
+			LONGLONG freeBytes = UtilGetStorageFreeBytes(recFolder);
+			bool isMainUnknownOrFree = (freeBytes < 0 || freeBytes > (LONGLONG)sys->createSize + FREE_FOLDER_MIN_BYTES);
 			if( isMainUnknownOrFree == false ){
 				//空きのあるサブフォルダを探してみる
 				vector<wstring>::iterator itrFree = std::find_if(sys->saveFolderSub.begin(), sys->saveFolderSub.end(),
 					[&](const wstring& a) { return UtilComparePath(a.c_str(), recFolder.c_str()) &&
-					                               UtilGetStorageFreeBytes(a) > (__int64)sys->createSize + FREE_FOLDER_MIN_BYTES; });
+					                               UtilGetStorageFreeBytes(a) > (LONGLONG)sys->createSize + FREE_FOLDER_MIN_BYTES; });
 				if( itrFree != sys->saveFolderSub.end() ){
 					sys->subRecFlag = TRUE;
 					recFolder = *itrFree;
@@ -176,7 +176,7 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 				if( isMainUnknownOrFree ){
 					vector<wstring>::iterator itrFree = std::find_if(sys->saveFolderSub.begin(), sys->saveFolderSub.end(),
 						[&](const wstring& a) { return UtilComparePath(a.c_str(), recFolder.c_str()) &&
-						                               UtilGetStorageFreeBytes(a) > (__int64)sys->createSize + FREE_FOLDER_MIN_BYTES; });
+						                               UtilGetStorageFreeBytes(a) > (LONGLONG)sys->createSize + FREE_FOLDER_MIN_BYTES; });
 					if( itrFree != sys->saveFolderSub.end() ){
 						sys->subRecFlag = TRUE;
 						startRes = sys->fileList[i]->writeUtil.Start(fs_path(*itrFree).append(sys->fileList[i]->recFileName).c_str(),
@@ -210,7 +210,7 @@ void CWriteTSFile::OutThread(CWriteTSFile* sys)
 	}
 	sys->outStopEvent.Set();
 	//中間状態(2)でなくなるまで待つ
-	for( ; sys->outStopState == 2; Sleep(100) );
+	for( ; sys->outStopState == 2; SleepForMsec(100) );
 	std::list<vector<BYTE>> data;
 
 	while( sys->outStopState == 0 ){
@@ -320,7 +320,7 @@ wstring CWriteTSFile::GetSaveFilePath()
 //引数：
 // writeSize			[OUT]保存ファイル名
 void CWriteTSFile::GetRecWriteSize(
-	__int64* writeSize
+	LONGLONG* writeSize
 	)
 {
 	if( writeSize != NULL ){

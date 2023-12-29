@@ -15,8 +15,6 @@ class CEpgTimerSrvMain
 {
 public:
 	CEpgTimerSrvMain();
-	//メインループ処理(Taskモード)
-	static bool TaskMain();
 	//メインループ処理
 	//serviceFlag_: サービスとしての起動かどうか
 	bool Main(bool serviceFlag_);
@@ -25,8 +23,6 @@ public:
 	//休止／スタンバイに移行して構わない状況かどうか
 	bool IsSuspendOK() const;
 private:
-	//メインウィンドウ(Taskモード)
-	static LRESULT CALLBACK TaskMainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	//メインウィンドウ
 	static LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	//シャットダウン問い合わせダイアログ
@@ -37,14 +33,16 @@ private:
 	static void OpenGUI();
 	//「予約削除」ポップアップを作成する
 	static void InitReserveMenuPopup(HMENU hMenu, vector<RESERVE_DATA>& list);
+	//「配信停止」ポップアップを作成する
+	void InitStreamingMenuPopup(HMENU hMenu) const;
 	void ReloadNetworkSetting();
 	void ReloadSetting(bool initialize = false);
 	//デフォルト指定可能なフィールドのデフォルト値を特別な予約情報(ID=0x7FFFFFFF)として取得する
-	RESERVE_DATA GetDefaultReserveData(__int64 startTime) const;
+	RESERVE_DATA GetDefaultReserveData(LONGLONG startTime) const;
 	//REC_SETTING_DATA::recModeの値域を調整する
 	void AdjustRecModeRange(REC_SETTING_DATA& recSetting) const;
 	//現在の予約状態に応じた復帰タイマをセットする
-	bool SetResumeTimer(HANDLE* resumeTimer, __int64* resumeTime, DWORD marginSec);
+	bool SetResumeTimer(HANDLE* resumeTimer, LONGLONG* resumeTime, DWORD marginSec);
 	//システムをシャットダウンする
 	static void SetShutdown(BYTE shutdownMode);
 	//GUIにシャットダウン可能かどうかの問い合わせを開始させる
@@ -66,6 +64,7 @@ private:
 	bool CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStream& res, LPCWSTR clientIP);
 	void InitLuaCallback(lua_State* L, LPCSTR serverRandom);
 	void DoLuaBat(CBatManager::BAT_WORK_INFO& work, vector<char>& buff);
+	static void DoLuaWorker(CEpgTimerSrvMain* sys);
 	//Lua-edcb空間のコールバック
 	class CLuaWorkspace
 	{
@@ -143,9 +142,7 @@ private:
 	mutable recursive_mutex_ autoAddLock;
 	mutable recursive_mutex_ settingLock;
 	HWND hwndMain;
-#ifndef EPGTIMERSRV_WITHLUA
-	HMODULE hLuaDll;
-#endif
+	std::unique_ptr<void, void(*)(void*)> luaDllHolder;
 	atomic_bool_ stoppingFlag;
 
 	atomic_bool_ residentFlag;
@@ -160,6 +157,10 @@ private:
 	bool nwtvUdp;
 	bool nwtvTcp;
 	DWORD compatFlags;
+
+	thread_ doLuaWorkerThread;
+	recursive_mutex_ doLuaWorkerLock;
+	vector<string> doLuaScriptQueue;
 
 	//CPipeServer用に2つとCTCPServer用に1つ
 	vector<EPGDB_EVENT_INFO> oldSearchList[3];

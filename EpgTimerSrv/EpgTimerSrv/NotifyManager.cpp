@@ -122,7 +122,7 @@ bool CNotifyManager::WaitForIdle(DWORD timeoutMsec) const
 		}
 	}
 	for( DWORD t = 1; t <= timeoutMsec; t += 10 ){
-		Sleep(10);
+		SleepForMsec(10);
 		lock_recursive_mutex lock(this->managerLock);
 		if( count != this->activeOrIdleCount ){
 			//1回以上Idleになった
@@ -233,7 +233,7 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 		wstring path;
 
 		if( waitNotify ){
-			DWORD wait = GetTickCount() - waitNotifyTick;
+			DWORD wait = GetU32Tick() - waitNotifyTick;
 			sys->notifyEvent.WaitOne(wait < 5000 ? 5000 - wait : 0);
 		}else{
 			sys->notifyEvent.WaitOne();
@@ -247,7 +247,7 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 			lock_recursive_mutex lock(sys->managerLock);
 			registGUI = sys->GetRegistGUI();
 			registTCP = sys->GetRegistTCP();
-			if( waitNotify && GetTickCount() - waitNotifyTick < 5000 ){
+			if( waitNotify && GetU32Tick() - waitNotifyTick < 5000 ){
 				vector<NOTIFY_SRV_INFO>::const_iterator itrNotify = std::find_if(
 					sys->notifyList.begin(), sys->notifyList.end(), [](const NOTIFY_SRV_INFO& info) { return info.notifyID <= 100; });
 				if( itrNotify == sys->notifyList.end() ){
@@ -266,7 +266,7 @@ void CNotifyManager::SendNotifyThread(CNotifyManager* sys)
 				//NotifyID>100の通知は遅延させる
 				if( notifyInfo.notifyID > 100 ){
 					waitNotify = true;
-					waitNotifyTick = GetTickCount();
+					waitNotifyTick = GetU32Tick();
 				}
 			}
 			if( sys->notifyList.empty() == false ){
