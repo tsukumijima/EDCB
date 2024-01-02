@@ -59,7 +59,7 @@ function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
   end
 
   -- コマンドはEDCBのToolsフォルダにあるものを優先する
-  local tools=edcb.GetPrivateProfile('SET','ModulePath','','Common.ini')..'\\Tools'
+  local tools=EdcbModulePath()..'\\Tools'
   local tsreadex=(edcb.FindFile(tools..'\\tsreadex.exe',1) and tools..'\\' or '')..'tsreadex.exe'
   local asyncbuf=(edcb.FindFile(tools..'\\asyncbuf.exe',1) and tools..'\\' or '')..'asyncbuf.exe'
   local tsmemseg=(edcb.FindFile(tools..'\\tsmemseg.exe',1) and tools..'\\' or '')..'tsmemseg.exe'
@@ -135,7 +135,7 @@ end
 
 function OpenPsiDataArchiver(pipeName,targetSID)
   -- コマンドはEDCBのToolsフォルダにあるものを優先する
-  local tools=edcb.GetPrivateProfile('SET','ModulePath','','Common.ini')..'\\Tools'
+  local tools=EdcbModulePath()..'\\Tools'
   local tsreadex=(edcb.FindFile(tools..'\\tsreadex.exe',1) and tools..'\\' or '')..'tsreadex.exe'
   local psisiarc=(edcb.FindFile(tools..'\\psisiarc.exe',1) and tools..'\\' or '')..'psisiarc.exe'
   -- 3秒間隔で出力
@@ -249,6 +249,8 @@ if onid then
       if psidata or jikkyo then
         ok,pid=edcb.IsOpenNetworkTV(n)
       else
+        -- 前回のプロセスが残っていたら終わらせる
+        edcb.os.execute('wmic process where "name=\'tsreadex.exe\' and commandline like \'% -z edcb-legacy-nwtv-'..n..' %\'" call terminate >nul')
         openTime=os.time()
         edcb.WritePrivateProfile('NWTV','nwtv'..n..'open','@'..openTime,'Setting\\HttpPublic.ini')
         -- NetworkTVモードを開始
@@ -298,7 +300,7 @@ if onid then
           end
         else
           if pipeName then
-            f=OpenTranscoder(pipeName,'view',{n,'@'..openTime},sid)
+            f=OpenTranscoder(pipeName,'nwtv-'..n,{n,'@'..openTime},sid)
             fname='view.'..output[1]
           end
           if not f then
