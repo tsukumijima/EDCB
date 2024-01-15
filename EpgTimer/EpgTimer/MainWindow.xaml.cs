@@ -1048,7 +1048,7 @@ namespace EpgTimer
             ResetMainView();
             StatusManager.StatusNotifySet("設定変更に伴う画面再構築を実行");
 
-            epgView.UpdateSetting(setting.Mode == SettingWindow.SettingMode.EpgTabSetting);
+            epgView.UpdateSetting();
             reserveView.UpdateInfo();
             tunerReserveView.UpdateInfo();
             recInfoView.UpdateInfo();

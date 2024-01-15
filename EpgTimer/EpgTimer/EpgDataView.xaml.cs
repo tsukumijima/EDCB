@@ -99,6 +99,7 @@ namespace EpgTimer
             foreach (var tb in Tabs) tb.SetContent(true);
         }
 
+        int? oldDefViewMode = null;
         EpgViewState oldState = null;
         string oldID = null;
         /// <summary>設定の更新通知</summary>
@@ -112,11 +113,13 @@ namespace EpgTimer
                 var item = tabControl.SelectedItem as EpgTabItem;
                 if (item != null)
                 {
+                    oldID = item.Uid;
                     if (noRestoreState == false && item.view != null)
                     {
+                        var info = get_tabInfo(oldID);
+                        if (info != null) oldDefViewMode = info.ViewMode;
                         oldState = item.view.GetViewState();
                     }
-                    oldID = item.Uid;
                 }
 
                 //一度全部削除して作り直す。
@@ -128,9 +131,10 @@ namespace EpgTimer
             }
             catch (Exception ex) { CommonUtil.DispatcherMsgBoxShow(ex.ToString()); }
 
-            //UpdateInfo()はオプションによるガ非表示の時走らない。
+            //UpdateInfo()はオプションによるが非表示の時走らない。
             //データはここでクリアしてしまうので、現に表示されているもの以外は表示状態はリセットされる。
             //ただし、番組表(oldID)の選択そのものは保持する。
+            oldDefViewMode = null;
             oldState = null;
         }
 
@@ -145,10 +149,11 @@ namespace EpgTimer
                     CommonManager.CreateDefaultTabInfo() : Settings.Instance.CustomEpgTabList.ToList();
 
                 //以前表示していた番組表があればそれを表示する。
-                //標準・カスタム切り替えの際は、標準番組表が負のIDを与えられているので、このコードは走らない。
+                //標準・カスタム切り替えの際は、標準番組表のinfo.Uidが負の値なので表示状態はリセットされる。
                 foreach (CustomEpgTabInfo info in tabInfo.Where(info => info.IsVisible == true))
                 {
-                    tabControl.Items.Add(new EpgTabItem(info, this, oldID, info.Uid == oldID ? oldState : null));
+                    tabControl.Items.Add(new EpgTabItem(info, this, oldID,
+                        info.Uid == oldID && (info.ViewMode == oldDefViewMode || oldState != null && info.ViewMode == oldState.viewMode) ? oldState : null));
                 }
                 if (tabControl.SelectedIndex < 0) tabControl.SelectedIndex = 0;
             }
