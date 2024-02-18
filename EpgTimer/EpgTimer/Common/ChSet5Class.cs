@@ -14,22 +14,22 @@ namespace EpgTimer
 
         private static DispatcherTimer loadLogoTimer;
         private static List<EpgServiceInfo> chListOrderByIndex = null;
-        private static Dictionary<UInt64, EpgServiceInfo> chList = null;
-        public static Dictionary<UInt64, EpgServiceInfo> ChList
+        private static Dictionary<ulong, EpgServiceInfo> chList = null;
+        public static Dictionary<ulong, EpgServiceInfo> ChList
         {
             get
             {
                 if (chList == null) LoadFile();
-                return chList ?? new Dictionary<UInt64, EpgServiceInfo>();
+                return chList ?? new Dictionary<ulong, EpgServiceInfo>();
             }
         }
         public static void Clear() { chList = null; chListOrderByIndex = null; bsmin = null; ClearLogo(); }
 
-        public static EpgServiceInfo ChItem(UInt64 key, bool noNullReturn = false, bool TryIgnoreTSID = false)
+        public static EpgServiceInfo ChItem(ulong key, bool noNullReturn = false, bool TryIgnoreTSID = false)
         {
-            return ChItemMask(key, noNullReturn, (UInt64)(TryIgnoreTSID == false ? 0 : 0x0000FFFF0000UL));
+            return ChItemMask(key, noNullReturn, TryIgnoreTSID == false ? 0 : 0x0000FFFF0000UL);
         }
-        public static EpgServiceInfo ChItemMask(UInt64 key, bool noNullReturn, UInt64 orMask)
+        public static EpgServiceInfo ChItemMask(ulong key, bool noNullReturn, ulong orMask)
         {
             EpgServiceInfo item = null;
             if ((chListOrderByIndex != null || LoadFile() != false) &&
@@ -105,39 +105,39 @@ namespace EpgTimer
             return new EpgServiceInfo { Key = key }.ChNumber();
         }
 
-        public static bool IsVideo(UInt16 ServiceType)
+        public static bool IsVideo(ushort ServiceType)
         {
             return ServiceType == 0x01 || ServiceType == 0xA5 || ServiceType == 0xAD;
         }
-        public static bool IsDttv(UInt16 ONID)
+        public static bool IsDttv(ushort ONID)
         {
             return 0x7880 <= ONID && ONID <= 0x7FE8;
         }
-        public static bool IsBS(UInt16 ONID)
+        public static bool IsBS(ushort ONID)
         {
             return ONID == 0x0004;
         }
-        public static bool IsCS(UInt16 ONID)
+        public static bool IsCS(ushort ONID)
         {
             return IsCS1(ONID) || IsCS2(ONID);
         }
-        public static bool IsCS1(UInt16 ONID)
+        public static bool IsCS1(ushort ONID)
         {
             return ONID == 0x0006;
         }
-        public static bool IsCS2(UInt16 ONID)
+        public static bool IsCS2(ushort ONID)
         {
             return ONID == 0x0007;
         }
-        public static bool IsSP(UInt16 ONID)//iEPG用
+        public static bool IsSP(ushort ONID)//iEPG用
         {
             return IsSPHD(ONID) || ONID == 0x0001 || ONID == 0x0003;
         }
-        public static bool IsSPHD(UInt16 ONID)
+        public static bool IsSPHD(ushort ONID)
         {
             return ONID == 0x000A;
         }
-        public static bool IsOther(UInt16 ONID)
+        public static bool IsOther(ushort ONID)
         {
             return IsDttv(ONID) == false && IsBS(ONID) == false && IsCS(ONID) == false && IsSPHD(ONID) == false;
         }
@@ -170,7 +170,7 @@ namespace EpgTimer
 
             try
             {
-                chList = new Dictionary<UInt64, EpgServiceInfo>();
+                chList = new Dictionary<ulong, EpgServiceInfo>();
                 chListOrderByIndex = new List<EpgServiceInfo>();
                 using (var reader = new StreamReader(stream, enc))
                 {
@@ -194,6 +194,8 @@ namespace EpgTimer
                             item.PartialFlag = Convert.ToInt32(list[6]) != 0;
                             item.EpgCapFlag = Convert.ToInt32(list[7]) != 0;
                             item.SearchFlag = Convert.ToInt32(list[8]) != 0;
+                            //リモコンIDのフィールドは必ずしも存在しない
+                            item.remote_control_key_id = list.Length < 10 ? (byte)0 : Convert.ToByte(list[9]);
                         }
                         catch
                         {
@@ -224,7 +226,7 @@ namespace EpgTimer
                 {
                     foreach (EpgServiceInfo info in chListOrderByIndex)
                     {
-                        writer.WriteLine("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}",
+                        writer.WriteLine(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}",
                             info.service_name,
                             info.network_name,
                             info.ONID,
@@ -233,7 +235,8 @@ namespace EpgTimer
                             info.service_type,
                             info.PartialFlag == true ? 1 : 0,
                             info.EpgCapFlag == true ? 1 : 0,
-                            info.SearchFlag == true ? 1 : 0);
+                            info.SearchFlag == true ? 1 : 0)
+                            + (info.remote_control_key_id == 0 ? "" : "\t" + info.remote_control_key_id.ToString()));
                     }
                 }
             }
@@ -469,13 +472,13 @@ namespace EpgTimer
         public bool IsOther { get { return ChSet5.IsOther(ONID); } }
         public override string ToString() { return service_name; }
 
-        public UInt64 Key
+        public ulong Key
         {
             get { return HasSPKey ? SPKey : CommonManager.Create64Key(ONID, TSID, SID); }
-            set { if (IsSPKey(value)) SPKey = value; else { ONID = (UInt16)(value >> 32); TSID = (UInt16)(value >> 16); SID = (UInt16)value; } }
+            set { if (IsSPKey(value)) SPKey = value; else { ONID = (ushort)(value >> 32); TSID = (ushort)(value >> 16); SID = (ushort)value; } }
         }
 
-        public static EpgServiceInfo FromKey(UInt64 key)
+        public static EpgServiceInfo FromKey(ulong key)
         {
             if (IsSPKey(key)) return CreateSPInfo(key);
 
@@ -507,14 +510,14 @@ namespace EpgTimer
             ViewServiceCS3,
             ViewServiceOther,
         }
-        public static IEnumerable<UInt64> SPKeyList { get { return Enum.GetValues(typeof(EpgServiceInfo.SpecialViewServices)).Cast<ulong>(); } }
-        public UInt64 SPKey = 0;
-        public static bool IsSPKey(UInt64 key) { return key >= (UInt64)SpecialViewServices.ViewServiceDttv; }
+        public static IEnumerable<ulong> SPKeyList { get { return Enum.GetValues(typeof(EpgServiceInfo.SpecialViewServices)).Cast<ulong>(); } }
+        public ulong SPKey = 0;
+        public static bool IsSPKey(ulong key) { return key >= (ulong)SpecialViewServices.ViewServiceDttv; }
         public bool HasSPKey { get { return IsSPKey(SPKey); } }
 
-        public static EpgServiceInfo CreateSPInfo(UInt64 key)
+        public static EpgServiceInfo CreateSPInfo(ulong key)
         {
-            var networks = new UInt16[] { 0x7880, 0x0004, 0x0006, 0x000A, 0x0000 };
+            var networks = new ushort[] { 0x7880, 0x0004, 0x0006, 0x000A, 0x0000 };
             int idx = Math.Min((int)(key & 0xFFFFUL), networks.Length - 1);
             var ret = new EpgServiceInfo();
             ret.Key = key;
