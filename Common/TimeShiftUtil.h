@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "PathUtil.h"
 #include "SendTSTCPDllUtil.h"
 #include "ThreadUtil.h"
 
@@ -44,27 +45,24 @@ public:
 	//引数：
 	// filePos		[OUT]ファイル位置
 	// fileSize		[OUT]ファイルサイズ
-	void GetFilePos(__int64* filePos, __int64* fileSize);
+	void GetFilePos(LONGLONG* filePos, LONGLONG* fileSize);
 
 	//送信開始位置を変更する
 	//引数：
 	// filePos		[IN]ファイル位置
-	void SetFilePos(__int64 filePos);
+	void SetFilePos(LONGLONG filePos);
 
 protected:
 	recursive_mutex_ utilLock;
 	recursive_mutex_ ioLock;
+	util_unique_handle udpMutex;
+	util_unique_handle tcpMutex;
 	CSendTSTCPDllUtil sendUdp;
 	CSendTSTCPDllUtil sendTcp;
 	struct SEND_INFO {
 		wstring ip;
 		DWORD port;
 		wstring key;
-#ifdef _WIN32
-		HANDLE mutex;
-#else
-		FILE* mutex;
-#endif
 	} sendInfo[2];
 
 	wstring filePath;
@@ -72,7 +70,7 @@ protected:
 
 	BOOL fileMode;
 	int seekJitter;
-	__int64 currentFilePos;
+	LONGLONG currentFilePos;
 
 	thread_ readThread;
 	atomic_bool_ readStopFlag;
@@ -80,6 +78,6 @@ protected:
 	std::unique_ptr<FILE, decltype(&fclose)> seekFile;
 protected:
 	static void ReadThread(CTimeShiftUtil* sys);
-	__int64 GetAvailableFileSize() const;
+	LONGLONG GetAvailableFileSize() const;
 };
 

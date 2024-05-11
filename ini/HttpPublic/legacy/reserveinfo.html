@@ -121,18 +121,16 @@ if r then
     ..'&amp;vtag='..(vtag==0 and '-1">Video' or '0">DL')..'</a></dt><dd>\n')
   ref=recFilePath and NativeToDocumentPath(recFilePath)
   if ref then
-    for i,ext in ipairs({table.unpack(MEDIA_EXTENSION_LIST),''}) do
-      ff=edcb.FindFile and edcb.FindFile(recFilePath..ext,1)
+    xlist={table.unpack(MEDIA_EXTENSION_LIST)}
+    xlist[#xlist+1]=''
+    for i,ext in ipairs(xlist) do
+      ff=edcb.FindFile(recFilePath..ext,1)
       if ff then
-        ct:Append((vtag==i and '<div class="data-broadcasting-browser-container"><div class="data-broadcasting-browser-content"></div></div>'
-                     ..'<div class="video-full-container arib-video-invisible-container" id="vid-full">'
-                     ..'<div class="video-container arib-video-container" id="vid-cont">'
-                     ..'<video id="vid" autoplay controls src="' or '<a href="')
+        ct:Append((vtag==i and VideoWrapperBegin()
+                     ..'<video id="vid" autoplay playsinline controls src="' or '<a href="')
           ..(vtag~=0 and vtag~=i and 'reserveinfo.html?id='..r.reserveID..'&amp;vtag='..i or PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/'))
           ..'">/'..EdcbHtmlEscape(ref..ext)..(vtag==i and '<track id="vid-meta" kind="metadata" src="'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/'):gsub('%.[0-9A-Za-z]+$','')
-                                                ..'.vtt" type="text/vtt" default></video></div></div>\n'
-                                                ..'<div id="psidatasrc" style="display:none">'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/'):gsub('%.[0-9A-Za-z]+$','')
-                                                ..'.psc</div>\n'..VideoScriptTemplete() or '</a>'))
+                                                ..'.vtt" type="text/vtt" default></video>'..VideoWrapperEnd()..'\n'..VideoScriptTemplate() or '</a>'))
         if ext=='' then
           fsec,fsize=0,0
           f=edcb.io.open(recFilePath,'rb')
@@ -141,24 +139,25 @@ if r then
             f:close()
           end
           ct:Append(' ('..('%dm%02ds|'):format(math.floor(fsec/60),fsec%60)..math.floor(fsize/1048576)..'M)<br>\n'
-            ..'<form method="GET" action="'..(vtag==0 and 'xcode.lua' or 'reserveinfo.html')..'"><div>\n'
+            ..'<form id="vid-form" action="'..(vtag==0 and 'xcode.lua' or 'reserveinfo.html')..'"><div>\n'
             ..(vtag==0 and '<input type="hidden" name="fname" value="'..EdcbHtmlEscape(ref)..'">\n'
-                 or '<input type="hidden" name="id" value="'..r.reserveID..'">\n<input type="hidden" name="vtag" value="10">\n')
-            ..'<input type="submit" value="xcode">\n'
-            ..TranscodeSettingTemplete(xq,fsec)
+                 or '<input type="hidden" name="id" value="'..r.reserveID..'">\n<input type="hidden" name="vtag" value="10">\n'
+                   ..'<input type="hidden" name="'..(vtag==10 and 're' or '')..'load" value="'..(xq.loadKey or edcb.CreateRandom and edcb.CreateRandom(8) or os.time()%86400)..'">\n')
+            ..'<button type="submit">xcode</button>\n'
+            ..TranscodeSettingTemplate(xq,fsec)
             ..'</div></form>')
           if vtag==10 then
             src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
-            ct:Append('\n<div class="data-broadcasting-browser-container"><div class="data-broadcasting-browser-content"></div></div>'
-              ..'<div class="video-full-container arib-video-invisible-container" id="vid-full">'
-              ..'<div class="video-container arib-video-container" id="vid-cont">'
-              ..'<video id="vid" autoplay controls'..(ALLOW_HLS and '' or ' src="'..src..'"')..'>xcode</video></div></div>')
+            ct:Append('\n'..VideoWrapperBegin()
+              ..'<video id="vid" autoplay playsinline controls'..(ALLOW_HLS and '' or ' src="'..src..'"')..'>xcode</video>'..VideoWrapperEnd()..'\n'
+              ..'<div id="vidsrc" style="display:none">'..src..'</div>\n'..TranscodeScriptTemplate(false,xq.caption,xq.jikkyo,{ofssec=fsec*(xq.offset or 0)/100,fast=xq.fast}))
             if ALLOW_HLS then
-              ct:Append('\n<div id="vidsrc" style="display:none">'..src..'</div>\n'..HlsScriptTemplete(xq.caption))
+              ct:Append(HlsScriptTemplate('xcode.lua'))
             end
           end
         else
-          ct:Append(' ('..math.floor(ff[1].size/1048576)..'M)<br>\n')
+          ct:Append(' ('..math.floor(ff[1].size/1048576)..'M)'
+            ..(vtag==0 and '\n[<a href="mux_to_ts.lua?fname='..mg.url_encode(ref..ext)..'">Mux-to-TS</a>]' or '')..'<br>\n')
         end
       end
     end
@@ -179,7 +178,7 @@ if r then
     ..'">:<input type="text" size="2" name="end-i" value="'..math.floor(dur/60)%60
     ..'">:<input type="text" size="2" name="end-s" value="'..dur%60
     ..'"><br>\n'
-    ..'<input type="submit" value="変更"></div></form></dd>\n'
+    ..'<button type="submit">変更</button></div></form></dd>\n'
     ..'    <dt>プリセット</dt><dd>\n'
     ..'<form action="reserveinfo.html"><div>\n'
     ..'<input type="hidden" name="id" value="'..r.reserveID..'"><select name="presetID">\n')
@@ -196,18 +195,18 @@ if r then
     end
   end
   ct:Append('<option value="65535"'..(preset and '' or ' selected')..'>予約時\n'
-    ..'</select> <input type="submit" value="録画設定にロード"></div></form></dd>\n'
+    ..'</select> <button type="submit">録画設定にロード</button></div></form></dd>\n'
     ..'    <dt>録画設定</dt><dd>\n'
     ..'<form method="POST" action="reserveinfo.html?id='..r.reserveID
     ..'"><div><input type="hidden" name="presetID" value="'..(preset and presetID or 65535)..'">\n'
     ..'<input type="hidden" name="ctok" value="'..CsrfToken()..'">\n'
     ..'<input type="hidden" name="addchg" value="y">\n'
-    ..RecSettingTemplate(rs)..'<input type="submit" value="変更"></div></form></dd>\n'
+    ..RecSettingTemplate(rs)..'<button type="submit">変更</button></div></form></dd>\n'
     ..'    <dt>-</dt><dd>\n'
     ..'<form method="POST" action="reserveinfo.html?id='..r.reserveID..'"><div>\n'
     ..'<input type="hidden" name="ctok" value="'..CsrfToken()..'">\n'
     ..'<input type="hidden" name="del" value="y">\n'
-    ..'<input type="submit" value="削除"></div></form></dd>\n'
+    ..'<button type="submit">削除</button></div></form></dd>\n'
     ..'  </dl>\n')
 end
 r=r or rdel

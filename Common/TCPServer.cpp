@@ -1,9 +1,11 @@
 ﻿#include "stdafx.h"
 #include "TCPServer.h"
 #include "StringUtil.h"
+#include "TimeUtil.h"
 #include "CtrlCmdDef.h"
 #include "ErrDef.h"
 #ifndef _WIN32
+#include <errno.h>
 #include <netdb.h>
 #include <poll.h>
 #include <sys/ioctl.h>
@@ -293,6 +295,9 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 		}
 		int result = poll(&pfdList[0], pfdList.size(), waitList.empty() ? -1 : (int)NOTIFY_INTERVAL);
 		if( result < 0 ){
+			if( errno == EINTR ){
+				continue;
+			}
 			break;
 		}
 		for( size_t i = 0; i < waitList.size(); ){
@@ -306,6 +311,7 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 			}
 		}
 		if( result == 0 || (pfdList[0].revents & POLLIN) ){
+			pSys->m_notifyEvent.Reset();
 #endif
 			for( size_t i = 0; i < waitList.size(); i++ ){
 				if( waitList[i].closing ){
@@ -315,7 +321,7 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 				pSys->m_cmdProc(waitList[i].cmd, res, NULL);
 				if( res.GetParam() == CMD_NO_RES ){
 					//応答は保留された
-					if( GetTickCount() - waitList[i].tick <= pSys->m_dwResponseTimeout ){
+					if( GetU32Tick() - waitList[i].tick <= pSys->m_dwResponseTimeout ){
 						continue;
 					}
 				}else{
@@ -366,17 +372,17 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 				//ブロッキングモードに変更
 				SetBlockingMode(sock);
 				for(;;){
-					DWORD head[2];
+					BYTE head[8];
 					if( RecvAll(sock, (char*)head, sizeof(head), 0) != (int)sizeof(head) ){
 						break;
 					}
+					CCmdStream cmd(head[0] | head[1] << 8 | head[2] << 16 | (DWORD)head[3] << 24);
 					//第2,3バイトは0でなければならない
-					if( head[0] & 0xFFFF0000 ){
-						AddDebugLogFormat(L"Deny TCP cmd:0x%08x", head[0]);
+					if( cmd.GetParam() & 0xFFFF0000 ){
+						AddDebugLogFormat(L"Deny TCP cmd:0x%08x", cmd.GetParam());
 						break;
 					}
-					CCmdStream cmd(head[0]);
-					cmd.Resize(head[1]);
+					cmd.Resize(head[4] | head[5] << 8 | head[6] << 16 | (DWORD)head[7] << 24);
 					if( RecvAll(sock, (char*)cmd.GetData(), cmd.GetDataSize(), 0) != (int)cmd.GetDataSize() ){
 						break;
 					}
@@ -406,7 +412,7 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 								waitList.resize(waitList.size() + 1);
 								waitList.back().sock = sock;
 								std::swap(waitList.back().cmd, cmd);
-								waitList.back().tick = GetTickCount();
+								waitList.back().tick = GetU32Tick();
 								waitList.back().closing = false;
 #ifdef _WIN32
 								waitList.back().hEvent = hEvent;
@@ -488,9 +494,9 @@ void CTCPServer::ResponseThread(RESPONSE_THREAD_INFO* info)
 			info->sys->m_responseThreadProc(info->cmd, res, RESPONSE_THREAD_FIN, param);
 		}
 	}else if( res.GetParam() == CMD_SUCCESS ){
-		DWORD tick = GetTickCount();
+		DWORD tick = GetU32Tick();
 		while( res.GetParam() == CMD_SUCCESS && info->sys->m_stopFlag == false &&
-		       GetTickCount() - tick <= info->sys->m_dwResponseTimeout ){
+		       GetU32Tick() - tick <= info->sys->m_dwResponseTimeout ){
 			res.SetParam(CMD_ERR);
 			res.Resize(0);
 			info->sys->m_responseThreadProc(info->cmd, res, RESPONSE_THREAD_PROC, param);
@@ -498,7 +504,7 @@ void CTCPServer::ResponseThread(RESPONSE_THREAD_INFO* info)
 				if( send(info->sock, (const char*)res.GetData(), res.GetDataSize(), 0) != (int)res.GetDataSize() ){
 					break;
 				}
-				tick = GetTickCount();
+				tick = GetU32Tick();
 			}
 		}
 		info->sys->m_responseThreadProc(info->cmd, res, RESPONSE_THREAD_FIN, param);

@@ -31,14 +31,12 @@ public:
 	bool StartServer(const SERVER_OPTIONS& op, const std::function<void(lua_State*)>& initProc);
 	bool StopServer(bool checkOnly = false);
 	static SERVER_OPTIONS LoadServerOptions(LPCWSTR iniPath);
-	static string CreateRandom();
+	static string CreateRandom(size_t len);
 private:
-	static void InitLua(const mg_connection* conn, void* luaContext);
+	static void InitLua(const mg_connection* conn, void* luaContext, unsigned int contextFlags);
 	mg_context* mgContext;
 	std::function<void(lua_State*)> initLuaProc;
-#ifndef EPGTIMERSRV_WITHLUA
-	HMODULE hLuaDll;
-#endif
+	std::unique_ptr<void, void(*)(void*)> luaDllHolder;
 	bool initedLibrary;
 	CUpnpSsdpServer upnpSsdpServer;
 };
@@ -47,18 +45,18 @@ namespace LuaHelp
 {
 	void reg_string_(lua_State* L, const char* name, size_t size, const char* val);
 	void reg_int_(lua_State* L, const char* name, size_t size, int val);
-	void reg_int64_(lua_State* L, const char* name, size_t size, __int64 val);
+	void reg_int64_(lua_State* L, const char* name, size_t size, LONGLONG val);
 	void reg_boolean_(lua_State* L, const char* name, size_t size, bool val);
 	void reg_time_(lua_State* L, const char* name, size_t size, const SYSTEMTIME& st);
 	template<size_t size> inline void reg_string(lua_State* L, const char(&name)[size], const char* val) { reg_string_(L, name, size, val); }
 	template<size_t size> inline void reg_int(lua_State* L, const char(&name)[size], int val) { reg_int_(L, name, size, val); }
-	template<size_t size> inline void reg_int64(lua_State* L, const char(&name)[size], __int64 val) { reg_int64_(L, name, size, val); }
+	template<size_t size> inline void reg_int64(lua_State* L, const char(&name)[size], LONGLONG val) { reg_int64_(L, name, size, val); }
 	template<size_t size> inline void reg_boolean(lua_State* L, const char(&name)[size], bool val) { reg_boolean_(L, name, size, val); }
 	template<size_t size> inline void reg_time(lua_State* L, const char(&name)[size], const SYSTEMTIME& st) { reg_time_(L, name, size, st); }
 	bool isnil(lua_State* L, const char* name);
 	string get_string(lua_State* L, const char* name);
 	int get_int(lua_State* L, const char* name);
-	__int64 get_int64(lua_State* L, const char* name);
+	LONGLONG get_int64(lua_State* L, const char* name);
 	bool get_boolean(lua_State* L, const char* name);
 	SYSTEMTIME get_time(lua_State* L, const char* name);
 #ifdef _WIN32
@@ -68,5 +66,8 @@ namespace LuaHelp
 	int io_open(lua_State* L);
 	int io_popen(lua_State* L);
 	void f_createmeta(lua_State* L);
+#else
+	int io_cloexec(lua_State* L);
+	int io_flock_nb(lua_State* L);
 #endif
 }

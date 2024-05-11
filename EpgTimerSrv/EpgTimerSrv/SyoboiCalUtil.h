@@ -9,8 +9,8 @@ public:
 
 protected:
 	BOOL Base64Enc(LPCSTR src, DWORD srcSize, LPWSTR dest, DWORD* destSize);
-	__int64 GetTimeStamp(SYSTEMTIME startTime);
-	BOOL UrlEncodeUTF8(LPCWSTR src, DWORD srcSize, string& dest);
+	LONGLONG GetTimeStamp(SYSTEMTIME startTime);
+	BOOL UrlEncodeUTF8(LPCWSTR src, string& dest);
 };
 
 

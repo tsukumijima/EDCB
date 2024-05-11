@@ -18,9 +18,7 @@
 
 #define EPG_TIMER_SERVICE_EXE L"EpgTimerSrv.exe"
 
-#define EPG_TIMER_BON_MUTEX L"Global\\EpgTimer_Bon2"
-#define EPG_TIMER_BON_LITE_MUTEX L"Global\\EpgTimer_Bon2_Lite"
-#define EPG_TIMER_BON_SRV_MUTEX L"Global\\EpgTimer_Bon_Service"
+#define EPG_TIMER_BON_SRV_MUTEX L"EpgTimer_Bon_Service"
 #define SERVICE_NAME L"EpgTimer Service"
 
 #define RECMODE_ALL 0 //全サービス
@@ -70,5 +68,8 @@
 #define NOTIFY_UPDATE_PRE_EPGCAP_START	106	//EPG取得準備開始
 #define NOTIFY_UPDATE_EPGCAP_START	107		//EPG取得開始
 #define NOTIFY_UPDATE_EPGCAP_END	108		//EPG取得終了
+
+//WM_COPYDATAの型
+#define COPYDATA_TYPE_LUAPOST 0x45544C50 //Luaスクリプト実行をプロセスに要求する(完了を待たない)
 
 #endif

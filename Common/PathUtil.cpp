@@ -6,7 +6,9 @@
 #include <fcntl.h>
 #include <io.h>
 #else
+#include "ThreadUtil.h"
 #include <dirent.h>
+#include <dlfcn.h>
 #include <errno.h>
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -259,8 +261,11 @@ void path::first_element(const wstring& src, size_t& element_pos, size_t& elemen
 } // namespace filesystem_
 
 
-FILE* UtilOpenFile(const wstring& path, int flags)
+FILE* UtilOpenFile(const wstring& path, int flags, int* apiError)
 {
+	if( apiError ){
+		*apiError = 0;
+	}
 #ifdef _WIN32
 	LPCWSTR mode = (flags & 31) == UTIL_O_RDONLY ? L"rb" :
 	               (flags & 31) == UTIL_O_RDWR ? L"r+b" :
@@ -297,6 +302,8 @@ FILE* UtilOpenFile(const wstring& path, int flags)
 			}else{
 				CloseHandle(h);
 			}
+		}else if( apiError ){
+			*apiError = GetLastError();
 		}
 	}
 #else
@@ -318,14 +325,53 @@ FILE* UtilOpenFile(const wstring& path, int flags)
 			}
 			// flock()は勧告ロックに過ぎないので注意
 			// UTIL_SHARED_READは無ロック相当で、既にかかっている排他ロックを無視するので注意
-			if( ((flags & 32) && (flags & 64)) || flock(fileno(fp), ((flags & 32) ? LOCK_SH : LOCK_EX) | LOCK_NB) == 0 ){
+			// UTIL_SH_READは非書き込み時のみ共有ロックとする
+			if( ((flags & 32) && (flags & 64)) ||
+			    flock(fileno(fp), ((flags & 32) && (flags & 2) == 0 ? LOCK_SH : LOCK_EX) | LOCK_NB) == 0 ){
 				return fp;
+			}
+			if( apiError ){
+				*apiError = errno == EACCES ? EAGAIN : errno;
 			}
 			// (ほぼないが)ファイル生成後にロックに失敗した場合のロールバックはしない
 			fclose(fp);
+		}else if( apiError ){
+			*apiError = errno;
 		}
 	}
 #endif
+	return NULL;
+}
+
+void* UtilLoadLibrary(const wstring& path)
+{
+#ifdef _WIN32
+	return LoadLibrary(path.c_str());
+#else
+	string strPath;
+	WtoUTF8(path, strPath);
+	return dlopen(strPath.c_str(), RTLD_NOW);
+#endif
+}
+
+void UtilFreeLibrary(void* hModule)
+{
+#ifdef _WIN32
+	FreeLibrary((HMODULE)hModule);
+#else
+	dlclose(hModule);
+#endif
+}
+
+void* UtilGetProcAddress(void* hModule, const char* name)
+{
+	if( hModule ){
+#ifdef _WIN32
+		return (void*)GetProcAddress((HMODULE)hModule, name);
+#else
+		return dlsym(hModule, name);
+#endif
+	}
 	return NULL;
 }
 
@@ -372,26 +418,34 @@ fs_path GetModuleIniPath(HMODULE hModule)
 	return GetModulePath().replace_extension(L".ini");
 }
 #else
-fs_path GetModulePath()
+fs_path GetModulePath(void* funcAddr)
 {
-	char szPath[1024];
-	if( readlink("/proc/self/exe", szPath, sizeof(szPath)) < 0 ){
-		throw std::runtime_error("");
-	}
 	wstring strPath;
-	UTF8toW(szPath, strPath);
+	if( funcAddr ){
+		Dl_info info;
+		if( dladdr(funcAddr, &info) == 0 ){
+			throw std::runtime_error("dladdr");
+		}
+		UTF8toW(info.dli_fname, strPath);
+	}else{
+		char szPath[1024];
+		ssize_t len = readlink("/proc/self/exe", szPath, 1024);
+		if( len < 0 || len >= 1024 ){
+			throw std::runtime_error("readlink");
+		}
+		szPath[len] = '\0';
+		UTF8toW(szPath, strPath);
+	}
 	fs_path path(strPath);
 	if( path.is_relative() || path.has_filename() == false ){
 		throw std::runtime_error("");
 	}
 	return path;
 }
-fs_path GetModuleIniPath(LPCWSTR moduleName)
+
+fs_path GetModuleIniPath(void* funcAddr)
 {
-	if( moduleName ){
-		return fs_path(EDCB_INI_ROOT).append(moduleName).concat(L".ini");
-	}
-	return fs_path(EDCB_INI_ROOT).append(GetModulePath().filename().native()).replace_extension(L".ini");
+	return fs_path(EDCB_INI_ROOT).append(GetModulePath(funcAddr).filename().native()).concat(L".ini");
 }
 #endif
 
@@ -449,24 +503,29 @@ bool UtilPathEndsWith(LPCWSTR path, LPCWSTR suffix)
 
 void CheckFileName(wstring& fileName, bool noChkYen)
 {
+#ifdef _WIN32
 	static const WCHAR s[10] = L"\\/:*?\"<>|";
 	static const WCHAR r[10] = L"￥／：＊？”＜＞｜";
+#else
+	static const WCHAR s[2] = L"/";
+	static const WCHAR r[2] = L"／";
+#endif
 	// トリム
 	size_t j = fileName.find_last_not_of(L' ');
 	fileName.erase(j == wstring::npos ? 0 : j + 1);
 	fileName.erase(0, fileName.find_first_not_of(L' '));
 	for( size_t i = 0; i < fileName.size(); i++ ){
-		if( L'\x1' <= fileName[i] && fileName[i] <= L'\x1f' || fileName[i] == L'\x7f' ){
+		if( (L'\x1' <= fileName[i] && fileName[i] <= L'\x1f') || fileName[i] == L'\x7f' ){
 			// 制御文字
 			fileName[i] = L'〓';
 		}
-		// ".\"となるときはnoChkYenでも全角に
+		// ".\"("./")となるときはnoChkYenでも全角に
 		const WCHAR* p = wcschr(s, fileName[i]);
 		if( p && (noChkYen == false || *p != fs_path::preferred_separator || (i > 0 && fileName[i - 1] == L'.')) ){
 			fileName[i] = r[p - s];
 		}
 	}
-	// 冒頭'\'はトリム
+	// 冒頭'\'('/')はトリム
 	fileName.erase(0, fileName.find_first_not_of(fs_path::preferred_separator));
 	// すべて'.'のときは全角に
 	if( fileName.find_first_not_of(L'.') == wstring::npos ){
@@ -516,7 +575,7 @@ bool UtilCreateDirectory(const fs_path& path)
 #else
 	string strPath;
 	WtoUTF8(path.native(), strPath);
-	return mkdir(strPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == 0;
+	return mkdir(strPath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0;
 #endif
 }
 
@@ -540,11 +599,11 @@ bool UtilCreateDirectories(const fs_path& path)
 	return UtilCreateDirectory(path);
 }
 
-__int64 UtilGetStorageFreeBytes(const fs_path& directoryPath)
+LONGLONG UtilGetStorageFreeBytes(const fs_path& directoryPath)
 {
 #ifdef _WIN32
 	ULARGE_INTEGER li;
-	return GetDiskFreeSpaceEx(UtilGetStorageID(directoryPath).c_str(), &li, NULL, NULL) ? (__int64)li.QuadPart : -1;
+	return GetDiskFreeSpaceEx(UtilGetStorageID(directoryPath).c_str(), &li, NULL, NULL) ? (LONGLONG)li.QuadPart : -1;
 #else
 	if( directoryPath.empty() || (directoryPath.is_relative() && directoryPath.has_root_path()) ){
 		// パスが不完全
@@ -555,7 +614,7 @@ __int64 UtilGetStorageFreeBytes(const fs_path& directoryPath)
 		string strPath;
 		WtoUTF8(directoryPath.native(), strPath);
 		struct statvfs st;
-		return statvfs(strPath.c_str(), &st) == 0 ? (__int64)st.f_frsize * (__int64)st.f_bavail : -1;
+		return statvfs(strPath.c_str(), &st) == 0 ? (LONGLONG)st.f_frsize * (LONGLONG)st.f_bavail : -1;
 	}
 	if( mightExist ){
 		// 特殊な理由
@@ -603,6 +662,70 @@ wstring UtilGetStorageID(const fs_path& directoryPath)
 #endif
 }
 
+namespace
+{
+void CloseGlobalMutex(void* p)
+{
+#ifdef _WIN32
+	CloseHandle(p);
+#else
+	std::unique_ptr<pair<FILE*, string>> f((pair<FILE*, string>*)p);
+	remove(f->second.c_str());
+	fclose(f->first);
+#endif
+}
+}
+
+util_unique_handle UtilCreateGlobalMutex(LPCWSTR name, bool* alreadyExists)
+{
+	if( alreadyExists ){
+		*alreadyExists = false;
+	}
+#ifdef _WIN32
+	HANDLE h = NULL;
+	if( name && wcslen(name) < MAX_PATH - 7 ){
+		WCHAR sz[MAX_PATH];
+		swprintf_s(sz, L"Global\\%ls", name);
+		h = CreateMutex(NULL, FALSE, sz);
+		if( h && GetLastError() == ERROR_ALREADY_EXISTS ){
+			if( alreadyExists ){
+				*alreadyExists = true;
+			}
+			CloseHandle(h);
+			h = NULL;
+		}
+	}
+	return util_unique_handle(h, CloseGlobalMutex);
+#else
+	std::unique_ptr<pair<FILE*, string>> f;
+	if( name ){
+		f.reset(new pair<FILE*, string>());
+		fs_path path = fs_path(EDCB_INI_ROOT).append(L"Global_").concat(name);
+		WtoUTF8(path.native(), f->second);
+		int apiError;
+		f->first = UtilOpenFile(path, UTIL_SECURE_WRITE, &apiError);
+		struct stat st[2];
+		if( f->first == NULL ){
+			if( alreadyExists ){
+				*alreadyExists = apiError == EAGAIN;
+			}
+			f.reset();
+		}else if( fstat(fileno(f->first), st) != 0 ){
+			fclose(f->first);
+			f.reset();
+		}else if( stat(f->second.c_str(), st + 1) != 0 || st[0].st_ino != st[1].st_ino ){
+			// 競合状態
+			if( alreadyExists ){
+				*alreadyExists = true;
+			}
+			fclose(f->first);
+			f.reset();
+		}
+	}
+	return util_unique_handle(f.release(), CloseGlobalMutex);
+#endif
+}
+
 #ifndef _WIN32
 int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName)
 {
@@ -630,7 +753,8 @@ BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpStrin
 			int c;
 			do{
 				c = fgetc(fp.get());
-				if( c >= 0 && (char)c && (char)c != '\n' ){
+				c = c >= 0 && (char)c ? c : -1;
+				if( c >= 0 && (char)c != '\n' ){
 					line += (char)c;
 					continue;
 				}
@@ -651,7 +775,8 @@ BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpStrin
 					m = (m == string::npos ? 0 : m + 1);
 					char d = line[m];
 					line[m] = '\0';
-					hasKey = isKey = CompareNoCase(key, line.c_str()) == 0;
+					isKey = CompareNoCase(key, line.c_str()) == 0;
+					hasKey = hasKey || isKey;
 					line[m] = d;
 					if( isKey && lpString ){
 						line.replace(n + 1, string::npos, val);
@@ -662,7 +787,7 @@ BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpStrin
 					buff += '\n';
 				}
 				line.clear();
-			}while( c >= 0 && (char)c );
+			}while( c >= 0 );
 
 			if( keyName && lpString ){
 				if( hasApp == false ){
@@ -684,7 +809,7 @@ BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpStrin
 			AddDebugLog(L"WritePrivateProfileString(): Error: Cannot open file");
 			break;
 		}
-		Sleep(10);
+		SleepForMsec(10);
 	}
 	return FALSE;
 }
@@ -716,7 +841,8 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 			int c;
 			do{
 				c = fgetc(fp.get());
-				if( c >= 0 && (char)c && (char)c != '\n' ){
+				c = c >= 0 && (char)c ? c : -1;
+				if( c >= 0 && (char)c != '\n' ){
 					line += (char)c;
 					continue;
 				}
@@ -742,7 +868,7 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 					}
 				}
 				line.clear();
-			}while( c >= 0 && (char)c );
+			}while( c >= 0 );
 			break;
 		}else if( UtilFileExists(fileName, &mightExist).first == false && mightExist == false ){
 			break;
@@ -750,7 +876,7 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 			AddDebugLog(L"GetPrivateProfileToString(): Error: Cannot open file");
 			break;
 		}
-		Sleep(10);
+		SleepForMsec(10);
 	}
 	return lpDefault ? lpDefault : L"";
 #endif
@@ -773,8 +899,8 @@ void EnumFindFile(const fs_path& pattern, const std::function<bool(UTIL_FIND_DAT
 			UTIL_FIND_DATA ufd;
 			do{
 				ufd.isDir = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-				ufd.lastWriteTime = (__int64)findData.ftLastWriteTime.dwHighDateTime << 32 | findData.ftLastWriteTime.dwLowDateTime;
-				ufd.fileSize = (__int64)findData.nFileSizeHigh << 32 | findData.nFileSizeLow;
+				ufd.lastWriteTime = (LONGLONG)findData.ftLastWriteTime.dwHighDateTime << 32 | findData.ftLastWriteTime.dwLowDateTime;
+				ufd.fileSize = (LONGLONG)findData.nFileSizeHigh << 32 | findData.nFileSizeLow;
 				ufd.fileName = findData.cFileName;
 			}while( enumProc(ufd) && FindNextFile(hFind, &findData) );
 		}catch(...){
@@ -793,8 +919,8 @@ void EnumFindFile(const fs_path& pattern, const std::function<bool(UTIL_FIND_DAT
 		if( stat(strPath.c_str(), &st) == 0 ){
 			UTIL_FIND_DATA ufd;
 			ufd.isDir = S_ISDIR(st.st_mode) != 0;
-			ufd.lastWriteTime = (__int64)st.st_mtime * 10000000 + 116444736000000000;
-			ufd.fileSize = (__int64)st.st_size;
+			ufd.lastWriteTime = (LONGLONG)st.st_mtime * 10000000 + 116444736000000000;
+			ufd.fileSize = (LONGLONG)st.st_size;
 			ufd.fileName = pat.native();
 			enumProc(ufd);
 		}
@@ -835,8 +961,8 @@ void EnumFindFile(const fs_path& pattern, const std::function<bool(UTIL_FIND_DAT
 						struct stat st;
 						if( stat(strPath.c_str(), &st) == 0 ){
 							ufd.isDir = S_ISDIR(st.st_mode) != 0;
-							ufd.lastWriteTime = (__int64)st.st_mtime * 10000000 + 116444736000000000;
-							ufd.fileSize = (__int64)st.st_size;
+							ufd.lastWriteTime = (LONGLONG)st.st_mtime * 10000000 + 116444736000000000;
+							ufd.fileSize = (LONGLONG)st.st_size;
 							if( enumProc(ufd) == false ){
 								break;
 							}

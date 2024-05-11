@@ -4,14 +4,12 @@
 #include "../Common/TSPacketUtil.h"
 #include "../Common/StringUtil.h"
 #include "../Common/SendTSTCPDllUtil.h"
+#include "../Common/PathUtil.h"
 
 #include "BonCtrlDef.h"
 #include "WriteTSFile.h"
-#include "PMTUtil.h"
-#include "CATUtil.h"
-#include "CreatePMTPacket.h"
-#include "CreatePATPacket.h"
 #include "DropCount.h"
+#include "ServiceFilter.h"
 #include <functional>
 
 class COneServiceUtil
@@ -38,25 +36,21 @@ public:
 	WORD GetSID();
 
 	//UDPで送信を行う
-	//戻り値：
-	// TRUE（成功）、FALSE（失敗）
 	//引数：
-	// sendList		[IN/OUT]送信先リスト。NULLで停止。Portは実際に送信に使用したPortが返る。
-	BOOL SendUdp(
+	// sendList		[IN/OUT]送信先リスト。NULLで停止。送信に使用したポート(失敗のものは0x10000)がportにセットされる。
+	void SendUdp(
 		vector<NW_SEND_INFO>* sendList
 		) {
-		return SendUdpTcp(sendList, FALSE, this->sendUdp, this->udpPortMutex, MUTEX_UDP_PORT_NAME);
+		SendUdpTcp(sendList, FALSE, this->sendUdp, this->udpPortMutex, MUTEX_UDP_PORT_NAME);
 	}
 
 	//TCPで送信を行う
-	//戻り値：
-	// TRUE（成功）、FALSE（失敗）
 	//引数：
-	// sendList		[IN/OUT]送信先リスト。NULLで停止。Portは実際に送信に使用したPortが返る。
-	BOOL SendTcp(
+	// sendList		[IN/OUT]送信先リスト。NULLで停止。送信に使用したポート(失敗のものは0x10000)がportにセットされる。
+	void SendTcp(
 		vector<NW_SEND_INFO>* sendList
 		) {
-		return SendUdpTcp(sendList, TRUE, this->sendTcp, this->tcpPortMutex, MUTEX_TCP_PORT_NAME);
+		SendUdpTcp(sendList, TRUE, this->sendTcp, this->tcpPortMutex, MUTEX_TCP_PORT_NAME);
 	}
 
 	//出力用TSデータを送る
@@ -70,13 +64,11 @@ public:
 		const std::function<int(WORD, WORD, WORD)>& funcGetPresent
 		);
 
-	void SetPmtPID(
-		WORD TSID,
-		WORD pmtPID_
-		);
-
-	void SetEmmPID(
-		const vector<WORD>& pidList
+	//出力状態をクリアする（チャンネル変更など）
+	//引数：
+	// tsid		[IN]TransportStreamID
+	void Clear(
+		WORD tsid
 		);
 
 	//ファイル保存を開始する
@@ -167,16 +159,13 @@ public:
 	//引数：
 	// writeSize			[OUT]出力サイズ
 	void GetRecWriteSize(
-		__int64* writeSize
+		LONGLONG* writeSize
 		);
 
 	void SetBonDriver(
 		const wstring& bonDriver
 		);
-	void SetPIDName(
-		WORD pid,
-		const wstring& name
-		);
+
 	void SetNoLogScramble(
 		BOOL noLog
 		);
@@ -186,21 +175,15 @@ protected:
 
 	int enableScramble;
 
-	vector<HANDLE> udpPortMutex;
-	vector<HANDLE> tcpPortMutex;
+	vector<util_unique_handle> udpPortMutex;
+	vector<util_unique_handle> tcpPortMutex;
 
 	CSendTSTCPDllUtil sendUdp;
 	CSendTSTCPDllUtil sendTcp;
 	CWriteTSFile writeFile;
 
 	vector<BYTE> buff;
-
-	CCreatePATPacket createPat;
-	CCreatePMTPacket createPmt;
-
-	WORD pmtPID;
-	vector<WORD> emmPIDList;
-
+	CServiceFilter serviceFilter;
 	CDropCount dropCount;
 
 	WORD lastPMTVer;
@@ -212,11 +195,11 @@ protected:
 	int pittariMaxBuffCount;
 
 protected:
-	static BOOL SendUdpTcp(
+	static void SendUdpTcp(
 		vector<NW_SEND_INFO>* sendList,
 		BOOL tcpFlag,
 		CSendTSTCPDllUtil& sendNW,
-		vector<HANDLE>& portMutexList,
+		vector<util_unique_handle>& portMutexList,
 		LPCWSTR mutexName
 		);
 	void StratPittariRec();

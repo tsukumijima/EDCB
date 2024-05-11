@@ -3,10 +3,12 @@
 
 #include "stdafx.h"
 #include "EpgTimerSrvMain.h"
+#include "EpgTimerTask.h"
 #include "../../Common/PathUtil.h"
 #include "../../Common/ServiceUtil.h"
 #include "../../Common/StackTrace.h"
 #include "../../Common/ThreadUtil.h"
+#include "../../Common/TimeUtil.h"
 #include "../../Common/CommonDef.h"
 #include <winsvc.h>
 #include <objbase.h>
@@ -31,11 +33,15 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	SetDllDirectory(L"");
 
 	WCHAR option[16] = {};
+	vector<WCHAR> param;
 	int argc;
 	LPWSTR* argv = CommandLineToArgvW(GetCommandLine(), &argc);
 	if( argv ){
 		if( argc >= 2 ){
 			wcsncpy_s(option, argv[1], _TRUNCATE);
+		}
+		if( argc >= 3 ){
+			param.assign(argv[2], argv[2] + wcslen(argv[2]));
 		}
 		LocalFree(argv);
 	}
@@ -59,8 +65,25 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		}else if( CompareNoCase(L"task", option + 1) == 0 ){
 			//Taskモード
 			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-			CEpgTimerSrvMain::TaskMain();
+			CEpgTimerTask().Main();
 			CoUninitialize();
+			return 0;
+		}else if( CompareNoCase(L"luapost", option + 1) == 0 ){
+			if( param.empty() == false ){
+				COPYDATASTRUCT cds;
+				cds.dwData = COPYDATA_TYPE_LUAPOST;
+				cds.cbData = (DWORD)(param.size() * sizeof(WCHAR));
+				cds.lpData = param.data();
+				HWND hwnd = NULL;
+				while( (hwnd = FindWindowEx(NULL, hwnd, SERVICE_NAME, NULL)) != NULL ){
+					//ウィンドウスレッドはさほどビジーにならないので想定する最悪値として10秒タイムアウトとする
+					DWORD_PTR dwResult;
+					if( SendMessageTimeout(hwnd, WM_COPYDATA, 0, (LPARAM)&cds, SMTO_NORMAL, 10000, &dwResult) && dwResult ){
+						break;
+					}
+				}
+			}
+			//コンソールアプリではないので戻り値は成否によらない
 			return 0;
 		}
 	}
@@ -71,39 +94,33 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 
 	if( IsInstallService(SERVICE_NAME) == FALSE ){
 		//普通にexeとして起動を行う
-		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
-		if( hMutex != NULL ){
-			if( GetLastError() != ERROR_ALREADY_EXISTS ){
-				SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
-				//メインスレッドに対するCOMの初期化
-				CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-				CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
-				if( pMain->Main(false) == false ){
-					AddDebugLog(L"_tWinMain(): Failed to start");
-				}
-				delete pMain;
-				CoUninitialize();
-				SetSaveDebugLog(false);
+		util_unique_handle mutex = UtilCreateGlobalMutex(EPG_TIMER_BON_SRV_MUTEX);
+		if( mutex ){
+			SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
+			//メインスレッドに対するCOMの初期化
+			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+			CEpgTimerSrvMain* pMain = new CEpgTimerSrvMain;
+			if( pMain->Main(false) == false ){
+				AddDebugLog(L"_tWinMain(): Failed to start");
 			}
-			CloseHandle(hMutex);
+			delete pMain;
+			CoUninitialize();
+			SetSaveDebugLog(false);
 		}
 	}else if( IsStopService(SERVICE_NAME) == FALSE ){
 		//サービスとして実行
-		HANDLE hMutex = CreateMutex(NULL, FALSE, EPG_TIMER_BON_SRV_MUTEX);
-		if( hMutex != NULL ){
-			if( GetLastError() != ERROR_ALREADY_EXISTS ){
-				SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
-				WCHAR serviceName[] = SERVICE_NAME;
-				SERVICE_TABLE_ENTRY dispatchTable[] = {
-					{ serviceName, service_main },
-					{ NULL, NULL }
-				};
-				if( StartServiceCtrlDispatcher(dispatchTable) == FALSE ){
-					AddDebugLog(L"_tWinMain(): StartServiceCtrlDispatcher failed");
-				}
-				SetSaveDebugLog(false);
+		util_unique_handle mutex = UtilCreateGlobalMutex(EPG_TIMER_BON_SRV_MUTEX);
+		if( mutex ){
+			SetSaveDebugLog(GetPrivateProfileInt(L"SET", L"SaveDebugLog", 0, GetModuleIniPath().c_str()) != 0);
+			WCHAR serviceName[] = SERVICE_NAME;
+			SERVICE_TABLE_ENTRY dispatchTable[] = {
+				{ serviceName, service_main },
+				{ NULL, NULL }
+			};
+			if( StartServiceCtrlDispatcher(dispatchTable) == FALSE ){
+				AddDebugLog(L"_tWinMain(): StartServiceCtrlDispatcher failed");
 			}
-			CloseHandle(hMutex);
+			SetSaveDebugLog(false);
 		}
 	}
 
@@ -195,7 +212,7 @@ void AddDebugLogNoNewline(const wchar_t* lpOutputString, bool suppressDebugOutpu
 		lock_recursive_mutex lock(g_debugLogLock);
 		if( g_debugLog ){
 			SYSTEMTIME st;
-			GetLocalTime(&st);
+			ConvertSystemTime(GetNowI64Time(), &st);
 			WCHAR t[128];
 			int n = swprintf_s(t, L"[%02d%02d%02d%02d%02d%02d.%03d] ",
 			                   st.wYear % 100, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
