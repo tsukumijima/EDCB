@@ -5,15 +5,13 @@
 #include "CtrlCmdDef.h"
 #include "ErrDef.h"
 #ifndef _WIN32
+#include <errno.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
-typedef int SOCKET;
-static const int INVALID_SOCKET = -1;
-#define closesocket(sock) close(sock)
 #endif
 
 CTCPServer::CTCPServer(void)
@@ -294,6 +292,9 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 		}
 		int result = poll(&pfdList[0], pfdList.size(), waitList.empty() ? -1 : (int)NOTIFY_INTERVAL);
 		if( result < 0 ){
+			if( errno == EINTR ){
+				continue;
+			}
 			break;
 		}
 		for( size_t i = 0; i < waitList.size(); ){
@@ -307,6 +308,7 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 			}
 		}
 		if( result == 0 || (pfdList[0].revents & POLLIN) ){
+			pSys->m_notifyEvent.Reset();
 #endif
 			for( size_t i = 0; i < waitList.size(); i++ ){
 				if( waitList[i].closing ){
@@ -367,17 +369,17 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 				//ブロッキングモードに変更
 				SetBlockingMode(sock);
 				for(;;){
-					DWORD head[2];
+					BYTE head[8];
 					if( RecvAll(sock, (char*)head, sizeof(head), 0) != (int)sizeof(head) ){
 						break;
 					}
+					CCmdStream cmd(head[0] | head[1] << 8 | head[2] << 16 | (DWORD)head[3] << 24);
 					//第2,3バイトは0でなければならない
-					if( head[0] & 0xFFFF0000 ){
-						AddDebugLogFormat(L"Deny TCP cmd:0x%08x", head[0]);
+					if( cmd.GetParam() & 0xFFFF0000 ){
+						AddDebugLogFormat(L"Deny TCP cmd:0x%08x", cmd.GetParam());
 						break;
 					}
-					CCmdStream cmd(head[0]);
-					cmd.Resize(head[1]);
+					cmd.Resize(head[4] | head[5] << 8 | head[6] << 16 | (DWORD)head[7] << 24);
 					if( RecvAll(sock, (char*)cmd.GetData(), cmd.GetDataSize(), 0) != (int)cmd.GetDataSize() ){
 						break;
 					}

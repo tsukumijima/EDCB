@@ -70,6 +70,9 @@ bool CEdcbPlugIn::CMyEventHandler::OnChannelChange()
 			m_outer.m_chChangeID = static_cast<DWORD>(ci.NetworkID) << 16 | ci.TransportStreamID;
 			m_outer.m_chChangeTick = GetU32Tick();
 		}
+		lock_recursive_mutex lock2(m_outer.m_statusLock);
+		m_outer.m_statusInfo.originalNetworkID = -1;
+		m_outer.m_statusInfo.transportStreamID = -1;
 	}
 	m_outer.m_chChangedAfterSetCh = true;
 	SendMessage(m_outer.m_hwnd, WM_UPDATE_STATUS_CODE, 0, 0);
@@ -99,10 +102,13 @@ bool CEdcbPlugIn::CMyEventHandler::OnServiceUpdate()
 
 bool CEdcbPlugIn::CMyEventHandler::OnDriverChange()
 {
+	WCHAR name[MAX_PATH];
+	if (m_outer.m_pApp->GetDriverName(name, array_size(name)) <= 0) {
+		name[0] = L'\0';
+	}
 	{
 		lock_recursive_mutex lock(m_outer.m_statusLock);
-		WCHAR name[MAX_PATH];
-		m_outer.m_currentBonDriver = (m_outer.m_pApp->GetDriverName(name, array_size(name)) > 0 ? name : L"");
+		m_outer.m_statusInfo.bonDriver = name;
 	}
 	// ストリームコールバックはチューナ使用時だけ
 	m_outer.m_pApp->SetStreamCallback(m_outer.IsTunerBonDriver() ? 0 : TVTest::STREAM_CALLBACK_REMOVE, StreamCallback, &m_outer);
@@ -152,16 +158,22 @@ void CEdcbPlugIn::CMyEventHandler::OnStartupDone()
 CEdcbPlugIn::CEdcbPlugIn()
 	: m_handler(*this)
 	, m_hwnd(nullptr)
-	, m_outCtrlID(-1)
-	, m_statusCode(VIEW_APP_ST_ERR_BON)
 	, m_chChangeID(CH_CHANGE_OK)
-	, m_epgFile(nullptr, fclose)
 	, m_epgCapBack(false)
 	, m_recCtrlCount(0)
 	, m_logoAdditionalNeededPids(nullptr)
 	, m_logoTick(0)
 	, m_logoTypeFlags(0)
+#ifdef SEND_PIPE_TEST
+	, m_sendPipeMutex(UtilCreateGlobalMutex())
+#endif
 {
+	VIEW_APP_STATUS_INFO info = {};
+	info.status = VIEW_APP_ST_ERR_BON;
+	info.originalNetworkID = -1;
+	info.transportStreamID = -1;
+	info.appID = -1;
+	m_statusInfo = info;
 	m_lastSetCh.useSID = FALSE;
 	std::fill_n(m_epgCapBasicOnlyONIDs, array_size(m_epgCapBasicOnlyONIDs), false);
 	std::fill_n(m_epgCapBackBasicOnlyONIDs, array_size(m_epgCapBackBasicOnlyONIDs), false);
@@ -217,15 +229,11 @@ bool CEdcbPlugIn::Initialize()
 		int port = 0;
 		for (; port < BON_NW_PORT_RANGE; ++port) {
 			wstring name;
-			Format(name, L"Global\\%ls1_%d", MUTEX_TCP_PORT_NAME, port);
-			m_sendPipeMutex = CreateMutex(nullptr, FALSE, name.c_str());
+			Format(name, L"%ls1_%d", MUTEX_TCP_PORT_NAME, port);
+			m_sendPipeMutex = UtilCreateGlobalMutex(name.c_str());
 			if (m_sendPipeMutex) {
-				if (GetLastError() != ERROR_ALREADY_EXISTS) {
-					m_pApp->AddLog(name.c_str());
-					break;
-				}
-				CloseHandle(m_sendPipeMutex);
-				m_sendPipeMutex = nullptr;
+				m_pApp->AddLog(name.c_str());
+				break;
 			}
 		}
 		m_sendPipe.AddSendAddr(L"0.0.0.1", port);
@@ -258,9 +266,7 @@ bool CEdcbPlugIn::Finalize()
 	if (m_sendPipe.IsInitialized()) {
 		m_sendPipe.StopSend();
 		m_sendPipe.UnInitialize();
-		if (m_sendPipeMutex) {
-			CloseHandle(m_sendPipeMutex);
-		}
+		m_sendPipeMutex.reset();
 	}
 #endif
 	m_epgUtil.UnInitialize();
@@ -371,15 +377,28 @@ LRESULT CEdcbPlugIn::WndProc_(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				if (!m_pApp->GetStatus(&si)) {
 					si.SignalLevel = 0;
 				}
+				ULONGLONG drop = 0;
+				ULONGLONG scramble = 0;
 				lock_recursive_mutex lock(m_streamLock);
 				for (map<DWORD, REC_CTRL>::iterator it = m_recCtrlMap.begin(); it != m_recCtrlMap.end(); ++it) {
 					if (!it->second.filePath.empty()) {
 						it->second.dropCount.SetSignal(si.SignalLevel);
+						drop = it->second.dropCount.GetDropCount();
+						scramble = it->second.dropCount.GetScrambleCount();
 					}
 				}
+				lock_recursive_mutex lock2(m_statusLock);
+				m_statusInfo.drop = drop;
+				m_statusInfo.scramble = scramble;
+				m_statusInfo.signalLv = si.SignalLevel;
 			}
 			else {
+				// 録画停止中は統計情報を取得しない
 				KillTimer(hwnd, TIMER_SIGNAL_UPDATE);
+				lock_recursive_mutex lock(m_statusLock);
+				m_statusInfo.drop = 0;
+				m_statusInfo.scramble = 0;
+				m_statusInfo.signalLv = 0;
 			}
 			return 0;
 		case TIMER_EPGCAP:
@@ -474,7 +493,7 @@ LRESULT CEdcbPlugIn::WndProc_(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 					if (m_epgCapChkNext && m_epgFile) {
 						// 保存終了
 						{
-							std::unique_ptr<FILE, decltype(&fclose)> epgFile(nullptr, fclose);
+							std::unique_ptr<FILE, fclose_deleter> epgFile;
 							lock_recursive_mutex lock(m_streamLock);
 							epgFile.swap(m_epgFile);
 						}
@@ -552,7 +571,7 @@ LRESULT CEdcbPlugIn::WndProc_(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 				if (!m_epgCapBack && m_epgFile) {
 					// 保存終了
 					{
-						std::unique_ptr<FILE, decltype(&fclose)> epgFile(nullptr, fclose);
+						std::unique_ptr<FILE, fclose_deleter> epgFile;
 						lock_recursive_mutex lock(m_streamLock);
 						epgFile.swap(m_epgFile);
 					}
@@ -587,11 +606,12 @@ LRESULT CEdcbPlugIn::WndProc_(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		return 0;
 	case WM_UPDATE_STATUS_CODE:
 		{
-			lock_recursive_mutex lock(m_statusLock);
-			m_statusCode = m_currentBonDriver.empty() ? VIEW_APP_ST_ERR_BON :
+			DWORD status = m_statusInfo.bonDriver.empty() ? VIEW_APP_ST_ERR_BON :
 			               !IsNotRecording() ? VIEW_APP_ST_REC :
 			               !m_epgCapChList.empty() ? VIEW_APP_ST_GET_EPG :
 			               m_chChangeID == CH_CHANGE_ERR ? VIEW_APP_ST_ERR_CH_CHG : VIEW_APP_ST_NORMAL;
+			lock_recursive_mutex lock(m_statusLock);
+			m_statusInfo.status = status;
 		}
 		return 0;
 	case WM_SIGNAL_UPDATE_START:
@@ -635,7 +655,7 @@ LRESULT CEdcbPlugIn::WndProc_(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		if (m_epgCapChList.empty() && m_epgFile) {
 			// 保存キャンセル
 			{
-				std::unique_ptr<FILE, decltype(&fclose)> epgFile(nullptr, fclose);
+				std::unique_ptr<FILE, fclose_deleter> epgFile;
 				lock_recursive_mutex lock(m_streamLock);
 				epgFile.swap(m_epgFile);
 			}
@@ -652,8 +672,8 @@ void CEdcbPlugIn::CtrlCmdCallback(const CCmdStream &cmd, CCmdStream &res)
 	case CMD2_VIEW_APP_GET_BONDRIVER:
 		{
 			lock_recursive_mutex lock(m_statusLock);
-			if (!m_currentBonDriver.empty()) {
-				res.WriteVALUE(m_currentBonDriver);
+			if (!m_statusInfo.bonDriver.empty()) {
+				res.WriteVALUE(m_statusInfo.bonDriver);
 				res.SetParam(CMD_SUCCESS);
 			}
 		}
@@ -668,7 +688,7 @@ void CEdcbPlugIn::CtrlCmdCallback(const CCmdStream &cmd, CCmdStream &res)
 	case CMD2_VIEW_APP_GET_STATUS:
 		{
 			lock_recursive_mutex lock(m_statusLock);
-			res.WriteVALUE(m_statusCode);
+			res.WriteVALUE(m_statusInfo.status);
 			res.SetParam(CMD_SUCCESS);
 		}
 		break;
@@ -679,13 +699,44 @@ void CEdcbPlugIn::CtrlCmdCallback(const CCmdStream &cmd, CCmdStream &res)
 		break;
 	case CMD2_VIEW_APP_SET_ID:
 		SendNotifyMessage(m_hwnd, WM_APP_ADD_LOG, 0, reinterpret_cast<LPARAM>(L"CMD2_VIEW_APP_SET_ID"));
-		if (cmd.ReadVALUE(&m_outCtrlID)) {
+		if (cmd.ReadVALUE(&m_statusInfo.appID)) {
 			res.SetParam(CMD_SUCCESS);
 		}
 		break;
 	case CMD2_VIEW_APP_GET_ID:
-		res.WriteVALUE(m_outCtrlID);
+		res.WriteVALUE(m_statusInfo.appID);
 		res.SetParam(CMD_SUCCESS);
+		break;
+	case CMD2_VIEW_APP_GET_STATUS_DETAILS:
+		{
+			DWORD flags;
+			if (cmd.ReadVALUE(&flags)) {
+				VIEW_APP_STATUS_INFO info = {};
+				{
+					lock_recursive_mutex lock(m_statusLock);
+					if (flags & VIEW_APP_FLAG_GET_STATUS) {
+						info.status = m_statusInfo.status;
+					}
+					if (flags & VIEW_APP_FLAG_GET_BONDRIVER) {
+						info.bonDriver = m_statusInfo.bonDriver;
+					}
+					info.drop = m_statusInfo.drop;
+					info.scramble = m_statusInfo.scramble;
+					info.signalLv = m_statusInfo.signalLv;
+					info.space = -1;
+					info.ch = -1;
+					info.originalNetworkID = m_statusInfo.originalNetworkID;
+					info.transportStreamID = m_statusInfo.transportStreamID;
+					info.appID = m_statusInfo.appID;
+				}
+				if (flags & VIEW_APP_FLAG_GET_DELAY) {
+					lock_recursive_mutex lock(m_streamLock);
+					info.delaySec = m_epgUtil.GetTimeDelay();
+				}
+				res.WriteVALUE(info);
+				res.SetParam(CMD_SUCCESS);
+			}
+		}
 		break;
 	case CMD2_VIEW_APP_SET_STANDBY_REC:
 		SendNotifyMessage(m_hwnd, WM_APP_ADD_LOG, 0, reinterpret_cast<LPARAM>(L"CMD2_VIEW_APP_SET_STANDBY_REC"));
@@ -964,7 +1015,7 @@ void CEdcbPlugIn::CtrlCmdCallbackInvoked(const CCmdStream &cmd, CCmdStream &res)
 						for (size_t i = pidNameList.size(); i > 0; --i) {
 							dropCount.SetPIDName(pidNameList[i - 1].first, pidNameList[i - 1].second);
 						}
-						dropCount.SetBonDriver(m_currentBonDriver);
+						dropCount.SetBonDriver(m_statusInfo.bonDriver);
 						dropCount.SaveLog(infoPath.native(), m_dropLogAsUtf8);
 					}
 					if (IsEdcbRecording()) {
@@ -1047,7 +1098,7 @@ bool CEdcbPlugIn::IsEdcbRecording() const
 
 bool CEdcbPlugIn:: IsTunerBonDriver() const
 {
-	wstring driver = L':' + m_currentBonDriver + L':';
+	wstring driver = L':' + m_statusInfo.bonDriver + L':';
 	return std::search(m_nonTunerDrivers.begin(), m_nonTunerDrivers.end(), driver.begin(), driver.end(),
 		[](wchar_t a, wchar_t b) { return towupper(a) == towupper(b); }) == m_nonTunerDrivers.end();
 }
@@ -1078,6 +1129,9 @@ BOOL CALLBACK CEdcbPlugIn::StreamCallback(BYTE *pData, void *pClientData)
 #ifdef SEND_PIPE_TEST
 						this_.m_serviceFilter.Clear(tsid);
 #endif
+						lock_recursive_mutex lock2(this_.m_statusLock);
+						this_.m_statusInfo.originalNetworkID = onid;
+						this_.m_statusInfo.transportStreamID = tsid;
 					}
 					else if (GetU32Tick() - this_.m_chChangeTick > 15000) {
 						// 15秒以上たってるなら切り替えエラー
@@ -1101,7 +1155,7 @@ BOOL CALLBACK CEdcbPlugIn::StreamCallback(BYTE *pData, void *pClientData)
 							// TOTを前倒しで書き込むための場所を確保
 							BYTE nullData[188] = { 0x47, 0x1F, 0xFF, 0x10 };
 							std::fill_n(nullData + 4, 184, (BYTE)0xFF);
-							this_.m_epgFileTotPos = _ftelli64(this_.m_epgFile.get());
+							this_.m_epgFileTotPos = my_ftell(this_.m_epgFile.get());
 							fwrite(nullData, 1, 188, this_.m_epgFile.get());
 						}
 					}
@@ -1109,10 +1163,10 @@ BOOL CALLBACK CEdcbPlugIn::StreamCallback(BYTE *pData, void *pClientData)
 					if (packet.PID == 0x14 && this_.m_epgFileState == EPG_FILE_ST_TOT) {
 						this_.m_epgFileState = EPG_FILE_ST_ALL;
 						if (this_.m_epgFileTotPos >= 0) {
-							_fseeki64(this_.m_epgFile.get(), this_.m_epgFileTotPos, SEEK_SET);
+							my_fseek(this_.m_epgFile.get(), this_.m_epgFileTotPos, SEEK_SET);
 						}
 						fwrite(pData, 1, 188, this_.m_epgFile.get());
-						_fseeki64(this_.m_epgFile.get(), 0, SEEK_END);
+						my_fseek(this_.m_epgFile.get(), 0, SEEK_END);
 					}
 					else if (packet.PID == 0 && this_.m_epgFileState >= EPG_FILE_ST_PAT || this_.m_epgFileState >= EPG_FILE_ST_TOT) {
 						fwrite(pData, 1, 188, this_.m_epgFile.get());
@@ -1205,7 +1259,7 @@ BOOL CALLBACK CEdcbPlugIn::EnumLogoListProc(DWORD logoListSize, const LOGO_INFO 
 				bool update = true;
 				if (UtilFileExists(path).first) {
 					update = false;
-					std::unique_ptr<FILE, decltype(&fclose)> logoFile(UtilOpenFile(path, UTIL_SECURE_READ), fclose);
+					std::unique_ptr<FILE, fclose_deleter> logoFile(UtilOpenFile(path, UTIL_SECURE_READ));
 					if (logoFile) {
 						// 小さいか中身が違っていれば更新
 						for (DWORD i = 0; i < logoList->dataSize; i++) {
@@ -1219,7 +1273,7 @@ BOOL CALLBACK CEdcbPlugIn::EnumLogoListProc(DWORD logoListSize, const LOGO_INFO 
 				}
 				if (update) {
 					UtilCreateDirectory(path.parent_path());
-					std::unique_ptr<FILE, decltype(&fclose)> logoFile(UtilOpenFile(path, UTIL_SECURE_WRITE), fclose);
+					std::unique_ptr<FILE, fclose_deleter> logoFile(UtilOpenFile(path, UTIL_SECURE_WRITE));
 					if (logoFile) {
 						fwrite(logoList->data, 1, logoList->dataSize, logoFile.get());
 					}

@@ -2,8 +2,8 @@
 #include "PathUtil.h"
 #include "StringUtil.h"
 #include <stdexcept>
-#ifdef _WIN32
 #include <fcntl.h>
+#ifdef _WIN32
 #include <io.h>
 #else
 #include "ThreadUtil.h"
@@ -307,29 +307,50 @@ FILE* UtilOpenFile(const wstring& path, int flags, int* apiError)
 		}
 	}
 #else
-	const char* mode = (flags & 31) == UTIL_O_RDONLY ? "re" :
-	                   (flags & 31) == UTIL_O_RDWR ? "r+e" :
-	                   (flags & 31) == UTIL_O_CREAT_WRONLY ? "we" :
-	                   (flags & 31) == UTIL_O_CREAT_RDWR ? "w+e" :
-	                   (flags & 31) == UTIL_O_CREAT_APPEND ? "ae" :
-	                   (flags & 31) == UTIL_O_EXCL_CREAT_WRONLY ? "wxe" :
-	                   (flags & 31) == UTIL_O_EXCL_CREAT_RDWR ? "w+xe" :
-	                   (flags & 31) == UTIL_O_EXCL_CREAT_APPEND ? "axe" : NULL;
+	const char* mode = (flags & 31) == UTIL_O_RDONLY ? "r" :
+	                   (flags & 31) == UTIL_O_RDWR ? "r+" :
+	                   (flags & 31) == UTIL_O_CREAT_WRONLY ? "w" :
+	                   (flags & 31) == UTIL_O_CREAT_RDWR ? "w+" :
+	                   (flags & 31) == UTIL_O_CREAT_APPEND ? "a" :
+	                   (flags & 31) == UTIL_O_EXCL_CREAT_WRONLY ? "w" :
+	                   (flags & 31) == UTIL_O_EXCL_CREAT_RDWR ? "w+" :
+	                   (flags & 31) == UTIL_O_EXCL_CREAT_APPEND ? "a" : NULL;
 	if( mode ){
 		string strPath;
 		WtoUTF8(path, strPath);
-		FILE* fp = fopen(strPath.c_str(), mode);
-		if( fp ){
-			if( flags & 512 ){
-				setvbuf(fp, NULL, _IONBF, 0);
-			}
+		// 切り捨てとロックの関係を正しく表現できないので低水準で開く
+		int fd = open(strPath.c_str(), ((flags & 3) == 3 ? O_RDWR : (flags & 2) ? O_WRONLY : O_RDONLY) |
+		                               ((flags & 24) ? O_CREAT : 0) |
+		                               ((flags & 24) == 24 ? O_EXCL : 0) |
+		                               ((flags & 4) ? O_APPEND : 0) | O_CLOEXEC,
+		              S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+		if( fd >= 0 ){
 			// flock()は勧告ロックに過ぎないので注意
 			// UTIL_SHARED_READは無ロック相当で、既にかかっている排他ロックを無視するので注意
-			if( ((flags & 32) && (flags & 64)) || flock(fileno(fp), ((flags & 32) ? LOCK_SH : LOCK_EX) | LOCK_NB) == 0 ){
-				return fp;
+			// UTIL_SH_READは非書き込み時のみ共有ロックとする
+			if( ((flags & 32) && (flags & 64)) ||
+			    flock(fd, ((flags & 32) && (flags & 2) == 0 ? LOCK_SH : LOCK_EX) | LOCK_NB) == 0 ){
+				if( (flags & 24) == 8 ){
+					ftruncate(fd, 0);
+				}
+				FILE* fp = fdopen(fd, mode);
+				if( fp ){
+					if( flags & 4 ){
+						my_fseek(fp, 0, SEEK_END);
+					}
+					if( flags & 512 ){
+						setvbuf(fp, NULL, _IONBF, 0);
+					}
+					return fp;
+				}
+			}
+			if( apiError ){
+				*apiError = errno == EACCES ? EAGAIN : errno;
 			}
 			// (ほぼないが)ファイル生成後にロックに失敗した場合のロールバックはしない
-			fclose(fp);
+			close(fd);
+		}else if( apiError ){
+			*apiError = errno;
 		}
 	}
 #endif
@@ -421,6 +442,9 @@ fs_path GetModulePath(void* funcAddr)
 		}
 		UTF8toW(info.dli_fname, strPath);
 	}else{
+#ifdef PATH_UTIL_FIX_SELF_EXE
+		strPath = PATH_UTIL_FIX_SELF_EXE;
+#else
 		char szPath[1024];
 		ssize_t len = readlink("/proc/self/exe", szPath, 1024);
 		if( len < 0 || len >= 1024 ){
@@ -428,6 +452,7 @@ fs_path GetModulePath(void* funcAddr)
 		}
 		szPath[len] = '\0';
 		UTF8toW(szPath, strPath);
+#endif
 	}
 	fs_path path(strPath);
 	if( path.is_relative() || path.has_filename() == false ){
@@ -496,24 +521,29 @@ bool UtilPathEndsWith(LPCWSTR path, LPCWSTR suffix)
 
 void CheckFileName(wstring& fileName, bool noChkYen)
 {
+#ifdef _WIN32
 	static const WCHAR s[10] = L"\\/:*?\"<>|";
 	static const WCHAR r[10] = L"￥／：＊？”＜＞｜";
+#else
+	static const WCHAR s[2] = L"/";
+	static const WCHAR r[2] = L"／";
+#endif
 	// トリム
 	size_t j = fileName.find_last_not_of(L' ');
 	fileName.erase(j == wstring::npos ? 0 : j + 1);
 	fileName.erase(0, fileName.find_first_not_of(L' '));
 	for( size_t i = 0; i < fileName.size(); i++ ){
-		if( L'\x1' <= fileName[i] && fileName[i] <= L'\x1f' || fileName[i] == L'\x7f' ){
+		if( (L'\x1' <= fileName[i] && fileName[i] <= L'\x1f') || fileName[i] == L'\x7f' ){
 			// 制御文字
 			fileName[i] = L'〓';
 		}
-		// ".\"となるときはnoChkYenでも全角に
+		// ".\"("./")となるときはnoChkYenでも全角に
 		const WCHAR* p = wcschr(s, fileName[i]);
 		if( p && (noChkYen == false || *p != fs_path::preferred_separator || (i > 0 && fileName[i - 1] == L'.')) ){
 			fileName[i] = r[p - s];
 		}
 	}
-	// 冒頭'\'はトリム
+	// 冒頭'\'('/')はトリム
 	fileName.erase(0, fileName.find_first_not_of(fs_path::preferred_separator));
 	// すべて'.'のときは全角に
 	if( fileName.find_first_not_of(L'.') == wstring::npos ){
@@ -524,7 +554,7 @@ void CheckFileName(wstring& fileName, bool noChkYen)
 #ifdef _WIN32
 void TouchFileAsUnicode(const fs_path& path)
 {
-	std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(path, UTIL_O_EXCL_CREAT_WRONLY), fclose);
+	std::unique_ptr<FILE, fclose_deleter> fp(UtilOpenFile(path, UTIL_O_EXCL_CREAT_WRONLY));
 	if( fp ){
 		fputwc(L'\xFEFF', fp.get());
 	}
@@ -563,7 +593,7 @@ bool UtilCreateDirectory(const fs_path& path)
 #else
 	string strPath;
 	WtoUTF8(path.native(), strPath);
-	return mkdir(strPath.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == 0;
+	return mkdir(strPath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) == 0;
 #endif
 }
 
@@ -650,6 +680,70 @@ wstring UtilGetStorageID(const fs_path& directoryPath)
 #endif
 }
 
+namespace
+{
+void CloseGlobalMutex(void* p)
+{
+#ifdef _WIN32
+	CloseHandle(p);
+#else
+	std::unique_ptr<pair<FILE*, string>> f((pair<FILE*, string>*)p);
+	remove(f->second.c_str());
+	fclose(f->first);
+#endif
+}
+}
+
+util_unique_handle UtilCreateGlobalMutex(LPCWSTR name, bool* alreadyExists)
+{
+	if( alreadyExists ){
+		*alreadyExists = false;
+	}
+#ifdef _WIN32
+	HANDLE h = NULL;
+	if( name && wcslen(name) < MAX_PATH - 7 ){
+		WCHAR sz[MAX_PATH];
+		swprintf_s(sz, L"Global\\%ls", name);
+		h = CreateMutex(NULL, FALSE, sz);
+		if( h && GetLastError() == ERROR_ALREADY_EXISTS ){
+			if( alreadyExists ){
+				*alreadyExists = true;
+			}
+			CloseHandle(h);
+			h = NULL;
+		}
+	}
+	return util_unique_handle(h, CloseGlobalMutex);
+#else
+	std::unique_ptr<pair<FILE*, string>> f;
+	if( name ){
+		f.reset(new pair<FILE*, string>());
+		fs_path path = fs_path(EDCB_INI_ROOT).append(L"Global_").concat(name);
+		WtoUTF8(path.native(), f->second);
+		int apiError;
+		f->first = UtilOpenFile(path, UTIL_SECURE_WRITE, &apiError);
+		struct stat st[2];
+		if( f->first == NULL ){
+			if( alreadyExists ){
+				*alreadyExists = apiError == EAGAIN;
+			}
+			f.reset();
+		}else if( fstat(fileno(f->first), st) != 0 ){
+			fclose(f->first);
+			f.reset();
+		}else if( stat(f->second.c_str(), st + 1) != 0 || st[0].st_ino != st[1].st_ino ){
+			// 競合状態
+			if( alreadyExists ){
+				*alreadyExists = true;
+			}
+			fclose(f->first);
+			f.reset();
+		}
+	}
+	return util_unique_handle(f.release(), CloseGlobalMutex);
+#endif
+}
+
 #ifndef _WIN32
 int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName)
 {
@@ -662,7 +756,7 @@ int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR
 BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpString, LPCWSTR fileName)
 {
 	for( int retry = 0;; ){
-		std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(wstring(fileName), UTIL_O_RDWR), fclose);
+		std::unique_ptr<FILE, fclose_deleter> fp(UtilOpenFile(wstring(fileName), UTIL_O_RDWR));
 		if( !fp ){
 			fp.reset(UtilOpenFile(wstring(fileName), UTIL_O_EXCL_CREAT_RDWR));
 		}
@@ -677,7 +771,8 @@ BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpStrin
 			int c;
 			do{
 				c = fgetc(fp.get());
-				if( c >= 0 && (char)c && (char)c != '\n' ){
+				c = c >= 0 && (char)c ? c : -1;
+				if( c >= 0 && (char)c != '\n' ){
 					line += (char)c;
 					continue;
 				}
@@ -698,7 +793,8 @@ BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpStrin
 					m = (m == string::npos ? 0 : m + 1);
 					char d = line[m];
 					line[m] = '\0';
-					hasKey = isKey = CompareNoCase(key, line.c_str()) == 0;
+					isKey = CompareNoCase(key, line.c_str()) == 0;
+					hasKey = hasKey || isKey;
 					line[m] = d;
 					if( isKey && lpString ){
 						line.replace(n + 1, string::npos, val);
@@ -709,7 +805,7 @@ BOOL WritePrivateProfileString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpStrin
 					buff += '\n';
 				}
 				line.clear();
-			}while( c >= 0 && (char)c );
+			}while( c >= 0 );
 
 			if( keyName && lpString ){
 				if( hasApp == false ){
@@ -754,7 +850,7 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 #else
 	for( int retry = 0; appName && keyName; ){
 		bool mightExist = false;
-		std::unique_ptr<FILE, decltype(&fclose)> fp(UtilOpenFile(wstring(fileName), UTIL_SECURE_READ), fclose);
+		std::unique_ptr<FILE, fclose_deleter> fp(UtilOpenFile(wstring(fileName), UTIL_SECURE_READ));
 		if( fp ){
 			string app, key, line;
 			WtoUTF8(L'[' + wstring(appName) + L']', app);
@@ -763,7 +859,8 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 			int c;
 			do{
 				c = fgetc(fp.get());
-				if( c >= 0 && (char)c && (char)c != '\n' ){
+				c = c >= 0 && (char)c ? c : -1;
+				if( c >= 0 && (char)c != '\n' ){
 					line += (char)c;
 					continue;
 				}
@@ -789,7 +886,7 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 					}
 				}
 				line.clear();
-			}while( c >= 0 && (char)c );
+			}while( c >= 0 );
 			break;
 		}else if( UtilFileExists(fileName, &mightExist).first == false && mightExist == false ){
 			break;

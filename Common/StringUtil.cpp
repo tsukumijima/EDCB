@@ -24,6 +24,10 @@ void Format(wstring& strBuff, PRINTF_FORMAT_SZ const WCHAR *format, ...)
 #else
 			//切り捨て以外のエラーでも-1が返る(無効なパラメーターハンドラはない)ので注意
 			int n = vswprintf(p, s, format, copyParams);
+			//切り捨てのみを区別できないので上限を設ける(微妙だがvswprintfの仕様上こうするしかない)
+			if( n < 0 && buff.size() >= 16 * 1024 * 1024 ){
+				std::terminate();
+			}
 #endif
 			va_end(copyParams);
 			if( n >= 0 ){
@@ -75,6 +79,9 @@ size_t WtoA(const WCHAR* in, size_t inLen, vector<char>& out, UTIL_CONV_CODE cod
 		out[n] = '\0';
 		return strlen(out.data());
 	}
+#else
+	//常にUTF-8
+	(void)code;
 #endif
 	//WideCharToMultiByte(CP_UTF8)と4bytes全数比較済み
 	//vector<char> c[2];
@@ -95,32 +102,17 @@ size_t WtoA(const WCHAR* in, size_t inLen, vector<char>& out, UTIL_CONV_CODE cod
 	for( size_t i = 0; i < inLen && in[i]; ){
 #if WCHAR_MAX > 0xFFFF
 		int x = in[i++];
-		if( x < 0 || 0x10000 <= x ){
-			if( 0x10000 <= x && x < 0x110000 ){
 #else
 		int x = (WORD)in[i++];
 		if( 0xD800 <= x && x < 0xE000 ){
 			if( x < 0xDC00 && inLen > i && 0xDC00 <= (WORD)in[i] && (WORD)in[i] < 0xE000 ){
 				x = 0x10000 + (x - 0xD800) * 0x400 + ((WORD)in[i++] - 0xDC00);
-#endif
-				out[n++] = (char)(0xF0 | x >> 18);
-				out[n++] = (char)(0x80 | (x >> 12 & 0x3F));
-				out[n++] = (char)(0x80 | (x >> 6 & 0x3F));
-				out[n++] = (char)(0x80 | (x & 0x3F));
-				continue;
+			}else{
+				x = 0xFFFD;
 			}
-			x = 0xFFFD;
 		}
-		if( x < 0x80 ){
-			out[n++] = (char)x;
-		}else if( x < 0x800 ){
-			out[n++] = (char)(0xC0 | x >> 6);
-			out[n++] = (char)(0x80 | (x & 0x3F));
-		}else{
-			out[n++] = (char)(0xE0 | x >> 12);
-			out[n++] = (char)(0x80 | (x >> 6 & 0x3F));
-			out[n++] = (char)(0x80 | (x & 0x3F));
-		}
+#endif
+		n += codepoint_to_utf8(x, &out[n]);
 	}
 	out[n] = '\0';
 	return n;
@@ -140,6 +132,9 @@ size_t AtoW(const char* in, size_t inLen, vector<WCHAR>& out, UTIL_CONV_CODE cod
 		out[n] = L'\0';
 		return wcslen(out.data());
 	}
+#else
+	//常にUTF-8
+	(void)code;
 #endif
 	//MultiByteToWideChar(CP_UTF8)と4bytes全数比較済み
 	//vector<WCHAR> w[2];
@@ -226,8 +221,7 @@ bool Separate(const wstring& strIn, const WCHAR* sep, wstring& strLeft, wstring&
 
 int CompareNoCase(const char* s1, const char* s2)
 {
-	while( *s1 && ('a' <= *s1 && *s1 <= 'z' ? *s1 - 'a' + 'A' : *s1) ==
-	              ('a' <= *s2 && *s2 <= 'z' ? *s2 - 'a' + 'A' : *s2) ){
+	while( *s1 && UtilToUpper(*s1) == UtilToUpper(*s2) ){
 		s1++;
 		s2++;
 	}
@@ -236,10 +230,25 @@ int CompareNoCase(const char* s1, const char* s2)
 
 int CompareNoCase(const WCHAR* s1, const WCHAR* s2)
 {
-	while( *s1 && (L'a' <= *s1 && *s1 <= L'z' ? *s1 - L'a' + L'A' : *s1) ==
-	              (L'a' <= *s2 && *s2 <= L'z' ? *s2 - L'a' + L'A' : *s2) ){
+	while( *s1 && UtilToUpper(*s1) == UtilToUpper(*s2) ){
 		s1++;
 		s2++;
 	}
 	return *s1 - *s2;
+}
+
+bool ParseIPv4Address(const WCHAR* s, int& n)
+{
+	DWORD u = 0;
+	for( int i = 0; i < 4; i++ ){
+		WCHAR* endp;
+		long b = wcstol(s, &endp, 10);
+		if( b < 0 || b > 255 || endp == s || (i < 3 && *endp != L'.') ){
+			return false;
+		}
+		u = u * 256 + (DWORD)b;
+		s = endp + 1;
+	}
+	n = u < 0x80000000 ? (int)u : -(int)(0xFFFFFFFF - u) - 1;
+	return true;
 }

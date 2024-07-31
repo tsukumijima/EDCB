@@ -122,6 +122,7 @@ inline void SleepForMsec(DWORD msec)
 #include <mutex>
 #include <atomic>
 #include <stdexcept>
+#include <errno.h>
 #include <poll.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
@@ -150,25 +151,38 @@ public:
 	void Set() { SetEvent(m_h); }
 	void Reset() { ResetEvent(m_h); }
 	HANDLE Handle() { return m_h; }
-	bool WaitOne(unsigned int timeout = 0xFFFFFFFF) { return WaitForSingleObject(m_h, timeout) == WAIT_OBJECT_0; }
+	bool WaitOne(DWORD timeout = 0xFFFFFFFF) { return WaitForSingleObject(m_h, timeout) == WAIT_OBJECT_0; }
 #else
 	CAutoResetEvent(bool initialState = false) {
-		m_efd = eventfd(0, EFD_CLOEXEC);
+		m_efd = eventfd(initialState, EFD_CLOEXEC | EFD_NONBLOCK);
 		if (m_efd == -1) throw std::runtime_error("");
 	}
 	~CAutoResetEvent() { close(m_efd); }
-	void Set() { LONGLONG n = 1; write(m_efd, &n, sizeof(n)); }
+	void Set() {
+		LONGLONG n = 1;
+		while (write(m_efd, &n, sizeof(n)) < 0) {
+			if (errno != EAGAIN) throw std::runtime_error("");
+		}
+	}
 	void Reset() { WaitOne(0); }
 	int Handle() { return m_efd; }
-	bool WaitOne(unsigned int timeout = 0xFFFFFFFF) {
-		pollfd pfd;
-		pfd.fd = m_efd;
-		pfd.events = POLLIN;
-		if (poll(&pfd, 1, (int)timeout) > 0 && (pfd.revents & POLLIN)) {
-			LONGLONG n;
-			return read(m_efd, &n, sizeof(n)) == sizeof(n);
+	bool WaitOne(DWORD timeout = 0xFFFFFFFF) {
+		LONGLONG n;
+		while (read(m_efd, &n, sizeof(n)) < 0) {
+			if (errno != EAGAIN) throw std::runtime_error("");
+			if (!timeout) return false;
+			pollfd pfd;
+			pfd.fd = m_efd;
+			pfd.events = POLLIN;
+			if (poll(&pfd, 1, timeout < 0x80000000 ? (int)timeout : -1) < 0 && errno != EINTR) {
+				throw std::runtime_error("");
+			}
+			if (timeout < 0x80000000) {
+				// シグナル発生時や競合時はtimeoutよりも早くタイムアウトするので注意
+				timeout = 0;
+			}
 		}
-		return false;
+		return true;
 	}
 #endif
 private:

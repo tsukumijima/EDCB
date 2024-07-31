@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "PathUtil.h"
 #include "SendTSTCPDllUtil.h"
 #include "ThreadUtil.h"
 
@@ -54,17 +55,14 @@ public:
 protected:
 	recursive_mutex_ utilLock;
 	recursive_mutex_ ioLock;
+	util_unique_handle udpMutex;
+	util_unique_handle tcpMutex;
 	CSendTSTCPDllUtil sendUdp;
 	CSendTSTCPDllUtil sendTcp;
 	struct SEND_INFO {
 		wstring ip;
 		DWORD port;
 		wstring key;
-#ifdef _WIN32
-		HANDLE mutex;
-#else
-		FILE* mutex;
-#endif
 	} sendInfo[2];
 
 	wstring filePath;
@@ -76,8 +74,8 @@ protected:
 
 	thread_ readThread;
 	atomic_bool_ readStopFlag;
-	std::unique_ptr<FILE, decltype(&fclose)> readFile;
-	std::unique_ptr<FILE, decltype(&fclose)> seekFile;
+	std::unique_ptr<FILE, fclose_deleter> readFile;
+	std::unique_ptr<FILE, fclose_deleter> seekFile;
 protected:
 	static void ReadThread(CTimeShiftUtil* sys);
 	LONGLONG GetAvailableFileSize() const;

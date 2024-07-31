@@ -35,7 +35,7 @@ bool CParseText<K, V>::ParseText(LPCWSTR path)
 	if( this->filePath.empty() ){
 		return false;
 	}
-	std::unique_ptr<FILE, decltype(&fclose)> fp(NULL, fclose);
+	std::unique_ptr<FILE, fclose_deleter> fp;
 	for( int retry = 0;; ){
 		bool mightExist = false;
 		fp.reset(UtilOpenFile(this->filePath, UTIL_SECURE_READ));
@@ -75,8 +75,8 @@ bool CParseText<K, V>::ParseText(LPCWSTR path)
 		//完全に読み込まれた行をできるだけ解析
 		size_t offset = 0;
 		for( size_t i = 0; i < buf.size(); i++ ){
-			bool eof = buf[i] == '\0';
-			if( eof || buf[i] == '\r' && i + 1 < buf.size() && buf[i + 1] == '\n' ){
+			char c = buf[i];
+			if( c == '\0' || c == '\n' || (c == '\r' && i + 1 < buf.size() && buf[i + 1] == '\n') ){
 				buf[i] = '\0';
 				if( this->isUtf8 ){
 					UTF8toW(&buf[offset], i - offset, parseBuf);
@@ -87,11 +87,14 @@ bool CParseText<K, V>::ParseText(LPCWSTR path)
 				if( ParseLine(&parseBuf.front(), item) ){
 					this->itemMap.insert(std::move(item));
 				}
-				if( eof ){
+				if( c == '\0' ){
 					offset = i;
 					break;
 				}
-				offset = (++i) + 1;
+				if( c == '\r' ){
+					++i;
+				}
+				offset = i + 1;
 			}
 		}
 		buf.erase(buf.begin(), buf.begin() + offset);
@@ -108,7 +111,7 @@ bool CParseText<K, V>::SaveText(string* saveToStr) const
 	if( this->filePath.empty() ){
 		return false;
 	}
-	std::unique_ptr<FILE, decltype(&fclose)> fp(NULL, fclose);
+	std::unique_ptr<FILE, fclose_deleter> fp;
 	if( saveToStr ){
 		saveToStr->clear();
 	}else{
@@ -140,7 +143,7 @@ bool CParseText<K, V>::SaveText(string* saveToStr) const
 		for( size_t i = 0; i < itemList.size(); i++ ){
 			saveLine.clear();
 			if( SaveLine(*itemList[i], saveLine) ){
-				saveLine += L"\r\n";
+				saveLine += UTIL_NEWLINE;
 				size_t len;
 				if( this->isUtf8 ){
 					len = WtoUTF8(saveLine.c_str(), saveLine.size(), saveBuf);
@@ -158,7 +161,7 @@ bool CParseText<K, V>::SaveText(string* saveToStr) const
 		for( auto itr = this->itemMap.cbegin(); itr != this->itemMap.end(); itr++ ){
 			saveLine.clear();
 			if( SaveLine(*itr, saveLine) ){
-				saveLine += L"\r\n";
+				saveLine += UTIL_NEWLINE;
 				size_t len;
 				if( this->isUtf8 ){
 					len = WtoUTF8(saveLine.c_str(), saveLine.size(), saveBuf);
@@ -175,7 +178,7 @@ bool CParseText<K, V>::SaveText(string* saveToStr) const
 	}
 	saveLine.clear();
 	if( SaveFooterLine(saveLine) ){
-		saveLine += L"\r\n";
+		saveLine += UTIL_NEWLINE;
 		size_t len;
 		if( this->isUtf8 ){
 			len = WtoUTF8(saveLine.c_str(), saveLine.size(), saveBuf);

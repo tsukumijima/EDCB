@@ -3,6 +3,20 @@
 
 #include <functional>
 
+#ifdef _WIN32
+#define EDCB_LIB_EXT L".dll"
+#else
+#ifndef EDCB_INI_ROOT
+#define EDCB_INI_ROOT L"/var/local/edcb"
+#endif
+#ifndef EDCB_LIB_ROOT
+#define EDCB_LIB_ROOT L"/usr/local/lib/edcb"
+#endif
+#ifndef EDCB_LIB_EXT
+#define EDCB_LIB_EXT L".so"
+#endif
+#endif
+
 namespace filesystem_
 {
 // Extract from Boost.Filesystem(1.64.0) www.boost.org/libs/filesystem
@@ -78,6 +92,8 @@ typedef filesystem_::path fs_path;
 //#include <filesystem>
 //typedef std::experimental::filesystem::path fs_path;
 
+typedef std::unique_ptr<void, void (*)(void*)> util_unique_handle;
+
 enum {
 	UTIL_O_RDONLY = 1, // r
 	UTIL_O_RDWR = 3, // r+
@@ -144,6 +160,8 @@ bool UtilCreateDirectories(const fs_path& path);
 LONGLONG UtilGetStorageFreeBytes(const fs_path& directoryPath);
 // フォルダがあるストレージの識別子を取得する。失敗時は空
 wstring UtilGetStorageID(const fs_path& directoryPath);
+// グローバルミューテックスを生成する。失敗時(既に存在するときを含む)やname未指定のときは空のハンドルを返す
+util_unique_handle UtilCreateGlobalMutex(LPCWSTR name = NULL, bool* alreadyExists = NULL);
 
 #ifndef _WIN32
 int GetPrivateProfileInt(LPCWSTR appName, LPCWSTR keyName, int nDefault, LPCWSTR fileName);
