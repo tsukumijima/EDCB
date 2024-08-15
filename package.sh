@@ -78,6 +78,7 @@ cp -fp "${src_bin_dir}/EpgTimerAdminProxy.exe" "${dst_dir}/EpgTimerAdminProxy.ex
 cp -fp "${src_bin_dir}/EpgTimerPlugIn.tvtp" "${dst_dir}/EpgTimerPlugIn.tvtp"
 cp -fp "${src_bin_dir}/EpgTimerSrv.exe" "${dst_dir}/EpgTimerSrv.exe"
 cp -fp "${src_bin_dir}/EpgDataCap3.dll" "${dst_dir}/EpgDataCap3.dll"
+cp -fp "${src_bin_dir}/EpgDataCap3_Unicode.dll" "${dst_dir}/EpgDataCap3_Unicode.dll"
 cp -fp "ini/Tools/IBonCast/${arch2}/${target}/IBonCast.dll" "${dst_dir}/IBonCast.dll"
 cp -fp "${src_bin_dir}/SendTSTCP.dll" "${dst_dir}/SendTSTCP.dll"
 
@@ -106,7 +107,7 @@ cp -fpr ini/HttpPublic "${dst_dir}"
 cp -fpr ini/PostBatExamples "${dst_dir}"
 cp -fp "${src_bin_dir}/RecName/RecName_Macro.dll" "${dst_dir}/RecName/RecName_Macro.dll"
 
-tools_files=(mail_credential.bat mail_credential.ps1 nwtvclose.ps1 tsidmove_helper.bat watchip.bat watchip.ps1)
+tools_files=(mail_credential.bat mail_credential.ps1 tsidmove_helper.bat watchip.bat watchip.ps1)
 for tools_file in ${tools_files[@]}
 do
     cp -fp "ini/Tools/${tools_file}" "${dst_dir}/Tools/${tools_file}"
