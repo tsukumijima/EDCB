@@ -32,7 +32,7 @@ focusID=focusID or GetVarInt(mg.request_info.query_string,'id')
 if focusID then
   --focusIDの行を含むページを探す
   focusIndex=BinarySearchBound(a,{dataID=focusID},CompareFields('dataID'))
-  page=math.floor(math.min(focusIndex-1,#a-1)/pageCount)
+  page=math.floor(math.max(math.min(focusIndex-1,#a-1),0)/pageCount)
 else
   page=GetVarInt(mg.request_info.query_string,'page',0,(#a-1)/pageCount) or 0
 end

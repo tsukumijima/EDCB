@@ -37,7 +37,7 @@ pageCount=RECINFO_PAGE_COUNT
 if focus then
   --focusの行を含むページを探す
   focusIndex=BinarySearchBound(a,focus,function(a,b) return os.time(a.startTime)>os.time(b.startTime) end)
-  page=math.floor(math.min(focusIndex-1,#a-1)/pageCount)
+  page=math.floor(math.max(math.min(focusIndex-1,#a-1),0)/pageCount)
 else
   page=GetVarInt(mg.request_info.query_string,'page',0,(#a-1)/pageCount) or 0
 end
