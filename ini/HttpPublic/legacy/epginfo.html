@@ -33,8 +33,9 @@ function AddReserve(onid,tsid,sid,eid,post)
       tunerID=GetVarInt(post,'tunerID'),
       partialRecFlag=GetVarInt(post,'partialRecFlag',0,1) or 0
     }
+    local chInfo=BinarySearch(edcb.GetChDataList(),r,CompareFields('onid',false,'tsid',false,'sid'))
     local ev=edcb.SearchEpg(onid,tsid,sid,eid)
-    if ev and ev.startTime and ev.durationSecond and
+    if chInfo and ev and ev.startTime and ev.durationSecond and
        r.recSetting.recMode and
        r.recSetting.priority and
        r.recSetting.suspendMode and
@@ -45,13 +46,7 @@ function AddReserve(onid,tsid,sid,eid,post)
       r.startTime=ev.startTime
       r.startTimeEpg=ev.startTime
       r.durationSecond=ev.durationSecond
-      r.stationName=''
-      for i,v in ipairs(edcb.GetServiceList() or {}) do
-        if v.onid==onid and v.tsid==tsid and v.sid==sid then
-          r.stationName=v.service_name
-          break
-        end
-      end
+      r.stationName=chInfo.serviceName
       return edcb.AddReserveData(r)
     end
   end
