@@ -86,6 +86,11 @@ th, td {
   font-weight: bold;
 }
 
+.log-marker {
+  background: #fff;
+  color: #00f;
+}
+
 .select-with-note > select {
   float: left;
   margin-right: 1em;
@@ -609,6 +614,11 @@ th, td {
 
   a:visited {
     color: #96a;
+  }
+
+  .log-marker {
+    background: #300;
+    color: #88f;
   }
 
   .epg-col {
