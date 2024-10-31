@@ -160,7 +160,7 @@ private:
 	//バッチに渡す予約情報マクロを追加する
 	static void AddReserveDataMacro(vector<pair<string, wstring>>& macroList, const RESERVE_DATA& data, LPCSTR suffix);
 	//バッチに渡す録画済み情報マクロを追加する
-	static void AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO& recInfo);
+	static void AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO_BASIC& recInfo);
 
 	mutable recursive_mutex_ managerLock;
 

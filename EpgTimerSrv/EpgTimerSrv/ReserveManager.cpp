@@ -476,8 +476,9 @@ vector<REC_FILE_INFO> CReserveManager::GetRecFileInfoAll(bool getExtraInfo) cons
 	{
 		lock_recursive_mutex lock(this->managerLock);
 		infoList.reserve(this->recInfoText.GetMap().size());
-		for( map<DWORD, REC_FILE_INFO>::const_iterator itr = this->recInfoText.GetMap().begin(); itr != this->recInfoText.GetMap().end(); itr++ ){
-			infoList.push_back(itr->second);
+		for( map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().begin(); itr != this->recInfoText.GetMap().end(); itr++ ){
+			infoList.resize(infoList.size() + 1);
+			static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
 		}
 		if( getExtraInfo ){
 			folder = this->recInfoText.GetRecInfoFolder();
@@ -499,11 +500,13 @@ bool CReserveManager::GetRecFileInfo(DWORD id, REC_FILE_INFO* recInfo, bool getE
 	bool folderOnly;
 	{
 		lock_recursive_mutex lock(this->managerLock);
-		map<DWORD, REC_FILE_INFO>::const_iterator itr = this->recInfoText.GetMap().find(id);
+		map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().find(id);
 		if( itr == this->recInfoText.GetMap().end() ){
 			return false;
 		}
-		*recInfo = itr->second;
+		*static_cast<REC_FILE_INFO_BASIC*>(recInfo) = itr->second;
+		recInfo->programInfo.clear();
+		recInfo->errInfo.clear();
 		if( getExtraInfo ){
 			folder = this->recInfoText.GetRecInfoFolder();
 		}
@@ -1242,7 +1245,7 @@ void CReserveManager::CheckAutoDel() const
 						return a.first.lastWriteTime < b.first.lastWriteTime; });
 				fs_path delPath = fs_path(this->setting.delChkList[jtr->second]).append(jtr->first.fileName);
 				if( this->recInfoText.GetMap().end() != std::find_if(this->recInfoText.GetMap().begin(), this->recInfoText.GetMap().end(),
-				        [&](const pair<DWORD, REC_FILE_INFO>& a) {
+				        [&](const pair<DWORD, REC_FILE_INFO_BASIC>& a) {
 				            return a.second.protectFlag && UtilComparePath(a.second.recFilePath.c_str(), delPath.c_str()) == 0; }) ){
 					//プロテクトされた録画済みファイルは消さない
 					AddDebugLogFormat(L"★No Delete(Protected) : %ls", delPath.c_str());
@@ -1282,7 +1285,7 @@ void CReserveManager::CheckOverTimeReserve()
 			//終了時間過ぎてしまっている
 			if( itr->second.recSetting.IsNoRec() == false ){
 				//無効のものは結果に残さない
-				REC_FILE_INFO item;
+				REC_FILE_INFO_BASIC item;
 				item = itr->second;
 				item.recStatus = REC_END_STATUS_NO_TUNER;
 				this->recInfoText.AddRecInfo(item);
@@ -1326,7 +1329,7 @@ void CReserveManager::ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& 
 				this->recInfo2Text.Add(item);
 			}
 
-			REC_FILE_INFO item;
+			REC_FILE_INFO_BASIC item;
 			item = itrRes->second;
 			if( itrRet->type <= CTunerBankCtrl::CHECK_END_NOT_START_HEAD ){
 				item.recFilePath = itrRet->recFilePath;
@@ -2148,7 +2151,7 @@ void CReserveManager::AddReserveDataMacro(vector<pair<string, wstring>>& macroLi
 		data.recSetting.batFilePath.substr(data.recSetting.batFilePath.find(L'*') + 1) : wstring()));
 }
 
-void CReserveManager::AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO& recInfo)
+void CReserveManager::AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO_BASIC& recInfo)
 {
 	WCHAR v[64];
 	AddTimeMacro(macroList, recInfo.startTime, recInfo.durationSecond, "");
