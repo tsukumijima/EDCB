@@ -37,8 +37,8 @@ public:
 	bool ChgReserveData(const vector<RESERVE_DATA>& reserveList, bool setReserveStatus = false);
 	//予約情報を削除する
 	void DelReserveData(const vector<DWORD>& idList);
-	//録画済み情報一覧を取得する
-	vector<REC_FILE_INFO> GetRecFileInfoAll(bool getExtraInfo = true) const;
+	//リスト指定または!idListですべての録画済み情報一覧を取得する
+	vector<REC_FILE_INFO> GetRecFileInfoList(const vector<DWORD>* idList, bool getExtraInfo = true) const;
 	//録画済み情報を取得する
 	bool GetRecFileInfo(DWORD id, REC_FILE_INFO* recInfo, bool getExtraInfo = true) const;
 	//録画済み情報を削除する

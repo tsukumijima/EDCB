@@ -1729,7 +1729,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_ENUM_RECINFO:
 		AddDebugLog(L"CMD2_EPG_SRV_ENUM_RECINFO");
-		res.WriteVALUE(sys->reserveManager.GetRecFileInfoAll());
+		res.WriteVALUE(sys->reserveManager.GetRecFileInfoList(NULL));
 		res.SetParam(CMD_SUCCESS);
 		break;
 	case CMD2_EPG_SRV_DEL_RECINFO:
@@ -2631,7 +2631,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 			WORD ver;
 			if( cmd.ReadVALUE(&ver) ){
 				res.WriteVALUE2WithVersion(ver,
-					sys->reserveManager.GetRecFileInfoAll(cmd.GetParam() == CMD2_EPG_SRV_ENUM_RECINFO2));
+					sys->reserveManager.GetRecFileInfoList(NULL, cmd.GetParam() == CMD2_EPG_SRV_ENUM_RECINFO2));
 				res.SetParam(CMD_SUCCESS);
 			}
 		}
@@ -2963,24 +2963,7 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStrea
 			WORD ver;
 			vector<DWORD> idList;
 			if( cmd.ReadVALUE2WithVersion(&ver, &idList) ){
-				vector<REC_FILE_INFO> listA = this->reserveManager.GetRecFileInfoAll(false);
-				vector<REC_FILE_INFO> list;
-				REC_FILE_INFO info;
-				for( size_t i = 0; i < idList.size(); i++ ){
-					info.id = idList[i];
-					vector<REC_FILE_INFO>::const_iterator itr =
-						std::lower_bound(listA.begin(), listA.end(), info, [](const REC_FILE_INFO& a, const REC_FILE_INFO& b) { return a.id < b.id; });
-					if( itr != listA.end() && itr->id == info.id ){
-						list.push_back(*itr);
-					}
-				}
-				for( size_t i = 0; i < list.size(); i++ ){
-					if( this->reserveManager.GetRecFileInfo(list[i].id, &info) ){
-						list[i].programInfo = info.programInfo;
-						list[i].errInfo = info.errInfo;
-					}
-				}
-				res.WriteVALUE2WithVersion(ver, list);
+				res.WriteVALUE2WithVersion(ver, this->reserveManager.GetRecFileInfoList(&idList));
 				res.SetParam(CMD_SUCCESS);
 			}
 			return true;
@@ -4037,7 +4020,7 @@ int CEpgTimerSrvMain::LuaGetRecFileInfoProc(lua_State* L, bool getExtraInfo)
 	vector<REC_FILE_INFO> list;
 	if( getAll ){
 		lua_newtable(L);
-		list = ws.sys->reserveManager.GetRecFileInfoAll(getExtraInfo);
+		list = ws.sys->reserveManager.GetRecFileInfoList(NULL, getExtraInfo);
 	}else{
 		DWORD id = (DWORD)lua_tointeger(L, 1);
 		list.resize(1);

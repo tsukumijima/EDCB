@@ -468,17 +468,27 @@ void CReserveManager::DelReserveData(const vector<DWORD>& idList)
 	}
 }
 
-vector<REC_FILE_INFO> CReserveManager::GetRecFileInfoAll(bool getExtraInfo) const
+vector<REC_FILE_INFO> CReserveManager::GetRecFileInfoList(const vector<DWORD>* idList, bool getExtraInfo) const
 {
 	vector<REC_FILE_INFO> infoList;
 	wstring folder;
 	bool folderOnly;
 	{
 		lock_recursive_mutex lock(this->managerLock);
-		infoList.reserve(this->recInfoText.GetMap().size());
-		for( map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().begin(); itr != this->recInfoText.GetMap().end(); itr++ ){
-			infoList.resize(infoList.size() + 1);
-			static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
+		if( idList ){
+			for( size_t i = 0; i < idList->size(); i++ ){
+				map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().find((*idList)[i]);
+				if( itr != this->recInfoText.GetMap().end() ){
+					infoList.resize(infoList.size() + 1);
+					static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
+				}
+			}
+		}else{
+			infoList.reserve(this->recInfoText.GetMap().size());
+			for( map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().begin(); itr != this->recInfoText.GetMap().end(); itr++ ){
+				infoList.resize(infoList.size() + 1);
+				static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
+			}
 		}
 		if( getExtraInfo ){
 			folder = this->recInfoText.GetRecInfoFolder();
