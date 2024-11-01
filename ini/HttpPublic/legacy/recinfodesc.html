@@ -19,16 +19,55 @@ ct:Append((vtag<=0 and DOCTYPE_HTML4_STRICT or '<!DOCTYPE html>\n')..[=[
 
 id=GetVarInt(mg.request_info.query_string,'id') or 0
 xq=GetTranscodeQueries(mg.request_info.query_string)
+w=edcb.GetRecFileInfoBasic(id)
 
 post=AssertPost()
 if post then
   if mg.get_var(post,'protect') then
     edcb.ChgProtectRecFileInfo(id,mg.get_var(post,'protect')=='y')
     ct:Append('  <div id="result">変更しました</div>\n')
+  elseif mg.get_var(post,'ren') then
+    ren=DocumentToNativePath(mg.get_var(post,'ren'))
+    if not w or not ren then
+      ct:Append('  <div id="result">パスが不正のためリネームできません</div>\n')
+    elseif not ren:find('[^'..DIR_SEPS..']%.[0-9A-Za-z]+$') or
+           not IsEqualPath(ren:match('%.[0-9A-Za-z]+$'),w.recFilePath:match('%.[0-9A-Za-z]+$') or '') then
+      ct:Append('  <div id="result">拡張子はリネームできません</div>\n')
+    elseif not ren:find('['..DIR_SEPS..'][^'..DIR_SEPS..']+$') or
+           not (EdcbFindFilePlain(ren:gsub('['..DIR_SEPS..'][^'..DIR_SEPS..']+$','')) or {}).isdir then
+      ct:Append('  <div id="result">移動先のディレクトリが存在しません</div>\n')
+    elseif not EdcbFindFilePlain(w.recFilePath) then
+      --情報だけ変更
+      edcb.ChgPathRecFileInfo(id,ren)
+      w.recFilePath=ren
+      ct:Append('  <div id="result">リネームしました</div>\n')
+    elseif not IsEqualPath(ren,w.recFilePath) and EdcbFindFilePlain(ren) then
+      ct:Append('  <div id="result">移動先にファイルが存在します</div>\n')
+    elseif not edcb.os.rename(w.recFilePath,ren) then
+      ct:Append('  <div id="result">ファイルを移動できません</div>\n')
+    else
+      --拡張子が付加されたファイルも移動する
+      oriName=w.recFilePath:match('[^'..DIR_SEPS..']*$')
+      for i,v in ipairs(edcb.FindFile(w.recFilePath:sub(1,#w.recFilePath-#oriName)..oriName:gsub('%*','?')..'.*',0) or {}) do
+        if #oriName<#v.name and IsEqualPath(oriName,v.name:sub(1,#oriName)) then
+          edcb.os.rename(w.recFilePath..v.name:sub(#oriName+1),ren..v.name:sub(#oriName+1))
+        end
+      end
+      --録画情報保存フォルダのファイルも移動する
+      recInfoFolder=edcb.GetPrivateProfile('SET','RecInfoFolder','','Common.ini')
+      if recInfoFolder~='' then
+        renName=ren:match('[^'..DIR_SEPS..']*$')
+        for i,v in ipairs({'.err','.program.txt'}) do
+          edcb.os.rename(PathAppend(recInfoFolder,oriName..v),PathAppend(recInfoFolder,renName..v))
+        end
+      end
+      edcb.ChgPathRecFileInfo(id,ren)
+      w.recFilePath=ren
+      ct:Append('  <div id="result">リネームしました</div>\n')
+    end
   end
 end
 
-w=edcb.GetRecFileInfoBasic(id)
 edcb.htmlEscape=15
 v=edcb.GetRecFileInfo(id)
 if v then
@@ -76,7 +115,13 @@ if v then
             fsec,fsize=GetDurationSec(f)
             f:close()
           end
-          ct:Append(' ('..('%dm%02ds|'):format(math.floor(fsec/60),fsec%60)..math.floor(fsize/1048576)..'M)<br>\n'
+          ct:Append(' ('..('%dm%02ds|'):format(math.floor(fsec/60),fsec%60)..math.floor(fsize/1048576)..'M)\n'
+            ..'<label class="expand-on-checked"><input type="checkbox">edit</label>\n'
+            ..'<form class="expand-on-checked" method="POST" action="recinfodesc.html?id='..v.id..'"><div>\n'
+            ..'<input type="hidden" name="ctok" value="'..CsrfToken()..'">\n'
+            ..'<input type="text" name="ren" value="/'..EdcbHtmlEscape(ref)..'" style="width:95%"><br><button type="submit">リネーム</button>\n'
+            ..'※拡張子が付加されたファイルも移動します(.err, .program.txtなど)\n'
+            ..'</div></form>\n'
             ..'<form id="vid-form" action="'..(vtag==0 and 'xcode.lua' or 'recinfodesc.html')..'"><div>\n'
             ..(vtag==0 and '<input type="hidden" name="fname" value="'..EdcbHtmlEscape(ref)..'">\n'
                  or '<input type="hidden" name="id" value="'..v.id..'">\n<input type="hidden" name="vtag" value="10">\n'
@@ -98,6 +143,14 @@ if v then
         else
           ct:Append((vtag~=i and '\n[<a href="mux_to_ts.lua?fname='..mg.url_encode(ref..ext)..'">Mux-to-TS</a>]' or '')
             ..' ('..math.floor(ff.size/1048576)..'M)<br>\n')
+        end
+      else
+        --ファイルが見つからない場合もリネームはできるようにしておく
+        if ext=='' then
+          ct:Append('<form method="POST" action="recinfodesc.html?id='..v.id..'"><div>\n'
+            ..'<input type="hidden" name="ctok" value="'..CsrfToken()..'">\n'
+            ..'<input type="text" name="ren" value="/'..EdcbHtmlEscape(ref)..'" style="width:95%"><br><button type="submit">リネーム</button>\n'
+            ..'</div></form>\n')
         end
       end
     end
