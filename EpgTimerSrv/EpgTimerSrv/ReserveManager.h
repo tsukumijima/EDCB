@@ -19,6 +19,11 @@ public:
 		CHECK_NEED_SHUTDOWN,	//システムシャットダウンを試みる必要がある
 		CHECK_RESERVE_MODIFIED,	//予約になんらかの変化があった
 	};
+	struct OPEN_NWTV_RESULT {
+		bool succeeded;
+		int processID;
+		int openCount;
+	};
 	CReserveManager(CNotifyManager& notifyManager_, CEpgDBManager& epgDBManager_);
 	void Initialize(const CEpgTimerSrvSetting::SETTING& s);
 	void Finalize();
@@ -83,9 +88,9 @@ public:
 	bool IsOpenTuner(DWORD tunerID) const;
 	//ネットワークモードでチューナを起動しチャンネル設定する
 	//tunerIDList: 起動させるときはこのリストにあるチューナを候補にする
-	pair<bool, int> OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList);
+	OPEN_NWTV_RESULT OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList);
 	//ネットワークモードでチューナが起動しているか
-	pair<bool, int> IsOpenNWTV(int id) const;
+	OPEN_NWTV_RESULT IsOpenNWTV(int id) const;
 	//ネットワークモードのチューナを閉じる
 	bool CloseNWTV(int id);
 	//ネットワークモードのID一覧を取得する(チューナID順)

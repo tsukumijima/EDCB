@@ -1857,10 +1857,11 @@ bool CReserveManager::IsOpenTuner(DWORD tunerID) const
 	return itr != this->tunerBankMap.end() && itr->second->GetState() != CTunerBankCtrl::TR_IDLE;
 }
 
-pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList)
+CReserveManager::OPEN_NWTV_RESULT CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList)
 {
 	lock_recursive_mutex lock(this->managerLock);
 
+	OPEN_NWTV_RESULT ret = {};
 	SET_CH_INFO chInfo = {};
 	chInfo.useSID = TRUE;
 	chInfo.ONID = onid;
@@ -1871,7 +1872,10 @@ pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD o
 			//すでに起動しているので使えたら使う
 			if( itr->second->GetCh(chInfo.ONID, chInfo.TSID, chInfo.SID) ){
 				itr->second->OpenNWTV(id, nwUdp, nwTcp, chInfo);
-				return std::make_pair(true, itr->second->GetProcessID());
+				ret.succeeded = true;
+				ret.processID = itr->second->GetProcessID();
+				ret.openCount = itr->second->GetNWTVOpenCount();
+				return ret;
 			}
 			itr->second->CloseNWTV();
 			break;
@@ -1883,23 +1887,30 @@ pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD o
 			//別IDのネットワークモードを邪魔しない
 			if( itr->second->GetState() != CTunerBankCtrl::TR_NWTV &&
 			    itr->second->OpenNWTV(id, nwUdp, nwTcp, chInfo) ){
-				return std::make_pair(true, itr->second->GetProcessID());
+				ret.succeeded = true;
+				ret.processID = itr->second->GetProcessID();
+				ret.openCount = itr->second->GetNWTVOpenCount();
+				break;
 			}
 		}
 	}
-	return std::make_pair(false, 0);
+	return ret;
 }
 
-pair<bool, int> CReserveManager::IsOpenNWTV(int id) const
+CReserveManager::OPEN_NWTV_RESULT CReserveManager::IsOpenNWTV(int id) const
 {
 	lock_recursive_mutex lock(this->managerLock);
 
+	OPEN_NWTV_RESULT ret = {};
 	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
 		if( itr->second->GetState() == CTunerBankCtrl::TR_NWTV && itr->second->GetNWTVID() == id ){
-			return std::make_pair(true, itr->second->GetProcessID());
+			ret.succeeded = true;
+			ret.processID = itr->second->GetProcessID();
+			ret.openCount = itr->second->GetNWTVOpenCount();
+			break;
 		}
 	}
-	return std::make_pair(false, 0);
+	return ret;
 }
 
 bool CReserveManager::CloseNWTV(int id)

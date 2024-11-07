@@ -109,13 +109,16 @@ function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
     -- プロセス終了時に対応するNetworkTVモードも終了させる
     cmd=cmd..' | '..tsmemseg..(hls4>0 and ' -4' or '')..' -a 10 -m 8192 -d 3 -p '..partConfigSec..' '..(WIN32 and '' or '-g '..QuoteCommandArgForPath(EdcbModulePath())..' ')
     if nwtvclose then
-      if WIN32 then
-        cmd=cmd.."-c \"..\\EpgTimerSrv.exe /luapost if(edcb.GetPrivateProfile('NWTV','nwtv"..nwtvclose[1].."open','"..nwtvclose[2]
-          .."','Setting\\\\HttpPublic.ini')=='"..nwtvclose[2].."')then;edcb.CloseNetworkTV("..nwtvclose[1]..");end\" "
+      cmd=cmd..(WIN32 and '-c "..\\EpgTimerSrv.exe /luapost ' or '-c "echo \\"')
+      if type(nwtvclose[2])=='string' then
+        -- 古い環境用
+        cmd=cmd.."if(edcb.GetPrivateProfile('NWTV','nwtv"..nwtvclose[1].."open','"..nwtvclose[2]
+          .."','Setting"..(WIN32 and '\\\\' or '/').."HttpPublic.ini')=='"..nwtvclose[2].."')"
       else
-        cmd=cmd.."-c \"echo \\\"if(edcb.GetPrivateProfile('NWTV','nwtv"..nwtvclose[1].."open','"..nwtvclose[2]
-          .."','Setting/HttpPublic.ini')=='"..nwtvclose[2].."')then;edcb.CloseNetworkTV("..nwtvclose[1]..");end\\\" >>\\\""..PathAppend(EdcbModulePath(),'EpgTimerSrvLuaPost.fifo').."\\\"\" "
+        cmd=cmd..'ok,pid,openID=edcb.IsOpenNetworkTV('..nwtvclose[1]..');if(ok)and(openID=='..nwtvclose[2]..')'
       end
+      cmd=cmd..'then;edcb.CloseNetworkTV('..nwtvclose[1]..');end'
+        ..(WIN32 and '" ' or '\\" >>\\"'..PathAppend(EdcbModulePath(),'EpgTimerSrvLuaPost.fifo')..'\\"" ')
     end
     cmd=cmd..hlsKey..'_'
   elseif XCODE_BUF>0 then
@@ -257,10 +260,13 @@ if onid then
       else
         -- 前回のプロセスが残っていたら終わらせる
         TerminateCommandlineLike('tsreadex',' -z edcb-legacy-nwtv-'..n..' ')
-        openTime=os.time()
-        edcb.WritePrivateProfile('NWTV','nwtv'..n..'open','@'..openTime,'Setting\\HttpPublic.ini')
         -- NetworkTVモードを開始
-        ok,pid=edcb.OpenNetworkTV(2,onid,tsid,sid,n)
+        ok,pid,myOpenID=edcb.OpenNetworkTV(2,onid,tsid,sid,n)
+        if ok and not myOpenID then
+          -- 古い環境用
+          myOpenID='@'..os.time()
+          edcb.WritePrivateProfile('NWTV','nwtv'..n..'open',myOpenID,'Setting\\HttpPublic.ini')
+        end
       end
       if ok then
         -- 名前付きパイプができるまで待つ
@@ -306,7 +312,7 @@ if onid then
           end
         else
           if pipeName then
-            f=OpenTranscoder(pipeName,'nwtv-'..n,{n,'@'..openTime},sid)
+            f=OpenTranscoder(pipeName,'nwtv-'..n,{n,myOpenID},sid)
             fname='view.'..output[1]
           end
           if not f then
@@ -430,10 +436,18 @@ else
   end
   f:close()
   if onid then
+    -- NetworkTVモードを終了
     -- リロード時などの終了を防ぐ。厳密にはロックなどが必要だが概ねうまくいけば良い
-    if edcb.GetPrivateProfile('NWTV','nwtv'..n..'open','@'..openTime,'Setting\\HttpPublic.ini')=='@'..openTime then
-      -- NetworkTVモードを終了
-      edcb.CloseNetworkTV(n)
+    if type(myOpenID)=='string' then
+      -- 古い環境用
+      if edcb.GetPrivateProfile('NWTV','nwtv'..n..'open',myOpenID,'Setting\\HttpPublic.ini')==myOpenID then
+        edcb.CloseNetworkTV(n)
+      end
+    else
+      ok,pid,openID=edcb.IsOpenNetworkTV(n)
+      if ok and openID==myOpenID then
+        edcb.CloseNetworkTV(n)
+      end
     end
   end
 end
