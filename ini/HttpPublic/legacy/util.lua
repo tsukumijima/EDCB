@@ -289,7 +289,7 @@ function VideoWrapperBegin()
   return '<div class="video-wrapper" id="vid-wrap">'
     ..'<div class="data-broadcasting-browser-container"><div class="data-broadcasting-browser-content"></div></div>'
     ..'<div class="video-full-container arib-video-invisible-container" id="vid-full">'
-    ..'<div class="video-container arib-video-container" id="vid-cont">'
+    ..'<div class="video-container arib-video-container arib-video-container-tunnel-pointer" id="vid-cont">'
 end
 
 function VideoWrapperEnd()
@@ -336,30 +336,13 @@ end
 function WebBmlScriptTemplate(label)
   return USE_DATACAST and [=[
 <div class="remote-control" style="display:none">
-  <button type="button" id="key21">青</button><button
-    type="button" id="key22">赤</button><button
-    type="button" id="key23">緑</button><button
-    type="button" id="key24">黄</button><button
-    type="button" id="key1">↑</button><button
-    type="button" id="key3">←</button><button
-    type="button" id="key18">決定</button><button
-    type="button" id="key4">→</button><button
-    type="button" id="key2">↓</button><button
-    type="button" id="key20">d</button><button
-    type="button" id="key19">戻る</button><button
-    type="button" id="key6">1</button><button
-    type="button" id="key7">2</button><button
-    type="button" id="key8">3</button><button
-    type="button" id="key9">4</button><button
-    type="button" id="key10">5</button><button
-    type="button" id="key11">6</button><button
-    type="button" id="key12">7</button><button
-    type="button" id="key13">8</button><button
-    type="button" id="key14">9</button><button
-    type="button" id="key15">10</button><button
-    type="button" id="key16">11</button><button
-    type="button" id="key17">12</button><button
-    type="button" id="key5">0</button>
+  <button
+    type="button" id="key]=]..table.concat({'21">青','22">赤','23">緑','24">黄','1">↑','3">←','18">決定','4">→','2">↓','20">d','19">戻る'},[=[</button><button
+    type="button" id="key]=])..[=[</button>
+  <label class="expand-on-checked"><input type="checkbox">数字</label><span class="expand-on-checked">
+    <button
+      type="button" id="key]=]..table.concat({'6">1','7">2','8">3','9">4','10">5','11">6','12">7','13">8','14">9','15">10','16">11','17">12','5">0'},[=[</button><button
+      type="button" id="key]=])..[=[</button></span>
   <span class="remote-control-receiving-status" style="display:none">Loading...</span>
   <div class="remote-control-indicator"></div>
 </div>
