@@ -289,7 +289,7 @@ function VideoWrapperBegin()
   return '<div class="video-wrapper" id="vid-wrap">'
     ..'<div class="data-broadcasting-browser-container"><div class="data-broadcasting-browser-content"></div></div>'
     ..'<div class="video-full-container arib-video-invisible-container" id="vid-full">'
-    ..'<div class="video-container arib-video-container arib-video-container-tunnel-pointer" id="vid-cont">'
+    ..'<div class="video-container arib-video-container arib-video-container-prepend arib-video-container-tunnel-pointer" id="vid-cont">'
 end
 
 function VideoWrapperEnd()

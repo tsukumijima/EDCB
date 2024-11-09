@@ -13,7 +13,6 @@ ct:Append((vtag<=0 and DOCTYPE_HTML4_STRICT or '<!DOCTYPE html>\n')..[=[
 <title>ライブラリ - EDCB</title>
 </head>
 <body>
-<h1>ライブラリ</h1>
 ]=])
 
 dirname=nil
@@ -36,8 +35,9 @@ if index then
   end
 end
 
+queryParent=''
 if not dirname then
-  ct:Append('<div class="nav"><ul>\n')
+  ct:Append('<h1>ライブラリ</h1>\n<div class="nav"><ul>\n')
   edcb.htmlEscape=15
   for i,v in ipairs(LIBRARY_LIST) do
     ct:Append('<li><a href="library.html?i='..i..'">'..EdcbHtmlEscape(v)
@@ -51,11 +51,12 @@ else
   hash=mg.get_var(mg.request_info.query_string,'h')
   if not hash then
     sort=mg.get_var(mg.request_info.query_string,'s') or 'dd'
-    ct:Append('<div class="nav"><table>\n<tr>'
+    queryParent=dirhash and '?i='..index or ''
+    ct:Append('<h1>ライブラリ</h1>\n<div class="nav"><table>\n<tr>'
       ..'<th><a href="library.html?i='..index..'&amp;s='..(sort~='dd' and 'dd' or 'da')..(dirhash and '&amp;d='..dirhash or '')..'">Modified</a>'
       ..'<th><a href="library.html?i='..index..'&amp;s='..(sort~='sa' and 'sa' or 'sd')..(dirhash and '&amp;d='..dirhash or '')..'">Size</a>'
       ..'<th><a href="library.html?i='..index..'&amp;s='..(sort~='na' and 'na' or 'nd')..(dirhash and '&amp;d='..dirhash or '')..'">Name</a></tr>\n'
-      ..'<tr><td><td><td><a href="library.html'..(dirhash and '?i='..index or '')..'">Parent directory ..</a></tr>\n')
+      ..'<tr><td><td><td><a href="library.html'..queryParent..'">Parent directory ..</a></tr>\n')
     ff={}
     for i,v in ipairs(edcb.FindFile(PathAppend(dir,'*'),0) or {}) do
       if not v.isdir then
@@ -111,7 +112,7 @@ else
     edcb.htmlEscape=15
     if info then
       ref=dirname..'/'..info.name
-      ct:Append('<a href="library.html?i='..index..(dirhash and '&amp;d='..dirhash or '')..'">Parent directory ..</a><br>\n')
+      queryParent='?i='..index..(dirhash and '&amp;d='..dirhash or '')
 
       if vtag==1 then
         ct:Append(VideoWrapperBegin()
@@ -163,6 +164,7 @@ end
 ct:Append([=[
 <div id="footer">
   <a href="]=]..(index and 'library.html">ライブラリリスト' or 'index.html">メニュー')..[=[</a>
+]=]..(queryParent~='' and '  <a href="library.html'..queryParent..'">Parent_directory..</a>\n' or '')..[=[
 </div>
 </body>
 </html>
