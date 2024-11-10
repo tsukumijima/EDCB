@@ -348,6 +348,15 @@ function runOnscreenButtonsScript(){
   vcont=document.getElementById("vid-cont");
   vfull=document.getElementById("vid-full");
   vwrap=document.getElementById("vid-wrap");
+  function adjustMaxWidth(){
+    if(!vwrap.style.width){
+      var r=(vid.clientWidth>0&&vid.clientHeight>0?vid.clientWidth/vid.clientHeight:16/9)*window.innerHeight/window.innerWidth-
+            document.getElementById("footer").clientHeight*1.5/window.innerHeight;
+      vcont.style.setProperty("--vcont-max-width",(r<0.5?0.5:r<1?r:1)*100+"%");
+    }
+  }
+  window.addEventListener("load",adjustMaxWidth);
+  window.addEventListener("resize",adjustMaxWidth);
   var btn=document.createElement("button");
   btn.type="button";
   btn.innerText="full";
@@ -449,7 +458,7 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
   var checkScrollID=0;
   var cbJikkyoOnscr=document.getElementById("cb-jikkyo-onscr");
   function onclickJikkyoOnscr(){
-    if(comm&&comm.style.display!="none"){
+    if(comm&&comm.style.visibility!="hidden"){
       var cbDatacast=document.getElementById("cb-datacast");
       if((!cbDatacast||!cbDatacast.checked)&&cbJikkyoOnscr.checked)danmaku.show();
       else danmaku.hide();
@@ -461,8 +470,13 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
       var cbJikkyo=document.getElementById("cb-jikkyo");
       if(!cbJikkyo.checked){
         danmaku.hide();
-        comm.style.display="none";
+        comm.style.visibility="hidden";
+        var cbDatacast=document.getElementById("cb-datacast");
+        if(!cbDatacast||!cbDatacast.checked){
+          comm.style.display="none";
+        }
       }else{
+        comm.style.visibility=null;
         comm.style.display=null;
         onclickJikkyoOnscr();
       }
@@ -513,7 +527,8 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
         commHide=true;
       }else{
         var scroll=Math.abs(comm.scrollTop+comm.clientHeight-comm.scrollHeight)<comm.clientHeight/4;
-        comm.style.height=vid.clientHeight+"px";
+        //The top/bottom border of .jikkyo-comments must be 1px
+        comm.style.height=vid.clientHeight-2+"px";
         if(commHide||scroll)comm.scrollTop=comm.scrollHeight;
         commHide=false;
       }

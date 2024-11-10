@@ -308,7 +308,7 @@ th, td {
 
 .video-container {
   line-height: 0;
-  max-width: 90%;
+  max-width: var(--vcont-max-width, 100%);
   overflow: hidden;
   position: relative;
   width: max-content;
@@ -496,6 +496,7 @@ th, td {
 }
 
 .jikkyo-comments {
+  /* The top/bottom border of .jikkyo-comments must be 1px */
   border: 1px solid #ccc;
   flex: 0 0 25%;
   font-size: small;
