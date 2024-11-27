@@ -326,7 +326,7 @@ end
 
 function OnscreenButtonsScriptTemplate()
   return [=[
-<script src="script.js?ver=20241023"></script>
+<script src="script.js?ver=20241127"></script>
 <script>
 runOnscreenButtonsScript();
 </script>

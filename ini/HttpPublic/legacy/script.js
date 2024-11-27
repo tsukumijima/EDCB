@@ -246,7 +246,7 @@ function waitForHlsStart(src,postQuery,interval,delay,onerror,onstart){
     xhr.open(method,src);
     if(method=="POST")xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
     method="GET";
-    xhr.onload=function(){
+    xhr.onloadend=function(){
       if(xhr.status==200&&xhr.response){
         if(xhr.response.indexOf('#EXT-X-MEDIA-SEQUENCE:')<0)setTimeout(poll,interval);
         else setTimeout(function(){onstart(src);},delay);
@@ -959,7 +959,7 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
     vid.poster="loading.png";
     waitForHlsStart(document.getElementById("vidsrc").textContent+
       //Excludes Firefox for Android, because playback of non-keyframe fragmented MP4 is jerky.
-      hlsQuery+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,1000,1000,function(){vid.poster=null;},function(src){
+      hlsQuery+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,function(){vid.poster=null;},function(src){
       if(Hls.isSupported()){
         var hls=new Hls();
         hls.loadSource(src);
@@ -997,7 +997,7 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
       var cbLive=document.getElementById("cb-live");
       if(cbLive)cbLive.checked=true;
       vid.poster="loading.png";
-      waitForHlsStart(document.getElementById("vidsrc").textContent+hlsQuery+hlsMp4Query,postQuery,1000,1000,function(){vid.poster=null;},function(src){
+      waitForHlsStart(document.getElementById("vidsrc").textContent+hlsQuery+hlsMp4Query,postQuery,200,500,function(){vid.poster=null;},function(src){
         vid.src=src;
       });
     }else{

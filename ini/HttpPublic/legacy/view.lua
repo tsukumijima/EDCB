@@ -398,10 +398,13 @@ elseif psidata or jikkyo then
 elseif hlsKey then
   -- インデックスファイルを返す
   i=1
-  while true do
+  repeat
     m3u=CreateHlsPlaylist(f)
     f:close()
-    if i>40 or not hlsMsn or m3u:find('EXT%-X%-ENDLIST') or not m3u:find('CAN%-BLOCK%-RELOAD') or
+    if not m3u:find('#EXT%-X%-MEDIA%-SEQUENCE:') then
+      -- 最初のセグメントができるまでは2秒だけ応答保留する
+      if i>10 then break end
+    elseif i>40 or not hlsMsn or m3u:find('#EXT%-X%-ENDLIST') or not m3u:find('CAN%-BLOCK%-RELOAD') or
        not m3u:find('_'..(hlsMsn-1)..'\n') or
        m3u:find('_'..hlsMsn..'\n') or
        (hlsPart and m3u:find('_'..hlsMsn..'_'..(hlsPart+1)..'"')) then
@@ -409,9 +412,8 @@ elseif hlsKey then
     end
     edcb.Sleep(200)
     f=OpenTsmemsegPipe(hlsKey..'_','00')
-    if not f then break end
     i=i+1
-  end
+  until not f
   ct=CreateContentBuilder()
   ct:Append(m3u)
   ct:Finish()
