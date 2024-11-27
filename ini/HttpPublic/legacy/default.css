@@ -249,7 +249,7 @@ th, td {
   opacity: 0.8;
 }
 
-.cont-0 {
+.cont-0, .cont-8 {
   background: #ffffe0;
 }
 
@@ -273,7 +273,7 @@ th, td {
   background: #e0ffff;
 }
 
-.cont-6 {
+.cont-6, .cont-9 {
   background: #ffefd5;
 }
 
@@ -281,19 +281,7 @@ th, td {
   background: #ffc0cb;
 }
 
-.cont-8 {
-  background: #ffffe0;
-}
-
-.cont-9 {
-  background: #ffefd5;
-}
-
-.cont-10 {
-  background: #f0f8ff;
-}
-
-.cont-11 {
+.cont-10, .cont-11 {
   background: #f0f8ff;
 }
 
@@ -315,7 +303,7 @@ th, td {
 }
 
 #now {
-  border-bottom: 2px solid #f00;
+  border: 2px solid #f00;
 }
 
 .video-container {
@@ -338,25 +326,35 @@ th, td {
 .video-full-container:fullscreen {
   display: flex;
   flex-direction: column;
+  height: 100%;
   justify-content: center;
+  width: 100%;
 }
 
 .video-full-container:-webkit-full-screen {
   display: flex;
   flex-direction: column;
+  height: 100%;
   justify-content: center;
+  width: 100%;
 }
 
 .video-full-container:fullscreen > .video-container {
-  max-height: 100%;
   max-width: 100%;
   width: 100%;
 }
 
 .video-full-container:-webkit-full-screen > .video-container {
-  max-height: 100%;
   max-width: 100%;
   width: 100%;
+}
+
+.video-full-container:fullscreen > .video-container > video {
+  max-height: 100%;
+}
+
+.video-full-container:-webkit-full-screen > .video-container > video {
+  max-height: 100%;
 }
 
 .full-control {
@@ -611,44 +609,130 @@ th, td {
   }
 }
 
+:root {
+  color-scheme: light dark;
+}
+
 @media (prefers-color-scheme: dark) {
   body {
-    background: #300;
-    color: #eee;
+    background: #200;
+    color: #ebb;
   }
 
   a {
-    color: #07d;
+    color: #c6f;
   }
 
   a:visited {
-    color: #96a;
+    color: #f7e;
+  }
+
+  button {
+    background: #400;
+    color: #c6f;
+  }
+
+  button:hover {
+    background: #c6f;
+  }
+
+  dd {
+    border-left-color: #544;
+  }
+
+  #result {
+    background: inherit;
+    color: #f55;
   }
 
   .log-marker {
-    background: #300;
+    background: inherit;
     color: #88f;
+  }
+
+  .warn, .scrambles, .partially {
+    background: #882;
+    color: inherit;
+  }
+
+  .err, .drops, .shortage {
+    background: #a44;
+    color: inherit;
+  }
+
+  .disabled {
+    background: #544;
+    color: inherit;
   }
 
   .epg-col {
     background: #300;
   }
 
-  .epg-col > div, .epg-list > div {
-    opacity: 0.9;
+  .epg-col > div {
+    border-color: #300;
+    color: inherit;
   }
 
-  .epg-col > .past, .epg-list > .past {
-    opacity: 0.7;
+  .epg-list > div {
+    color: inherit;
+  }
+
+  .cont-0, .cont-8 {
+    background: #404012;
+  }
+
+  .cont-1 {
+    background: #171747;
+  }
+
+  .cont-2 {
+    background: #4d2b1a;
+  }
+
+  .cont-3 {
+    background: #4d1b15;
+  }
+
+  .cont-4 {
+    background: #1a4d1a;
+  }
+
+  .cont-5 {
+    background: #154d4d;
+  }
+
+  .cont-6, .cont-9 {
+    background: #4d3612;
+  }
+
+  .cont-7 {
+    background: #661e0f;
+  }
+
+  .cont-10, .cont-11 {
+    background: #1a354d;
+  }
+
+  .cont-15 {
+    background: #421b1b;
+  }
+
+  .cont-12, .cont-13, .cont-14, .cont-16 {
+    background: #200;
+  }
+
+  #now {
+    border-color: #f55;
   }
 
   .jikkyo-comments > div > .nico {
-    background: #300;
+    background: inherit;
     color: #66c;
   }
 
   .jikkyo-comments > div > .refuge {
-    background: #300;
+    background: inherit;
     color: #c66;
   }
 }
