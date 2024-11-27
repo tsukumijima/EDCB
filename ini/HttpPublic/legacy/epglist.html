@@ -40,10 +40,31 @@ end
 SortServiceListInplace(st)
 
 if sid==0 then
-  ct:Append('<div class="nav">\n<ul>\n')
+  ct:Append('<div class="nav">\n<ul class="epg-list-list">\n')
+  --3時間前までの番組
+  pastEvents=edcb.EnumEventInfo(st,{startTime=os.date('!*t',now+(9-3)*3600),durationSecond=3*3600})
   for i,v in ipairs(st) do
+    present=nil
+    for j=BinarySearchBound(pastEvents,v,CompareFields('onid',false,'tsid',false,'sid')),#pastEvents do
+      if pastEvents[j].nid~=v.nid or pastEvents[j].tsid~=v.tsid or pastEvents[j].sid~=v.sid then
+        break
+      elseif not present or TimeWithZone(pastEvents[j].startTime)>TimeWithZone(present.startTime) then
+        present=pastEvents[j]
+      end
+    end
+    if not present then
+      --3時間前までに番組が見つからないときは9時間前まで調べる
+      for j,w in ipairs(edcb.EnumEventInfo({v},{startTime=os.date('!*t',now+(9-9)*3600),durationSecond=9*3600})) do
+        if not present or TimeWithZone(w.startTime)>TimeWithZone(present.startTime) then
+          present=w
+        end
+      end
+    end
     ct:Append('<li><a href="epglist.html?id='..v.onid..'-'..v.tsid..'-'..v.sid
-      ..'#now"><img alt="" style="max-height:0.8em;width:auto" src="logo.lua?onid='..v.onid..'&amp;sid='..v.sid..'">'..v.service_name..'</a></li>\n')
+      ..'#now"><img alt="" style="max-height:0.8em;width:auto" src="logo.lua?onid='..v.onid..'&amp;sid='..v.sid..'">'..v.service_name..'</a>'
+      ..(present and TimeWithZone(present.startTime)+present.durationSecond>now+9*3600 and present.shortInfo and
+           '<span class="epg-present">'..present.shortInfo.event_name..'</span>' or '')
+      ..'</li>\n')
   end
   ct:Append('</ul>\n</div>\n')
 else
@@ -183,6 +204,45 @@ ct:Append([=[
 <div id="footer">
   <a href="]=]..(sid==0 and 'index.html">メニュー' or 'epglist.html">サービスリスト')..[=[</a>
 </div>
+]=]
+  --現在の番組名を動的に追記
+  ..(sid~=0 and [=[
+<script type="text/javascript">
+(function(){
+  var initTexts=null;
+  var lastChecked=null;
+  var sel=document.querySelector("select[name=id]");
+  sel.onclick=function(){
+    if(lastChecked&&Math.abs(Date.now()-lastChecked)<30000)return;
+    lastChecked=Date.now();
+    var xhr=new XMLHttpRequest();
+    xhr.open("GET","epglist.html");
+    xhr.onload=function(){
+      if(xhr.status!=200||!xhr.response)return;
+      var optionsDict={};
+      for(var i=0;i<sel.options.length;i++){
+        optionsDict[sel.options[i].value]=sel.options[i];
+      }
+      if(!initTexts){
+        initTexts={};
+        for(var i=0;i<sel.options.length;i++){
+          initTexts[sel.options[i].value]=sel.options[i].innerHTML;
+        }
+        sel.style.width=sel.offsetWidth+"px";
+      }
+      var re=/<a href="epglist\.html\?id=(\d+-\d+-\d+).*?<\/a><span[^>]*>([^<>]*)<\/span>/g;
+      var m;
+      while(m=re.exec(xhr.response)){
+        if(m[1] in initTexts){
+          optionsDict[m[1]].innerHTML=initTexts[m[1]]+"- "+m[2];
+        }
+      }
+    };
+    xhr.send();
+  };
+})();
+</script>
+]=] or '')..[=[
 </body>
 </html>
 ]=])
