@@ -590,13 +590,16 @@ function DecorateUri(s)
     --特定のTLDっぽい文字列があればホスト部分をさかのぼる
     local h=0
     if r:find('^%.com/',i) or r:find('^%.jp/',i) or r:find('^%.tv/',i) then
-      while i-h>1 and hwhost:find(r:sub(i-h-1,i-h-1),1,true) do
+      --装飾前文字列はHTMLエスケープ済みであることを仮定しているので<>"となりうる表現も除外する
+      while i-h>1 and hwhost:find(r:sub(i-h-1,i-h-1),1,true) and
+            (i-h<5 or not r:find('^&[lg]t;',i-h-4)) and (i-h<7 or not r:find('^&quot;',i-h-6)) do
         h=h+1
       end
     end
     if (h>0 and (i-h==1 or r:find('^[^/]',i-h-1))) or r:find('^https?://',i) then
       local j=i
-      while j<=#r and hw:find(r:sub(j,j),1,true) do
+      while j<=#r and hw:find(r:sub(j,j),1,true) and
+            not r:find('^&[lg]t;',j) and not r:find('^&quot;',j) do
         j=j+1
       end
       t=t..s:sub(spos(n),spos(i-h)-1)..'<a href="'..(h>0 and 'https://' or '')
