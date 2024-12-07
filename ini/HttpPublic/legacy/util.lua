@@ -184,6 +184,16 @@ XCODE_OPTIONS={
     output={'mp4','-f mp4 --no-mp4opt -m movflags:frag_keyframe+empty_moov -o -'},
     outputHls={'m2t','-f mpegts -o -'},
   },
+  {
+    --TS-Live!方式の例。映像はそのまま転送。ストリームの限定や倍速再生のためffmpegも必要
+    name='tslive',
+    tslive=true,
+    xcoder='ffmpeg\\ffmpeg.exe|ffmpeg.exe',
+    option='-f mpegts -analyzeduration 1M -i - -map 0:v:0? -vcodec copy $FILTER -map 0:a:$AUDIO -map 0:s? -scodec copy -max_interleave_delta 300k $OUTPUT',
+    filter='-acodec copy',
+    filterFast='-bsf:v setts=ts=TS/'..XCODE_FAST..' -af atempo='..XCODE_FAST..' -bsf:s setts=ts=TS/'..XCODE_FAST..' -acodec aac -ac 2 -b:a 160k',
+    output={'m2t','-f mpegts -'},
+  },
 }
 
 --フォーム上の各オプションのデフォルト選択状態を指定する
@@ -248,8 +258,6 @@ JK_CUSTOM_REPLACE=[=[
   tag = tag.replace(/^<chat(?=[^>]*? premium="3")([^>]*? mail=")([^>]*?>)\/spi /, '<chat align="right"$1shita small white2 $2');
 ]=]
 
---トランスコードするかどうか。する場合はtsreadex.exeとトランスコーダー(ffmpeg.exeなど)を用意すること
-XCODE=true
 --トランスコードするプロセスを1つだけに制限するかどうか(並列処理できる余裕がシステムにない場合など)
 XCODE_SINGLE=false
 --ログを"log"フォルダに保存するかどうか
@@ -280,8 +288,10 @@ end
 function GetTranscodeQueries(qs)
   local reload=(mg.get_var(qs,'reload') or ''):match('^'..('[0-9a-f]'):rep(16,'?')..'$')
   local loadKey=reload or (mg.get_var(qs,'load') or ''):match('^'..('[0-9a-f]'):rep(16,'?')..'$')
+  local option=GetVarInt(qs,'option',1,#XCODE_OPTIONS)
   return {
-    option=GetVarInt(qs,'option',1,#XCODE_OPTIONS),
+    option=option,
+    tslive=XCODE_OPTIONS[option or 1].tslive,
     offset=GetVarInt(qs,'offset',0,100),
     audio2=GetVarInt(qs,'audio2')==1,
     cinema=GetVarInt(qs,'cinema')==1,
@@ -316,7 +326,7 @@ end
 function TranscodeSettingTemplate(xq,fsec)
   local s='<select name="option">'
   for i,v in ipairs(XCODE_OPTIONS) do
-    if not ALLOW_HLS or not ALWAYS_USE_HLS or v.outputHls then
+    if v.tslive or not ALLOW_HLS or not ALWAYS_USE_HLS or v.outputHls then
       s=s..'<option value="'..i..'"'..Selected((xq.option or XCODE_SELECT_OPTION)==i)..'>'..EdcbHtmlEscape(v.name)
     end
   end
@@ -385,7 +395,7 @@ function VideoScriptTemplate()
 <label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>caption.vtt</label>
 <script src="aribb24.js"></script>
 <script>
-]=]..(VIDEO_MUTED and 'vid.muted=true;\n' or '')..(VIDEO_VOLUME and 'vid.volume='..VIDEO_VOLUME..';\n' or '')..[=[
+]=]..(VIDEO_MUTED and 'vid.e.muted=true;\n' or '')..(VIDEO_VOLUME and 'vid.e.volume='..VIDEO_VOLUME..';\n' or '')..[=[
 runVideoScript(]=]
   ..(ARIBB24_USE_SVG and 'true' or 'false')..',{'..ARIBB24_JS_OPTION..'},'
   ..(USE_DATACAST and 'true' or 'false')..','
@@ -401,9 +411,10 @@ function TranscodeScriptTemplate(live,caption,jikkyo,params)
 ]=]..(live and '<label><input id="cb-live" type="checkbox">live</label>\n' or '')..[=[
 <input id="vid-seek" type="range" style="display:none">
 <span id="vid-seek-status"></span>
+<input id="vid-volume" type="range" style="display:none">
 <button id="vid-unmute" type="button" style="display:none">🔊</button>
 <script>
-]=]..(XCODE_VIDEO_MUTED and 'vid.muted=true;\n' or '')..(VIDEO_VOLUME and 'vid.volume='..VIDEO_VOLUME..';\n' or '')..[=[
+]=]..(XCODE_VIDEO_MUTED and '(vid.c||vid.e).muted=true;\n' or '')..(VIDEO_VOLUME and '(vid.c||vid.e).volume='..VIDEO_VOLUME..';\n' or '')..[=[
 runTranscodeScript(]=]
   ..(USE_DATACAST and 'true' or 'false')..','
   ..(live and USE_LIVEJK and 'true' or 'false')..','
@@ -429,6 +440,18 @@ runHlsScript(]=]
   ..'"ctok='..CsrfToken(target)..'&open=1",'
   ..'"&hls='..(edcb.CreateRandom and edcb.CreateRandom(8) or os.time()%86400)..'",'
   ..'"'..(USE_MP4_HLS and '&hls4='..(USE_MP4_LLHLS and '2' or '1') or '')..'"'..[=[
+);
+</script>
+]=]
+end
+
+function TsliveScriptTemplate()
+  return [=[
+<script src="aribb24.js"></script>
+<script src="ts-live.lua?t=.js"></script>
+<script>
+runTsliveScript(]=]
+  ..(ARIBB24_USE_SVG and 'true' or 'false')..',{'..ARIBB24_JS_OPTION..'}'..[=[
 );
 </script>
 ]=]

@@ -35,6 +35,7 @@ loadKey=reload or mg.get_var(query,'load') or ''
 -- クエリのハッシュをキーとし、同一キーアクセスは出力中のインデックスファイルを返す
 hlsKey=hlsKey and mg.md5('xcode:'..hlsKey..':'..fpath..':'..option.xcoder..':'..option.option..':'..offset..':'..audio2..':'..filter..':'..caption..':'..output[2])
 
+-- トランスコードを開始し、HLSの場合はインデックスファイルの情報、それ以外はMP4などのストリーム自体を返す
 function OpenTranscoder()
   local searchName='xcode-'..mg.md5(fpath..':'..loadKey):sub(17)
   if XCODE_SINGLE then
@@ -278,17 +279,10 @@ if fpath then
             end
           end
           fname='xcode.psc.txt'
-        elseif XCODE then
+        else
           f:close()
           f=OpenTranscoder()
           fname='xcode.'..output[1]
-        elseif hlsKey then
-          -- トランスコードなしのライブストリーミングには未対応
-          f:close()
-          f=nil
-        else
-          -- 容量確保には未対応
-          f:seek('set',offset)
         end
       end
     end
@@ -355,24 +349,18 @@ elseif hlsKey then
 else
   mg.write(Response(200,mg.get_mime_type(fname))..'Content-Disposition: filename='..fname..'\r\n\r\n')
   if mg.request_info.request_method~='HEAD' then
-    retry=0
     while true do
       buf=f:read(188*128)
       if buf and #buf~=0 then
-        retry=0
         if not mg.write(buf) then
           -- キャンセルされた
           mg.cry('canceled')
           break
         end
       else
-        -- 終端に達した。4秒間この状態が続けば対象ファイルへの追記が終息したとみなす
-        retry=retry+1
-        if XCODE or retry > 20 then
-          mg.cry('end')
-          break
-        end
-        edcb.Sleep(200)
+        -- 終端に達した
+        mg.cry('end')
+        break
       end
     end
   end

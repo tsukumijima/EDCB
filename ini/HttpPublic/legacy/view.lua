@@ -39,6 +39,7 @@ hlsKey=hlsKey and n and mg.md5('view:'..hlsKey..(onid and ':nwtv' or ':')..n..':
 -- フラグメント長の目安
 partConfigSec=0.8
 
+-- トランスコードを開始し、HLSの場合はインデックスファイルの情報、それ以外はMP4などのストリーム自体を返す
 function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
   if XCODE_SINGLE then
     -- トランスコーダーの親プロセスのリストを作る

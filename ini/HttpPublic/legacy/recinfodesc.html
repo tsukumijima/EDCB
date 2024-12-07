@@ -101,7 +101,7 @@ if v then
       if ff then
         if vtag==i then
           ct:Append(VideoWrapperBegin()
-            ..'<video id="vid" autoplay playsinline controls src="'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/')..'">/'..EdcbHtmlEscape(ref..ext)
+            ..'<video id="video" autoplay playsinline controls src="'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/')..'">/'..EdcbHtmlEscape(ref..ext)
             ..'<track id="vid-meta" kind="metadata" src="'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/'):gsub('%.[0-9A-Za-z]+$','')
             ..'.vtt" type="text/vtt" default></video>'..VideoWrapperEnd()..'\n'..VideoScriptTemplate())
         else
@@ -134,9 +134,13 @@ if v then
           if vtag==10 then
             src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
             ct:Append('\n'..VideoWrapperBegin()
-              ..'<video id="vid" autoplay playsinline controls'..(ALLOW_HLS and '' or ' src="'..src..'"')..'>xcode</video>'..VideoWrapperEnd()..'\n'
+              ..(xq.tslive and '<canvas id="video"></canvas>' or
+                   '<video id="video" autoplay playsinline controls'..(ALLOW_HLS and '' or ' src="'..src..'"')..'>xcode</video>')
+              ..VideoWrapperEnd()..'\n'
               ..'<div id="vidsrc" style="display:none">'..src..'</div>\n'..TranscodeScriptTemplate(false,xq.caption,xq.jikkyo,{ofssec=fsec*(xq.offset or 0)/100,fast=xq.fast}))
-            if ALLOW_HLS then
+            if xq.tslive then
+              ct:Append(TsliveScriptTemplate())
+            elseif ALLOW_HLS then
               ct:Append(HlsScriptTemplate('xcode.lua'))
             end
           end
@@ -180,4 +184,7 @@ ct:Append([=[
 </html>
 ]=])
 ct:Finish()
-mg.write(ct:Pop(Response(200,'text/html','utf-8',ct.len,ct.gzip)..'\r\n'))
+mg.write(ct:Pop(Response(200,'text/html','utf-8',ct.len,ct.gzip)
+  ..'Cross-Origin-Embedder-Policy: require-corp\r\n'
+  ..'Cross-Origin-Opener-Policy: same-origin\r\n'
+  ..'\r\n'))

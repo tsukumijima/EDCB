@@ -51,6 +51,12 @@ input[type="checkbox"] {
   width: 25%;
 }
 
+#vid-volume {
+  margin-left: 0.5em;
+  vertical-align: middle;
+  width: 5em;
+}
+
 select {
   font-size: medium;
   margin: 0.1em;
@@ -314,7 +320,7 @@ th, td {
   width: max-content;
 }
 
-.video-container > video {
+#video {
   width: 100%;
 }
 
@@ -349,12 +355,48 @@ th, td {
   width: 100%;
 }
 
-.video-full-container:fullscreen > .video-container > video {
+.video-full-container:fullscreen #video {
   max-height: 100%;
 }
 
-.video-full-container:-webkit-full-screen > .video-container > video {
+.video-full-container:-webkit-full-screen #video {
   max-height: 100%;
+}
+
+.video-full-container-flex-row:fullscreen {
+  flex-direction: row;
+}
+
+.video-full-container-flex-row:-webkit-full-screen {
+  flex-direction: row;
+}
+
+.video-full-container-flex-row:fullscreen > .video-container {
+  height: 100%;
+  max-height: 100%;
+  max-width: none;
+  width: auto;
+}
+
+.video-full-container-flex-row:-webkit-full-screen > .video-container {
+  height: 100%;
+  max-height: 100%;
+  max-width: none;
+  width: auto;
+}
+
+.video-full-container-flex-row:fullscreen #video {
+  height: 100%;
+  max-height: none;
+  max-width: 100%;
+  width: auto;
+}
+
+.video-full-container-flex-row:-webkit-full-screen #video {
+  height: 100%;
+  max-height: none;
+  max-width: 100%;
+  width: auto;
 }
 
 .full-control {
