@@ -1029,28 +1029,42 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
   var bitrateTotal=0;
   var lastWidth=vid.e.width;
   var lastHeight=vid.e.height;
+  var wakeLock=null;
+  var modBufferSize=0;
   function readNext(mod,reader,ret){
     if(ret&&ret.value){
-      var buffer=mod.getNextInputBuffer(ret.value.length);
+      var inputLen=Math.min(ret.value.length,1e6);
+      //Limit input amount to reduce "Buffer overflow" console output.
+      var buffer=modBufferSize<14&&mod.getNextInputBuffer(inputLen);
       if(!buffer){
-        setTimeout(function(){readNext(mod,reader,ret);},2000);
+        setTimeout(function(){readNext(mod,reader,ret);},1000);
         return;
       }
-      buffer.set(ret.value);
-      mod.commitInputData(ret.value.length);
+      buffer.set(new Uint8Array(ret.value.buffer,ret.value.byteOffset,inputLen));
+      mod.commitInputData(inputLen);
+      if(inputLen<ret.value.length){
+        //Input the rest.
+        setTimeout(function(){readNext(mod,reader,{value:new Uint8Array(ret.value.buffer,ret.value.byteOffset+inputLen,ret.value.length-inputLen)});},0);
+        return;
+      }
     }
     reader.read().then(function(r){
-      if(!r.done){
+      if(r.done){
+        if(wakeLock)wakeLock.release();
+      }else{
         setTimeout(function(){readNext(mod,reader,r);},0);
+        var now=Date.now();
+        if(!bitrateStart)bitrateStart=now;
+        bitrateTotal+=r.value.length;
+        if(now-bitrateStart>7000){
+          vbitrate.innerText="|"+(bitrateTotal*1000/((now-bitrateStart)*1024*128)).toFixed(1)+"Mbps";
+          bitrateStart=now;
+          bitrateTotal=0;
+        }
       }
-      var now=Date.now();
-      if(!bitrateStart)bitrateStart=now;
-      bitrateTotal+=r.value.length;
-      if(now-bitrateStart>7000){
-        vbitrate.innerText="|"+(bitrateTotal*1000/((now-bitrateStart)*1024*128)).toFixed(1)+"Mbps";
-        bitrateStart=now;
-        bitrateTotal=0;
-      }
+    }).catch(function(e){
+      if(wakeLock)wakeLock.release();
+      throw e;
     });
     if(lastWidth!=vid.e.width||lastHeight!=vid.e.height){
       lastWidth=vid.e.width;
@@ -1058,9 +1072,45 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
       adjustVideoMaxWidth();
     }
   }
+  var cap=null;
+  var cbCaption=document.getElementById("cb-caption");
+  function onclickCaption(){
+    if(cbCaption.checked){
+      if(!cap){
+        cap=aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
+        cap.attachMedia(null,vcont);
+      }
+      cap.show();
+    }else if(cap){
+      cap.hide();
+    }
+    document.querySelector('#vid-form input[name="caption"]').value=cbCaption.checked?"1":"0";
+  }
+  onclickCaption();
+  cbCaption.onclick=onclickCaption;
+  document.getElementById("label-caption").style.display="inline";
+
+  function notify(s){
+    var ctx=vid.e.getContext("2d");
+    ctx.fillStyle="black";
+    ctx.fillText(s,10,30);
+    ctx.fillStyle="white";
+    ctx.fillText(s,10,50);
+  }
+  if(!window.createWasmModule){
+    notify("Error! Probably ts-live.js not found.");
+    return;
+  }
+  if(!navigator.gpu){
+    notify("Error! WebGPU not available.");
+    return;
+  }
   navigator.gpu.requestAdapter().then(function(adapter){
     adapter.requestDevice().then(function(device){
       createWasmModule({preinitializedWebGPUDevice:device}).then(function(mod){
+        mod.setCaptionCallback(function(pts,ts,data){
+          if(cap)cap.pushRawData(vid.currentTime+ts,data.slice());
+        });
         var rangeVolume=document.getElementById("vid-volume");
         mod.setAudioGain(vid.muted?0:vid.volume);
         rangeVolume.value=Math.floor((vid.muted?0:vid.volume)*100);
@@ -1078,18 +1128,27 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
           mod.setAudioGain(vid.volume);
         };
         mod.setStatsCallback(function(stats){
+          modBufferSize=stats[stats.length-1].InputBufferSize;
           if(vid.currentTime!=stats[stats.length-1].time){
             vid.currentTime=stats[stats.length-1].time;
             if(vid.ontimeupdate)vid.ontimeupdate();
+            if(cap)cap.onTimeupdate(vid.currentTime);
           }
         });
         setTimeout(function(){
           vbitrate.innerText="|?Mbps";
           fetch(document.getElementById("vidsrc").textContent).then(function(response){
-            readNext(mod,response.body.getReader(),null);
+            if(response.ok){
+              readNext(mod,response.body.getReader(),null);
+              //Prevent screen sleep.
+              navigator.wakeLock.request("screen").then(function(lock){wakeLock=lock;});
+            }
           });
         },500);
       });
     });
+  }).catch(function(e){
+    notify(e.message);
+    throw e;
   });
 }
