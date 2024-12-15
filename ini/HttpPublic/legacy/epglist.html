@@ -62,7 +62,7 @@ if sid==0 then
     end
     ct:Append('<li><a href="epglist.html?id='..v.onid..'-'..v.tsid..'-'..v.sid
       ..'#now"><img alt="" style="max-height:0.8em;width:auto" src="logo.lua?onid='..v.onid..'&amp;sid='..v.sid..'">'..v.service_name..'</a>'
-      ..(present and TimeWithZone(present.startTime)+present.durationSecond>now+9*3600 and present.shortInfo and
+      ..(present and (not present.durationSecond or TimeWithZone(present.startTime)+present.durationSecond>now+9*3600) and present.shortInfo and
            '<span class="epg-present">'..present.shortInfo.event_name..'</span>' or '')
       ..'</li>\n')
   end

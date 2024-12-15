@@ -351,11 +351,11 @@ function TranscodeSettingTemplate(xq,fsec)
   return s
 end
 
-function OnscreenButtonsScriptTemplate()
+function OnscreenButtonsScriptTemplate(xcode)
   return [=[
 <script src="script.js?ver=20241127"></script>
 <script>
-runOnscreenButtonsScript();
+runOnscreenButtonsScript(]=]..(xcode and 'true' or 'false')..[=[);
 </script>
 ]=]
 end
@@ -391,7 +391,7 @@ runJikkyoScript(]=]..JK_COMMENT_HEIGHT..','..JK_COMMENT_DURATION..',function(tag
 end
 
 function VideoScriptTemplate()
-  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate('datacast.psc')..JikkyoScriptTemplate(false,XCODE_CHECK_JIKKYO)..[=[
+  return OnscreenButtonsScriptTemplate(false)..WebBmlScriptTemplate('datacast.psc')..JikkyoScriptTemplate(false,XCODE_CHECK_JIKKYO)..[=[
 <label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>caption.vtt</label>
 <script src="aribb24.js"></script>
 <script>
@@ -406,7 +406,7 @@ runVideoScript(]=]
 end
 
 function TranscodeScriptTemplate(live,caption,jikkyo,params)
-  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate('datacast')..JikkyoScriptTemplate(live,jikkyo)..[=[
+  return OnscreenButtonsScriptTemplate(true)..WebBmlScriptTemplate('datacast')..JikkyoScriptTemplate(live,jikkyo)..[=[
 <label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(caption)..[=[>caption</label>
 ]=]..(live and '<label><input id="cb-live" type="checkbox">live</label>\n' or '')..[=[
 <input id="vid-seek" type="range" style="display:none">

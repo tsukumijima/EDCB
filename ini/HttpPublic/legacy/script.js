@@ -357,7 +357,7 @@ function adjustVideoMaxWidth(){
   }
 }
 
-function runOnscreenButtonsScript(){
+function runOnscreenButtonsScript(xcode){
   vid={e:document.getElementById("video"),unmute:function(){(vid.c||vid.e).muted=false;}};
   if(vid.e.tagName=="CANVAS"){
     //Behave like HTMLMediaElement.
@@ -407,7 +407,7 @@ function runOnscreenButtonsScript(){
     }
   }
   var blive=null;
-  if(!vid.c){
+  if(xcode&&!vid.c){
     vid.e.ondurationchange=checkDuration;
     setInterval(checkDuration,500);
     btn=document.createElement("button");
