@@ -449,7 +449,10 @@ else
     else
       ok,pid,openID=edcb.IsOpenNetworkTV(n)
       if ok and openID==myOpenID then
-        edcb.CloseNetworkTV(n)
+        -- チャンネル変更のため終了を遅らせる
+        edcb.os.execute((WIN32 and 'start "" /b cmd /s /c "timeout 5 & cd /d "'..EdcbModulePath()..'" && .\\EpgTimerSrv.exe /luapost ' or '(sleep 5 ; echo "')
+          ..'ok,pid,openID=edcb.IsOpenNetworkTV('..n..');if(ok)and(openID=='..myOpenID..')then;edcb.CloseNetworkTV('..n..');end'
+          ..(WIN32 and '"' or '" >>"'..PathAppend(EdcbModulePath(),'EpgTimerSrvLuaPost.fifo')..'") &'))
       end
     end
   end
