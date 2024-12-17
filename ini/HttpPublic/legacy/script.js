@@ -1112,6 +1112,10 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
     var ctrl=new AbortController();
     var uri=document.getElementById("vidsrc").textContent+seekParam;
     seekParam="";
+    if(uri.indexOf("&audio2=1")>=0){
+      //2nd audio channel
+      mod.setDualMonoMode(1);
+    }
     fetch(uri,{signal:ctrl.signal}).then(function(response){
       if(!response.ok)return;
       //Reset caption

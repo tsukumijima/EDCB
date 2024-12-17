@@ -77,6 +77,7 @@ XCODE_FAST=1.25
 --xcoder:トランスコーダーのToolsフォルダからの相対パス。'|'で複数候補を指定可。見つからなければ最終候補にパスが通っているとみなす
 --       Windows以外では".exe"が除去されて最終候補のみ参照される
 --option:$OUTPUTは必須、再生時に適宜置換される。標準入力からMPEG2-TSを受け取るようにオプションを指定する
+--filter(Cinema):等速再生用、filterCinemaは未定義でもよい。特別に':'とするとトランスコードを省略してそのまま出力する
 --filter*Fast:倍速再生用、未定義でもよい
 --editorFast:単独で倍速再生にできないトランスコーダーの手前に置く編集コマンド。指定方法はxcoderと同様
 --editorOptionFast:標準入出力ともにMPEG2-TSで倍速再生になるようにオプションを指定する
@@ -185,12 +186,12 @@ XCODE_OPTIONS={
     outputHls={'m2t','-f mpegts -o -'},
   },
   {
-    --TS-Live!方式の例。映像はそのまま転送。ストリームの限定や倍速再生のためffmpegも必要
+    --TS-Live!方式の例。映像はそのまま転送。倍速再生にはffmpegも必要
     name='tslive',
     tslive=true,
     xcoder='ffmpeg\\ffmpeg.exe|ffmpeg.exe',
     option='-f mpegts -analyzeduration 1M -i - -map 0:v:0? -vcodec copy $FILTER -map 0:a:$AUDIO -map 0:s? -scodec copy -max_interleave_delta 300k $OUTPUT',
-    filter='-acodec copy',
+    filter=':',
     filterFast='-bsf:v setts=ts=TS/'..XCODE_FAST..' -af atempo='..XCODE_FAST..' -bsf:s setts=ts=TS/'..XCODE_FAST..' -acodec aac -ac 2 -b:a 160k',
     output={'m2t','-f mpegts -'},
   },

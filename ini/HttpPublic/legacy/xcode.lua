@@ -71,26 +71,29 @@ function OpenTranscoder()
   local tsreadex=FindToolsCommand('tsreadex')
   local asyncbuf=FindToolsCommand('asyncbuf')
   local tsmemseg=FindToolsCommand('tsmemseg')
-  local xcoder=''
-  if WIN32 then
-    for s in option.xcoder:gmatch('[^|]+') do
-      xcoder=PathAppend(tools,s)
-      if EdcbFindFilePlain(xcoder) then break end
-      xcoder=s
+  local cmd=''
+  if filter~=':' then
+    local xcoder=''
+    if WIN32 then
+      for s in option.xcoder:gmatch('[^|]+') do
+        xcoder=PathAppend(tools,s)
+        if EdcbFindFilePlain(xcoder) then break end
+        xcoder=s
+      end
+      xcoder='"'..xcoder..'"'
+    else
+      xcoder=('|'..option.xcoder:gsub('%.exe$','')):match('[\\/|]([0-9A-Za-z._-]+)$')
+      xcoder=xcoder and FindToolsCommand(xcoder) or ':'
     end
-    xcoder='"'..xcoder..'"'
-  else
-    xcoder=('|'..option.xcoder:gsub('%.exe$','')):match('[\\/|]([0-9A-Za-z._-]+)$')
-    xcoder=xcoder and FindToolsCommand(xcoder) or ':'
+    cmd=' | '..xcoder..' '..option.option
+      :gsub('$SRC','-')
+      :gsub('$AUDIO',audio2)
+      :gsub('$DUAL','')
+      :gsub('$FILTER',(filter:gsub('%%',WIN32 and '%%%%' or '%%')))
+      :gsub('$CAPTION',(caption:gsub('%%',WIN32 and '%%%%' or '%%')))
+      :gsub('$OUTPUT',(output[2]:gsub('%%',WIN32 and '%%%%' or '%%')))
   end
 
-  local cmd=xcoder..' '..option.option
-    :gsub('$SRC','-')
-    :gsub('$AUDIO',audio2)
-    :gsub('$DUAL','')
-    :gsub('$FILTER',(filter:gsub('%%',WIN32 and '%%%%' or '%%')))
-    :gsub('$CAPTION',(caption:gsub('%%',WIN32 and '%%%%' or '%%')))
-    :gsub('$OUTPUT',(output[2]:gsub('%%',WIN32 and '%%%%' or '%%')))
   if fastRate~=1 and option.editorFast then
     local editor=''
     if WIN32 then
@@ -103,9 +106,9 @@ function OpenTranscoder()
     else
       editor=('|'..option.editorFast:gsub('%.exe$','')):match('[\\/|]([0-9A-Za-z._-]+)$') or ':'
     end
-    cmd=editor..' '..option.editorOptionFast..' | '..cmd
+    cmd=' | '..editor..' '..option.editorOptionFast..cmd
   end
-  if XCODE_LOG then
+  if XCODE_LOG and cmd~='' then
     local log=mg.script_name:gsub('[^\\/]*$','')..'log'
     if not EdcbFindFilePlain(log) then
       edcb.os.execute('mkdir '..QuoteCommandArgForPath(log))
@@ -114,7 +117,7 @@ function OpenTranscoder()
     log=PathAppend(log,'xcode-'..os.time()..'-'..mg.md5(cmd):sub(29)..'.txt')
     local f=edcb.io.open(log,'w')
     if f then
-      f:write(cmd..'\n\n')
+      f:write(cmd:sub(4)..'\n\n')
       f:close()
       cmd=cmd..' 2>>'..QuoteCommandArgForPath(log)
     end
@@ -129,7 +132,7 @@ function OpenTranscoder()
   local sync=WIN32 and edcb.GetPrivateProfile('SET','KeepDisk',0,'EpgTimerSrv.ini')~='0'
 
   -- "-z"はプロセス検索用
-  cmd=tsreadex..' -z edcb-legacy-'..searchName..' -s '..offset..' -l 16384 -t 6'..(sync and ' -m 1' or '')..' -x 18/38/39 -n -1 -a 9 -b 1 -c 5 -u 2 '..QuoteCommandArgForPath(fpath)..' | '..cmd
+  cmd=tsreadex..' -z edcb-legacy-'..searchName..' -s '..offset..' -l 16384 -t 6'..(sync and ' -m 1' or '')..' -x 18/38/39 -n -1 -a 9 -b 1 -c 5 -u 2 '..QuoteCommandArgForPath(fpath)..cmd
   if hlsKey then
     -- 極端に多く開けないようにする
     local indexCount=#(edcb.FindFile(TsmemsegPipePath('*_','00'),10) or {})
