@@ -232,7 +232,7 @@ namespace EpgTimer
                 eventRefData = recinfoList[0];
             }
 
-            var key = MenuUtil.SendAutoAddKey(eventRefData, CmdExeUtil.IsKeyGesture(e), GetSearchKey());
+            var key = MenuUtil.SendAutoAddKey(eventRefData, CmdExeUtil.IsKeyGesture(e));
             MenuUtil.SendAutoAdd(resData ?? eventRefData, CmdExeUtil.IsKeyGesture(e), key);
             IsCommandExecuted = true;
         }

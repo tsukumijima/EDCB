@@ -290,6 +290,11 @@ namespace EpgTimer
                         {
                             defKey.keyDisabledFlag = 0;
                         }
+                        if (Settings.Instance.MenuSet.SetJunreToAutoAdd == false)
+                        {
+                            defKey.notContetFlag = 0;
+                            defKey.contentList.Clear();
+                        }
                         dlg.SetSearchKey(defKey);
                         dlg.SetRecSetting(this.GetRecSetting());
                         dlg.Show();

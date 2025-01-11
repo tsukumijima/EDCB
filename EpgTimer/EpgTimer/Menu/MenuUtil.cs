@@ -852,10 +852,15 @@ namespace EpgTimer
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
-        public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo key = null)
+        public static EpgSearchKeyInfo SendAutoAddKey(IBasicPgInfo item, bool NotToggle = false, EpgSearchKeyInfo refkey = null)
         {
-            key = (key ?? Settings.Instance.SearchPresetList[0].Data).DeepClone();
+            var key = (refkey ?? Settings.Instance.SearchPresetList[0].Data).DeepClone();
             key.regExpFlag = 0;
+            if (refkey == null)
+            {
+                key.notContetFlag = 0;
+                key.contentList.Clear();
+            }
             if (item == null) return key;
 
             key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
