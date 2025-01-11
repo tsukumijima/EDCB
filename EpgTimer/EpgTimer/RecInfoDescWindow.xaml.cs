@@ -272,6 +272,27 @@ namespace EpgTimer
                             }
                         }
                         catch { }
+
+                        // 録画情報保存フォルダのファイルも移動する
+                        string recInfoFolder = IniFileHandler.GetPrivateProfileFolder("SET", "RecInfoFolder", SettingPath.CommonIniPath);
+                        if (recInfoFolder.Length > 0)
+                        {
+                            foreach (string suffix in new string[] { ".err", ".program.txt" })
+                            {
+                                string path = "";
+                                try
+                                {
+                                    path = Path.Combine(recInfoFolder, Path.GetFileName(originalPath) + suffix);
+                                    File.Move(path, Path.Combine(recInfoFolder, Path.GetFileName(destPath) + suffix));
+                                }
+                                catch (FileNotFoundException) { }
+                                catch
+                                {
+                                    errFileList.Add(path);
+                                }
+                            }
+                        }
+
                         if (errFileList.Any())
                         {
                             StatusManager.StatusNotifyAppend("リネームに失敗 < ");

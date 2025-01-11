@@ -1070,10 +1070,12 @@ bool CTunerBankCtrl::OpenNWTV(int id, bool nwUdp, bool nwTcp, const SET_CH_INFO&
 		if( OpenTuner(true, true, nwUdp, nwTcp, false, &chInfo) ){
 			this->specialState = TR_NWTV;
 			this->nwtvID = id;
+			this->nwtvOpenCount = GetU32Tick() >> 2;
 			return true;
 		}
 	}else if( this->specialState == TR_NWTV ){
 		this->nwtvID = id;
+		this->nwtvOpenCount = (this->nwtvOpenCount + 1) & 0x3FFFFFFF;
 		CWatchBlock watchBlock(&this->watchContext);
 		CSendCtrlCmd ctrlCmd;
 		ctrlCmd.SetPipeSetting(CMD2_VIEW_CTRL_PIPE, this->tunerPid);

@@ -107,6 +107,8 @@ public:
 	int GetProcessID() const { return this->tunerPid; }
 	//ネットワークモードIDを取得する(GetState()がTR_NWTVでないとき不定)
 	int GetNWTVID() const { return this->nwtvID; }
+	//OpenNWTV()が成功するごとに変化する値を取得する(GetState()がTR_NWTVでないとき不定)
+	int GetNWTVOpenCount() const { return this->nwtvOpenCount; }
 	//起動中のチューナから得たステータス情報(GetState()がTR_IDLEのとき不定)
 	TUNER_PROCESS_STATUS_INFO GetProcessStatusInfo() const;
 	//予約開始の最小時刻を取得する
@@ -195,6 +197,8 @@ private:
 	LONGLONG epgCapDelayTime;
 	//ネットワークモードID
 	int nwtvID;
+	//OpenNWTV()が成功するごとに変化する負でない値
+	int nwtvOpenCount;
 
 	LONGLONG recWakeTime;
 	bool recMinWake;

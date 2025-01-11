@@ -358,16 +358,16 @@ bool CParseServiceChgText::ParseLine(LPCWSTR parseLine, pair<wstring, wstring>& 
 	return true;
 }
 
-DWORD CParseRecInfoText::AddRecInfo(const REC_FILE_INFO& item)
+DWORD CParseRecInfoText::AddRecInfo(const REC_FILE_INFO_BASIC& item)
 {
-	map<DWORD, REC_FILE_INFO>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, REC_FILE_INFO_BASIC>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	DWORD id = itr->second.id = itr->first;
 
 	//非プロテクトの要素数がkeepCount以下になるまで削除
 	if( this->keepCount < UINT_MAX ){
 		size_t protectCount = std::count_if(this->itemMap.begin(), this->itemMap.end(),
-			[](const pair<DWORD, REC_FILE_INFO>& a) { return a.second.protectFlag != 0; });
+			[](const pair<DWORD, REC_FILE_INFO_BASIC>& a) { return a.second.protectFlag != 0; });
 		itr++;
 		while( this->itemMap.size() - protectCount > this->keepCount ){
 			if( itr == this->itemMap.end() ){
@@ -386,7 +386,7 @@ DWORD CParseRecInfoText::AddRecInfo(const REC_FILE_INFO& item)
 
 bool CParseRecInfoText::DelRecInfo(DWORD id)
 {
-	map<DWORD, REC_FILE_INFO>::const_iterator itr = this->itemMap.find(id);
+	map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->itemMap.find(id);
 	if( itr != this->itemMap.end() && itr->second.protectFlag == 0 ){
 		OnDelRecInfo(itr->second);
 		this->itemMap.erase(itr);
@@ -397,7 +397,7 @@ bool CParseRecInfoText::DelRecInfo(DWORD id)
 
 bool CParseRecInfoText::ChgPathRecInfo(DWORD id, LPCWSTR recFilePath)
 {
-	map<DWORD, REC_FILE_INFO>::iterator itr = this->itemMap.find(id);
+	map<DWORD, REC_FILE_INFO_BASIC>::iterator itr = this->itemMap.find(id);
 	if( itr != this->itemMap.end() ){
 		itr->second.recFilePath = recFilePath;
 		return true;
@@ -407,7 +407,7 @@ bool CParseRecInfoText::ChgPathRecInfo(DWORD id, LPCWSTR recFilePath)
 
 bool CParseRecInfoText::ChgProtectRecInfo(DWORD id, BYTE flag)
 {
-	map<DWORD, REC_FILE_INFO>::iterator itr = this->itemMap.find(id);
+	map<DWORD, REC_FILE_INFO_BASIC>::iterator itr = this->itemMap.find(id);
 	if( itr != this->itemMap.end() ){
 		itr->second.protectFlag = flag;
 		return true;
@@ -420,7 +420,7 @@ void CParseRecInfoText::SetRecInfoFolder(LPCWSTR folder)
 	this->recInfoFolder = folder;
 }
 
-bool CParseRecInfoText::ParseLine(LPCWSTR parseLine, pair<DWORD, REC_FILE_INFO>& item)
+bool CParseRecInfoText::ParseLine(LPCWSTR parseLine, pair<DWORD, REC_FILE_INFO_BASIC>& item)
 {
 	if( this->saveNextID == 1 ){
 		this->saveNextID = 0;
@@ -471,7 +471,7 @@ bool CParseRecInfoText::ParseLine(LPCWSTR parseLine, pair<DWORD, REC_FILE_INFO>&
 	return true;
 }
 
-bool CParseRecInfoText::SaveLine(const pair<DWORD, REC_FILE_INFO>& item, wstring& saveLine) const
+bool CParseRecInfoText::SaveLine(const pair<DWORD, REC_FILE_INFO_BASIC>& item, wstring& saveLine) const
 {
 	WCHAR id[32];
 	swprintf_s(id, L"%d", item.second.id);
@@ -507,12 +507,12 @@ bool CParseRecInfoText::SaveFooterLine(wstring& saveLine) const
 	return this->saveNextID != 0;
 }
 
-bool CParseRecInfoText::SelectItemToSave(vector<map<DWORD, REC_FILE_INFO>::const_iterator>& itemList) const
+bool CParseRecInfoText::SelectItemToSave(vector<map<DWORD, REC_FILE_INFO_BASIC>::const_iterator>& itemList) const
 {
 	if( this->saveNextID != 0 ){
 		if( this->itemMap.empty() == false && this->itemMap.rbegin()->first >= this->itemMap.begin()->first + 50000000 ){
 			//ID巡回中
-			map<DWORD, REC_FILE_INFO>::const_iterator itr;
+			map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr;
 			for( itr = this->itemMap.upper_bound(50000000); itr != this->itemMap.end(); itr++ ){
 				itemList.push_back(itr);
 			}
@@ -525,10 +525,10 @@ bool CParseRecInfoText::SelectItemToSave(vector<map<DWORD, REC_FILE_INFO>::const
 	}
 	//NextIDコメントが無かったときは従来どおり開始日時順で保存する
 	itemList.reserve(this->itemMap.size());
-	for( map<DWORD, REC_FILE_INFO>::const_iterator itr = this->itemMap.begin(); itr != this->itemMap.end(); itr++ ){
+	for( map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->itemMap.begin(); itr != this->itemMap.end(); itr++ ){
 		itemList.push_back(itr);
 	}
-	std::sort(itemList.begin(), itemList.end(), [](map<DWORD, REC_FILE_INFO>::const_iterator a, map<DWORD, REC_FILE_INFO>::const_iterator b) -> bool {
+	std::sort(itemList.begin(), itemList.end(), [](map<DWORD, REC_FILE_INFO_BASIC>::const_iterator a, map<DWORD, REC_FILE_INFO_BASIC>::const_iterator b) -> bool {
 		const SYSTEMTIME& sa = a->second.startTime;
 		const SYSTEMTIME& sb = b->second.startTime;
 		return sa.wYear < sb.wYear || sa.wYear == sb.wYear && (
@@ -574,7 +574,7 @@ wstring CParseRecInfoText::GetExtraInfo(LPCWSTR recFilePath, LPCWSTR extension, 
 	return info;
 }
 
-void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO& item)
+void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO_BASIC& item)
 {
 	if( item.recFilePath.empty() || this->recInfoDelFile == false ){
 		return;

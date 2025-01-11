@@ -1729,7 +1729,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 		break;
 	case CMD2_EPG_SRV_ENUM_RECINFO:
 		AddDebugLog(L"CMD2_EPG_SRV_ENUM_RECINFO");
-		res.WriteVALUE(sys->reserveManager.GetRecFileInfoAll());
+		res.WriteVALUE(sys->reserveManager.GetRecFileInfoList(NULL));
 		res.SetParam(CMD_SUCCESS);
 		break;
 	case CMD2_EPG_SRV_DEL_RECINFO:
@@ -2242,20 +2242,20 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 						}
 						std::reverse(idUseList.begin(), idUseList.end());
 					}
-					pair<bool, int> retAndProcessID = sys->reserveManager.OpenNWTV(nwtvID, nwtvUdp, nwtvTcp, val.ONID, val.TSID, val.SID, idUseList);
-					if( retAndProcessID.first ){
+					CReserveManager::OPEN_NWTV_RESULT ret = sys->reserveManager.OpenNWTV(nwtvID, nwtvUdp, nwtvTcp, val.ONID, val.TSID, val.SID, idUseList);
+					if( ret.succeeded ){
 						res.SetParam(CMD_SUCCESS);
 						if( cmd.GetParam() != CMD2_EPG_SRV_NWTV_SET_CH ){
 							//新コマンドではViewアプリのプロセスIDを返す
-							res.WriteVALUE(retAndProcessID.second);
+							res.WriteVALUE(ret.processID);
 						}
 					}
 				}else if( cmd.GetParam() != CMD2_EPG_SRV_NWTV_SET_CH ){
 					//新コマンドでは起動の確認
-					pair<bool, int> retAndProcessID = sys->reserveManager.IsOpenNWTV(val.useBonCh ? val.space : 0);
-					if( retAndProcessID.first ){
+					CReserveManager::OPEN_NWTV_RESULT ret = sys->reserveManager.IsOpenNWTV(val.useBonCh ? val.space : 0);
+					if( ret.succeeded ){
 						res.SetParam(CMD_SUCCESS);
-						res.WriteVALUE(retAndProcessID.second);
+						res.WriteVALUE(ret.processID);
 					}
 				}
 			}
@@ -2631,7 +2631,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 			WORD ver;
 			if( cmd.ReadVALUE(&ver) ){
 				res.WriteVALUE2WithVersion(ver,
-					sys->reserveManager.GetRecFileInfoAll(cmd.GetParam() == CMD2_EPG_SRV_ENUM_RECINFO2));
+					sys->reserveManager.GetRecFileInfoList(NULL, cmd.GetParam() == CMD2_EPG_SRV_ENUM_RECINFO2));
 				res.SetParam(CMD_SUCCESS);
 			}
 		}
@@ -2963,24 +2963,7 @@ bool CEpgTimerSrvMain::CtrlCmdProcessCompatible(const CCmdStream& cmd, CCmdStrea
 			WORD ver;
 			vector<DWORD> idList;
 			if( cmd.ReadVALUE2WithVersion(&ver, &idList) ){
-				vector<REC_FILE_INFO> listA = this->reserveManager.GetRecFileInfoAll(false);
-				vector<REC_FILE_INFO> list;
-				REC_FILE_INFO info;
-				for( size_t i = 0; i < idList.size(); i++ ){
-					info.id = idList[i];
-					vector<REC_FILE_INFO>::const_iterator itr =
-						std::lower_bound(listA.begin(), listA.end(), info, [](const REC_FILE_INFO& a, const REC_FILE_INFO& b) { return a.id < b.id; });
-					if( itr != listA.end() && itr->id == info.id ){
-						list.push_back(*itr);
-					}
-				}
-				for( size_t i = 0; i < list.size(); i++ ){
-					if( this->reserveManager.GetRecFileInfo(list[i].id, &info) ){
-						list[i].programInfo = info.programInfo;
-						list[i].errInfo = info.errInfo;
-					}
-				}
-				res.WriteVALUE2WithVersion(ver, list);
+				res.WriteVALUE2WithVersion(ver, this->reserveManager.GetRecFileInfoList(&idList));
 				res.SetParam(CMD_SUCCESS);
 			}
 			return true;
@@ -4037,7 +4020,7 @@ int CEpgTimerSrvMain::LuaGetRecFileInfoProc(lua_State* L, bool getExtraInfo)
 	vector<REC_FILE_INFO> list;
 	if( getAll ){
 		lua_newtable(L);
-		list = ws.sys->reserveManager.GetRecFileInfoAll(getExtraInfo);
+		list = ws.sys->reserveManager.GetRecFileInfoList(NULL, getExtraInfo);
 	}else{
 		DWORD id = (DWORD)lua_tointeger(L, 1);
 		list.resize(1);
@@ -4383,12 +4366,13 @@ int CEpgTimerSrvMain::LuaOpenNetworkTV(lua_State* L)
 			std::reverse(idUseList.begin(), idUseList.end());
 		}
 		//すでに起動しているものの送信モードは変更しない
-		pair<bool, int> retAndProcessID =
+		CReserveManager::OPEN_NWTV_RESULT ret =
 			ws.sys->reserveManager.OpenNWTV(nwtvID, (mode == 1 || mode == 3), (mode == 2 || mode == 3), onid, tsid, sid, idUseList);
-		if( retAndProcessID.first ){
+		if( ret.succeeded ){
 			lua_pushboolean(L, true);
-			lua_pushinteger(L, retAndProcessID.second);
-			return 2;
+			lua_pushinteger(L, ret.processID);
+			lua_pushinteger(L, ret.openCount);
+			return 3;
 		}
 	}
 	lua_pushboolean(L, false);
@@ -4398,11 +4382,12 @@ int CEpgTimerSrvMain::LuaOpenNetworkTV(lua_State* L)
 int CEpgTimerSrvMain::LuaIsOpenNetworkTV(lua_State* L)
 {
 	CLuaWorkspace ws(L);
-	pair<bool, int> retAndProcessID = ws.sys->reserveManager.IsOpenNWTV((int)lua_tointeger(L, 1));
-	if( retAndProcessID.first ){
+	CReserveManager::OPEN_NWTV_RESULT ret = ws.sys->reserveManager.IsOpenNWTV((int)lua_tointeger(L, 1));
+	if( ret.succeeded ){
 		lua_pushboolean(L, true);
-		lua_pushinteger(L, retAndProcessID.second);
-		return 2;
+		lua_pushinteger(L, ret.processID);
+		lua_pushinteger(L, ret.openCount);
+		return 3;
 	}
 	lua_pushboolean(L, false);
 	return 1;
