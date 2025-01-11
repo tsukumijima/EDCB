@@ -34,6 +34,14 @@ namespace EpgTimer
             }
             return true;
         }
+
+        protected override void mc_ToAutoadd(object sender, ExecutedRoutedEventArgs e)
+        {
+            EpgEventInfo info = Settings.Instance.MenuSet.SetJunreToAutoAdd ? dataList[0].GetPgInfo() : null;
+            MenuUtil.SendAutoAdd(info ?? (IBasicPgInfo)dataList[0], CmdExeUtil.IsKeyGesture(e));
+            IsCommandExecuted = true;
+        }
+
         protected override void mc_OpenFolder(object sender, ExecutedRoutedEventArgs e)
         {
             CommonManager.OpenRecFolder(dataList[0].RecFilePath);
