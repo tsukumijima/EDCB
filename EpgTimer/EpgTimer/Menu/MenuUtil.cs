@@ -452,6 +452,11 @@ namespace EpgTimer
             itemlist.ForEach(item => item.searchInfo.notKey = Clipboard.GetText());
             return AutoAddChange(itemlist);
         }
+        public static bool EpgAutoAddChangeNote(List<EpgAutoAddData> itemlist)
+        {
+            itemlist.ForEach(item => item.searchInfo.note = Clipboard.GetText());
+            return AutoAddChange(itemlist);
+        }
         public static bool AutoAddAdd(IEnumerable<AutoAddData> itemlist, bool cautionMany = true)
         {
             return AutoAddCmdSend(itemlist, 0, cautionMany: cautionMany);

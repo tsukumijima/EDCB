@@ -70,6 +70,8 @@
                             <CheckBox Content="録画タグに貼り付け" />
                             <CheckBox Content="NOTキーをコピー" />
                             <CheckBox Content="NOTキーに貼り付け" />
+                            <CheckBox Content="メモ欄をコピー" />
+                            <CheckBox Content="メモ欄に貼り付け" />
                             <Separator Style="{StaticResource MiddleLine}" />
                             <CheckBox Content="右クリックメニューの設定..." />
                             <Separator Style="{StaticResource UnderLine}" />
@@ -112,6 +114,8 @@
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageRecTag}" />
                             <CheckBox Visibility="Hidden" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageNotKEY}" />
+                            <CheckBox Visibility="Hidden" />
+                            <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageNote}" />
                             <Separator Style="{StaticResource MiddleLine}" />
                             <CheckBox Visibility="Hidden" />
                             <Separator Style="{StaticResource UnderLine}" />

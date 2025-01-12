@@ -131,5 +131,15 @@ namespace EpgTimer
             if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "Notキーワード") == true) return;
             IsCommandExecuted = MenuUtil.EpgAutoAddChangeNotKey(dataList);
         }
+        protected override void mc_CopyNote(object sender, ExecutedRoutedEventArgs e)
+        {
+            Clipboard.SetDataObject(dataList[0].searchInfo.note);
+            IsCommandExecuted = true;
+        }
+        protected override void mc_SetNote(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "メモ欄") == true) return;
+            IsCommandExecuted = MenuUtil.EpgAutoAddChangeNote(dataList);
+        }
     }
 }

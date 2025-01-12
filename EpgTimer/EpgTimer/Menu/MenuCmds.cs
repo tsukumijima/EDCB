@@ -88,6 +88,8 @@ namespace EpgTimer
             AddCommand(EpgCmds.SetRecTag, Key.V, ModifierKeys.Control | ModifierKeys.Alt, isEnable: false);
             AddCommand(EpgCmds.CopyNotKey, Key.X, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.SetNotKey, Key.V, ModifierKeys.Control, isEnable: false);
+            AddCommand(EpgCmds.CopyNote, Key.X, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
+            AddCommand(EpgCmds.SetNote, Key.V, ModifierKeys.Control | ModifierKeys.Shift, isEnable: false);
             AddCommand(EpgCmds.ProtectChange, Key.S, ModifierKeys.Control, isEnable: false);
             AddCommand(EpgCmds.ViewChgSet, spc: GestureTrg.ToView);
             AddCommand(EpgCmds.ViewChgReSet, spc: GestureTrg.ToView);

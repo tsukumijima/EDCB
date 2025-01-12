@@ -60,6 +60,8 @@ namespace EpgTimer
         public static RoutedUICommand SetRecTag { get; private set; }
         public static RoutedUICommand CopyNotKey { get; private set; }
         public static RoutedUICommand SetNotKey { get; private set; }
+        public static RoutedUICommand CopyNote { get; private set; }
+        public static RoutedUICommand SetNote { get; private set; }
         public static RoutedUICommand ProtectChange { get; private set; }
         public static RoutedUICommand ViewChgSet { get; private set; }
         public static RoutedUICommand ViewChgReSet { get; private set; }

@@ -138,6 +138,8 @@ namespace EpgTimer
             cmdList.Add(EpgCmds.SetRecTag, new cmdOption(mc_SetRecTag, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.CopyNotKey, new cmdOption(mc_CopyNotKey, null, cmdExeType.SingleItem));
             cmdList.Add(EpgCmds.SetNotKey, new cmdOption(mc_SetNotKey, null, cmdExeType.MultiItem, true));
+            cmdList.Add(EpgCmds.CopyNote, new cmdOption(mc_CopyNote, null, cmdExeType.SingleItem));
+            cmdList.Add(EpgCmds.SetNote, new cmdOption(mc_SetNote, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ProtectChange, new cmdOption(mc_ProtectChange, null, cmdExeType.MultiItem, true));
             cmdList.Add(EpgCmds.ViewChgSet, new cmdOption(null, null, cmdExeType.Direct, needItem: false));//個別に指定
             cmdList.Add(EpgCmds.ViewChgReSet, new cmdOption(null, null, cmdExeType.SingleItem, needItem: false));//個別に指定
@@ -454,6 +456,8 @@ namespace EpgTimer
         protected virtual void mc_SetRecTag(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_CopyNotKey(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_SetNotKey(object sender, ExecutedRoutedEventArgs e) { }
+        protected virtual void mc_CopyNote(object sender, ExecutedRoutedEventArgs e) { }
+        protected virtual void mc_SetNote(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_ProtectChange(object sender, ExecutedRoutedEventArgs e) { }
         protected virtual void mc_MenuSetting(object sender, ExecutedRoutedEventArgs e)
         {
@@ -872,6 +876,8 @@ namespace EpgTimer
             cmdMessage.Add(EpgCmds.SetRecTag, "録画タグを変更");
             cmdMessage.Add(EpgCmds.CopyNotKey, "Notキーをコピー");
             cmdMessage.Add(EpgCmds.SetNotKey, "Notキーを変更");
+            cmdMessage.Add(EpgCmds.CopyNote, "メモ欄をコピー");
+            cmdMessage.Add(EpgCmds.SetNote, "メモ欄を変更");
         }
     }
 
@@ -882,9 +888,9 @@ namespace EpgTimer
             if (Count == 0) return true;//今は無くても同じ
             if (IsMessageBeforeCommand(e) == false) return false;
 
-            return (MessageBox.Show(string.Format(
+            return MessageBox.Show(string.Format(
                 "全て削除しますか?\r\n" + "[削除項目数: {0}]", Count)
-                , "[全削除]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
+                , "[全削除]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK;
         }
         public static bool CheckDeleteCancel(ExecutedRoutedEventArgs e, IEnumerable<IRecWorkMainData> dataList)
         {
@@ -892,9 +898,9 @@ namespace EpgTimer
             if (IsMessageBeforeCommand(e) == false) return false;
 
             List<string> titleList = dataList.Select(info => info.DataTitle).ToList();
-            return (MessageBox.Show(
+            return MessageBox.Show(
                 string.Format("削除しますか?\r\n\r\n" + "[削除項目数: {0}]\r\n\r\n", titleList.Count) + FormatTitleListForDialog(titleList)
-                , "削除の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
+                , "削除の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK;
         }
         public static bool CheckAllProcCancel(ExecutedRoutedEventArgs e, IEnumerable<AutoAddData> dataList, bool IsDelete)
         {
@@ -912,7 +918,7 @@ namespace EpgTimer
                                         + "[{3}: {4}]\r\n\r\n", s[0], s[1], titleList.Count, s[2], dataList.GetReserveList().Count)
                 + FormatTitleListForDialog(titleList);
 
-            return (MessageBox.Show(text, "[" + s[3] + "]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK);
+            return MessageBox.Show(text, "[" + s[3] + "]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK;
         }
         public static bool CheckSetFromClipBoardCancel(ExecutedRoutedEventArgs e, IEnumerable<IRecWorkMainData> dataList, string caption)
         {
@@ -924,7 +930,7 @@ namespace EpgTimer
                 + "[変更項目数: {1}]\r\n[貼り付けテキスト: \"{2}\"]\r\n\r\n", caption, titleList.Count, Clipboard.GetText())
                 + FormatTitleListForDialog(titleList);
 
-            return (MessageBox.Show(text, "[" + caption + "変更]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) ;
+            return MessageBox.Show(text, "[" + caption + "変更]の確認", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK;
         }
         public static string FormatTitleListForDialog(ICollection<string> list)
         {
@@ -944,6 +950,7 @@ namespace EpgTimer
             else if (e.Command == EpgCmds.Delete2 || e.Command == EpgCmds.Delete2InDialog) NoMessage = Settings.Instance.MenuSet.NoMessageDelete2;
             else if (e.Command == EpgCmds.SetRecTag) NoMessage = Settings.Instance.MenuSet.NoMessageRecTag;
             else if (e.Command == EpgCmds.SetNotKey) NoMessage = Settings.Instance.MenuSet.NoMessageNotKEY;
+            else if (e.Command == EpgCmds.SetNote) NoMessage = Settings.Instance.MenuSet.NoMessageNote;
             else if (e.Command == EpgCmds.AdjustReserve) NoMessage = Settings.Instance.MenuSet.NoMessageAdjustRes;
 
             return NoMessage == false || IsDisplayKgMessage(e);
@@ -969,7 +976,7 @@ namespace EpgTimer
         }
         public static bool HasCommandParameter(ExecutedRoutedEventArgs e)
         {
-            return (e != null && e.Parameter is EpgCmdParam);
+            return e != null && e.Parameter is EpgCmdParam;
         }
 
     }
