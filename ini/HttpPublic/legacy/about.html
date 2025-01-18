@@ -36,9 +36,9 @@ ct:Append(DOCTYPE_HTML4_STRICT..[=[
     トランスコーダーなどのバージョンはとくに指定しませんが、なるべく新しいものを用意してください。<br>
     ブラウザの制限により自動再生されないことがあるので、その場合は再生画面をクリックやタップしてください。
   </p><p>
-    <a href="https://github.com/ts-live/ts-live">TS-Live!</a>のWebAssemblyモジュールを利用してブラウザ上でMPEG2を直接再生できます。<br>
-    利用する場合は<a href="https://github.com/xtne6f/ts-live/tree/main/public/wasm">ts-live@xtne6f/public/wasm</a>からts-live.jsとts-live.wasmを取得してこのWebUIに配置し、トランスコードオプションで「tslive」を選んでください。<br>
-    WebGPUが利用できること、localhostからのアクセス等セキュアコンテキストであること(<a href="#footer">環境情報</a>)が必要です。
+    <a href="https://github.com/ts-live/ts-live">TS-Live!</a>のWebAssemblyモジュールを利用してブラウザ上でMPEG2の再生やサムネイル画像の表示ができます。<br>
+    利用する場合は<a href="https://github.com/xtne6f/ts-live/tree/main/public/wasm">ts-live@xtne6f/public/wasm</a>からts-live(-misc).jsとts-live(-misc).wasmの4ファイルを取得してこのWebUIに配置し、トランスコードオプションで「tslive」を選んでください。<br>
+    MPEG2の再生にはWebGPUが利用できること、localhostからのアクセス等セキュアコンテキストであること(<a href="#footer">環境情報</a>)が必要です。
   </p><p>
     視聴機能を利用する場合は、EpgDataCap_Bonなどの<a href="setting_app_network.html">TCP送信先</a>にSrvPipeを追加しておく必要があります。<br>
     予約一覧にあるviewボタンは起動済みのEpgDataCap_Bonなどに接続して視聴するものです。<br>

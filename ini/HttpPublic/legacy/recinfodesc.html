@@ -110,9 +110,13 @@ if v then
         end
         if ext=='' then
           fsec,fsize=0,0
+          thumbs={}
           f=edcb.io.open(w.recFilePath,'rb')
           if f then
             fsec,fsize=GetDurationSec(f)
+            if vtag<=0 then
+              thumbs=ThumbnailTemplate(f,fsec,fsize)
+            end
             f:close()
           end
           ct:Append(' ('..('%dm%02ds|'):format(math.floor(fsec/60),fsec%60)..math.floor(fsize/1048576)..'M)\n'
@@ -131,6 +135,7 @@ if v then
             ..'&amp;vtag='..(vtag==0 and '-1">Video' or '0">DL')..'</a>\n'
             ..TranscodeSettingTemplate(xq,fsec)
             ..'</div></form>')
+          for j,w in ipairs(thumbs) do ct:Append(w) end
           if vtag==10 then
             src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
             ct:Append('\n'..VideoWrapperBegin()

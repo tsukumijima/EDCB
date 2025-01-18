@@ -57,6 +57,17 @@ MEDIA_EXTENSION_LIST={
   '.webm',
 }
 
+--メディアファイルのサムネイル画像の位置(0～1未満の値は割合、これ以外の正の値は秒数、負の値は末尾からの秒数)
+--最大5個。今のところTSファイルのみ対応。TS-Live!モジュールが必要
+THUMBNAILS={
+  20,
+  1/3,
+  -20,
+}
+
+--シーク中にサムネイル画像を表示するかどうか。TS-Live!モジュールが必要
+THUMBNAIL_ON_SEEK=true
+
 --HLS(HTTP Live Streaming)を許可するかどうか。する場合はtsmemseg.exeを用意すること。IE非対応
 ALLOW_HLS=true
 --ネイティブHLS非対応環境でもhls.jsを使ってHLS再生するかどうか
@@ -429,7 +440,11 @@ end
 function TranscodeScriptTemplate(live,caption,jikkyo,params)
   return OnscreenButtonsScriptTemplate(true)..WebBmlScriptTemplate('datacast')..JikkyoScriptTemplate(live,jikkyo)..[=[
 <label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(caption)..[=[>caption</label>
-]=]..(live and '<label><input id="cb-live" type="checkbox">live</label>\n' or '')..[=[
+]=]..(live and '<label><input id="cb-live" type="checkbox">live</label>\n' or '')
+  ..(not live and THUMBNAIL_ON_SEEK and EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') and [=[
+<script src="ts-live.lua?t=-misc.js"></script>
+<span class="thumb-popup"><canvas id="vid-thumb" style="display:none"></canvas></span>
+]=] or '')..[=[
 <input id="vid-seek" type="range" style="display:none">
 <span id="vid-seek-status"></span>
 <input id="vid-volume" type="range" style="display:none">
@@ -476,6 +491,60 @@ runTsliveScript(]=]
 );
 </script>
 ]=]
+end
+
+function ThumbnailTemplate(f,dur,fsize)
+  local r={''}
+  if EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') then
+    for i=1,math.min(#THUMBNAILS,5) do
+      if SeekSec(f,THUMBNAILS[i]<0 and dur+THUMBNAILS[i] or THUMBNAILS[i]<1 and dur*THUMBNAILS[i] or THUMBNAILS[i],dur,fsize) then
+        --Iフレームを取得してスクリプト上に置いておく
+        local stream=GetIFrameVideoStream(f)
+        if stream then
+          r[#r+1]='    streams.push("'
+          r[#r+1]=mg.base64_encode(stream)
+          r[#r+1]='");\n'
+        end
+      end
+    end
+  end
+  if #r<=1 then return {} end
+  r[1]=[=[
+<div id="vid-thumbs"></div>
+<script type="text/javascript" src="ts-live.lua?t=-misc.js"></script>
+<script type="text/javascript">
+setTimeout(function(){
+  createMiscWasmModule().then(function(mod){
+    var streams=[];
+]=]
+  r[#r+1]=[=[
+    var canvases=[];
+    for(var i=0;i<streams.length;i++){
+      var b=atob(streams[i]);
+      var u=new Uint8Array(b.length);
+      for(var j=0;j<b.length;j++){
+        u[j]=b.charCodeAt(j);
+      }
+      var buffer=mod.getGrabberInputBuffer(u.length);
+      buffer.set(u);
+      var frame=mod.grabFirstFrame(u.length);
+      if(frame){
+        var canvas=document.createElement("canvas");
+        canvas.width=frame.width;
+        canvas.height=frame.height;
+        canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(frame.buffer),frame.width,frame.height),0,0);
+        canvases.push(canvas);
+      }
+    }
+    for(var i=0;i<canvases.length;i++){
+      canvases[i].className="thumb-]=]..math.min(#THUMBNAILS,5)..[=[";
+      document.getElementById("vid-thumbs").appendChild(canvases[i]);
+    }
+  });
+},0);
+</script>
+]=]
+  return r
 end
 
 --EPG情報をTextに変換(EpgTimerUtil.cppから移植)
@@ -934,13 +1003,89 @@ end
 function ReadToPcr(f,pid)
   for i=1,10000 do
     local buf=f:read(188)
-    if buf and #buf==188 and buf:byte(1)==0x47 then
-      --adaptation_field_control and adaptation_field_length and PCR_flag
-      if math.floor(buf:byte(4)/16)%4>=2 and buf:byte(5)>=5 and math.floor(buf:byte(6)/16)%2~=0 then
+    if not buf or #buf~=188 or buf:byte(1)~=0x47 then break end
+    local adaptation=math.floor(buf:byte(4)/16)%4
+    if adaptation>=2 then
+      --adaptation_field_length and PCR_flag
+      if buf:byte(5)>=5 and math.floor(buf:byte(6)/16)%2~=0 then
         local pcr=((buf:byte(7)*256+buf:byte(8))*256+buf:byte(9))*256+buf:byte(10)
         local pid2=buf:byte(2)%32*256+buf:byte(3)
         if not pid or pid==pid2 then
           return pcr,pid2,i*188
+        end
+      end
+    end
+  end
+  return nil
+end
+
+--MPEG-2映像のIフレームを取得する
+function GetIFrameVideoStream(f)
+  local videoPid=nil
+  local stream,pesRemain,headerRemain,seqState
+  local function findPictureCodingType(buf)
+    for i=1,#buf do
+      local b=buf:byte(i)
+      if (seqState<=1 or seqState==3) and b==0 or seqState==4 then
+        seqState=seqState+1
+      elseif seqState==2 and b<=1 then
+        if b==1 then
+          seqState=seqState+1
+        end
+      elseif seqState==5 then
+        seqState=-1
+        return math.floor(b/8)%8
+      else
+        seqState=0
+      end
+    end
+    return nil
+  end
+  for i=1,15000 do
+    local buf=f:read(188)
+    if not buf or #buf~=188 or buf:byte(1)~=0x47 then break end
+    local errorAndUnitStart=math.floor(buf:byte(2)/64)
+    local pid=buf:byte(2)%32*256+buf:byte(3)
+    if errorAndUnitStart<=1 and pid==videoPid or
+       errorAndUnitStart==1 and not videoPid then
+      if errorAndUnitStart==1 and videoPid then
+        if pesRemain==0 then
+          --PESがたまった
+          if seqState<0 then return table.concat(stream) end
+        end
+        videoPid=nil
+      end
+      local adaptation=math.floor(buf:byte(4)/16)%4
+      local adaptationLen=adaptation==1 and -1 or adaptation==3 and buf:byte(5) or 183
+      if adaptationLen>183 then break end
+      local pos=6+adaptationLen
+      if not videoPid and pos<=180 and buf:find('^\0\0\1[\xE0-\xEF]',pos) then
+        --H.262 PES
+        videoPid=pid
+        stream={}
+        pesRemain=buf:byte(pos+4)*256+buf:byte(pos+5)
+        headerRemain=buf:byte(pos+8)
+        seqState=0
+        pos=pos+9
+      end
+      if videoPid and pos<=188 then
+        local n=math.min(189-pos,headerRemain)
+        headerRemain=headerRemain-n
+        pos=pos+n
+        if pos<=188 then
+          n=pesRemain>0 and math.min(189-pos,pesRemain) or 189-pos
+          stream[#stream+1]=buf:sub(pos,pos+n-1)
+          if seqState>=0 and findPictureCodingType(stream[#stream])~=1 and seqState<0 then
+            --Iフレームじゃない
+            videoPid=nil
+          elseif pesRemain>0 then
+            pesRemain=pesRemain-n
+            if pesRemain==0 then
+              --PESがたまった
+              if seqState<0 then return table.concat(stream) end
+              videoPid=nil
+            end
+          end
         end
       end
     end
@@ -1041,10 +1186,10 @@ function GetTotAndServiceID(f)
       for i=1,400000 do
         local buf=f:read(188)
         if not buf or #buf~=188 or buf:byte(1)~=0x47 then break end
+        local errorAndUnitStart=math.floor(buf:byte(2)/64)
         local adaptation=math.floor(buf:byte(4)/16)%4
         local adaptationLen=adaptation==1 and -1 or adaptation==3 and buf:byte(5) or 183
-        --payload_unit_start_indicator
-        if math.floor(buf:byte(2)/64)%2==1 and adaptationLen<183 then
+        if errorAndUnitStart==1 and adaptationLen<183 then
           local pid=buf:byte(2)%32*256+buf:byte(3)
           local pointer=7+adaptationLen+buf:byte(6+adaptationLen)
           local id=pointer<=188 and buf:byte(pointer)

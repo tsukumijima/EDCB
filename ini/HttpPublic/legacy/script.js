@@ -795,6 +795,14 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
     //Playback rate is controlled on client-side.
     vid.fast=fast;
     fast=1;
+  }else if(window.createMiscWasmModule){
+    setTimeout(function(){
+      createMiscWasmModule().then(function(mod){
+        //Functions for drawing thumbnails
+        vid.getGrabberInputBuffer=mod.getGrabberInputBuffer;
+        vid.grabFirstFrame=mod.grabFirstFrame;
+      });
+    },0);
   }
   var openSubStream=function(){};
   if(useDatacast||useLiveJikkyo||useJikkyoLog){
@@ -913,18 +921,48 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
     var vseek=document.getElementById("vid-seek");
     var vseekLeaved=true;
     var msList=[];
+    var vthumb=document.getElementById("vid-thumb");
+    var thumbTimer=null;
+    var thumbXhr=null;
     for(var i=0;i<=100;i++){
       msList[i]=vselect.options[i].textContent.match(/^(?:\d+m\d\ds)?/)[0];
     }
     vseek.onmouseleave=function(){
       vseekLeaved=true;
       document.getElementById("vid-seek-status").innerText="";
+      if(vthumb)vthumb.style.display="none";
     };
     vseek.oninput=function(){
       vseekLeaved=false;
       var sec=ofssec+Math.floor((vid.c||vid.e).currentTime*fast);
       var ms=Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
       document.getElementById("vid-seek-status").innerText=ms+"\u2192"+msList[vseek.value]+"|"+vseek.value+"%";
+      var m=document.getElementById("vidsrc").textContent.match(/\?fname=[^&]*/);
+      if(m&&vthumb&&vid.grabFirstFrame){
+        if(thumbTimer)clearTimeout(thumbTimer);
+        thumbTimer=setTimeout(function(){
+          if(vseekLeaved||thumbXhr)return;
+          //Get thumbnail of seek position.
+          thumbXhr=new XMLHttpRequest();
+          thumbXhr.open("GET","grabber.lua"+m[0]+"&offset="+vseek.value);
+          thumbXhr.responseType="arraybuffer";
+          thumbXhr.onloadend=function(){
+            if(!vseekLeaved&&thumbXhr.status==200&&thumbXhr.response){
+              var buffer=vid.getGrabberInputBuffer(thumbXhr.response.byteLength);
+              buffer.set(new Uint8Array(thumbXhr.response));
+              var frame=vid.grabFirstFrame(thumbXhr.response.byteLength);
+              if(frame){
+                vthumb.width=frame.width;
+                vthumb.height=frame.height;
+                vthumb.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(frame.buffer),frame.width,frame.height),0,0);
+                vthumb.style.display=null;
+              }
+            }
+            thumbXhr=null;
+          };
+          thumbXhr.send();
+        },thumbTimer?200:0);
+      }
     };
     vseek.onchange=function(){
       vselect.options[vseek.value].selected=true;
@@ -1152,6 +1190,9 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
   navigator.gpu.requestAdapter().then(function(adapter){
     adapter.requestDevice().then(function(device){
       createWasmModule({preinitializedWebGPUDevice:device}).then(function(mod){
+        //Functions for drawing thumbnails
+        vid.getGrabberInputBuffer=mod.getGrabberInputBuffer;
+        vid.grabFirstFrame=mod.grabFirstFrame;
         var statsTime=0;
         mod.setCaptionCallback(function(pts,ts,data){
           if(cap)cap.pushRawData(statsTime+ts,data.slice());

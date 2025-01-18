@@ -44,6 +44,18 @@ input[type="checkbox"] {
   width: 1em;
 }
 
+.thumb-popup {
+  position: relative;
+}
+
+#vid-thumb {
+  border: 1px solid #07d;
+  height: 9em;
+  position: absolute;
+  top: -10em;
+  width: 16em;
+}
+
 #vid-seek {
   margin-left: 0.5em;
   min-width: 10em;
@@ -310,6 +322,26 @@ th, td {
 
 #now {
   border: 2px solid #f00;
+}
+
+.thumb-1, .thumb-2 {
+  aspect-ratio: 16 / 9;
+  width: 50%;
+}
+
+.thumb-3 {
+  aspect-ratio: 16 / 9;
+  width: 33.3%;
+}
+
+.thumb-4 {
+  aspect-ratio: 16 / 9;
+  width: 25%;
+}
+
+.thumb-5 {
+  aspect-ratio: 16 / 9;
+  width: 20%;
 }
 
 .video-container {
