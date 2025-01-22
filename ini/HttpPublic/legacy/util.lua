@@ -1021,6 +1021,8 @@ end
 
 --MPEG-2映像のIフレームを取得する
 function GetIFrameVideoStream(f)
+  local exclude={}
+  local priorPid=8192
   local videoPid=nil
   local stream,pesRemain,headerRemain,seqState
   local function findPictureCodingType(buf)
@@ -1052,6 +1054,7 @@ function GetIFrameVideoStream(f)
         if pesRemain==0 then
           --PESがたまった
           if seqState<0 then return table.concat(stream) end
+          exclude[pid]=true
         end
         videoPid=nil
       end
@@ -1059,8 +1062,9 @@ function GetIFrameVideoStream(f)
       local adaptationLen=adaptation==1 and -1 or adaptation==3 and buf:byte(5) or 183
       if adaptationLen>183 then break end
       local pos=6+adaptationLen
-      if not videoPid and pos<=180 and buf:find('^\0\0\1[\xE0-\xEF]',pos) then
-        --H.262 PES
+      --H.262のpicture_coding_typeが見つからないものは除外。複数候補ある場合はPIDが小さいほう
+      if not videoPid and not exclude[pid] and pid<=priorPid and pos<=180 and buf:find('^\0\0\1[\xE0-\xEF]',pos) then
+        --H.262/264/265 PES
         videoPid=pid
         stream={}
         pesRemain=buf:byte(pos+4)*256+buf:byte(pos+5)
@@ -1077,12 +1081,14 @@ function GetIFrameVideoStream(f)
           stream[#stream+1]=buf:sub(pos,pos+n-1)
           if seqState>=0 and findPictureCodingType(stream[#stream])~=1 and seqState<0 then
             --Iフレームじゃない
+            priorPid=pid
             videoPid=nil
           elseif pesRemain>0 then
             pesRemain=pesRemain-n
             if pesRemain==0 then
               --PESがたまった
               if seqState<0 then return table.concat(stream) end
+              exclude[pid]=true
               videoPid=nil
             end
           end
