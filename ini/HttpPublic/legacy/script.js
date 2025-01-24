@@ -341,7 +341,7 @@ function readJikkyoLog(text,proc,startSec,ctx){
 }
 
 //Global variables available after runOnscreenButtonsScript() is called.
-var vid,vcont,vfull,vwrap,setSendComment,hideOnscreenButtons;
+var vid,vcont,vfull,vwrap,setSendComment,setMinimizeJikkyo,hideOnscreenButtons;
 
 function adjustVideoMaxWidth(){
   if(!vwrap.style.width){
@@ -418,6 +418,27 @@ function runOnscreenButtonsScript(xcode){
     blive.className="live-control";
     blive.appendChild(btn);
   }
+  btn=document.createElement("button");
+  btn.type="button";
+  var bminjk=document.createElement("div");
+  bminjk.className="minimize-jikkyo";
+  bminjk.style.display="none";
+  bminjk.appendChild(btn);
+  setMinimizeJikkyo=function(f){
+    bminjk.style.display=f?null:"none";
+    bminjk.firstElementChild.onclick=f;
+  };
+  var bcomm=document.createElement("div");
+  bcomm.className="comment-control";
+  bcomm.style.display="none";
+  btn=document.createElement("button");
+  btn.type="button";
+  btn.innerText="\u2713";
+  btn.onclick=function(){
+    if(bcomm.classList.contains("opaque"))bcomm.classList.remove("opaque");
+    else bcomm.classList.add("opaque");
+  };
+  bcomm.appendChild(btn);
   var commInput=document.createElement("input");
   commInput.type="text";
   commInput.className="nico";
@@ -428,35 +449,44 @@ function runOnscreenButtonsScript(xcode){
       commInput.value="";
     }
   };
-  var btn=document.createElement("button");
+  bcomm.appendChild(commInput);
+  btn=document.createElement("button");
   btn.type="button";
   btn.innerText="\u226b";
   btn.onclick=function(){
     if(commSend&&commInput.value)commSend(commInput);
     commInput.value="";
   };
-  var bcomm=document.createElement("div");
-  bcomm.className="comment-control";
-  bcomm.style.display="none";
-  bcomm.appendChild(commInput);
   bcomm.appendChild(btn);
+  btn=document.createElement("button");
+  btn.type="button";
+  btn.innerText="\u00a0";
+  var bmove=document.createElement("div");
+  bmove.className="move-comment-control";
+  bmove.style.display="none";
+  btn.onclick=function(){
+    if(bcomm.classList.contains("moved")){
+      bcomm.classList.remove("moved");
+      bmove.classList.remove("moved");
+    }else{
+      bcomm.classList.add("moved");
+      bmove.classList.add("moved");
+    }
+  };
+  bmove.appendChild(btn);
   setSendComment=function(f){
     bcomm.style.display=f?null:"none";
+    bmove.style.display=f?null:"none";
     commSend=f;
   };
   var removed=true;
   hideOnscreenButtons=function(hide){
+    var b=[bfull,bexit,blive,bminjk,bcomm,bmove];
     if(!removed&&hide){
-      vcont.removeChild(bfull);
-      vcont.removeChild(bexit);
-      if(blive)vcont.removeChild(blive);
-      vcont.removeChild(bcomm);
+      for(var i=0;i<b.length;i++){if(b[i])vcont.removeChild(b[i]);}
       removed=true;
     }else if(removed&&!hide){
-      vcont.appendChild(bfull);
-      vcont.appendChild(bexit);
-      if(blive)vcont.appendChild(blive);
-      vcont.appendChild(bcomm);
+      for(var i=0;i<b.length;i++){if(b[i])vcont.appendChild(b[i]);}
       removed=false;
     }
   };
@@ -471,11 +501,11 @@ var toggleJikkyo;
 
 function runJikkyoScript(commentHeight,commentDuration,replaceTag){
   var danmaku=null;
-  var comm=null;
+  var comm=document.getElementById("jikkyo-comm");
   var checkScrollID=0;
   var cbJikkyoOnscr=document.getElementById("cb-jikkyo-onscr");
   function onclickJikkyoOnscr(){
-    if(comm&&comm.style.visibility!="hidden"){
+    if(danmaku&&comm.style.visibility!="hidden"){
       var cbDatacast=document.getElementById("cb-datacast");
       if((!cbDatacast||!cbDatacast.checked)&&cbJikkyoOnscr.checked)danmaku.show();
       else danmaku.hide();
@@ -483,7 +513,7 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
   }
   cbJikkyoOnscr.onclick=onclickJikkyoOnscr;
   checkJikkyoDisplay=function(){
-    if(comm){
+    if(danmaku){
       var cbJikkyo=document.getElementById("cb-jikkyo");
       if(!cbJikkyo.checked){
         danmaku.hide();
@@ -492,9 +522,14 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
         if(!cbDatacast||!cbDatacast.checked){
           comm.style.display="none";
         }
+        setMinimizeJikkyo(null);
       }else{
         comm.style.visibility=null;
         comm.style.display=null;
+        setMinimizeJikkyo(function(){
+          if(comm.classList.contains("minimized"))comm.classList.remove("minimized");
+          else comm.classList.add("minimized");
+        });
         onclickJikkyoOnscr();
       }
     }
@@ -509,11 +544,6 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
       onJikkyoStreamError=null;
       checkJikkyoDisplay();
       return;
-    }
-    if(!comm){
-      comm=document.createElement("div");
-      comm.className="jikkyo-comments";
-      vfull.appendChild(comm);
     }
     if(!danmaku){
       danmaku=new Danmaku({
@@ -544,7 +574,7 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
         commHide=true;
       }else{
         var scroll=Math.abs(comm.scrollTop+comm.clientHeight-comm.scrollHeight)<comm.clientHeight/4;
-        //The top/bottom border of .jikkyo-comments must be 1px
+        //The top/bottom border of #jikkyo-comm must be 1px
         comm.style.height=vid.e.clientHeight-2+"px";
         if(commHide||scroll)comm.scrollTop=comm.scrollHeight;
         commHide=false;

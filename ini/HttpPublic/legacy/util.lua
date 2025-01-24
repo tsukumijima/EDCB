@@ -340,7 +340,7 @@ function VideoWrapperBegin()
 end
 
 function VideoWrapperEnd()
-  return '</div></div></div>'
+  return '</div><div id="jikkyo-comm" style="display:none"></div></div></div>'
 end
 
 function TranscodeSettingTemplate(xq,fsec)
