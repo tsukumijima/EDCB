@@ -3,10 +3,6 @@
 #include "TimeUtil.h"
 #include "PathUtil.h"
 
-#if defined(_MSC_VER) && _MSC_VER < 1900
-#define wcstoll _wcstoi64
-#endif
-
 namespace
 {
 //タブ区切りの次のトークンに移動する
