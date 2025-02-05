@@ -157,6 +157,19 @@ vector<TUNER_RESERVE_INFO> CReserveManager::GetTunerReserveAll() const
 	return list;
 }
 
+vector<TUNER_PROCESS_STATUS_INFO> CReserveManager::GetTunerProcessStatusAll() const
+{
+	lock_recursive_mutex lock(this->managerLock);
+
+	vector<TUNER_PROCESS_STATUS_INFO> list;
+	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
+		if( itr->second->GetState() != CTunerBankCtrl::TR_IDLE ){
+			list.push_back(itr->second->GetProcessStatusInfo());
+		}
+	}
+	return list;
+}
+
 vector<DWORD> CReserveManager::GetNoTunerReserveAll() const
 {
 	lock_recursive_mutex lock(this->managerLock);
@@ -455,16 +468,27 @@ void CReserveManager::DelReserveData(const vector<DWORD>& idList)
 	}
 }
 
-vector<REC_FILE_INFO> CReserveManager::GetRecFileInfoAll(bool getExtraInfo) const
+vector<REC_FILE_INFO> CReserveManager::GetRecFileInfoList(const vector<DWORD>* idList, bool getExtraInfo) const
 {
 	vector<REC_FILE_INFO> infoList;
 	wstring folder;
 	bool folderOnly;
 	{
 		lock_recursive_mutex lock(this->managerLock);
-		infoList.reserve(this->recInfoText.GetMap().size());
-		for( map<DWORD, REC_FILE_INFO>::const_iterator itr = this->recInfoText.GetMap().begin(); itr != this->recInfoText.GetMap().end(); itr++ ){
-			infoList.push_back(itr->second);
+		if( idList ){
+			for( size_t i = 0; i < idList->size(); i++ ){
+				map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().find((*idList)[i]);
+				if( itr != this->recInfoText.GetMap().end() ){
+					infoList.resize(infoList.size() + 1);
+					static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
+				}
+			}
+		}else{
+			infoList.reserve(this->recInfoText.GetMap().size());
+			for( map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().begin(); itr != this->recInfoText.GetMap().end(); itr++ ){
+				infoList.resize(infoList.size() + 1);
+				static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
+			}
 		}
 		if( getExtraInfo ){
 			folder = this->recInfoText.GetRecInfoFolder();
@@ -486,11 +510,13 @@ bool CReserveManager::GetRecFileInfo(DWORD id, REC_FILE_INFO* recInfo, bool getE
 	bool folderOnly;
 	{
 		lock_recursive_mutex lock(this->managerLock);
-		map<DWORD, REC_FILE_INFO>::const_iterator itr = this->recInfoText.GetMap().find(id);
+		map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().find(id);
 		if( itr == this->recInfoText.GetMap().end() ){
 			return false;
 		}
-		*recInfo = itr->second;
+		*static_cast<REC_FILE_INFO_BASIC*>(recInfo) = itr->second;
+		recInfo->programInfo.clear();
+		recInfo->errInfo.clear();
 		if( getExtraInfo ){
 			folder = this->recInfoText.GetRecInfoFolder();
 		}
@@ -636,9 +662,9 @@ void CReserveManager::ReloadBankMap(LONGLONG reloadTime)
 						CHK_RESERVE_DATA item;
 						CalcEntireReserveTime(&item.cutStartTime, &item.cutEndTime, *itr->second);
 						item.cutStartTime -= CTunerBankCtrl::READY_MARGIN * I64_1SEC;
-						item.startOrder = abs(itr->first) & 0x07FFFFFFFFFFFFFF;
+						item.startOrder = llabs(itr->first) & 0x07FFFFFFFFFFFFFF;
 						//チューナ固定優先ビットを除去
-						item.effectivePriority = (itr->first < 0 ? -1 : 1) * (abs(itr->first) & 0x77FFFFFFFFFFFFFF);
+						item.effectivePriority = (itr->first < 0 ? -1 : 1) * (llabs(itr->first) & 0x77FFFFFFFFFFFFFF);
 						item.started = true;
 						item.r = itr->second;
 						//開始済み予約はすべてバンク内で同一チャンネルなのでChkInsertStatus()は不要
@@ -654,9 +680,9 @@ void CReserveManager::ReloadBankMap(LONGLONG reloadTime)
 				CHK_RESERVE_DATA item;
 				CalcEntireReserveTime(&item.cutStartTime, &item.cutEndTime, *itr->second);
 				item.cutStartTime -= CTunerBankCtrl::READY_MARGIN * I64_1SEC;
-				item.startOrder = abs(itr->first) & 0x07FFFFFFFFFFFFFF;
+				item.startOrder = llabs(itr->first) & 0x07FFFFFFFFFFFFFF;
 				//チューナ固定優先ビットを除去
-				item.effectivePriority = (itr->first < 0 ? -1 : 1) * (abs(itr->first) & 0x77FFFFFFFFFFFFFF);
+				item.effectivePriority = (itr->first < 0 ? -1 : 1) * (llabs(itr->first) & 0x77FFFFFFFFFFFFFF);
 				item.started = false;
 				item.r = itr->second;
 				//NGチューナが追加されているときはチューナIDを固定しない
@@ -1229,7 +1255,7 @@ void CReserveManager::CheckAutoDel() const
 						return a.first.lastWriteTime < b.first.lastWriteTime; });
 				fs_path delPath = fs_path(this->setting.delChkList[jtr->second]).append(jtr->first.fileName);
 				if( this->recInfoText.GetMap().end() != std::find_if(this->recInfoText.GetMap().begin(), this->recInfoText.GetMap().end(),
-				        [&](const pair<DWORD, REC_FILE_INFO>& a) {
+				        [&](const pair<DWORD, REC_FILE_INFO_BASIC>& a) {
 				            return a.second.protectFlag && UtilComparePath(a.second.recFilePath.c_str(), delPath.c_str()) == 0; }) ){
 					//プロテクトされた録画済みファイルは消さない
 					AddDebugLogFormat(L"★No Delete(Protected) : %ls", delPath.c_str());
@@ -1269,7 +1295,7 @@ void CReserveManager::CheckOverTimeReserve()
 			//終了時間過ぎてしまっている
 			if( itr->second.recSetting.IsNoRec() == false ){
 				//無効のものは結果に残さない
-				REC_FILE_INFO item;
+				REC_FILE_INFO_BASIC item;
 				item = itr->second;
 				item.recStatus = REC_END_STATUS_NO_TUNER;
 				this->recInfoText.AddRecInfo(item);
@@ -1313,7 +1339,7 @@ void CReserveManager::ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& 
 				this->recInfo2Text.Add(item);
 			}
 
-			REC_FILE_INFO item;
+			REC_FILE_INFO_BASIC item;
 			item = itrRes->second;
 			if( itrRet->type <= CTunerBankCtrl::CHECK_END_NOT_START_HEAD ){
 				item.recFilePath = itrRet->recFilePath;
@@ -1831,10 +1857,11 @@ bool CReserveManager::IsOpenTuner(DWORD tunerID) const
 	return itr != this->tunerBankMap.end() && itr->second->GetState() != CTunerBankCtrl::TR_IDLE;
 }
 
-pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList)
+CReserveManager::OPEN_NWTV_RESULT CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList)
 {
 	lock_recursive_mutex lock(this->managerLock);
 
+	OPEN_NWTV_RESULT ret = {};
 	SET_CH_INFO chInfo = {};
 	chInfo.useSID = TRUE;
 	chInfo.ONID = onid;
@@ -1845,7 +1872,10 @@ pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD o
 			//すでに起動しているので使えたら使う
 			if( itr->second->GetCh(chInfo.ONID, chInfo.TSID, chInfo.SID) ){
 				itr->second->OpenNWTV(id, nwUdp, nwTcp, chInfo);
-				return std::make_pair(true, itr->second->GetProcessID());
+				ret.succeeded = true;
+				ret.processID = itr->second->GetProcessID();
+				ret.openCount = itr->second->GetNWTVOpenCount();
+				return ret;
 			}
 			itr->second->CloseNWTV();
 			break;
@@ -1857,23 +1887,30 @@ pair<bool, int> CReserveManager::OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD o
 			//別IDのネットワークモードを邪魔しない
 			if( itr->second->GetState() != CTunerBankCtrl::TR_NWTV &&
 			    itr->second->OpenNWTV(id, nwUdp, nwTcp, chInfo) ){
-				return std::make_pair(true, itr->second->GetProcessID());
+				ret.succeeded = true;
+				ret.processID = itr->second->GetProcessID();
+				ret.openCount = itr->second->GetNWTVOpenCount();
+				break;
 			}
 		}
 	}
-	return std::make_pair(false, 0);
+	return ret;
 }
 
-pair<bool, int> CReserveManager::IsOpenNWTV(int id) const
+CReserveManager::OPEN_NWTV_RESULT CReserveManager::IsOpenNWTV(int id) const
 {
 	lock_recursive_mutex lock(this->managerLock);
 
+	OPEN_NWTV_RESULT ret = {};
 	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
 		if( itr->second->GetState() == CTunerBankCtrl::TR_NWTV && itr->second->GetNWTVID() == id ){
-			return std::make_pair(true, itr->second->GetProcessID());
+			ret.succeeded = true;
+			ret.processID = itr->second->GetProcessID();
+			ret.openCount = itr->second->GetNWTVOpenCount();
+			break;
 		}
 	}
-	return std::make_pair(false, 0);
+	return ret;
 }
 
 bool CReserveManager::CloseNWTV(int id)
@@ -2135,7 +2172,7 @@ void CReserveManager::AddReserveDataMacro(vector<pair<string, wstring>>& macroLi
 		data.recSetting.batFilePath.substr(data.recSetting.batFilePath.find(L'*') + 1) : wstring()));
 }
 
-void CReserveManager::AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO& recInfo)
+void CReserveManager::AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO_BASIC& recInfo)
 {
 	WCHAR v[64];
 	AddTimeMacro(macroList, recInfo.startTime, recInfo.durationSecond, "");

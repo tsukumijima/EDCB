@@ -2,8 +2,7 @@
 dofile(mg.script_name:gsub('[^\\/]*$','')..'util.lua')
 
 ct=CreateContentBuilder(GZIP_THRESHOLD_BYTE)
-ct:Append([=[
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+ct:Append(DOCTYPE_HTML4_STRICT..[=[
 <html lang="ja">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -16,10 +15,28 @@ ct:Append([=[
 <div class="page-nav">
   ]=])
 
+focusID=nil
+post=AssertPost()
+if post then
+  focusID=GetVarInt(post,'del')
+  if focusID then
+    edcb.DelAutoAdd(focusID)
+    ct:Append('  <div id="result">削除しました</div>\n')
+  end
+end
+
 edcb.htmlEscape=15
 a=edcb.EnumAutoAdd()
 pageCount=AUTOADDEPG_PAGE_COUNT
-page=GetVarInt(mg.request_info.query_string,'page',0,(#a-1)/pageCount) or 0
+focusID=focusID or GetVarInt(mg.request_info.query_string,'id')
+if focusID then
+  --focusIDの行を含むページを探す
+  focusIndex=BinarySearchBound(a,{dataID=focusID},CompareFields('dataID'))
+  page=math.floor(math.max(math.min(focusIndex-1,#a-1),0)/pageCount)
+else
+  page=GetVarInt(mg.request_info.query_string,'page',0,(#a-1)/pageCount) or 0
+end
+
 pageNav=''
 if #a>pageCount then
   for i=math.max(page-1,1),math.min(math.max(page-1,1)+6,(#a+pageCount-1)/pageCount) do
@@ -35,17 +52,10 @@ ct:Append([=[
   <table>
 ]=])
 
+chList=edcb.GetChDataList()
 for i=page*pageCount+1,math.min(#a,(page+1)*pageCount) do
   v=a[i].searchInfo
-  serviceName=''
-  if #v.serviceList>0 then
-    for j,w in ipairs(edcb.GetChDataList()) do
-      if w.onid==v.serviceList[1].onid and w.tsid==v.serviceList[1].tsid and w.sid==v.serviceList[1].sid then
-        serviceName=w.serviceName
-        break
-      end
-    end
-  end
+  chInfo=#v.serviceList>0 and BinarySearch(chList,v.serviceList[1],CompareFields('onid',false,'tsid',false,'sid'))
   --無効
   disAndKey=v.andKey:match('^^!{999}(.*)')
   --大小文字区別
@@ -60,7 +70,7 @@ for i=page*pageCount+1,math.min(#a,(page+1)*pageCount) do
     ..'<td'..cl..'>'..notKey
     ..'<td'..cl..'>'..note
     ..'<td'..cl..'>'..(#v.contentList>0 and edcb.GetGenreName(v.contentList[1].content_nibble)..(#v.contentList>1 and 'など' or '') or '')
-    ..'<td'..cl..'>'..serviceName..(#v.serviceList>1 and 'など' or '')
+    ..'<td'..cl..'>'..(chInfo and chInfo.serviceName or '')..(#v.serviceList>1 and 'など' or '')
     ..'<td'..cl..'>'..(RecModeTextList()[(a[i].recSetting.recMode~=5 and a[i].recSetting.recMode or a[i].recSetting.noRecMode or 1)+1] or '')
     ..'<td'..cl..'>'..a[i].recSetting.priority..'</tr>\n')
 end
@@ -83,4 +93,4 @@ ct:Append([=[
 </html>
 ]=])
 ct:Finish()
-mg.write(ct:Pop(Response(200,'text/html','utf-8',ct.len)..(ct.gzip and 'Content-Encoding: gzip\r\n' or '')..'\r\n'))
+mg.write(ct:Pop(Response(200,'text/html','utf-8',ct.len,ct.gzip)..'\r\n'))

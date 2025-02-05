@@ -1271,6 +1271,93 @@ lsp_md5(lua_State *L)
 }
 
 
+/* mg.base64_encode */
+static int
+lsp_base64_encode(lua_State *L)
+{
+	int num_args = lua_gettop(L);
+	const char *text;
+	size_t text_len;
+	struct mg_context *ctx;
+
+	lua_pushlightuserdata(L, (void *)&lua_regkey_ctx);
+	lua_gettable(L, LUA_REGISTRYINDEX);
+	ctx = (struct mg_context *)lua_touserdata(L, -1);
+
+	if (num_args == 1) {
+		text = lua_tolstring(L, 1, &text_len);
+		if (text) {
+			/* Base 64 encodes 8 bits into 6 */
+			size_t dst_len = text_len * 8 / 6 + 4;
+			char *dst = (char *)mg_malloc_ctx(dst_len, ctx);
+			if (dst) {
+				mg_base64_encode((const unsigned char *)text,
+				                 (int)text_len,
+				                 dst,
+				                 &dst_len);
+				lua_pushstring(L, dst);
+				mg_free(dst);
+			} else {
+				return luaL_error(L, "out of memory in base64_encode() call");
+			}
+		} else {
+			lua_pushnil(L);
+		}
+	} else {
+		/* Syntax error */
+		return luaL_error(L, "invalid base64_encode() call");
+	}
+	return 1;
+}
+
+
+/* mg.base64_encode */
+static int
+lsp_base64_decode(lua_State *L)
+{
+	int num_args = lua_gettop(L);
+	const char *text;
+	size_t text_len, dst_len;
+	int ret;
+	unsigned char *dst;
+	struct mg_context *ctx;
+
+	lua_pushlightuserdata(L, (void *)&lua_regkey_ctx);
+	lua_gettable(L, LUA_REGISTRYINDEX);
+	ctx = (struct mg_context *)lua_touserdata(L, -1);
+
+	if (num_args == 1) {
+		text = lua_tolstring(L, 1, &text_len);
+		if (text) {
+			/* +1 means space for terminating zero */
+			dst_len = text_len * 3 / 4 + 1;
+			dst = (unsigned char *)mg_malloc_ctx(dst_len, ctx);
+			if (dst) {
+				ret = mg_base64_decode(text, (int)text_len, dst, &dst_len);
+				if (ret != -1) {
+					mg_free(dst);
+					return luaL_error(
+					    L, "illegal character in lsp_base64_decode() call");
+				} else {
+					/* Remove terminating zero by subtracting 1 */
+					lua_pushlstring(L, (char *)dst, dst_len - 1);
+					mg_free(dst);
+				}
+			} else {
+				return luaL_error(L,
+				                  "out of memory in lsp_base64_decode() call");
+			}
+		} else {
+			lua_pushnil(L);
+		}
+	} else {
+		/* Syntax error */
+		return luaL_error(L, "invalid lsp_base64_decode() call");
+	}
+	return 1;
+}
+
+
 /* mg.get_response_code_text */
 static int
 lsp_get_response_code_text(lua_State *L)
@@ -2169,50 +2256,6 @@ static const char *LUA_MG_FUNCTIONS =
 	"  return string.char(tonumber(x,16))"
 	" end):match('^[^%z]*') or nil;"
 	"end"
-	";"
-	"mg.base64_encode="
-	"function (src)"
-	" if not src then return nil end"
-	" local t="
-	"'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='"
-	" return (src:gsub('..?.?',"
-	" function (s)"
-	"  local a,b,c,x,y,z,w"
-	"  a=s:sub(1,1):byte()"
-	"  b=#s<2 and 0 or s:sub(2,2):byte()"
-	"  c=#s<3 and 0 or s:sub(3,3):byte()"
-	"  x=1+math.floor(a/4)"
-	"  y=1+a%4*16+math.floor(b/16)"
-	"  z=1+b%16*4+math.floor(c/64)"
-	"  w=1+c%64"
-	"  return t:sub(x,x)..t:sub(y,y)"
-	"..(#s<2 and '=' or t:sub(z,z))..(#s<3 and '=' or t:sub(w,w))"
-	" end));"
-	"end"
-	";"
-	"mg.base64_decode="
-	"function (src)"
-	" if not src then return nil end"
-	" local t="
-	"'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='"
-	" local dst=src:gsub('..?.?.?',"
-	" function (s)"
-	"  if t then"
-	"   local a,b,c,d"
-	"   a=(t:find(s:sub(1,1),1,true) or 66)-1"
-	"   b=(#s>1 and t:find(s:sub(2,2),1,true) or 66)-1"
-	"   c=(#s>2 and t:find(s:sub(3,3),1,true) or 66)-1"
-	"   d=(#s>3 and t:find(s:sub(4,4),1,true) or 66)-1"
-	"   if a<64 and b<64 and c<65 and d<65 then"
-	"    return string.char(a*4+math.floor(b/16))"
-	"..(c<64 and string.char((b*16+math.floor(c/4))%256) or '')"
-	"..(c<64 and d<64 and string.char((c*64+d)%256) or '')"
-	"   end"
-	"   t=nil"
-	"  end"
-	" end)"
-	" return t and (dst) or nil;"
-	"end"
 	;
 
 
@@ -2649,6 +2692,8 @@ prepare_lua_environment(struct mg_context *ctx,
 
 	reg_function(L, "time", lsp_get_time);
 	reg_function(L, "md5", lsp_md5);
+	reg_function(L, "base64_encode", lsp_base64_encode);
+	reg_function(L, "base64_decode", lsp_base64_decode);
 	reg_function(L, "get_response_code_text", lsp_get_response_code_text);
 	reg_function(L, "random", lsp_random);
 	reg_function(L, "get_info", lsp_get_info);

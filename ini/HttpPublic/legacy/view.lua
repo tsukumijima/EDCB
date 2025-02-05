@@ -39,19 +39,22 @@ hlsKey=hlsKey and n and mg.md5('view:'..hlsKey..(onid and ':nwtv' or ':')..n..':
 -- フラグメント長の目安
 partConfigSec=0.8
 
+-- トランスコードを開始し、HLSの場合はインデックスファイルの情報、それ以外はMP4などのストリーム自体を返す
 function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
   if XCODE_SINGLE then
     -- トランスコーダーの親プロセスのリストを作る
     local pids=nil
-    local pf=edcb.io.popen('wmic process where "name=\'tsreadex.exe\' and commandline like \'% -z edcb-legacy-%\'" get parentprocessid 2>nul | findstr /b [1-9]')
-    if pf then
-      for pid in (pf:read('*a') or ''):gmatch('[1-9][0-9]*') do
-        pids=(pids and pids..' or ' or '')..'processid='..pid
+    if WIN32 then
+      local pf=edcb.io.popen('wmic process where "name=\'tsreadex.exe\' and commandline like \'% -z edcb-legacy-%\'" get parentprocessid 2>nul | findstr /b [1-9]')
+      if pf then
+        for pid in (pf:read('*a') or ''):gmatch('[1-9][0-9]*') do
+          pids=(pids and pids..' or ' or '')..'processid='..pid
+        end
+        pf:close()
       end
-      pf:close()
     end
     -- パイプラインの上流を終わらせる
-    TerminateCommandlineLike('tsreadex.exe','% -z edcb-legacy-%')
+    TerminateCommandlineLike('tsreadex',' -z edcb-legacy-')
     if pids then
       -- 親プロセスの終了を2秒だけ待つ。パイプラインの下流でストールしている可能性もあるので待ちすぎない
       -- wmicコマンドのない環境では待たないがここの待機はさほど重要ではない
@@ -64,46 +67,62 @@ function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
     end
   end
 
-  -- コマンドはEDCBのToolsフォルダにあるものを優先する
-  local tools=EdcbModulePath()..'\\Tools'
-  local tsreadex='"'..(edcb.FindFile(tools..'\\tsreadex.exe',1) and tools..'\\' or '')..'tsreadex.exe"'
-  local asyncbuf='"'..(edcb.FindFile(tools..'\\asyncbuf.exe',1) and tools..'\\' or '')..'asyncbuf.exe"'
-  local tsmemseg='"'..(edcb.FindFile(tools..'\\tsmemseg.exe',1) and tools..'\\' or '')..'tsmemseg.exe"'
-  local xcoder=''
-  for s in option.xcoder:gmatch('[^|]+') do
-    xcoder=tools..'\\'..s
-    if edcb.FindFile(xcoder,1) then break end
-    xcoder=s
+  local tools=PathAppend(EdcbModulePath(),'Tools')
+  local tsreadex=FindToolsCommand('tsreadex')
+  local asyncbuf=FindToolsCommand('asyncbuf')
+  local tsmemseg=FindToolsCommand('tsmemseg')
+  local cmd=''
+  if filter~=':' then
+    local xcoder=''
+    if WIN32 then
+      for s in option.xcoder:gmatch('[^|]+') do
+        xcoder=PathAppend(tools,s)
+        if EdcbFindFilePlain(xcoder) then break end
+        xcoder=s
+      end
+      xcoder='"'..xcoder..'"'
+    else
+      xcoder=('|'..option.xcoder:gsub('%.exe$','')):match('[\\/|]([0-9A-Za-z._-]+)$')
+      xcoder=xcoder and FindToolsCommand(xcoder) or ':'
+    end
+    cmd=' | '..xcoder..' '..option.option
+      :gsub('$SRC','-')
+      :gsub('$AUDIO',audio2)
+      :gsub('$DUAL','')
+      :gsub('$FILTER',(filter:gsub('%%',WIN32 and '%%%%' or '%%')))
+      :gsub('$CAPTION',(caption:gsub('%%',WIN32 and '%%%%' or '%%')))
+      :gsub('$OUTPUT',(output[2]:gsub('%%',WIN32 and '%%%%' or '%%')))
   end
 
-  local cmd='"'..xcoder..'" '..option.option
-    :gsub('$SRC','-')
-    :gsub('$AUDIO',audio2)
-    :gsub('$DUAL','')
-    :gsub('$FILTER',(filter:gsub('%%','%%%%')))
-    :gsub('$CAPTION',(caption:gsub('%%','%%%%')))
-    :gsub('$OUTPUT',(output[2]:gsub('%%','%%%%')))
-  if XCODE_LOG then
+  if XCODE_LOG and cmd~='' then
     local log=mg.script_name:gsub('[^\\/]*$','')..'log'
-    if not edcb.FindFile(log,1) then
-      edcb.os.execute('mkdir "'..log..'"')
+    if not EdcbFindFilePlain(log) then
+      edcb.os.execute('mkdir '..QuoteCommandArgForPath(log))
     end
     -- 衝突しにくいログファイル名を作る
-    log=log..'\\view-'..os.time()..'-'..mg.md5(cmd):sub(29)..'.txt'
+    log=PathAppend(log,'view-'..os.time()..'-'..mg.md5(cmd):sub(29)..'.txt')
     local f=edcb.io.open(log,'w')
     if f then
-      f:write(cmd..'\n\n')
+      f:write(cmd:sub(4)..'\n\n')
       f:close()
-      cmd=cmd..' 2>>"'..log:gsub('[&%^]','^%0')..'"'
+      cmd=cmd..' 2>>'..QuoteCommandArgForPath(log)
     end
   end
   if hlsKey then
     -- セグメント長は既定値(2秒)なので概ねキーフレーム(4～5秒)間隔
     -- プロセス終了時に対応するNetworkTVモードも終了させる
-    cmd=cmd..' | '..tsmemseg..(hls4>0 and ' -4' or '')..' -a 10 -m 8192 -d 3 -p '..partConfigSec..' '
+    cmd=cmd..' | '..tsmemseg..(hls4>0 and ' -4' or '')..' -a 10 -m 8192 -d 3 -p '..partConfigSec..' '..(WIN32 and '' or '-g '..QuoteCommandArgForPath(EdcbModulePath())..' ')
     if nwtvclose then
-      cmd=cmd.."-c \"..\\EpgTimerSrv.exe /luapost if(edcb.GetPrivateProfile('NWTV','nwtv"..nwtvclose[1].."open','"..nwtvclose[2]
-        .."','Setting\\\\HttpPublic.ini')=='"..nwtvclose[2].."')then;edcb.CloseNetworkTV("..nwtvclose[1]..");end\" "
+      cmd=cmd..(WIN32 and '-c "..\\EpgTimerSrv.exe /luapost ' or '-c "echo \\"')
+      if type(nwtvclose[2])=='string' then
+        -- 古い環境用
+        cmd=cmd.."if(edcb.GetPrivateProfile('NWTV','nwtv"..nwtvclose[1].."open','"..nwtvclose[2]
+          .."','Setting"..(WIN32 and '\\\\' or '/').."HttpPublic.ini')=='"..nwtvclose[2].."')"
+      else
+        cmd=cmd..'ok,pid,openID=edcb.IsOpenNetworkTV('..nwtvclose[1]..');if(ok)and(openID=='..nwtvclose[2]..')'
+      end
+      cmd=cmd..'then;edcb.CloseNetworkTV('..nwtvclose[1]..');end'
+        ..(WIN32 and '" ' or '\\" >>\\"'..PathAppend(EdcbModulePath(),'EpgTimerSrvLuaPost.fifo')..'\\"" ')
     end
     cmd=cmd..hlsKey..'_'
   elseif XCODE_BUF>0 then
@@ -111,36 +130,34 @@ function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
   end
 
   -- "-z"はプロセス検索用
-  cmd=tsreadex..' -z edcb-legacy-'..searchName..' -t 10 -m 2 -x 18/38/39 -n '..(targetSID or -1)..' -a 9 -b 1 -c 5 -u 2 '..pipeName..' | '..cmd
+  cmd=tsreadex..' -z edcb-legacy-'..searchName..' -t 10 -m 2 -x 18/38/39 -n '..(targetSID or -1)..' -a 9 -b 1 -c 5 -u 2 '..QuoteCommandArgForPath(SendTSTCPPipePath(pipeName,0))..cmd
   if hlsKey then
     -- 極端に多く開けないようにする
-    local indexCount=#(edcb.FindFile('\\\\.\\pipe\\tsmemseg_*_00',10) or {})
+    local indexCount=#(edcb.FindFile(TsmemsegPipePath('*_','00'),10) or {})
     if indexCount<10 then
-      edcb.os.execute('start "" /b cmd /s /c "'..(nwtvclose and 'cd /d "'..tools..'" && ' or '')..cmd..'"')
+      edcb.os.execute(WIN32 and 'start "" /b cmd /s /c "'..(nwtvclose and 'cd /d "'..tools..'" && ' or '')..cmd..'"' or cmd..' &')
       for i=1,100 do
-        local f=edcb.io.open('\\\\.\\pipe\\tsmemseg_'..hlsKey..'_00','rb')
+        local f=OpenTsmemsegPipe(hlsKey..'_','00')
         if f then
           return f
         end
         edcb.Sleep(100)
       end
       -- 失敗。プロセスが残っていたら終わらせる
-      TerminateCommandlineLike('tsreadex.exe','% -z edcb-legacy-'..searchName..' %')
+      TerminateCommandlineLike('tsreadex',' -z edcb-legacy-'..searchName..' ')
     end
     return nil
   end
-  return edcb.io.popen('"'..cmd..'"','rb')
+  return edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd,'r'..POPEN_BINARY)
 end
 
 function OpenPsiDataArchiver(pipeName,targetSID)
-  -- コマンドはEDCBのToolsフォルダにあるものを優先する
-  local tools=EdcbModulePath()..'\\Tools'
-  local tsreadex='"'..(edcb.FindFile(tools..'\\tsreadex.exe',1) and tools..'\\' or '')..'tsreadex.exe"'
-  local psisiarc='"'..(edcb.FindFile(tools..'\\psisiarc.exe',1) and tools..'\\' or '')..'psisiarc.exe"'
+  local tsreadex=FindToolsCommand('tsreadex')
+  local psisiarc=FindToolsCommand('psisiarc')
   -- 3秒間隔で出力
   local cmd=psisiarc..' -r arib-data -n '..(targetSID or -1)..' -i 3 - -'
-  cmd=tsreadex..' -t 10 -m 2 '..pipeName..' | '..cmd
-  return edcb.io.popen('"'..cmd..'"','rb')
+  cmd=tsreadex..' -t 10 -m 2 '..QuoteCommandArgForPath(SendTSTCPPipePath(pipeName,1))..' | '..cmd
+  return edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd,'r'..POPEN_BINARY)
 end
 
 function ReadPsiDataChunk(f,trailerSize,trailerRemainSize)
@@ -240,35 +257,38 @@ if onid then
     edcb.CloseNetworkTV(n)
   elseif 0<=n and n<100 then
     if hlsKey and not open and not psidata and not jikkyo then
-      f=edcb.io.open('\\\\.\\pipe\\tsmemseg_'..hlsKey..'_00','rb')
+      f=OpenTsmemsegPipe(hlsKey..'_','00')
     else
       if psidata or jikkyo then
         ok,pid=edcb.IsOpenNetworkTV(n)
       else
         -- 前回のプロセスが残っていたら終わらせる
-        TerminateCommandlineLike('tsreadex.exe','% -z edcb-legacy-nwtv-'..n..' %')
-        openTime=os.time()
-        edcb.WritePrivateProfile('NWTV','nwtv'..n..'open','@'..openTime,'Setting\\HttpPublic.ini')
+        TerminateCommandlineLike('tsreadex',' -z edcb-legacy-nwtv-'..n..' ')
         -- NetworkTVモードを開始
-        ok,pid=edcb.OpenNetworkTV(2,onid,tsid,sid,n)
+        ok,pid,myOpenID=edcb.OpenNetworkTV(2,onid,tsid,sid,n)
+        if ok and not myOpenID then
+          -- 古い環境用
+          myOpenID='@'..os.time()
+          edcb.WritePrivateProfile('NWTV','nwtv'..n..'open',myOpenID,'Setting\\HttpPublic.ini')
+        end
       end
       if ok then
         -- 名前付きパイプができるまで待つ
         pipeName=nil
         for i=1,50 do
-          ff=edcb.FindFile('\\\\.\\pipe\\SendTSTCP_*_'..pid, 1)
-          if ff and ff[1].name:find('^[A-Za-z]+_%d+_%d+$') then
-            pipeName='\\\\.\\pipe\\'..ff[1].name
+          ff=edcb.FindFile(SendTSTCPPipePath('*_'..pid,0),1)
+          if ff and ff[1].name:find('^[^_]+_%d+_%d+') then
+            pipeName=ff[1].name:match('^[^_]+_(%d+_)%d+')..pid
             break
-          elseif i%10==0 then
+          elseif WIN32 and i%10==0 then
             -- FindFileで見つけられない環境があるかもしれないのでポートを予想して開いてみる
             for j=0,29 do
-              ff=edcb.io.open('\\\\.\\pipe\\SendTSTCP_'..j..'_'..pid, 'rb')
+              ff=edcb.io.open(SendTSTCPPipePath(j..'_'..pid,0),'rb')
               if ff then
                 ff:close()
                 -- 再び開けるようになるまで少しラグがある
                 edcb.Sleep(2000)
-                pipeName='\\\\.\\pipe\\SendTSTCP_'..j..'_'..pid
+                pipeName=j..'_'..pid
                 break
               end
             end
@@ -296,7 +316,7 @@ if onid then
           end
         else
           if pipeName then
-            f=OpenTranscoder(pipeName,'nwtv-'..n,{n,'@'..openTime},sid)
+            f=OpenTranscoder(pipeName,'nwtv-'..n,{n,myOpenID},sid)
             fname='view.'..output[1]
           end
           if not f then
@@ -308,28 +328,28 @@ if onid then
   end
 elseif n and n<0 then
   -- プロセスが残っていたらすべて終わらせる
-  TerminateCommandlineLike('tsreadex.exe','% -z edcb-legacy-view-%')
+  TerminateCommandlineLike('tsreadex',' -z edcb-legacy-view-')
 elseif n and n<=65535 then
   if hlsKey and not open and not psidata and not jikkyo then
-    f=edcb.io.open('\\\\.\\pipe\\tsmemseg_'..hlsKey..'_00','rb')
+    f=OpenTsmemsegPipe(hlsKey..'_','00')
   else
     if not psidata and not jikkyo then
       -- 前回のプロセスが残っていたら終わらせる
-      TerminateCommandlineLike('tsreadex.exe','% -z edcb-legacy-view-'..n..' %')
+      TerminateCommandlineLike('tsreadex',' -z edcb-legacy-view-'..n..' ')
     end
     -- 名前付きパイプがあれば開く
-    ff=edcb.FindFile('\\\\.\\pipe\\SendTSTCP_'..n..'_*', 1)
-    if ff and ff[1].name:find('^[A-Za-z]+_%d+_%d+$') then
+    ff=edcb.FindFile(SendTSTCPPipePath(n..'_*',0),1)
+    if ff and ff[1].name:find('^[^_]+_%d+_%d+') then
       if psidata or jikkyo then
         f={}
         if psidata then
-          f.psi=OpenPsiDataArchiver('\\\\.\\pipe\\'..ff[1].name)
+          f.psi=OpenPsiDataArchiver(n..ff[1].name:match('^[^_]+_%d+(_%d+)'))
           if not f.psi then
             f=nil
           end
         end
         if f and jikkyo then
-          f.jk=edcb.io.open('\\\\.\\pipe\\chat_d7b64ac2_'..ff[1].name:match('^[A-Za-z]+_%d+_(%d+)$'),'r')
+          f.jk=edcb.io.open('\\\\.\\pipe\\chat_d7b64ac2_'..ff[1].name:match('^[^_]+_%d+_(%d+)'),'r')
           if not f.jk then
             if f.psi then f.psi:close() end
             f=nil
@@ -337,7 +357,7 @@ elseif n and n<=65535 then
         end
         fname='view.psc.txt'
       else
-        f=OpenTranscoder('\\\\.\\pipe\\'..ff[1].name,'view-'..n)
+        f=OpenTranscoder(n..ff[1].name:match('^[^_]+_%d+(_%d+)'),'view-'..n)
         fname='view.'..output[1]
       end
     end
@@ -346,8 +366,7 @@ end
 
 if not f then
   ct=CreateContentBuilder()
-  ct:Append('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">\n'
-    ..'<title>view.lua</title><p><a href="index.html">メニュー</a></p>')
+  ct:Append(DOCTYPE_HTML4_STRICT..'<title>view.lua</title><p><a href="index.html">メニュー</a></p>')
   ct:Finish()
   mg.write(ct:Pop(Response(404,'text/html','utf-8',ct.len)..'\r\n'))
 elseif psidata or jikkyo then
@@ -383,20 +402,22 @@ elseif psidata or jikkyo then
 elseif hlsKey then
   -- インデックスファイルを返す
   i=1
-  while true do
+  repeat
     m3u=CreateHlsPlaylist(f)
     f:close()
-    if i>40 or not hlsMsn or m3u:find('EXT%-X%-ENDLIST') or not m3u:find('CAN%-BLOCK%-RELOAD') or
+    if not m3u:find('#EXT%-X%-MEDIA%-SEQUENCE:') then
+      -- 最初のセグメントができるまでは2秒だけ応答保留する
+      if i>10 then break end
+    elseif i>40 or not hlsMsn or m3u:find('#EXT%-X%-ENDLIST') or not m3u:find('CAN%-BLOCK%-RELOAD') or
        not m3u:find('_'..(hlsMsn-1)..'\n') or
        m3u:find('_'..hlsMsn..'\n') or
        (hlsPart and m3u:find('_'..hlsMsn..'_'..(hlsPart+1)..'"')) then
       break
     end
     edcb.Sleep(200)
-    f=edcb.io.open('\\\\.\\pipe\\tsmemseg_'..hlsKey..'_00','rb')
-    if not f then break end
+    f=OpenTsmemsegPipe(hlsKey..'_','00')
     i=i+1
-  end
+  until not f
   ct=CreateContentBuilder()
   ct:Append(m3u)
   ct:Finish()
@@ -421,10 +442,21 @@ else
   end
   f:close()
   if onid then
+    -- NetworkTVモードを終了
     -- リロード時などの終了を防ぐ。厳密にはロックなどが必要だが概ねうまくいけば良い
-    if edcb.GetPrivateProfile('NWTV','nwtv'..n..'open','@'..openTime,'Setting\\HttpPublic.ini')=='@'..openTime then
-      -- NetworkTVモードを終了
-      edcb.CloseNetworkTV(n)
+    if type(myOpenID)=='string' then
+      -- 古い環境用
+      if edcb.GetPrivateProfile('NWTV','nwtv'..n..'open',myOpenID,'Setting\\HttpPublic.ini')==myOpenID then
+        edcb.CloseNetworkTV(n)
+      end
+    else
+      ok,pid,openID=edcb.IsOpenNetworkTV(n)
+      if ok and openID==myOpenID then
+        -- チャンネル変更のため終了を遅らせる
+        edcb.os.execute((WIN32 and 'start "" /b cmd /s /c "timeout 5 & cd /d "'..EdcbModulePath()..'" && .\\EpgTimerSrv.exe /luapost ' or '(sleep 5 ; echo "')
+          ..'ok,pid,openID=edcb.IsOpenNetworkTV('..n..');if(ok)and(openID=='..myOpenID..')then;edcb.CloseNetworkTV('..n..');end'
+          ..(WIN32 and '"' or '" >>"'..PathAppend(EdcbModulePath(),'EpgTimerSrvLuaPost.fifo')..'") &'))
+      end
     end
   end
 end
