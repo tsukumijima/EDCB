@@ -19,6 +19,11 @@ public:
 		CHECK_NEED_SHUTDOWN,	//システムシャットダウンを試みる必要がある
 		CHECK_RESERVE_MODIFIED,	//予約になんらかの変化があった
 	};
+	struct OPEN_NWTV_RESULT {
+		bool succeeded;
+		int processID;
+		int openCount;
+	};
 	CReserveManager(CNotifyManager& notifyManager_, CEpgDBManager& epgDBManager_);
 	void Initialize(const CEpgTimerSrvSetting::SETTING& s);
 	void Finalize();
@@ -37,8 +42,8 @@ public:
 	bool ChgReserveData(const vector<RESERVE_DATA>& reserveList, bool setReserveStatus = false);
 	//予約情報を削除する
 	void DelReserveData(const vector<DWORD>& idList);
-	//録画済み情報一覧を取得する
-	vector<REC_FILE_INFO> GetRecFileInfoAll(bool getExtraInfo = true) const;
+	//リスト指定または!idListですべての録画済み情報一覧を取得する
+	vector<REC_FILE_INFO> GetRecFileInfoList(const vector<DWORD>* idList, bool getExtraInfo = true) const;
 	//録画済み情報を取得する
 	bool GetRecFileInfo(DWORD id, REC_FILE_INFO* recInfo, bool getExtraInfo = true) const;
 	//録画済み情報を削除する
@@ -83,9 +88,9 @@ public:
 	bool IsOpenTuner(DWORD tunerID) const;
 	//ネットワークモードでチューナを起動しチャンネル設定する
 	//tunerIDList: 起動させるときはこのリストにあるチューナを候補にする
-	pair<bool, int> OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList);
+	OPEN_NWTV_RESULT OpenNWTV(int id, bool nwUdp, bool nwTcp, WORD onid, WORD tsid, WORD sid, const vector<DWORD>& tunerIDList);
 	//ネットワークモードでチューナが起動しているか
-	pair<bool, int> IsOpenNWTV(int id) const;
+	OPEN_NWTV_RESULT IsOpenNWTV(int id) const;
 	//ネットワークモードのチューナを閉じる
 	bool CloseNWTV(int id);
 	//ネットワークモードのID一覧を取得する(チューナID順)
@@ -160,7 +165,7 @@ private:
 	//バッチに渡す予約情報マクロを追加する
 	static void AddReserveDataMacro(vector<pair<string, wstring>>& macroList, const RESERVE_DATA& data, LPCSTR suffix);
 	//バッチに渡す録画済み情報マクロを追加する
-	static void AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO& recInfo);
+	static void AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO_BASIC& recInfo);
 
 	mutable recursive_mutex_ managerLock;
 

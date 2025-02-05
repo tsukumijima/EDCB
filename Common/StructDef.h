@@ -88,7 +88,8 @@ enum REC_END_STATUS {
 	REC_END_STATUS_ERR_END2,		//ファイル保存で致命的なエラーが発生した可能性があります
 };
 
-struct REC_FILE_INFO {
+//補足のフィールドを除く録画済み情報。内部で使用
+struct REC_FILE_INFO_BASIC {
 	DWORD id;					//ID
 	wstring recFilePath;		//録画ファイルパス
 	wstring title;				//番組名
@@ -103,11 +104,9 @@ struct REC_FILE_INFO {
 	LONGLONG scrambles;			//スクランブル数
 	DWORD recStatus;			//録画結果のステータス
 	SYSTEMTIME startTimeEpg;	//予約時の開始時間
-	wstring programInfo;		//.program.txtファイルの内容
-	wstring errInfo;			//.errファイルの内容
 	//CMD_VER 4以降
 	BYTE protectFlag;
-	REC_FILE_INFO & operator= (const RESERVE_DATA & o) {
+	REC_FILE_INFO_BASIC & operator= (const RESERVE_DATA & o) {
 		id = 0;
 		recFilePath = L"";
 		title = o.title;
@@ -122,8 +121,6 @@ struct REC_FILE_INFO {
 		scrambles = 0;
 		recStatus = 0;
 		startTimeEpg = o.startTimeEpg;
-		programInfo = L"";
-		errInfo = L"";
 		protectFlag = 0;
 		return *this;
 	};
@@ -144,6 +141,12 @@ struct REC_FILE_INFO {
 			recStatus == REC_END_STATUS_ERR_CH_CHG ? L"指定チャンネルのデータがBonDriverから出力されなかった可能性があります" :
 			recStatus == REC_END_STATUS_ERR_END2 ? L"ファイル保存で致命的なエラーが発生した可能性があります" : L"";
 	}
+};
+
+//録画済み情報
+struct REC_FILE_INFO : REC_FILE_INFO_BASIC {
+	wstring programInfo;		//.program.txtファイルの内容
+	wstring errInfo;			//.errファイルの内容
 };
 
 struct TUNER_RESERVE_INFO {

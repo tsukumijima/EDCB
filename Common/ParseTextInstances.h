@@ -77,8 +77,8 @@ private:
 };
 
 //録画済み情報ファイル「RecInfo.txt」の読み込みと保存処理を行う
-//キーはREC_FILE_INFO::id(非0,永続的)
-class CParseRecInfoText : CParseText<DWORD, REC_FILE_INFO>
+//キーはREC_FILE_INFO_BASIC::id(非0,永続的)
+class CParseRecInfoText : CParseText<DWORD, REC_FILE_INFO_BASIC>
 {
 public:
 	CParseRecInfoText() : nextID(1), saveNextID(1), keepCount(UINT_MAX), recInfoDelFile(false), customizeDelExt(false) {}
@@ -87,7 +87,7 @@ public:
 	using Base::GetFilePath;
 	using Base::SaveText;
 	//録画済み情報を追加する
-	DWORD AddRecInfo(const REC_FILE_INFO& item);
+	DWORD AddRecInfo(const REC_FILE_INFO_BASIC& item);
 	//録画済み情報を削除する
 	bool DelRecInfo(DWORD id);
 	//ファイルパスを変更する
@@ -104,12 +104,12 @@ public:
 	//補足の録画情報を取得する
 	static wstring GetExtraInfo(LPCWSTR recFilePath, LPCWSTR extension, const wstring& resultOfGetRecInfoFolder, bool recInfoFolderOnly);
 private:
-	bool ParseLine(LPCWSTR parseLine, pair<DWORD, REC_FILE_INFO>& item);
-	bool SaveLine(const pair<DWORD, REC_FILE_INFO>& item, wstring& saveLine) const;
+	bool ParseLine(LPCWSTR parseLine, pair<DWORD, REC_FILE_INFO_BASIC>& item);
+	bool SaveLine(const pair<DWORD, REC_FILE_INFO_BASIC>& item, wstring& saveLine) const;
 	bool SaveFooterLine(wstring& saveLine) const;
-	bool SelectItemToSave(vector<map<DWORD, REC_FILE_INFO>::const_iterator>& itemList) const;
+	bool SelectItemToSave(vector<map<DWORD, REC_FILE_INFO_BASIC>::const_iterator>& itemList) const;
 	//情報が削除される直前の補足作業
-	void OnDelRecInfo(const REC_FILE_INFO& item);
+	void OnDelRecInfo(const REC_FILE_INFO_BASIC& item);
 	//過去に追加したIDよりも大きな値。100000000(1億)IDで巡回する(ただし1日に1000ID消費しても200年以上かかるので考えるだけ無駄)
 	DWORD nextID;
 	DWORD saveNextID;
