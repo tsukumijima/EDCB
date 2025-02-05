@@ -70,6 +70,14 @@ namespace EpgTimer
 
     class SettingPath
     {
+        public static string CommonIniPath
+        {
+            get
+            {
+                return Path.Combine(ModulePath, "Common.ini");
+            }
+        }
+
         public static string BitrateIniPath
         {
             get
