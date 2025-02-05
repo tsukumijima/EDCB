@@ -873,10 +873,11 @@ LRESULT CALLBACK CEpgTimerSrvMain::MainWndProc(HWND hwnd, UINT uMsg, WPARAM wPar
 			const COPYDATASTRUCT& cds = *(const COPYDATASTRUCT*)lParam;
 			if( cds.dwData == COPYDATA_TYPE_LUAPOST && cds.lpData ){
 				//Luaスクリプトをワーカースレッドに投入する
-				vector<WCHAR> buff((cds.cbData + 3) / sizeof(WCHAR), 0);
-				std::copy((const BYTE*)cds.lpData, (const BYTE*)cds.lpData + cds.cbData, (BYTE*)buff.data());
+				wstring buff(cds.cbData / sizeof(WCHAR) + 1, L'\0');
+				std::copy((const BYTE*)cds.lpData, (const BYTE*)cds.lpData + cds.cbData, (BYTE*)&buff.front());
+				buff.resize(wcslen(buff.c_str()));
 				string script;
-				WtoUTF8(wstring(buff.data()), script);
+				WtoUTF8(buff, script);
 				//Luaが利用可能ならば
 				if( ctx->sys->luaDllHolder ){
 					lock_recursive_mutex lock(ctx->sys->doLuaWorkerLock);

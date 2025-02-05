@@ -1208,8 +1208,9 @@ bool CTunerBankCtrl::OpenTuner(bool minWake, bool noView, bool nwUdp, bool nwTcp
 		PROCESS_INFORMATION pi;
 		STARTUPINFO si = {};
 		si.cb = sizeof(si);
-		vector<WCHAR> strBuff(strParam.c_str(), strParam.c_str() + strParam.size() + 1);
-		if( CreateProcess(strExecute.c_str(), strBuff.data(), NULL, NULL, FALSE, dwPriority, NULL, NULL, &si, &pi) ){
+		//CreateProcess()のlpCommandLineはconstでないため
+		strParam += L'\0';
+		if( CreateProcess(strExecute.c_str(), &strParam.front(), NULL, NULL, FALSE, dwPriority, NULL, NULL, &si, &pi) ){
 			CloseHandle(pi.hThread);
 			this->hTunerProcess = pi.hProcess;
 			this->tunerPid = pi.dwProcessId;

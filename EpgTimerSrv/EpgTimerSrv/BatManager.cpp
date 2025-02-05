@@ -233,10 +233,11 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 								exePath = szComSpec;
 							}
 						}
-						vector<WCHAR> strBuff(strParam.c_str(), strParam.c_str() + strParam.size() + 1);
+						//CreateProcess()のlpCommandLineはconstでないため
+						strParam += L'\0';
 						//ここで短絡評価するとC4701(piが未初期化)になる。おそらく偽陽性
 						if( exePath.empty() == false ){
-							if( CreateProcess(exePath.c_str(), strBuff.data(), NULL, NULL, FALSE,
+							if( CreateProcess(exePath.c_str(), &strParam.front(), NULL, NULL, FALSE,
 							                  BELOW_NORMAL_PRIORITY_CLASS | (exDirect ? CREATE_UNICODE_ENVIRONMENT : 0),
 							                  exDirect ? const_cast<LPWSTR>(CreateEnvironment(work).c_str()) : NULL,
 							                  exDirect ? fs_path(work.batFilePath).parent_path().c_str() : NULL, &si, &pi) ){
