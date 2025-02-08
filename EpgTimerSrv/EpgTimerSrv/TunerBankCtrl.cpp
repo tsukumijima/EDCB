@@ -25,7 +25,7 @@ CTunerBankCtrl::CTunerBankCtrl(DWORD tunerID_, LPCWSTR bonFileName_, WORD epgCap
 	, epgCapDelayTime(0)
 {
 	for( auto itr = chMap_.begin(); itr != chMap_.end(); itr++ ){
-		this->chMap.insert(std::make_pair(Create64Key(itr->second.originalNetworkID, itr->second.transportStreamID, itr->second.serviceID), itr->second));
+		this->chMap.emplace(Create64Key(itr->second.originalNetworkID, itr->second.transportStreamID, itr->second.serviceID), itr->second);
 	}
 	this->watchContext.count = 0;
 }
@@ -74,7 +74,7 @@ bool CTunerBankCtrl::AddReserve(const TUNER_RESERVE& reserve)
 	    reserve.recMode > RECMODE_VIEW ){
 		return false;
 	}
-	TUNER_RESERVE_WORK& r = this->reserveMap.insert(std::make_pair(reserve.reserveID, TUNER_RESERVE_WORK())).first->second;
+	TUNER_RESERVE_WORK& r = this->reserveMap.emplace(reserve.reserveID, TUNER_RESERVE_WORK()).first->second;
 	static_cast<TUNER_RESERVE&>(r) = reserve;
 	r.startOrder = (r.startTime - r.startMargin) / I64_1SEC << 16 | (r.reserveID & 0xFFFF);
 	r.effectivePriority = (this->backPriority ? -1 : 1) * ((LONGLONG)((this->backPriority ? r.priority : ~r.priority) & 7) << 60 | r.startOrder);

@@ -316,7 +316,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 	for( const SERVICE_INFO* info = serviceList; info != serviceList + serviceListSize; info++ ){
 		LONGLONG key = Create64Key(info->original_network_id, info->transport_stream_id, info->service_id);
 		EPGDB_SERVICE_EVENT_INFO itemZero = {};
-		EPGDB_SERVICE_EVENT_INFO& item = nextMap.insert(std::make_pair(key, itemZero)).first->second;
+		EPGDB_SERVICE_EVENT_INFO& item = nextMap.emplace(key, itemZero).first->second;
 		item.serviceInfo.ONID = info->original_network_id;
 		item.serviceInfo.TSID = info->transport_stream_id;
 		item.serviceInfo.SID = info->service_id;
@@ -444,7 +444,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 						    ConvertI64Time(itr->second.eventList[i].start_time) > arcMin ){
 							if( itrArc == sys->epgArchive.end() ){
 								//サービスを追加
-								itrArc = sys->epgArchive.insert(std::make_pair(itr->first, EPGDB_SERVICE_EVENT_INFO())).first;
+								itrArc = sys->epgArchive.emplace(itr->first, EPGDB_SERVICE_EVENT_INFO()).first;
 								itrArc->second.serviceInfo = std::move(itr->second.serviceInfo);
 							}
 							itrArc->second.eventList.push_back(std::move(itr->second.eventList[i]));

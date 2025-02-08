@@ -553,8 +553,7 @@ DWORD CTSOut::CreateServiceCtrl(
 {
 	lock_recursive_mutex lock(this->objLock);
 
-	auto itr = this->serviceUtilMap.insert(
-		std::make_pair(GetNextID(), std::unique_ptr<COneServiceUtil>(new COneServiceUtil(sendUdpTcp)))).first;
+	auto itr = this->serviceUtilMap.emplace(GetNextID(), std::unique_ptr<COneServiceUtil>(new COneServiceUtil(sendUdpTcp))).first;
 	itr->second->SetBonDriver(bonFile);
 	itr->second->SetNoLogScramble(noLogScramble);
 	if( this->chChangeState == CH_ST_DONE ){

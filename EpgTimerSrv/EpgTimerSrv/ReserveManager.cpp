@@ -42,8 +42,8 @@ void CReserveManager::Initialize(const CEpgTimerSrvSetting::SETTING& s)
 				CParseChText4 chText4;
 				chText4.ParseText(fs_path(settingPath).append(nameList[i].second).c_str());
 				for( WORD j = 0; j < count; j++, tunerID++ ){
-					this->tunerBankMap.insert(std::make_pair(tunerID, std::unique_ptr<CTunerBankCtrl>(new CTunerBankCtrl(
-						tunerID, nameList[i].first.c_str(), min(epgCount, count), chText4.GetMap(), this->notifyManager, this->epgDBManager))));
+					this->tunerBankMap.emplace(tunerID, std::unique_ptr<CTunerBankCtrl>(new CTunerBankCtrl(
+						tunerID, nameList[i].first.c_str(), min(epgCount, count), chText4.GetMap(), this->notifyManager, this->epgDBManager)));
 				}
 			}
 		}

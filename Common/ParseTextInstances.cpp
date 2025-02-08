@@ -137,7 +137,7 @@ void CParseChText4::SetFilePath(LPCWSTR path)
 DWORD CParseChText4::AddCh(const CH_DATA4& item)
 {
 	map<DWORD, CH_DATA4>::const_iterator itr =
-		this->itemMap.insert(pair<DWORD, CH_DATA4>(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item)).first;
+		this->itemMap.emplace(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item).first;
 	return itr->first;
 }
 
@@ -356,7 +356,7 @@ bool CParseServiceChgText::ParseLine(LPCWSTR parseLine, pair<wstring, wstring>& 
 
 DWORD CParseRecInfoText::AddRecInfo(const REC_FILE_INFO_BASIC& item)
 {
-	map<DWORD, REC_FILE_INFO_BASIC>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, REC_FILE_INFO_BASIC>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	DWORD id = itr->second.id = itr->first;
 
@@ -619,7 +619,7 @@ void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO_BASIC& item)
 DWORD CParseRecInfo2Text::Add(const PARSE_REC_INFO2_ITEM& item)
 {
 	map<DWORD, PARSE_REC_INFO2_ITEM>::const_iterator itr =
-		this->itemMap.insert(pair<DWORD, PARSE_REC_INFO2_ITEM>(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item)).first;
+		this->itemMap.emplace(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item).first;
 	return itr->first;
 }
 
@@ -672,7 +672,7 @@ bool CParseRecInfo2Text::SelectItemToSave(vector<map<DWORD, PARSE_REC_INFO2_ITEM
 
 DWORD CParseReserveText::AddReserve(const RESERVE_DATA& item)
 {
-	map<DWORD, RESERVE_DATA>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, RESERVE_DATA>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	this->sortByEventCache.clear();
 	return itr->second.reserveID = itr->first;
@@ -939,7 +939,7 @@ const vector<pair<ULONGLONG, DWORD>>& CParseReserveText::GetSortByEventList() co
 
 DWORD CParseEpgAutoAddText::AddData(const EPG_AUTO_ADD_DATA& item)
 {
-	map<DWORD, EPG_AUTO_ADD_DATA>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, EPG_AUTO_ADD_DATA>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	return itr->second.dataID = itr->first;
 }
@@ -1180,7 +1180,7 @@ bool CParseEpgAutoAddText::SelectItemToSave(vector<map<DWORD, EPG_AUTO_ADD_DATA>
 
 DWORD CParseManualAutoAddText::AddData(const MANUAL_AUTO_ADD_DATA& item)
 {
-	map<DWORD, MANUAL_AUTO_ADD_DATA>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, MANUAL_AUTO_ADD_DATA>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	itr->second.recSetting.pittariFlag = 0;
 	itr->second.recSetting.tuijyuuFlag = 0;
