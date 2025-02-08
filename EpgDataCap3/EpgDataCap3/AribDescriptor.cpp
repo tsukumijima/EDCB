@@ -1457,7 +1457,7 @@ int CDescriptor::DecodeProperty(const BYTE* data, DWORD dataSize, const short** 
 				if( bitOffset != 0 ){
 					return -3;
 				}
-				pp->resize(pp->size() + 1);
+				pp->emplace_back();
 				DESCRIPTOR_PROPERTY& dp = pp->back();
 				dp.type = DESCRIPTOR_PROPERTY::TYPE_P;
 				dp.pl = new vector<vector<DESCRIPTOR_PROPERTY>>;
@@ -1470,7 +1470,7 @@ int CDescriptor::DecodeProperty(const BYTE* data, DWORD dataSize, const short** 
 				++*parser;
 
 				for( ; loopNum != 0; --loopNum ){
-					dp.pl->resize(dp.pl->size() + 1);
+					dp.pl->emplace_back();
 					const short* parserRollback = *parser;
 					DWORD localRollback = ppLocal->n;
 					int subReadSize = DecodeProperty(data + readSize, dataSize - readSize, parser, &dp.pl->back(), ppLocal, customParserList);
@@ -1505,7 +1505,7 @@ int CDescriptor::DecodeProperty(const BYTE* data, DWORD dataSize, const short** 
 				if( bitOffset != 0 ){
 					return -3;
 				}
-				pp->resize(pp->size() + 1);
+				pp->emplace_back();
 				DESCRIPTOR_PROPERTY& dp = pp->back();
 				dp.type = DESCRIPTOR_PROPERTY::TYPE_P;
 				dp.pl = new vector<vector<DESCRIPTOR_PROPERTY>>;
@@ -1521,7 +1521,7 @@ int CDescriptor::DecodeProperty(const BYTE* data, DWORD dataSize, const short** 
 						//記述子が異常。このエラーは回復できない
 						return -4;
 					}
-					dp.pl->resize(dp.pl->size() + 1);
+					dp.pl->emplace_back();
 					dp.pl->back().swap(desc.rootProperty);
 					readSize += subReadSize;
 				}
@@ -1575,7 +1575,7 @@ int CDescriptor::DecodeProperty(const BYTE* data, DWORD dataSize, const short** 
 						return -1;
 					}
 					DWORD copySize = min<DWORD>(byteSize, 0xFFF);
-					pp->resize(pp->size() + 1);
+					pp->emplace_back();
 					DESCRIPTOR_PROPERTY& dp = pp->back();
 					dp.id = dpID;
 					dp.type = (short)copySize;

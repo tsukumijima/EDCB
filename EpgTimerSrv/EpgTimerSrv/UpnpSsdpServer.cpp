@@ -60,7 +60,7 @@ vector<SSDP_NIC_INFO> GetNICList()
 				if( (uni->Flags & IP_ADAPTER_ADDRESS_TRANSIENT) == 0 &&
 				    uni->Address.lpSockaddr->sa_family == AF_INET &&
 				    getnameinfo(uni->Address.lpSockaddr, uni->Address.iSockaddrLength, host, sizeof(host), NULL, 0, NI_NUMERICHOST) == 0 ){
-					nicList.resize(nicList.size() + 1);
+					nicList.emplace_back();
 					nicList.back().addr = *(sockaddr_in*)uni->Address.lpSockaddr;
 					nicList.back().name = host;
 				}
@@ -74,7 +74,7 @@ vector<SSDP_NIC_INFO> GetNICList()
 			char host[NI_MAXHOST];
 			if( p->ifa_addr->sa_family == AF_INET &&
 			    getnameinfo(p->ifa_addr, sizeof(sockaddr_in), host, sizeof(host), NULL, 0, NI_NUMERICHOST) == 0 ){
-				nicList.resize(nicList.size() + 1);
+				nicList.emplace_back();
 				nicList.back().addr = *(sockaddr_in*)p->ifa_addr;
 				nicList.back().name = host;
 			}

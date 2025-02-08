@@ -80,7 +80,7 @@ void ParseRecFolderList(LPCWSTR* token, vector<REC_FILE_SET_INFO>& list)
 {
 	for( int n = NextTokenToInt(token); n > 0; n-- ){
 		NextToken(token);
-		list.resize(list.size() + 1);
+		list.emplace_back();
 		list.back().recFolder.assign(token[0], token[1]);
 	}
 	for( size_t i = 0; i < list.size(); ){

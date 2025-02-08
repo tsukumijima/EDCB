@@ -92,7 +92,7 @@ CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 					//曜日指定接尾辞(w1=Mon,...,w7=Sun)
 					wday = (int)(wcstoul(endp + 1, NULL, 10) % 8);
 				}
-				s.epgCapTimeList.resize(s.epgCapTimeList.size() + 1);
+				s.epgCapTimeList.emplace_back();
 				s.epgCapTimeList.back().second.first = (wday * 24 + hour) * 60 + minute;
 				//有効か
 				swprintf_s(key, L"%dSelect", i);

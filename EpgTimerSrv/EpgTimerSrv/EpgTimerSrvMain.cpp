@@ -1511,7 +1511,7 @@ void CEpgTimerSrvMain::AutoAddReserveEPG(const EPG_AUTO_ADD_DATA& data, vector<R
 				}
 				if( found == false ){
 					//まだ存在しないので追加対象
-					setList.resize(setList.size() + 1);
+					setList.emplace_back();
 					RESERVE_DATA& item = setList.back();
 					if( info.hasShortInfo ){
 						item.title = info.shortInfo.event_name;
@@ -1587,7 +1587,7 @@ void CEpgTimerSrvMain::AutoAddReserveProgram(const MANUAL_AUTO_ADD_DATA& data, v
 				               ConvertI64Time(a.startTime) == startTime &&
 				               a.durationSecond == data.durationSecond; }) == setList.end() ){
 					//見つからなかったので予約追加
-					setList.resize(setList.size() + 1);
+					setList.emplace_back();
 					RESERVE_DATA& item = setList.back();
 					item.title = data.title;
 					ConvertSystemTime(startTime, &item.startTime); 

@@ -124,7 +124,7 @@ vector<RESERVE_DATA> CReserveManager::GetReserveDataAll(bool getRecFileName) con
 	list.reserve(this->reserveText.GetMap().size());
 	CReNamePlugInUtil utilCache;
 	for( map<DWORD, RESERVE_DATA>::const_iterator itr = this->reserveText.GetMap().begin(); itr != this->reserveText.GetMap().end(); itr++ ){
-		list.resize(list.size() + 1);
+		list.emplace_back();
 		GetReserveData(itr->first, &list.back(), getRecFileName, &utilCache);
 	}
 	return list;
@@ -137,12 +137,12 @@ vector<TUNER_RESERVE_INFO> CReserveManager::GetTunerReserveAll() const
 	vector<TUNER_RESERVE_INFO> list;
 	list.reserve(this->tunerBankMap.size() + 1);
 	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
-		list.resize(list.size() + 1);
+		list.emplace_back();
 		list.back().tunerID = itr->first;
 		list.back().tunerName = itr->second->GetBonFileName();
 		list.back().reserveList = itr->second->GetReserveIDList();
 	}
-	list.resize(list.size() + 1);
+	list.emplace_back();
 	list.back().tunerID = 0xFFFFFFFF;
 	list.back().tunerName = L"チューナー不足";
 	vector<DWORD> &ngList = list.back().reserveList = GetNoTunerReserveAll();
@@ -259,7 +259,7 @@ bool CReserveManager::AddReserveData(const vector<RESERVE_DATA>& reserveList, bo
 				LONGLONG startTime;
 				CalcEntireReserveTime(&startTime, NULL, r);
 				minStartTime = min(startTime, minStartTime);
-				batWorkList.resize(batWorkList.size() + 1);
+				batWorkList.emplace_back();
 				AddReserveDataMacro(batWorkList.back().macroList, r, "");
 			}
 		}
@@ -405,7 +405,7 @@ bool CReserveManager::ChgReserveData(const vector<RESERVE_DATA>& reserveList, bo
 					CalcEntireReserveTime(&startTimeNext, NULL, r);
 					minStartTime = min(min(startTime, startTimeNext), minStartTime);
 				}
-				batWorkList.resize(batWorkList.size() + 1);
+				batWorkList.emplace_back();
 				AddReserveDataMacro(batWorkList.back().macroList, itr->second, "OLD");
 				AddReserveDataMacro(batWorkList.back().macroList, r, "");
 			}
@@ -479,14 +479,14 @@ vector<REC_FILE_INFO> CReserveManager::GetRecFileInfoList(const vector<DWORD>* i
 			for( size_t i = 0; i < idList->size(); i++ ){
 				map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().find((*idList)[i]);
 				if( itr != this->recInfoText.GetMap().end() ){
-					infoList.resize(infoList.size() + 1);
+					infoList.emplace_back();
 					static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
 				}
 			}
 		}else{
 			infoList.reserve(this->recInfoText.GetMap().size());
 			for( map<DWORD, REC_FILE_INFO_BASIC>::const_iterator itr = this->recInfoText.GetMap().begin(); itr != this->recInfoText.GetMap().end(); itr++ ){
-				infoList.resize(infoList.size() + 1);
+				infoList.emplace_back();
 				static_cast<REC_FILE_INFO_BASIC&>(infoList.back()) = itr->second;
 			}
 		}
@@ -1458,7 +1458,7 @@ pair<CReserveManager::CHECK_STATUS, int> CReserveManager::Check()
 		for( size_t i = 0; i < startedReserveIDList.size(); i++ ){
 			map<DWORD, RESERVE_DATA>::const_iterator itrRes = this->reserveText.GetMap().find(startedReserveIDList[i]);
 			if( itrRes != this->reserveText.GetMap().end() ){
-				batWorkList.resize(batWorkList.size() + 1);
+				batWorkList.emplace_back();
 				AddReserveDataMacro(batWorkList.back().macroList, itrRes->second, "");
 			}
 		}

@@ -590,7 +590,7 @@ BOOL CALLBACK CEpgDBManager::EnumEpgInfoListProc(DWORD epgInfoListSize, EPG_EVEN
 			item->eventList.reserve(epgInfoListSize);
 		}else{
 			for( DWORD i=0; i<epgInfoListSize; i++ ){
-				item->eventList.resize(item->eventList.size() + 1);
+				item->eventList.emplace_back();
 				ConvertEpgInfo(item->serviceInfo.ONID, item->serviceInfo.TSID, item->serviceInfo.SID, &epgInfoList[i], &item->eventList.back());
 				if( item->eventList.back().hasShortInfo ){
 					//ごく稀にAPR(改行)を含むため

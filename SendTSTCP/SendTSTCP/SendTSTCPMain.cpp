@@ -695,7 +695,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 									}
 								}
 								//待機
-								pfdList.resize(pfdList.size() + 1);
+								pfdList.emplace_back();
 								pfdList.back().fd = itr->pipe[i];
 								pfdList.back().events = POLLOUT;
 								if( itr->writeAheadCount[i] == 0 ){

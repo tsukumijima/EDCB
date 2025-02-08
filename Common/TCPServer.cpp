@@ -406,7 +406,7 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 							if( hEventList.size() < WSA_MAXIMUM_WAIT_EVENTS && (hEvent = WSACreateEvent()) != WSA_INVALID_EVENT )
 #endif
 							{
-								waitList.resize(waitList.size() + 1);
+								waitList.emplace_back();
 								waitList.back().sock = sock;
 								std::swap(waitList.back().cmd, cmd);
 								waitList.back().tick = GetU32Tick();

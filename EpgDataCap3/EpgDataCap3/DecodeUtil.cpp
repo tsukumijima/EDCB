@@ -488,7 +488,7 @@ void CDecodeUtil::CheckDsmccDII(WORD PID, const BYTE* body, size_t bodySize)
 					std::find_if(this->downloadModuleList.begin(), this->downloadModuleList.end(),
 					             [=](const DOWNLOAD_MODULE_DATA& a) { return a.name == moduleName; });
 				if( itr == this->downloadModuleList.end() ){
-					this->downloadModuleList.resize(this->downloadModuleList.size() + 1);
+					this->downloadModuleList.emplace_back();
 					itr = this->downloadModuleList.end() - 1;
 					itr->name = moduleName;
 				}
