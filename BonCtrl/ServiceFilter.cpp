@@ -64,7 +64,7 @@ void CServiceFilter::FilterPacket(vector<BYTE>& outData, const BYTE* data, const
 					vector<pair<WORD, CPMTUtil>>::iterator itr =
 						lower_bound_first(this->pmtUtilMap.begin(), this->pmtUtilMap.end(), packet.PID);
 					if( itr == this->pmtUtilMap.end() || itr->first != packet.PID ){
-						itr = this->pmtUtilMap.insert(itr, std::make_pair(packet.PID, CPMTUtil()));
+						itr = this->pmtUtilMap.emplace(itr, packet.PID, CPMTUtil());
 					}
 					if( itr->second.AddPacket(packet) ){
 						this->catOrPmtUpdated = true;
@@ -210,7 +210,7 @@ void CServiceFilter::CheckNeedPID()
 	//PAT作成用のPMTリスト
 	vector<pair<WORD, WORD>> pidList;
 	//NITのPID追加しておく
-	pidList.push_back(std::make_pair((WORD)0x10, (WORD)0));
+	pidList.emplace_back((WORD)0x10, (WORD)0);
 
 	//EMMのPID
 	for( auto itr = this->catUtil.GetPIDList().cbegin(); itr != this->catUtil.GetPIDList().end(); itr++ ){
@@ -223,7 +223,7 @@ void CServiceFilter::CheckNeedPID()
 		    (this->allServicesFlag ||
 		     std::find(this->serviceIDList.begin(), this->serviceIDList.end(), programNumber) != this->serviceIDList.end()) ){
 			//PAT作成用のPMTリスト作成
-			pidList.push_back(std::make_pair(itr->first, programNumber));
+			pidList.emplace_back(itr->first, programNumber);
 			//PMT記載のPIDを登録
 			InsertPIDInfo(this->pidInfoMap, itr->first).neededByCatOrPmt = true;
 			WORD pcrPID = itr->second.GetPcrPID();

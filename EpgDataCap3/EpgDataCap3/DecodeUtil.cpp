@@ -281,7 +281,7 @@ void CDecodeUtil::AddTSData(BYTE* data, DWORD size)
 				lower_bound_first(this->buffUtilMap.begin(), this->buffUtilMap.end(), tsPacket.PID);
 			if( itr == this->buffUtilMap.end() || itr->first != tsPacket.PID ){
 				//まだPIDがないので新規
-				itr = this->buffUtilMap.insert(itr, std::make_pair(tsPacket.PID, CTSBuffUtil()));
+				itr = this->buffUtilMap.emplace(itr, tsPacket.PID, CTSBuffUtil());
 			}
 			if( itr->second.Add188TS(tsPacket) == TRUE ){
 				BYTE* section = NULL;
@@ -667,7 +667,7 @@ void CDecodeUtil::UpdateEngineeringPmtMap()
 									if( engList.back() != 0 ){
 										auto jtr = lower_bound_first(this->engineeringPmtMap.begin(), this->engineeringPmtMap.end(), engList.back());
 										if( jtr == this->engineeringPmtMap.end() || jtr->first != engList.back() ){
-											this->engineeringPmtMap.insert(jtr, std::make_pair(engList.back(), std::unique_ptr<const Desc::CDescriptor>()));
+											this->engineeringPmtMap.emplace(jtr, engList.back(), std::unique_ptr<const Desc::CDescriptor>());
 										}
 									}
 								}
@@ -833,7 +833,7 @@ void CDecodeUtil::UpdateLogoData(WORD onid, WORD id, BYTE type, const BYTE* logo
 		LONGLONG key = (LONGLONG)onid << 32 | (LONGLONG)id << 16 | type;
 		vector<LOGO_DATA>::iterator itr = lower_bound_first(this->logoMap.begin(), this->logoMap.end(), key);
 		if( itr == this->logoMap.end() || itr->first != key ){
-			itr = this->logoMap.insert(itr, LOGO_DATA());
+			itr = this->logoMap.emplace(itr);
 			itr->first = key;
 			bool insertPalette = false;
 			if( logo[25] == 3 ){

@@ -483,7 +483,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 							//旧世代に移動する
 							if( itrOld == epgOld.end() ){
 								//サービスを追加
-								epgOld.push_back(EPGDB_SERVICE_EVENT_INFO());
+								epgOld.emplace_back();
 								itrOld = epgOld.end() - 1;
 								itrOld->serviceInfo = itr->second.serviceInfo;
 								oldIndex.push_back(0);
@@ -524,7 +524,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 						buffList.reserve(epgOld.size());
 						while( epgOld.empty() == false ){
 							//サービス単位で書き込み、シークできるようにインデックスを作る
-							buffList.push_back(CCmdStream());
+							buffList.emplace_back();
 							buffList.back().WriteVALUE2WithVersion(5, epgOld.back());
 							epgOld.pop_back();
 							oldIndex[epgOld.size() * 4] = buffList.back().GetDataSize();
@@ -541,7 +541,7 @@ void CEpgDBManager::LoadThread(CEpgDBManager* sys)
 							size_t i = std::lower_bound(oldCache.front().begin(), oldCache.front().end(), oldMin) - oldCache.front().begin();
 							if( i == oldCache.front().size() || oldCache.front()[i] != oldMin ){
 								oldCache.front().insert(oldCache.front().begin() + i, oldMin);
-								oldCache.insert(oldCache.begin() + 1 + i, vector<LONGLONG>());
+								oldCache.emplace(oldCache.begin() + 1 + i);
 							}
 							oldCache[1 + i].swap(oldIndex);
 						}
@@ -743,7 +743,7 @@ bool CEpgDBManager::InitializeSearchContext(SEARCH_CONTEXT& ctx, vector<LONGLONG
 	if( key->regExpFlag ){
 		//正規表現の単独キーワード
 		if( andKey.empty() == false ){
-			ctx.andKeyList.push_back(vector<pair<wstring, RegExpPtr>>());
+			ctx.andKeyList.emplace_back();
 			AddKeyword(ctx.andKeyList.back(), andKey, ctx.caseFlag, true, key->titleOnlyFlag != FALSE);
 		}
 		if( notKey.empty() == false ){
@@ -757,10 +757,10 @@ bool CEpgDBManager::InitializeSearchContext(SEARCH_CONTEXT& ctx, vector<LONGLONG
 			Separate(andKey, L" ", buff, andKey);
 			if( buff == L"|" ){
 				//OR条件
-				ctx.andKeyList.push_back(vector<pair<wstring, RegExpPtr>>());
+				ctx.andKeyList.emplace_back();
 			}else if( buff.empty() == false ){
 				if( ctx.andKeyList.empty() ){
-					ctx.andKeyList.push_back(vector<pair<wstring, RegExpPtr>>());
+					ctx.andKeyList.emplace_back();
 				}
 				AddKeyword(ctx.andKeyList.back(), std::move(buff), ctx.caseFlag, false, key->titleOnlyFlag != FALSE);
 			}
@@ -1162,11 +1162,11 @@ bool CEpgDBManager::FindLikeKeyword(const wstring& key, size_t keyPos, const wst
 
 void CEpgDBManager::AddKeyword(vector<pair<wstring, RegExpPtr>>& keyList, wstring key, bool caseFlag, bool regExp, bool titleOnly)
 {
-	keyList.push_back(std::make_pair(wstring(), RegExpPtr(
+	keyList.emplace_back(wstring(), RegExpPtr(
 #if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
 		NULL, ComRelease
 #endif
-		)));
+		));
 	if( regExp ){
 		key = (titleOnly ? L"::title:" : L"::event:") + key;
 	}
@@ -1356,7 +1356,7 @@ void CEpgDBManager::EnumArchiveEventInfo(LONGLONG* keys, size_t keysSize, LONGLO
 							//対象サービスだけ読めばOK
 							EPGDB_SERVICE_EVENT_INFO* pi = &info;
 							if( deletableBeforeEnumDone == false ){
-								infoPool.push_back(EPGDB_SERVICE_EVENT_INFO());
+								infoPool.emplace_back();
 								pi = &infoPool.back();
 							}
 							ReadOldArchiveEventInfo(fp.get(), index, i, headerSize, buff, *pi);

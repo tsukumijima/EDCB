@@ -255,7 +255,7 @@ vector<SET_CH_INFO> CChSetUtil::GetEpgCapServiceAll(
 			(TSID < 0 || itrCh5->second.transportStreamID == TSID) &&
 			itrCh5->second.epgCapFlag == TRUE
 			){
-			ret.push_back(SET_CH_INFO());
+			ret.emplace_back();
 			ret.back().useSID = TRUE;
 			ret.back().ONID = itrCh5->second.originalNetworkID;
 			ret.back().TSID = itrCh5->second.transportStreamID;

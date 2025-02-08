@@ -434,7 +434,7 @@ void CTCPServer::ServerThread(CTCPServer* pSys)
 							break;
 						}
 						//応答用スレッドを追加
-						resThreadList.push_back(std::unique_ptr<RESPONSE_THREAD_INFO>(new RESPONSE_THREAD_INFO));
+						resThreadList.emplace_back(new RESPONSE_THREAD_INFO);
 						RESPONSE_THREAD_INFO& info = *resThreadList.back();
 						info.sock = sock;
 						std::swap(info.cmd, cmd);

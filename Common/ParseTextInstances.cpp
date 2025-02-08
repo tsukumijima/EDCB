@@ -916,7 +916,7 @@ vector<pair<LONGLONG, const RESERVE_DATA*>> CParseReserveText::GetReserveList(BO
 			//開始マージンは元の予約終了時刻を超えて負であってはならない
 			startTime -= max(startMargin, startTime - endTime);
 		}
-		retList.push_back( pair<LONGLONG, const RESERVE_DATA*>((startTime / I64_1SEC) << 16 | itr->second.transportStreamID, &itr->second) );
+		retList.emplace_back((startTime / I64_1SEC) << 16 | itr->second.transportStreamID, &itr->second);
 	}
 	std::sort(retList.begin(), retList.end());
 	return retList;
@@ -928,9 +928,9 @@ const vector<pair<ULONGLONG, DWORD>>& CParseReserveText::GetSortByEventList() co
 		this->sortByEventCache.clear();
 		this->sortByEventCache.reserve(this->itemMap.size());
 		for( map<DWORD, RESERVE_DATA>::const_iterator itr = this->itemMap.begin(); itr != this->itemMap.end(); itr++ ){
-			this->sortByEventCache.push_back(std::make_pair(
+			this->sortByEventCache.emplace_back(
 				(ULONGLONG)itr->second.originalNetworkID << 48 | (ULONGLONG)itr->second.transportStreamID << 32 |
-				(DWORD)itr->second.serviceID << 16 | itr->second.eventID, itr->first));
+				(DWORD)itr->second.serviceID << 16 | itr->second.eventID, itr->first);
 		}
 		std::sort(this->sortByEventCache.begin(), this->sortByEventCache.end());
 	}

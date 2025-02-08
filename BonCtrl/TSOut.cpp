@@ -318,7 +318,7 @@ BOOL CALLBACK CTSOut::EnumLogoListProc(DWORD logoListSize, const LOGO_INFO* logo
 			vector<pair<LONGLONG, DWORD>>::iterator itr = lower_bound_first(serviceListSizeMap.begin(), serviceListSizeMap.end(), key);
 			try{
 				if( itr == serviceListSizeMap.end() || itr->first != key ){
-					serviceListSizeMap.insert(itr, pair<LONGLONG, DWORD>(key, 0));
+					serviceListSizeMap.emplace(itr, key, 0);
 					result.onid = logoList->onid;
 					result.id = logoList->id;
 					result.type = logoList->type;

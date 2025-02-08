@@ -266,7 +266,7 @@ void CDropCount::SetPIDName(WORD pid, const wstring& name)
 	vector<pair<WORD, wstring>>::iterator itr =
 		lower_bound_first(this->pidName.begin(), this->pidName.end(), pid);
 	if( itr == this->pidName.end() || itr->first != pid ){
-		itr = this->pidName.insert(itr, std::make_pair(pid, wstring()));
+		itr = this->pidName.emplace(itr, pid, wstring());
 	}
 	itr->second = name;
 }

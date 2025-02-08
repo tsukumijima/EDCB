@@ -344,7 +344,7 @@ vector<CTunerBankCtrl::CHECK_RESULT> CTunerBankCtrl::Check(vector<DWORD>* starte
 			//開始順が秒精度なので、前後関係を確実にするため開始時間は必ず秒精度で扱う
 			else if( (r.startTime - r.startMargin - this->recWakeTime) / I64_1SEC < now / I64_1SEC ){
 				//録画開始recWakeTime前～
-				idleList.push_back(std::make_pair(r.startOrder, r.reserveID));
+				idleList.emplace_back(r.startOrder, r.reserveID);
 			}
 			break;
 		case TR_READY:

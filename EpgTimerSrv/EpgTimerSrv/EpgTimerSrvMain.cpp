@@ -1453,7 +1453,7 @@ void CEpgTimerSrvMain::AutoAddReserveEPG(const EPG_AUTO_ADD_DATA& data, vector<R
 	this->epgDB.SearchEpg(&data.searchInfo, 1, now, now + autoAddHour * 60 * 60 * I64_1SEC, &findKeyBuff,
 	                      [&resultList](const EPGDB_EVENT_INFO* val, wstring* findKey) {
 		if( val && val->DurationFlag ){
-			resultList.push_back(std::make_pair(*val, *findKey));
+			resultList.emplace_back(*val, *findKey);
 		}
 	});
 	for( size_t i = 0; i < resultList.size(); i++ ){
@@ -2060,7 +2060,7 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 							itr = std::find_if(ret.begin(), ret.end(), [si](const EPGDB_SERVICE_EVENT_INFO_PTR& a) {
 								return a.serviceInfo->ONID == si->ONID && a.serviceInfo->TSID == si->TSID && a.serviceInfo->SID == si->SID; });
 							if( itr == ret.end() ){
-								ret.push_back(EPGDB_SERVICE_EVENT_INFO_PTR());
+								ret.emplace_back();
 								itr = ret.end() - 1;
 							}
 							itr->serviceInfo = si;

@@ -189,7 +189,7 @@ vector<pair<wstring, wstring>> CEpgTimerSrvSetting::EnumBonFileName(LPCWSTR sett
 				bon += EDCB_LIB_EXT;
 				if( std::find_if(ret.begin(), ret.end(), [&](const pair<wstring, wstring>& a) {
 				        return UtilComparePath(a.first.c_str(), bon.c_str()) == 0; }) == ret.end() ){
-					ret.push_back(std::make_pair(std::move(bon), std::move(findData.fileName)));
+					ret.emplace_back(std::move(bon), std::move(findData.fileName));
 				}
 			}
 		}

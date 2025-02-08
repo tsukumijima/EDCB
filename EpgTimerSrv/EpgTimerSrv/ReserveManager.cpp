@@ -576,13 +576,13 @@ void CReserveManager::ReloadBankMap(LONGLONG reloadTime)
 
 	//reloadTimeより前の予約を開始時間順にソート
 	vector<pair<LONGLONG, const RESERVE_DATA*>> sortTimeMap;
-	sortTimeMap.push_back(std::make_pair(reloadTime, (RESERVE_DATA*)NULL));
+	sortTimeMap.emplace_back(reloadTime, (RESERVE_DATA*)NULL);
 	for( map<DWORD, RESERVE_DATA>::const_iterator itr = this->reserveText.GetMap().begin(); itr != this->reserveText.GetMap().end(); itr++ ){
 		if( itr->second.recSetting.IsNoRec() == false ){
 			LONGLONG startTime;
 			CalcEntireReserveTime(&startTime, NULL, itr->second);
 			if( startTime < reloadTime ){
-				sortTimeMap.push_back(std::make_pair(startTime, &itr->second));
+				sortTimeMap.emplace_back(startTime, &itr->second);
 			}
 		}
 	}
@@ -609,7 +609,7 @@ void CReserveManager::ReloadBankMap(LONGLONG reloadTime)
 	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
 		//待機状態に入っているもの以外クリア
 		itr->second->ClearNoCtrl(boundaryReloadTime);
-		bankResMap.push_back(std::make_pair(itr->first, CHK_BANK_DATA()));
+		bankResMap.emplace_back(itr->first, CHK_BANK_DATA());
 		bankResMap.back().second.startedResList = itr->second->GetReserveIDList();
 	}
 
@@ -621,7 +621,7 @@ void CReserveManager::ReloadBankMap(LONGLONG reloadTime)
 			CalcEntireReserveTime(&startTime, NULL, itr->second);
 			if( startTime >= boundaryReloadTime ){
 				this->reserveText.SetOverlapMode(itr->first, RESERVE_NO_EXECUTE);
-				sortTimeMap.push_back(std::make_pair(startTime, &itr->second));
+				sortTimeMap.emplace_back(startTime, &itr->second);
 			}
 		}
 	}
@@ -648,7 +648,7 @@ void CReserveManager::ReloadBankMap(LONGLONG reloadTime)
 				LONGLONG startOrder = itrRes->first / I64_1SEC << 16 | (itrRes->second->reserveID & 0xFFFF);
 				LONGLONG priority = (this->setting.backPriority ? itrRes->second->recSetting.priority : ~itrRes->second->recSetting.priority) & 7;
 				LONGLONG fixedBit = (this->setting.fixedTunerPriority && itrRes->second->recSetting.tunerID != 0) ? this->setting.backPriority : !this->setting.backPriority;
-				sortResMap.push_back(std::make_pair((this->setting.backPriority ? -1 : 1) * (priority << 60 | fixedBit << 59 | startOrder), itrRes->second));
+				sortResMap.emplace_back((this->setting.backPriority ? -1 : 1) * (priority << 60 | fixedBit << 59 | startOrder), itrRes->second);
 			}
 			std::sort(sortResMap.begin(), sortResMap.end());
 			sortTimeMap.erase(itrTime.base(), sortTimeMap.end());
@@ -1242,7 +1242,7 @@ void CReserveManager::CheckAutoDel() const
 					EnumFindFile(fs_path(this->setting.delChkList[i]).append(L'*' + this->setting.tsExt),
 					             [&](UTIL_FIND_DATA& findData) -> bool {
 						if( findData.isDir == false && UtilPathEndsWith(findData.fileName.c_str(), this->setting.tsExt.c_str()) ){
-							findList.push_back(std::make_pair(std::move(findData), i));
+							findList.emplace_back(std::move(findData), i);
 						}
 						return true;
 					});
@@ -1389,12 +1389,12 @@ void CReserveManager::ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& 
 			//バッチ処理追加
 			CBatManager::BAT_WORK_INFO batInfo;
 			AddRecInfoMacro(batInfo.macroList, item);
-			batInfo.macroList.push_back(pair<string, wstring>("AddKey",
+			batInfo.macroList.emplace_back("AddKey",
 				itrRes->second.comment.compare(0, 8, L"EPG自動予約(") == 0 && itrRes->second.comment.find(L')') != wstring::npos ?
-				itrRes->second.comment.substr(8, itrRes->second.comment.find(L')') - 8) : wstring()));
-			batInfo.macroList.push_back(pair<string, wstring>("BatFileTag",
+				itrRes->second.comment.substr(8, itrRes->second.comment.find(L')') - 8) : wstring());
+			batInfo.macroList.emplace_back("BatFileTag",
 				itrRes->second.recSetting.batFilePath.find(L'*') != wstring::npos ?
-				itrRes->second.recSetting.batFilePath.substr(itrRes->second.recSetting.batFilePath.find(L'*') + 1) : wstring()));
+				itrRes->second.recSetting.batFilePath.substr(itrRes->second.recSetting.batFilePath.find(L'*') + 1) : wstring());
 			if( itrRet->type != CTunerBankCtrl::CHECK_ERR_PASS ){
 				batWorkList.push_back(batInfo);
 				if( shutdownMode ){
@@ -1933,7 +1933,7 @@ vector<pair<DWORD, int>> CReserveManager::GetNWTVIDAll() const
 	vector<pair<DWORD, int>> idList;
 	for( auto itr = this->tunerBankMap.cbegin(); itr != this->tunerBankMap.end(); itr++ ){
 		if( itr->second->GetState() == CTunerBankCtrl::TR_NWTV ){
-			idList.push_back(std::make_pair(itr->first, itr->second->GetNWTVID()));
+			idList.emplace_back(itr->first, itr->second->GetNWTVID());
 		}
 	}
 	return idList;
@@ -2111,7 +2111,7 @@ void CReserveManager::AddNotifyAndPostBat(DWORD notifyID)
 {
 	this->notifyManager.AddNotify(notifyID);
 	vector<CBatManager::BAT_WORK_INFO> workList(1);
-	workList[0].macroList.push_back(pair<string, wstring>("NotifyID", L""));
+	workList[0].macroList.emplace_back("NotifyID", L"");
 	Format(workList[0].macroList.back().second, L"%d", notifyID);
 	AddPostBatWork(workList, L"PostNotify");
 }
@@ -2130,7 +2130,7 @@ void CReserveManager::AddTimeMacro(vector<pair<string, wstring>>& macroList, con
 	           (I64_UTIL_TIMEZONE < 0 ? L'-' : L'+'),
 	           (int)((I64_UTIL_TIMEZONE < 0 ? -I64_UTIL_TIMEZONE : I64_UTIL_TIMEZONE) / I64_1SEC) / 3600,
 	           (int)((I64_UTIL_TIMEZONE < 0 ? -I64_UTIL_TIMEZONE : I64_UTIL_TIMEZONE) / I64_1SEC) / 60 % 60);
-	macroList.push_back(pair<string, wstring>(string("StartTime") + suffix, v));
+	macroList.emplace_back(string("StartTime") + suffix, v);
 	for( string p = "S"; p != ""; p = (p == "S" ? "E" : "") ){
 		SYSTEMTIME t = startTime;
 		if( p == "E" ){
@@ -2138,65 +2138,65 @@ void CReserveManager::AddTimeMacro(vector<pair<string, wstring>>& macroList, con
 		}
 		for( int i = 0; GetTimeMacroName(i); i++ ){
 			//従来形式は#でコメントアウトしておく
-			macroList.push_back(std::make_pair('#' + p + GetTimeMacroName(i) + suffix, GetTimeMacroValue(i, t)));
+			macroList.emplace_back('#' + p + GetTimeMacroName(i) + suffix, GetTimeMacroValue(i, t));
 		}
 	}
-	swprintf_s(v, L"%u", durationSecond);				macroList.push_back(pair<string, wstring>(string("DurationSecond") + suffix, v));
-	swprintf_s(v, L"%02d", durationSecond / 3600);		macroList.push_back(pair<string, wstring>(string("#DUHH") + suffix, v));
-	swprintf_s(v, L"%d", durationSecond / 3600);		macroList.push_back(pair<string, wstring>(string("#DUH") + suffix, v));
-	swprintf_s(v, L"%02d", durationSecond % 3600 / 60);	macroList.push_back(pair<string, wstring>(string("#DUMM") + suffix, v));
-	swprintf_s(v, L"%d", durationSecond % 3600 / 60);	macroList.push_back(pair<string, wstring>(string("#DUM") + suffix, v));
-	swprintf_s(v, L"%02d", durationSecond % 60);		macroList.push_back(pair<string, wstring>(string("#DUSS") + suffix, v));
-	swprintf_s(v, L"%d", durationSecond % 60);			macroList.push_back(pair<string, wstring>(string("#DUS") + suffix, v));
+	swprintf_s(v, L"%u", durationSecond);				macroList.emplace_back(string("DurationSecond") + suffix, v);
+	swprintf_s(v, L"%02d", durationSecond / 3600);		macroList.emplace_back(string("#DUHH") + suffix, v);
+	swprintf_s(v, L"%d", durationSecond / 3600);		macroList.emplace_back(string("#DUH") + suffix, v);
+	swprintf_s(v, L"%02d", durationSecond % 3600 / 60);	macroList.emplace_back(string("#DUMM") + suffix, v);
+	swprintf_s(v, L"%d", durationSecond % 3600 / 60);	macroList.emplace_back(string("#DUM") + suffix, v);
+	swprintf_s(v, L"%02d", durationSecond % 60);		macroList.emplace_back(string("#DUSS") + suffix, v);
+	swprintf_s(v, L"%d", durationSecond % 60);			macroList.emplace_back(string("#DUS") + suffix, v);
 }
 
 void CReserveManager::AddReserveDataMacro(vector<pair<string, wstring>>& macroList, const RESERVE_DATA& data, LPCSTR suffix)
 {
 	WCHAR v[64];
 	AddTimeMacro(macroList, data.startTime, data.durationSecond, suffix);
-	swprintf_s(v, L"%d", data.originalNetworkID);	macroList.push_back(pair<string, wstring>(string("ONID10") + suffix, v));
-	swprintf_s(v, L"%d", data.transportStreamID);	macroList.push_back(pair<string, wstring>(string("TSID10") + suffix, v));
-	swprintf_s(v, L"%d", data.serviceID);			macroList.push_back(pair<string, wstring>(string("SID10") + suffix, v));
-	swprintf_s(v, L"%d", data.eventID);				macroList.push_back(pair<string, wstring>(string("EID10") + suffix, v));
-	swprintf_s(v, L"%04X", data.originalNetworkID);	macroList.push_back(pair<string, wstring>(string("ONID16") + suffix, v));
-	swprintf_s(v, L"%04X", data.transportStreamID);	macroList.push_back(pair<string, wstring>(string("TSID16") + suffix, v));
-	swprintf_s(v, L"%04X", data.serviceID);			macroList.push_back(pair<string, wstring>(string("SID16") + suffix, v));
-	swprintf_s(v, L"%04X", data.eventID);			macroList.push_back(pair<string, wstring>(string("EID16") + suffix, v));
-	swprintf_s(v, L"%d", data.reserveID);			macroList.push_back(pair<string, wstring>(string("ReserveID") + suffix, v));
-	swprintf_s(v, L"%d", data.recSetting.recMode);	macroList.push_back(pair<string, wstring>(string("RecMode") + suffix, v));
-	macroList.push_back(std::make_pair(string("Title") + suffix, data.title));
-	macroList.push_back(std::make_pair(string("ServiceName") + suffix, data.stationName));
-	macroList.push_back(std::make_pair(string("ReserveComment") + suffix, data.comment));
-	macroList.push_back(std::make_pair(string("BatFileTag") + suffix,
+	swprintf_s(v, L"%d", data.originalNetworkID);	macroList.emplace_back(string("ONID10") + suffix, v);
+	swprintf_s(v, L"%d", data.transportStreamID);	macroList.emplace_back(string("TSID10") + suffix, v);
+	swprintf_s(v, L"%d", data.serviceID);			macroList.emplace_back(string("SID10") + suffix, v);
+	swprintf_s(v, L"%d", data.eventID);				macroList.emplace_back(string("EID10") + suffix, v);
+	swprintf_s(v, L"%04X", data.originalNetworkID);	macroList.emplace_back(string("ONID16") + suffix, v);
+	swprintf_s(v, L"%04X", data.transportStreamID);	macroList.emplace_back(string("TSID16") + suffix, v);
+	swprintf_s(v, L"%04X", data.serviceID);			macroList.emplace_back(string("SID16") + suffix, v);
+	swprintf_s(v, L"%04X", data.eventID);			macroList.emplace_back(string("EID16") + suffix, v);
+	swprintf_s(v, L"%d", data.reserveID);			macroList.emplace_back(string("ReserveID") + suffix, v);
+	swprintf_s(v, L"%d", data.recSetting.recMode);	macroList.emplace_back(string("RecMode") + suffix, v);
+	macroList.emplace_back(string("Title") + suffix, data.title);
+	macroList.emplace_back(string("ServiceName") + suffix, data.stationName);
+	macroList.emplace_back(string("ReserveComment") + suffix, data.comment);
+	macroList.emplace_back(string("BatFileTag") + suffix,
 		data.recSetting.batFilePath.find(L'*') != wstring::npos ?
-		data.recSetting.batFilePath.substr(data.recSetting.batFilePath.find(L'*') + 1) : wstring()));
+		data.recSetting.batFilePath.substr(data.recSetting.batFilePath.find(L'*') + 1) : wstring());
 }
 
 void CReserveManager::AddRecInfoMacro(vector<pair<string, wstring>>& macroList, const REC_FILE_INFO_BASIC& recInfo)
 {
 	WCHAR v[64];
 	AddTimeMacro(macroList, recInfo.startTime, recInfo.durationSecond, "");
-	swprintf_s(v, L"%d", recInfo.id);					macroList.push_back(pair<string, wstring>("RecInfoID", v));
-	swprintf_s(v, L"%d", recInfo.originalNetworkID);	macroList.push_back(pair<string, wstring>("ONID10", v));
-	swprintf_s(v, L"%d", recInfo.transportStreamID);	macroList.push_back(pair<string, wstring>("TSID10", v));
-	swprintf_s(v, L"%d", recInfo.serviceID);			macroList.push_back(pair<string, wstring>("SID10", v));
-	swprintf_s(v, L"%d", recInfo.eventID);				macroList.push_back(pair<string, wstring>("EID10", v));
-	swprintf_s(v, L"%04X", recInfo.originalNetworkID);	macroList.push_back(pair<string, wstring>("ONID16", v));
-	swprintf_s(v, L"%04X", recInfo.transportStreamID);	macroList.push_back(pair<string, wstring>("TSID16", v));
-	swprintf_s(v, L"%04X", recInfo.serviceID);			macroList.push_back(pair<string, wstring>("SID16", v));
-	swprintf_s(v, L"%04X", recInfo.eventID);			macroList.push_back(pair<string, wstring>("EID16", v));
-	swprintf_s(v, L"%lld", recInfo.drops);				macroList.push_back(pair<string, wstring>("Drops", v));
-	swprintf_s(v, L"%lld", recInfo.scrambles);			macroList.push_back(pair<string, wstring>("Scrambles", v));
-	macroList.push_back(pair<string, wstring>("Title", recInfo.title));
-	macroList.push_back(pair<string, wstring>("ServiceName", recInfo.serviceName));
-	macroList.push_back(pair<string, wstring>("Result", recInfo.GetComment()));
-	macroList.push_back(pair<string, wstring>("FilePath", recInfo.recFilePath));
+	swprintf_s(v, L"%d", recInfo.id);					macroList.emplace_back("RecInfoID", v);
+	swprintf_s(v, L"%d", recInfo.originalNetworkID);	macroList.emplace_back("ONID10", v);
+	swprintf_s(v, L"%d", recInfo.transportStreamID);	macroList.emplace_back("TSID10", v);
+	swprintf_s(v, L"%d", recInfo.serviceID);			macroList.emplace_back("SID10", v);
+	swprintf_s(v, L"%d", recInfo.eventID);				macroList.emplace_back("EID10", v);
+	swprintf_s(v, L"%04X", recInfo.originalNetworkID);	macroList.emplace_back("ONID16", v);
+	swprintf_s(v, L"%04X", recInfo.transportStreamID);	macroList.emplace_back("TSID16", v);
+	swprintf_s(v, L"%04X", recInfo.serviceID);			macroList.emplace_back("SID16", v);
+	swprintf_s(v, L"%04X", recInfo.eventID);			macroList.emplace_back("EID16", v);
+	swprintf_s(v, L"%lld", recInfo.drops);				macroList.emplace_back("Drops", v);
+	swprintf_s(v, L"%lld", recInfo.scrambles);			macroList.emplace_back("Scrambles", v);
+	macroList.emplace_back("Title", recInfo.title);
+	macroList.emplace_back("ServiceName", recInfo.serviceName);
+	macroList.emplace_back("Result", recInfo.GetComment());
+	macroList.emplace_back("FilePath", recInfo.recFilePath);
 	fs_path path = recInfo.recFilePath;
-	macroList.push_back(pair<string, wstring>("FolderPath", path.parent_path().native()));
-	macroList.push_back(pair<string, wstring>("FileName", path.stem().native()));
-	macroList.push_back(pair<string, wstring>("TitleF", recInfo.title));
+	macroList.emplace_back("FolderPath", path.parent_path().native());
+	macroList.emplace_back("FileName", path.stem().native());
+	macroList.emplace_back("TitleF", recInfo.title);
 	CheckFileName(macroList.back().second);
-	macroList.push_back(pair<string, wstring>("Title2", recInfo.title));
+	macroList.emplace_back("Title2", recInfo.title);
 	while( macroList.back().second.find(L'[') != wstring::npos && macroList.back().second.find(L']') != wstring::npos ){
 		wstring strSep1;
 		wstring strSep2;
@@ -2204,6 +2204,6 @@ void CReserveManager::AddRecInfoMacro(vector<pair<string, wstring>>& macroList, 
 		Separate(strSep1, L"]", strSep2, strSep1);
 		macroList.back().second += strSep1;
 	}
-	macroList.push_back(pair<string, wstring>("Title2F", macroList.back().second));
+	macroList.emplace_back("Title2F", macroList.back().second);
 	CheckFileName(macroList.back().second);
 }
