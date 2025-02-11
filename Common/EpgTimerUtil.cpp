@@ -529,13 +529,13 @@ void ConvertEpgInfo(WORD onid, WORD tsid, WORD sid, const EPG_EVENT_INFO* src, E
 void AppendEpgContentInfoText(wstring& text, const EPGDB_EVENT_INFO& info)
 {
 	if( info.hasContentInfo ){
-		for( size_t i = 0; i < info.contentInfo.nibbleList.size(); i++ ){
-			BYTE nibble1 = info.contentInfo.nibbleList[i].content_nibble_level_1;
-			BYTE nibble2 = info.contentInfo.nibbleList[i].content_nibble_level_2;
+		for( EPGDB_CONTENT_DATA item : info.contentInfo.nibbleList ){
+			BYTE nibble1 = item.content_nibble_level_1;
+			BYTE nibble2 = item.content_nibble_level_2;
 			if( nibble1 == 0x0E && nibble2 <= 0x01 ){
 				//番組付属情報またはCS拡張用情報
-				nibble1 = info.contentInfo.nibbleList[i].user_nibble_1 | (0x60 + nibble2 * 16);
-				nibble2 = info.contentInfo.nibbleList[i].user_nibble_2;
+				nibble1 = item.user_nibble_1 | (0x60 + nibble2 * 16);
+				nibble2 = item.user_nibble_2;
 			}
 			WCHAR buff[32];
 			LPCWSTR ret = GetGenreName(nibble1, 0xFF);
@@ -575,18 +575,18 @@ void AppendEpgComponentInfoText(wstring& text, const EPGDB_EVENT_INFO& info)
 void AppendEpgAudioComponentInfoText(wstring& text, const EPGDB_EVENT_INFO& info)
 {
 	if( info.hasAudioInfo ){
-		for( size_t i = 0; i < info.audioInfo.componentList.size(); i++ ){
-			LPCWSTR ret = GetComponentTypeName(info.audioInfo.componentList[i].stream_content, info.audioInfo.componentList[i].component_type);
+		for( const EPGDB_AUDIO_COMPONENT_INFO_DATA& item : info.audioInfo.componentList ){
+			LPCWSTR ret = GetComponentTypeName(item.stream_content, item.component_type);
 			if( ret[0] ){
 				text += ret;
-				if( info.audioInfo.componentList[i].text_char.empty() == false ){
+				if( item.text_char.empty() == false ){
 					text += L"\r\n";
-					text += info.audioInfo.componentList[i].text_char;
+					text += item.text_char;
 				}
 			}
 			text += L"\r\n";
 			text += L"サンプリングレート : ";
-			switch( info.audioInfo.componentList[i].sampling_rate ){
+			switch( item.sampling_rate ){
 				case 0x01:
 					text += L"16kHz";
 					break;

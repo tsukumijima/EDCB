@@ -92,7 +92,7 @@ CEpgTimerSrvSetting::SETTING CEpgTimerSrvSetting::LoadSetting(LPCWSTR iniPath)
 					//曜日指定接尾辞(w1=Mon,...,w7=Sun)
 					wday = (int)(wcstoul(endp + 1, NULL, 10) % 8);
 				}
-				s.epgCapTimeList.resize(s.epgCapTimeList.size() + 1);
+				s.epgCapTimeList.emplace_back();
 				s.epgCapTimeList.back().second.first = (wday * 24 + hour) * 60 + minute;
 				//有効か
 				swprintf_s(key, L"%dSelect", i);
@@ -189,7 +189,7 @@ vector<pair<wstring, wstring>> CEpgTimerSrvSetting::EnumBonFileName(LPCWSTR sett
 				bon += EDCB_LIB_EXT;
 				if( std::find_if(ret.begin(), ret.end(), [&](const pair<wstring, wstring>& a) {
 				        return UtilComparePath(a.first.c_str(), bon.c_str()) == 0; }) == ret.end() ){
-					ret.push_back(std::make_pair(std::move(bon), std::move(findData.fileName)));
+					ret.emplace_back(std::move(bon), std::move(findData.fileName));
 				}
 			}
 		}

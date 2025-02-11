@@ -839,12 +839,13 @@ wstring GetPrivateProfileToString(LPCWSTR appName, LPCWSTR keyName, LPCWSTR lpDe
 	WCHAR szBuff[512];
 	DWORD n = GetPrivateProfileString(appName, keyName, lpDefault, szBuff, 512, fileName);
 	if( n >= 510 ){
-		vector<WCHAR> buff(512);
+		wstring buff;
 		do{
-			buff.resize(buff.size() * 2);
+			buff.resize(buff.empty() ? 1024 : buff.size() * 2);
 			n = GetPrivateProfileString(appName, keyName, lpDefault, &buff.front(), (DWORD)buff.size(), fileName);
 		}while( n >= buff.size() - 2 && buff.size() < 1024 * 1024 );
-		return wstring(buff.begin(), buff.begin() + n);
+		buff.resize(n);
+		return buff;
 	}
 	return wstring(szBuff, szBuff + n);
 #else
