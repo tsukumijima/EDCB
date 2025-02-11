@@ -1680,12 +1680,11 @@ bool CDescriptor::EnterLoop(CLoopPointer& lp, DWORD offset) const
 {
 	const vector<DESCRIPTOR_PROPERTY>* current = lp.pl != NULL ? &(*lp.pl)[lp.index] : &this->rootProperty;
 
-	vector<DESCRIPTOR_PROPERTY>::const_iterator itr;
-	for( itr = current->begin(); itr != current->end(); ++itr ){
-		if( itr->type == DESCRIPTOR_PROPERTY::TYPE_P && offset-- == 0 ){
+	for( const DESCRIPTOR_PROPERTY& dp : *current ){
+		if( dp.type == DESCRIPTOR_PROPERTY::TYPE_P && offset-- == 0 ){
 			//空のループには入らない
-			if( !itr->pl->empty() ){
-				lp.pl = itr->pl;
+			if( !dp.pl->empty() ){
+				lp.pl = dp.pl;
 				lp.index = 0;
 				return true;
 			}
@@ -1708,10 +1707,9 @@ const CDescriptor::DESCRIPTOR_PROPERTY* CDescriptor::FindProperty(property_id id
 {
 	const vector<DESCRIPTOR_PROPERTY>* current = lp.pl != NULL ? &(*lp.pl)[lp.index] : &this->rootProperty;
 
-	vector<DESCRIPTOR_PROPERTY>::const_iterator itr;
-	for( itr = current->begin(); itr != current->end(); ++itr ){
-		if( itr->id == id ){
-			return &*itr;
+	for( const DESCRIPTOR_PROPERTY& dp : *current ){
+		if( dp.id == id ){
+			return &dp;
 		}
 	}
 	return NULL;

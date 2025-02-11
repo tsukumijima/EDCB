@@ -192,9 +192,8 @@ void CBatManager::BatWorkThread(CBatManager* sys)
 					if( exDirect == false && sys->notifyManager.IsGUI() == false ){
 						//表示できないのでGUI経由で起動してみる
 						CSendCtrlCmd ctrlCmd;
-						vector<DWORD> registGUI = sys->notifyManager.GetRegistGUI();
-						for( size_t i = 0; i < registGUI.size(); i++ ){
-							ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_PIPE, registGUI[i]);
+						for( DWORD guiProcessID : sys->notifyManager.GetRegistGUI() ){
+							ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_PIPE, guiProcessID);
 							DWORD pid;
 							if( ctrlCmd.SendGUIExecute(L'"' + work.batFilePath + L'"', &pid) == CMD_SUCCESS ){
 								//ハンドル開く前に終了するかもしれない

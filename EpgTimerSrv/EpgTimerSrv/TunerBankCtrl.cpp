@@ -24,8 +24,8 @@ CTunerBankCtrl::CTunerBankCtrl(DWORD tunerID_, LPCWSTR bonFileName_, WORD epgCap
 	, delayTime(0)
 	, epgCapDelayTime(0)
 {
-	for( auto itr = chMap_.begin(); itr != chMap_.end(); itr++ ){
-		this->chMap.emplace(Create64Key(itr->second.originalNetworkID, itr->second.transportStreamID, itr->second.serviceID), itr->second);
+	for( const auto& ch4 : chMap_ ){
+		this->chMap.emplace(Create64Key(ch4.second.originalNetworkID, ch4.second.transportStreamID, ch4.second.serviceID), ch4.second);
 	}
 	this->watchContext.count = 0;
 }
@@ -199,8 +199,8 @@ vector<DWORD> CTunerBankCtrl::GetReserveIDList() const
 {
 	vector<DWORD> list;
 	list.reserve(this->reserveMap.size());
-	for( auto itr = this->reserveMap.cbegin(); itr != this->reserveMap.end(); itr++ ){
-		list.push_back(itr->first);
+	for( const auto& item : this->reserveMap ){
+		list.push_back(item.first);
 	}
 	return list;
 }
@@ -725,8 +725,8 @@ bool CTunerBankCtrl::IsNeedOpenTuner() const
 	}
 	//戻り値の振動を防ぐためdelayTimeを考慮してはいけない
 	LONGLONG now = GetNowI64Time();
-	for( auto itr = this->reserveMap.cbegin(); itr != this->reserveMap.end(); itr++ ){
-		if( itr->second.state != TR_IDLE || (itr->second.startTime - itr->second.startMargin - this->recWakeTime) / I64_1SEC < now / I64_1SEC ){
+	for( const auto& item : this->reserveMap ){
+		if( item.second.state != TR_IDLE || (item.second.startTime - item.second.startMargin - this->recWakeTime) / I64_1SEC < now / I64_1SEC ){
 			return true;
 		}
 	}
@@ -932,11 +932,11 @@ CTunerBankCtrl::TR_STATE CTunerBankCtrl::GetState() const
 		if( this->specialState != TR_IDLE ){
 			state = this->specialState;
 		}else{
-			for( auto itr = this->reserveMap.cbegin(); itr != this->reserveMap.end(); itr++ ){
-				if( itr->second.state == TR_REC ){
+			for( const auto& item : this->reserveMap ){
+				if( item.second.state == TR_REC ){
 					state = TR_REC;
 					break;
-				}else if( itr->second.state == TR_READY ){
+				}else if( item.second.state == TR_READY ){
 					state = TR_READY;
 				}
 			}
@@ -967,8 +967,8 @@ TUNER_PROCESS_STATUS_INFO CTunerBankCtrl::GetProcessStatusInfo() const
 LONGLONG CTunerBankCtrl::GetNearestReserveTime() const
 {
 	LONGLONG minTime = LLONG_MAX;
-	for( auto itr = this->reserveMap.cbegin(); itr != this->reserveMap.end(); itr++ ){
-		minTime = min(itr->second.startTime - itr->second.startMargin, minTime);
+	for( const auto& item : this->reserveMap ){
+		minTime = min(item.second.startTime - item.second.startMargin, minTime);
 	}
 	return minTime;
 }
@@ -1189,9 +1189,8 @@ bool CTunerBankCtrl::OpenTuner(bool minWake, bool noView, bool nwUdp, bool nwTcp
 	if( this->notifyManager.IsGUI() == false ){
 		//表示できないのでGUI経由で起動してみる
 		CSendCtrlCmd ctrlCmd;
-		vector<DWORD> registGUI = this->notifyManager.GetRegistGUI();
-		for( size_t i = 0; i < registGUI.size(); i++ ){
-			ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_PIPE, registGUI[i]);
+		for( DWORD guiProcessID : this->notifyManager.GetRegistGUI() ){
+			ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_PIPE, guiProcessID);
 			DWORD pid;
 			if( ctrlCmd.SendGUIExecute(L'"' + strExecute + L'"' + strParam, &pid) == CMD_SUCCESS && pid ){
 				//ハンドル開く前に終了するかもしれない

@@ -650,8 +650,8 @@ bool CEpgTimerSrvMain::OnMessage(CMessageManager::PARAMS& pa)
 						return true;
 					}
 					//完了
-					for( auto itr = ctx->sys->manualAutoAdd.GetMap().cbegin(); itr != ctx->sys->manualAutoAdd.GetMap().end(); itr++ ){
-						ctx->sys->AutoAddReserveProgram(itr->second, ctx->autoAddCheckAddList);
+					for( const auto& item : ctx->sys->manualAutoAdd.GetMap() ){
+						ctx->sys->AutoAddReserveProgram(item.second, ctx->autoAddCheckAddList);
 					}
 					if( ctx->autoAddCheckAddList.empty() == false ){
 						ctx->sys->reserveManager.AddReserveData(ctx->autoAddCheckAddList);
@@ -1286,9 +1286,8 @@ void CEpgTimerSrvMain::SetShutdown(BYTE shutdownMode)
 bool CEpgTimerSrvMain::QueryShutdown(BYTE rebootFlag, BYTE suspendMode)
 {
 	CSendCtrlCmd ctrlCmd;
-	vector<DWORD> registGUI = this->notifyManager.GetRegistGUI();
-	for( size_t i = 0; i < registGUI.size(); i++ ){
-		ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_PIPE, registGUI[i]);
+	for( DWORD guiProcessID : this->notifyManager.GetRegistGUI() ){
+		ctrlCmd.SetPipeSetting(CMD2_GUI_CTRL_PIPE, guiProcessID);
 		//通信できる限り常に成功するので、重複問い合わせを考慮する必要はない
 		if( suspendMode == 0 && ctrlCmd.SendGUIQueryReboot(rebootFlag) == CMD_SUCCESS ||
 		    suspendMode != 0 && ctrlCmd.SendGUIQuerySuspend(rebootFlag, suspendMode) == CMD_SUCCESS ){
@@ -1853,8 +1852,8 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 			vector<EPG_AUTO_ADD_DATA> val;
 			{
 				lock_recursive_mutex lock(sys->autoAddLock);
-				for( auto itr = sys->epgAutoAdd.GetMap().cbegin(); itr != sys->epgAutoAdd.GetMap().end(); itr++ ){
-					val.push_back(itr->second);
+				for( const auto& item : sys->epgAutoAdd.GetMap() ){
+					val.push_back(item.second);
 				}
 			}
 			res.WriteVALUE(val);
@@ -1868,11 +1867,11 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						val[i].dataID = sys->epgAutoAdd.AddData(val[i]);
+					for( EPG_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						item.dataID = sys->epgAutoAdd.AddData(item);
 						sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
-						sys->AutoAddReserveEPG(val[i], addList);
+						sys->AutoAddReserveEPG(item, addList);
 					}
 					sys->epgAutoAdd.SaveText();
 					sys->reserveManager.AddReserveData(addList);
@@ -1887,8 +1886,8 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 			vector<DWORD> val;
 			if( cmd.ReadVALUE(&val) ){
 				lock_recursive_mutex lock(sys->autoAddLock);
-				for( size_t i = 0; i < val.size(); i++ ){
-					if( sys->epgAutoAdd.DelData(val[i]) ){
+				for( DWORD id : val ){
+					if( sys->epgAutoAdd.DelData(id) ){
 						sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
 					}
 				}
@@ -1905,11 +1904,11 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						if( sys->epgAutoAdd.ChgData(val[i]) ){
+					for( EPG_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						if( sys->epgAutoAdd.ChgData(item) ){
 							sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
-							sys->AutoAddReserveEPG(val[i], addList);
+							sys->AutoAddReserveEPG(item, addList);
 						}
 					}
 					sys->epgAutoAdd.SaveText();
@@ -1926,8 +1925,8 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 			vector<MANUAL_AUTO_ADD_DATA> val;
 			{
 				lock_recursive_mutex lock(sys->autoAddLock);
-				for( auto itr = sys->manualAutoAdd.GetMap().cbegin(); itr != sys->manualAutoAdd.GetMap().end(); itr++ ){
-					val.push_back(itr->second);
+				for( const auto& item : sys->manualAutoAdd.GetMap() ){
+					val.push_back(item.second);
 				}
 			}
 			res.WriteVALUE(val);
@@ -1941,10 +1940,10 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						val[i].dataID = sys->manualAutoAdd.AddData(val[i]);
-						sys->AutoAddReserveProgram(val[i], addList);
+					for( MANUAL_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						item.dataID = sys->manualAutoAdd.AddData(item);
+						sys->AutoAddReserveProgram(item, addList);
 					}
 					sys->manualAutoAdd.SaveText();
 					sys->reserveManager.AddReserveData(addList);
@@ -1959,8 +1958,8 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 			vector<DWORD> val;
 			if( cmd.ReadVALUE(&val) ){
 				lock_recursive_mutex lock(sys->autoAddLock);
-				for( size_t i = 0; i < val.size(); i++ ){
-					sys->manualAutoAdd.DelData(val[i]);
+				for( DWORD id : val ){
+					sys->manualAutoAdd.DelData(id);
 				}
 				sys->manualAutoAdd.SaveText();
 				sys->notifyManager.AddNotify(NOTIFY_UPDATE_AUTOADD_MANUAL);
@@ -1975,10 +1974,10 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						if( sys->manualAutoAdd.ChgData(val[i]) ){
-							sys->AutoAddReserveProgram(val[i], addList);
+					for( MANUAL_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						if( sys->manualAutoAdd.ChgData(item) ){
+							sys->AutoAddReserveProgram(item, addList);
 						}
 					}
 					sys->manualAutoAdd.SaveText();
@@ -2503,8 +2502,8 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				vector<EPG_AUTO_ADD_DATA> val;
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
-					for( auto itr = sys->epgAutoAdd.GetMap().cbegin(); itr != sys->epgAutoAdd.GetMap().end(); itr++ ){
-						val.push_back(itr->second);
+					for( const auto& item : sys->epgAutoAdd.GetMap() ){
+						val.push_back(item.second);
 					}
 				}
 				res.WriteVALUE2WithVersion(ver, val);
@@ -2521,11 +2520,11 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						val[i].dataID = sys->epgAutoAdd.AddData(val[i]);
+					for( EPG_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						item.dataID = sys->epgAutoAdd.AddData(item);
 						sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
-						sys->AutoAddReserveEPG(val[i], addList);
+						sys->AutoAddReserveEPG(item, addList);
 					}
 					sys->epgAutoAdd.SaveText();
 					sys->reserveManager.AddReserveData(addList);
@@ -2545,11 +2544,11 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						if( sys->epgAutoAdd.ChgData(val[i]) ){
+					for( EPG_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						if( sys->epgAutoAdd.ChgData(item) ){
 							sys->autoAddCheckItr = sys->epgAutoAdd.GetMap().begin();
-							sys->AutoAddReserveEPG(val[i], addList);
+							sys->AutoAddReserveEPG(item, addList);
 						}
 					}
 					sys->epgAutoAdd.SaveText();
@@ -2569,8 +2568,8 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				vector<MANUAL_AUTO_ADD_DATA> val;
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
-					for( auto itr = sys->manualAutoAdd.GetMap().cbegin(); itr != sys->manualAutoAdd.GetMap().end(); itr++ ){
-						val.push_back(itr->second);
+					for( const auto& item : sys->manualAutoAdd.GetMap() ){
+						val.push_back(item.second);
 					}
 				}
 				res.WriteVALUE2WithVersion(ver, val);
@@ -2587,10 +2586,10 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						val[i].dataID = sys->manualAutoAdd.AddData(val[i]);
-						sys->AutoAddReserveProgram(val[i], addList);
+					for( MANUAL_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						item.dataID = sys->manualAutoAdd.AddData(item);
+						sys->AutoAddReserveProgram(item, addList);
 					}
 					sys->manualAutoAdd.SaveText();
 					sys->reserveManager.AddReserveData(addList);
@@ -2610,10 +2609,10 @@ void CEpgTimerSrvMain::CtrlCmdCallback(CEpgTimerSrvMain* sys, const CCmdStream& 
 				{
 					lock_recursive_mutex lock(sys->autoAddLock);
 					vector<RESERVE_DATA> addList;
-					for( size_t i = 0; i < val.size(); i++ ){
-						sys->AdjustRecModeRange(val[i].recSetting);
-						if( sys->manualAutoAdd.ChgData(val[i]) ){
-							sys->AutoAddReserveProgram(val[i], addList);
+					for( MANUAL_AUTO_ADD_DATA& item : val ){
+						sys->AdjustRecModeRange(item.recSetting);
+						if( sys->manualAutoAdd.ChgData(item) ){
+							sys->AutoAddReserveProgram(item, addList);
 						}
 					}
 					sys->manualAutoAdd.SaveText();

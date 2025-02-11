@@ -521,31 +521,31 @@ void CDecodeUtil::CheckDsmccDDB(WORD PID, DWORD downloadID, const BYTE* body, si
 	WORD moduleID = body[0] << 8 | body[1];
 	BYTE moduleVersion = body[2];
 	size_t blockNumber = body[4] << 8 | body[5];
-	for( vector<DOWNLOAD_MODULE_DATA>::iterator itr = this->downloadModuleList.begin(); itr != this->downloadModuleList.end(); itr++ ){
-		if( itr->downloadID == downloadID &&
-		    itr->pid == PID &&
-		    itr->moduleID == moduleID &&
-		    itr->moduleVersion == moduleVersion &&
-		    itr->blockGetList.size() > blockNumber &&
-		    itr->blockGetList[blockNumber] == 0 ){
+	for( DOWNLOAD_MODULE_DATA& dl : this->downloadModuleList ){
+		if( dl.downloadID == downloadID &&
+		    dl.pid == PID &&
+		    dl.moduleID == moduleID &&
+		    dl.moduleVersion == moduleVersion &&
+		    dl.blockGetList.size() > blockNumber &&
+		    dl.blockGetList[blockNumber] == 0 ){
 			//ブロック取得
 			size_t blockSize = bodySize - 6;
-			if( blockNumber == itr->blockGetList.size() - 1 ){
+			if( blockNumber == dl.blockGetList.size() - 1 ){
 				//最終ブロック
-				if( itr->moduleData.size() >= blockSize ){
-					std::copy(body + 6, body + bodySize, itr->moduleData.end() - blockSize);
-					itr->blockGetList[blockNumber] = 1;
+				if( dl.moduleData.size() >= blockSize ){
+					std::copy(body + 6, body + bodySize, dl.moduleData.end() - blockSize);
+					dl.blockGetList[blockNumber] = 1;
 				}
 			}else{
 				//最終ブロック以外
-				if( itr->moduleData.size() >= blockSize * blockNumber + blockSize ){
-					std::copy(body + 6, body + bodySize, itr->moduleData.begin() + blockSize * blockNumber);
-					itr->blockGetList[blockNumber] = 1;
+				if( dl.moduleData.size() >= blockSize * blockNumber + blockSize ){
+					std::copy(body + 6, body + bodySize, dl.moduleData.begin() + blockSize * blockNumber);
+					dl.blockGetList[blockNumber] = 1;
 				}
 			}
-			if( std::find(itr->blockGetList.begin(), itr->blockGetList.end(), 0) == itr->blockGetList.end() ){
+			if( std::find(dl.blockGetList.begin(), dl.blockGetList.end(), 0) == dl.blockGetList.end() ){
 				//すべて取得した
-				CheckDownloadedModule(*itr);
+				CheckDownloadedModule(dl);
 			}
 		}
 	}
@@ -991,17 +991,17 @@ BOOL CDecodeUtil::EnumLogoList(
 		return FALSE;
 	}
 	if( enumLogoListProc((DWORD)this->logoMap.size(), NULL, param) ){
-		for( vector<LOGO_DATA>::const_iterator itr = this->logoMap.begin(); itr != this->logoMap.end(); itr++ ){
+		for( const LOGO_DATA& logo : this->logoMap ){
 			LOGO_INFO info;
-			info.onid = (WORD)(itr->first >> 32);
-			info.id = (WORD)(itr->first >> 16);
-			info.type = (BYTE)itr->first;
+			info.onid = (WORD)(logo.first >> 32);
+			info.id = (WORD)(logo.first >> 16);
+			info.type = (BYTE)logo.first;
 			info.bReserved = 0;
 			info.wReserved = 0;
-			info.dataSize = (DWORD)itr->data.size();
-			info.serviceListSize = (DWORD)itr->serviceList.size();
-			info.data = itr->data.data();
-			info.serviceList = itr->serviceList.data();
+			info.dataSize = (DWORD)logo.data.size();
+			info.serviceListSize = (DWORD)logo.serviceList.size();
+			info.data = logo.data.data();
+			info.serviceList = logo.serviceList.data();
 			if( enumLogoListProc(1, &info, param) == FALSE ){
 				break;
 			}
