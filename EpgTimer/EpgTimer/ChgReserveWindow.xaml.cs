@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -19,6 +20,7 @@ namespace EpgTimer
     public partial class ChgReserveWindow : Window
     {
         private ReserveData reserveInfo = null;
+        private EpgEventInfo eventInfo = null;
 
         public ChgReserveWindow()
         {
@@ -63,10 +65,11 @@ namespace EpgTimer
                 reserveInfo = info;
                 recSettingView.SetDefSetting(info.RecSetting);
 
+                eventInfo = null;
                 if (info.EventID != 0xFFFF)
                 {
-                    EpgEventInfo eventInfo = CommonManager.Instance.DB.GetPgInfo(info.OriginalNetworkID, info.TransportStreamID,
-                                                                                 info.ServiceID, info.EventID, false);
+                    eventInfo = CommonManager.Instance.DB.GetPgInfo(info.OriginalNetworkID, info.TransportStreamID,
+                                                                    info.ServiceID, info.EventID, false);
                     if (eventInfo != null)
                     {
                         richTextBox_descInfo.Document = new FlowDocument(CommonManager.ConvertDisplayText(
@@ -76,6 +79,7 @@ namespace EpgTimer
                             CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo)));
                     }
                 }
+                button_save_program.IsEnabled = eventInfo != null;
 
                 Title = "予約変更";
                 button_chg_reserve.Content = "変更";
@@ -223,6 +227,31 @@ namespace EpgTimer
                     MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "予約削除でエラーが発生しました。");
                 }
                 DialogResult = true;
+            }
+        }
+
+        private void button_save_program_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog();
+            dlg.DefaultExt = ".txt";
+            dlg.FileName = "a.program.txt";
+            dlg.Filter = "txt Files|*.txt|all Files|*.*";
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var file = new StreamWriter(dlg.FileName, false, Encoding.UTF8))
+                    {
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfoForProgramText));
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicTextForProgramText));
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedTextForProgramText));
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
             }
         }
 

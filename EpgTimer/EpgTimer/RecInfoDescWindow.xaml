@@ -15,7 +15,8 @@
         <TextBox Height="23" Margin="60,0,83,41" Name="textBox_recFilePath" TextChanged="textBox_recFilePath_TextChanged" VerticalAlignment="Bottom" />
         <Button Click="button_rename_Click" Content="リネーム" Height="23" HorizontalAlignment="Right" IsEnabled="False" Margin="0,0,8,41" Name="button_rename" ToolTip="ファイルが存在すれば同時に移動します。拡張子が付加されたファイルも移動します。" VerticalAlignment="Bottom" Width="67" />
         <Button Click="button_play_Click" Content="再生" Height="23" HorizontalAlignment="Left" Margin="30,0,0,8" VerticalAlignment="Bottom" Width="80" />
-        <Button Click="button_del_Click" Content="削除" Height="23" HorizontalAlignment="Left" Margin="118,0,0,8" VerticalAlignment="Bottom" Width="80" />
-        <Button Content="キャンセル" Height="23" HorizontalAlignment="Left" IsCancel="True" Margin="206,0,0,8" VerticalAlignment="Bottom" Width="80" />
+        <Button Click="button_del_Click" Content="削除" Height="23" HorizontalAlignment="Left" Margin="125,0,0,8" VerticalAlignment="Bottom" Width="80" />
+        <Button Content="キャンセル" Height="23" HorizontalAlignment="Left" IsCancel="True" Margin="220,0,0,8" VerticalAlignment="Bottom" Width="90" />
+        <Button Click="button_save_program_Click" Content="番組情報を保存" Height="23" HorizontalAlignment="Left" IsEnabled="False" Margin="360,0,0,8" Name="button_save_program" VerticalAlignment="Bottom" Width="120" />
     </Grid>
 </Window>
