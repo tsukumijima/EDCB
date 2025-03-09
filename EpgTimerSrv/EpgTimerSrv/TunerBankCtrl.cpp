@@ -823,13 +823,11 @@ void CTunerBankCtrl::SaveProgramInfo(LPCWSTR recPath, const EPGDB_EVENT_INFO& in
 		savePath.append(fs_path(recPath).filename().concat(L".program.txt").native());
 	}
 
-	wstring serviceName;
-	auto itr = this->chMap.find(Create64Key(info.original_network_id, info.transport_stream_id, info.service_id));
-	if( itr != this->chMap.end() ){
-		serviceName = itr->second.serviceName;
-	}
 	wstring outTextW = (append ? L"\r\n-----------------------\r\n" : this->saveProgramInfoAsUtf8 ? L"\xFEFF" : L"") +
-	                   ConvertProgramText(info, serviceName);
+		ConvertProgramText(info, [this](WORD onid, WORD tsid, WORD sid) -> LPCWSTR {
+			auto itr = this->chMap.find(Create64Key(onid, tsid, sid));
+			return itr != this->chMap.end() ? itr->second.serviceName.c_str() : NULL;
+		});
 	if( UTIL_NEWLINE[0] != L'\r' ){
 		Replace(outTextW, L"\r\n", L"\n");
 	}

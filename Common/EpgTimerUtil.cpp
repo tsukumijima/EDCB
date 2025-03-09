@@ -90,7 +90,7 @@ void ReduceCrLfAndAppend(wstring& text, const wstring& appendText, LPCWSTR crlf)
 }
 
 //EPG情報をTextに変換
-wstring ConvertEpgInfoText(const EPGDB_EVENT_INFO& info, const wstring* serviceName, const wstring* extraText)
+wstring ConvertEpgInfoText(const EPGDB_EVENT_INFO& info, LPCWSTR serviceName, LPCWSTR extraText)
 {
 	wstring text;
 
@@ -99,16 +99,28 @@ wstring ConvertEpgInfoText(const EPGDB_EVENT_INFO& info, const wstring* serviceN
 		SYSTEMTIME st = info.start_time;
 		Format(text, L"%04d/%02d/%02d(%ls) %02d:%02d",
 		       st.wYear, st.wMonth, st.wDay, GetDayOfWeekName(st.wDayOfWeek), st.wHour, st.wMinute);
+		if( st.wSecond != 0 ){
+			//秒を付加
+			WCHAR buff[16];
+			swprintf_s(buff, L":%02d", st.wSecond);
+			text += buff;
+		}
 		wstring time = L" ～ 未定";
 		if( info.DurationFlag ){
 			ConvertSystemTime(ConvertI64Time(st) + info.durationSec * I64_1SEC, &st);
 			Format(time, L"～%02d:%02d", st.wHour, st.wMinute);
+			if( st.wSecond != 0 ){
+				//秒を付加
+				WCHAR buff[16];
+				swprintf_s(buff, L":%02d", st.wSecond);
+				time += buff;
+			}
 		}
 		text += time;
 	}
 	text += L"\r\n";
 	if( serviceName != NULL ){
-		text += *serviceName;
+		text += serviceName;
 		text += L"\r\n";
 	}
 
@@ -121,7 +133,7 @@ wstring ConvertEpgInfoText(const EPGDB_EVENT_INFO& info, const wstring* serviceN
 	}
 
 	if( extraText != NULL ){
-		text += *extraText;
+		text += extraText;
 	}
 	wstring buff;
 	Format(buff, L"OriginalNetworkID:%d(0x%04X)\r\nTransportStreamID:%d(0x%04X)\r\nServiceID:%d(0x%04X)\r\nEventID:%d(0x%04X)\r\n",
@@ -423,7 +435,7 @@ LPCWSTR GetComponentTypeName(BYTE content, BYTE type)
 }
 
 //EPG情報をTextに変換
-wstring ConvertProgramText(const EPGDB_EVENT_INFO& info, const wstring& serviceName)
+wstring ConvertProgramText(const EPGDB_EVENT_INFO& info, const std::function<LPCWSTR(WORD, WORD, WORD)>& resolveServiceID)
 {
 	wstring text;
 
@@ -439,7 +451,7 @@ wstring ConvertProgramText(const EPGDB_EVENT_INFO& info, const wstring& serviceN
 		text+=L"\r\n";
 	}
 
-	if( info.hasAudioInfo ){
+	if( info.hasAudioInfo && info.audioInfo.componentList.empty() == false ){
 		text+=L"音声 : ";
 		AppendEpgAudioComponentInfoText(text, info);
 	}
@@ -450,7 +462,28 @@ wstring ConvertProgramText(const EPGDB_EVENT_INFO& info, const wstring& serviceN
 		text += L"\r\n\r\n";
 	}
 
-	return ConvertEpgInfoText(info, &serviceName, &text);
+	if( info.eventRelayInfoGroupType && info.eventRelayInfo.eventDataList.empty() == false ){
+		text += L"イベントリレーあり : ";
+		for( const EPGDB_EVENT_DATA& item : info.eventRelayInfo.eventDataList ){
+			wstring buff;
+			Format(buff, L"ID:%d(0x%04X)-%d(0x%04X)-%d(0x%04X)-%d(0x%04X)",
+			       item.original_network_id, item.original_network_id,
+			       item.transport_stream_id, item.transport_stream_id,
+			       item.service_id, item.service_id,
+			       item.event_id, item.event_id);
+			text += buff;
+			LPCWSTR serviceName = resolveServiceID(item.original_network_id, item.transport_stream_id, item.service_id);
+			if( serviceName ){
+				text += L" ";
+				text += serviceName;
+			}
+			text += L"\r\n";
+		}
+		text += L"\r\n";
+	}
+
+	LPCWSTR serviceName = resolveServiceID(info.original_network_id, info.transport_stream_id, info.service_id);
+	return ConvertEpgInfoText(info, serviceName ? serviceName : L"", text.c_str());
 }
 
 void ConvertEpgInfo(WORD onid, WORD tsid, WORD sid, const EPG_EVENT_INFO* src, EPGDB_EVENT_INFO* dest)
@@ -564,10 +597,17 @@ void AppendEpgComponentInfoText(wstring& text, const EPGDB_EVENT_INFO& info)
 		LPCWSTR ret = GetComponentTypeName(info.componentInfo.stream_content, info.componentInfo.component_type);
 		if( ret[0] ){
 			text += ret;
-			if( info.componentInfo.text_char.empty() == false ){
-				text += L"\r\n";
-				text += info.componentInfo.text_char;
-			}
+		}else{
+			WCHAR buff[32];
+			swprintf_s(buff, L"(0x%02X,0x%02X)", info.componentInfo.stream_content, info.componentInfo.component_type);
+			text += buff;
+		}
+		if( info.componentInfo.text_char.empty() == false ){
+			text += L"\r\n";
+			//改行があれば空白に置換
+			wstring buff = info.componentInfo.text_char;
+			Replace(buff, L"\r\n", L" ");
+			text += buff;
 		}
 	}
 }
@@ -579,10 +619,17 @@ void AppendEpgAudioComponentInfoText(wstring& text, const EPGDB_EVENT_INFO& info
 			LPCWSTR ret = GetComponentTypeName(item.stream_content, item.component_type);
 			if( ret[0] ){
 				text += ret;
-				if( item.text_char.empty() == false ){
-					text += L"\r\n";
-					text += item.text_char;
-				}
+			}else{
+				WCHAR buff[32];
+				swprintf_s(buff, L"(0x%02X,0x%02X)", item.stream_content, item.component_type);
+				text += buff;
+			}
+			if( item.text_char.empty() == false ){
+				text += L"\r\n";
+				//改行があれば空白に置換
+				wstring buff = item.text_char;
+				Replace(buff, L"\r\n", L" ");
+				text += buff;
 			}
 			text += L"\r\n";
 			text += L"サンプリングレート : ";
@@ -604,6 +651,13 @@ void AppendEpgAudioComponentInfoText(wstring& text, const EPGDB_EVENT_INFO& info
 					break;
 				case 0x07:
 					text += L"48kHz";
+					break;
+				default:
+					{
+						WCHAR buff[16];
+						swprintf_s(buff, L"(0x%02X)", item.sampling_rate);
+						text += buff;
+					}
 					break;
 			}
 			text += L"\r\n";
