@@ -55,9 +55,9 @@ namespace EpgTimer
             if (eventInfo != null)
             {
                 richTextBox_pgInfo.Document = new FlowDocument(CommonManager.ConvertDisplayText(
-                    CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfo) +
-                    CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicText),
-                    CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedText),
+                    CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfoForProgramText) +
+                    CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicTextForProgramText),
+                    CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedTextForProgramText),
                     CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo)));
             }
             else
