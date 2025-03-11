@@ -640,8 +640,8 @@ namespace EpgTimer
                 string eventName = (eventInfo.ShortInfo != null ? eventInfo.ShortInfo.event_name : "") + "\r\n\r\n";
                 if (textMode == EventInfoTextMode.BasicInfoForProgramText)
                 {
-                    //連続2つ以上の改行を防ぐ
-                    eventName = Regex.Replace(eventName, @"(?:\r\n){2,}", "\r\n") + "\r\n";
+                    //空行を防ぐ
+                    eventName = Regex.Replace(Regex.Replace(eventName, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n") + "\r\n";
                 }
                 retText += eventName;
             }
@@ -650,8 +650,8 @@ namespace EpgTimer
                 retText = (eventInfo.ShortInfo != null ? eventInfo.ShortInfo.text_char : "") + "\r\n\r\n";
                 if (textMode == EventInfoTextMode.BasicTextForProgramText)
                 {
-                    //連続2つ以上の改行を防ぐ
-                    retText = Regex.Replace(retText, @"(?:\r\n){2,}", "\r\n") + "\r\n";
+                    //空行を防ぐ
+                    retText = Regex.Replace(Regex.Replace(retText, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n") + "\r\n";
                 }
             }
             else if (textMode == EventInfoTextMode.ExtendedText || textMode == EventInfoTextMode.ExtendedTextForProgramText)
@@ -661,8 +661,8 @@ namespace EpgTimer
                     retText = eventInfo.ExtInfo.text_char + "\r\n\r\n";
                     if (textMode == EventInfoTextMode.ExtendedTextForProgramText)
                     {
-                        //連続3つ以上の改行を防ぐ
-                        retText = "詳細情報\r\n" + Regex.Replace(retText, @"(?:\r\n){3,}", "\r\n\r\n") + "\r\n";
+                        //空行2行を防ぐ
+                        retText = "詳細情報\r\n" + Regex.Replace(Regex.Replace(retText, @"^(?:\r\n)+", "") + "\r\n\r\n", @"(?:\r\n){3,}", "\r\n\r\n") + "\r\n";
                     }
                 }
             }
@@ -714,11 +714,13 @@ namespace EpgTimer
                     string name;
                     extInfo += Instance.ComponentKindDictionary.TryGetValue((ushort)(streamContent << 8 | componentType), out name) ? name :
                                    "(0x" + streamContent.ToString("X2") + ",0x" + componentType.ToString("X2") + ")";
-                    if (eventInfo.ComponentInfo.text_char.Length > 0)
-                    {
-                        extInfo += "\r\n" + eventInfo.ComponentInfo.text_char.Replace("\r\n", " ");
-                    }
                     extInfo += "\r\n";
+                    //空行を防ぐ
+                    string textChar = Regex.Replace(Regex.Replace(eventInfo.ComponentInfo.text_char, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n");
+                    if (textChar.Length > 2)
+                    {
+                        extInfo += textChar;
+                    }
                 }
 
                 if (eventInfo.AudioInfo != null && eventInfo.AudioInfo.componentList.Count > 0)
@@ -731,11 +733,13 @@ namespace EpgTimer
                         string name;
                         extInfo += Instance.ComponentKindDictionary.TryGetValue((ushort)(streamContent << 8 | componentType), out name) ? name :
                                        "(0x" + streamContent.ToString("X2") + ",0x" + componentType.ToString("X2") + ")";
-                        if (info.text_char.Length > 0)
-                        {
-                            extInfo += "\r\n" + info.text_char.Replace("\r\n", " ");
-                        }
                         extInfo += "\r\n";
+                        //空行を防ぐ
+                        string textChar = Regex.Replace(Regex.Replace(info.text_char, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n");
+                        if (textChar.Length > 2)
+                        {
+                            extInfo += textChar;
+                        }
                         extInfo += "サンプリングレート : ";
                         switch (info.sampling_rate)
                         {
