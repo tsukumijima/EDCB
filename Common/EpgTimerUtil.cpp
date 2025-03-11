@@ -81,6 +81,10 @@ void ReduceCrLfAndAppend(wstring& text, const wstring& appendText, LPCWSTR crlf)
 {
 	size_t i = text.size();
 	text += appendText;
+	//先頭にCR+LFがあれば消す
+	while( text.compare(i, 2, L"\r\n") == 0 ){
+		text.erase(i, 2);
+	}
 	text += crlf;
 	for( size_t j; (j = text.find(crlf, i)) != wstring::npos; ){
 		text.erase(j, 2);
@@ -602,13 +606,11 @@ void AppendEpgComponentInfoText(wstring& text, const EPGDB_EVENT_INFO& info)
 			swprintf_s(buff, L"(0x%02X,0x%02X)", info.componentInfo.stream_content, info.componentInfo.component_type);
 			text += buff;
 		}
-		if( info.componentInfo.text_char.empty() == false ){
-			text += L"\r\n";
-			//改行があれば空白に置換
-			wstring buff = info.componentInfo.text_char;
-			Replace(buff, L"\r\n", L" ");
-			text += buff;
-		}
+		//空行を防ぐ
+		size_t lastSize = text.size();
+		text += L"\r\n";
+		ReduceCrLfAndAppend(text, info.componentInfo.text_char, L"\r\n\r\n");
+		text.resize(text.size() > lastSize + 6 ? text.size() - 4 : lastSize);
 	}
 }
 
@@ -624,13 +626,12 @@ void AppendEpgAudioComponentInfoText(wstring& text, const EPGDB_EVENT_INFO& info
 				swprintf_s(buff, L"(0x%02X,0x%02X)", item.stream_content, item.component_type);
 				text += buff;
 			}
-			if( item.text_char.empty() == false ){
-				text += L"\r\n";
-				//改行があれば空白に置換
-				wstring buff = item.text_char;
-				Replace(buff, L"\r\n", L" ");
-				text += buff;
-			}
+			//空行を防ぐ
+			size_t lastSize = text.size();
+			text += L"\r\n";
+			ReduceCrLfAndAppend(text, item.text_char, L"\r\n\r\n");
+			text.resize(text.size() > lastSize + 6 ? text.size() - 4 : lastSize);
+
 			text += L"\r\n";
 			text += L"サンプリングレート : ";
 			switch( item.sampling_rate ){
