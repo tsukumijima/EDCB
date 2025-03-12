@@ -17,16 +17,16 @@ install_u: install_tools $(subst EpgDataCap3.install, EpgDataCap3.install_u, $(a
 	$(MAKE) -C ../../$*/$* install
 %.install_u:
 	$(MAKE) -C ../../$*/$* install_u
-asyncbuf: ../../ini/Tools/asyncbuf.c
+asyncbuf: ../../Tools/asyncbuf.c
 	$(CC) -Wl,-s -Os -o $@ $< -pthread
-relayread: ../../ini/Tools/relayread.c
+relayread: ../../Tools/relayread.c
 	$(CC) -Wl,-s -Os -o $@ $<
 tsidmove-edcb: ../../Common/ParseTextInstances.cpp \
                ../../Common/PathUtil.cpp \
                ../../Common/StringUtil.cpp \
                ../../Common/TimeUtil.cpp \
-               ../../ini/Tools/tsidmove/tsidmove.cpp
-	$(CXX) -Wl,-s -I../../ini/Tools/tsidmove -std=c++17 -pedantic-errors -Os -o $@ $+
+               ../../Tools/tsidmove/tsidmove.cpp
+	$(CXX) -Wl,-s -I../../Tools/tsidmove -std=c++17 -pedantic-errors -Os -o $@ $+
 tools: asyncbuf relayread tsidmove-edcb
 clean_tools:
 	$(RM) asyncbuf relayread tsidmove-edcb

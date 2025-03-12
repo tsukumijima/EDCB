@@ -19,16 +19,16 @@ ifdef MINGW_PREFIX
 endif
 clean_dep:
 	$(RM) libwinpthread-1.dll
-asyncbuf.exe: ../../ini/Tools/asyncbuf.c
+asyncbuf.exe: ../../Tools/asyncbuf.c
 	$(CC) -municode -Wl,-s -static -D_UNICODE -Os -o $@ $<
-relayread.exe: ../../ini/Tools/relayread.c
+relayread.exe: ../../Tools/relayread.c
 	$(CC) -municode -Wl,-s -static -D_UNICODE -Os -o $@ $<
 tsidmove.exe: ../../Common/ParseTextInstances.cpp \
               ../../Common/PathUtil.cpp \
               ../../Common/StringUtil.cpp \
               ../../Common/TimeUtil.cpp \
-              ../../ini/Tools/tsidmove/tsidmove.cpp
-	$(CXX) -municode -Wl,-s -static-libgcc -static-libstdc++ -I../../ini/Tools/tsidmove -D_UNICODE -std=c++17 -pedantic-errors -Os -o $@ $+
+              ../../Tools/tsidmove/tsidmove.cpp
+	$(CXX) -municode -Wl,-s -static-libgcc -static-libstdc++ -I../../Tools/tsidmove -D_UNICODE -std=c++17 -pedantic-errors -Os -o $@ $+
 tools: asyncbuf.exe relayread.exe tsidmove.exe
 clean_tools:
 	$(RM) asyncbuf.exe relayread.exe tsidmove.exe

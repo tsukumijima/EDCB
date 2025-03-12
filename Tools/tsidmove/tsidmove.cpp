@@ -1,9 +1,9 @@
 ﻿// tsidmove: EDCBの予約、EPG自動予約、プログラム自動予約に含まれるTransportStreamIDの情報を変更する (2018-04-20)
 // ※予約ファイル等にこのフォークと非互換の項目追加等されたフォークでは使いまわし不可能
 #include "stdafx.h"
-#include "../../../Common/CommonDef.h"
-#include "../../../Common/ParseTextInstances.h"
-#include "../../../Common/PathUtil.h"
+#include "../../Common/CommonDef.h"
+#include "../../Common/ParseTextInstances.h"
+#include "../../Common/PathUtil.h"
 #include <locale.h>
 
 namespace
