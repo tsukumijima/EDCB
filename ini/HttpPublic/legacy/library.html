@@ -35,6 +35,7 @@ if index then
   end
 end
 
+thumbs={''}
 queryParent=''
 if not dirname then
   ct:Append('<h1>ライブラリ</h1>\n<div class="nav"><ul>\n')
@@ -125,7 +126,6 @@ else
       end
       if info.ists then
         fsec,fsize=0,0
-        thumbs={}
         f=edcb.io.open(PathAppend(dir,info.name),'rb')
         if f then
           fsec,fsize=GetDurationSec(f)
@@ -146,8 +146,7 @@ else
           ..'&amp;h='..hash..ConstructTranscodeQueries(xq)
           ..'&amp;vtag='..(vtag==0 and '-1">Video' or '0">DL')..'</a>\n'
           ..TranscodeSettingTemplate(xq,fsec)
-          ..'</div></form>')
-        for i,v in ipairs(thumbs) do ct:Append(v) end
+          ..'</div></form>'..thumbs[1])
         if vtag==10 then
           src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
           ct:Append('\n'..VideoWrapperBegin()
@@ -175,6 +174,9 @@ ct:Append([=[
   <a href="]=]..(index and 'library.html">ライブラリリスト' or 'index.html">メニュー')..[=[</a>
 ]=]..(queryParent~='' and '  <a href="library.html'..queryParent..'">Parent_directory..</a>\n' or '')..[=[
 </div>
+]=])
+for i=2,#thumbs do ct:Append(thumbs[i]) end
+ct:Append([=[
 </body>
 </html>
 ]=])

@@ -68,6 +68,7 @@ if post then
   end
 end
 
+thumbs={''}
 edcb.htmlEscape=15
 v=edcb.GetRecFileInfo(id)
 if v then
@@ -110,7 +111,6 @@ if v then
         end
         if ext=='' then
           fsec,fsize=0,0
-          thumbs={}
           f=edcb.io.open(w.recFilePath,'rb')
           if f then
             fsec,fsize=GetDurationSec(f)
@@ -134,8 +134,7 @@ if v then
             ..'→<a href="recinfodesc.html?id='..v.id..ConstructTranscodeQueries(xq)
             ..'&amp;vtag='..(vtag==0 and '-1">Video' or '0">DL')..'</a>\n'
             ..TranscodeSettingTemplate(xq,fsec)
-            ..'</div></form>')
-          for j,w in ipairs(thumbs) do ct:Append(w) end
+            ..'</div></form>'..thumbs[1])
           if vtag==10 then
             src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
             ct:Append('\n'..VideoWrapperBegin()
@@ -185,6 +184,9 @@ ct:Append([=[
 <div id="footer">
   <a href="recinfo.html]=]..(v and '?id='..v.id or '')..[=[">録画済み一覧</a>
 </div>
+]=])
+for i=2,#thumbs do ct:Append(thumbs[i]) end
+ct:Append([=[
 </body>
 </html>
 ]=])

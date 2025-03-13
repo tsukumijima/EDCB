@@ -99,6 +99,7 @@ if post then
   end
 end
 
+thumbs={''}
 recFilePath=edcb.GetRecFilePath(id)
 edcb.htmlEscape=15
 r=edcb.GetReserveData(id)
@@ -131,7 +132,6 @@ if r then
         end
         if ext=='' then
           fsec,fsize=0,0
-          thumbs={}
           f=edcb.io.open(recFilePath,'rb')
           if f then
             fsec,fsize=GetDurationSec(f)
@@ -151,8 +151,7 @@ if r then
             ..'→<a href="reserveinfo.html?id='..r.reserveID..(fromepg and '&amp;fromepg=1' or '')..ConstructTranscodeQueries(xq)
             ..'&amp;vtag='..(vtag==0 and '-1">Video' or '0">DL')..'</a>\n'
             ..TranscodeSettingTemplate(xq,fsec)
-            ..'</div></form>')
-          for j,w in ipairs(thumbs) do ct:Append(w) end
+            ..'</div></form>'..thumbs[1])
           if vtag==10 then
             src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
             ct:Append('\n'..VideoWrapperBegin()
@@ -236,6 +235,9 @@ ct:Append([=[
   <a href="reserve.html]=]..(r and '?id='..r.reserveID or '')..[=[">予約一覧</a> <a href="epg.html">番組表</a> <a href="epglist.html]=]
   ..((r or rdel) and '?id='..(r or rdel).onid..'-'..(r or rdel).tsid..'-'..(r or rdel).sid..'#now' or '')..[=[">リスト番組表</a>
 </div>
+]=])
+for i=2,#thumbs do ct:Append(thumbs[i]) end
+ct:Append([=[
 </body>
 </html>
 ]=])

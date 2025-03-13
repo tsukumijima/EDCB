@@ -494,31 +494,29 @@ runTsliveScript(]=]
 end
 
 function ThumbnailTemplate(f,dur,fsize)
-  local r={''}
+  --戻り値の配列の先頭は描画目標になるタグ、以降はスクリプト
+  local r={'<div id="vid-thumbs"></div>',[=[
+<script type="text/javascript" src="ts-live.lua?t=-misc.js"></script>
+<script type="text/javascript">
+setTimeout(function(){
+  createMiscWasmModule().then(function(mod){
+    var streams=[
+      "]=]}
   if EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') then
     for i=1,math.min(#THUMBNAILS,5) do
       if SeekSec(f,THUMBNAILS[i]<0 and dur+THUMBNAILS[i] or THUMBNAILS[i]<1 and dur*THUMBNAILS[i] or THUMBNAILS[i],dur,fsize) then
         --Iフレームを取得してスクリプト上に置いておく
         local stream=GetIFrameVideoStream(f)
         if stream then
-          r[#r+1]='    streams.push("'
           r[#r+1]=mg.base64_encode(stream)
-          r[#r+1]='");\n'
+          r[#r+1]='",\n      "'
         end
       end
     end
   end
-  if #r<=1 then return {} end
-  r[1]=[=[
-<div id="vid-thumbs"></div>
-<script type="text/javascript" src="ts-live.lua?t=-misc.js"></script>
-<script type="text/javascript">
-setTimeout(function(){
-  createMiscWasmModule().then(function(mod){
-    var streams=[];
-]=]
-  r[#r+1]=[=[
-    var canvases=[];
+  if #r<=2 then return {''} end
+  r[#r]=[=["
+    ];
     for(var i=0;i<streams.length;i++){
       var b=atob(streams[i]);
       var u=new Uint8Array(b.length);
@@ -533,12 +531,9 @@ setTimeout(function(){
         canvas.width=frame.width;
         canvas.height=frame.height;
         canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(frame.buffer),frame.width,frame.height),0,0);
-        canvases.push(canvas);
+        canvas.className="thumb-]=]..math.min(#THUMBNAILS,5)..[=[";
+        document.getElementById("vid-thumbs").appendChild(canvas);
       }
-    }
-    for(var i=0;i<canvases.length;i++){
-      canvases[i].className="thumb-]=]..math.min(#THUMBNAILS,5)..[=[";
-      document.getElementById("vid-thumbs").appendChild(canvases[i]);
     }
   });
 },0);
