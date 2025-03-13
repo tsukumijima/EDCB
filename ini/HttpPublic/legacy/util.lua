@@ -542,21 +542,20 @@ setTimeout(function(){
   return r
 end
 
---EPG情報をTextに変換(EpgTimerUtil.cppから移植)
+--EPG情報をTextに変換(EpgTimerUtil.cppから移植。EpgTimerSrvの番組情報と同じ形式)
 function ConvertProgramText(v)
   local s=''
   if v then
-    s=s..(v.startTime and FormatTimeAndDuration(v.startTime, v.durationSecond)..(v.durationSecond and '' or '～未定') or '未定')..'\n'
+    s=s..(v.startTime and FormatTimeAndDuration(v.startTime, v.durationSecond)..(v.durationSecond and '' or ' ～ 未定') or '未定')..'\n'
     local found=BinarySearch(edcb.GetServiceList() or {},v,CompareFields('onid',false,'tsid',false,'sid'))
     if found then
       s=s..found.service_name
     end
-    s=s..'\n'
-    if v.shortInfo then
-      s=s..v.shortInfo.event_name..'\n\n'..DecorateUri(v.shortInfo.text_char)..'\n\n'
-    end
+    s=s..'\n'..((v.shortInfo and v.shortInfo.event_name or ''):gsub('\r',''):gsub('^\n+','')..'\n'):gsub('\n\n+','\n')..'\n'
+      ..DecorateUri(((v.shortInfo and v.shortInfo.text_char or ''):gsub('\r',''):gsub('^\n+','')..'\n'):gsub('\n\n+','\n'))..'\n'
     if v.extInfo then
-      s=s..DecorateUri(('\n'..v.extInfo.text_char):gsub('\n%- ([^\n\r]*)','\n<span class="escape-text">- </span><b>%1</b>'):sub(2))..'\n\n'
+      s=s..'<small>詳細情報</small>'..DecorateUri(('\n'..(v.extInfo.text_char:gsub('\r',''):gsub('^\n+','')..'\n\n'):gsub('\n\n\n+','\n\n'))
+          :gsub('\n%- ([^\n]*)','\n<span class="escape-text">- </span><b>%1</b>'))..'\n'
     end
     if v.contentInfoList then
       s=s..'ジャンル : \n'
@@ -564,23 +563,41 @@ function ConvertProgramText(v)
         --0x0E00は番組付属情報、0x0E01はCS拡張用情報
         local nibble=w.content_nibble==0x0E00 and w.user_nibble+0x6000 or
                      w.content_nibble==0x0E01 and w.user_nibble+0x7000 or w.content_nibble
-        s=s..edcb.GetGenreName(math.floor(nibble/256)*256+255)..' - '..edcb.GetGenreName(nibble)..'\n'
+        local nibble1=math.floor(nibble/256)
+        local name1=edcb.GetGenreName(nibble1*256+255)
+        local name2=edcb.GetGenreName(nibble)
+        s=s..(name1=='' and ('(0x%02X) - (0x%02X)'):format(nibble1,nibble%256)
+                or name1..(name2~='' and ' - '..name2 or nibble1~=0x0F and (' - (0x%02X)'):format(nibble%256) or ''))..'\n'
       end
       s=s..'\n'
     end
     if v.componentInfo then
-      s=s..'映像 : '..edcb.GetComponentTypeName(v.componentInfo.stream_content*256+v.componentInfo.component_type)..' '..v.componentInfo.text_char..'\n'
+      local w=v.componentInfo
+      local name=edcb.GetComponentTypeName(w.stream_content*256+w.component_type)
+      local tc=(w.text_char:gsub('\r',''):gsub('^\n+','')..'\n'):gsub('\n\n+','\n')
+      s=s..'映像 : '..(name=='' and ('(0x%02X,0x%02X)'):format(w.stream_content,w.component_type) or name)..'\n'..(#tc>1 and tc or '')
     end
-    if v.audioInfoList then
+    if v.audioInfoList and #v.audioInfoList>0 then
       s=s..'音声 : '
       for i,w in ipairs(v.audioInfoList) do
-        s=s..edcb.GetComponentTypeName(w.stream_content*256+w.component_type)..' '..w.text_char..'\nサンプリングレート : '
-          ..(({[1]='16',[2]='22.05',[3]='24',[5]='32',[6]='44.1',[7]='48'})[w.sampling_rate] or '?')..'kHz\n'
+        local name=edcb.GetComponentTypeName(w.stream_content*256+w.component_type)
+        local tc=(w.text_char:gsub('\r',''):gsub('^\n+','')..'\n'):gsub('\n\n+','\n')
+        s=s..(name=='' and ('(0x%02X,0x%02X)'):format(w.stream_content,w.component_type) or name)..'\n'..(#tc>1 and tc or '')
+          ..'サンプリングレート : '
+          ..(({[1]='16',[2]='22.05',[3]='24',[5]='32',[6]='44.1',[7]='48'})[w.sampling_rate] or ('(0x%02X)'):format(w.sampling_rate))..'kHz\n'
+      end
+    end
+    s=s..'\n'..(NetworkType(v.onid)=='地デジ' and '' or v.freeCAFlag and '有料放送\n\n' or '無料放送\n\n')
+    if v.eventRelayInfo and #v.eventRelayInfo.eventDataList>0 then
+      s=s..'イベントリレーあり : '
+      for i,w in ipairs(v.eventRelayInfo.eventDataList) do
+        local found=BinarySearch(edcb.GetServiceList() or {},w,CompareFields('onid',false,'tsid',false,'sid'))
+        s=s..('ID:%d(0x%04X)-%d(0x%04X)-%d(0x%04X)-%d(0x%04X)'):format(w.onid,w.onid,w.tsid,w.tsid,w.sid,w.sid,w.eid,w.eid)
+          ..(found and ' '..found.service_name or '')..'\n'
       end
       s=s..'\n'
     end
-    s=s..'\n'..(NetworkType(v.onid)=='地デジ' and '' or v.freeCAFlag and '有料放送\n' or '無料放送\n')
-      ..('OriginalNetworkID:%d(0x%04X)\n'):format(v.onid,v.onid)
+    s=s..('OriginalNetworkID:%d(0x%04X)\n'):format(v.onid,v.onid)
       ..('TransportStreamID:%d(0x%04X)\n'):format(v.tsid,v.tsid)
       ..('ServiceID:%d(0x%04X)\n'):format(v.sid,v.sid)
       ..('EventID:%d(0x%04X)\n'):format(v.eid,v.eid)

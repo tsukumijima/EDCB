@@ -107,8 +107,8 @@ if r then
   epgInfo=ConvertProgramText(edcb.SearchEpg(r.onid,r.tsid,r.sid,r.eid))
   dur=r.startTime.hour*3600+r.startTime.min*60+r.startTime.sec+r.durationSecond
   ct:Append('  <dl>\n'
-    ..'    <dt>番組情報</dt><dd>'..(#epgInfo>0 and '\n'..epgInfo:gsub('\r?\n','<br>\n')
-      or FormatTimeAndDuration(r.startTime, r.durationSecond)..'<br>'..r.stationName..'<br>'..r.title..'<br><br>'
+    ..'    <dt id="pginfo-term">番組情報</dt><dd'..(#epgInfo>0 and ' id="pginfo-desc">'..epgInfo:gsub('\r?\n','<br>\n')
+      or '>'..FormatTimeAndDuration(r.startTime, r.durationSecond)..'<br>'..r.stationName..'<br>'..r.title..'<br><br>'
         ..('OriginalNetworkID:%d(0x%04X)<br>'):format(r.onid,r.onid)
         ..('TransportStreamID:%d(0x%04X)<br>'):format(r.tsid,r.tsid)
         ..('ServiceID:%d(0x%04X)<br>'):format(r.sid,r.sid)
@@ -238,6 +238,18 @@ ct:Append([=[
 ]=])
 for i=2,#thumbs do ct:Append(thumbs[i]) end
 ct:Append([=[
+<script type="text/javascript">
+(function(){
+  var desc=document.getElementById("pginfo-desc");
+  if(desc&&desc.textContent){
+    var a=document.createElement("a");
+    a.download="a.program.txt";
+    a.href=URL.createObjectURL(new Blob(["\ufeff",desc.textContent],{endings:"native",type:"text/plain"}));
+    a.innerText="(DL)";
+    document.getElementById("pginfo-term").appendChild(a);
+  }
+})();
+</script>
 </body>
 </html>
 ]=])
