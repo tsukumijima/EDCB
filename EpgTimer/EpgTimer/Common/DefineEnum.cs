@@ -57,6 +57,8 @@ namespace EpgTimer
         BasicText,
         ExtendedText,
         PropertyInfo,
+        All,
+        AllForProgramText,
     };
 
     //StructDef.hより

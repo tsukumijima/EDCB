@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -628,6 +629,24 @@ namespace EpgTimer
                 (isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")) + (isNoSecond == true ? "HH:mm" : "HH:mm:ss"));
             }
         }
+        public static string ConvertTimeTextForProgramText(bool timeFlag, DateTime time, bool durationFlag, double durationSec)
+        {
+            DateTime _time = timeFlag ? time : DateTime.MinValue;
+            double _durationSec = durationFlag ? durationSec : double.MinValue;
+            if (_time == DateTime.MinValue)
+            {
+                return "未定";
+            }
+            string endText = double.IsNaN(_durationSec) ? "" : _durationSec == double.MinValue ? " ～ 未定" : null;
+            if (endText == null)
+            {
+                DateTime endTime = _time.AddSeconds(_durationSec);
+                //秒が0でない場合は秒を付加
+                endText = endTime.ToString("～" + "HH\\:mm" + (endTime.Second != 0 ? "\\:ss" : ""), CultureInfo.InvariantCulture);
+            }
+            return _time.ToString("yyyy\\/MM\\/dd(" + "日月火水木金土"[(int)_time.DayOfWeek] + ") HH\\:mm" + (_time.Second != 0 ? "\\:ss" : ""),
+                                  CultureInfo.InvariantCulture) + endText;
+        }
         public static String ConvertDurationText(uint duration, bool isNoSecond)
         {
             return (duration / 3600).ToString() 
@@ -664,154 +683,193 @@ namespace EpgTimer
             });
 
             string retText = "";
-            string termination = "\r\n\r\n";
 
             //基本情報
-            if (textMode == EventInfoTextMode.BasicInfo)
+            if (textMode == EventInfoTextMode.BasicInfo || textMode == EventInfoTextMode.All)
             {
-                retText = ConvertChInfoText(eventInfo) + "\r\n";
+                retText += ConvertChInfoText(eventInfo) + "\r\n";
                 retText += ConvertTimeText(eventInfo) + "\r\n";
-                if (eventInfo.ShortInfo != null)
-                {
-                    retText += eventInfo.ShortInfo.event_name;
-                }
+                retText += eventInfo.ShortInfo != null ? eventInfo.ShortInfo.event_name : "";
+                retText = retText.TrimEnd() + "\r\n\r\n";
             }
             //説明(番組表のツールチップなど)
-            else if (textMode == EventInfoTextMode.BasicText)
+            if (textMode == EventInfoTextMode.BasicText || textMode == EventInfoTextMode.All)
             {
-                if (eventInfo.ShortInfo != null)
+                if (eventInfo.ShortInfo != null && !string.IsNullOrEmpty(eventInfo.ShortInfo.text_char))
                 {
-                    retText = eventInfo.ShortInfo.text_char;
+                    retText += eventInfo.ShortInfo.text_char.TrimEnd() + "\r\n\r\n";
                 }
             }
-            else if (textMode == EventInfoTextMode.ExtendedText)
+            //詳細情報
+            if (textMode == EventInfoTextMode.ExtendedText || textMode == EventInfoTextMode.All)
             {
+                if(eventInfo.ExtInfo != null && !string.IsNullOrEmpty(eventInfo.ExtInfo.text_char))
+                {
+                    retText += eventInfo.ExtInfo.text_char.TrimEnd() + "\r\n\r\n\r\n";
+                }
+            }
+            //EpgTimerSrvの番組情報と同じ形式、基本情報～詳細情報まで
+            if (textMode == EventInfoTextMode.AllForProgramText)
+            {
+                //EpgTimerSrvの番組情報の形式では先頭行が時刻になる
+                retText += ConvertTimeTextForProgramText(eventInfo.StartTimeFlag != 0, eventInfo.start_time,
+                                            eventInfo.DurationFlag != 0, eventInfo.durationSec) + "\r\n";
+                retText += eventInfo.ServiceName + "\r\n";
+
+                string eventName = (eventInfo.ShortInfo != null ? eventInfo.ShortInfo.event_name : "") + "\r\n\r\n";
+                //空行を防ぐ
+                retText += Regex.Replace(Regex.Replace(eventName, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n") + "\r\n";
+                
+                var shortInfo = (eventInfo.ShortInfo != null ? eventInfo.ShortInfo.text_char : "") + "\r\n\r\n";
+                //空行を防ぐ
+                retText += Regex.Replace(Regex.Replace(shortInfo, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n") + "\r\n";
+
                 if (eventInfo.ExtInfo != null)
                 {
-                    retText = eventInfo.ExtInfo.text_char;
+                    var extTxt = eventInfo.ExtInfo.text_char + "\r\n\r\n";
+                    //空行2行を防ぐ
+                    retText += "詳細情報\r\n" + Regex.Replace(Regex.Replace(extTxt, @"^(?:\r\n)+", "") + "\r\n\r\n", @"(?:\r\n){3,}", "\r\n\r\n") + "\r\n";
                 }
             }
-            else if (textMode == EventInfoTextMode.PropertyInfo)
+            if (textMode == EventInfoTextMode.PropertyInfo || textMode == EventInfoTextMode.All || textMode == EventInfoTextMode.AllForProgramText)
             {
-                termination = "\r\n";
-
-                //ジャンル
-                retText += "ジャンル :\r\n";
+                var extInfo = "";
                 var contentList = new List<ContentKindInfo>();
                 if (eventInfo.ContentInfo != null)
                 {
+                    extInfo += "ジャンル : \r\n";
                     contentList = eventInfo.ContentInfo.nibbleList.Select(data => ContentKindInfoForDisplay(data)).ToList();
+                    foreach (ContentKindInfo info in contentList.Where(info => info.Data.IsAttributeInfo == false))
+                    {
+                        extInfo += info.ListBoxView + "\r\n";
+                    }
+                    extInfo += "\r\n";
                 }
-                foreach (ContentKindInfo info in contentList.Where(info => info.Data.IsAttributeInfo == false))
-                {
-                    retText += info.ListBoxView + "\r\n";
-                }
-                retText += "\r\n";
 
-                //映像
-                retText += "映像 :";
                 if (eventInfo.ComponentInfo != null)
                 {
+                    extInfo += "映像 : ";
                     int streamContent = eventInfo.ComponentInfo.stream_content;
                     int componentType = eventInfo.ComponentInfo.component_type;
-                    UInt16 componentKey = (UInt16)(streamContent << 8 | componentType);
-                    if (ComponentKindDictionary.ContainsKey(componentKey) == true)
+                    string name;
+                    extInfo += ComponentKindDictionary.TryGetValue((ushort)(streamContent << 8 | componentType), out name) ? name :
+                                   "(0x" + streamContent.ToString("X2") + ",0x" + componentType.ToString("X2") + ")";
+                    extInfo += "\r\n";
+                    //空行を防ぐ
+                    string textChar = Regex.Replace(Regex.Replace(eventInfo.ComponentInfo.text_char, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n");
+                    if (textChar.Length > 2)
                     {
-                        retText += ComponentKindDictionary[componentKey];
-                    }
-                    if (eventInfo.ComponentInfo.text_char.Length > 0)
-                    {
-                        retText += "\r\n";
-                        retText += eventInfo.ComponentInfo.text_char;
+                        extInfo += textChar;
                     }
                 }
-                retText += "\r\n";
 
-                //音声
-                retText += "音声 :";
-                if (eventInfo.AudioInfo != null)
+                if (eventInfo.AudioInfo != null && eventInfo.AudioInfo.componentList.Count > 0)
                 {
+                    extInfo += "音声 : ";
                     foreach (EpgAudioComponentInfoData info in eventInfo.AudioInfo.componentList)
                     {
                         int streamContent = info.stream_content;
                         int componentType = info.component_type;
-                        UInt16 componentKey = (UInt16)(streamContent << 8 | componentType);
-                        if (ComponentKindDictionary.ContainsKey(componentKey) == true)
+                        string name;
+                        extInfo += ComponentKindDictionary.TryGetValue((ushort)(streamContent << 8 | componentType), out name) ? name :
+                                       "(0x" + streamContent.ToString("X2") + ",0x" + componentType.ToString("X2") + ")";
+                        extInfo += "\r\n";
+                        //空行を防ぐ
+                        string textChar = Regex.Replace(Regex.Replace(info.text_char, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n");
+                        if (textChar.Length > 2)
                         {
-                            retText += ComponentKindDictionary[componentKey];
+                            extInfo += textChar;
                         }
-                        if (info.text_char.Length > 0)
-                        {
-                            retText += "\r\n";
-                            retText += info.text_char;
-                        }
-                        retText += "\r\n";
-                        retText += "サンプリングレート :";
+                        extInfo += "サンプリングレート : ";
                         switch (info.sampling_rate)
                         {
                             case 1:
-                                retText += "16kHz";
+                                extInfo += "16kHz";
                                 break;
                             case 2:
-                                retText += "22.05kHz";
+                                extInfo += "22.05kHz";
                                 break;
                             case 3:
-                                retText += "24kHz";
+                                extInfo += "24kHz";
                                 break;
                             case 5:
-                                retText += "32kHz";
+                                extInfo += "32kHz";
                                 break;
                             case 6:
-                                retText += "44.1kHz";
+                                extInfo += "44.1kHz";
                                 break;
                             case 7:
-                                retText += "48kHz";
+                                extInfo += "48kHz";
                                 break;
                             default:
+                                extInfo += "(0x" + info.sampling_rate.ToString("X2") + ")";
                                 break;
                         }
-                        retText += "\r\n";
+                        extInfo += "\r\n";
                     }
                 }
-                retText += "\r\n";
+                extInfo += "\r\n";
 
                 //スクランブル
                 if (!ChSet5.IsDttv(eventInfo.original_network_id))
                 {
-                    retText += (eventInfo.FreeCAFlag == 0 ? "無料放送" : "有料放送") + "\r\n\r\n";
+                    extInfo += (eventInfo.FreeCAFlag == 0 ? "無料放送" : "有料放送") + "\r\n\r\n";
                 }
 
                 //イベントリレー
-                if (eventInfo.EventRelayInfo != null)
+                if (eventInfo.EventRelayInfo != null && eventInfo.EventRelayInfo.eventDataList.Count > 0)
                 {
-                    if (eventInfo.EventRelayInfo.eventDataList.Count > 0)
+                    extInfo += "イベントリレーあり : " + (textMode != EventInfoTextMode.AllForProgramText ? "\r\n" : "");
+                    foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
                     {
-                        retText += "イベントリレーあり：\r\n";
-                        foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
+                        if (textMode != EventInfoTextMode.AllForProgramText)
                         {
                             //Epgデータが無いときや過去番組は探せない場合がある
                             UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime == DateTime.MaxValue ? DateTime.MaxValue : eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
                             var relayInfo = MenuUtil.GetPgInfoUidAll(key) ?? new EpgEventInfo { original_network_id = info.original_network_id, transport_stream_id = info.transport_stream_id, service_id = info.service_id };
-                            retText += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle + "\r\n";
+                            extInfo += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle;
                         }
-                        retText += "\r\n";
+                        else
+                        {
+                            extInfo += "ID:" + info.original_network_id + "(0x" + info.original_network_id.ToString("X4") + ")-" +
+                                        info.transport_stream_id + "(0x" + info.transport_stream_id.ToString("X4") + ")-" +
+                                        info.service_id + "(0x" + info.service_id.ToString("X4") + ")-" +
+                                        info.event_id + "(0x" + info.event_id.ToString("X4") + ")";
+                            EpgServiceInfo sInfo;
+                            if (ChSet5.ChList.TryGetValue(info.Create64Key(), out sInfo))
+                            {
+                                extInfo += " " + sInfo.service_name;
+                            }
+                        }
+                        extInfo += "\r\n";
                     }
+                    extInfo += "\r\n";
                 }
 
-                //その他情報(番組特性コード関係)
-                var attStr = string.Join("\r\n", contentList.Where(info => info.Data.IsAttributeInfo == true).Select(info => info.SubName));
-                if (attStr != "")
+                if (textMode != EventInfoTextMode.AllForProgramText)
                 {
-                    retText += attStr + "\r\n\r\n";
+                    //その他情報(番組特性コード関係)
+                    var attStr = string.Join("\r\n", contentList.Where(info => info.Data.IsAttributeInfo == true).Select(info => info.SubName));
+                    if (attStr != "") extInfo += attStr + "\r\n\r\n";
+
+                    extInfo += Convert64PGKeyString(eventInfo.Create64PgKey()) + "\r\n\r\n";
+
+                    List<ReserveData> list = eventInfo.GetReserveListFromPgUID();
+                    if (list.Any()) extInfo += "予約中/ID : " + string.Join(", ", list.Select(info => string.Format("{0} (0x{0:X4})", info.ReserveID)));
+
+                    retText += extInfo.TrimEnd() + "\r\n";
                 }
-
-                retText += Convert64PGKeyString(eventInfo.Create64PgKey());
-
-                if (resInfo != null) retText += "\r\n\r\n予約中/ID : " + string.Format("{0} (0x{0:X})", resInfo.ReserveID);
+                else
+                {
+                    //コロン(:)の前後などにスペースが入らない
+                    extInfo += "OriginalNetworkID:" + eventInfo.original_network_id + "(0x" + eventInfo.original_network_id.ToString("X4") + ")\r\n" +
+                               "TransportStreamID:" + eventInfo.transport_stream_id + "(0x" + eventInfo.transport_stream_id.ToString("X4") + ")\r\n" +
+                               "ServiceID:" + eventInfo.service_id + "(0x" + eventInfo.service_id.ToString("X4") + ")\r\n" +
+                               "EventID:" + eventInfo.event_id + "(0x" + eventInfo.event_id.ToString("X4") + ")\r\n";
+                    retText += extInfo;
+                }
             }
-
-            //余分な空白は消す
-            return string.IsNullOrWhiteSpace(retText) ? "" : retText.TrimEnd() + termination;
+            return retText;
         }
 
         //主にジャンル項目の設定リスト表示用

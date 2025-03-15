@@ -215,5 +215,12 @@ namespace EpgTimer
         {
             return CommonManager.Create64PgKey(obj.original_network_id, obj.transport_stream_id, obj.service_id, obj.event_id);
         }
+
+        public static List<ReserveData> GetReserveListFromPgUID(this IAutoAddTargetData data)
+        {
+            if (data == null) return null;
+            UInt64 id = data.CurrentPgUID();
+            return CommonManager.Instance.DB.ReserveList.Values.Where(info => info.CurrentPgUID() == id).ToList();
+        }
     }
 }

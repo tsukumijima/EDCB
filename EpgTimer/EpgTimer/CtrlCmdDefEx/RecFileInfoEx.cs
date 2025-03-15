@@ -64,11 +64,7 @@ namespace EpgTimer
             if (ProgramInfo == null)//.program.txtがない
             {
                 EpgEventInfo pg = GetPgInfo();
-                ProgramInfo = pg == null ? "番組情報がありません。" :
-                    CommonManager.ConvertProgramText(pg, EventInfoTextMode.BasicInfo)
-                    + CommonManager.ConvertProgramText(pg, EventInfoTextMode.BasicText)
-                    + "詳細情報\r\n" + CommonManager.ConvertProgramText(pg, EventInfoTextMode.ExtendedText)
-                    + CommonManager.ConvertProgramText(pg, EventInfoTextMode.PropertyInfo);
+                ProgramInfo = pg == null ? "番組情報がありません。" : CommonManager.ConvertProgramText(pg, EventInfoTextMode.AllForProgramText);
             }
         }
         public EpgEventInfo GetPgInfo(bool isSrv = true)
