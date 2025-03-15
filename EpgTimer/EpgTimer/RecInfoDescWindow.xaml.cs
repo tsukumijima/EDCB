@@ -48,6 +48,7 @@ namespace EpgTimer
                 mc.AddReplaceCommand(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1));
                 mc.AddReplaceCommand(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1));
                 mc.AddReplaceCommand(EpgCmds.Search, (sender, e) => MoveViewRecinfoTarget(), (sender, e) => e.CanExecute = DataView is EpgViewBase);
+                mc.AddReplaceCommand(EpgCmds.SaveTextInDialog, (sender, e) => CommonManager.Save_ProgramText(recInfo.ProgramInfo, recInfo.RecFilePath), (sender, e) => e.CanExecute = !string.IsNullOrEmpty(recInfo.ProgramInfo));
                 mc.AddReplaceCommand(EpgCmds.DeleteInDialog, info_del, (sender, e) => e.CanExecute = recInfo.ID != 0 && recInfo.ProtectFlag == 0);
                 mc.AddReplaceCommand(EpgCmds.ChgOnOffCheck, (sender, e) => EpgCmds.ProtectChange.Execute(null, this));
 
@@ -61,6 +62,7 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_up, EpgCmds.BackItem);
                 mBinds.SetCommandToButton(button_down, EpgCmds.NextItem);
                 mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
+                mBinds.SetCommandToButton(button_save_program, EpgCmds.SaveTextInDialog);
                 mBinds.SetCommandToButton(button_del, EpgCmds.DeleteInDialog);
                 mBinds.AddInputCommand(EpgCmds.ProtectChange);//ショートカット登録
                 RefreshMenu();

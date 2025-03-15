@@ -41,6 +41,7 @@ namespace EpgTimer
             this.CommandBindings.Add(new CommandBinding(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1), (sender, e) => e.CanExecute = KeepWin == true && (DataView is EpgViewBase || DataViewSearch != null || DataRefList.Any())));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1), (sender, e) => e.CanExecute = KeepWin == true && (DataView is EpgViewBase || DataViewSearch != null || DataRefList.Any())));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Search, (sender, e) => MoveViewEpgTarget(), (sender, e) => e.CanExecute = KeepWin == true && DataView is EpgViewBase));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.SaveTextInDialog, (sender, e) => CommonManager.Save_ProgramText(eventInfo), (sender, e) => e.CanExecute = eventInfo != null));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.ShowInDialog, (sender, e) => MenuUtil.OpenRecInfoDialog(MenuUtil.GetRecFileInfo(eventInfo)), (sender, e) => e.CanExecute = button_open_recinfo.Visibility == Visibility.Visible));
 
             //ボタンの設定
@@ -51,6 +52,7 @@ namespace EpgTimer
             mBinds.SetCommandToButton(button_up, EpgCmds.BackItem);
             mBinds.SetCommandToButton(button_down, EpgCmds.NextItem);
             mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
+            mBinds.SetCommandToButton(button_save_program, EpgCmds.SaveTextInDialog);
             mBinds.SetCommandToButton(button_open_recinfo, EpgCmds.ShowInDialog);
             RefreshMenu();
 

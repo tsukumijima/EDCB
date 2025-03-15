@@ -50,6 +50,7 @@ namespace EpgTimer
             this.CommandBindings.Add(new CommandBinding(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1), (sender, e) => e.CanExecute = KeepWin == true));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1), (sender, e) => e.CanExecute = KeepWin == true));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Search, (sender, e) => MoveViewReserveTarget(), (sender, e) => e.CanExecute = KeepWin == true && DataView is EpgViewBase || DataView is TunerReserveMainView));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.SaveTextInDialog, Save_ProgramText));
 
             //ボタンの設定
             mBinds.SetCommandToButton(button_cancel, EpgCmds.Cancel);
@@ -59,6 +60,7 @@ namespace EpgTimer
             mBinds.SetCommandToButton(button_up, EpgCmds.BackItem);
             mBinds.SetCommandToButton(button_down, EpgCmds.NextItem);
             mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
+            mBinds.SetCommandToButton(button_save_program, EpgCmds.SaveTextInDialog);
             RefreshMenu();
 
             //録画設定タブ関係の設定
@@ -407,6 +409,34 @@ namespace EpgTimer
 
             SetAddMode(AddMode.Re_Add);
             SetReserveTabHeader(false);
+        }
+
+        private void Save_ProgramText(object sender, ExecutedRoutedEventArgs e)
+        {
+            var resInfo = new ReserveData();
+            GetReserveTimeInfo(ref resInfo);
+
+            //番組表を読み込んでいなくても当該EPG予約のイベントデータは通常取得されている
+            if (resInfo.IsSamePg(reserveInfo))
+            {
+                resInfo = reserveInfo;
+            }
+
+            EpgEventInfo eventInfo = eventInfoNow ?? resInfo.GetPgInfo();
+
+            if (eventInfo == null)
+            {
+                MessageBox.Show("保存可能な番組情報が見つかりません。\r\n" +
+                                "EPGの期間外か、EPGデータが読み込まれていません。");
+                return;
+            }
+
+            //取得出来たので一応保存しておく
+            if (eventInfoNow == null && resModeProgram == false)
+            {
+                eventInfoNow = eventInfo;
+            }
+            CommonManager.Save_ProgramText(eventInfo, resInfo.RecFileNameList.FirstOrDefault());
         }
 
         //一応大丈夫だが、クリックのたびに実行されないようにしておく。

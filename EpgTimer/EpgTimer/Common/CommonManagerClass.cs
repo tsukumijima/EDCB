@@ -666,6 +666,29 @@ namespace EpgTimer
             }
         }
 
+        public static void Save_ProgramText(EpgEventInfo info, string filename = "")
+        {
+            Save_ProgramText(ConvertProgramText(info, EventInfoTextMode.AllForProgramText), string.IsNullOrEmpty(filename) ? info.DataTitle : filename);
+        }
+        public static void Save_ProgramText(string text, string filename = "")
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog();
+            dlg.DefaultExt = ".txt";
+            dlg.FileName = string.IsNullOrEmpty(filename) ? "a" : Path.GetFileName(filename) + ".program.txt";
+            dlg.Filter = "txt Files|*.txt|all Files|*.*";
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var file = new StreamWriter(dlg.FileName, false, Encoding.UTF8))
+                    {
+                        file.Write(text);
+                    }
+                }
+                catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+            }
+        }
+
         public static string ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode, ReserveData resInfo = null)
         {
             if (eventInfo == null) return "";
