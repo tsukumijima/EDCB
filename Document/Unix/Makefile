@@ -27,11 +27,22 @@ tsidmove-edcb: ../../Common/ParseTextInstances.cpp \
                ../../Common/TimeUtil.cpp \
                ../../Tools/tsidmove/tsidmove.cpp
 	$(CXX) -Wl,-s -I../../Tools/tsidmove -std=c++17 -pedantic-errors -Os -o $@ $+
-tools: asyncbuf relayread tsidmove-edcb
+tspgtxt: ../../BonCtrl/PacketInit.cpp \
+         ../../BonCtrl/PATUtil.cpp \
+         ../../Common/EpgDataCap3Util.cpp \
+         ../../Common/EpgTimerUtil.cpp \
+         ../../Common/PathUtil.cpp \
+         ../../Common/StringUtil.cpp \
+         ../../Common/TimeUtil.cpp \
+         ../../Common/TSBuffUtil.cpp \
+         ../../Common/TSPacketUtil.cpp \
+         ../../Tools/tspgtxt/tspgtxt.cpp
+	$(CXX) -Wl,-s -I../../Tools/tspgtxt -std=c++17 -pedantic-errors -Os -o $@ $+
+tools: asyncbuf relayread tsidmove-edcb tspgtxt
 clean_tools:
-	$(RM) asyncbuf relayread tsidmove-edcb
+	$(RM) asyncbuf relayread tsidmove-edcb tspgtxt
 install_tools: tools
-	install asyncbuf relayread tsidmove-edcb /usr/local/bin
+	install asyncbuf relayread tsidmove-edcb tspgtxt /usr/local/bin
 
 b24tovtt.tar.gz:
 	curl -Lo $@ https://github.com/xtne6f/b24tovtt/archive/refs/tags/master-220402.tar.gz

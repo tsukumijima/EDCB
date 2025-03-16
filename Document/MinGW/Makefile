@@ -29,6 +29,17 @@ tsidmove.exe: ../../Common/ParseTextInstances.cpp \
               ../../Common/TimeUtil.cpp \
               ../../Tools/tsidmove/tsidmove.cpp
 	$(CXX) -municode -Wl,-s -static-libgcc -static-libstdc++ -I../../Tools/tsidmove -D_UNICODE -std=c++17 -pedantic-errors -Os -o $@ $+
-tools: asyncbuf.exe relayread.exe tsidmove.exe
+tspgtxt.exe: ../../BonCtrl/PacketInit.cpp \
+             ../../BonCtrl/PATUtil.cpp \
+             ../../Common/EpgDataCap3Util.cpp \
+             ../../Common/EpgTimerUtil.cpp \
+             ../../Common/PathUtil.cpp \
+             ../../Common/StringUtil.cpp \
+             ../../Common/TimeUtil.cpp \
+             ../../Common/TSBuffUtil.cpp \
+             ../../Common/TSPacketUtil.cpp \
+             ../../Tools/tspgtxt/tspgtxt.cpp
+	$(CXX) -municode -Wl,-s -static-libgcc -static-libstdc++ -I../../Tools/tspgtxt -D_UNICODE -std=c++17 -pedantic-errors -Os -o $@ $+
+tools: asyncbuf.exe relayread.exe tsidmove.exe tspgtxt.exe
 clean_tools:
-	$(RM) asyncbuf.exe relayread.exe tsidmove.exe
+	$(RM) asyncbuf.exe relayread.exe tsidmove.exe tspgtxt.exe
