@@ -156,10 +156,7 @@ namespace EpgTimer
                 updateEpgData = false;
                 ReloadReserveViewItem();
                 updateReserveData = false;
-                if (baseTime < CommonManager.Instance.DB.EventBaseTime)
-                {
-                    epgProgramView.scrollViewer.ScrollToVerticalOffset(0);
-                }
+                //現在番組表への移動では現在日時にスクロールされる。過去番組表への移動ではスクロール位置を維持する
                 return true;
             }
             baseTime = lastTime;

@@ -582,14 +582,29 @@ namespace EpgTimer
         {
             DateTime lastTime = baseTime;
             baseTime = time < CommonManager.Instance.DB.EventBaseTime ? time : DateTime.MaxValue;
+            TimeSpan lastOffsetTime = TimeSpan.Zero;
+            if (timeList.Count > 0)
+            {
+                int index = Math.Max((int)(epgProgramView.scrollViewer.VerticalOffset / (60 * setViewInfo.EpgSetting.MinHeight)), 0);
+                index = Math.Min(index, timeList.Count - 1);
+                lastOffsetTime = TimeSpan.FromDays((int)timeList.Keys[index].DayOfWeek) + timeList.Keys[index].TimeOfDay;
+            }
             if (ReloadEpgData())
             {
                 updateEpgData = false;
                 ReloadReserveViewItem();
                 updateReserveData = false;
+                //現在番組表への移動では現在日時にスクロールされる。過去番組表への移動ではなるべく週の同じ日時にスクロールする
                 if (baseTime < CommonManager.Instance.DB.EventBaseTime)
                 {
-                    epgProgramView.scrollViewer.ScrollToVerticalOffset(0);
+                    for (int i = 0; i <= timeList.Count; i++)
+                    {
+                        if (i == timeList.Count || TimeSpan.FromDays((int)timeList.Keys[i].DayOfWeek) + timeList.Keys[i].TimeOfDay >= lastOffsetTime)
+                        {
+                            epgProgramView.scrollViewer.ScrollToVerticalOffset(Math.Max(i * 60 * setViewInfo.EpgSetting.MinHeight, 0));
+                            break;
+                        }
+                    }
                 }
                 return true;
             }
