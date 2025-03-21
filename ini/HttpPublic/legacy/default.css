@@ -628,9 +628,7 @@ th, td {
   /* The top/bottom border of #jikkyo-comm must be 1px */
   border: 1px solid #ccc;
   flex: 0 0 25%;
-  font-size: small;
   margin-left: 1px;
-  overflow: auto;
 }
 
 #jikkyo-comm.minimized {
@@ -638,29 +636,47 @@ th, td {
   width: 0;
 }
 
-#jikkyo-comm > .closed {
+#jikkyo-comm > button {
+  display: none;
+  margin: 0;
+}
+
+#jikkyo-comm.shiftable > button {
+  display: unset;
+}
+
+#jikkyo-comm.minimized > button {
+  display: none;
+}
+
+#jikkyo-chats {
+  font-size: small;
+  overflow: auto;
+}
+
+#jikkyo-chats > .closed {
   border-top: 1px dotted #aaa;
 }
 
-#jikkyo-comm > div > .nico {
+#jikkyo-chats > div > .nico {
   background: #fff;
   color: #00a;
   margin-left: 0.2em;
   margin-right: 0.2em;
 }
 
-#jikkyo-comm > div > .refuge {
+#jikkyo-chats > div > .refuge {
   background: #fff;
   color: #900;
   margin-left: 0.2em;
   margin-right: 0.2em;
 }
 
-#jikkyo-comm .dark {
+#jikkyo-chats .dark {
   color: #fff;
 }
 
-#jikkyo-comm .light {
+#jikkyo-chats .light {
   color: #000;
 }
 
@@ -850,12 +866,16 @@ th, td {
     border-color: #f55;
   }
 
-  #jikkyo-comm > div > .nico {
+  #jikkyo-comm {
+    border-color: #333;
+  }
+
+  #jikkyo-chats > div > .nico {
     background: inherit;
     color: #66c;
   }
 
-  #jikkyo-comm > div > .refuge {
+  #jikkyo-chats > div > .refuge {
     background: inherit;
     color: #c66;
   }

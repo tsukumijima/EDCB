@@ -248,9 +248,10 @@ USE_DATACAST=true
 --利用には実況を扱うツール側の対応(NicoJKの場合はcommentShareMode)が必要
 USE_LIVEJK=true
 
---実況ログ表示機能を使う場合、jkrdlog.exeの絶対パス
+--実況ログ表示機能を使う場合、jkrdlog.exeの絶対パス。Windows以外ではコマンド名
 JKRDLOG_PATH=nil
---JKRDLOG_PATH='C:\\Path\\to\\jkrdlog.exe'
+--JKRDLOG_PATH='C:\\Path\\to\\jkrdlog.exe' --Windows
+--JKRDLOG_PATH='jkrdlog' --Windows以外
 
 --実況コメントの文字の高さ(px)
 JK_COMMENT_HEIGHT=32
@@ -340,7 +341,12 @@ function VideoWrapperBegin()
 end
 
 function VideoWrapperEnd()
-  return '</div><div id="jikkyo-comm" style="display:none"></div></div></div>'
+  return '</div><div id="jikkyo-comm" style="display:none">'
+    ..'<button type="button" onclick="shiftJikkyo(-15)">-15</button>'
+    ..'<button type="button" onclick="shiftJikkyo(-1)">-1</button>'
+    ..'<button type="button" onclick="shiftJikkyo(1)">+1</button>'
+    ..'<button type="button" onclick="shiftJikkyo(15)">+15</button>'
+    ..'<div id="jikkyo-chats"></div></div></div></div>'
 end
 
 function TranscodeSettingTemplate(xq,fsec)
@@ -385,7 +391,7 @@ end
 
 function OnscreenButtonsScriptTemplate(xcode)
   return [=[
-<script src="script.js?ver=20250108"></script>
+<script src="script.js?ver=20250321"></script>
 <script>
 runOnscreenButtonsScript(]=]..(xcode and 'true' or 'false')..[=[);
 </script>
@@ -410,20 +416,20 @@ function WebBmlScriptTemplate(label)
 ]=] or ''
 end
 
-function JikkyoScriptTemplate(live,jikkyo)
+function JikkyoScriptTemplate(live,shiftable,jikkyo)
   return (live and USE_LIVEJK or not live and JKRDLOG_PATH) and [=[
 <label><input id="cb-jikkyo"]=]..Checkbox(jikkyo)..[=[>jikkyo</label>
 <label class="enabled-on-checked"><input id="cb-jikkyo-onscr" type="checkbox" checked>onscr</label>
 <script src="danmaku.js"></script>
 <script>
-runJikkyoScript(]=]..JK_COMMENT_HEIGHT..','..JK_COMMENT_DURATION..',function(tag){'..JK_CUSTOM_REPLACE..[=[
+runJikkyoScript(]=]..(shiftable and 'true' or 'false')..','..JK_COMMENT_HEIGHT..','..JK_COMMENT_DURATION..',function(tag){'..JK_CUSTOM_REPLACE..[=[
   return tag;});
 </script>
 ]=] or ''
 end
 
 function VideoScriptTemplate()
-  return OnscreenButtonsScriptTemplate(false)..WebBmlScriptTemplate('datacast.psc')..JikkyoScriptTemplate(false,XCODE_CHECK_JIKKYO)..[=[
+  return OnscreenButtonsScriptTemplate(false)..WebBmlScriptTemplate('datacast.psc')..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
 <label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>caption.vtt</label>
 <script src="aribb24.js"></script>
 <script>
@@ -438,7 +444,7 @@ runVideoScript(]=]
 end
 
 function TranscodeScriptTemplate(live,caption,jikkyo,params)
-  return OnscreenButtonsScriptTemplate(true)..WebBmlScriptTemplate('datacast')..JikkyoScriptTemplate(live,jikkyo)..[=[
+  return OnscreenButtonsScriptTemplate(true)..WebBmlScriptTemplate('datacast')..JikkyoScriptTemplate(live,false,jikkyo)..[=[
 <label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(caption)..[=[>caption</label>
 ]=]..(live and '<label><input id="cb-live" type="checkbox">live</label>\n' or '')
   ..(not live and THUMBNAIL_ON_SEEK and EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') and [=[

@@ -498,10 +498,13 @@ var onJikkyoStream=null;
 var onJikkyoStreamError=null;
 var checkJikkyoDisplay=function(){};
 var toggleJikkyo;
+var jikkyoOffsetSec=0;
+var shiftJikkyo=function(){};
 
-function runJikkyoScript(commentHeight,commentDuration,replaceTag){
+function runJikkyoScript(shiftable,commentHeight,commentDuration,replaceTag){
   var danmaku=null;
   var comm=document.getElementById("jikkyo-comm");
+  var chats=document.getElementById("jikkyo-chats");
   var checkScrollID=0;
   var cbJikkyoOnscr=document.getElementById("cb-jikkyo-onscr");
   function onclickJikkyoOnscr(){
@@ -566,17 +569,25 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
       b.innerText=text;
       var div=document.createElement("div");
       div.appendChild(b);
-      comm.appendChild(div);
+      chats.appendChild(div);
+    }
+    if(shiftable){
+      comm.classList.add("shiftable");
+      shiftJikkyo=function(sec){
+        jikkyoOffsetSec+=sec;
+        addMessage("Offset "+jikkyoOffsetSec+"sec");
+      };
     }
     var commHide=true;
     checkScrollID=setInterval(function(){
       if(getComputedStyle(comm).display=="none"||getComputedStyle(vfull).display=="none"){
         commHide=true;
       }else{
-        var scroll=Math.abs(comm.scrollTop+comm.clientHeight-comm.scrollHeight)<comm.clientHeight/4;
+        var scroll=Math.abs(chats.scrollTop+chats.clientHeight-chats.scrollHeight)<chats.clientHeight/4;
         //The top/bottom border of #jikkyo-comm must be 1px
         comm.style.height=vid.e.clientHeight-2+"px";
-        if(commHide||scroll)comm.scrollTop=comm.scrollHeight;
+        chats.style.height=vid.e.clientHeight-2+comm.getBoundingClientRect().y-chats.getBoundingClientRect().y+"px";
+        if(commHide||scroll)chats.scrollTop=chats.scrollHeight;
         commHide=false;
       }
     },1000);
@@ -629,9 +640,9 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
       if(tag.indexOf(";T=")<0)scatterInterval=90;
       else scatterInterval=Math.min(Math.max(scatterInterval+(scatter.length>0?-10:10),100),200);
       setTimeout(function(){
-        var scroll=Math.abs(comm.scrollTop+comm.clientHeight-comm.scrollHeight)<comm.clientHeight/4;
+        var scroll=Math.abs(chats.scrollTop+chats.clientHeight-chats.scrollHeight)<chats.clientHeight/4;
         if(fragment){
-          comm.appendChild(fragment);
+          chats.appendChild(fragment);
           fragment=null;
         }
         if(scatterInterval<100){
@@ -650,11 +661,11 @@ function runJikkyoScript(commentHeight,commentDuration,replaceTag){
           }
         }
         if(commHide||scroll){
-          while(comm.childElementCount>1000){
-            comm.removeChild(comm.firstElementChild);
+          while(chats.childElementCount>1000){
+            chats.removeChild(chats.firstElementChild);
           }
         }
-        if(scroll)comm.scrollTop=comm.scrollHeight;
+        if(scroll)chats.scrollTop=chats.scrollHeight;
       },0);
     };
     onJikkyoStreamError=function(status,readCount){
@@ -769,11 +780,11 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
       var videoLastSec=0;
       function startRead(){
         clearTimeout(readTimer);
-        var startSec=vid.e.currentTime;
+        var startSec=vid.e.currentTime+jikkyoOffsetSec;
         videoLastSec=startSec;
         var ctx={};
         function read(){
-          var videoSec=vid.e.currentTime;
+          var videoSec=vid.e.currentTime+jikkyoOffsetSec;
           if(videoSec<videoLastSec||videoLastSec+10<videoSec){
             startRead();
             return;
