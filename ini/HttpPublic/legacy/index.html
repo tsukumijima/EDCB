@@ -36,6 +36,7 @@ if SHOW_DEBUG_LOG then
 end
 ct:Append([=[
     </li>
+]=]..(EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'log') and '    <li><a href="log/">logフォルダ</a></li>\n' or '')..[=[
     <li><a href="library.html">ライブラリ</a></li>
     <li><a href="setting.html">設定メニュー</a></li>
   </ul>
