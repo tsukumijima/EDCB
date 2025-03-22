@@ -146,10 +146,8 @@ namespace EpgTimer.EpgView
         protected EpgViewState restoreState = null;
         protected class StateBase : EpgViewState
         {
-            public DateTime? scrollTime = null;
             public EpgViewPeriod period = null;
             public bool? isDefPeriod = null;
-            public bool? isJumpDate = null;
 
             public StateBase() { }
             public StateBase(EpgViewBase view)
@@ -300,10 +298,10 @@ namespace EpgTimer.EpgView
             movePanel = tm;
             buttonNow = bn;
 
-            jumpPanel.JumpDateClick += JumpDate;
+            jumpPanel.JumpDateClick += period => JumpDate(period, true);
             jumpPanel.SetViewData(viewData);
             movePanel.OpenToggleClick += MovePanel_OpenToggleClick;
-            movePanel.MoveButtonClick += MovePanel_MoveButtonClick;
+            movePanel.MoveButtonClick += direction => JumpDate(MoveTimeTarget(direction), true);
             movePanel.MoveButtonToolTipOpen += MovePanel_MoveButtonTooltip;
             buttonNow.Click += (sender, e) => NowTimeClick(true);
         }
@@ -313,27 +311,22 @@ namespace EpgTimer.EpgView
             IsJumpPanelOpened = isOpen;
             RefreshMoveButtonStatus();
         }
-        protected virtual void MovePanel_MoveButtonClick(int mode)
-        {
-            SetJumpState();
-            JumpDate(MoveTimeTarget(mode));
-        }
         protected virtual void SetJumpState() { }
-        protected EpgViewPeriod MoveTimeTarget(int mode)
+        protected EpgViewPeriod MoveTimeTarget(int direction)
         {
             var start = ViewPeriod.Start;
             if (this.EpgStyle().EpgArcStartSunday && start.DayOfWeek != DayOfWeek.Sunday)
             {
-                start += TimeSpan.FromDays(mode * (mode < 0 ? DefPeriod.InitDays : ViewPeriod.Days));
+                start += TimeSpan.FromDays(direction * (direction < 0 ? DefPeriod.InitDays : ViewPeriod.Days));
                 var offset = (int)start.DayOfWeek;
                 if (offset != 0)
                 {
-                    start += TimeSpan.FromDays(-offset + (mode < 0 ? 7 : 0));
+                    start += TimeSpan.FromDays(-offset + (direction < 0 ? 7 : 0));
                 }
             }
             else
             {
-                start += TimeSpan.FromDays(mode * (mode < 0 ? DefPeriod.InitMoveDays : ViewPeriod.MoveDays));
+                start += TimeSpan.FromDays(direction * (direction < 0 ? DefPeriod.InitMoveDays : ViewPeriod.MoveDays));
             }
             return start >= DefPeriod.InitStart ? DefPeriod.DefPeriod : new EpgViewPeriod(start, DefPeriod.InitDays);
         }
@@ -342,8 +335,9 @@ namespace EpgTimer.EpgView
             e.Handled = !btn.IsEnabled;
             btn.ToolTip = MoveTimeTarget(mode).ConvertText(DefPeriod.DefPeriod.End);
         }
-        public void JumpDate(EpgViewPeriod period = null)
+        public void JumpDate(EpgViewPeriod period = null, bool IsSetJumpState = false)
         {
+            if(IsSetJumpState) SetJumpState();
             period = period ?? DefPeriod.DefPeriod;
             if (period.Equals(ViewPeriod)) return;
             ViewPeriod = period.DeepClone();

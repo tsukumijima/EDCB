@@ -12,11 +12,14 @@ namespace EpgTimer.EpgView
     {
         protected class StateMainBase : StateBase
         {
+            public DateTime? scrollTime = null;
+            public bool? isJumpDate = null;
+
             public StateMainBase() { }
             public StateMainBase(EpgMainViewBase view) : base(view) { scrollTime = view.GetScrollTime(); }
         }
-        //public override EpgViewState GetViewState() { return new StateMainBase(this); }
-        //protected new StateMainBase RestoreState { get { return restoreState as StateMainBase ?? new StateMainBase(); } }
+        public override EpgViewState GetViewState() { return new StateMainBase(this); }
+        protected new StateMainBase RestoreState { get { return restoreState as StateMainBase ?? new StateMainBase(); } }
 
         protected Dictionary<UInt64, ProgramViewItem> programList = new Dictionary<UInt64, ProgramViewItem>();
         protected List<ReserveViewItem> reserveList = new List<ReserveViewItem>();
