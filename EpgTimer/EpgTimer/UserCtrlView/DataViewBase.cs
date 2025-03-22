@@ -154,7 +154,7 @@ namespace EpgTimer
             List<SearchItem> sList = list.Skip(idx).Concat(list.Take(idx)).ToList();
             if (direction < 0) sList.Reverse(0, sList.Count - (idx == 0 ? 0 : 1));
             object hit = null;
-            SearchItem item = sList.FirstOrDefault(info => (hit = MenuUtil.GetRecFileInfo(info.EventInfo)) != null);
+            SearchItem item = sList.FirstOrDefault(info => (hit = info.EventInfo.GetRecinfoFromPgUID()) != null);
 
             if (move == true) ItemIdx = ViewUtil.ScrollToFindItem(item, DataListBox, style);
             return hit;

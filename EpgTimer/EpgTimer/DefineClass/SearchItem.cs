@@ -326,10 +326,7 @@ namespace EpgTimer
         }
         public override string ConvertInfoText(object param = null)
         {
-            return CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.BasicInfo)
-                + CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.BasicText)
-                + CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.ExtendedText)
-                + CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.PropertyInfo, ReserveInfo).TrimEnd();
+            return CommonManager.ConvertProgramText(EventInfo).TrimEnd();
         }
         public virtual string Status
         {
@@ -342,7 +339,7 @@ namespace EpgTimer
                         string ret = new ReserveItem(ReserveInfo).Status;
                         return ret != "" ? ret : ReserveInfo.IsWatchMode ? "視" : "予";
                     }
-                    if (MenuUtil.GetRecFileInfo(EventInfo) != null)
+                    if (EventInfo.GetRecinfoFromPgUID() != null)
                     {
                         return "済";//放映中でも「済」なら優先する
                     }
@@ -373,7 +370,7 @@ namespace EpgTimer
                     {
                         idx = 2;
                     }
-                    else if (MenuUtil.GetRecFileInfo(EventInfo) != null)
+                    else if (EventInfo.GetRecinfoFromPgUID() != null)
                     {
                         idx = 4;//色は放映中を優先する
                     }

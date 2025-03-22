@@ -428,19 +428,19 @@ namespace EpgTimer
                 | ((UInt32)Create16Key(key64Pg >> 16)) << 16 | (UInt16)key64Pg;
         }
 
-        public static String Convert64PGKeyString(UInt64 Key, string separator = "\r\n")
+        public static string Convert64PGKeyString(UInt64 Key, string separator = "\r\n", bool chDisplay = true)
         {
-            return Convert64KeyString(Key >> 16, separator) + separator
+            return Convert64KeyString(Key >> 16, separator, chDisplay) + separator
                 + ConvertEpgIDString("EventID", Key);
         }
-        public static String Convert64KeyString(UInt64 Key, string separator = "\r\n", bool chDisplay = true)
+        public static string Convert64KeyString(UInt64 Key, string separator = "\r\n", bool chDisplay = true)
         {
             int chnum = chDisplay ? ChSet5.ChNumber(Key) : 0;
-            return ConvertEpgIDString("OriginalNetworkID", Key >> 32) + separator +
-            ConvertEpgIDString("TransportStreamID", Key >> 16) + separator +
-            ConvertEpgIDString("ServiceID", Key) + (chnum == 0 ? "" : " [" + chnum + "ch]");
+            return string.Join(separator, ConvertEpgIDString("OriginalNetworkID", Key >> 32),
+                            ConvertEpgIDString("TransportStreamID", Key >> 16),
+                            ConvertEpgIDString("ServiceID", Key) + (chnum == 0 ? "" : " [" + chnum + "ch]"));
         }
-        private static String ConvertEpgIDString(String Title, UInt64 id)
+        private static string ConvertEpgIDString(string Title, UInt64 id)
         {
             return string.Format("{0} : {1} (0x{1:X4})", Title, (UInt16)id);
         }
@@ -689,7 +689,7 @@ namespace EpgTimer
             }
         }
 
-        public static string ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode, ReserveData resInfo = null)
+        public static string ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode = EventInfoTextMode.All)
         {
             if (eventInfo == null) return "";
 
@@ -1084,15 +1084,11 @@ namespace EpgTimer
             return text;
         }
 
-        public static FlowDocument ConvertDisplayText(SearchItem searchInfo)
-        {
-            return ConvertDisplayText(searchInfo.EventInfo, searchInfo.ReserveInfo);
-        }
-        public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo, ReserveData resInfo = null)
+        public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo)
         {
             string basicInfo = ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfo) + ConvertProgramText(eventInfo, EventInfoTextMode.BasicText);
             string extText = ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedText);
-            string propertyInfo = ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo, resInfo);
+            string propertyInfo = ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo);
             if (string.IsNullOrWhiteSpace(basicInfo)) basicInfo = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。\r\n";
 
             return ConvertDisplayText(basicInfo, extText, propertyInfo);
@@ -1172,43 +1168,6 @@ namespace EpgTimer
                 }
             }
             para.Inlines.Add(text.Substring(plainStart));
-            return new FlowDocument(para);
-        }
-        public static FlowDocument ConvertDisplayText(string text)
-        {
-            int searchFrom = 0;
-            var para = new Paragraph();
-            string rtext = ReplaceText(text, ReplaceUrlDictionary);
-            if (rtext.Length == text.Length)
-            {
-                //http(s)スキームで始まるか特定のTLDっぽい文字列を含むものを探す
-                for (Match m = Regex.Match(rtext, @"(?:https?://|(?<![0-9A-Za-z%_/.-])[0-9A-Za-z%_.-]+\.(?:com|jp|tv)/)[0-9A-Za-z!#$%&'()~=@;:?_+*/.-]+"); m.Success; m = m.NextMatch())
-                {
-                    para.Inlines.Add(text.Substring(searchFrom, m.Index - searchFrom));
-                    var h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
-                    h.MouseLeftButtonDown += (sender, e) =>
-                    {
-                        try
-                        {
-                            using (Process.Start(((Hyperlink)sender).NavigateUri.ToString())) { }
-                        }
-                        catch (Exception ex) { MessageBox.Show(ex.ToString()); }
-                    };
-                    h.Foreground = SystemColors.HotTrackBrush;
-                    h.Cursor = Cursors.Hand;
-                    try
-                    {
-                        h.NavigateUri = new Uri((Regex.IsMatch(m.Value, "^https?://") ? "" : "https://") + m.Value);
-                        para.Inlines.Add(h);
-                    }
-                    catch
-                    {
-                        para.Inlines.Add(text.Substring(m.Index, m.Length));
-                    }
-                    searchFrom = m.Index + m.Length;
-                }
-            }
-            para.Inlines.Add(text.Substring(searchFrom));
             return new FlowDocument(para);
         }
 

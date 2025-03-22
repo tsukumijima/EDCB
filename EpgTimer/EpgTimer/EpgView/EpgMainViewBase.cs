@@ -265,7 +265,7 @@ namespace EpgTimer.EpgView
         protected int recIdx = -1;
         public override object MoveNextRecinfo(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
-            return MenuUtil.GetRecFileInfo(ViewUtil.MoveNextReserve(ref recIdx, programView, recinfoList, ref clickPos, id, direction, move, style) as ReserveDataEnd);
+            return (ViewUtil.MoveNextReserve(ref recIdx, programView, recinfoList, ref clickPos, id, direction, move, style) as ReserveDataEnd).GetRecinfoFromPgUID();
         }
 
         /// <summary>表示位置を現在の時刻にスクロールする</summary>

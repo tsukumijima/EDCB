@@ -1076,19 +1076,6 @@ namespace EpgTimer
             return IsEnabled == null ? list : list.FindAll(data => data.IsEnabled == IsEnabled);
         }
 
-        public static RecFileInfo GetRecFileInfo(IAutoAddTargetData data)
-        {
-            List<RecFileInfo> list = GetRecFileInfoList(data);
-            return list == null ? null : list.FirstOrDefault();
-        }
-        public static List<RecFileInfo> GetRecFileInfoList(IAutoAddTargetData data)
-        {
-            if (data == null) return null;
-            List<RecFileInfo> list = null;
-            CommonManager.Instance.DB.RecFileUIDList.TryGetValue(data.CurrentPgUID(), out list);
-            return list ?? new List<RecFileInfo>();
-        }
-
         public static void JumpTab(object target, CtxmCode trg_code)
         {
             if (target == null) return;

@@ -188,7 +188,7 @@ namespace EpgTimer
             richTextBox_eventInfo.Document.Blocks.Clear();
             if (listView_event.SelectedItem == null) return;
             //
-            richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText(listView_event.SelectedItem as SearchItem);
+            richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText((listView_event.SelectedItem as SearchItem).EventInfo);
         }
 
         protected override void MoveNowTime()

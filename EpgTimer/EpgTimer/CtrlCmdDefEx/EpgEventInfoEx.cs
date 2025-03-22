@@ -7,7 +7,7 @@ namespace EpgTimer
 {
     public partial class EpgEventInfo : AutoAddTargetDataStable
     {
-        public override string DataTitle { get { return (ShortInfo == null ? "" : ShortInfo.event_name); } }
+        public override string DataTitle { get { return ShortInfo == null ? "" : ShortInfo.event_name; } }
         public override ulong DataID { get { return CurrentPgUID(); } }
         //過去番組は常にStartTimeFlag=1,DurationFlag=1
         public override DateTime PgStartTime { get { return StartTimeFlag != 0 ? start_time : DateTime.MaxValue; } }

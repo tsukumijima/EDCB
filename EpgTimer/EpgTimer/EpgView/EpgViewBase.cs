@@ -483,7 +483,7 @@ namespace EpgTimer.EpgView
                 ReloadReserveInfo();
                 if(target.ReserveInfo is ReserveDataEnd)
                 {
-                    return MoveToRecInfoItem(MenuUtil.GetRecFileInfo(target.ReserveInfo), style, dryrun) >= 0;
+                    return MoveToRecInfoItem(target.ReserveInfo.GetRecinfoFromPgUID(), style, dryrun) >= 0;
                 }
                 else
                 {

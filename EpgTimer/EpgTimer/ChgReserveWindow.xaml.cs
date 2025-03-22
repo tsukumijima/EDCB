@@ -24,8 +24,8 @@ namespace EpgTimer
         private bool resModeProgram = true;         //プログラム予約かEPG予約か
         private bool initOpen = true;
 
-        private EpgEventInfo eventInfoNow = null;
-        private ReserveData resInfoDisplay = null;
+        private EpgEventInfo eventInfoNow = null;    //プログラム予約時は常にnull
+        private ReserveData resInfoDisplay = null;   //番組詳細タブに表示されている番組の予約時間設定
 
         static ChgReserveWindow()
         {
@@ -152,9 +152,8 @@ namespace EpgTimer
             bool setMode = false;
             if (resModeProgram == false)
             {
-                var resinfo = new ReserveData();
-                this.GetReserveTimeInfo(ref resinfo);
-                setMode = CommonManager.Instance.DB.ReserveList.Values.Any(rs => rs.IsEpgReserve && rs.IsSamePg(resinfo));
+                ReserveData resInfo = GetReserveTimeInfo();
+                setMode = CommonManager.Instance.DB.ReserveList.Values.Any(rs => rs.IsEpgReserve && rs.IsSamePg(resInfo));
             }
             button_add_reserve.Content = setMode == true ? "重複追加" : "追加";
         }
@@ -188,7 +187,7 @@ namespace EpgTimer
             SetReserveTimeInfo(reserveInfo);
 
             //番組詳細タブを初期化
-            richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(null, null);
+            richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(null);
             eventInfoNow = null;
             resInfoDisplay = null;
 
@@ -216,23 +215,23 @@ namespace EpgTimer
             }
         }
 
-        private void SetReserveTimeInfo(ReserveData resInfo)
+        private void SetReserveTimeInfo(IBasicPgInfo info)
         {
-            if (resInfo == null) return;
-
+            if (info == null) return;
+            
             try
             {
-                Title = ViewUtil.WindowTitleText(resInfo.Title, addMode == AddMode.Add ? "予約登録" : "予約変更");
+                Title = ViewUtil.WindowTitleText(info.DataTitle, addMode == AddMode.Add ? "予約登録" : "予約変更");
 
                 //テキストの選択位置を戻す
                 textBox_title.Text = null;
-                Dispatcher.BeginInvoke(new Action(() => textBox_title.Text = resInfo.Title), DispatcherPriority.Render);
+                Dispatcher.BeginInvoke(new Action(() => textBox_title.Text = info.DataTitle), DispatcherPriority.Render);
 
-                comboBox_service.SelectedItem = ChSet5.ChItem(resInfo.Create64Key());
+                comboBox_service.SelectedItem = ChSet5.ChItem(info.Create64Key());
                 if (comboBox_service.SelectedItem == null) comboBox_service.SelectedIndex = 0;
 
-                DateTime startTime = resInfo.StartTime;
-                DateTime endTime = resInfo.StartTime.AddSeconds(resInfo.DurationSecond);
+                DateTime startTime = info.PgStartTime;
+                DateTime endTime = info.PgStartTime.AddSeconds(info.PgDurationSecond);
 
                 //深夜時間帯の処理
                 bool use28 = Settings.Instance.LaterTimeUse == true && (endTime - startTime).TotalDays < 1;
@@ -252,6 +251,12 @@ namespace EpgTimer
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
+        private ReserveData GetReserveTimeInfo()
+        {
+            var resInfo = new ReserveData();
+            GetReserveTimeInfo(ref resInfo);
+            return resInfo;
+        }
         private int GetReserveTimeInfo(ref ReserveData resInfo)
         {
             if (resInfo == null) return -1;
@@ -333,7 +338,7 @@ namespace EpgTimer
                     }
 
                     //サービスや時間が変わったら、個別予約扱いにする。タイトルのみ変更は見ない。
-                    if (resInfo.EventID != 0xFFFF || reserveInfo.IsSamePg(resInfo) == false)
+                    if (resInfo.EventID != 0xFFFF || !resInfo.IsSamePg(reserveInfo))
                     {
                         resInfo.EventID = 0xFFFF;
                         resInfo.ReleaseAutoAdd();
@@ -342,7 +347,7 @@ namespace EpgTimer
                 else
                 {
                     //EPG予約に変える場合、またはEPG予約で別の番組に変わる場合
-                    if (eventInfoNow != null && (reserveInfo.IsManual == true || reserveInfo.IsSamePg(eventInfoNow) == false))
+                    if (eventInfoNow != null && (reserveInfo.IsManual || !reserveInfo.IsSamePg(eventInfoNow)))
                     {
                         //基本的にAddReserveEpgWindowと同じ処理内容
                         if (MenuUtil.CheckReservable(eventInfoNow.IntoList()) == null) return;
@@ -413,8 +418,7 @@ namespace EpgTimer
 
         private void Save_ProgramText(object sender, ExecutedRoutedEventArgs e)
         {
-            var resInfo = new ReserveData();
-            GetReserveTimeInfo(ref resInfo);
+            ReserveData resInfo = GetReserveTimeInfo();
 
             //番組表を読み込んでいなくても当該EPG予約のイベントデータは通常取得されている
             if (resInfo.IsSamePg(reserveInfo))
@@ -461,10 +465,9 @@ namespace EpgTimer
             eventInfoNow = null;
             if (programMode == false)
             {
-                var resInfo = new ReserveData();
-                GetReserveTimeInfo(ref resInfo);
+                ReserveData resInfo = GetReserveTimeInfo();
 
-                if (reserveInfo.IsSamePg(resInfo))
+                if (resInfo.IsSamePg(reserveInfo))
                 {
                     //元プログラム予約でも番組が見つかる可能性がある
                     resInfo = reserveInfo;
@@ -486,7 +489,7 @@ namespace EpgTimer
                 }
                 else
                 {
-                    SetReserveTimeInfo(eventInfoNow.ToReserveData());
+                    SetReserveTimeInfo(eventInfoNow);
                 }
             }
         }
@@ -496,20 +499,22 @@ namespace EpgTimer
             //ComboBoxのSelectionChangedにも反応するので。(WPFの仕様)
             if (sender != e.OriginalSource) return;
 
-            selectedTab = tabControl.SelectedIndex != -1 ? tabControl.SelectedIndex : selectedTab;
-            if (tabItem_program.IsSelected) RefreshProgramTab();
+            if (tabControl.SelectedIndex != -1) selectedTab = tabControl.SelectedIndex;
+            RefreshProgramTab();
         }
-        private void RefreshProgramTab(bool force = false)
+        private void RefreshProgramTab(bool reload = false)
         {
-            var resInfo = new ReserveData();
-            GetReserveTimeInfo(ref resInfo);
+            if (reload) resInfoDisplay = null;
+            if (!tabItem_program.IsSelected) return;
 
-            //描画軽減。人の操作では気にするほどのことはないが、保険。
-            if (force = false && resInfo.IsSamePg(resInfoDisplay)) return;
+            ReserveData resInfo = GetReserveTimeInfo();
+
+            //再描画不要な場合
+            if (resInfo.IsSamePg(resInfoDisplay)) return;
             resInfoDisplay = resInfo;
 
             //EPGを自動で読み込んでない時でも、元と同じならその番組情報は表示させられるようにする
-            if (reserveInfo.IsSamePg(resInfo))
+            if (resInfo.IsSamePg(reserveInfo))
             {
                 resInfo = reserveInfo;
             }
