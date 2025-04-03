@@ -434,10 +434,7 @@ function runOnscreenButtonsScript(xcode){
   btn=document.createElement("button");
   btn.type="button";
   btn.innerText="\u2713";
-  btn.onclick=function(){
-    if(bcomm.classList.contains("opaque"))bcomm.classList.remove("opaque");
-    else bcomm.classList.add("opaque");
-  };
+  btn.onclick=function(){bcomm.classList.toggle("opaque");};
   bcomm.appendChild(btn);
   var commInput=document.createElement("input");
   commInput.type="text";
@@ -465,13 +462,8 @@ function runOnscreenButtonsScript(xcode){
   bmove.className="move-comment-control";
   bmove.style.display="none";
   btn.onclick=function(){
-    if(bcomm.classList.contains("moved")){
-      bcomm.classList.remove("moved");
-      bmove.classList.remove("moved");
-    }else{
-      bcomm.classList.add("moved");
-      bmove.classList.add("moved");
-    }
+    bcomm.classList.toggle("moved");
+    bmove.classList.toggle("moved");
   };
   bmove.appendChild(btn);
   setSendComment=function(f){
@@ -529,19 +521,14 @@ function runJikkyoScript(shiftable,commentHeight,commentDuration,replaceTag){
       }else{
         comm.style.visibility=null;
         comm.style.display=null;
-        setMinimizeJikkyo(function(){
-          if(comm.classList.contains("minimized"))comm.classList.remove("minimized");
-          else comm.classList.add("minimized");
-        });
+        setMinimizeJikkyo(function(){comm.classList.toggle("minimized");});
         onclickJikkyoOnscr();
       }
     }
   };
   toggleJikkyo=function(enabled){
-    if(checkScrollID){
-      clearInterval(checkScrollID);
-      checkScrollID=0;
-    }
+    clearInterval(checkScrollID);
+    checkScrollID=0;
     if(!enabled){
       onJikkyoStream=null;
       onJikkyoStreamError=null;
@@ -708,7 +695,7 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
   if(useDatacast){
     (function(){
       var psiData=null;
-      var readTimer=null;
+      var readTimer=0;
       var videoLastSec=0;
       function startRead(){
         clearTimeout(readTimer);
@@ -740,7 +727,7 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
         document.querySelector(".remote-control").style.display=cbDatacast.checked?"":"none";
         if(!cbDatacast.checked){
           clearTimeout(readTimer);
-          readTimer=null;
+          readTimer=0;
           hideOnscreenButtons(false);
           bmlBrowserSetInvisible(true);
           vwrap.style.width=null;
@@ -776,7 +763,7 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
   if(useJikkyoLog){
     (function(){
       var logText=null;
-      var readTimer=null;
+      var readTimer=0;
       var videoLastSec=0;
       function startRead(){
         clearTimeout(readTimer);
@@ -807,7 +794,7 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
         if(!cbJikkyo.checked){
           toggleJikkyo(false);
           clearTimeout(readTimer);
-          readTimer=null;
+          readTimer=0;
           return;
         }
         toggleJikkyo(true);
@@ -963,12 +950,12 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
     var vseekLeaved=true;
     var msList=[];
     var vthumb=document.getElementById("vid-thumb");
-    var thumbTimer=null;
+    var thumbTimer=0;
     var thumbXhr=null;
     for(var i=0;i<=100;i++){
       msList[i]=vselect.options[i].textContent.match(/^(?:\d+m\d\ds)?/)[0];
     }
-    vseek.onmouseleave=function(){
+    vseek.ontouchend=vseek.onmouseleave=function(){
       vseekLeaved=true;
       document.getElementById("vid-seek-status").innerText="";
       if(vthumb)vthumb.style.display="none";
@@ -980,7 +967,7 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
       document.getElementById("vid-seek-status").innerText=ms+"\u2192"+msList[vseek.value]+"|"+vseek.value+"%";
       var m=document.getElementById("vidsrc").textContent.match(/\?fname=[^&]*/);
       if(m&&vthumb&&vid.grabFirstFrame){
-        if(thumbTimer)clearTimeout(thumbTimer);
+        clearTimeout(thumbTimer);
         thumbTimer=setTimeout(function(){
           if(vseekLeaved||thumbXhr)return;
           //Get thumbnail of seek position.
@@ -1092,6 +1079,29 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
             }
           }
         });
+        var unfixTimer=0;
+        var lastOfssec=-1;
+        function swt(ofssec){
+          vid.seekWithoutTransition=null;
+          if(!vid.e.style.width){
+            //Temporarily fix the size.
+            vid.e.style.width=vid.e.clientWidth+"px";
+            vid.e.style.height=vid.e.clientHeight+"px";
+            clearTimeout(unfixTimer);
+            unfixTimer=setTimeout(function(){if(/px$/.test(vid.e.style.width))vid.e.style.width=vid.e.style.height=null;},8000);
+          }
+          hls.detachMedia();
+          //To avoid same parameters as last time.
+          lastOfssec=ofssec+(ofssec==lastOfssec?1:0);
+          waitForHlsStart(document.getElementById("vidsrc").textContent+"&ofssec="+lastOfssec+
+            //Excludes Firefox for Android, because playback of non-keyframe fragmented MP4 is jerky.
+            hlsQuery+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,function(){vid.e.poster=null;},function(src){
+            hls.loadSource(src);
+            hls.attachMedia(vid.e);
+            vid.seekWithoutTransition=swt;
+          });
+        }
+        vid.seekWithoutTransition=swt;
       }else if(vid.e.canPlayType("application/vnd.apple.mpegurl")){
         vid.e.src=src;
       }
@@ -1110,6 +1120,20 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
       });
     }else{
       vid.e.src=document.getElementById("vidsrc").textContent;
+      var unfixTimer=0;
+      var lastOfssec=-1;
+      vid.seekWithoutTransition=function(ofssec){
+        if(!vid.e.style.width){
+          //Temporarily fix the size.
+          vid.e.style.width=vid.e.clientWidth+"px";
+          vid.e.style.height=vid.e.clientHeight+"px";
+          clearTimeout(unfixTimer);
+          unfixTimer=setTimeout(function(){if(/px$/.test(vid.e.style.width))vid.e.style.width=vid.e.style.height=null;},8000);
+        }
+        //To avoid same parameters as last time.
+        lastOfssec=ofssec+(ofssec==lastOfssec?1:0);
+        vid.e.src=document.getElementById("vidsrc").textContent+"&ofssec="+lastOfssec;
+      };
     }
   }
 }

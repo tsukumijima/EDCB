@@ -36,7 +36,7 @@ reload=mg.get_var(query,'reload')
 loadKey=reload or mg.get_var(query,'load') or ''
 
 -- クエリのハッシュをキーとし、同一キーアクセスは出力中のインデックスファイルを返す
-hlsKey=hlsKey and mg.md5('xcode:'..hlsKey..':'..fpath..':'..option.xcoder..':'..option.option..':'..offset..':'..audio2..':'..filter..':'..caption..':'..output[2])
+hlsKey=hlsKey and mg.md5('xcode:'..hlsKey..':'..fpath..':'..option.xcoder..':'..option.option..':'..(ofssec or offset)..':'..audio2..':'..filter..':'..caption..':'..output[2])
 
 -- トランスコードを開始し、HLSの場合はインデックスファイルの情報、それ以外はMP4などのストリーム自体を返す
 function OpenTranscoder()

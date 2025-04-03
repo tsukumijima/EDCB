@@ -391,7 +391,7 @@ end
 
 function OnscreenButtonsScriptTemplate(xcode)
   return [=[
-<script src="script.js?ver=20250321"></script>
+<script src="script.js?ver=20250403"></script>
 <script>
 runOnscreenButtonsScript(]=]..(xcode and 'true' or 'false')..[=[);
 </script>
