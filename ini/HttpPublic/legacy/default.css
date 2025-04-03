@@ -330,6 +330,18 @@ th, td {
   border: 2px solid #f00;
 }
 
+#vid-thumbs {
+  position: relative;
+}
+
+#vid-thumbs > div {
+  background: black;
+  color: white;
+  opacity: 0.7;
+  padding: 0 0.1em;
+  position: absolute;
+}
+
 .thumb-1, .thumb-2 {
   aspect-ratio: 16 / 9;
   width: 50%;

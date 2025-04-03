@@ -136,7 +136,7 @@ if r then
           if f then
             fsec,fsize=GetDurationSec(f)
             if vtag<=0 then
-              thumbs=ThumbnailTemplate(f,fsec,fsize)
+              thumbs=ThumbnailTemplate(f,fsec,fsize,ref)
             end
             f:close()
           end

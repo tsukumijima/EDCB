@@ -500,7 +500,7 @@ runTsliveScript(]=]
 ]=]
 end
 
-function ThumbnailTemplate(f,dur,fsize)
+function ThumbnailTemplate(f,dur,fsize,fname)
   --戻り値の配列の先頭は描画目標になるタグ、以降はスクリプト
   local r={'<div id="vid-thumbs"></div>',[=[
 <script type="text/javascript" src="ts-live.lua?t=-misc.js"></script>
@@ -508,24 +508,31 @@ function ThumbnailTemplate(f,dur,fsize)
 setTimeout(function(){
   createMiscWasmModule().then(function(mod){
     var streams=[
-      "]=]}
+      ["]=]}
   if EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') then
     for i=1,math.min(#THUMBNAILS,5) do
-      if SeekSec(f,THUMBNAILS[i]<0 and dur+THUMBNAILS[i] or THUMBNAILS[i]<1 and dur*THUMBNAILS[i] or THUMBNAILS[i],dur,fsize) then
+      local sec=math.floor(THUMBNAILS[i]<0 and dur+THUMBNAILS[i] or THUMBNAILS[i]<1 and dur*THUMBNAILS[i] or THUMBNAILS[i])
+      if SeekSec(f,sec,dur,fsize) then
         --Iフレームを取得してスクリプト上に置いておく
         local stream=GetIFrameVideoStream(f)
         if stream then
           r[#r+1]=mg.base64_encode(stream)
-          r[#r+1]='",\n      "'
+          r[#r+1]='",'..sec..'],\n      ["'
         end
       end
     end
   end
   if #r<=2 then return {''} end
-  r[#r]=[=["
+  r[#r]=r[#r]:gsub('].*','')..[=[]
     ];
+    var flipTimer=0;
+    var pushed=null;
+    var thumbs=document.getElementById("vid-thumbs");
+    var div=document.createElement("div");
+    div.style.display="none";
+    thumbs.appendChild(div);
     for(var i=0;i<streams.length;i++){
-      var b=atob(streams[i]);
+      var b=atob(streams[i][0]);
       var u=new Uint8Array(b.length);
       for(var j=0;j<b.length;j++){
         u[j]=b.charCodeAt(j);
@@ -533,14 +540,65 @@ setTimeout(function(){
       var buffer=mod.getGrabberInputBuffer(u.length);
       buffer.set(u);
       var frame=mod.grabFirstFrame(u.length);
-      if(frame){
+      if(!frame)continue;
+      (function(){
         var canvas=document.createElement("canvas");
+]=]..(fname and [=[
+        var sec=streams[i][1];
+        function flip(){
+          var myTimer=flipTimer;
+          var xhr=new XMLHttpRequest();
+          xhr.open("GET","grabber.lua?fname=]=]..mg.url_encode(fname)..[=[&ofssec="+(sec+5));
+          xhr.responseType="arraybuffer";
+          xhr.onloadend=function(){
+            if(xhr.status!=200||!xhr.response){
+              if(flipTimer==myTimer)flipTimer=setTimeout(flip,3000);
+              return;
+            }
+            var buffer=mod.getGrabberInputBuffer(xhr.response.byteLength);
+            buffer.set(new Uint8Array(xhr.response));
+            var frame=mod.grabFirstFrame(xhr.response.byteLength);
+            if(frame){
+              canvas.width=frame.width;
+              canvas.height=frame.height;
+              canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(frame.buffer),frame.width,frame.height),0,0);
+            }
+            sec+=5;
+            if(flipTimer==myTimer){
+              div.innerText=Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
+              flipTimer=setTimeout(flip,500);
+            }
+          };
+          xhr.send();
+        }
+        canvas.onmouseenter=function(){
+          var ra=canvas.getBoundingClientRect();
+          var rb=thumbs.getBoundingClientRect();
+          div.style.left=ra.x-rb.x+"px";
+          div.style.bottom=rb.bottom-ra.bottom+"px";
+          div.innerText=Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
+          div.style.display=null;
+          clearTimeout(flipTimer);
+          flipTimer=setTimeout(flip,1000);
+        };
+        canvas.onmouseleave=function(){
+          clearTimeout(flipTimer);
+          flipTimer=0;
+          div.style.display="none";
+          pushed=null;
+        };
+        canvas.onclick=function(){
+          pushed=pushed==canvas?null:canvas;
+          if(pushed)canvas.onmouseenter();
+          else canvas.onmouseleave();
+        };
+]=] or '')..[=[
         canvas.width=frame.width;
         canvas.height=frame.height;
         canvas.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(frame.buffer),frame.width,frame.height),0,0);
         canvas.className="thumb-]=]..math.min(#THUMBNAILS,5)..[=[";
-        document.getElementById("vid-thumbs").appendChild(canvas);
-      }
+        thumbs.appendChild(canvas);
+      })();
     }
   });
 },0);
