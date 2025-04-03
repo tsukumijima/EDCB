@@ -832,6 +832,22 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
       });
     },0);
   }
+  var vseek=document.getElementById("vid-seek");
+  var vseekStatus=document.getElementById("vid-seek-status");
+  var vseekStatusMaxWidth=-1;
+  function adjustSeekbarWidth(){
+    if(vseekStatusMaxWidth<0){
+      //Estimation using initial text width
+      vseekStatusMaxWidth=vseekStatus.offsetWidth*2;
+      vseekStatus.innerText="";
+      vseekStatus.style.visibility=null;
+    }
+    var othersWidth=vseekStatusMaxWidth;
+    document.querySelectorAll(".video-side-item").forEach(function(e){othersWidth+=e.offsetWidth;});
+    vseek.style.width=Math.max(1-othersWidth/window.innerWidth,0.3)*100+"%";
+  }
+  window.addEventListener("load",adjustSeekbarWidth);
+  window.addEventListener("resize",adjustSeekbarWidth);
   var openSubStream=function(){};
   if(useDatacast||useLiveJikkyo||useJikkyoLog){
     var onDataStream=null;
@@ -946,7 +962,6 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
   var voffset=document.getElementById("vid-offset");
   if(voffset){
     var vselect=document.querySelector('#vid-form select[name="offset"]');
-    var vseek=document.getElementById("vid-seek");
     var vseekLeaved=true;
     var msList=[];
     var vthumb=document.getElementById("vid-thumb");
@@ -957,14 +972,14 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
     }
     vseek.ontouchend=vseek.onmouseleave=function(){
       vseekLeaved=true;
-      document.getElementById("vid-seek-status").innerText="";
+      vseekStatus.innerText="";
       if(vthumb)vthumb.style.display="none";
     };
     vseek.oninput=function(){
       vseekLeaved=false;
       var sec=ofssec+Math.floor((vid.c||vid.e).currentTime*fast);
       var ms=Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
-      document.getElementById("vid-seek-status").innerText=ms+"\u2192"+msList[vseek.value]+"|"+vseek.value+"%";
+      vseekStatus.innerText=ms+"\u2192"+msList[vseek.value]+"|"+vseek.value+"%";
       var m=document.getElementById("vidsrc").textContent.match(/\?fname=[^&]*/);
       if(m&&vthumb&&vid.grabFirstFrame){
         clearTimeout(thumbTimer);
@@ -1252,6 +1267,8 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
     notify("Error! WebGPU not available.");
     return;
   }
+  var rangeVolume=document.getElementById("vid-volume");
+  rangeVolume.style.display=null;
   navigator.gpu.requestAdapter().then(function(adapter){
     adapter.requestDevice().then(function(device){
       createWasmModule({preinitializedWebGPUDevice:device}).then(function(mod){
@@ -1262,10 +1279,8 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
         mod.setCaptionCallback(function(pts,ts,data){
           if(cap)cap.pushRawData(statsTime+ts,data.slice());
         });
-        var rangeVolume=document.getElementById("vid-volume");
         mod.setAudioGain(vid.muted?0:vid.volume);
         rangeVolume.value=Math.floor((vid.muted?0:vid.volume)*100);
-        rangeVolume.style.display=null;
         vid.unmute=function(){
           vid.muted=false;
           rangeVolume.value=Math.floor(vid.volume*100);

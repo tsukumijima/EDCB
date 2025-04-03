@@ -358,7 +358,7 @@ function TranscodeSettingTemplate(xq,fsec)
   end
   s=s..'</select>\n'
   if fsec then
-    s=s..'offset: <select name="offset">'
+    s=s..'<select name="offset">'
     for i=0,100 do
       s=s..'<option value="'..i..'"'..Selected((xq.offset or 0)==i)..'>'
         ..(fsec>0 and ('%dm%02ds'):format(math.floor(fsec*i/100/60),fsec*i/100%60)..(i%5==0 and '|'..i..'%' or '') or i..'%')
@@ -411,15 +411,15 @@ function WebBmlScriptTemplate(label)
   <span class="remote-control-receiving-status" style="display:none">Loading...</span>
   <div class="remote-control-indicator"></div>
 </div>
-<label><input id="cb-datacast" type="checkbox">]=]..label..[=[</label>
+<label class="video-side-item"><input id="cb-datacast" type="checkbox">]=]..label..[=[</label>
 <script src="web_bml_play_ts.js"></script>
 ]=] or ''
 end
 
 function JikkyoScriptTemplate(live,shiftable,jikkyo)
   return (live and USE_LIVEJK or not live and JKRDLOG_PATH) and [=[
-<label><input id="cb-jikkyo"]=]..Checkbox(jikkyo)..[=[>jikkyo</label>
-<label class="enabled-on-checked"><input id="cb-jikkyo-onscr" type="checkbox" checked>onscr</label>
+<label class="video-side-item"><input id="cb-jikkyo"]=]..Checkbox(jikkyo)..[=[>jikkyo</label>
+<label class="video-side-item enabled-on-checked"><input id="cb-jikkyo-onscr" type="checkbox" checked>scr</label>
 <script src="danmaku.js"></script>
 <script>
 runJikkyoScript(]=]..(shiftable and 'true' or 'false')..','..JK_COMMENT_HEIGHT..','..JK_COMMENT_DURATION..',function(tag){'..JK_CUSTOM_REPLACE..[=[
@@ -429,8 +429,8 @@ runJikkyoScript(]=]..(shiftable and 'true' or 'false')..','..JK_COMMENT_HEIGHT..
 end
 
 function VideoScriptTemplate()
-  return OnscreenButtonsScriptTemplate(false)..WebBmlScriptTemplate('datacast.psc')..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
-<label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>caption.vtt</label>
+  return OnscreenButtonsScriptTemplate(false)..WebBmlScriptTemplate('data.psc')..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
+<label id="label-caption" class="video-side-item" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>CC.vtt</label>
 <script src="aribb24.js"></script>
 <script>
 ]=]..(VIDEO_MUTED and 'vid.e.muted=true;\n' or '')..(VIDEO_VOLUME and 'vid.e.volume='..VIDEO_VOLUME..';\n' or '')..[=[
@@ -444,17 +444,18 @@ runVideoScript(]=]
 end
 
 function TranscodeScriptTemplate(live,caption,jikkyo,params)
-  return OnscreenButtonsScriptTemplate(true)..WebBmlScriptTemplate('datacast')..JikkyoScriptTemplate(live,false,jikkyo)..[=[
-<label id="label-caption" style="display:none"><input id="cb-caption"]=]..Checkbox(caption)..[=[>caption</label>
-]=]..(live and '<label><input id="cb-live" type="checkbox">live</label>\n' or '')
+  return OnscreenButtonsScriptTemplate(true)..WebBmlScriptTemplate('data')..JikkyoScriptTemplate(live,false,jikkyo)..[=[
+<label id="label-caption" class="video-side-item" style="display:none"><input id="cb-caption"]=]..Checkbox(caption)..[=[>CC</label>
+]=]..(live and '<label class="video-side-item"><input id="cb-live" type="checkbox">live</label>\n' or '')
   ..(not live and THUMBNAIL_ON_SEEK and EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') and [=[
 <script src="ts-live.lua?t=-misc.js"></script>
-<span class="thumb-popup"><canvas id="vid-thumb" style="display:none"></canvas></span>
-]=] or '')..[=[
+<span class="thumb-popup"><canvas id="vid-thumb" style="display:none"></canvas><input id="vid-seek" type="range" style="display:none"></span>
+]=] or [=[
 <input id="vid-seek" type="range" style="display:none">
-<span id="vid-seek-status"></span>
-<input id="vid-volume" type="range" style="display:none">
-<button id="vid-unmute" type="button" style="display:none">🔊</button>
+]=])..[=[
+<span id="vid-seek-status" style="visibility:hidden">&emsp; &emsp; 88m88s→|%</span>
+<input id="vid-volume" class="video-side-item" type="range" style="display:none">
+<button id="vid-unmute" class="video-side-item" type="button" style="display:none">🔊</button>
 <script>
 ]=]..(XCODE_VIDEO_MUTED and '(vid.c||vid.e).muted=true;\n' or '')..(VIDEO_VOLUME and '(vid.c||vid.e).volume='..VIDEO_VOLUME..';\n' or '')..[=[
 runTranscodeScript(]=]
