@@ -51,8 +51,8 @@ psisiarc.tar.gz:
 	curl -Lo $@ https://github.com/xtne6f/psisiarc/archive/refs/tags/master-230324.tar.gz
 	sha256sum $@ | grep -q 54d1ab482dc0d1caed80db7858e5c4616f74986f527aabb69d443ec045ad2a02 || $(RM) $@; [ -f $@ ]
 psisimux.tar.gz:
-	curl -Lo $@ https://github.com/xtne6f/psisimux/archive/refs/tags/master-240131.tar.gz
-	sha256sum $@ | grep -q cf93b8048841ccb7df9b9d2592f5e115bd2b5eed824ddf92103b1f325bf004cc || $(RM) $@; [ -f $@ ]
+	curl -Lo $@ https://github.com/xtne6f/psisimux/archive/refs/tags/master-250405.tar.gz
+	sha256sum $@ | grep -q 3b729dc74d52e9b8cc49521ecfa5f4b877198a03859d736c654b121645d4e975 || $(RM) $@; [ -f $@ ]
 tsmemseg.tar.gz:
 	curl -Lo $@ https://github.com/xtne6f/tsmemseg/archive/refs/tags/master-with-d-240608.tar.gz
 	sha256sum $@ | grep -q 99bccc04636b0a7de835666a1e7365b48072d0874a489e138ae76589a8661f3a || $(RM) $@; [ -f $@ ]
