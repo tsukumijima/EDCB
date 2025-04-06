@@ -638,7 +638,9 @@ th, td {
 }
 
 .remote-control-indicator {
-  height: 6em;
+  height: 3em;
+  line-height: 1.5;
+  overflow: hidden;
   white-space: pre-line;
 }
 

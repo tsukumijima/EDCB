@@ -164,6 +164,38 @@ else
         ct:Append((vtag~=1 and '\n[<a href="mux_to_ts.lua?fname='..mg.url_encode(ref)..'">Mux-to-TS</a>]' or '')
           ..' ('..math.floor(info.size/1048576)..'M)<br>\n')
       end
+      ct:Append([=[
+<div style="display:none"><label><input type="checkbox" id="cb-pginfo">番組情報</label>
+<div id="pginfo-desc" style="display:none"></div></div>
+<script type="text/javascript">
+(function(){
+  var cb=document.getElementById("cb-pginfo");
+  cb.checked=false;
+  cb.parentElement.parentElement.style.display=null;
+  var xhr=null;
+  cb.onclick=function(){
+    var desc=document.getElementById("pginfo-desc");
+    desc.style.display=cb.checked?null:"none";
+    if(!cb.checked||xhr)return;
+    xhr=new XMLHttpRequest();
+    xhr.open("GET","pgtxt.lua?fname=]=]..mg.url_encode(ref)..[=[");
+    xhr.onloadend=function(){
+      if(xhr.status!=200||!xhr.responseText){
+        desc.innerText="Error! ("+xhr.status+")";
+        return;
+      }
+      desc.innerHTML=xhr.responseText;
+      var a=document.createElement("a");
+      a.download="a.program.txt";
+      a.href=URL.createObjectURL(new Blob(["\ufeff",desc.textContent],{endings:"native",type:"text/plain"}));
+      a.innerText="(DL)";
+      desc.parentElement.insertBefore(a,desc);
+    };
+    xhr.send();
+  };
+})();
+</script>
+]=])
     end
     ct:Append('</div>\n')
   end
