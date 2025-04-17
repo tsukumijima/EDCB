@@ -273,6 +273,12 @@ th, td {
   opacity: 0.8;
 }
 
+@media (min-width: 480px) {
+  .epg-present > span {
+    display: none;
+  }
+}
+
 .cont-0, .cont-8 {
   background: #ffffe0;
 }
@@ -360,6 +366,12 @@ th, td {
 .thumb-5 {
   aspect-ratio: 16 / 9;
   width: 20%;
+}
+
+@media (max-width: 479px) {
+  .thumb-3, .thumb-4, .thumb-5 {
+    width: 50%;
+  }
 }
 
 .video-container {
