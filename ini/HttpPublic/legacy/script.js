@@ -819,6 +819,7 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
 }
 
 function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,postCommentQuery){
+  vid.initSrc=document.getElementById("vidsrc").textContent;
   if(vid.c){
     //Playback rate is controlled on client-side.
     vid.fast=fast;
@@ -848,6 +849,7 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
   }
   window.addEventListener("load",adjustSeekbarWidth);
   window.addEventListener("resize",adjustSeekbarWidth);
+  var fastParam="";
   var openSubStream=function(){};
   if(useDatacast||useLiveJikkyo||useJikkyoLog){
     var onDataStream=null;
@@ -870,7 +872,7 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
         var readCount=0;
         var ctx={};
         xhr=new XMLHttpRequest();
-        xhr.open("GET",document.getElementById("vidsrc").textContent+(onDataStream?"&psidata=1":"")+
+        xhr.open("GET",(fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+fastParam:vid.initSrc)+(onDataStream?"&psidata=1":"")+
                  (onJikkyoStream?"&jikkyo=1":"")+"&ofssec="+(ofssec+Math.floor((vid.c||vid.e).currentTime*fast)));
         xhr.onloadend=function(){
           if(xhr&&(readCount==0||xhr.status!=0)){
@@ -980,7 +982,7 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
       var sec=ofssec+Math.floor((vid.c||vid.e).currentTime*fast);
       var ms=Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
       vseekStatus.innerText=ms+"\u2192"+msList[vseek.value]+"|"+vseek.value+"%";
-      var m=document.getElementById("vidsrc").textContent.match(/\?fname=[^&]*/);
+      var m=vid.initSrc.match(/\?fname=[^&]*/);
       if(m&&vthumb&&vid.grabFirstFrame){
         clearTimeout(thumbTimer);
         thumbTimer=setTimeout(function(){
@@ -1013,7 +1015,7 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
       if(m&&vid.seekWithoutTransition){
         ofssec=60*m[1]+1*m[2];
         openSubStream();
-        vid.seekWithoutTransition(ofssec);
+        vid.seekWithoutTransition(ofssec,fastParam);
       }else{
         document.querySelector('#vid-form button[type="submit"]').click();
       }
@@ -1033,6 +1035,19 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
       }
     };
     voffset.innerText="|"+Math.floor(ofssec/60)+"m"+String(100+ofssec%60).substring(1)+"s";
+  }
+  var vfast=document.querySelector('#vid-form select[name="fast"]');
+  if(vfast){
+    vfast.onchange=function(){
+      if(vfast.selectedIndex>=0&&vid.seekWithoutTransition){
+        ofssec+=Math.floor((vid.c||vid.e).currentTime*fast);
+        fastParam="&fast="+vfast.options[vfast.selectedIndex].value;
+        var fastRate=1*vfast.options[vfast.selectedIndex].textContent.substring(1);
+        if(!vid.c)fast=fastRate;
+        openSubStream();
+        vid.seekWithoutTransition(ofssec,fastParam,fastRate);
+      }
+    };
   }
   if((vid.c||vid.e).muted){
     var btnUnmute=document.getElementById("vid-unmute");
@@ -1067,7 +1082,7 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
     var cbLive=document.getElementById("cb-live");
     if(cbLive)cbLive.checked=true;
     vid.e.poster="loading.png";
-    waitForHlsStart(document.getElementById("vidsrc").textContent+
+    waitForHlsStart(vid.initSrc+
       //Excludes Firefox for Android, because playback of non-keyframe fragmented MP4 is jerky.
       hlsQuery+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,function(){vid.e.poster=null;},function(src){
       if(Hls.isSupported()){
@@ -1096,7 +1111,7 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
         });
         var unfixTimer=0;
         var lastOfssec=-1;
-        function swt(ofssec){
+        function swt(ofssec,fastParam){
           vid.seekWithoutTransition=null;
           if(!vid.e.style.width){
             //Temporarily fix the size.
@@ -1108,7 +1123,7 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
           hls.detachMedia();
           //To avoid same parameters as last time.
           lastOfssec=ofssec+(ofssec==lastOfssec?1:0);
-          waitForHlsStart(document.getElementById("vidsrc").textContent+"&ofssec="+lastOfssec+
+          waitForHlsStart((fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+fastParam:vid.initSrc)+"&ofssec="+lastOfssec+
             //Excludes Firefox for Android, because playback of non-keyframe fragmented MP4 is jerky.
             hlsQuery+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,function(){vid.e.poster=null;},function(src){
             hls.loadSource(src);
@@ -1130,14 +1145,14 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
       var cbLive=document.getElementById("cb-live");
       if(cbLive)cbLive.checked=true;
       vid.e.poster="loading.png";
-      waitForHlsStart(document.getElementById("vidsrc").textContent+hlsQuery+hlsMp4Query,postQuery,200,500,function(){vid.e.poster=null;},function(src){
+      waitForHlsStart(vid.initSrc+hlsQuery+hlsMp4Query,postQuery,200,500,function(){vid.e.poster=null;},function(src){
         vid.e.src=src;
       });
     }else{
-      vid.e.src=document.getElementById("vidsrc").textContent;
+      vid.e.src=vid.initSrc;
       var unfixTimer=0;
       var lastOfssec=-1;
-      vid.seekWithoutTransition=function(ofssec){
+      vid.seekWithoutTransition=function(ofssec,fastParam){
         if(!vid.e.style.width){
           //Temporarily fix the size.
           vid.e.style.width=vid.e.clientWidth+"px";
@@ -1147,7 +1162,7 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
         }
         //To avoid same parameters as last time.
         lastOfssec=ofssec+(ofssec==lastOfssec?1:0);
-        vid.e.src=document.getElementById("vidsrc").textContent+"&ofssec="+lastOfssec;
+        vid.e.src=(fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+fastParam:vid.initSrc)+"&ofssec="+lastOfssec;
       };
     }
   }
@@ -1231,18 +1246,17 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
 
   function startRead(mod){
     var ctrl=new AbortController();
-    var uri=document.getElementById("vidsrc").textContent+seekParam;
-    seekParam="";
-    if(uri.indexOf("&audio2=1")>=0){
+    if(vid.initSrc.indexOf("&audio2=1")>=0){
       //2nd audio channel
       mod.setDualMonoMode(1);
     }
-    fetch(uri,{signal:ctrl.signal}).then(function(response){
+    fetch(vid.initSrc+seekParam,{signal:ctrl.signal}).then(function(response){
       if(!response.ok)return;
       //Reset caption
       if(cap)cap.attachMedia(null,vcont);
       vid.currentTime=0;
-      vid.seekWithoutTransition=function(ofssec){
+      vid.seekWithoutTransition=function(ofssec,fastParam,fastRate){
+        if(fastRate)mod.setPlaybackRate(fastRate);
         vid.seekWithoutTransition=null;
         seekParam="&ofssec="+ofssec;
         ctrl.abort();
@@ -1251,6 +1265,7 @@ function runTsliveScript(aribb24UseSvg,aribb24Option){
       //Prevent screen sleep
       navigator.wakeLock.request("screen").then(function(lock){wakeLock=lock;});
     });
+    seekParam="";
   }
   function notify(s){
     var ctx=vid.e.getContext("2d");
