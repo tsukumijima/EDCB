@@ -21,6 +21,8 @@ PROCESS_MANAGEMENT_LIST={
   'nvencc',
   'qsvencc',
   'vceencc',
+  'jkcnsl',
+  'jkrdlog',
 }
 
 --各種一覧のいちどに表示する行数
@@ -244,9 +246,37 @@ ARIBB24_USE_SVG=false
 --データ放送表示機能を使うかどうか。トランスコード中に表示する場合はpsisiarc.exeを用意すること。IE非対応
 USE_DATACAST=true
 
---ライブ実況表示機能を使うかどうか(Windows専用)
---利用には実況を扱うツール側の対応(NicoJKの場合はcommentShareMode)が必要
+--ライブ実況表示機能を使うかどうか
+--利用にはJKCNSL_PATHを設定するか、実況を扱うツール側の対応(NicoJKの場合はcommentShareMode)が必要
 USE_LIVEJK=true
+
+--jkcnslを直接呼び出してライブ実況する場合、その絶対パス。Windows以外ではコマンド名
+--コメント投稿したい場合はあらかじめjkcnsl側でログインしておく(jkcnslのReadmeを参照)
+JKCNSL_PATH=nil
+--JKCNSL_PATH='C:\\Path\\to\\jkcnsl.exe' --Windows
+--JKCNSL_PATH='jkcnsl' --Windows以外
+
+--jkcnslの設定ファイルなどが置かれている場所(通常、変更不要)
+JKCNSL_UNIX_BASE_DIR='/var/local/jkcnsl'
+
+--以下、JKCNSL_で始まる定数はjkcnslを直接呼び出してライブ実況する場合のオプション。意味はNicoJKの対応する設定と同じ
+JKCNSL_REFUGE_URI=nil
+JKCNSL_DROP_FORWARDED_COMMENT=false
+JKCNSL_REFUGE_MIXING=false
+JKCNSL_ANONYMITY=true
+
+--実況の番号(jk?)と、チャットのID(ch???やlv???など)
+--指定しない番号には"jkconst.lua"にある既定値が使われる
+JKCNSL_CHAT_STREAMS={
+  --jk7の対応づけを変更したいとき
+  --[7]='ch???',
+  --jk7はどこにも接続したくないとき
+  --[7]='',
+  --jk7はニコニコ実況だけにしたいとき
+  --[7]='ch2646441,',
+  --jk7はNX-Jikkyo・避難所だけにしたいとき("NX"の部分は任意の英数字)
+  --[7]=',NX',
+}
 
 --実況ログ表示機能を使う場合、jkrdlog.exeの絶対パス。Windows以外ではコマンド名
 JKRDLOG_PATH=nil
@@ -261,7 +291,7 @@ JK_COMMENT_DURATION=5
 
 --実況ログ表示機能のデジタル放送のサービスIDと、実況の番号(jk?)
 --キーの下4桁の16進数にサービスID、上1桁にネットワークID(ただし地上波は15=0xF)を指定
---指定しないサービスにはjkrdlogの既定値が使われる
+--指定しないサービスには"jkconst.lua"にある既定値が使われる
 JK_CHANNELS={
   --例:テレビ東京(0x0430)をjk7と対応づけたいとき
   --[0xF0430]=7,
@@ -1325,13 +1355,6 @@ function ReadJikkyoChunk(f)
   return head..payload
 end
 
---jkrdlogに渡す実況のIDを取得する
-function GetJikkyoID(nid,sid)
-  --地上波のサービス種別とサービス番号はマスクする
-  local id=NetworkType(nid)=='地デジ' and 0xf0000+bit32.band(sid,0xfe78) or nid*65536+sid
-  return not JK_CHANNELS[id] and 'ns'..id or JK_CHANNELS[id]>0 and 'jk'..JK_CHANNELS[id]
-end
-
 --リトルエンディアンの値を取得する
 function GetLeNumber(buf,pos,len)
   local n=0
@@ -1490,5 +1513,5 @@ end
 
 if not WIN32 then
   INDEX_ENABLE_SUSPEND=false
-  USE_LIVEJK=false
+  USE_LIVEJK=not not JKCNSL_PATH
 end

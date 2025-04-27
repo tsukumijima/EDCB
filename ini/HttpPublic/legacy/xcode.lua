@@ -2,6 +2,7 @@
 -- ファイルをタイムシフト再生できる: http://localhost:5510/xcode.lua?fname=video/foo.ts
 
 dofile(mg.script_name:gsub('[^\\/]*$','')..'util.lua')
+dofile(mg.script_name:gsub('[^\\/]*$','')..'jkconst.lua')
 
 -- HLSの開始はPOSTでなければならない
 query=AssertPost()
@@ -88,7 +89,7 @@ function OpenTranscoder()
       xcoder=('|'..option.xcoder:gsub('%.exe$','')):match('[\\/|]([0-9A-Za-z._-]+)$')
       xcoder=xcoder and FindToolsCommand(xcoder) or ':'
     end
-    --gsub('%%','%%%%')は置換文字列中の特殊文字を無効化するため
+    -- gsub('%%','%%%%')は置換文字列中の特殊文字を無効化するため
     cmd=' | '..xcoder..' '..option.option
       :gsub('$AUDIO',audio2)
       :gsub('$FILTER',(filter:gsub('%%','%%%%')))
@@ -167,10 +168,15 @@ function OpenPsiDataArchiver()
 end
 
 function OpenJikkyoReader(tot,nid,sid)
-  local id=GetJikkyoID(nid,sid)
-  if not id or not JKRDLOG_PATH then return nil end
-  local cmd=(WIN32 and QuoteCommandArgForPath(JKRDLOG_PATH) or FindToolsCommand(JKRDLOG_PATH))..' -r '..(fastRate*100)..' '..id..' '..(tot+ofssec)..' 0'
-  return edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd)
+  if JKRDLOG_PATH then
+    local jkID=GetJikkyoID(nid,sid)
+    if not jkID then
+      return 'Unable to determine Jikkyo ID.'
+    end
+    local cmd=(WIN32 and QuoteCommandArgForPath(JKRDLOG_PATH) or FindToolsCommand(JKRDLOG_PATH))..' -r '..(fastRate*100)..' jk'..jkID..' '..(tot+ofssec)..' 0'
+    return edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd)
+  end
+  return nil
 end
 
 function ReadPsiDataChunk(f,trailerSize,trailerRemainSize)
@@ -314,7 +320,12 @@ elseif psidata or jikkyo then
         failed=not buf or not mg.write(mg.base64_encode(buf))
         if failed then break end
       end
-      if jikkyo then
+      if jikkyo and type(f.jk)=='string' then
+        -- メッセージを送って混合でなければ終了
+        failed=not mg.write('<!-- M='..f.jk..' -->\n') or not psidata
+        f.jk=nil
+      end
+      if jikkyo and f.jk then
         for i=1,3 do
           -- 1/fastRate秒間隔でブロックされる
           buf=ReadJikkyoChunk(f.jk)
@@ -330,7 +341,7 @@ elseif psidata or jikkyo then
     until failed
   end
   if f.psi then f.psi:close() end
-  if f.jk then f.jk:close() end
+  if f.jk and type(f.jk)~='string' then f.jk:close() end
 elseif hlsKey then
   -- インデックスファイルを返す
   i=1
