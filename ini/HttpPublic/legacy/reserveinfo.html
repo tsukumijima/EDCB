@@ -160,7 +160,7 @@ if r then
               ..VideoWrapperEnd()..'\n'
               ..'<div id="vidsrc" style="display:none">'..src..'</div>\n'..TranscodeScriptTemplate(false,xq.caption,xq.jikkyo,{ofssec=fsec*(xq.offset or 0)/100,fast=xq.fast}))
             if xq.tslive then
-              ct:Append(TsliveScriptTemplate())
+              ct:Append(TsliveScriptTemplate(xq.autoCinema))
             elseif ALLOW_HLS then
               ct:Append(HlsScriptTemplate('xcode.lua'))
             end

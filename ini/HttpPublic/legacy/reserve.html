@@ -131,7 +131,7 @@ if #a>0 then
           ..VideoWrapperEnd()..'\n'
           ..'<div id="vidsrc" style="display:none">'..src..'</div>\n'..TranscodeScriptTemplate(true,xq.caption,xq.jikkyo,{n=v}))
         if xq.tslive then
-          ct:Append(TsliveScriptTemplate())
+          ct:Append(TsliveScriptTemplate(xq.autoCinema))
         elseif ALLOW_HLS then
           ct:Append(HlsScriptTemplate('view.lua'))
         end
