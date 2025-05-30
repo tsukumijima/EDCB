@@ -14,13 +14,16 @@ INDEX_ENABLE_SUSPEND=false
 --メニューの「システムスタンバイ」ボタンを「システム休止」にするかどうか
 INDEX_SUSPEND_USE_HIBERNATE=false
 
---「プロセス管理」に表示するプロセス名のリスト(非Windows専用)
+--「プロセス管理」に表示するプロセス名のリスト(Windowsでは末尾に".exe"が追加される)
 PROCESS_MANAGEMENT_LIST={
   'EpgDataCap_Bon',
   'ffmpeg',
   'nvencc',
+  'nvencc64',
   'qsvencc',
+  'qsvencc64',
   'vceencc',
+  'vceencc64',
   'jkcnsl',
   'jkrdlog',
 }
