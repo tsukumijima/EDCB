@@ -427,7 +427,7 @@ end
 
 function OnscreenButtonsScriptTemplate(xcode)
   return [=[
-<script src="script.js?ver=20250529"></script>
+<script src="script.js?ver=20250624"></script>
 <script>
 runOnscreenButtonsScript(]=]..(xcode and 'true' or 'false')..[=[);
 </script>
@@ -485,11 +485,12 @@ function TranscodeScriptTemplate(live,caption,jikkyo,params)
 ]=]..(live and '<label class="video-side-item"><input id="cb-live" type="checkbox">live</label>\n' or '')
   ..(not live and THUMBNAIL_ON_SEEK and EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') and [=[
 <script src="ts-live.lua?t=-misc.js"></script>
-<span class="thumb-popup"><canvas id="vid-thumb" style="display:none"></canvas><input id="vid-seek" type="range" style="display:none"></span>
+<span id="vid-seek"><span class="thumb-popup"><canvas style="display:none"></canvas><input type="range" style="display:none" list="vid-seek-marker"></span>
 ]=] or [=[
-<input id="vid-seek" type="range" style="display:none">
+<span id="vid-seek"><input type="range" style="display:none" list="vid-seek-marker">
 ]=])..[=[
 <span id="vid-seek-status" style="visibility:hidden">&emsp; &emsp; 88m88s→|%</span>
+</span><datalist id="vid-seek-marker"><option></datalist>
 <input id="vid-volume" class="video-side-item" type="range" style="display:none">
 <button id="vid-unmute" class="video-side-item" type="button" style="display:none">🔊</button>
 <script>

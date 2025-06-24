@@ -126,10 +126,9 @@ if #a>0 then
       if n==v then
         src='view.lua?n='..v..ConstructTranscodeQueries(xq)..'&amp;ctok='..CsrfToken('view.lua')
         ct:Append(VideoWrapperBegin()
-          ..(xq.tslive and '<canvas id="video"></canvas>' or
-               '<video id="video" autoplay playsinline controls'..(ALLOW_HLS and '' or ' src="'..src..'"')..'>view</video>')
-          ..VideoWrapperEnd()..'\n'
-          ..'<div id="vidsrc" style="display:none">'..src..'</div>\n'..TranscodeScriptTemplate(true,xq.caption,xq.jikkyo,{n=v}))
+          ..(xq.tslive and '<canvas id="video" data-src="'..src..'"></canvas>' or
+               '<video id="video" autoplay playsinline controls '..(ALLOW_HLS and 'data-' or '')..'src="'..src..'">view</video>')
+          ..VideoWrapperEnd()..'\n'..TranscodeScriptTemplate(true,xq.caption,xq.jikkyo,{n=v}))
         if xq.tslive then
           ct:Append(TsliveScriptTemplate(xq.autoCinema))
         elseif ALLOW_HLS then

@@ -150,10 +150,9 @@ else
         if vtag==10 then
           src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
           ct:Append('\n'..VideoWrapperBegin()
-            ..(xq.tslive and '<canvas id="video"></canvas>' or
-                 '<video id="video" autoplay playsinline controls'..(ALLOW_HLS and '' or ' src="'..src..'"')..'>xcode</video>')
-            ..VideoWrapperEnd()..'\n'
-            ..'<div id="vidsrc" style="display:none">'..src..'</div>\n'..TranscodeScriptTemplate(false,xq.caption,xq.jikkyo,{ofssec=fsec*(xq.offset or 0)/100,fast=xq.fast}))
+            ..(xq.tslive and '<canvas id="video" data-src="'..src..'"></canvas>' or
+                 '<video id="video" autoplay playsinline controls '..(ALLOW_HLS and 'data-' or '')..'src="'..src..'">xcode</video>')
+            ..VideoWrapperEnd()..'\n'..TranscodeScriptTemplate(false,xq.caption,xq.jikkyo,{ofssec=fsec*(xq.offset or 0)/100,fast=xq.fast}))
           if xq.tslive then
             ct:Append(TsliveScriptTemplate(xq.autoCinema))
           elseif ALLOW_HLS then
