@@ -485,9 +485,9 @@ function TranscodeScriptTemplate(live,caption,jikkyo,params)
 ]=]..(live and '<label class="video-side-item"><input id="cb-live" type="checkbox">live</label>\n' or '')
   ..(not live and THUMBNAIL_ON_SEEK and EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') and [=[
 <script src="ts-live.lua?t=-misc.js"></script>
-<span id="vid-seek"><span class="thumb-popup"><canvas style="display:none"></canvas><input type="range" style="display:none" list="vid-seek-marker"></span>
+<span id="vid-seek"><span class="thumb-popup"><canvas style="display:none"></canvas><input type="range" step="0.1" style="display:none" list="vid-seek-marker"></span>
 ]=] or [=[
-<span id="vid-seek"><input type="range" style="display:none" list="vid-seek-marker">
+<span id="vid-seek"><input type="range" step="0.1" style="display:none" list="vid-seek-marker">
 ]=])..[=[
 <span id="vid-seek-status" style="visibility:hidden">&emsp; &emsp; 88m88s→|%</span>
 </span><datalist id="vid-seek-marker"><option></datalist>

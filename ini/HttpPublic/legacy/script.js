@@ -1000,6 +1000,14 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
       msList[i]={m:vselect.options[i].textContent.match(/^(?:(\d+)m(\d\d)s)?/)};
       msList[i].sec=msList[i].m[0]?60*msList[i].m[1]+1*msList[i].m[2]:-1;
     }
+    function rangeSeekSec(){
+      var n=rangeSeek.value;
+      var i=Math.floor(n);
+      return i>99?msList[100].sec:msList[i].sec<0||msList[i+1].sec<0?-1:Math.floor(msList[i+1].sec*(n-i)-msList[i].sec*(n-i-1));
+    }
+    function formatSec(sec){
+      return Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
+    }
     rangeSeek.ontouchend=rangeSeek.onmouseleave=function(){
       vseek.classList.remove("active");
       vseekStatus.innerText="";
@@ -1007,9 +1015,9 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
     };
     rangeSeek.oninput=function(){
       vseek.classList.add("active");
-      var sec=ofssec+Math.floor((vid.c||vid.e).currentTime*fast);
-      var ms=Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
-      vseekStatus.innerText=ms+"\u2192"+msList[rangeSeek.value].m[0]+"|"+rangeSeek.value+"%";
+      vseekStatus.innerText=formatSec(ofssec+Math.floor((vid.c||vid.e).currentTime*fast))+"\u2192"+
+        (rangeSeekSec()>=0&&vid.seekWithoutTransition?formatSec(rangeSeekSec()):msList[Math.floor(rangeSeek.value)].m[0])+
+        "|"+Math.floor(rangeSeek.value)+"%";
       var m=vid.initSrc.match(/\?fname=[^&]*/);
       if(m&&vthumb&&vid.grabFirstFrame){
         clearTimeout(thumbTimer);
@@ -1017,7 +1025,8 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
           if(!vseek.classList.contains("active")||thumbXhr)return;
           //Get thumbnail of seek position.
           thumbXhr=new XMLHttpRequest();
-          thumbXhr.open("GET","grabber.lua"+m[0]+"&offset="+rangeSeek.value);
+          thumbXhr.open("GET","grabber.lua"+m[0]+
+            (rangeSeekSec()>=0&&vid.seekWithoutTransition?"&ofssec="+rangeSeekSec():"&offset="+Math.floor(rangeSeek.value)));
           thumbXhr.responseType="arraybuffer";
           thumbXhr.onloadend=function(){
             if(vseek.classList.contains("active")&&thumbXhr.status==200&&thumbXhr.response){
@@ -1038,9 +1047,9 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
       }
     };
     rangeSeek.onchange=function(){
-      vselect.options[rangeSeek.value].selected=true;
-      if(msList[rangeSeek.value].sec>=0&&vid.seekWithoutTransition){
-        ofssec=msList[rangeSeek.value].sec;
+      vselect.options[Math.floor(rangeSeek.value)].selected=true;
+      if(rangeSeekSec()>=0&&vid.seekWithoutTransition){
+        ofssec=rangeSeekSec();
         openSubStream();
         vid.seekWithoutTransition(ofssec,fastParam);
         vseek.classList.remove("active");
@@ -1050,12 +1059,12 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
     };
     (vid.c||vid.e).ontimeupdate=function(){
       var sec=ofssec+Math.floor((vid.c||vid.e).currentTime*fast);
-      voffset.innerText="|"+Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
+      voffset.innerText="|"+formatSec(sec);
       for(var i=0;;i++){
         if(i==99||msList[i].sec>=sec){
           var marker=document.querySelector("#vid-seek-marker option");
           if(vseek.classList.contains("active")){
-            marker.value=i;
+            marker.value=Math.abs(i-rangeSeek.value)>5?i:null;
           }else{
             marker.value=null;
             rangeSeek.value=i;
@@ -1065,7 +1074,7 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
         }
       }
     };
-    voffset.innerText="|"+Math.floor(ofssec/60)+"m"+String(100+ofssec%60).substring(1)+"s";
+    voffset.innerText="|"+formatSec(ofssec);
   }
   var vfast=document.querySelector('#vid-form select[name="fast"]');
   if(vfast){
