@@ -523,15 +523,12 @@ else
   if mg.request_info.request_method~='HEAD' then
     while true do
       buf=f:read(188*128)
-      if buf and #buf~=0 then
-        if not mg.write(buf) then
-          -- キャンセルされた
-          mg.cry('canceled')
-          break
-        end
-      else
+      if not buf or #buf==0 then
         -- 終端に達した
-        mg.cry('end')
+        break
+      end
+      if not mg.write(buf) then
+        -- キャンセルされた
         break
       end
     end

@@ -1221,9 +1221,10 @@ function runTsliveScript(autoCinema,aribb24UseSvg,aribb24Option){
   var lastWidth=vid.e.width;
   var lastHeight=vid.e.height;
   var wakeLock=null;
+  //Non-empty seekParam means that abort() has been called and the next fetch() call is pending.
   var seekParam="";
   function readNext(mod,reader,ret){
-    if(ret&&ret.value){
+    if(ret&&ret.value&&!seekParam){
       var inputLen=Math.min(ret.value.length,1e6);
       var buffer=mod.getNextInputBuffer(inputLen);
       if(!buffer){
@@ -1292,7 +1293,9 @@ function runTsliveScript(autoCinema,aribb24UseSvg,aribb24Option){
 
   function startRead(mod){
     var ctrl=new AbortController();
-    fetch(vid.initSrc+seekParam,{signal:ctrl.signal}).then(function(response){
+    //"throttle" is to avoid excessive prefetching in some browsers.
+    fetch((seekParam.indexOf("&fast=")>=0?vid.initSrc.replace(/&fast=[^&]*/,""):vid.initSrc)+
+          seekParam+"&throttle=1",{signal:ctrl.signal}).then(function(response){
       if(!response.ok)return;
       //Reset caption
       if(cap)cap.attachMedia(null,vcont);
@@ -1301,7 +1304,7 @@ function runTsliveScript(autoCinema,aribb24UseSvg,aribb24Option){
         if(fastRate)mod.setPlaybackRate(fastRate);
         vid.currentTime=0;
         vid.seekWithoutTransition=null;
-        seekParam="&ofssec="+ofssec;
+        seekParam="&ofssec="+ofssec+fastParam;
         ctrl.abort();
       };
       readNext(mod,response.body.getReader(),null);
