@@ -89,8 +89,15 @@ if not r and presetID==65535 then
   presetID=0
 end
 
+epgDate=0
+ev=edcb.SearchEpg(onid,tsid,sid,eid)
+if ev and ev.startTime then
+  --番組表のdateクエリは今日(深夜4時区切り)を基準(=0)とする
+  epgDate=math.floor((TimeWithZone(ev.startTime)-4*3600)/(24*3600))-math.floor((os.time()+(9-4)*3600)/(24*3600))
+end
+
 ct:Append('  <dl>\n'
-  ..'    <dt id="pginfo-term">番組情報</dt><dd id="pginfo-desc">'..ConvertProgramText(edcb.SearchEpg(onid,tsid,sid,eid)):gsub('\r?\n','<br>\n')..'</dd>\n')
+  ..'    <dt id="pginfo-term">番組情報</dt><dd id="pginfo-desc">'..ConvertProgramText(ev):gsub('\r?\n','<br>\n')..'</dd>\n')
 if r then
   dur=r.startTime.hour*3600+r.startTime.min*60+r.startTime.sec+r.durationSecond
   ct:Append('    <dt>プログラム予約化（プログラム予約化は元に戻せません。番組を特定できなくなるため追従もできません。）</dt><dd>\n'
@@ -147,7 +154,7 @@ ct:Append([=[
   </dl>
 </div>
 <div id="footer">
-  <a href="epg.html">番組表</a> <a href="epglist.html?id=]=]..onid..'-'..tsid..'-'..sid..[=[#now">リスト番組表</a>
+  <a href="epg.html?date=]=]..epgDate..[=[">番組表</a> <a href="epglist.html?id=]=]..onid..'-'..tsid..'-'..sid..[=[#now">リスト番組表</a>
 </div>
 <script type="text/javascript">
 (function(){

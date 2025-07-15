@@ -56,13 +56,13 @@ else
     ct:Append('<h1>ライブラリ</h1>\n<div class="nav"><table>\n<tr>'
       ..'<th><a href="library.html?i='..index..'&amp;s='..(sort~='dd' and 'dd' or 'da')..(dirhash and '&amp;d='..dirhash or '')..'">Modified</a>'
       ..'<th><a href="library.html?i='..index..'&amp;s='..(sort~='sa' and 'sa' or 'sd')..(dirhash and '&amp;d='..dirhash or '')..'">Size</a>'
-      ..'<th><a href="library.html?i='..index..'&amp;s='..(sort~='na' and 'na' or 'nd')..(dirhash and '&amp;d='..dirhash or '')..'">Name</a></tr>\n'
-      ..'<tr><td><td><td><a href="library.html'..queryParent..'">Parent directory ..</a></tr>\n')
+      ..'<th><a href="library.html?i='..index..'&amp;s='..(sort~='na' and 'na' or 'nd')..(dirhash and '&amp;d='..dirhash or '')..'">Name</a></tr>\n')
     ff={}
     for i,v in ipairs(edcb.FindFile(PathAppend(dir,'*'),0) or {}) do
       if not v.isdir then
         for j,ext in ipairs(xlist) do
           if #v.name>#ext and IsEqualPath(v.name:sub(-#ext),ext) then
+            v.ists=ext==tsx
             ff[#ff+1]=v
             break
           end
@@ -85,13 +85,16 @@ else
       table.sort(ff,function(a,b) return a.name>b.name end)
     end
     edcb.htmlEscape=15
+    ct:Append('<tr><td><td><td><a href="library.html'..queryParent..'">Parent directory of</a> /'..EdcbHtmlEscape(dirname)..'/</tr>\n')
     for i,v in ipairs(ff) do
       v.mtime.sec=0
       ct:Append('<tr><td>'..FormatTimeAndDuration(v.mtime)
         ..'<td>'..(v.isdir and '' or math.floor(v.size/1048576)..'M')
         ..'<td><a href="library.html?i='..index..(dirhash and '&amp;d='..dirhash or '')
         ..'&amp;'..(v.isdir and 'd=' or 'h=')..mg.md5(v.name)..'">'
-        ..EdcbHtmlEscape(dirname..'/'..v.name..(v.isdir and '/' or ''))..'</a></tr>\n')
+        ..EdcbHtmlEscape(v.name..(v.isdir and '/' or ''))..'</a>'..((v.isdir or v.ists) and '' or
+            '<a href="library.html?i='..index..(dirhash and '&amp;d='..dirhash or '')..'&amp;h='..mg.md5(v.name)..'&amp;vtag=1">&nbsp;▶</a>')
+        ..'</tr>\n')
     end
     ct:Append('</table></div>\n')
   else

@@ -370,7 +370,11 @@ th, td {
   font-size: xx-small;
 }
 
-#now {
+.epg-nav-sel {
+  font-weight: bold;
+}
+
+#now, .epg-nav-now {
   border: 2px solid #f00;
 }
 
@@ -934,7 +938,7 @@ th, td {
     background: #200;
   }
 
-  #now {
+  #now, .epg-nav-now {
     border-color: #f55;
   }
 
