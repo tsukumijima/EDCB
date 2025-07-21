@@ -38,11 +38,11 @@ reload=mg.get_var(query,'reload')
 loadKey=reload or mg.get_var(query,'load') or ''
 
 -- クエリのハッシュをキーとし、同一キーアクセスは出力中のインデックスファイルを返す
-hlsKey=hlsKey and mg.md5('xcode:'..hlsKey..':'..fpath..':'..option.xcoder..':'..option.option..':'..(ofssec or offset)..':'..audio2..':'..filter..':'..caption..':'..output[2])
+hlsKey=hlsKey and fpath and mg.md5('xcode:'..hlsKey..':'..fpath)
 
 -- トランスコードを開始し、HLSの場合はインデックスファイルの情報、それ以外はMP4などのストリーム自体を返す
 function OpenTranscoder()
-  local searchName='xcode-'..mg.md5(fpath..':'..loadKey):sub(17)
+  local searchName='xcode-'..mg.md5(loadKey):sub(17)
   if XCODE_SINGLE then
     -- トランスコーダーの親プロセスのリストを作る
     local pids=nil

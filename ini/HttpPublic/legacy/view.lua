@@ -35,7 +35,7 @@ hlsMsn=GetVarInt(query,'_HLS_msn',1)
 hlsPart=GetVarInt(query,'_HLS_part',0)
 
 -- クエリのハッシュをキーとし、同一キーアクセスは出力中のインデックスファイルを返す
-hlsKey=hlsKey and n and mg.md5('view:'..hlsKey..(onid and ':nwtv' or ':')..n..':'..option.xcoder..':'..option.option..':'..audio2..':'..filter..':'..caption..':'..output[2])
+hlsKey=hlsKey and n and mg.md5('view:'..hlsKey..(onid and ':nwtv' or ':')..n)
 
 -- フラグメント長の目安
 partConfigSec=0.8

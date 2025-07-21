@@ -1106,12 +1106,11 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
         unfixTimer=setTimeout(unfix,8000);
       }
     };
+    var swtCount=0;
     vid.seekWithoutTransition=function(ofssec,fastParam){
       vid.fixSizeThenUnfixOnPlay();
-      //To avoid same parameters as last time.
-      var src=(fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+fastParam:vid.initSrc).replace("&load=","&reload=")+"&ofssec=";
-      src+=ofssec+(src+ofssec==vid.e.src?1:0);
-      vid.e.src=src;
+      //"count" is to ensure that the src attribute is reloaded.
+      vid.e.src=(fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+fastParam:vid.initSrc).replace("&load=","&reload=")+"&ofssec="+ofssec+"&count="+(++swtCount);
     };
   }
   if((vid.c||vid.e).muted){
@@ -1175,16 +1174,14 @@ function runHlsScript(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuer
             }
           }
         });
-        var lastOfssec=-1;
+        var swtCount=0;
         function swt(ofssec,fastParam){
           vid.seekWithoutTransition=null;
           vid.fixSizeThenUnfixOnPlay();
           hls.detachMedia();
-          //To avoid same parameters as last time.
-          lastOfssec=ofssec+(ofssec==lastOfssec?1:0);
-          waitForHlsStart((fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+fastParam:vid.initSrc).replace("&load=","&reload=")+"&ofssec="+lastOfssec+
+          waitForHlsStart((fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+fastParam:vid.initSrc).replace("&load=","&reload=")+"&ofssec="+ofssec+
             //Excludes Firefox for Android, because playback of non-keyframe fragmented MP4 is jerky.
-            hlsQuery+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,function(){vid.e.poster=null;},function(src){
+            hlsQuery.replace("&hls=","&hls="+(++swtCount)+"_")+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,function(){vid.e.poster=null;},function(src){
             hls.loadSource(src);
             hls.attachMedia(vid.e);
             vid.seekWithoutTransition=swt;
