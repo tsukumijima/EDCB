@@ -350,15 +350,15 @@ namespace EpgTimer
             return cmd;
         }
 
-        public static UInt64 Create64Key(UInt16 ONID, UInt16 TSID, UInt16 SID)
+        public static ulong Create64Key(ushort ONID, ushort TSID, ushort SID)
         {
-            UInt64 key = ((UInt64)ONID) << 32 | ((UInt64)TSID) << 16 | (UInt64)SID;
+            ulong key = ((ulong)ONID) << 32 | ((ulong)TSID) << 16 | (ulong)SID;
             return key;
         }
 
-        public static UInt64 Create64PgKey(UInt16 ONID, UInt16 TSID, UInt16 SID, UInt16 EventID)
+        public static ulong Create64PgKey(ushort ONID, ushort TSID, ushort SID, ushort EventID)
         {
-            UInt64 key = ((UInt64)ONID) << 48 | ((UInt64)TSID) << 32 | ((UInt64)SID) << 16 | (UInt64)EventID;
+            ulong key = ((ulong)ONID) << 48 | ((ulong)TSID) << 32 | ((ulong)SID) << 16 | (ulong)EventID;
             return key;
         }
 
@@ -499,9 +499,9 @@ namespace EpgTimer
             private double _durationSec;
         }
 
-        public String ConvertReserveText(ReserveData reserveInfo)
+        public string ConvertReserveText(ReserveData reserveInfo)
         {
-            String view = new TimeDuration(true, reserveInfo.StartTime, true, reserveInfo.DurationSecond) + "\r\n";
+            string view = new TimeDuration(true, reserveInfo.StartTime, true, reserveInfo.DurationSecond) + "\r\n";
             view += reserveInfo.StationName;
             view += " (" + ConvertNetworkNameText(reserveInfo.OriginalNetworkID) + ")" + "\r\n";
 
@@ -625,7 +625,7 @@ namespace EpgTimer
                     retText += new TimeDuration(eventInfo.StartTimeFlag != 0, eventInfo.start_time,
                                                 eventInfo.DurationFlag != 0, eventInfo.durationSec).Format(true) + "\r\n";
                 }
-                UInt64 key = Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
+                ulong key = Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
                 if (ChSet5.Instance.ChList.ContainsKey(key) == true)
                 {
                     retText += ChSet5.Instance.ChList[key].ServiceName +
@@ -675,7 +675,7 @@ namespace EpgTimer
                     extInfo += "ジャンル : \r\n";
                     foreach (EpgContentData info in eventInfo.ContentInfo.nibbleList)
                     {
-                        String content = "";
+                        string content = "";
                         int nibble1 = info.content_nibble_level_1;
                         int nibble2 = info.content_nibble_level_2;
                         if (nibble1 == 0x0E && nibble2 <= 0x01)
@@ -817,9 +817,9 @@ namespace EpgTimer
             return retText;
         }
 
-        public static String ConvertNetworkNameText(ushort originalNetworkID)
+        public static string ConvertNetworkNameText(ushort originalNetworkID)
         {
-            String retText = "";
+            string retText = "";
             if (ChSet5.IsDttv(originalNetworkID) == true)
             {
                 retText = "地デジ";
@@ -985,7 +985,7 @@ namespace EpgTimer
             }
         }
 
-        public void FilePlay(String filePath)
+        public void FilePlay(string filePath)
         {
             try
             {
@@ -997,7 +997,7 @@ namespace EpgTimer
                     }
                     else
                     {
-                        String cmdLine = Settings.Instance.FilePlayCmd;
+                        string cmdLine = Settings.Instance.FilePlayCmd;
                         //'$'->'\t'は再帰的な展開を防ぐため
                         cmdLine = cmdLine.Replace("$FileNameExt$", Path.GetFileName(filePath).Replace('$', '\t'));
                         cmdLine = cmdLine.Replace("$FilePath$", filePath).Replace('\t', '$');

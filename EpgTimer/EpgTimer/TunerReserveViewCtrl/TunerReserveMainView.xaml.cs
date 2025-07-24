@@ -118,7 +118,7 @@ namespace EpgTimer
             try
             {
                 var reserve = (ReserveData)((MenuItem)sender).DataContext;
-                List<UInt32> list = new List<UInt32>();
+                List<uint> list = new List<uint>();
                 list.Add(reserve.ReserveID);
                 ErrCode err = CommonManager.CreateSrvCtrl().SendDelReserve(list);
                 if (err != ErrCode.CMD_SUCCESS)

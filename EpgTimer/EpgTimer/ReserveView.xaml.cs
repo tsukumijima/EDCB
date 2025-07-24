@@ -287,7 +287,7 @@ namespace EpgTimer
         {
             try
             {
-                List<UInt32> list = new List<UInt32>();
+                List<uint> list = new List<uint>();
                 foreach (ReserveItem item in listView_reserve.SelectedItems)
                 {
                     ReserveData reserveInfo = item.ReserveInfo;
@@ -352,7 +352,7 @@ namespace EpgTimer
                 if (menuItem.IsChecked == true)
                 {
 
-                    Settings.Instance.ReserveListColumn.Add(new ListColumnInfo(menuItem.Name, Double.NaN));
+                    Settings.Instance.ReserveListColumn.Add(new ListColumnInfo(menuItem.Name, double.NaN));
                     gridView_reserve.Columns.Add(columnList[menuItem.Name]);
                 }
                 else

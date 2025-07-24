@@ -110,7 +110,7 @@ namespace EpgTimer.EpgView
                                 {
                                     break;
                                 }
-                                String viewTip = "";
+                                string viewTip = "";
 
                                 if (info != null)
                                 {

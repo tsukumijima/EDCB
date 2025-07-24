@@ -93,7 +93,7 @@ namespace EpgTimer
         {
             if (listView_key.SelectedItems.Count > 0)
             {
-                List<UInt32> dataIDList = new List<uint>();
+                List<uint> dataIDList = new List<uint>();
                 foreach (ManualAutoAddDataItem info in listView_key.SelectedItems)
                 {
                     dataIDList.Add(info.ManualAutoAddInfo.dataID);
@@ -164,7 +164,7 @@ namespace EpgTimer
                 if (menuItem.IsChecked == true)
                 {
 
-                    Settings.Instance.AutoAddManualColumn.Add(new ListColumnInfo(menuItem.Name, Double.NaN));
+                    Settings.Instance.AutoAddManualColumn.Add(new ListColumnInfo(menuItem.Name, double.NaN));
                     gridView_key.Columns.Add(columnList[menuItem.Name]);
                 }
                 else

@@ -33,7 +33,7 @@ namespace EpgTimer
         private List<DateTime> dayList = new List<DateTime>();
         private List<ReserveViewItem> reserveList = new List<ReserveViewItem>();
         private DispatcherTimer nowViewTimer;
-        private Dictionary<UInt64, EpgServiceAllEventInfo> serviceEventList = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+        private Dictionary<ulong, EpgServiceAllEventInfo> serviceEventList = new Dictionary<ulong, EpgServiceAllEventInfo>();
 
         private bool updateEpgData = true;
         private bool updateReserveData = true;
@@ -340,7 +340,7 @@ namespace EpgTimer
                     reserveInfo.DurationSecond = eventInfo.durationSec;
                 }
 
-                UInt64 key = CommonManager.Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
+                ulong key = CommonManager.Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
                 if (ChSet5.Instance.ChList.ContainsKey(key) == true)
                 {
                     reserveInfo.StationName = ChSet5.Instance.ChList[key].ServiceName;
@@ -764,7 +764,7 @@ namespace EpgTimer
 
                 foreach (ReserveData info in CommonManager.Instance.DB.ReserveList.Values)
                 {
-                    UInt64 key = CommonManager.Create64Key(info.OriginalNetworkID, info.TransportStreamID, info.ServiceID);
+                    ulong key = CommonManager.Create64Key(info.OriginalNetworkID, info.TransportStreamID, info.ServiceID);
                     if (selectID == key)
                     {
                         DateTime chkStartTime;
@@ -780,7 +780,7 @@ namespace EpgTimer
                             startTime = new DateTime(2001, 1, 1, info.StartTime.Hour, info.StartTime.Minute, info.StartTime.Second);
                         }
                         DateTime baseStartTime = startTime;
-                        Int32 duration = (Int32)info.DurationSecond;
+                        int duration = (int)info.DurationSecond;
                         //総時間60秒を下限に縮小方向のマージンを反映させる
                         int startMargin = info.RecSetting.StartMargine;
                         int endMargin = info.RecSetting.EndMargine;
@@ -886,7 +886,7 @@ namespace EpgTimer
 
                 //必要サービスの抽出
                 int selectIndex = 0;
-                UInt64 selectID = 0;
+                ulong selectID = 0;
                 if (comboBox_service.SelectedItem != null)
                 {
                     ComboBoxItem item = comboBox_service.SelectedItem as ComboBoxItem;
@@ -1221,7 +1221,7 @@ namespace EpgTimer
             }
             MoveNowTime(moveBaseTime);
             // サービス選択
-            UInt64 serviceKey_Target1 = 0;
+            ulong serviceKey_Target1 = 0;
             if (target is ReserveData)
             {
                 var reserveData1 = (ReserveData)target;
@@ -1240,7 +1240,7 @@ namespace EpgTimer
             foreach (ComboBoxItem item in this.comboBox_service.Items)
             {
                 EpgServiceInfo serviceInfo = item.DataContext as EpgServiceInfo;
-                UInt64 serviceKey_OnTab1 = CommonManager.Create64Key(serviceInfo.ONID, serviceInfo.TSID, serviceInfo.SID);
+                ulong serviceKey_OnTab1 = CommonManager.Create64Key(serviceInfo.ONID, serviceInfo.TSID, serviceInfo.SID);
                 if (serviceKey_Target1 == serviceKey_OnTab1)
                 {
                     this.comboBox_service.SelectedItem = item;

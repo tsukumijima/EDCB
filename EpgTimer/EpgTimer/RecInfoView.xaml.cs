@@ -73,7 +73,7 @@ namespace EpgTimer
                             return;
                         }
                     }
-                    List<UInt32> IDList = new List<uint>();
+                    List<uint> IDList = new List<uint>();
                     foreach (RecInfoItem info in listView_recinfo.SelectedItems)
                     {
                         IDList.Add(info.RecInfo.ID);
@@ -344,7 +344,7 @@ namespace EpgTimer
                 if (menuItem.IsChecked == true)
                 {
 
-                    Settings.Instance.RecInfoListColumn.Add(new ListColumnInfo(menuItem.Name, Double.NaN));
+                    Settings.Instance.RecInfoListColumn.Add(new ListColumnInfo(menuItem.Name, double.NaN));
                     gridView_recinfo.Columns.Add(columnList[menuItem.Name]);
                 }
                 else

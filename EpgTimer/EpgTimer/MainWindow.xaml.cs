@@ -945,7 +945,7 @@ namespace EpgTimer
                     {
                         //原作では成否にかかわらずCMD_SUCCESSだったが、サーバ側の仕様と若干矛盾するので変更した
                         res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_ERR, null, 0);
-                        String exeCmd = "";
+                        string exeCmd = "";
                         (new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false))).Read(ref exeCmd);
                         if (exeCmd.Length > 0 && exeCmd[0] == '"')
                         {
@@ -1006,7 +1006,7 @@ namespace EpgTimer
                     {
                         res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_SUCCESS, null, 0);
 
-                        UInt16 param = 0;
+                        ushort param = 0;
                         (new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false))).Read(ref param);
 
                         Dispatcher.BeginInvoke(new Action(() => ShowSleepDialog(param)));
@@ -1017,11 +1017,11 @@ namespace EpgTimer
                     {
                         res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_SUCCESS, null, 0);
 
-                        UInt16 param = 0;
+                        ushort param = 0;
                         (new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false))).Read(ref param);
 
-                        Byte reboot = (Byte)((param & 0xFF00) >> 8);
-                        Byte suspendMode = (Byte)(param & 0x00FF);
+                        byte reboot = (byte)((param & 0xFF00) >> 8);
+                        byte suspendMode = (byte)(param & 0x00FF);
 
                         Dispatcher.BeginInvoke(new Action(() =>
                         {
@@ -1051,7 +1051,7 @@ namespace EpgTimer
             return res;
         }
 
-        private void ShowSleepDialog(UInt16 param)
+        private void ShowSleepDialog(ushort param)
         {
             if (IniFileHandler.GetPrivateProfileInt("NO_SUSPEND", "NoUsePC", 0, SettingPath.TimerSrvIniPath) == 1)
             {
@@ -1063,7 +1063,7 @@ namespace EpgTimer
                 }
             }
 
-            Byte suspendMode = (Byte)(param & 0x00FF);
+            byte suspendMode = (byte)(param & 0x00FF);
 
             {
                 SuspendCheckWindow dlg = new SuspendCheckWindow();

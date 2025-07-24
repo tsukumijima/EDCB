@@ -23,7 +23,7 @@ namespace EpgTimer
         private List<KeyValuePair<string, bool>> listSortHistory =
             new List<KeyValuePair<string, bool>>() { new KeyValuePair<string, bool>("StartTime", false) };
 
-        private UInt32 autoAddID = 0;
+        private uint autoAddID = 0;
         private bool searchOnLoaded = false;
 
         public SearchWindow()
@@ -110,7 +110,7 @@ namespace EpgTimer
                     var item = new SearchItem(info, false, false, false);
                     if (item.EventInfo.start_time.AddSeconds(item.EventInfo.DurationFlag == 0 ? 0 : item.EventInfo.durationSec) > now)
                     {
-                        UInt64 serviceKey = CommonManager.Create64Key(info.original_network_id, info.transport_stream_id, info.service_id);
+                        ulong serviceKey = CommonManager.Create64Key(info.original_network_id, info.transport_stream_id, info.service_id);
                         if (ChSet5.Instance.ChList.ContainsKey(serviceKey) == true)
                         {
                             item.ServiceName = ChSet5.Instance.ChList[serviceKey].ServiceName;
@@ -206,7 +206,7 @@ namespace EpgTimer
                                 reserveInfo.DurationSecond = eventInfo.durationSec;
                             }
 
-                            UInt64 key = CommonManager.Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
+                            ulong key = CommonManager.Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
                             if (ChSet5.Instance.ChList.ContainsKey(key) == true)
                             {
                                 reserveInfo.StationName = ChSet5.Instance.ChList[key].ServiceName;
@@ -475,7 +475,7 @@ namespace EpgTimer
         {
             if (listView_result.SelectedItem != null)
             {
-                List<UInt32> list = new List<UInt32>();
+                List<uint> list = new List<uint>();
 
                 foreach (SearchItem item in listView_result.SelectedItems)
                 {

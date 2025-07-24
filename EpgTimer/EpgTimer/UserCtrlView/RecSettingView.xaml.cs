@@ -51,7 +51,7 @@ namespace EpgTimer
             UpdateView(setDefSetting);
         }
 
-        private void AddPreset(String name)
+        private void AddPreset(string name)
         {
             RecPresetItem newInfo = new RecPresetItem();
             newInfo.DisplayName = name;
@@ -93,9 +93,9 @@ namespace EpgTimer
             string saveID = "";
             for (int i = 0; i < saveList.Count; i++)
             {
-                String defName = "REC_DEF";
-                String defFolderName = "REC_DEF_FOLDER";
-                String defFolder1SegName = "REC_DEF_FOLDER_1SEG";
+                string defName = "REC_DEF";
+                string defFolderName = "REC_DEF_FOLDER";
+                string defFolder1SegName = "REC_DEF_FOLDER_1SEG";
                 RecSettingData info = saveList[i];
 
                 RecPresetItem preItem = comboBox_preSet.Items.OfType<RecPresetItem>().First(a => a.ID == i);
