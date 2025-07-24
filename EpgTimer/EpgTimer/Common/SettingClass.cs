@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Xml.Linq;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 
@@ -706,7 +707,7 @@ namespace EpgTimer
                     {
                         break;
                     }
-                    System.Threading.Thread.Sleep(200 * retry);
+                    Thread.Sleep(200 * retry);
                 }
                 catch
                 {
@@ -846,7 +847,7 @@ namespace EpgTimer
                         {
                             throw;
                         }
-                        System.Threading.Thread.Sleep(200 * retry);
+                        Thread.Sleep(200 * retry);
                     }
                 }
             }
