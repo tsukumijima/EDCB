@@ -412,7 +412,7 @@ namespace EpgTimer
                         MessageBox.Show(listView_key.SelectedItems.Count + "項目を削除してよろしいですか?", "確認",
                                         MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.OK) == MessageBoxResult.OK)
                     {
-                        button_del.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                        button_del_Click(sender, e);
                     }
                     e.Handled = true;
                     break;
@@ -451,12 +451,12 @@ namespace EpgTimer
             }
         }
 
-        private void button_up_Click2(object sender, RoutedEventArgs e)
+        private void button_up_Click(object sender, RoutedEventArgs e)
         {
             moveItem(true);
         }
 
-        private void button_down_Click2(object sender, RoutedEventArgs e)
+        private void button_down_Click(object sender, RoutedEventArgs e)
         {
             moveItem(false);
         }

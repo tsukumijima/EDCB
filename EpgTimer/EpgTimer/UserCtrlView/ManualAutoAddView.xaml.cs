@@ -116,14 +116,7 @@ namespace EpgTimer
 
         private void listView_key_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (listView_key.SelectedItem != null)
-            {
-                ManualAutoAddDataItem info = listView_key.SelectedItem as ManualAutoAddDataItem;
-                AddManualAutoAddWindow dlg = new AddManualAutoAddWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetChangeModeData(info.ManualAutoAddInfo);
-                dlg.ShowDialog();
-            }
+            button_change_Click(sender, e);
         }
 
         private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -198,7 +191,7 @@ namespace EpgTimer
             switch (e.Key)
             {
                 case Key.Enter:
-                    button_change.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    button_change_Click(sender, e);
                     e.Handled = true;
                     break;
                 case Key.Delete:
@@ -206,7 +199,7 @@ namespace EpgTimer
                         MessageBox.Show(listView_key.SelectedItems.Count + "項目を削除してよろしいですか?", "確認",
                                         MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.OK) == MessageBoxResult.OK)
                     {
-                        button_del.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                        button_del_Click(sender, e);
                     }
                     e.Handled = true;
                     break;

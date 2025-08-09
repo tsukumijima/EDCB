@@ -390,14 +390,14 @@ namespace EpgTimer
                     case Key.P:
                         if (e.IsRepeat == false)
                         {
-                            button_timeShiftPlay.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                            timeShiftPlay_Click(sender, e);
                         }
                         e.Handled = true;
                         break;
                     case Key.R:
                         if (e.IsRepeat == false)
                         {
-                            button_no.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                            button_no_Click(sender, e);
                         }
                         e.Handled = true;
                         break;
@@ -408,7 +408,7 @@ namespace EpgTimer
                 switch (e.Key)
                 {
                     case Key.F3:
-                        MenuItem_Click_ProgramTable(sender, e);
+                        jumpToProgramTable_Click(sender, e);
                         e.Handled = true;
                         break;
                     case Key.Enter:
@@ -420,7 +420,7 @@ namespace EpgTimer
                             MessageBox.Show(listView_reserve.SelectedItems.Count + "項目を削除してよろしいですか?", "確認",
                                             MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.OK) == MessageBoxResult.OK)
                         {
-                            button_del.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                            button_del_Click(sender, e);
                         }
                         e.Handled = true;
                         break;
@@ -428,7 +428,7 @@ namespace EpgTimer
             }
         }
 
-        private void MenuItem_Click_ProgramTable(object sender, RoutedEventArgs e)
+        private void jumpToProgramTable_Click(object sender, RoutedEventArgs e)
         {
             ReserveItem item1 = this.listView_reserve.SelectedItem as ReserveItem;
             if (item1 != null)

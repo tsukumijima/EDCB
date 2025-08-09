@@ -196,7 +196,7 @@ namespace EpgTimer
                     case Key.P:
                         if (e.IsRepeat == false)
                         {
-                            button_play.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                            button_play_Click(sender, e);
                         }
                         e.Handled = true;
                         break;
