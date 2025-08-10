@@ -308,25 +308,27 @@ namespace EpgTimer
         /// <param name="e"></param>
         private void cm_chg_no_Click(object sender, RoutedEventArgs e)
         {
+            ReserveData reserve = ((Tuple<ReserveData, ProgramViewItem>)((MenuItem)sender).DataContext).Item1;
+            byte originalRecMode = reserve.RecSetting.RecMode;
+            byte recMode = reserve.RecSetting.GetRecMode();
+            reserve.RecSetting.RecMode = CommonManager.Instance.DB.CombineRecModeAndNoRec(recMode, !reserve.RecSetting.IsNoRec());
+            string message = null;
             try
             {
-                ReserveData reserve = ((Tuple<ReserveData, ProgramViewItem>)((MenuItem)sender).DataContext).Item1;
-                byte recMode = reserve.RecSetting.GetRecMode();
-                if (reserve.RecSetting.IsNoRec() == false)
-                {
-                    //録画モード情報を維持して無効化
-                    recMode = (byte)(CommonManager.Instance.DB.FixNoRecToServiceOnly ? 5 : 5 + (recMode + 4) % 5);
-                }
-                reserve.RecSetting.RecMode = recMode;
                 ErrCode err = CommonManager.CreateSrvCtrl().SendChgReserve(new List<ReserveData>() { reserve });
                 if (err != ErrCode.CMD_SUCCESS)
                 {
-                    MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "予約変更でエラーが発生しました。");
+                    message = CommonManager.GetErrCodeText(err) ?? "予約変更でエラーが発生しました。";
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                message = ex.ToString();
+            }
+            reserve.RecSetting.RecMode = originalRecMode;
+            if (message != null)
+            {
+                MessageBox.Show(message);
             }
         }
 
@@ -337,28 +339,30 @@ namespace EpgTimer
         /// <param name="e"></param>
         private void cm_chg_recmode_Click(object sender, RoutedEventArgs e)
         {
+            ReserveData reserve = ((Tuple<ReserveData, ProgramViewItem>)((MenuItem)sender).DataContext).Item1;
+            byte originalRecMode = reserve.RecSetting.RecMode;
+            byte recMode = (byte)(sender == recmode_all ? 0 :
+                                  sender == recmode_only ? 1 :
+                                  sender == recmode_all_nodec ? 2 :
+                                  sender == recmode_only_nodec ? 3 : 4);
+            reserve.RecSetting.RecMode = CommonManager.Instance.DB.CombineRecModeAndNoRec(recMode, reserve.RecSetting.IsNoRec());
+            string message = null;
             try
             {
-                ReserveData reserve = ((Tuple<ReserveData, ProgramViewItem>)((MenuItem)sender).DataContext).Item1;
-                byte recMode = (byte)(sender == recmode_all ? 0 :
-                                      sender == recmode_only ? 1 :
-                                      sender == recmode_all_nodec ? 2 :
-                                      sender == recmode_only_nodec ? 3 : 4);
-                if (reserve.RecSetting.IsNoRec())
-                {
-                    //録画モード情報を維持して無効化
-                    recMode = (byte)(CommonManager.Instance.DB.FixNoRecToServiceOnly ? 5 : 5 + (recMode + 4) % 5);
-                }
-                reserve.RecSetting.RecMode = recMode;
                 ErrCode err = CommonManager.CreateSrvCtrl().SendChgReserve(new List<ReserveData>() { reserve });
                 if (err != ErrCode.CMD_SUCCESS)
                 {
-                    MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "予約変更でエラーが発生しました。");
+                    message = CommonManager.GetErrCodeText(err) ?? "予約変更でエラーが発生しました。";
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                message = ex.ToString();
+            }
+            reserve.RecSetting.RecMode = originalRecMode;
+            if (message != null)
+            {
+                MessageBox.Show(message);
             }
         }
 
@@ -369,24 +373,29 @@ namespace EpgTimer
         /// <param name="e"></param>
         private void cm_chg_priority_Click(object sender, RoutedEventArgs e)
         {
+            ReserveData reserve = ((Tuple<ReserveData, ProgramViewItem>)((MenuItem)sender).DataContext).Item1;
+            byte originalPriority = reserve.RecSetting.Priority;
+            reserve.RecSetting.Priority = (byte)(sender == priority_1 ? 1 :
+                                                 sender == priority_2 ? 2 :
+                                                 sender == priority_3 ? 3 :
+                                                 sender == priority_4 ? 4 : 5);
+            string message = null;
             try
             {
-                ReserveData reserve = ((Tuple<ReserveData, ProgramViewItem>)((MenuItem)sender).DataContext).Item1;
-                reserve.RecSetting.Priority = (byte)(sender == priority_1 ? 1 :
-                                                     sender == priority_2 ? 2 :
-                                                     sender == priority_3 ? 3 :
-                                                     sender == priority_4 ? 4 : 5);
-                List<ReserveData> list = new List<ReserveData>();
-                list.Add(reserve);
-                ErrCode err = CommonManager.CreateSrvCtrl().SendChgReserve(list);
+                ErrCode err = CommonManager.CreateSrvCtrl().SendChgReserve(new List<ReserveData>() { reserve });
                 if (err != ErrCode.CMD_SUCCESS)
                 {
-                    MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "予約変更でエラーが発生しました。");
+                    message = CommonManager.GetErrCodeText(err) ?? "予約変更でエラーが発生しました。";
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                message = ex.ToString();
+            }
+            reserve.RecSetting.Priority = originalPriority;
+            if (message != null)
+            {
+                MessageBox.Show(message);
             }
         }
 

@@ -170,88 +170,111 @@ namespace EpgTimer
 
         private void recmode_Click(object sender, RoutedEventArgs e)
         {
-            try
+            var list = new List<ReserveData>();
+            var originalRecModeList = new List<byte>();
+            foreach (ReserveItem item in listView_reserve.SelectedItems)
             {
-                List<ReserveData> list = new List<ReserveData>();
-                foreach (ReserveItem item in listView_reserve.SelectedItems)
-                {
-                    byte recMode = byte.Parse((string)((MenuItem)sender).Tag);
-                    if (item.ReserveInfo.RecSetting.IsNoRec())
-                    {
-                        //録画モード情報を維持して無効化
-                        recMode = (byte)(CommonManager.Instance.DB.FixNoRecToServiceOnly ? 5 : 5 + (recMode + 4) % 5);
-                    }
-                    item.ReserveInfo.RecSetting.RecMode = recMode;
-                    list.Add(item.ReserveInfo);
-                }
-                if (list.Count > 0)
+                originalRecModeList.Add(item.ReserveInfo.RecSetting.RecMode);
+                byte recMode = byte.Parse((string)((MenuItem)sender).Tag);
+                item.ReserveInfo.RecSetting.RecMode = CommonManager.Instance.DB.CombineRecModeAndNoRec(recMode, item.ReserveInfo.RecSetting.IsNoRec());
+                list.Add(item.ReserveInfo);
+            }
+            if (list.Count > 0)
+            {
+                string message = null;
+                try
                 {
                     ErrCode err = CommonManager.CreateSrvCtrl().SendChgReserve(list);
                     if (err != ErrCode.CMD_SUCCESS)
                     {
-                        MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "チューナー一覧の取得でエラーが発生しました。");
+                        message = CommonManager.GetErrCodeText(err) ?? "チューナー一覧の取得でエラーが発生しました。";
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
+                catch (Exception ex)
+                {
+                    message = ex.ToString();
+                }
+                for (int i = 0; i < list.Count; i++)
+                {
+                    list[i].RecSetting.RecMode = originalRecModeList[i];
+                }
+                if (message != null)
+                {
+                    MessageBox.Show(message);
+                }
             }
         }
 
         private void button_no_Click(object sender, RoutedEventArgs e)
         {
-            try
+            var list = new List<ReserveData>();
+            var originalRecModeList = new List<byte>();
+            foreach (ReserveItem item in listView_reserve.SelectedItems)
             {
-                List<ReserveData> list = new List<ReserveData>();
-                foreach (ReserveItem item in listView_reserve.SelectedItems)
-                {
-                    byte recMode = item.ReserveInfo.RecSetting.GetRecMode();
-                    if (item.ReserveInfo.RecSetting.IsNoRec() == false)
-                    {
-                        //録画モード情報を維持して無効化
-                        recMode = (byte)(CommonManager.Instance.DB.FixNoRecToServiceOnly ? 5 : 5 + (recMode + 4) % 5);
-                    }
-                    item.ReserveInfo.RecSetting.RecMode = recMode;
-                    list.Add(item.ReserveInfo);
-                }
-                if (list.Count > 0)
+                originalRecModeList.Add(item.ReserveInfo.RecSetting.RecMode);
+                byte recMode = item.ReserveInfo.RecSetting.GetRecMode();
+                item.ReserveInfo.RecSetting.RecMode = CommonManager.Instance.DB.CombineRecModeAndNoRec(recMode, !item.ReserveInfo.RecSetting.IsNoRec());
+                list.Add(item.ReserveInfo);
+            }
+            if (list.Count > 0)
+            {
+                string message = null;
+                try
                 {
                     ErrCode err = CommonManager.CreateSrvCtrl().SendChgReserve(list);
                     if (err != ErrCode.CMD_SUCCESS)
                     {
-                        MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "チューナー一覧の取得でエラーが発生しました。");
+                        message = CommonManager.GetErrCodeText(err) ?? "チューナー一覧の取得でエラーが発生しました。";
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
+                catch (Exception ex)
+                {
+                    message = ex.ToString();
+                }
+                for (int i = 0; i < list.Count; i++)
+                {
+                    list[i].RecSetting.RecMode = originalRecModeList[i];
+                }
+                if (message != null)
+                {
+                    MessageBox.Show(message);
+                }
             }
         }
 
         private void priority_Click(object sender, RoutedEventArgs e)
         {
-            try
+            var list = new List<ReserveData>();
+            var originalPriorityList = new List<byte>();
+            foreach (ReserveItem item in listView_reserve.SelectedItems)
             {
-                List<ReserveData> list = new List<ReserveData>();
-                foreach (ReserveItem item in listView_reserve.SelectedItems)
-                {
-                    item.ReserveInfo.RecSetting.Priority = byte.Parse((string)((MenuItem)sender).Tag);
-                    list.Add(item.ReserveInfo);
-                }
-                if (list.Count > 0)
+                originalPriorityList.Add(item.ReserveInfo.RecSetting.Priority);
+                item.ReserveInfo.RecSetting.Priority = byte.Parse((string)((MenuItem)sender).Tag);
+                list.Add(item.ReserveInfo);
+            }
+            if (list.Count > 0)
+            {
+                string message = null;
+                try
                 {
                     ErrCode err = CommonManager.CreateSrvCtrl().SendChgReserve(list);
                     if (err != ErrCode.CMD_SUCCESS)
                     {
-                        MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "チューナー一覧の取得でエラーが発生しました。");
+                        message = CommonManager.GetErrCodeText(err) ?? "チューナー一覧の取得でエラーが発生しました。";
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
+                catch (Exception ex)
+                {
+                    message = ex.ToString();
+                }
+                for (int i = 0; i < list.Count; i++)
+                {
+                    list[i].RecSetting.Priority = originalPriorityList[i];
+                }
+                if (message != null)
+                {
+                    MessageBox.Show(message);
+                }
             }
         }
 

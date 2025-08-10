@@ -875,5 +875,13 @@ namespace EpgTimer
             }
             return null;
         }
+
+        /// <summary>
+        /// 無効状態と録画モード情報とを組み合わせた値を返す。結果はサーバーの対応状況による
+        /// </summary>
+        public byte CombineRecModeAndNoRec(byte recMode, bool noRec)
+        {
+            return noRec ? (byte)(FixNoRecToServiceOnly ? 5 : 5 + (recMode + 4) % 5) : recMode;
+        }
     }
 }

@@ -166,12 +166,7 @@ namespace EpgTimer
         public RecSettingData GetRecSetting()
         {
             var setInfo = new RecSettingData();
-            setInfo.RecMode = (byte)comboBox_recMode.SelectedIndex;
-            if (checkBox_enabled.IsChecked != true)
-            {
-                //録画モード情報を維持して無効化
-                setInfo.RecMode = (byte)(CommonManager.Instance.DB.FixNoRecToServiceOnly ? 5 : 5 + (setInfo.RecMode + 4) % 5);
-            }
+            setInfo.RecMode = CommonManager.Instance.DB.CombineRecModeAndNoRec((byte)comboBox_recMode.SelectedIndex, checkBox_enabled.IsChecked != true);
             setInfo.Priority = (byte)(comboBox_priority.SelectedIndex + 1);
             setInfo.TuijyuuFlag = (byte)(checkBox_tuijyu.IsChecked == true ? 1 : 0);
             if (checkBox_serviceMode.IsChecked == true)
