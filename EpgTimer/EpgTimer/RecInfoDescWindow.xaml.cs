@@ -92,7 +92,10 @@ namespace EpgTimer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            tabItem_pgInfo.Focus();
+            if (tabControl.SelectedItem != null)
+            {
+                ((TabItem)tabControl.SelectedItem).Focus();
+            }
         }
 
         private void textBox_recFilePath_TextChanged(object sender, TextChangedEventArgs e)
@@ -247,7 +250,7 @@ namespace EpgTimer
                     MessageBox.Show(ex.ToString());
                 }
             }
-            DialogResult = false;
+            Close();
         }
 
         private void button_save_program_Click(object sender, RoutedEventArgs e)
@@ -270,6 +273,25 @@ namespace EpgTimer
                     MessageBox.Show(ex.ToString());
                 }
             }
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.None)
+            {
+                switch (e.Key)
+                {
+                    case Key.Escape:
+                        Close();
+                        e.Handled = true;
+                        break;
+                }
+            }
+        }
+
+        private void button_cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

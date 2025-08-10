@@ -49,9 +49,14 @@ namespace EpgTimer
             recSettingView.SetViewMode(false);
         }
 
-        public void SetOpenMode(byte mode)
+        public void SetOpenMode(int mode)
         {
-            tabControl.SelectedIndex = mode;
+            tabControl.SelectedIndex = mode == 0 ? 0 : 1;
+        }
+
+        public int GetOpenMode()
+        {
+            return tabControl.SelectedIndex == 0 ? 0 : 1;
         }
 
         /// <summary>
@@ -214,7 +219,7 @@ namespace EpgTimer
                     MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "予約追加でエラーが発生しました。");
                 }
             }
-            DialogResult = true;
+            Close();
         }
 
         private void button_del_reserve_Click(object sender, RoutedEventArgs e)
@@ -226,7 +231,7 @@ namespace EpgTimer
                 {
                     MessageBox.Show(CommonManager.GetErrCodeText(err) ?? "予約削除でエラーが発生しました。");
                 }
-                DialogResult = true;
+                Close();
             }
         }
 
@@ -278,7 +283,21 @@ namespace EpgTimer
                         break;
                 }
             }
+            else if (Keyboard.Modifiers == ModifierKeys.None)
+            {
+                switch (e.Key)
+                {
+                    case Key.Escape:
+                        Close();
+                        e.Handled = true;
+                        break;
+                }
+            }
         }
 
+        private void button_cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
     }
 }

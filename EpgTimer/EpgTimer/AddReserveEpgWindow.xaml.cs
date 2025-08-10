@@ -26,16 +26,21 @@ namespace EpgTimer
             InitializeComponent();
         }
 
-        public void SetOpenMode(byte mode)
+        public void SetOpenMode(int mode)
         {
             tabControl.SelectedIndex = mode == 0 && tabItem_reserve.IsEnabled ? 0 : 1;
+        }
+
+        public int GetOpenMode()
+        {
+            return tabControl.SelectedIndex == 0 ? 0 : 1;
         }
 
         public void SetReservable(bool reservable)
         {
             tabItem_reserve.IsEnabled = reservable;
             button_add_reserve.IsEnabled = reservable;
-            SetOpenMode((byte)tabControl.SelectedIndex);
+            SetOpenMode(tabControl.SelectedIndex);
         }
 
         public void SetEventInfo(EpgEventInfo eventData)
@@ -107,7 +112,7 @@ namespace EpgTimer
             {
                 MessageBox.Show(ex.ToString());
             }
-            DialogResult = true;
+            Close();
         }
 
         private void button_save_program_Click(object sender, RoutedEventArgs e)
@@ -149,6 +154,21 @@ namespace EpgTimer
                         break;
                 }
             }
+            else if (Keyboard.Modifiers == ModifierKeys.None)
+            {
+                switch (e.Key)
+                {
+                    case Key.Escape:
+                        Close();
+                        e.Handled = true;
+                        break;
+                }
+            }
+        }
+
+        private void button_cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

@@ -496,34 +496,27 @@ namespace EpgTimer
                         AddReserve(item.EventInfo, item.Past == false);
                     }
                 }
+                e.Handled = true;
             }
         }
 
         private void ChangeReserve(ReserveData reserveInfo)
         {
-            {
-                ChgReserveWindow dlg = new ChgReserveWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetOpenMode(setViewInfo.EpgSetting.EpgInfoOpenMode);
-                dlg.SetReserveInfo(reserveInfo);
-                if (dlg.ShowDialog() == true)
-                {
-                }
-            }
+            var win = new ChgReserveWindow();
+            win.SetOpenMode(setViewInfo.EpgSetting.EpgInfoOpenMode);
+            ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
+            win.SetReserveInfo(reserveInfo);
+            win.Show();
         }
 
         private void AddReserve(EpgEventInfo eventInfo, bool reservable)
         {
-            {
-                AddReserveEpgWindow dlg = new AddReserveEpgWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetOpenMode(setViewInfo.EpgSetting.EpgInfoOpenMode);
-                dlg.SetReservable(reservable);
-                dlg.SetEventInfo(eventInfo);
-                if (dlg.ShowDialog() == true)
-                {
-                }
-            }
+            var win = new AddReserveEpgWindow();
+            win.SetOpenMode(setViewInfo.EpgSetting.EpgInfoOpenMode);
+            win.SetReservable(reservable);
+            ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
+            win.SetEventInfo(eventInfo);
+            win.Show();
         }
 
         private void listView_event_ContextMenuOpening(object sender, ContextMenuEventArgs e)
@@ -815,25 +808,21 @@ namespace EpgTimer
 
         private void cm_autoadd_Click(object sender, RoutedEventArgs e)
         {
+            if (listView_event.SelectedItem != null)
             {
-                if (listView_event.SelectedItem != null)
+                SearchItem item = listView_event.SelectedItem as SearchItem;
+
+                SearchWindow search = ((MainWindow)Application.Current.MainWindow).CreateSearchWindow();
+
+                var key = new EpgSearchKeyInfo();
+                if (item.EventInfo.ShortInfo != null)
                 {
-                    SearchItem item = listView_event.SelectedItem as SearchItem;
-
-                    SearchWindow dlg = new SearchWindow();
-                    dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-
-                    EpgSearchKeyInfo key = new EpgSearchKeyInfo();
-
-                    if (item.EventInfo.ShortInfo != null)
-                    {
-                        key.andKey = item.EventInfo.ShortInfo.event_name;
-                    }
-                    key.serviceList.Add((long)CommonManager.Create64Key(item.EventInfo.original_network_id, item.EventInfo.transport_stream_id, item.EventInfo.service_id));
-
-                    dlg.SetSearchDefKey(key);
-                    dlg.ShowDialog();                
+                    key.andKey = item.EventInfo.ShortInfo.event_name;
                 }
+                key.serviceList.Add((long)CommonManager.Create64Key(item.EventInfo.original_network_id, item.EventInfo.transport_stream_id, item.EventInfo.service_id));
+
+                search.SetSearchDefKey(key);
+                search.Show();
             }
         }
 
@@ -860,7 +849,7 @@ namespace EpgTimer
         {
             var dlg = new EpgDataViewSettingWindow();
             dlg.Title += " (一時的)";
-            dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
+            dlg.Owner = Application.Current.MainWindow;
             dlg.SetDefSetting(setViewInfo);
             if (dlg.ShowDialog() == true)
             {

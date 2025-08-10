@@ -236,22 +236,18 @@ namespace EpgTimer
         /// <param name="e"></param>
         private void cm_autoadd_Click(object sender, RoutedEventArgs e)
         {
+            var reserve = (ReserveData)((MenuItem)sender).DataContext;
+            SearchWindow search = ((MainWindow)Application.Current.MainWindow).CreateSearchWindow();
+
+            var key = new EpgSearchKeyInfo();
+            if (reserve.Title != null)
             {
-                var reserve = (ReserveData)((MenuItem)sender).DataContext;
-                SearchWindow dlg = new SearchWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-
-                EpgSearchKeyInfo key = new EpgSearchKeyInfo();
-
-                if (reserve.Title != null)
-                {
-                    key.andKey = reserve.Title;
-                }
-                key.serviceList.Add((long)CommonManager.Create64Key(reserve.OriginalNetworkID, reserve.TransportStreamID, reserve.ServiceID));
-
-                dlg.SetSearchDefKey(key);
-                dlg.ShowDialog();
+                key.andKey = reserve.Title;
             }
+            key.serviceList.Add((long)CommonManager.Create64Key(reserve.OriginalNetworkID, reserve.TransportStreamID, reserve.ServiceID));
+
+            search.SetSearchDefKey(key);
+            search.Show();
         }
 
         /// <summary>
@@ -303,14 +299,10 @@ namespace EpgTimer
         /// <param name="e"></param>
         private void ChangeReserve(ReserveData reserveInfo)
         {
-            {
-                ChgReserveWindow dlg = new ChgReserveWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetReserveInfo(reserveInfo);
-                if (dlg.ShowDialog() == true)
-                {
-                }
-            }
+            var win = new ChgReserveWindow();
+            ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
+            win.SetReserveInfo(reserveInfo);
+            win.Show();
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

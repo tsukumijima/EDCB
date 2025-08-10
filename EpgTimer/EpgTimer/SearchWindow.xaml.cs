@@ -287,40 +287,25 @@ namespace EpgTimer
 
         private void listView_result_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            {
-                if (listView_result.SelectedItem != null)
-                {
-                    SearchItem item = listView_result.SelectedItem as SearchItem;
-                    if (item.IsReserved == true)
-                    {
-                        ChangeReserve(item.ReserveInfo);
-                    }
-                    else
-                    {
-                        AddReserve(item.EventInfo);
-                    }
-                }
-            }
+            MenuItem_Click_ShowDialog(sender, e);
         }
 
         private void ChangeReserve(ReserveData reserveInfo)
         {
-            {
-                ChgReserveWindow dlg = new ChgReserveWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetReserveInfo(reserveInfo);
-                dlg.ShowDialog();
-            }
+            ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(null);
+            var dlg = new ChgReserveWindow();
+            dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
+            dlg.SetReserveInfo(reserveInfo);
+            dlg.ShowDialog();
         }
 
         private void AddReserve(EpgEventInfo eventInfo)
         {
-            {
-                AddReserveEpgWindow dlg = new AddReserveEpgWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetEventInfo(eventInfo);
-                dlg.ShowDialog();
-            }
+            ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(null);
+            var dlg = new AddReserveEpgWindow();
+            dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
+            dlg.SetEventInfo(eventInfo);
+            dlg.ShowDialog();
         }
 
         private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
@@ -448,7 +433,7 @@ namespace EpgTimer
                             }
                             else
                             {
-                                button_add_reserve.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                                buttonOrMenuItem_add_reserve_Click(sender, e);
                             }
                         }
                         e.Handled = true;
@@ -636,33 +621,7 @@ namespace EpgTimer
             SearchItem item1 = this.listView_result.SelectedItem as SearchItem;
             if (item1 != null)
             {
-                MainWindow mainWindow1 = this.Owner as MainWindow;
-                if (mainWindow1 != null)
-                {
-                    if (mainWindow1.OwnedWindows.OfType<SearchWindow>().Count() > 1)
-                    {
-                        // 非表示で保存するSearchWindowを1つに限定するため
-                        this.Close();
-                    }
-                    else
-                    {
-                        this.Hide();
-                        mainWindow1.EmphasizeSearchButton(true);
-                    }
-                    mainWindow1.SearchJumpTargetProgram(item1.EventInfo);
-                }
-            }
-        }
-
-        private void Window_IsVisibleChanged_1(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            MainWindow mainWindow1 = this.Owner as MainWindow;
-            if (this.IsVisible)
-            {
-                if (mainWindow1.OwnedWindows.OfType<SearchWindow>().Count() <= 1)
-                {
-                    mainWindow1.EmphasizeSearchButton(false);
-                }
+                ((MainWindow)Application.Current.MainWindow).SearchJumpTargetProgram(item1.EventInfo);
             }
         }
 

@@ -90,11 +90,7 @@ namespace EpgTimer
 
         private void button_add_Click(object sender, RoutedEventArgs e)
         {
-            {
-                SearchWindow dlg = new SearchWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.ShowDialog();
-            }
+            ((MainWindow)Application.Current.MainWindow).CreateSearchWindow().Show();
         }
 
         private void button_del_Click(object sender, RoutedEventArgs e)
@@ -193,6 +189,7 @@ namespace EpgTimer
         private void listView_key_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             showDialog();
+            e.Handled = true;
         }
 
         private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -289,10 +286,9 @@ namespace EpgTimer
             if (listView_key.SelectedItem != null)
             {
                 EpgAutoDataItem info = listView_key.SelectedItem as EpgAutoDataItem;
-                SearchWindow dlg = new SearchWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetChangeModeData(info.EpgAutoAddInfo);
-                dlg.ShowDialog();
+                SearchWindow search = ((MainWindow)Application.Current.MainWindow).CreateSearchWindow();
+                search.SetChangeModeData(info.EpgAutoAddInfo);
+                search.Show();
             }
         }
 
@@ -339,7 +335,12 @@ namespace EpgTimer
             string message = null;
             try
             {
-                if (CommonManager.CreateSrvCtrl().SendChgEpgAutoAdd(resultListMoved.Select(a => a.EpgAutoAddInfo).ToList()) != ErrCode.CMD_SUCCESS)
+                if (((MainWindow)Application.Current.MainWindow).OwnedWindows.OfType<SearchWindow>().FirstOrDefault() != null)
+                {
+                    // IDを交換するのでEPG予約条件の不慮の上書きを防ぐため
+                    message = "検索・EPG予約条件ウィンドウを閉じてください";
+                }
+                else if (CommonManager.CreateSrvCtrl().SendChgEpgAutoAdd(resultListMoved.Select(a => a.EpgAutoAddInfo).ToList()) != ErrCode.CMD_SUCCESS)
                 {
                     message = "変更に失敗しました";
                 }

@@ -84,9 +84,9 @@ namespace EpgTimer
 
         private void button_add_Click(object sender, RoutedEventArgs e)
         {
-            AddManualAutoAddWindow dlg = new AddManualAutoAddWindow();
-            dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-            dlg.ShowDialog();
+            var win = new AddManualAutoAddWindow();
+            ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
+            win.Show();
         }
 
         private void button_del_Click(object sender, RoutedEventArgs e)
@@ -107,16 +107,17 @@ namespace EpgTimer
             if (listView_key.SelectedItem != null)
             {
                 ManualAutoAddDataItem info = listView_key.SelectedItem as ManualAutoAddDataItem;
-                AddManualAutoAddWindow dlg = new AddManualAutoAddWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetChangeModeData(info.ManualAutoAddInfo);
-                dlg.ShowDialog();
+                var win = new AddManualAutoAddWindow();
+                ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
+                win.SetChangeModeData(info.ManualAutoAddInfo);
+                win.Show();
             }
         }
 
         private void listView_key_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             button_change_Click(sender, e);
+            e.Handled = true;
         }
 
         private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)

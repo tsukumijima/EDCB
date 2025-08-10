@@ -147,6 +147,7 @@ namespace EpgTimer
         private void listView_reserve_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             ChangeReserve();
+            e.Handled = true;
         }
 
         private void button_change_Click(object sender, RoutedEventArgs e)
@@ -158,13 +159,10 @@ namespace EpgTimer
         {
             if (listView_reserve.SelectedItem != null)
             {
-                ReserveItem item = listView_reserve.SelectedItem as ReserveItem;
-                ChgReserveWindow dlg = new ChgReserveWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-                dlg.SetReserveInfo(item.ReserveInfo);
-                if (dlg.ShowDialog() == true)
-                {
-                }
+                var win = new ChgReserveWindow();
+                ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
+                win.SetReserveInfo(((ReserveItem)listView_reserve.SelectedItem).ReserveInfo);
+                win.Show();
             }
         }
 
@@ -282,18 +280,16 @@ namespace EpgTimer
         {
             if (listView_reserve.SelectedItem != null)
             {
-                SearchWindow dlg = new SearchWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-
-                EpgSearchKeyInfo key = new EpgSearchKeyInfo();
-
                 ReserveItem item = listView_reserve.SelectedItem as ReserveItem;
 
+                SearchWindow search = ((MainWindow)Application.Current.MainWindow).CreateSearchWindow();
+
+                var key = new EpgSearchKeyInfo();
                 key.andKey = item.ReserveInfo.Title;
                 key.serviceList.Add((long)CommonManager.Create64Key(item.ReserveInfo.OriginalNetworkID, item.ReserveInfo.TransportStreamID, item.ReserveInfo.ServiceID));
 
-                dlg.SetSearchDefKey(key);
-                dlg.ShowDialog();
+                search.SetSearchDefKey(key);
+                search.Show();
             }
         }
 
@@ -334,9 +330,9 @@ namespace EpgTimer
 
         private void button_add_manual_Click(object sender, RoutedEventArgs e)
         {
-            ChgReserveWindow dlg = new ChgReserveWindow();
-            dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-            dlg.ShowDialog();
+            var win = new ChgReserveWindow();
+            ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
+            win.Show();
         }
 
         private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)

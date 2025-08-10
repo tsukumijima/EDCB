@@ -185,6 +185,7 @@ namespace EpgTimer
             {
                 button_recInfo_Click(sender, e);
             }
+            e.Handled = true;
         }
 
         private void listView_recinfo_KeyDown(object sender, KeyEventArgs e)
@@ -241,18 +242,16 @@ namespace EpgTimer
         {
             if (listView_recinfo.SelectedItem != null)
             {
-                SearchWindow dlg = new SearchWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
-
-                EpgSearchKeyInfo key = new EpgSearchKeyInfo();
-
                 RecInfoItem item = listView_recinfo.SelectedItem as RecInfoItem;
 
+                SearchWindow search = ((MainWindow)Application.Current.MainWindow).CreateSearchWindow();
+
+                var key = new EpgSearchKeyInfo();
                 key.andKey = item.RecInfo.Title;
                 key.serviceList.Add((long)CommonManager.Create64Key(item.RecInfo.OriginalNetworkID, item.RecInfo.TransportStreamID, item.RecInfo.ServiceID));
 
-                dlg.SetSearchDefKey(key);
-                dlg.ShowDialog();
+                search.SetSearchDefKey(key);
+                search.Show();
             }
         }
 
@@ -272,16 +271,16 @@ namespace EpgTimer
             if (listView_recinfo.SelectedItem != null)
             {
                 RecFileInfo info = ((RecInfoItem)listView_recinfo.SelectedItem).RecInfo;
-                RecInfoDescWindow dlg = new RecInfoDescWindow();
-                dlg.Owner = (Window)PresentationSource.FromVisual(this).RootVisual;
+                var win = new RecInfoDescWindow();
+                ((MainWindow)Application.Current.MainWindow).SwapOwnedReserveWindow(win);
                 RecFileInfo extraRecInfo = new RecFileInfo();
                 if (CommonManager.CreateSrvCtrl().SendGetRecInfo(info.ID, ref extraRecInfo) == ErrCode.CMD_SUCCESS)
                 {
                     info.ProgramInfo = extraRecInfo.ProgramInfo;
                     info.ErrInfo = extraRecInfo.ErrInfo;
                 }
-                dlg.SetRecInfo(info);
-                dlg.ShowDialog();
+                win.SetRecInfo(info);
+                win.Show();
             }
         }
 
