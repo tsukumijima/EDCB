@@ -9,7 +9,7 @@ namespace EpgTimer
     public class GridViewSelector
     {
         GridView gridView = null;
-        Dictionary<String, GridViewColumn> columnList = new Dictionary<String, GridViewColumn>();   //カラムの一覧を保存しておく
+        Dictionary<string, GridViewColumn> columnList = new Dictionary<string, GridViewColumn>();   //カラムの一覧を保存しておく
         List<GridViewColumn> columnFixed = new List<GridViewColumn>();   //固定カラム
         Func<List<ListColumnInfo>> getResetColumns = null;
         Func<List<ListColumnInfo>> getInitColumns = null;

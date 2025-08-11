@@ -12,7 +12,7 @@ namespace EpgTimer
         public override ulong DataID { get { return ID; } }
         public override DateTime PgStartTime { get { return StartTime; } }
         public override uint PgDurationSecond { get { return DurationSecond; } }
-        public override UInt64 Create64PgKey()
+        public override ulong Create64PgKey()
         {
             return CommonManager.Create64PgKey(OriginalNetworkID, TransportStreamID, ServiceID, EventID);
         }
@@ -185,8 +185,8 @@ namespace EpgTimer
                             //デフォルト { "EIT", "NIT", "CAT", "SDT", "SDTT", "TOT", "ECM", "EMM" }
                             if (Settings.Instance.RecInfoDropExcept.FirstOrDefault(s => words[8].Contains(s)) == null)
                             {
-                                dropsCritical += (Int64)Convert.ToUInt64(words[5]);
-                                scramblesCritical += (Int64)Convert.ToUInt64(words[7]);
+                                dropsCritical += (long)Convert.ToUInt64(words[5]);
+                                scramblesCritical += (long)Convert.ToUInt64(words[7]);
                                 line = line.Replace(" " + words[8], "*" + words[8]);
                             }
                         }

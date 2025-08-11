@@ -99,10 +99,10 @@ namespace EpgTimer
                 var data = new ManualAutoAddData();
                 data.dataID = (uint)dataID;
 
-                UInt32 startTime = ((UInt32)comboBox_startHH.SelectedIndex * 60 * 60) + ((UInt32)comboBox_startMM.SelectedIndex * 60) + (UInt32)comboBox_startSS.SelectedIndex;
-                UInt32 endTime = ((UInt32)comboBox_endHH.SelectedIndex * 60 * 60) + ((UInt32)comboBox_endMM.SelectedIndex * 60) + (UInt32)comboBox_endSS.SelectedIndex;
+                uint startTime = ((uint)comboBox_startHH.SelectedIndex * 60 * 60) + ((uint)comboBox_startMM.SelectedIndex * 60) + (uint)comboBox_startSS.SelectedIndex;
+                uint endTime = ((uint)comboBox_endHH.SelectedIndex * 60 * 60) + ((uint)comboBox_endMM.SelectedIndex * 60) + (uint)comboBox_endSS.SelectedIndex;
                 while (endTime < startTime) endTime += 24 * 60 * 60;
-                UInt32 duration = endTime - startTime;
+                uint duration = endTime - startTime;
                 if (duration >= 24 * 60 * 60)
                 {
                     //深夜時間帯の処理の関係で、不可条件が新たに発生しているため、その対応。
@@ -161,7 +161,7 @@ namespace EpgTimer
             comboBox_startSS.SelectedIndex = (int)(data.startTime % 60);
 
             //深夜時間帯の処理も含む
-            UInt32 endTime = data.startTime + data.durationSecond;
+            uint endTime = data.startTime + data.durationSecond;
             if (endTime >= comboBox_endHH.Items.Count * 60 * 60 || endTime >= 24 * 60 * 60
                 && DateTime28.JudgeLateHour(data.PgStartTime.AddSeconds(data.durationSecond), data.PgStartTime) == false)
             {

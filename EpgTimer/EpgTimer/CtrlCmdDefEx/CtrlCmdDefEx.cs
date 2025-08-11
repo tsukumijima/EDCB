@@ -15,7 +15,7 @@ namespace EpgTimer
     {
         DateTime PgStartTime { get; }
         uint PgDurationSecond { get; }
-        UInt64 Create64Key();
+        ulong Create64Key();
     }
     public static class IBasicPgInfoEx
     {
@@ -29,8 +29,8 @@ namespace EpgTimer
     }
     public interface IAutoAddTargetData : IBasicPgInfo
     {
-        UInt64 Create64PgKey();
-        UInt64 CurrentPgUID();
+        ulong Create64PgKey();
+        ulong CurrentPgUID();
         bool IsOnAir(DateTime? time = null);
         bool IsOver(DateTime? time = null);
         int OnTime(DateTime? time = null);
@@ -46,9 +46,9 @@ namespace EpgTimer
         public abstract ulong DataID { get;}
         public abstract DateTime PgStartTime { get; }
         public abstract uint PgDurationSecond { get; }
-        public virtual UInt64 Create64Key() { return Create64PgKey() >> 16; }
-        public abstract UInt64 Create64PgKey();
-        public virtual UInt64 CurrentPgUID()
+        public virtual ulong Create64Key() { return Create64PgKey() >> 16; }
+        public abstract ulong Create64PgKey();
+        public virtual ulong CurrentPgUID()
         {
             return CommonManager.CurrentPgUID(Create64PgKey(), PgStartTime);
         }
@@ -108,8 +108,8 @@ namespace EpgTimer
     }
     public abstract class AutoAddTargetDataStable : AutoAddTargetData
     {
-        protected UInt64 currentPgUID = 0;//DeepCopyでは無視
-        public override UInt64 CurrentPgUID()
+        protected ulong currentPgUID = 0;//DeepCopyでは無視
+        public override ulong CurrentPgUID()
         {
             if (currentPgUID == 0) currentPgUID = base.CurrentPgUID();
             return currentPgUID;
@@ -190,8 +190,8 @@ namespace EpgTimer
         public static void RegulateData(this EpgSearchDateInfo info)
         {
             //早い終了時間を翌日のものとみなす
-            Int32 start = (info.startHour) * 60 + info.startMin;
-            Int32 end = (info.endHour) * 60 + info.endMin;
+            int start = (info.startHour) * 60 + info.startMin;
+            int end = (info.endHour) * 60 + info.endMin;
             while (end < start)
             {
                 end += 24 * 60;
@@ -209,11 +209,11 @@ namespace EpgTimer
             weekFlg = (byte)((weekFlg + 7 + shift_day) % 7);
         }
 
-        public static UInt64 Create64Key(this EpgEventData obj)
+        public static ulong Create64Key(this EpgEventData obj)
         {
             return CommonManager.Create64Key(obj.original_network_id, obj.transport_stream_id, obj.service_id);
         }
-        public static UInt64 Create64PgKey(this EpgEventData obj)
+        public static ulong Create64PgKey(this EpgEventData obj)
         {
             return CommonManager.Create64PgKey(obj.original_network_id, obj.transport_stream_id, obj.service_id, obj.event_id);
         }
@@ -221,7 +221,7 @@ namespace EpgTimer
         public static List<ReserveData> GetReserveListFromPgUID(this IAutoAddTargetData data)
         {
             if (data == null) return null;
-            UInt64 id = data.CurrentPgUID();
+            ulong id = data.CurrentPgUID();
             return CommonManager.Instance.DB.ReserveList.Values.Where(info => info.CurrentPgUID() == id).ToList();
         }
 

@@ -522,8 +522,8 @@ namespace EpgTimer
         }
 
         protected override DataItemViewBase DataView { get { return base.DataView ?? (mainWindow.reserveView.IsVisible == true ? (DataItemViewBase)mainWindow.reserveView : mainWindow.tunerReserveView.IsVisible == true ? mainWindow.tunerReserveView : null); } }
-        protected override UInt64 DataID { get { return reserveInfo == null ? 0 : reserveInfo.ReserveID; } }
-        protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return CommonManager.Instance.DB.ReserveList.OrderBy(d => d.Value.StartTimeActual).Select(d => new KeyValuePair<UInt64, object>(d.Key, d.Value)); } }
+        protected override ulong DataID { get { return reserveInfo == null ? 0 : reserveInfo.ReserveID; } }
+        protected override IEnumerable<KeyValuePair<ulong, object>> DataRefList { get { return CommonManager.Instance.DB.ReserveList.OrderBy(d => d.Value.StartTimeActual).Select(d => new KeyValuePair<ulong, object>(d.Key, d.Value)); } }
 
         protected override void UpdateViewSelection(int mode = 0)
         {

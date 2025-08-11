@@ -429,9 +429,9 @@ namespace EpgTimer
     public enum AutoAddMode { Find, NewAdd, Change }
     public class AutoAddWindow<T, S> : HideableWindow<T> where S : AutoAddData
     {
-        protected UInt64 dataID = 0;
-        protected override UInt64 DataID { get { return dataID; } }
-        protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return AutoAddData.GetDBManagerList(typeof(S)).Select(d => new KeyValuePair<UInt64, object>(d.DataID, d)); } }
+        protected ulong dataID = 0;
+        protected override ulong DataID { get { return dataID; } }
+        protected override IEnumerable<KeyValuePair<ulong, object>> DataRefList { get { return AutoAddData.GetDBManagerList(typeof(S)).Select(d => new KeyValuePair<ulong, object>(d.DataID, d)); } }
         //予約ウィンドウからのリスト検索、ジャンプ関連の対応
         public AutoAddWinListView DataListView { get; protected set; }
         public class AutoAddWinListView : DataItemViewBase

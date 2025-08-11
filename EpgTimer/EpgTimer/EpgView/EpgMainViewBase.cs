@@ -21,7 +21,7 @@ namespace EpgTimer.EpgView
         public override EpgViewState GetViewState() { return new StateMainBase(this); }
         protected new StateMainBase RestoreState { get { return restoreState as StateMainBase ?? new StateMainBase(); } }
 
-        protected Dictionary<UInt64, ProgramViewItem> programList = new Dictionary<UInt64, ProgramViewItem>();
+        protected Dictionary<ulong, ProgramViewItem> programList = new Dictionary<ulong, ProgramViewItem>();
         protected List<ReserveViewItem> reserveList = new List<ReserveViewItem>();
         protected List<ReserveViewItem> recinfoList = new List<ReserveViewItem>();
         protected IEnumerable<ReserveViewItem> dataItemList { get { return recinfoList.Concat(reserveList); } }
@@ -179,7 +179,7 @@ namespace EpgTimer.EpgView
 
         protected IEnumerable<ReserveData> CombinedReserveList()
         {
-            Func<IAutoAddTargetData, bool> InDic = r => viewData.EventUIDList.ContainsKey(r.CurrentPgUID()) || (UInt16)r.CurrentPgUID() == 0xFFFF;
+            Func<IAutoAddTargetData, bool> InDic = r => viewData.EventUIDList.ContainsKey(r.CurrentPgUID()) || (ushort)r.CurrentPgUID() == 0xFFFF;
             return CommonManager.Instance.DB.RecFileInfo.Values.Where(r => InDic(r)).Select(r => r.ToReserveData())
                     .Concat(CommonManager.Instance.DB.ReserveList.Values.Where(r => InDic(r)));
         }
@@ -216,7 +216,7 @@ namespace EpgTimer.EpgView
             return hitItem != null && hitItem.Data != null ? new SearchItem(hitItem.Data) : null;
         }
 
-        public override int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        public override int MoveToItem(ulong id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             ProgramViewItem target_item;
             programList.TryGetValue(id, out target_item);
@@ -224,7 +224,7 @@ namespace EpgTimer.EpgView
             return target_item == null ? -1 : 0;
         }
 
-        public override object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override object MoveNextItem(int direction, ulong id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             if (programList.Count == 0) return null;
 
@@ -252,7 +252,7 @@ namespace EpgTimer.EpgView
         public override int MoveToRecInfoItem(RecFileInfo target, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             if (target == null) return -1;
-            UInt64 id = target.CurrentPgUID();
+            ulong id = target.CurrentPgUID();
             int idx = recinfoList.FindIndex(item => item.Data.CurrentPgUID() == id);
             if (idx != -1 && dryrun == false) programView.ScrollToFindItem(recinfoList[idx], style);
             if (dryrun == false) ItemIdx = idx;
@@ -260,13 +260,13 @@ namespace EpgTimer.EpgView
         }
 
         protected int resIdx = -1;
-        public override object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override object MoveNextReserve(int direction, ulong id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             return ViewUtil.MoveNextReserve(ref resIdx, programView, reserveList, ref clickPos, id, direction, move, style);
         }
 
         protected int recIdx = -1;
-        public override object MoveNextRecinfo(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public override object MoveNextRecinfo(int direction, ulong id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             return (ViewUtil.MoveNextReserve(ref recIdx, programView, recinfoList, ref clickPos, id, direction, move, style) as ReserveDataEnd).GetRecinfoFromPgUID();
         }

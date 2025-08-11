@@ -129,7 +129,7 @@ namespace EpgTimer
         public bool CopyContentBasic { get; set; }
         public bool InfoSearchTitle_Trim { get; set; }
         public bool SearchTitle_Trim { get; set; }
-        public String SearchURI { get; set; }
+        public string SearchURI { get; set; }
         public bool NoMessageRecTag { get; set; }
         public bool NoMessageNotKEY { get; set; }
         public bool NoMessageNote { get; set; }

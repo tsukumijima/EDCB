@@ -24,13 +24,13 @@ namespace EpgTimer
         //未使用
         //public static SolidColorBrush BrushFromName(string name) { return new SolidColorBrush(ColorFromName(name)); }
 
-        public static Color FromUInt(UInt32 value)
+        public static Color FromUInt(uint value)
         {
             return Color.FromArgb((byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value);
         }
-        public static UInt32 ToUInt(Color c)
+        public static uint ToUInt(Color c)
         {
-            return ((UInt32)c.A) << 24 | ((UInt32)c.R) << 16 | ((UInt32)c.G) << 8 | (UInt32)c.B;
+            return ((uint)c.A) << 24 | ((uint)c.R) << 16 | ((uint)c.G) << 8 | (uint)c.B;
         }
 
         public static LinearGradientBrush GradientBrush(Color color, double luminance = 0.94, double saturation = 1.2)

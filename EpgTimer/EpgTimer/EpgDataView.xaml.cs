@@ -617,7 +617,7 @@ namespace EpgTimer
         EpgDataView.EpgDataViewInfo epgView;
         public EpgViewData viewData = new EpgViewData();
         public bool IsEpgLoaded { get { return viewData.IsEpgLoaded; } }
-        public bool HasKey(UInt64 key) { return viewData.HasKey(key); }
+        public bool HasKey(ulong key) { return viewData.HasKey(key); }
         public CustomEpgTabInfo Info
         {
             get { return viewData.EpgTabInfo; }

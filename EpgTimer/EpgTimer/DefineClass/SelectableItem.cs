@@ -11,7 +11,7 @@ namespace EpgTimer
         public event PropertyChangedEventHandler PropertyChanged;
         private bool selected = false;
 
-        private void NotifyPropertyChanged(String info)
+        private void NotifyPropertyChanged(string info)
         {
             if (PropertyChanged != null)
             {

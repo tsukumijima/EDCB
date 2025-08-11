@@ -24,7 +24,7 @@ namespace EpgTimer.EpgView
         public void ClearEventList()
         {
             ServiceEventList = new List<EpgServiceEventInfo>();
-            EventUIDList = new Dictionary<UInt64, EpgEventInfo>();
+            EventUIDList = new Dictionary<ulong, EpgEventInfo>();
             IsEpgLoaded = false;
         }
         public EpgDataView.EpgDataViewInterface viewFunc { get; set; }
@@ -42,12 +42,12 @@ namespace EpgTimer.EpgView
                 Period = DefPeriod.DefPeriod;
             }
         }
-        public bool HasKey(UInt64 key) { return KeyList.Contains(key); }
-        public IEnumerable<UInt64> KeyList { get { return IsEpgLoaded ? ServiceEventList.Select(info => info.serviceInfo.Key) : CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList); } }
+        public bool HasKey(ulong key) { return KeyList.Contains(key); }
+        public IEnumerable<ulong> KeyList { get { return IsEpgLoaded ? ServiceEventList.Select(info => info.serviceInfo.Key) : CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList); } }
         public bool IsEpgLoaded { get; private set; }
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
-        public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }
-        public HashSet<UInt64> EventFilteredHash { get; private set; }
+        public Dictionary<ulong, EpgEventInfo> EventUIDList { get; private set; }
+        public HashSet<ulong> EventFilteredHash { get; private set; }
 
         public int EpgSettingIndex { get; private set; }
         public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal { get; private set; }
@@ -72,7 +72,7 @@ namespace EpgTimer.EpgView
                 if (CommonManager.Instance.IsConnected == false) return false;
 
                 ErrCode err;
-                var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+                var serviceDic = new Dictionary<ulong, EpgServiceAllEventInfo>();
                 if (EpgTabInfo.SearchMode == false)
                 {
                     err = CommonManager.Instance.DB.LoadEpgData(ref serviceDic, newPeriod, EpgTabInfo.ViewServiceList);
@@ -94,7 +94,7 @@ namespace EpgTimer.EpgView
 
                 EventUIDList = new Dictionary<ulong, EpgEventInfo>();
                 EventFilteredHash = new HashSet<ulong>();
-                var viewContentMatchingHash = new HashSet<UInt32>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
+                var viewContentMatchingHash = new HashSet<uint>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
                 foreach (EpgServiceEventInfo item in ServiceEventList)
                 {
                     item.eventList = item.eventList.FindAll(eventInfo =>

@@ -11,7 +11,7 @@ namespace EpgTimer
     public partial class SuspendCheckWindow : Window
     {
         /// <summary>表示モード mode 0:再起動、1:スタンバイ、2:休止、3:シャットダウン</summary>
-        public SuspendCheckWindow(UInt32 mode = 0)
+        public SuspendCheckWindow(uint mode = 0)
         {
             InitializeComponent();
 

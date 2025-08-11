@@ -49,7 +49,7 @@ namespace EpgTimer
             btn.ToolTipOpening += new ToolTipEventHandler(ICmdTooltip);
         }
 
-        public static void ICmdTooltip(Object sender, ToolTipEventArgs e)
+        public static void ICmdTooltip(object sender, ToolTipEventArgs e)
         {
             if (sender is ICommandSource == false || sender is FrameworkElement == false) return;
 

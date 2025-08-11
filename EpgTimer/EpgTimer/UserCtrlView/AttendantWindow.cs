@@ -176,8 +176,8 @@ namespace EpgTimer
         }
 
         //データ選択関係
-        protected virtual UInt64 DataID { get { return 0; } }
-        protected virtual IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return null; } }
+        protected virtual ulong DataID { get { return 0; } }
+        protected virtual IEnumerable<KeyValuePair<ulong, object>> DataRefList { get { return null; } }
         private int selIdx = -1;
         protected virtual DataItemViewBase DataView { get { return null; } }
         public static bool UpdatesViewSelection(DataViewBase view, bool Reloaded)
@@ -202,7 +202,7 @@ namespace EpgTimer
             object NewData = toRefData || DataView == null || DataView.IsVisible == false ? null : DataView.MoveNextItem(direction, DataID, true, JumpItemStyle.None);
             if (NewData == null)
             {
-                IEnumerable<KeyValuePair<UInt64, object>> idList = DataRefList;
+                IEnumerable<KeyValuePair<ulong, object>> idList = DataRefList;
                 if (idList == null || idList.Any() == false) return;
                 var list = idList.ToList();
                 NewData = list[selIdx = ViewUtil.GetNextIdx(selIdx, list.FindIndex(d => d.Key == DataID), list.Count, direction)].Value;
@@ -217,7 +217,7 @@ namespace EpgTimer
             get { return chkDataChange == null ? false : chkDataChange.IsChecked == true; }
             set { if (chkDataChange != null) chkDataChange.IsChecked = value; }
         }
-        protected Int32 LastUsed = 0;
+        protected int LastUsed = 0;
         protected virtual void OrderAdjust()
         {
             if (EnableDataChange == true)
@@ -226,7 +226,7 @@ namespace EpgTimer
                 {
                     win.LastUsed++;
                 }
-                this.LastUsed = Int32.MinValue;
+                this.LastUsed = int.MinValue;
             }
         }
         public static Window ChangeDataLastUsedWindow(object data)

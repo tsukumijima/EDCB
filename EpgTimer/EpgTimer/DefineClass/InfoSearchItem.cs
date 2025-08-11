@@ -97,13 +97,13 @@ namespace EpgTimer
                 else                                        return "";
             }
         }
-        public UInt32 DurationValue
+        public uint DurationValue
         {
             get
             {
                 if      (Data is EpgAutoAddData)            return new ReserveItem (((EpgAutoAddData)Data).GetNextReserve()).DurationValue;
                 else if (Data is IBasicPgInfo)              return ((IBasicPgInfo)Data).PgDurationSecond;
-                else                                        return UInt32.MaxValue;
+                else                                        return uint.MaxValue;
             }
         }
         public string NetworkName

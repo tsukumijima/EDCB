@@ -16,8 +16,8 @@ namespace EpgTimer
     /// </summary>
     public partial class RecInfoDescWindow : RecInfoDescWindowBase
     {
-        protected override UInt64 DataID { get { return recInfo.ID; } }
-        protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList { get { return CommonManager.Instance.DB.RecFileInfo.Select(d => new KeyValuePair<UInt64, object>(d.Key, d.Value)); } }
+        protected override ulong DataID { get { return recInfo.ID; } }
+        protected override IEnumerable<KeyValuePair<ulong, object>> DataRefList { get { return CommonManager.Instance.DB.RecFileInfo.Select(d => new KeyValuePair<ulong, object>(d.Key, d.Value)); } }
         protected override DataItemViewBase DataView { get { return base.DataView ?? mainWindow.recInfoView; } }
 
         private RecFileInfo recInfo = new RecFileInfo();

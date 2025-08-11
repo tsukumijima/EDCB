@@ -55,7 +55,7 @@ namespace EpgTimer
                     //上限越えの場合は、選択を解除して終了。
                     if (oldItems.Count >= this.MaxRestoreNum) return;
 
-                    var oldSet = new HashSet<UInt64>(oldItems);
+                    var oldSet = new HashSet<ulong>(oldItems);
                     listBox.SelectedItemsAdd(listBox.Items.OfType<object>().Where(item => oldSet.Contains(getKey(item))));
 
                     //画面更新が入るので最後に実行する。SelectedItem==nullのときScrollIntoViewは何もしない。

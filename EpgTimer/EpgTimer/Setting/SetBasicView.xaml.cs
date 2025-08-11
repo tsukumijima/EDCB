@@ -337,7 +337,7 @@ namespace EpgTimer.Setting
                 {
                     int hh = comboBox_HH.SelectedIndex;
                     int mm = comboBox_MM.SelectedIndex;
-                    String time = hh.ToString("D2") + ":" + mm.ToString("D2");
+                    string time = hh.ToString("D2") + ":" + mm.ToString("D2");
                     int wday = comboBox_wday.SelectedIndex;
                     if (1 <= wday && wday <= 7)
                     {
@@ -366,17 +366,17 @@ namespace EpgTimer.Setting
     public class TunerInfo
     {
         public TunerInfo(string bon) { BonDriver = bon; }
-        public String BonDriver { get; set; }
-        public String TunerNum { get; set; }
-        public UInt32 TunerNumInt { get { return ToUInt(TunerNum); } }
-        public String EPGNum { get; set; }
-        public UInt32 EPGNumInt { get { return ToUInt(EPGNum); } }
+        public string BonDriver { get; set; }
+        public string TunerNum { get; set; }
+        public uint TunerNumInt { get { return ToUInt(TunerNum); } }
+        public string EPGNum { get; set; }
+        public uint EPGNumInt { get { return ToUInt(EPGNum); } }
         public int Priority { get; set; }
         public override string ToString() { return BonDriver; }
-        private UInt32 ToUInt(string s)
+        private uint ToUInt(string s)
         {
-            UInt32 val = 0;
-            UInt32.TryParse(s, out val);
+            uint val = 0;
+            uint.TryParse(s, out val);
             return val;
         }
     }

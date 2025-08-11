@@ -326,8 +326,8 @@ namespace EpgTimer
         public double FontSize { get; set; }
         public string TitleColor1 { get; set; }
         public string TitleColor2 { get; set; }
-        public UInt32 TitleCustColor1 { get; set; }
-        public UInt32 TitleCustColor2 { get; set; }
+        public uint TitleCustColor1 { get; set; }
+        public uint TitleCustColor2 { get; set; }
         public bool ReserveRectShowMarker { get; set; }
         public double ScrollSize { get; set; }
         public bool MouseScrollAuto { get; set; }
@@ -350,7 +350,7 @@ namespace EpgTimer
         public bool EpgExtInfoPopup { get; set; }
         public bool EpgExtInfoTooltip { get; set; }
         public bool EpgInfoSingleClick { get; set; }
-        public Int32 EpgInfoOpenMode { get; set; }
+        public int EpgInfoOpenMode { get; set; }
         public bool EpgTitleIndent { get; set; }
         public bool DisplayNotifyEpgChange { get; set; }
         public bool EpgGradation { get; set; }
@@ -367,11 +367,11 @@ namespace EpgTimer
         public bool EpgChangeBorderOnRecWeekOnly { get; set; }
         public uint EpgChangeBorderMode { get; set; }
         public List<string> ContentColorList { get; set; }
-        public List<UInt32> ContentCustColorList { get; set; }
+        public List<uint> ContentCustColorList { get; set; }
         public List<string> EpgResColorList { get; set; }
-        public List<UInt32> EpgResCustColorList { get; set; }
+        public List<uint> EpgResCustColorList { get; set; }
         public List<string> EpgEtcColors { get; set; }
-        public List<UInt32> EpgEtcCustColors { get; set; }
+        public List<uint> EpgEtcCustColors { get; set; }
         public int ReserveRectFillOpacity { get; set; }
         public bool ReserveRectFillWithShadow { get; set; }
 
@@ -469,15 +469,15 @@ namespace EpgTimer
         public bool SortServiceList { get; set; }
         public bool ExitAfterProcessingArgs { get; set; }
         public bool RecinfoErrCriticalDrops { get; set; }
-        public Int32 ReserveToolTipMode { get; set; }
-        public Int32 ReserveEpgInfoOpenMode { get; set; }
+        public int ReserveToolTipMode { get; set; }
+        public int ReserveEpgInfoOpenMode { get; set; }
         public string TunerFontNameService { get; set; }
         public double TunerFontSizeService { get; set; }
         public bool TunerFontBoldService { get; set; }
         public string TunerFontName { get; set; }
         public double TunerFontSize { get; set; }
         public List<string> TunerServiceColors { get; set; }
-        public List<UInt32> TunerServiceCustColors { get; set; }
+        public List<uint> TunerServiceCustColors { get; set; }
         public double TunerMinHeight { get; set; }
         public double TunerMinimumLine { get; set; }
         public double TunerDragScroll { get; set; }
@@ -501,8 +501,8 @@ namespace EpgTimer
         public bool TunerInfoSingleClick { get; set; }
         public bool TunerColorModeUse { get; set; }
         public bool TunerDisplayOffReserve { get; set; }
-        public Int32 TunerToolTipMode { get; set; }
-        public Int32 TunerEpgInfoOpenMode { get; set; }
+        public int TunerToolTipMode { get; set; }
+        public int TunerEpgInfoOpenMode { get; set; }
         public string FontReplacePatternEdit { get; set; }
         public double FontSizeReplacePattern { get; set; }
         public bool FontBoldReplacePattern { get; set; }
@@ -538,7 +538,7 @@ namespace EpgTimer
         public List<SearchPresetItem> SearchPresetList { get; set; }
         public bool SetWithoutSearchKeyWord { get; set; }
         public bool SetWithoutRecTag { get; set; }
-        public Int32 RecInfoToolTipMode { get; set; }
+        public int RecInfoToolTipMode { get; set; }
         public string RecInfoColumnHead { get; set; }
         public ListSortDirection RecInfoSortDirection { get; set; }
         public long RecInfoDropErrIgnore { get; set; }
@@ -568,8 +568,8 @@ namespace EpgTimer
         public List<IEPGStationInfo> IEpgStationList { get; set; }
         public MenuSettingData MenuSet { get; set; }
         public string NWServerIP { get; set; }
-        public UInt32 NWServerPort { get; set; }
-        public UInt32 NWWaitPort { get; set; }
+        public uint NWServerPort { get; set; }
+        public uint NWWaitPort { get; set; }
         public string NWMacAdd { get; set; }
         public List<NWPresetItem> NWPreset { get; set; }
         public bool WakeReconnectNW { get; set; }
@@ -585,17 +585,17 @@ namespace EpgTimer
         public bool PrebuildEpgAll { get; set; }
         public bool ChkSrvRegistTCP { get; set; }
         public double ChkSrvRegistInterval { get; set; }
-        public Int32 TvTestOpenWait { get; set; }
-        public Int32 TvTestChgBonWait { get; set; }
+        public int TvTestOpenWait { get; set; }
+        public int TvTestChgBonWait { get; set; }
         public string FontNameListView { get; set; }
         public double FontSizeListView { get; set; }
         public bool FontBoldListView { get; set; }
         public List<string> RecEndColors { get; set; }
         public List<uint> RecEndCustColors { get; set; }
         public string ListDefColor { get; set; }
-        public UInt32 ListDefCustColor { get; set; }
+        public uint ListDefCustColor { get; set; }
         public string ListRuledLineColor { get; set; }
-        public UInt32 ListRuledLineCustColor { get; set; }
+        public uint ListRuledLineCustColor { get; set; }
         public bool ListRuledLine { get; set; }
         public bool ListRuledLineContent { get; set; }
         public List<string> RecModeFontColors { get; set; }
@@ -604,9 +604,9 @@ namespace EpgTimer
         public List<uint> ResBackCustColors { get; set; }
         public List<string> StatColors { get; set; }
         public List<uint> StatCustColors { get; set; }
-        public UInt32 ExecBat { get; set; }
-        public UInt32 SuspendChk { get; set; }
-        public UInt32 SuspendChkTime { get; set; }
+        public uint ExecBat { get; set; }
+        public uint SuspendChk { get; set; }
+        public uint SuspendChkTime { get; set; }
         public List<ListColumnInfo> ReserveListColumn { get; set; }
         public List<ListColumnInfo> RecInfoListColumn { get; set; }
         public List<ListColumnInfo> AutoAddEpgColumn { get; set; }
@@ -617,7 +617,7 @@ namespace EpgTimer
         public List<ListColumnInfo> SearchWndColumn { get; set; }
         public string SearchColumnHead { get; set; }
         public ListSortDirection SearchSortDirection { get; set; }
-        public Int32 SearchEpgInfoOpenMode { get; set; }
+        public int SearchEpgInfoOpenMode { get; set; }
         public bool SaveSearchKeyword { get; set; }
         public bool ShowLogo { get; set; }
         public List<ListColumnInfo> InfoSearchWndColumn { get; set; }
@@ -669,13 +669,13 @@ namespace EpgTimer
 
         //WakeUpHDD関係
         [XmlIgnore]
-        public Int32 RecAppWakeTime { get; set; }
+        public int RecAppWakeTime { get; set; }
         [XmlIgnore]
         public bool WakeUpHdd { get; set; }
         [XmlIgnore]
-        public Int32 NoWakeUpHddMin { get; set; }
+        public int NoWakeUpHddMin { get; set; }
         [XmlIgnore]
-        public Int32 WakeUpHddOverlapNum { get; set; }
+        public int WakeUpHddOverlapNum { get; set; }
         
         //録画設定関係(デフォルトマージン等)
         [XmlIgnore]
@@ -1370,7 +1370,7 @@ namespace EpgTimer
             //旧CS仮対応コード(+0x70)も変換する。
             foreach (var info in Instance.CustomEpgTabList)
             {
-                info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((UInt32)(id_old << 16))));
+                info.ViewContentList.AddRange(info.ViewContentKindList.Select(id_old => new EpgContentData((uint)(id_old << 16))));
                 EpgContentData.FixNibble(info.ViewContentList);
                 EpgContentData.FixNibble(info.SearchKey.contentList);
                 info.ViewContentKindList = null;
@@ -1461,7 +1461,7 @@ namespace EpgTimer
             }
         }
 
-        public RecPresetItem RecPreset(Int32 presetID)
+        public RecPresetItem RecPreset(int presetID)
         {
             return Instance.RecPresetList[Math.Max(0, Math.Min(presetID, Instance.RecPresetList.Count - 1))];
         }

@@ -768,7 +768,7 @@ namespace EpgTimer
             return true;
         }
 
-        public static bool? OpenEpgReserveDialog(EpgEventInfo Data, Int32 epgInfoOpenMode = 0, RecSettingData setInfo = null)
+        public static bool? OpenEpgReserveDialog(EpgEventInfo Data, int epgInfoOpenMode = 0, RecSettingData setInfo = null)
         {
             try
             {
@@ -782,13 +782,13 @@ namespace EpgTimer
             return null;
         }
 
-        public static bool? OpenChangeReserveDialog(UInt32 id, Int32 epgInfoOpenMode = 0)
+        public static bool? OpenChangeReserveDialog(uint id, int epgInfoOpenMode = 0)
         {
             ReserveData data;
             if (CommonManager.Instance.DB.ReserveList.TryGetValue(id, out data) == false) return false;
             return OpenChangeReserveDialog(data, epgInfoOpenMode);
         }
-        public static bool? OpenChangeReserveDialog(ReserveData Data, Int32 epgInfoOpenMode = 0)
+        public static bool? OpenChangeReserveDialog(ReserveData Data, int epgInfoOpenMode = 0)
         {
             if (ChgReserveWindow.ChangeDataLastUsedWindow(Data) != null) return true;
             return OpenChgReserveDialog(Data, epgInfoOpenMode);
@@ -797,7 +797,7 @@ namespace EpgTimer
         {
             return OpenChgReserveDialog(null, 0, setInfo);
         }
-        public static bool? OpenChgReserveDialog(ReserveData Data, Int32 epgInfoOpenMode = 0, RecSettingData setInfo = null)
+        public static bool? OpenChgReserveDialog(ReserveData Data, int epgInfoOpenMode = 0, RecSettingData setInfo = null)
         {
             try
             {
@@ -869,7 +869,7 @@ namespace EpgTimer
             if (item == null) return key;
 
             key.andKey = TrimEpgKeyword(item.DataTitle, NotToggle);
-            key.serviceList = ((Int64)item.Create64Key()).IntoList();
+            key.serviceList = ((long)item.Create64Key()).IntoList();
 
             var eventInfo = item as EpgEventInfo;
             if (eventInfo != null && Settings.Instance.MenuSet.SetJunreToAutoAdd == true)
@@ -953,13 +953,13 @@ namespace EpgTimer
             return null;
         }
 
-        public static EpgEventInfo GetPgInfoUid(UInt64 uid, Dictionary<UInt64, EpgEventInfo> currentList = null)
+        public static EpgEventInfo GetPgInfoUid(ulong uid, Dictionary<ulong, EpgEventInfo> currentList = null)
         {
             EpgEventInfo data;
             (currentList ?? CommonManager.Instance.DB.EventUIDList).TryGetValue(uid, out data);
             return data;
         }
-        public static EpgEventInfo GetPgInfoUidAll(UInt64 uid)
+        public static EpgEventInfo GetPgInfoUidAll(ulong uid)
         {
             //EPGが読み込まれているときなど
             EpgEventInfo hit = GetPgInfoUid(uid);
@@ -977,7 +977,7 @@ namespace EpgTimer
         public static EpgEventInfo GetPgInfoLikeThat(IAutoAddTargetData trg, IEnumerable<EpgServiceEventInfo> currentList = null, IEnumerable<EpgEventInfo> currentEventList = null)
         {
             var eventList = new List<EpgEventInfo>();
-            UInt64 key = trg.Create64Key();
+            ulong key = trg.Create64Key();
             if (currentEventList != null)
             {
                 eventList = currentEventList.Where(info => info.Create64Key() == key).ToList();
@@ -1001,9 +1001,9 @@ namespace EpgTimer
             EpgEventInfo hit = null;
             
             //イベントベースで見つかるならそれを返す
-            if ((UInt16)trg.Create64PgKey() != 0xFFFF)
+            if ((ushort)trg.Create64PgKey() != 0xFFFF)
             {
-                UInt64 PgUID = trg.CurrentPgUID();
+                ulong PgUID = trg.CurrentPgUID();
                 hit = eventList.Find(pg => pg.CurrentPgUID() == PgUID);
                 if (hit != null) return hit;
             }

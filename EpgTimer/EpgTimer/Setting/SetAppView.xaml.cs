@@ -316,7 +316,7 @@ namespace EpgTimer.Setting
             //1 録画動作
             IniFileHandler.WritePrivateProfileString("SET", "WakeTime", textBox_pcWakeTime.Text, SettingPath.TimerSrvIniPath);
 
-            List<String> ngProcessList = listBox_process.Items.OfType<string>().ToList();
+            List<string> ngProcessList = listBox_process.Items.OfType<string>().ToList();
             IniFileHandler.WritePrivateProfileString("NO_SUSPEND", "Count", ngProcessList.Count, SettingPath.TimerSrvIniPath);
             IniFileHandler.DeletePrivateProfileNumberKeys("NO_SUSPEND", SettingPath.TimerSrvIniPath);
             for (int i = 0; i < ngProcessList.Count; i++)
@@ -357,8 +357,8 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "ApplyExtToRecInfoDel", checkBox_applyExtTo.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "AutoDel", checkBox_autoDel.IsChecked, SettingPath.TimerSrvIniPath);
 
-            List<String> extList = listBox_ext.Items.OfType<string>().ToList();
-            List<String> delChkFolderList = ViewUtil.GetFolderList(listBox_chk_folder);
+            List<string> extList = listBox_ext.Items.OfType<string>().ToList();
+            List<string> delChkFolderList = ViewUtil.GetFolderList(listBox_chk_folder);
             IniFileHandler.WritePrivateProfileString("DEL_EXT", "Count", extList.Count, SettingPath.TimerSrvIniPath);
             IniFileHandler.DeletePrivateProfileNumberKeys("DEL_EXT", SettingPath.TimerSrvIniPath);
             for (int i = 0; i < extList.Count; i++)

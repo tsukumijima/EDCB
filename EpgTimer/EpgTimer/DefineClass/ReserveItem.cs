@@ -94,18 +94,18 @@ namespace EpgTimer
                 return GetDurationStringReserveStyle(ReserveInfo.DurationSecond);
             }
         }
-        public override UInt32 DurationValue
+        public override uint DurationValue
         {
             get
             {
-                if (ReserveInfo == null) return UInt32.MinValue;
+                if (ReserveInfo == null) return uint.MinValue;
                 //
                 return ReserveInfo.DurationSecond;
             }
         }
         public override string ConvertInfoText(object param = null)
         {
-            var mode = param is Int32 ? (Int32)param : Settings.Instance.ReserveToolTipMode;
+            var mode = param is int ? (int)param : Settings.Instance.ReserveToolTipMode;
             if (mode == 1) return base.ConvertInfoText();
 
             if (ReserveInfo == null) return "";

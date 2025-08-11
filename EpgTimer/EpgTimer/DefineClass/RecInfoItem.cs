@@ -35,7 +35,7 @@ namespace EpgTimer
         {
             get { return CommonManager.ConvertDurationText(RecInfo.DurationSecond, Settings.Instance.RecInfoNoDurSecond); }
         }
-        public UInt32 DurationValue
+        public uint DurationValue
         {
             get { return RecInfo.DurationSecond; }
         }
@@ -105,7 +105,7 @@ namespace EpgTimer
         }
         public override string ConvertInfoText(object param = null)
         {
-            var mode = param is Int32 ? (Int32)param : Settings.Instance.RecInfoToolTipMode;
+            var mode = param is int ? (int)param : Settings.Instance.RecInfoToolTipMode;
             if (mode == 1) return RecInfo.ProgramInfo;
 
             string view = CommonManager.ConvertTimeText(RecInfo.StartTime, RecInfo.DurationSecond, false, false, false) + "\r\n";

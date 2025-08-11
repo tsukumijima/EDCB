@@ -475,7 +475,7 @@ namespace EpgTimer
             {
                 foreach (string info in Settings.Instance.ViewButtonList)
                 {
-                    if (String.Compare(info, Settings.ViewButtonSpacer) == 0)
+                    if (string.Compare(info, Settings.ViewButtonSpacer) == 0)
                     {
                         stackPanel_button.Children.Add(new Label { Width = 15 });
                     }
@@ -1236,7 +1236,7 @@ namespace EpgTimer
                     {
                         //原作では成否にかかわらずCMD_SUCCESSだったが、サーバ側の仕様と若干矛盾するので変更した
                         res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_ERR, null, 0);
-                        String exeCmd = "";
+                        string exeCmd = "";
                         (new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false))).Read(ref exeCmd);
                         if (exeCmd.Length > 0 && exeCmd[0] == '"')
                         {
@@ -1297,7 +1297,7 @@ namespace EpgTimer
                     {
                         res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_SUCCESS, null, 0);
 
-                        UInt16 param = 0;
+                        ushort param = 0;
                         (new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false))).Read(ref param);
 
                         Dispatcher.BeginInvoke(new Action(() =>

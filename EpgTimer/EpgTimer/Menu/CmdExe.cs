@@ -55,7 +55,7 @@ namespace EpgTimer
         public virtual void AddReplaceCommand(ICommand icmd, ExecutedRoutedEventHandler exe, CanExecuteRoutedEventHandler canExe = null) { }
         public virtual void ResetCommandBindings(params UIElement[] cTrgs) { }
         public virtual object GetJumpTabItem(CtxmCode trg_code = CtxmCode.EpgView) { return null; }
-        public virtual Int32 EpgInfoOpenMode { get; set; }
+        public virtual int EpgInfoOpenMode { get; set; }
         public virtual void SupportContextMenuLoading(object sender, RoutedEventArgs e) { }
     }
     public class CmdExe<T> : CmdExeBase

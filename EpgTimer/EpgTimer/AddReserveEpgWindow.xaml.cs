@@ -191,13 +191,13 @@ namespace EpgTimer
             if (KeepWin == false) this.Close();
         }
 
-        protected override UInt64 DataID { get { return eventInfo == null ? 0 : eventInfo.CurrentPgUID(); } }
-        protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList
+        protected override ulong DataID { get { return eventInfo == null ? 0 : eventInfo.CurrentPgUID(); } }
+        protected override IEnumerable<KeyValuePair<ulong, object>> DataRefList
         {
             get
             {
                 return CommonManager.Instance.DB.ServiceEventList.Values.SelectMany(list => list.eventMergeList)
-                    .Select(d => new KeyValuePair<UInt64, object>(d.CurrentPgUID(), d));
+                    .Select(d => new KeyValuePair<ulong, object>(d.CurrentPgUID(), d));
             }
         }
         protected override void UpdateViewSelection(int mode = 0)

@@ -136,7 +136,7 @@ namespace EpgTimer
         public override ulong DataID { get { return dataID; } set { dataID = (uint)value; } }
         public DateTime PgStartTime { get { return new DateTime(2000, 1, 1).AddSeconds(startTime); } }
         public uint PgDurationSecond { get { return durationSecond; } }
-        public UInt64 Create64Key()
+        public ulong Create64Key()
         {
             return CommonManager.Create64Key(originalNetworkID, transportStreamID, serviceID);
         }
