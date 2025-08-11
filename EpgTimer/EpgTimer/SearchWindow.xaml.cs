@@ -29,7 +29,7 @@ namespace EpgTimer
             //追加時の選択用
             mainWindow.autoAddView.epgAutoAddView.ViewUpdated += SearchWindow.UpdatesViewSelection;
         }
-        public SearchWindow(EpgAutoAddData data = null, AutoAddMode mode = AutoAddMode.Find)
+        public SearchWindow(EpgAutoAddData data = null, AutoAddMode mode = AutoAddMode.Find, string searchWord = null)
             : base(data, mode)
         {
             InitializeComponent();
@@ -129,6 +129,9 @@ namespace EpgTimer
 
                 //ステータスバーの登録
                 StatusManager.RegisterStatusbar(this.statusBar, this);
+
+                //初期検索ワードの設定。条件節は無くても後でdataが読み込まれるので同じだけど、念のため。
+                if (data == null) searchKeyView.comboBox_andKey.Text = searchWord;
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }

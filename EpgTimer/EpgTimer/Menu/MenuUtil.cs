@@ -809,24 +809,24 @@ namespace EpgTimer
             return null;
         }
 
-        public static bool? OpenSearchEpgDialog()
+        public static bool? OpenSearchEpgDialog(string searchWord = null)
         {
-            return OpenEpgAutoAddDialog(null, AutoAddMode.Find);
+            return OpenEpgAutoAddDialog(null, AutoAddMode.Find, searchWord);
         }
-        public static bool? OpenAddEpgAutoAddDialog()
+        public static bool? OpenAddEpgAutoAddDialog(string searchWord = null)
         {
-            return OpenEpgAutoAddDialog(null, AutoAddMode.NewAdd);
+            return OpenEpgAutoAddDialog(null, AutoAddMode.NewAdd, searchWord);
         }
         public static bool? OpenChangeEpgAutoAddDialog(EpgAutoAddData Data)
         {
             if (SearchWindow.ChangeDataLastUsedWindow(Data) != null) return true;
             return OpenEpgAutoAddDialog(Data, AutoAddMode.Change);
         }
-        private static bool? OpenEpgAutoAddDialog(EpgAutoAddData Data, AutoAddMode mode)
+        private static bool? OpenEpgAutoAddDialog(EpgAutoAddData Data, AutoAddMode mode, string searchWord = null)
         {
             try
             {
-                new SearchWindow(Data, mode).Show();
+                new SearchWindow(Data, mode, searchWord).Show();
                 return true;
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }

@@ -119,6 +119,7 @@ namespace EpgTimer
                 mBinds.SetCommandToButton(button_ShowAddDialog, EpgCmds.ShowAddDialog);
                 mBinds.SetCommandToButton(button_Delete, EpgCmds.Delete);
                 mBinds.SetCommandToButton(button_Delete2, EpgCmds.Delete2);
+                mBinds.SetCommandToButton(button_ToAutoadd, EpgCmds.ToAutoadd);
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
@@ -183,6 +184,7 @@ namespace EpgTimer
             mc = new CmdExeEpgAutoAdd(this);//ジェネリックでも処理できるが‥
             viewCode = CtxmCode.EpgAutoAddView;
             ColumnSavePath = CommonUtil.NameOf(() => Settings.Instance.AutoAddEpgColumn);
+            button_ToAutoadd.Content = "Andキーワードで検索";
 
             //初期化の続き
             base.InitAutoAddView();
