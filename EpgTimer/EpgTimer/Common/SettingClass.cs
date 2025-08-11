@@ -248,6 +248,7 @@ namespace EpgTimer
         public bool FilePlay { get; set; }
         public string FilePlayExe { get; set; }
         public string FilePlayCmd { get; set; }
+        public string FilePathReplacePattern { get; set; }
         public bool FilePlayOnAirWithExe { get; set; }
         public List<IEPGStationInfo> IEpgStationList { get; set; }
         public string NWServerIP { get; set; }
@@ -464,6 +465,7 @@ namespace EpgTimer
             r.FilePlay                  = ConvertXElem(x, w, "FilePlay", FilePlay, true);
             r.FilePlayExe               = ConvertXElem(x, w, "FilePlayExe", FilePlayExe, "");
             r.FilePlayCmd               = ConvertXElem(x, w, "FilePlayCmd", FilePlayCmd, "\"$FilePath$\"");
+            r.FilePathReplacePattern    = ConvertXElem(x, w, "FilePathReplacePattern", FilePathReplacePattern, "");
             r.FilePlayOnAirWithExe      = ConvertXElem(x, w, "FilePlayOnAirWithExe", FilePlayOnAirWithExe, true);
             r.IEpgStationList           = ConvertXElements(x, w, "IEpgStationList", IEpgStationList).ToList();
             r.NWServerIP                = ConvertXElem(x, w, "NWServerIP", NWServerIP, "");

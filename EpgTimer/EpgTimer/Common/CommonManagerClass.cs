@@ -988,17 +988,21 @@ namespace EpgTimer
             {
                 if (Settings.Instance.FilePlay)
                 {
-                    if (Settings.Instance.FilePlayExe.Length == 0)
+                    filePath = ReplaceText(filePath, CreateReplaceDictionary(Settings.Instance.FilePathReplacePattern));
+                    if (filePath.Length > 0)
                     {
-                        using (Process.Start(filePath)) { }
-                    }
-                    else
-                    {
-                        string cmdLine = Settings.Instance.FilePlayCmd;
-                        //'$'->'\t'は再帰的な展開を防ぐため
-                        cmdLine = cmdLine.Replace("$FileNameExt$", Path.GetFileName(filePath).Replace('$', '\t'));
-                        cmdLine = cmdLine.Replace("$FilePath$", filePath).Replace('\t', '$');
-                        using (Process.Start(Settings.Instance.FilePlayExe, cmdLine)) { }
+                        if (Settings.Instance.FilePlayExe.Length == 0)
+                        {
+                            using (Process.Start(filePath)) { }
+                        }
+                        else
+                        {
+                            string cmdLine = Settings.Instance.FilePlayCmd;
+                            //'$'->'\t'は再帰的な展開を防ぐため
+                            cmdLine = cmdLine.Replace("$FileNameExt$", Path.GetFileName(filePath).Replace('$', '\t'));
+                            cmdLine = cmdLine.Replace("$FilePath$", filePath).Replace('\t', '$');
+                            using (Process.Start(Settings.Instance.FilePlayExe, cmdLine)) { }
+                        }
                     }
                 }
                 else

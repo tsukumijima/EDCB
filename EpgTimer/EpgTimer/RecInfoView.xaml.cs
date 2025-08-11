@@ -286,19 +286,26 @@ namespace EpgTimer
 
         private void openFolder_Click(object sender, RoutedEventArgs e)
         {
-            if (listView_recinfo.SelectedItem != null && CommonManager.Instance.NWMode == false)
+            if (listView_recinfo.SelectedItem != null)
             {
+                string folderPath = "";
                 RecInfoItem info = listView_recinfo.SelectedItem as RecInfoItem;
                 if (info.RecFilePath.Length > 0)
                 {
+                    string filePath =
+                        CommonManager.ReplaceText(info.RecFilePath, CommonManager.CreateReplaceDictionary(Settings.Instance.FilePathReplacePattern));
                     try
                     {
-                        if (System.IO.File.Exists(info.RecFilePath))
+                        if (System.IO.File.Exists(filePath))
                         {
-                            using (System.Diagnostics.Process.Start("EXPLORER.EXE", "/select,\"" + info.RecFilePath + "\"")) { }
+                            using (System.Diagnostics.Process.Start("EXPLORER.EXE", "/select,\"" + filePath + "\"")) { }
                             return;
                         }
-                        string folderPath = System.IO.Path.GetDirectoryName(info.RecFilePath);
+                        try
+                        {
+                            folderPath = System.IO.Path.GetDirectoryName(filePath);
+                        }
+                        catch { }
                         if (System.IO.Directory.Exists(folderPath))
                         {
                             using (System.Diagnostics.Process.Start("EXPLORER.EXE", "\"" + folderPath + "\"")) { }
@@ -311,7 +318,7 @@ namespace EpgTimer
                         return;
                     }
                 }
-                MessageBox.Show("録画フォルダが存在しません");
+                MessageBox.Show("録画フォルダ" + (folderPath.Length > 0 ? " \"" + folderPath + "\" " : "") + "が存在しません");
             }
         }
 
