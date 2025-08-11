@@ -720,7 +720,7 @@ namespace EpgTimer
             SearchWindow search = OwnedWindows.OfType<SearchWindow>().FirstOrDefault();
             if (search != null)
             {
-                // 既存のウィンドウをアクティブにする
+                //既存のウィンドウをアクティブにする
                 if (search.WindowState == WindowState.Minimized)
                 {
                     search.WindowState = WindowState.Normal;
@@ -1187,7 +1187,7 @@ namespace EpgTimer
             SearchWindow search = null;
             foreach (Window w in OwnedWindows)
             {
-                // 表示状態をなるべく引き継ぐ。幅と高さは内部で引き継がれる
+                //表示状態をなるべく引き継ぐ。幅と高さは内部で引き継がれる
                 if (w is SearchWindow)
                 {
                     int index = ((SearchWindow)w).tabControl.SelectedIndex;
@@ -1206,6 +1206,14 @@ namespace EpgTimer
             }
             search = search ?? new SearchWindow();
             search.Owner = this;
+            //所有する他のウィンドウをアクティブにできないときオーナーが最背面に移動することがあるため
+            search.Closed += (sender, e) =>
+            {
+                if (OwnedWindows.Cast<Window>().All(a => a.IsActive == false))
+                {
+                    Activate();
+                }
+            };
             return search;
         }
 
@@ -1213,7 +1221,7 @@ namespace EpgTimer
         {
             foreach (Window w in OwnedWindows)
             {
-                // 同系統ウィンドウの表示状態をなるべく引き継ぐ
+                //同系統ウィンドウの表示状態をなるべく引き継ぐ
                 if (w is AddReserveEpgWindow || w is ChgReserveWindow)
                 {
                     if (re is AddReserveEpgWindow || re is ChgReserveWindow)
@@ -1267,6 +1275,14 @@ namespace EpgTimer
             if (re != null)
             {
                 re.Owner = this;
+                //所有する他のウィンドウをアクティブにできないときオーナーが最背面に移動することがあるため
+                re.Closed += (sender, e) =>
+                {
+                    if (OwnedWindows.Cast<Window>().All(a => a.IsActive == false))
+                    {
+                        Activate();
+                    }
+                };
             }
         }
     }
