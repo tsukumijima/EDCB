@@ -116,10 +116,9 @@ namespace EpgTimer
 
                 //ボタンの設定
                 mBinds.View = viewCode;
-                mBinds.SetCommandToButton(button_add, EpgCmds.ShowAddDialog);
-                mBinds.SetCommandToButton(button_change, EpgCmds.ShowDialog);
-                mBinds.SetCommandToButton(button_del, EpgCmds.Delete);
-                mBinds.SetCommandToButton(button_del2, EpgCmds.Delete2);
+                mBinds.SetCommandToButton(button_ShowAddDialog, EpgCmds.ShowAddDialog);
+                mBinds.SetCommandToButton(button_Delete, EpgCmds.Delete);
+                mBinds.SetCommandToButton(button_Delete2, EpgCmds.Delete2);
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }

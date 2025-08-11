@@ -15,11 +15,12 @@
     </UserControl.Resources>
     <DockPanel>
         <StackPanel Name="stackPanel_button" MinWidth="100" >
-            <Button Content="予約←→無効" Name="button_on_off" Margin="0,10,0,10" />
-            <Button Content="変更" Name="button_change" Margin="0,10,0,10" />
-            <Button Content="削除" Name="button_del" Margin="0,10,0,10" />
-            <Button Content="プログラム予約追加" Name="button_add_manual" Margin="0,10,0,10" />
-            <Button Content="追っかけ再生" Name="button_timeShiftPlay" Margin="0,10,0,10" />
+            <Button Content="予約←→無効" Name="button_ChgOnOff" Margin="0,10" />
+            <Button Content="削除" Name="button_Deletel" Margin="0,10" />
+            <Button Content="番組表へジャンプ" Name="button_JumpTable" Margin="0,10" />
+            <Button Content="キーワード予約作成" Name="button_ToAutoadd" Margin="0,10" />
+            <Button Content="追っかけ再生" Name="button_Play" Margin="0,10" />
+            <Button Content="プログラム予約追加" Name="button_ShowAddDialog" Margin="0,10" />
         </StackPanel>
         <ListView Name="listView_reserve" Style="{StaticResource DataListViewStyle}" >
             <ListView.View>
