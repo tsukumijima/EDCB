@@ -414,7 +414,7 @@ namespace EpgTimer
                 RecFileSetInfo f1 = recSet.RecFolderList.Concat(recSet.PartialRecFolder).FirstOrDefault();
                 path = (f1 == null || f1.RecFolder == "!Default") ? Settings.Instance.DefRecFolders[0] : f1.RecFolder;
             }
-            CommonManager.OpenRecFolder(path);
+            CommonManager.OpenRecFolder(path, false);
             IsCommandExecuted = true;
         }
         protected virtual void mc_CopyTitle(object sender, ExecutedRoutedEventArgs e)

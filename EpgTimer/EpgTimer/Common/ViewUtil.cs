@@ -519,13 +519,13 @@ namespace EpgTimer
             });
         }
 
-        public static RoutedEventHandler OpenFolderNameDialog(TextBox box, string Description = "", bool checkNWPath = false, string defaultPath = "")
+        public static RoutedEventHandler OpenFolderNameDialog(TextBox box, string Description = "", bool checkNWPath = false, string defaultPath = "", bool recFile = false)
         {
-            return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath, defaultPath);
+            return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath, defaultPath, recFile);
         }
-        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
+        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true, bool recFile = false)
         {
-            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath, checkExist);
+            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath, checkExist, recFile);
         }
 
         public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, StringComparison type = StringComparison.OrdinalIgnoreCase)

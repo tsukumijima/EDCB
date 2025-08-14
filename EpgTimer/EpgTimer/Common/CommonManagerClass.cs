@@ -1188,9 +1188,9 @@ namespace EpgTimer
             return setInfo.Where(info => check.Contains(info.ID)).ToList();
         }
 
-        public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false, string defaultPath = "")
+        public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false, string defaultPath = "", bool recFile = false)
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFolderNameByDialog(path, Description), defaultPath);
+            GetPathByDialog(txtBox, checkNWPath, path => GetFolderNameByDialog(path, Description), defaultPath, recFile);
         }
         public static string GetFolderNameByDialog(string InitialPath = "", string Description = "")
         {
@@ -1224,9 +1224,9 @@ namespace EpgTimer
             return null;
         }
 
-        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
+        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true, bool recFile = false)
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt, checkExist), defaultPath);
+            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt, checkExist), defaultPath, recFile);
         }
         public static string GetFileNameByDialog(string InitialPath = "", bool isNameOnly = false, string Title = "", string DefaultExt = "", bool checkExist = true)
         {
@@ -1273,17 +1273,17 @@ namespace EpgTimer
         }
 
         //ネットワークパス対応のパス設定
-        private static void GetPathByDialog(TextBox tbox, bool checkNWPath, Func<string, string> funcGetPathDialog, string defaultPath = "")
+        private static void GetPathByDialog(TextBox tbox, bool checkNWPath, Func<string, string> funcGetPathDialog, string defaultPath = "", bool recFile = false)
         {
             string path = SettingPath.CheckFolder(string.IsNullOrEmpty(tbox.Text) ? defaultPath : tbox.Text);
 
             string base_src = "";
             string base_nw = "";
-            if (checkNWPath == true && Instance.NWMode == true && path != "" && path.StartsWith("\\\\", StringComparison.Ordinal) == false)
+            if (checkNWPath)
             {
                 //NWモードのとき、可能ならサーバ側のローカルパスをUNCとして扱う。
                 string path_src = path.TrimEnd('\\');
-                string path_nw = GetRecPath(path_src).TrimEnd('\\');
+                string path_nw = GetRecPath(path_src, recFile).TrimEnd('\\');
 
                 if (path_nw != "" && path_nw != path_src)
                 {
@@ -1298,10 +1298,11 @@ namespace EpgTimer
                     length_match = Math.Max(0, length_match);
                     base_src = path_src.Substring(0, path_src.Length - length_match).TrimEnd('\\');
                     base_nw = path_nw.Substring(0, path_nw.Length - length_match).TrimEnd('\\');
-                }
-                if (base_nw != "")
-                {
-                    path = path_nw;
+
+                    if (base_nw != "")
+                    {
+                        path = path_nw;
+                    }
                 }
             }
 
@@ -1318,24 +1319,28 @@ namespace EpgTimer
             }
         }
 
-        public static string GetRecPath(string path)
+        public static string GetRecPath(string path, bool recFile)
         {
-            var nwPath = "";
-            try
+            if (!string.IsNullOrWhiteSpace(path))
             {
-                if (string.IsNullOrWhiteSpace(path) == true) return "";
-                if (Instance.NWMode == false || path.StartsWith("\\\\", StringComparison.Ordinal) == true) return path;
-                CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref nwPath);
+                if (Settings.Instance.FilePathReplaceRecFile && recFile)
+                {
+                    path = ReplaceText(path, CreateReplaceDictionary(Settings.Instance.FilePathReplacePattern));
+                }
+                else if (Instance.NWMode && !path.StartsWith("\\\\", StringComparison.Ordinal))
+                {
+                    try { CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref path); }
+                    catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                }
             }
-            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
-            return nwPath;
+            return path;
         }
 
-        public static void OpenRecFolder(string folderPath)
+    public static void OpenRecFolder(string folderPath, bool recFile = true)
         {
             try
             {
-                string path1 = GetRecPath(folderPath);
+                string path1 = GetRecPath(folderPath, recFile);
                 bool isFile = File.Exists(path1) == true;//録画結果から開く場合
                 string path = isFile == true ? path1 : GetDirectoryName2(path1);//録画フォルダ未作成への対応
                 bool noParent = path.TrimEnd('\\') != path1.TrimEnd('\\');//フォルダを遡った場合の特例
@@ -1379,7 +1384,7 @@ namespace EpgTimer
                         CreateSrvCtrl().SendNwPlayClose(info.ctrlID);
                         if (info.filePath != "")
                         {
-                            FilePlay(info.filePath);
+                            FilePlay(info.filePath, false);
                             return;
                         }
                     }
@@ -1392,7 +1397,7 @@ namespace EpgTimer
                 TVTestCtrl.StartStreamingPlay(null, data.ReserveID);
             }
         }
-        public void FilePlay(string filePath)
+        public void FilePlay(string filePath, bool recFile = true)
         {
             try
             {
@@ -1406,7 +1411,7 @@ namespace EpgTimer
                 {
                     //録画フォルダと保存・共有フォルダが異なる場合($FileNameExt$運用など)で、
                     //コマンドラインの一部になるときは、ファイルの確認を未チェックとする。
-                    string path = GetRecPath(filePath);
+                    string path = GetRecPath(filePath, recFile);
                     string playExe = Settings.Instance.FilePlayExe;
                     string cmdLine = string.IsNullOrWhiteSpace(Settings.Instance.FilePlayCmd) == true ? "$FilePath$" : Settings.Instance.FilePlayCmd;
 

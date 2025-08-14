@@ -74,7 +74,7 @@ namespace EpgTimer
                 grid_protect.ToolTipOpening += (sender, e) => grid_protect.ToolTip =
                         ("" + MenuBinds.GetInputGestureTextView(EpgCmds.ProtectChange, mBinds.View) + "\r\nプロテクト設定/解除").Trim();
 
-                button_rename_opne.Click += ViewUtil.OpenFileNameDialog(textBox_recFilePath, false, "", "", true, "", false);
+                button_rename_open.Click += ViewUtil.OpenFileNameDialog(textBox_recFilePath, false, "", "", true, "", false, true);
                 if (CommonManager.Instance.NWMode == false)
                 {
                     textBox_recFilePath.TextChanged += textBox_recFilePath_TextChanged;

@@ -73,10 +73,21 @@
                     <Label Content="コマンドライン引数" Width="{Binding ActualWidth, ElementName=label_app_path}" IsEnabled="{Binding FilePlay}" />
                     <local:TextBoxWithReadOnlyEffect Margin="6,0" Text="{Binding FilePlayCmd}" IsReadOnly="{Binding FilePlay, Converter={StaticResource invert}}" Width="{Binding ActualWidth, ElementName=textBox_playExe}" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="12,0,0,0" IsEnabled="{Binding FilePlay}" >
+                <DockPanel Margin="0,6,0,0" IsEnabled="{Binding FilePlay}" >
                     <TextBlock Width="{Binding ActualWidth, ElementName=label_app_path}" />
-                    <Label Content="再生アプリのexeパスが未指定の場合は規定の再生アプリを使用します。&#10;コマンドラインでは、$FilePath$:(パス+ファイル名)、$FileNameExt$:(ファイル名のみ)、が使用出来ます。&#10;　※再生アプリが未指定の場合も、コマンドラインをファイル名として展開します。&#10;　※空白は$FilePath$相当です。&#10;&#10;(参考)「再生アプリのexeパス」「コマンドライン引数」とも空白にしておくと、録画ファイルを関連付けで開きます。" />
-                </StackPanel>
+                    <TextBlock Margin="12,0" TextWrapping="Wrap" Text="再生アプリのexeパスが未指定の場合は規定の再生アプリを使用します。&#10;コマンドラインでは、$FilePath$:(パス+ファイル名)、$FileNameExt$:(ファイル名のみ)、が使用出来ます。&#10;　※再生アプリが未指定の場合も、コマンドラインをファイル名として展開します。&#10;　※空白は$FilePath$相当です。&#10;&#10;(参考)「再生アプリのexeパス」「コマンドライン引数」とも空白にしておくと、録画ファイルを関連付けで開きます。" />
+                </DockPanel>
+                <CheckBox Content="録画済みファイルのパスを置換する" IsChecked="{Binding FilePathReplaceRecFile}" Margin="0,26,0,0" ToolTip="録画後にファイルを移動している場合などに利用できます。&#10;なお、EpgTimerNWでこのオプションを有効にした場合、録画済みファイルに対してはEpgTimerSrvからのUNCパス取得を行いません。" />
+                <Label IsEnabled="{Binding FilePathReplaceRecFile}" Content="ファイルパスの文字列置換リスト（/置換前/置換後/…） ※録画済み一覧画面の「録画フォルダを開く」機能にも適用されます" />
+                <local:TextBoxWithReadOnlyEffect Margin="6,0" x:Name="textBox_replacePattern" Text="{Binding FilePathReplacePattern}" TextChanged="replaceTest_TextChanged" IsReadOnly="{Binding FilePathReplaceRecFile, Converter={StaticResource invert}}"/>
+                <DockPanel Margin="0,6,0,0">
+                    <Label IsEnabled="{Binding FilePathReplaceRecFile}" Content="（置換テスト）" Name="label_repTest" />
+                    <local:TextBoxWithReadOnlyEffect Margin="6,0" x:Name="textBox_replaceTest" Text="{Binding FilePathReplaceTestPath}" TextChanged="replaceTest_TextChanged" IsReadOnly="{Binding FilePathReplaceRecFile, Converter={StaticResource invert}}"/>
+                </DockPanel>
+                <DockPanel Margin="0,6,0,0">
+                    <Label IsEnabled="{Binding FilePathReplaceRecFile}" Content="（置換結果）"  Width="{Binding ActualWidth, ElementName=label_repTest}"/>
+                    <local:TextBoxWithReadOnlyEffect Margin="6,0" IsReadOnly="True" x:Name="textBox_replaceTestResult" />
+                </DockPanel>
             </StackPanel>
         </TabItem>
     </TabControl>

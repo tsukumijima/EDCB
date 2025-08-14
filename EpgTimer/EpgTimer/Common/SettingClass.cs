@@ -564,6 +564,9 @@ namespace EpgTimer
         public string FilePlayExe { get; set; }
         public string FilePlayCmd { get; set; }
         public bool FilePlayOnAirWithExe { get; set; }
+        public bool FilePathReplaceRecFile { get; set; }
+        public string FilePathReplacePattern { get; set; }
+        public string FilePathReplaceTestPath { get; set; }
         public bool OpenFolderWithFileDialog { get; set; }
         public List<IEPGStationInfo> IEpgStationList { get; set; }
         public MenuSettingData MenuSet { get; set; }
@@ -915,6 +918,9 @@ namespace EpgTimer
             FilePlayExe = "";
             FilePlayCmd = "";
             FilePlayOnAirWithExe = true;
+            FilePathReplaceRecFile = false;
+            FilePathReplacePattern = "";
+            FilePathReplaceTestPath = "C:\\Test\\ファイル";
             OpenFolderWithFileDialog = false;
             IEpgStationList = new List<IEPGStationInfo>();
             MenuSet = new MenuSettingData();
