@@ -16,7 +16,7 @@ namespace EpgTimer
     public partial class ChgReserveWindow : ChgReserveWindowBase
     {
         private ReserveData reserveInfo = null;
-        private bool KeepWin = Settings.Instance.KeepReserveWindow;//固定する
+        private readonly bool KeepWin = Settings.Instance.KeepReserveWindow;//固定する
 
         protected enum AddMode { Add, Re_Add, Change }
         private AddMode addMode = AddMode.Add;      //予約モード、再予約モード、変更モード

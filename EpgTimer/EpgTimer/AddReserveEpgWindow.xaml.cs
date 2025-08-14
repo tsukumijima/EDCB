@@ -15,7 +15,7 @@ namespace EpgTimer
     public partial class AddReserveEpgWindow : AddReserveEpgWindowBase
     {
         private EpgEventInfo eventInfo = null;
-        private bool KeepWin = Settings.Instance.KeepReserveWindow;//固定する
+        private readonly bool KeepWin = Settings.Instance.KeepReserveWindow;//固定する
         private bool AddEnabled { get { return eventInfo != null && eventInfo.IsReservable == true; } }
         private bool chgEnabled = false;
         private string tabStr = "予約";
