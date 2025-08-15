@@ -23,7 +23,7 @@ if index then
     dirhash=mg.get_var(mg.request_info.query_string,'d')
     if dirhash then
       for i,v in ipairs(edcb.FindFile(PathAppend(dir,'*'),0) or {}) do
-        if v.isdir and mg.md5(v.name)==dirhash then
+        if v.isdir and not v.name:find('^%.') and mg.md5(v.name)==dirhash then
           dir=PathAppend(dir,v.name)
           dirname=LIBRARY_LIST[index]..'/'..v.name
           break
