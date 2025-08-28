@@ -254,6 +254,12 @@ ARIBB24_USE_SVG=false
 --データ放送表示機能を使うかどうか。トランスコード中に表示する場合はpsisiarc.exeを用意すること。IE非対応
 USE_DATACAST=true
 
+--データ放送の郵便番号(7桁)の初期値。例えば東京都庁は'1638001'。''のとき未設定
+NVRAM_ZIP=''
+
+--データ放送の県域コード(1～50)の初期値。例えば東京都は14。0のとき未設定。県域とコードの対応はメニュー→NVRAM設定→地域を参照
+NVRAM_REGION=0
+
 --ライブ実況表示機能を使うかどうか
 --利用にはJKCNSL_PATHを設定するか、実況を扱うツール側の対応(NicoJKの場合はcommentShareMode)が必要
 USE_LIVEJK=true
@@ -438,6 +444,8 @@ runOnscreenButtonsScript(]=]..(xcode and 'true' or 'false')..[=[);
 end
 
 function WebBmlScriptTemplate(label)
+  local zip=NVRAM_ZIP:match('^'..('[0-9]'):rep(7)..'$')
+  local prefecture=math.floor(math.max(NVRAM_REGION<=50 and NVRAM_REGION or 0,0))
   return USE_DATACAST and [=[
 <div class="remote-control" style="display:none">
   <button
@@ -452,7 +460,23 @@ function WebBmlScriptTemplate(label)
 </div>
 <label class="video-side-item"><input id="cb-datacast" type="checkbox">]=]..label..[=[</label>
 <script src="web_bml_play_ts.js"></script>
-]=] or ''
+]=]..(not zip and prefecture==0 and '' or [=[
+<script>
+(function(){
+  var prefix="nvram_prefix=receiverinfo%2F";
+]=]..(not zip and '' or [=[
+  if(!localStorage.getItem(prefix+"zipcode")){
+    localStorage.setItem(prefix+"zipcode",btoa("]=]..zip..[=["));
+  }
+]=])..(prefecture==0 and '' or [=[
+  if(!localStorage.getItem(prefix+"regioncode")){
+    localStorage.setItem(prefix+"prefecture",btoa(String.fromCharCode(]=]..prefecture..[=[)));
+    localStorage.setItem(prefix+"regioncode",btoa(String.fromCharCode(]=]..GetEwsRegionCode(prefecture)..'>>8,'..GetEwsRegionCode(prefecture)..[=[&0xff)));
+  }
+]=])..[=[
+})();
+</script>
+]=]) or ''
 end
 
 function JikkyoScriptTemplate(live,shiftable,jikkyo)
@@ -1463,6 +1487,13 @@ end
 --※サーバに変更を加える要求(POSTに限らない)を処理する前にこれを呼ぶべき
 function AssertCsrf(qs)
   assert(mg.get_var(qs,'ctok')==CsrfToken() or mg.get_var(qs,'ctok')==CsrfToken(nil,-1))
+end
+
+--県域コード(1～50)に対応する緊急情報信号の地域符号を返す
+function GetEwsRegionCode(prefecture)
+  --地域符号(Hex3桁x50)
+  local codes='16b16b4675d4758ac6e4c1aec69e3898b64b1c7aac56c4ce5396a692dd4a9d2a65a5a9662dcce459acb2674a93396d2331b2b5b31b98e629b419d2e362d959a2b8a7c8dd1cd45372aacd45'
+  return tonumber(codes:sub(prefecture*3-2,prefecture*3),16)
 end
 
 if not WIN32 then
