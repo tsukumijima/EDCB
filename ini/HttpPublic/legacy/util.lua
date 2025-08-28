@@ -14,6 +14,9 @@ INDEX_ENABLE_SUSPEND=false
 --メニューの「システムスタンバイ」ボタンを「システム休止」にするかどうか
 INDEX_SUSPEND_USE_HIBERNATE=false
 
+--配色について'dark'=強制ダークモード、'light'=強制ライトモード、''=環境に従う
+COLOR_SCHEME=''
+
 --「プロセス管理」に表示するプロセス名のリスト(Windowsでは末尾に".exe"が追加される)
 PROCESS_MANAGEMENT_LIST={
   'EpgDataCap_Bon',
@@ -1304,6 +1307,16 @@ function GetLeNumber(buf,pos,len)
 end
 
 DOCTYPE_HTML4_STRICT='<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">\n'
+
+--既定のHTMLヘッダの内容
+function DefaultHeadContents()
+  return [=[
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="initial-scale=1">
+<link rel="stylesheet" type="text/css" href="default.css">
+]=]..(COLOR_SCHEME~='dark' and COLOR_SCHEME~='light' and '' or
+  '<style type="text/css">:root{color-scheme:'..(COLOR_SCHEME=='dark' and 'dark;--light: ;--dark' or 'light;--dark: ;--light')..':initial}</style>\n')
+end
 
 --HTTP日付の文字列を取得する
 function ImfFixdate(t)

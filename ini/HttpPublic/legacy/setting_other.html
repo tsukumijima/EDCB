@@ -5,9 +5,7 @@ ct=CreateContentBuilder(GZIP_THRESHOLD_BYTE)
 ct:Append(DOCTYPE_HTML4_STRICT..[=[
 <html lang="ja">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="viewport" content="initial-scale=1">
-<link rel="stylesheet" type="text/css" href="default.css">
+]=]..DefaultHeadContents()..[=[
 <title>設定/その他 - EDCB</title>
 </head>
 <body>
@@ -108,7 +106,7 @@ ct:Append([=[<option value="20000"]=]..Selected(math.floor(epgArchivePeriodHour/
         <label><input name="notifyTipStyle"]=]..Checkbox(notifyTipStyle)..[=[>ツールチップに次の予約を表示する</label><br>
         <label><input name="blinkPreRec"]=]..Checkbox(blinkPreRec)..[=[>開始準備で点滅させる</label>
       </div>
-      <label><input name="noBalloonTip"]=]..Checkbox(noBalloonTip=='1')..[=[><span class='enabled-on-checked'>バルーンチップ/トーストでの動作通知を抑制する</span></label>
+      <label><input name="noBalloonTip"]=]..Checkbox(noBalloonTip=='1')..[=[><span class="enabled-on-checked">バルーンチップ/トーストでの動作通知を抑制する</span></label>
       <div class="disabled-on-checked">
         <label><input name="noBalloonTipRealtime"]=]..Checkbox(noBalloonTip=='2')..[=[>リアルタイムで表示できなかった通知を捨てる</label>
       </div>
