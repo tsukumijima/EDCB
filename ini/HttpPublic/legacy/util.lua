@@ -244,7 +244,7 @@ VIDEO_VOLUME=nil
 
 --字幕表示のオプション https://github.com/monyone/aribb24.js#options
 ARIBB24_JS_OPTION=[=[
-  normalFont:'"Rounded M+ 1m for ARIB","Yu Gothic Medium",sans-serif',
+  normalFont:'"Rounded M+ 1m for ARIB","Kosugi Maru",sans-serif',
   drcsReplacement:true
 ]=]
 

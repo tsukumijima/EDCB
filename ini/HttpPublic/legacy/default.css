@@ -1,3 +1,24 @@
+@font-face {
+  font-family: "Kosugi";
+  font-style: normal;
+  font-weight: 400;
+  src: url("Kosugi-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Kosugi Maru";
+  font-style: normal;
+  font-weight: 400;
+  src: url("KosugiMaru-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Kosugi Maru Bold";
+  font-style: normal;
+  font-weight: 700;
+  src: url("KosugiMaru-Bold.woff2") format("woff2");
+}
+
 :root {
   --dark: ;
   color-scheme: light dark;
@@ -788,6 +809,7 @@ th, td {
 
 .dplayer-danmaku-item {
   display: inline-block;
+  font-family: "Meiryo", "Kosugi Maru Bold", sans-serif;
   font-weight: bold;
   line-height: 1;
   pointer-events: none;
