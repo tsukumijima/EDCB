@@ -32,6 +32,7 @@ namespace EpgTimer
             else if (v is ushort) Stream.Write(BitConverter.GetBytes((ushort)v), 0, 2);
             else if (v is int) Stream.Write(BitConverter.GetBytes((int)v), 0, 4);
             else if (v is uint) Stream.Write(BitConverter.GetBytes((uint)v), 0, 4);
+            else if (v is float) Stream.Write(BitConverter.GetBytes((float)v), 0, 4);
             else if (v is long) Stream.Write(BitConverter.GetBytes((long)v), 0, 8);
             else if (v is ulong) Stream.Write(BitConverter.GetBytes((ulong)v), 0, 8);
             else if (v is ICtrlCmdReadWrite) ((ICtrlCmdReadWrite)v).Write(Stream, Version);
@@ -132,6 +133,8 @@ namespace EpgTimer
         /// <summary>ストリームから読み込む</summary>
         public void Read(ref uint v) { v = BitConverter.ToUInt32(ReadBytes(4), 0); }
         /// <summary>ストリームから読み込む</summary>
+        public void Read(ref float v) { v = BitConverter.ToSingle(ReadBytes(4), 0); }
+        /// <summary>ストリームから読み込む</summary>
         public void Read(ref long v) { v = BitConverter.ToInt64(ReadBytes(8), 0); }
         /// <summary>ストリームから読み込む</summary>
         public void Read(ref ulong v) { v = BitConverter.ToUInt64(ReadBytes(8), 0); }
@@ -149,6 +152,7 @@ namespace EpgTimer
             else if (v is ushort) v = (T)(object)BitConverter.ToUInt16(ReadBytes(2), 0);
             else if (v is int) v = (T)(object)BitConverter.ToInt32(ReadBytes(4), 0);
             else if (v is uint) v = (T)(object)BitConverter.ToUInt32(ReadBytes(4), 0);
+            else if (v is float) v = (T)(object)BitConverter.ToSingle(ReadBytes(4), 0);
             else if (v is long) v = (T)(object)BitConverter.ToInt64(ReadBytes(8), 0);
             else if (v is ulong) v = (T)(object)BitConverter.ToUInt64(ReadBytes(8), 0);
             else if (v is ICtrlCmdReadWrite) ((ICtrlCmdReadWrite)v).Read(Stream, Version);
@@ -383,10 +387,12 @@ namespace EpgTimer
         CMD_EPG_SRV_ENUM_PLUGIN = 1061,
         /// <summary>TVTestのチャンネル切り替え用の情報を取得する</summary>
         CMD_EPG_SRV_GET_CHG_CH_TVTEST = 1062,
-        /// <summary>保存された情報通知ログを取得する</summary>
-        CMD_EPG_SRV_GET_NOTIFY_LOG = 1065,
         /// <summary>設定ファイル(ini)の更新を通知させる</summary>
         CMD_EPG_SRV_PROFILE_UPDATE = 1063,
+        /// <summary>保存された情報通知ログを取得する</summary>
+        CMD_EPG_SRV_GET_NOTIFY_LOG = 1065,
+        /// <summary>起動中のチューナーについてサーバーが把握している情報の一覧を取得する</summary>
+        CMD_EPG_SRV_ENUM_TUNER_PROCESS = 1066,
         /// <summary>NetworkTVモードのViewアプリのチャンネルを切り替え（ID=0のみ）</summary>
         CMD_EPG_SRV_NWTV_SET_CH = 1070,
         /// <summary>NetworkTVモードで起動中のViewアプリを終了（ID=0のみ）</summary>
@@ -606,6 +612,8 @@ namespace EpgTimer
         public ErrCode SendGetNotifyLog(int val, ref string resVal) { object o = resVal; var ret = SendAndReceiveCmdData(CtrlCmd.CMD_EPG_SRV_GET_NOTIFY_LOG, val, ref o); resVal = (string)o; return ret; }
         /// <summary>設定ファイル(ini)の更新を通知させる</summary>
         public ErrCode SendNotifyProfileUpdate(string val = "EpgTimer") { return SendCmdData(CtrlCmd.CMD_EPG_SRV_PROFILE_UPDATE, val); }
+        /// <summary>起動中のチューナーについてサーバーが把握している情報の一覧を取得する</summary>
+        public ErrCode SendEnumTunerProcess(ref List<TunerProcessStatusInfo> resVal) { object o = resVal; return ReceiveCmdData(CtrlCmd.CMD_EPG_SRV_ENUM_TUNER_PROCESS, ref o); }
         /// <summary>NetworkTVモードのViewアプリのチャンネルを切り替え（ID=0のみ）</summary>
         public ErrCode SendNwTVSetCh(SetChInfo val) { return SendCmdData(CtrlCmd.CMD_EPG_SRV_NWTV_SET_CH, val); }
         /// <summary>NetworkTVモードで起動中のViewアプリを終了（ID=0のみ）</summary>
