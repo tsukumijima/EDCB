@@ -341,7 +341,7 @@ function readJikkyoLog(text,proc,startSec,ctx){
 }
 
 //Global variables available after runOnscreenButtonsScript() is called.
-var vid,vcont,vfull,vwrap,setSendComment,setMinimizeJikkyo,hideOnscreenButtons;
+var vid,vcont,vfull,vwrap,setCheckLivePosition,setMinimizeJikkyo,setSendComment,hideOnscreenButtons;
 
 function adjustVideoMaxWidth(){
   if(!vwrap.style.width){
@@ -357,8 +357,9 @@ function adjustVideoMaxWidth(){
   }
 }
 
-function runOnscreenButtonsScript(xcode){
+function runOnscreenButtonsScript(){
   vid={e:document.getElementById("video"),unmute:function(){(vid.c||vid.e).muted=false;}};
+  vid.initSrc=vid.e.dataset.src||vid.e.getAttribute("src");
   if(vid.e.tagName=="CANVAS"){
     //Behave like HTMLMediaElement.
     vid.currentTime=0;
@@ -395,39 +396,20 @@ function runOnscreenButtonsScript(xcode){
       }
     };
   }
-  var diffs=[0,0,0,0,0];
-  var duration=-1;
-  var lastseek=0;
-  function checkDuration(){
-    var seekable=vid.e.duration;
-    if(seekable==Infinity)seekable=vid.e.seekable.length>0?vid.e.seekable.end(vid.e.seekable.length-1):0;
-    if(!(seekable>0))return;
-    if(duration<0)duration=seekable;
-    if(seekable-duration<0.5)return;
-    diffs.shift();
-    diffs.push(seekable-duration);
-    duration=seekable;
-    var interval=Math.max(diffs[0],diffs[1],diffs[2],diffs[3],diffs[4])+1;
-    if(vid.e.currentTime<duration-interval*2-3&&Date.now()-lastseek>10000){
-      var cbLive=document.getElementById("cb-live");
-      if(cbLive&&cbLive.checked){
-        vid.e.currentTime=duration-interval;
-        lastseek=Date.now();
-      }
-    }
-  }
-  var blive=null;
-  if(xcode&&!vid.c){
-    vid.e.ondurationchange=checkDuration;
-    setInterval(checkDuration,500);
-    btn=document.createElement("button");
-    btn.type="button";
-    btn.innerText="\u2192";
-    btn.onclick=function(){vid.e.currentTime=duration-Math.max(diffs[0],diffs[1],diffs[2],diffs[3],diffs[4])-1;};
-    blive=document.createElement("div");
-    blive.className="live-control";
-    blive.appendChild(btn);
-  }
+  btn=document.createElement("button");
+  btn.type="button";
+  btn.innerText="\u2192";
+  var blive=document.createElement("div");
+  blive.className="live-control";
+  blive.style.display="none";
+  blive.appendChild(btn);
+  setCheckLivePosition=function(f){
+    blive.style.display=null;
+    vid.e.ondurationchange=f;
+    setInterval(f,500);
+    blive.children[0].onclick=function(){vid.e.currentTime=f();};
+    setCheckLivePosition=null;
+  };
   btn=document.createElement("button");
   btn.type="button";
   var bminjk=document.createElement("div");
@@ -485,10 +467,10 @@ function runOnscreenButtonsScript(xcode){
   hideOnscreenButtons=function(hide){
     var b=[bfull,bexit,blive,bminjk,bcomm,bmove];
     if(!removed&&hide){
-      for(var i=0;i<b.length;i++){if(b[i])vcont.removeChild(b[i]);}
+      for(var i=0;i<b.length;i++){vcont.removeChild(b[i]);}
       removed=true;
     }else if(removed&&!hide){
-      for(var i=0;i<b.length;i++){if(b[i])vcont.appendChild(b[i]);}
+      for(var i=0;i<b.length;i++){vcont.appendChild(b[i]);}
       removed=false;
     }
   };
@@ -686,36 +668,45 @@ function runJikkyoScript(shiftable,commentHeight,commentDuration,replaceTag){
 }
 
 function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
+  var inputFile=document.getElementById("input-file");
+  if(inputFile){
+    inputFile.onchange=function(){
+      vid.e.src=URL.createObjectURL(inputFile.files[0]);
+      inputFile.parentNode.removeChild(inputFile);
+    };
+  }
   var cap=null;
   var cbCaption=document.getElementById("cb-caption");
   cbCaption.onclick=function(){
     if(cap){if(cbCaption.checked){cap.show();}else{cap.hide();}}
   };
   var vidMeta=document.getElementById("vid-meta");
-  vidMeta.oncuechange=function(){
-    vidMeta.oncuechange=null;
-    var work=[];
-    var dataList=[];
-    var cues=vidMeta.track.cues;
-    for(var i=0;i<cues.length;i++){
-      var ret=decodeB24CaptionFromCueText(cues[i].text,work);
-      if(!ret){return;}
-      for(var j=0;j<ret.length;j++){dataList.push({pts:cues[i].startTime,pes:ret[j]});}
-    }
-    cap=aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
-    cap.attachMedia(vid.e);
-    document.getElementById("label-caption").style.display="inline";
-    if(!cbCaption.checked){cap.hide();}
-    dataList.reverse();
-    (function pushCap(){
-      for(var i=0;i<100;i++){
-        var data=dataList.pop();
-        if(!data){return;}
-        cap.pushRawData(data.pts,data.pes);
+  if(vidMeta){
+    vidMeta.oncuechange=function(){
+      vidMeta.oncuechange=null;
+      var work=[];
+      var dataList=[];
+      var cues=vidMeta.track.cues;
+      for(var i=0;i<cues.length;i++){
+        var ret=decodeB24CaptionFromCueText(cues[i].text,work);
+        if(!ret){return;}
+        for(var j=0;j<ret.length;j++){dataList.push({pts:cues[i].startTime,pes:ret[j]});}
       }
-      setTimeout(pushCap,0);
-    })();
-  };
+      cap=aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
+      cap.attachMedia(vid.e);
+      document.getElementById("label-caption").style.display="inline";
+      if(!cbCaption.checked){cap.hide();}
+      dataList.reverse();
+      (function pushCap(){
+        for(var i=0;i<100;i++){
+          var data=dataList.pop();
+          if(!data){return;}
+          cap.pushRawData(data.pts,data.pes);
+        }
+        setTimeout(pushCap,0);
+      })();
+    };
+  }
   if(useDatacast){
     (function(){
       var psiData=null;
@@ -768,7 +759,7 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
         bmlBrowserSetInvisible(false);
         if(xhr)return;
         xhr=new XMLHttpRequest();
-        xhr.open("GET",vid.e.getAttribute("src").replace(/\.[0-9A-Za-z]+$/,"")+".psc");
+        xhr.open("GET",vid.initSrc.replace(/\.[0-9A-Za-z]+$/,"")+".psc");
         xhr.responseType="arraybuffer";
         xhr.overrideMimeType("application/octet-stream");
         xhr.onloadend=function(){
@@ -825,7 +816,7 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
         startRead();
         if(xhr)return;
         xhr=new XMLHttpRequest();
-        xhr.open("GET","jklog.lua?fname="+vid.e.getAttribute("src").replace(/^(?:\.\.\/)+/,""));
+        xhr.open("GET","jklog.lua?fname="+vid.initSrc.replace(/^(?:\.\.\/)+/,""));
         xhr.onloadend=function(){
           if(!logText){
             if(onJikkyoStreamError)onJikkyoStreamError(xhr.status,0);
@@ -843,7 +834,6 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
 }
 
 function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,postCommentQuery){
-  vid.initSrc=vid.e.dataset.src||vid.e.src;
   if(vid.c){
     //Playback rate is controlled on client-side.
     vid.fast=fast;
@@ -859,6 +849,34 @@ function runTranscodeScript(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,p
         });
       },0);
     }
+    (function(){
+      var diffs=[0,0,0,0,0];
+      var duration=-1;
+      var lastseek=0;
+      function checkLivePosition(){
+        var interval=Math.max(diffs[0],diffs[1],diffs[2],diffs[3],diffs[4])+1;
+        var seekable=vid.e.duration;
+        if(seekable==Infinity)seekable=vid.e.seekable.length>0?vid.e.seekable.end(vid.e.seekable.length-1):0;
+        if(seekable>0){
+          if(duration<0)duration=seekable;
+          if(seekable-duration>0.5){
+            diffs.shift();
+            diffs.push(seekable-duration);
+            duration=seekable;
+            interval=Math.max(diffs[0],diffs[1],diffs[2],diffs[3],diffs[4])+1;
+            if(vid.e.currentTime<duration-interval*2-3&&Date.now()-lastseek>10000){
+              var cbLive=document.getElementById("cb-live");
+              if(cbLive&&cbLive.checked){
+                vid.e.currentTime=duration-interval;
+                lastseek=Date.now();
+              }
+            }
+          }
+        }
+        return duration-interval;
+      }
+      setCheckLivePosition(checkLivePosition);
+    })();
   }
   var vseek=document.getElementById("vid-seek");
   var rangeSeek=document.querySelector("#vid-seek input");

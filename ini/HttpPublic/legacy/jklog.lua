@@ -202,8 +202,23 @@ if JKRDLOG_PATH then
   fpath=mg.get_var(mg.request_info.query_string,'fname')
   if fpath then
     fpath=DocumentToNativePath(fpath)
-    if fpath then
-      totList=nil
+  end
+  if fpath then
+    totList=nil
+    ext=fpath:match('%.[0-9A-Za-z]+$') or ''
+    extts=edcb.GetPrivateProfile('SET','TSExt','.ts','EpgTimerSrv.ini')
+    if IsEqualPath(ext,extts) then
+      f=edcb.io.open(fpath,'rb')
+      if f then
+        code=500
+        fsec,fsize=GetDurationSec(f)
+        tot,nid,sid=GetTotAndServiceID(f)
+        if fsec and tot then
+          totList={{sec=0,tot=tot,totEnd=tot+fsec}}
+        end
+        f:close()
+      end
+    else
       f=edcb.io.open(fpath:gsub('%.[0-9A-Za-z]+$','')..'.psc','rb')
       if f then
         code=500
@@ -217,12 +232,12 @@ if JKRDLOG_PATH then
           f:close()
         end
       end
-      if totList and nid and sid then
-        code=404
-        jkID=GetJikkyoID(nid,sid)
-        if jkID then
-          code=200
-        end
+    end
+    if totList and nid and sid then
+      code=404
+      jkID=GetJikkyoID(nid,sid)
+      if jkID then
+        code=200
       end
     end
   end

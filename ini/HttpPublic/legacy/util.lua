@@ -434,11 +434,11 @@ function TranscodeSettingTemplate(xq,fsec)
   return s
 end
 
-function OnscreenButtonsScriptTemplate(xcode)
+function OnscreenButtonsScriptTemplate()
   return [=[
-<script src="script.js?ver=20250624"></script>
+<script src="script.js?ver=20250907"></script>
 <script>
-runOnscreenButtonsScript(]=]..(xcode and 'true' or 'false')..[=[);
+runOnscreenButtonsScript();
 </script>
 ]=]
 end
@@ -491,15 +491,15 @@ runJikkyoScript(]=]..(shiftable and 'true' or 'false')..','..JK_COMMENT_HEIGHT..
 ]=] or ''
 end
 
-function VideoScriptTemplate()
-  return OnscreenButtonsScriptTemplate(false)..WebBmlScriptTemplate('data.psc')..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
+function VideoScriptTemplate(ists)
+  return OnscreenButtonsScriptTemplate()..(ists and '' or WebBmlScriptTemplate('data.psc'))..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
 <label id="label-caption" class="video-side-item" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>CC.vtt</label>
 <script src="aribb24.js"></script>
 <script>
 ]=]..(VIDEO_MUTED and 'vid.e.muted=true;\n' or '')..(VIDEO_VOLUME and 'vid.e.volume='..VIDEO_VOLUME..';\n' or '')..[=[
 runVideoScript(]=]
   ..(ARIBB24_USE_SVG and 'true' or 'false')..',{'..ARIBB24_JS_OPTION..'},'
-  ..(USE_DATACAST and 'true' or 'false')..','
+  ..(not ists and USE_DATACAST and 'true' or 'false')..','
   ..(JKRDLOG_PATH and 'true' or 'false')..[=[
 );
 </script>
@@ -507,7 +507,7 @@ runVideoScript(]=]
 end
 
 function TranscodeScriptTemplate(live,caption,jikkyo,params)
-  return OnscreenButtonsScriptTemplate(true)..WebBmlScriptTemplate('data')..JikkyoScriptTemplate(live,false,jikkyo)..[=[
+  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate('data')..JikkyoScriptTemplate(live,false,jikkyo)..[=[
 <label id="label-caption" class="video-side-item" style="display:none"><input id="cb-caption"]=]..Checkbox(caption)..[=[>CC</label>
 ]=]..(live and '<label class="video-side-item"><input id="cb-live" type="checkbox">live</label>\n' or '')
   ..(not live and THUMBNAIL_ON_SEEK and EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') and [=[
