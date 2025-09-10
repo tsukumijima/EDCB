@@ -115,7 +115,7 @@ if #a>0 then
     ct:Append('<option value="'..v..'"'..(n==v and ' selected' or '')..'>-pipe'..v)
   end
   ct:Append('</select>\n'
-    ..TranscodeSettingTemplate(xq)
+    ..TranscodeSettingTemplate(xq,vtag==0)
     ..(vtag==0 and '<input type="hidden" name="ctok" value="'..CsrfToken('view.lua')..'">\n'
          or '<input type="hidden" name="vtag" value="1">\n')
     ..'</div></form>\n')

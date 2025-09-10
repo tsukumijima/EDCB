@@ -667,7 +667,7 @@ function runJikkyoScript(shiftable,commentHeight,commentDuration,replaceTag){
   };
 }
 
-function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
+function runVideoScript(aribb24UseSvg,aribb24Option,datacastMode,useJikkyoLog){
   var inputFile=document.getElementById("input-file");
   if(inputFile){
     inputFile.onchange=function(){
@@ -707,7 +707,74 @@ function runVideoScript(aribb24UseSvg,aribb24Option,useDatacast,useJikkyoLog){
       })();
     };
   }
-  if(useDatacast){
+  if(datacastMode==2){
+    (function(){
+      var onDataStream=null;
+      var onDataStreamError=null;
+      var reopen=false;
+      var xhr=null;
+      var openSubStream=function(){
+        if(reopen)return;
+        if(xhr){
+          xhr.abort();
+          xhr=null;
+          if(onDataStream){
+            reopen=true;
+            setTimeout(function(){reopen=false;openSubStream();},5000);
+          }
+          return;
+        }
+        if(!onDataStream)return;
+        var readCount=0;
+        var ctx={};
+        xhr=new XMLHttpRequest();
+        //TODO: follow ratechange
+        xhr.open("GET","xcode.lua?fname="+vid.initSrc.replace(/^(?:\.\.\/)+/,"")+"&psidata=1&ofssec="+Math.floor(vid.e.currentTime));
+        xhr.onloadend=function(){
+          if(xhr&&(readCount==0||xhr.status!=0)){
+            if(onDataStreamError)onDataStreamError(xhr.status,readCount);
+          }
+          xhr=null;
+        };
+        xhr.onprogress=function(){
+          if(xhr&&xhr.status==200&&xhr.response){
+            readCount=progressPsiDataChatMixedStream(readCount,xhr.response,onDataStream,null,ctx);
+          }
+        };
+        xhr.send();
+      };
+      var cbDatacast=document.getElementById("cb-datacast");
+      cbDatacast.checked=false;
+      cbDatacast.onclick=function(){
+        document.querySelector(".remote-control").style.display=cbDatacast.checked?"":"none";
+        if(!cbDatacast.checked){
+          onDataStream=null;
+          onDataStreamError=null;
+          openSubStream();
+          hideOnscreenButtons(false);
+          bmlBrowserSetInvisible(true);
+          vwrap.style.width=null;
+          vwrap.style.height=null;
+          checkJikkyoDisplay();
+          return;
+        }
+        checkJikkyoDisplay();
+        vwrap.style.width=vfull.clientWidth+"px";
+        vwrap.style.height=vfull.clientHeight+"px";
+        bmlBrowserSetVisibleSize(vcont.clientWidth,vcont.clientHeight);
+        hideOnscreenButtons(true);
+        bmlBrowserSetInvisible(false);
+        onDataStream=function(pid,dict,code,pcr){
+          dict[code]=bmlBrowserPlayTSSection(pid,dict[code],pcr)||dict[code];
+        };
+        onDataStreamError=function(status,readCount){
+          document.querySelector(".remote-control-indicator").innerText="Error! ("+status+"|"+readCount+"Bytes)";
+        };
+        openSubStream();
+      };
+      vid.e.onseeked=openSubStream;
+    })();
+  }else if(datacastMode){
     (function(){
       var psiData=null;
       var readTimer=0;

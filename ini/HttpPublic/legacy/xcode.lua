@@ -254,7 +254,8 @@ if fpath then
           offset=0
           if ofssec~=0 then
             fsec,fsize=GetDurationSec(f)
-            if SeekSec(f,ofssec,fsec,fsize) then
+            -- 応答性向上のためPSI/SIは6秒(チャンク2つ)だけ手前から読む
+            if SeekSec(f,ofssec-(psidata and 6 or 0),fsec,fsize) then
               offset=f:seek('cur',0) or 0
             end
           end
@@ -264,7 +265,8 @@ if fpath then
           if offset~=0 then
             fsec,fsize=GetDurationSec(f)
             ofssec=math.floor(fsec*offset/100)
-            if offset~=100 and SeekSec(f,ofssec,fsec,fsize) then
+            -- 応答性向上のためPSI/SIは6秒(チャンク2つ)だけ手前から読む
+            if offset~=100 and SeekSec(f,ofssec-(psidata and 6 or 0),fsec,fsize) then
               offset=f:seek('cur',0) or 0
             else
               offset=math.floor(fsize*offset/100/188)*188
@@ -316,9 +318,12 @@ elseif psidata or jikkyo then
     failed=false
     repeat
       if psidata then
-        -- 3/fastRate秒間隔でチャンクを読めば主ストリームと等速になる
-        buf,trailerSize,trailerRemainSize=ReadPsiDataChunk(f.psi,trailerSize,trailerRemainSize)
-        failed=not buf or not mg.write(mg.base64_encode(buf))
+        -- 3/fastRate秒間隔でチャンクを読めば主ストリームと等速になる。初回だけ3つ読む
+        for i=(trailerSize==0 and 1 or 3),3 do
+          buf,trailerSize,trailerRemainSize=ReadPsiDataChunk(f.psi,trailerSize,trailerRemainSize)
+          failed=not buf or not mg.write(mg.base64_encode(buf))
+          if failed then break end
+        end
         if failed then break end
       end
       if jikkyo and type(f.jk)=='string' then

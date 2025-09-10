@@ -157,7 +157,7 @@ if r then
             ..'<button type="submit">xcode</button>\n'
             ..'→<a href="reserveinfo.html?id='..r.reserveID..(fromepg and '&amp;fromepg=1' or '')..ConstructTranscodeQueries(xq)
             ..'&amp;vtag='..(vtag==0 and '-1">Video' or '0">DL')..'</a>\n'
-            ..TranscodeSettingTemplate(xq,fsec)
+            ..TranscodeSettingTemplate(xq,vtag==0,fsec)
             ..(vtag==0 and '<br>※OpenFile用のファイルを作成するときは[TS-Live!以外][0m00s][x1.0]を選択してxcodeしてください\n' or '')
             ..'</div></form>'..thumbs[1])
           if vtag==1 then

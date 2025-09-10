@@ -394,10 +394,10 @@ function VideoWrapperEnd()
     ..'<div id="jikkyo-chats"></div></div></div></div>'
 end
 
-function TranscodeSettingTemplate(xq,fsec)
+function TranscodeSettingTemplate(xq,forDL,fsec)
   local s='<select name="option">'
   for i,v in ipairs(XCODE_OPTIONS) do
-    if v.tslive or not ALLOW_HLS or not ALWAYS_USE_HLS or v.outputHls then
+    if forDL or v.tslive or not ALLOW_HLS or not ALWAYS_USE_HLS or v.outputHls then
       s=s..'<option value="'..i..'"'..Selected((xq.option or XCODE_SELECT_OPTION)==i)..'>'..EdcbHtmlEscape(v.name)
     end
   end
@@ -492,14 +492,14 @@ runJikkyoScript(]=]..(shiftable and 'true' or 'false')..','..JK_COMMENT_HEIGHT..
 end
 
 function VideoScriptTemplate(ists)
-  return OnscreenButtonsScriptTemplate()..(ists and '' or WebBmlScriptTemplate('data.psc'))..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
+  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate(ists and 'data' or 'data.psc')..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
 <label id="label-caption" class="video-side-item" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>CC.vtt</label>
 <script src="aribb24.js"></script>
 <script>
 ]=]..(VIDEO_MUTED and 'vid.e.muted=true;\n' or '')..(VIDEO_VOLUME and 'vid.e.volume='..VIDEO_VOLUME..';\n' or '')..[=[
 runVideoScript(]=]
   ..(ARIBB24_USE_SVG and 'true' or 'false')..',{'..ARIBB24_JS_OPTION..'},'
-  ..(not ists and USE_DATACAST and 'true' or 'false')..','
+  ..(USE_DATACAST and (ists and '2' or '1') or '0')..','
   ..(JKRDLOG_PATH and 'true' or 'false')..[=[
 );
 </script>

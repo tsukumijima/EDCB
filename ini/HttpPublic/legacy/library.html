@@ -164,7 +164,7 @@ else
           ..'→<a href="library.html?i='..index..(#dirhash>0 and '&amp;d='..table.concat(dirhash,',') or '')
           ..'&amp;h='..hash..ConstructTranscodeQueries(xq)
           ..'&amp;vtag='..(vtag==0 and '-1">Video' or '0">DL')..'</a>\n'
-          ..TranscodeSettingTemplate(xq,fsec)
+          ..TranscodeSettingTemplate(xq,vtag==0,fsec)
           ..(vtag==0 and '<br>※OpenFile用のファイルを作成するときは[TS-Live!以外][0m00s][x1.0]を選択してxcodeしてください\n' or '')
           ..'</div></form>'..thumbs[1])
         if vtag==1 then
