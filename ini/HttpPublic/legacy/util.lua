@@ -76,7 +76,7 @@ THUMBNAILS={
 --シーク中にサムネイル画像を表示するかどうか。TS-Live!モジュールが必要
 THUMBNAIL_ON_SEEK=true
 
---HLS(HTTP Live Streaming)を許可するかどうか。する場合はtsmemseg.exeを用意すること。IE非対応
+--HLS(HTTP Live Streaming)を許可するかどうか。する場合はtsmemseg.exeを用意すること
 ALLOW_HLS=true
 --ネイティブHLS非対応環境でもhls.jsを使ってHLS再生するかどうか
 ALWAYS_USE_HLS=true
@@ -277,10 +277,10 @@ ARIBB24_JS_OPTION=[=[
   drcsReplacement:true
 ]=]
 
---字幕表示にSVGRendererを使うかどうか。描画品質が上がる(ただし一部ブラウザで背景に線が入る)。IE非対応
+--字幕表示にSVGRendererを使うかどうか。描画品質が上がる(ただし一部ブラウザで背景に線が入る)
 ARIBB24_USE_SVG=false
 
---データ放送表示機能を使うかどうか。トランスコード中に表示する場合はpsisiarc.exeを用意すること。IE非対応
+--データ放送表示機能を使うかどうか。トランスコード中に表示する場合はpsisiarc.exeを用意すること
 USE_DATACAST=true
 
 --データ放送の郵便番号(7桁)の初期値。例えば東京都西新宿は'1600023'。''のとき未設定
