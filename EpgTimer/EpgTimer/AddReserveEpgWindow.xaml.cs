@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -25,16 +26,21 @@ namespace EpgTimer
             InitializeComponent();
         }
 
-        public void SetOpenMode(byte mode)
+        public void SetOpenMode(int mode)
         {
             tabControl.SelectedIndex = mode == 0 && tabItem_reserve.IsEnabled ? 0 : 1;
+        }
+
+        public int GetOpenMode()
+        {
+            return tabControl.SelectedIndex == 0 ? 0 : 1;
         }
 
         public void SetReservable(bool reservable)
         {
             tabItem_reserve.IsEnabled = reservable;
             button_add_reserve.IsEnabled = reservable;
-            SetOpenMode((byte)tabControl.SelectedIndex);
+            SetOpenMode(tabControl.SelectedIndex);
         }
 
         public void SetEventInfo(EpgEventInfo eventData)
@@ -83,7 +89,7 @@ namespace EpgTimer
                     reserveInfo.DurationSecond = eventInfo.durationSec;
                 }
 
-                UInt64 key = CommonManager.Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
+                ulong key = CommonManager.Create64Key(eventInfo.original_network_id, eventInfo.transport_stream_id, eventInfo.service_id);
                 if (ChSet5.Instance.ChList.ContainsKey(key) == true)
                 {
                     reserveInfo.StationName = ChSet5.Instance.ChList[key].ServiceName;
@@ -106,7 +112,32 @@ namespace EpgTimer
             {
                 MessageBox.Show(ex.ToString());
             }
-            DialogResult = true;
+            Close();
+        }
+
+        private void button_save_program_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog();
+            dlg.DefaultExt = ".txt";
+            dlg.FileName = "a.program.txt";
+            dlg.Filter = "txt Files|*.txt|all Files|*.*";
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var file = new StreamWriter(dlg.FileName, false, Encoding.UTF8))
+                    {
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfoForProgramText));
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.BasicTextForProgramText));
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedTextForProgramText));
+                        file.Write(CommonManager.ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
+            }
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -123,6 +154,21 @@ namespace EpgTimer
                         break;
                 }
             }
+            else if (Keyboard.Modifiers == ModifierKeys.None)
+            {
+                switch (e.Key)
+                {
+                    case Key.Escape:
+                        Close();
+                        e.Handled = true;
+                        break;
+                }
+            }
+        }
+
+        private void button_cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }
