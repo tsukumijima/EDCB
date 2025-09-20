@@ -145,7 +145,7 @@ const progressPsiDataChatMixedStream=(readCount,response,onData,onChat,ctx)=>{
         },0,ctx.ctx);
         if(ctx.psiData)ctx.psiData=new Uint8Array(ctx.psiData);
       }else{
-        atobRemain+=response.substring(readCount,i);
+        ctx.atobRemain+=response.substring(readCount,i);
       }
       readCount=i;
     }
@@ -481,6 +481,7 @@ const runOnscreenButtonsScript=()=>{
 let onJikkyoStream=null;
 let onJikkyoStreamError=null;
 let checkJikkyoDisplay=()=>{};
+let addJikkyoMessage;
 let toggleJikkyo;
 let jikkyoOffsetSec=0;
 let shiftJikkyo=()=>{};
@@ -518,6 +519,13 @@ const runJikkyoScript=(shiftable,commentHeight,commentDuration,replaceTag)=>{
       }
     }
   };
+  addJikkyoMessage=text=>{
+    const b=document.createElement("strong");
+    b.innerText=text;
+    const div=document.createElement("div");
+    div.appendChild(b);
+    chats.appendChild(div);
+  };
   toggleJikkyo=enabled=>{
     clearInterval(checkScrollID);
     checkScrollID=0;
@@ -543,18 +551,11 @@ const runJikkyoScript=(shiftable,commentHeight,commentDuration,replaceTag)=>{
       });
     }
     checkJikkyoDisplay();
-    const addMessage=text=>{
-      const b=document.createElement("strong");
-      b.innerText=text;
-      const div=document.createElement("div");
-      div.appendChild(b);
-      chats.appendChild(div);
-    };
     if(shiftable){
       comm.classList.add("shiftable");
       shiftJikkyo=sec=>{
         jikkyoOffsetSec+=sec;
-        addMessage("Offset "+jikkyoOffsetSec+"sec");
+        addJikkyoMessage("Offset "+jikkyoOffsetSec+"sec");
       };
     }
     let commHide=true;
@@ -608,23 +609,23 @@ const runJikkyoScript=(shiftable,commentHeight,commentDuration,replaceTag)=>{
         return;
       }else if(/^<chat_result /.test(tag)){
         const m=tag.match(/^[^>]*? status="(\d+)"/);
-        if(m&&m[1]!="0")addMessage("Error! (chat_result="+m[1]+")");
+        if(m&&m[1]!="0")addJikkyoMessage("Error! (chat_result="+m[1]+")");
         return;
       }else if(/^<x_room /.test(tag)){
         const m=tag.match(/^[^>]*? nickname="(.*?)"/);
         const nickname=m?m[1]:"";
         const loggedIn=/^[^>]*? is_logged_in="1"/.test(tag);
         const refuge=/^[^>]*? refuge="1"/.test(tag);
-        addMessage("Connected to "+(refuge?"refuge":"nicovideo")+" jk"+jkID+" ("+(loggedIn?"login=":"")+nickname+")");
+        addJikkyoMessage("Connected to "+(refuge?"refuge":"nicovideo")+" jk"+jkID+" ("+(loggedIn?"login=":"")+nickname+")");
         return;
       }else if(/^<x_disconnect /.test(tag)){
         const m=tag.match(/^[^>]*? status="(\d+)"/);
         const refuge=/^[^>]*? refuge="1"/.test(tag);
-        if(m)addMessage("Disconnected from "+(refuge?"refuge":"nicovideo")+" (status="+m[1]+")");
+        if(m)addJikkyoMessage("Disconnected from "+(refuge?"refuge":"nicovideo")+" (status="+m[1]+")");
         return;
       }else if(/^<!-- M=/.test(tag)){
         if(tag.substring(7,22)=="Closed logfile.")closed=true;
-        else if(tag.substring(7,31)!="Started reading logfile:")addMessage(tag.substring(7,tag.length-4));
+        else if(tag.substring(7,31)!="Started reading logfile:")addJikkyoMessage(tag.substring(7,tag.length-4));
         return;
       }else if(!/^<!-- J=/.test(tag)){
         return;
@@ -662,7 +663,7 @@ const runJikkyoScript=(shiftable,commentHeight,commentDuration,replaceTag)=>{
       },0);
     };
     onJikkyoStreamError=(status,readCount)=>{
-      addMessage("Error! ("+status+"|"+readCount+"Bytes)");
+      addJikkyoMessage("Error! ("+status+"|"+readCount+"Bytes)");
     };
   };
 };
@@ -1056,7 +1057,7 @@ const runTranscodeScript=(useDatacast,useLiveJikkyo,useJikkyoLog,ofssec,fast,pos
             xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
             xhr.onloadend=()=>{
               if(xhr.status!=200){
-                addMessage("Post error! ("+xhr.status+")");
+                addJikkyoMessage("Post error! ("+xhr.status+")");
               }
             };
             xhr.send(postCommentQuery+(commInput.className=="refuge"?"&refuge=1":"")+"&comm="+encodeURIComponent(commInput.value).replace(/%20/g,"+"));
