@@ -54,8 +54,8 @@ psisimux.tar.gz:
 	curl -Lo $@ https://github.com/xtne6f/psisimux/archive/refs/tags/master-250405.tar.gz
 	sha256sum $@ | grep -q 3b729dc74d52e9b8cc49521ecfa5f4b877198a03859d736c654b121645d4e975 || $(RM) $@; [ -f $@ ]
 tsmemseg.tar.gz:
-	curl -Lo $@ https://github.com/xtne6f/tsmemseg/archive/refs/tags/master-with-d-240608.tar.gz
-	sha256sum $@ | grep -q 99bccc04636b0a7de835666a1e7365b48072d0874a489e138ae76589a8661f3a || $(RM) $@; [ -f $@ ]
+	curl -Lo $@ https://github.com/xtne6f/tsmemseg/archive/refs/tags/master-with-d-250918.tar.gz
+	sha256sum $@ | grep -q 20f0cbdeb326725f529f3577efebb952856d14dd1ebce4850c5547d5b96e4c1e || $(RM) $@; [ -f $@ ]
 tsreadex.tar.gz:
 	curl -Lo $@ https://github.com/xtne6f/tsreadex/archive/refs/tags/master-240517.tar.gz
 	sha256sum $@ | grep -q 1ec21917aa9c1f363d50469d54cef2c121c5086f1bb4eb27efa5297fe1139c44 || $(RM) $@; [ -f $@ ]
