@@ -140,9 +140,9 @@ bool CParseText<K, V>::SaveText(string* saveToStr) const
 	vector<char> saveBuf;
 	vector<typename map<K, V>::const_iterator> itemList;
 	if( SelectItemToSave(itemList) ){
-		for( size_t i = 0; i < itemList.size(); i++ ){
+		for( auto itr : itemList ){
 			saveLine.clear();
-			if( SaveLine(*itemList[i], saveLine) ){
+			if( SaveLine(*itr, saveLine) ){
 				saveLine += UTIL_NEWLINE;
 				size_t len;
 				if( this->isUtf8 ){
@@ -158,9 +158,9 @@ bool CParseText<K, V>::SaveText(string* saveToStr) const
 			}
 		}
 	}else{
-		for( auto itr = this->itemMap.cbegin(); itr != this->itemMap.end(); itr++ ){
+		for( const auto& item : this->itemMap ){
 			saveLine.clear();
-			if( SaveLine(*itr, saveLine) ){
+			if( SaveLine(item, saveLine) ){
 				saveLine += UTIL_NEWLINE;
 				size_t len;
 				if( this->isUtf8 ){
