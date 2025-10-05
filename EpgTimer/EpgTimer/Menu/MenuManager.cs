@@ -268,10 +268,13 @@ namespace EpgTimer
             ctmd.Items.Add(new CtxmItemData("録画フォルダを開く", cm_OpenFolderMenu));
             ctmd.Items.Add(new CtxmItemData(cm_Separator));
             ctmd.Items.Add(new CtxmItemData("Andキーワードをコピー", EpgCmds.CopyTitle));
+            ctmd.Items.Add(new CtxmItemData("Andキーワードで検索", EpgCmds.ToAutoadd));
             ctmd.Items.Add(new CtxmItemData("Andキーワードで予約情報検索", EpgCmds.InfoSearchTitle));
             ctmd.Items.Add(new CtxmItemData("Andキーワードをネットで検索", EpgCmds.SearchTitle));
             ctmd.Items.Add(new CtxmItemData("Notキーワードをコピー", EpgCmds.CopyNotKey));
             ctmd.Items.Add(new CtxmItemData("Notキーワードに貼り付け", EpgCmds.SetNotKey));
+            ctmd.Items.Add(new CtxmItemData("メモ欄をコピー", EpgCmds.CopyNote));
+            ctmd.Items.Add(new CtxmItemData("メモ欄に貼り付け", EpgCmds.SetNote));
             ctmd.Items.AddRange(AddAppendTagMenus.DeepClone());
             ctmd.Items.AddRange(AddMenuSetting.DeepClone());
 

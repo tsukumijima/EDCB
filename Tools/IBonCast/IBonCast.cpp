@@ -1,8 +1,8 @@
 ﻿#include <sdkddkver.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include "../../../BonCtrl/IB25Decoder.h"
-#include "../../../BonCtrl/IBonDriver2.h"
+#include "../../BonCtrl/IB25Decoder.h"
+#include "../../BonCtrl/IBonDriver2.h"
 
 extern "C" __declspec(dllexport) const LPVOID *WINAPI Cast(LPCSTR pType, void *pBase)
 {

@@ -617,7 +617,7 @@ namespace EpgTimer
         EpgDataView.EpgDataViewInfo epgView;
         public EpgViewData viewData = new EpgViewData();
         public bool IsEpgLoaded { get { return viewData.IsEpgLoaded; } }
-        public bool HasKey(UInt64 key) { return viewData.HasKey(key); }
+        public bool HasKey(ulong key) { return viewData.HasKey(key); }
         public CustomEpgTabInfo Info
         {
             get { return viewData.EpgTabInfo; }
@@ -782,7 +782,7 @@ namespace EpgTimer
         public DateTime InitStart { get { return CommonUtil.EdcbNow.Date.AddDays(-EpgStyle.EpgArcDefaultDays); } }
         public double InitDays { get { return 7 * EpgStyle.EpgArcTabWeeks; } }
         public double InitMoveDays { get { return ToMoveDays(InitDays); } }
-        public static double ToMoveDays(double days) { return days < 7 ? 7 : days - days % 7; }//Floorは使わない
+        public static double ToMoveDays(double days) { return days < 7 ? Math.Max(1, Math.Ceiling(days)) : days - days % 7; }//Floorは使わない
     }
     public class EpgViewPeriod : IDeepCloneObj
     {

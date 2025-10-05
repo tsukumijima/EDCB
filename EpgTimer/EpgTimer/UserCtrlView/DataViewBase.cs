@@ -77,7 +77,7 @@ namespace EpgTimer
         protected object UnPack(object item) { return IsUnPack == false ? item : item is DataListItemBase ? (item as DataListItemBase).DataObj : null; }
         protected int itemIdx = -1;
         protected int ItemIdx { get { return itemIdx; } set { if (value != -1) itemIdx = value; } }
-        public virtual int MoveToItem(UInt64 id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
+        public virtual int MoveToItem(ulong id, JumpItemStyle style = JumpItemStyle.MoveTo, bool dryrun = false)
         {
             if (DataListBox == null || DataListBox.Items.Count == 0) return -1;
 
@@ -85,7 +85,7 @@ namespace EpgTimer
             if (dryrun == false) ItemIdx = idx;
             return idx;
         }
-        public virtual object MoveNextItem(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public virtual object MoveNextItem(int direction, ulong id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             if (DataListBox == null || DataListBox.Items.Count == 0) return null;
 
@@ -126,7 +126,7 @@ namespace EpgTimer
         }
 
         //予約データの移動関係、SearchWindowとEpgListMainView
-        public virtual object MoveNextReserve(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public virtual object MoveNextReserve(int direction, ulong id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             if (DataListBox == null || DataListBox.Items.Count == 0) return null;
 
@@ -142,7 +142,7 @@ namespace EpgTimer
             if (move == true) ItemIdx = ViewUtil.ScrollToFindItem(item, DataListBox, style);
             return item == null ? null : item.ReserveInfo;
         }
-        public virtual object MoveNextRecinfo(int direction, UInt64 id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+        public virtual object MoveNextRecinfo(int direction, ulong id = 0, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             if (DataListBox == null || DataListBox.Items.Count == 0) return null;
 
@@ -154,7 +154,7 @@ namespace EpgTimer
             List<SearchItem> sList = list.Skip(idx).Concat(list.Take(idx)).ToList();
             if (direction < 0) sList.Reverse(0, sList.Count - (idx == 0 ? 0 : 1));
             object hit = null;
-            SearchItem item = sList.FirstOrDefault(info => (hit = MenuUtil.GetRecFileInfo(info.EventInfo)) != null);
+            SearchItem item = sList.FirstOrDefault(info => (hit = info.EventInfo.GetRecinfoFromPgUID()) != null);
 
             if (move == true) ItemIdx = ViewUtil.ScrollToFindItem(item, DataListBox, style);
             return hit;

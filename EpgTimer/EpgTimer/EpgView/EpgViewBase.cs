@@ -24,7 +24,7 @@ namespace EpgTimer.EpgView
         public void ClearEventList()
         {
             ServiceEventList = new List<EpgServiceEventInfo>();
-            EventUIDList = new Dictionary<UInt64, EpgEventInfo>();
+            EventUIDList = new Dictionary<ulong, EpgEventInfo>();
             IsEpgLoaded = false;
         }
         public EpgDataView.EpgDataViewInterface viewFunc { get; set; }
@@ -42,12 +42,12 @@ namespace EpgTimer.EpgView
                 Period = DefPeriod.DefPeriod;
             }
         }
-        public bool HasKey(UInt64 key) { return KeyList.Contains(key); }
-        public IEnumerable<UInt64> KeyList { get { return IsEpgLoaded ? ServiceEventList.Select(info => info.serviceInfo.Key) : CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList); } }
+        public bool HasKey(ulong key) { return KeyList.Contains(key); }
+        public IEnumerable<ulong> KeyList { get { return IsEpgLoaded ? ServiceEventList.Select(info => info.serviceInfo.Key) : CommonManager.Instance.DB.ExpandSpecialKey(EpgTabInfo.ViewServiceList); } }
         public bool IsEpgLoaded { get; private set; }
         public List<EpgServiceEventInfo> ServiceEventList { get; private set; }
-        public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }
-        public HashSet<UInt64> EventFilteredHash { get; private set; }
+        public Dictionary<ulong, EpgEventInfo> EventUIDList { get; private set; }
+        public HashSet<ulong> EventFilteredHash { get; private set; }
 
         public int EpgSettingIndex { get; private set; }
         public Dictionary<char, List<KeyValuePair<string, string>>> ReplaceDictionaryNormal { get; private set; }
@@ -72,7 +72,7 @@ namespace EpgTimer.EpgView
                 if (CommonManager.Instance.IsConnected == false) return false;
 
                 ErrCode err;
-                var serviceDic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+                var serviceDic = new Dictionary<ulong, EpgServiceAllEventInfo>();
                 if (EpgTabInfo.SearchMode == false)
                 {
                     err = CommonManager.Instance.DB.LoadEpgData(ref serviceDic, newPeriod, EpgTabInfo.ViewServiceList);
@@ -94,7 +94,7 @@ namespace EpgTimer.EpgView
 
                 EventUIDList = new Dictionary<ulong, EpgEventInfo>();
                 EventFilteredHash = new HashSet<ulong>();
-                var viewContentMatchingHash = new HashSet<UInt32>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
+                var viewContentMatchingHash = new HashSet<uint>(EpgTabInfo.ViewContentList.Select(d => d.MatchingKeyList).SelectMany(x => x));
                 foreach (EpgServiceEventInfo item in ServiceEventList)
                 {
                     item.eventList = item.eventList.FindAll(eventInfo =>
@@ -146,10 +146,8 @@ namespace EpgTimer.EpgView
         protected EpgViewState restoreState = null;
         protected class StateBase : EpgViewState
         {
-            public DateTime? scrollTime = null;
             public EpgViewPeriod period = null;
             public bool? isDefPeriod = null;
-            public bool? isJumpDate = null;
 
             public StateBase() { }
             public StateBase(EpgViewBase view)
@@ -300,10 +298,10 @@ namespace EpgTimer.EpgView
             movePanel = tm;
             buttonNow = bn;
 
-            jumpPanel.JumpDateClick += JumpDate;
+            jumpPanel.JumpDateClick += period => JumpDate(period, true);
             jumpPanel.SetViewData(viewData);
             movePanel.OpenToggleClick += MovePanel_OpenToggleClick;
-            movePanel.MoveButtonClick += MovePanel_MoveButtonClick;
+            movePanel.MoveButtonClick += direction => JumpDate(MoveTimeTarget(direction), true);
             movePanel.MoveButtonToolTipOpen += MovePanel_MoveButtonTooltip;
             buttonNow.Click += (sender, e) => NowTimeClick(true);
         }
@@ -313,27 +311,22 @@ namespace EpgTimer.EpgView
             IsJumpPanelOpened = isOpen;
             RefreshMoveButtonStatus();
         }
-        protected virtual void MovePanel_MoveButtonClick(int mode)
-        {
-            SetJumpState();
-            JumpDate(MoveTimeTarget(mode));
-        }
         protected virtual void SetJumpState() { }
-        protected EpgViewPeriod MoveTimeTarget(int mode)
+        protected EpgViewPeriod MoveTimeTarget(int direction)
         {
             var start = ViewPeriod.Start;
             if (this.EpgStyle().EpgArcStartSunday && start.DayOfWeek != DayOfWeek.Sunday)
             {
-                start += TimeSpan.FromDays(mode * (mode < 0 ? DefPeriod.InitDays : ViewPeriod.Days));
+                start += TimeSpan.FromDays(direction * (direction < 0 ? DefPeriod.InitDays : ViewPeriod.Days));
                 var offset = (int)start.DayOfWeek;
                 if (offset != 0)
                 {
-                    start += TimeSpan.FromDays(-offset + (mode < 0 ? 7 : 0));
+                    start += TimeSpan.FromDays(-offset + (direction < 0 ? 7 : 0));
                 }
             }
             else
             {
-                start += TimeSpan.FromDays(mode * (mode < 0 ? DefPeriod.InitMoveDays : ViewPeriod.MoveDays));
+                start += TimeSpan.FromDays(direction * (direction < 0 ? DefPeriod.InitMoveDays : ViewPeriod.MoveDays));
             }
             return start >= DefPeriod.InitStart ? DefPeriod.DefPeriod : new EpgViewPeriod(start, DefPeriod.InitDays);
         }
@@ -342,8 +335,9 @@ namespace EpgTimer.EpgView
             e.Handled = !btn.IsEnabled;
             btn.ToolTip = MoveTimeTarget(mode).ConvertText(DefPeriod.DefPeriod.End);
         }
-        public void JumpDate(EpgViewPeriod period = null)
+        public void JumpDate(EpgViewPeriod period = null, bool IsSetJumpState = false)
         {
+            if(IsSetJumpState) SetJumpState();
             period = period ?? DefPeriod.DefPeriod;
             if (period.Equals(ViewPeriod)) return;
             ViewPeriod = period.DeepClone();
@@ -483,7 +477,7 @@ namespace EpgTimer.EpgView
                 ReloadReserveInfo();
                 if(target.ReserveInfo is ReserveDataEnd)
                 {
-                    return MoveToRecInfoItem(MenuUtil.GetRecFileInfo(target.ReserveInfo), style, dryrun) >= 0;
+                    return MoveToRecInfoItem(target.ReserveInfo.GetRecinfoFromPgUID(), style, dryrun) >= 0;
                 }
                 else
                 {

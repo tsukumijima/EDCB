@@ -101,11 +101,11 @@ namespace EpgTimer
         {
             return CommonManager.ConvertDurationText(durationSecond, Settings.Instance.ResInfoNoDurSecond);
         }
-        public virtual UInt32 DurationValue
+        public virtual uint DurationValue
         {
             get
             {
-                if (EventInfo == null || EventInfo.DurationFlag == 0) return UInt32.MinValue;
+                if (EventInfo == null || EventInfo.DurationFlag == 0) return uint.MinValue;
                 //
                 return EventInfo.durationSec;
             }
@@ -297,11 +297,11 @@ namespace EpgTimer
                 return CustomTimeFormat(ReserveInfo.StartMarginResActual * -1);
             }
         }
-        public override Double MarginStartValue
+        public override double MarginStartValue
         {
             get
             {
-                if (ReserveInfo == null) return Double.MinValue;
+                if (ReserveInfo == null) return double.MinValue;
                 //
                 return CustomMarginValue(ReserveInfo.StartMarginResActual * -1);
             }
@@ -315,21 +315,18 @@ namespace EpgTimer
                 return CustomTimeFormat(ReserveInfo.EndMarginResActual);
             }
         }
-        public override Double MarginEndValue
+        public override double MarginEndValue
         {
             get
             {
-                if (ReserveInfo == null) return Double.MinValue;
+                if (ReserveInfo == null) return double.MinValue;
                 //
                 return CustomMarginValue(ReserveInfo.EndMarginResActual);
             }
         }
         public override string ConvertInfoText(object param = null)
         {
-            return CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.BasicInfo)
-                + CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.BasicText)
-                + CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.ExtendedText)
-                + CommonManager.ConvertProgramText(EventInfo, EventInfoTextMode.PropertyInfo, ReserveInfo).TrimEnd();
+            return CommonManager.ConvertProgramText(EventInfo).TrimEnd();
         }
         public virtual string Status
         {
@@ -342,7 +339,7 @@ namespace EpgTimer
                         string ret = new ReserveItem(ReserveInfo).Status;
                         return ret != "" ? ret : ReserveInfo.IsWatchMode ? "視" : "予";
                     }
-                    if (MenuUtil.GetRecFileInfo(EventInfo) != null)
+                    if (EventInfo.GetRecinfoFromPgUID() != null)
                     {
                         return "済";//放映中でも「済」なら優先する
                     }
@@ -373,7 +370,7 @@ namespace EpgTimer
                     {
                         idx = 2;
                     }
-                    else if (MenuUtil.GetRecFileInfo(EventInfo) != null)
+                    else if (EventInfo.GetRecinfoFromPgUID() != null)
                     {
                         idx = 4;//色は放映中を優先する
                     }
@@ -453,11 +450,11 @@ namespace EpgTimer
         }
         public static void SetReserveData(this ICollection<SearchItem> list)
         {
-            var listKeys = new Dictionary<UInt64, SearchItem>();
+            var listKeys = new Dictionary<ulong, SearchItem>();
             var delList = new List<SearchItem>();
             foreach (SearchItem item in list)
             {
-                UInt64 key = item.EventInfo.CurrentPgUID();
+                ulong key = item.EventInfo.CurrentPgUID();
                 if (listKeys.ContainsKey(key) == true)
                 {
                     delList.Add(item);

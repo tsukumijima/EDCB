@@ -39,7 +39,7 @@ namespace EpgTimer
             appName += "(debug)";
 #endif
             CommonManager.Instance.NWMode = appName.StartsWith("EpgTimerNW", StringComparison.OrdinalIgnoreCase)
-                            || File.Exists(System.IO.Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe")) == false;
+                            || File.Exists(Path.Combine(SettingPath.ModulePath, "EpgTimerSrv.exe")) == false;
 
             Settings.LoadFromXmlFile(CommonManager.Instance.NWMode);
             CommonManager.Instance.NWMode |= Settings.Instance.ForceNWMode;
@@ -88,7 +88,7 @@ namespace EpgTimer
                     {
                         try
                         {
-                            using (System.Diagnostics.Process.Start(exePath)) { }
+                            using (Process.Start(exePath)) { }
                         }
                         catch
                         {
@@ -175,7 +175,7 @@ namespace EpgTimer
                 if (CommonManager.Instance.NWMode == false)
                 {
                     int pid;
-                    using (var process = System.Diagnostics.Process.GetCurrentProcess())
+                    using (var process = Process.GetCurrentProcess())
                     {
                         pid = process.Id;
                     }
@@ -311,7 +311,7 @@ namespace EpgTimer
                         byte[] binData;
                         if (cmd.SendFileCopy("ChSet5.txt", out binData) == ErrCode.CMD_SUCCESS)
                         {
-                            connected = ChSet5.LoadWithStreamReader(new System.IO.MemoryStream(binData));
+                            connected = ChSet5.LoadWithStreamReader(new MemoryStream(binData));
                             break;
                         }
                     }
@@ -327,7 +327,7 @@ namespace EpgTimer
             {
                 byte[] binData;
                 if (cmd.SendFileCopy("ChSet5.txt", out binData) != ErrCode.CMD_SUCCESS ||
-                    ChSet5.LoadWithStreamReader(new System.IO.MemoryStream(binData)) == false)
+                    ChSet5.LoadWithStreamReader(new MemoryStream(binData)) == false)
                 {
                     MessageBox.Show("EpgTimerSrvとの接続に失敗しました。");
                     return true;
@@ -353,7 +353,7 @@ namespace EpgTimer
         {
             var ToVisibility = new Func<bool, Visibility>(v => v == true ? Visibility.Visible : Visibility.Collapsed);
             Dock dock = Settings.Instance.MainViewButtonsDock;
-            bool IsVertical = (dock == Dock.Right || dock == Dock.Left);
+            bool IsVertical = dock == Dock.Right || dock == Dock.Left;
             var panel_margin = new Dictionary<Dock, Thickness> {
                     { Dock.Top, new Thickness(0, 0, 0, 6) },{ Dock.Bottom, new Thickness(12, 6, 0, 0) },
                     { Dock.Left, new Thickness(0, 12, 6, 0) },{ Dock.Right, new Thickness(6, 12, 0, 0) }}[dock];
@@ -475,7 +475,7 @@ namespace EpgTimer
             {
                 foreach (string info in Settings.Instance.ViewButtonList)
                 {
-                    if (String.Compare(info, Settings.ViewButtonSpacer) == 0)
+                    if (string.Compare(info, Settings.ViewButtonSpacer) == 0)
                     {
                         stackPanel_button.Children.Add(new Label { Width = 15 });
                     }
@@ -803,7 +803,7 @@ namespace EpgTimer
             if (Settings.Instance.CloseMin == true && closeFlag == false)
             {
                 e.Cancel = true;
-                WindowState = System.Windows.WindowState.Minimized;
+                WindowState = WindowState.Minimized;
             }
             else
             {
@@ -814,7 +814,7 @@ namespace EpgTimer
                 {
                     var cmd = CommonManager.CreateSrvCtrl();
                     cmd.SetConnectTimeOut(3000);
-                    using (var process = System.Diagnostics.Process.GetCurrentProcess())
+                    using (var process = Process.GetCurrentProcess())
                     {
                         cmd.SendUnRegistGUI((uint)process.Id);
                     }
@@ -1219,7 +1219,7 @@ namespace EpgTimer
 
         private Tuple<ErrCode, byte[], uint> OutsideCmdCallback(uint cmdParam, byte[] cmdData, bool networkFlag, uint execBat)
         {
-            System.Diagnostics.Trace.WriteLine((CtrlCmd)cmdParam);
+            Trace.WriteLine((CtrlCmd)cmdParam);
             var res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_NON_SUPPORT, null, 0);
 
             switch ((CtrlCmd)cmdParam)
@@ -1236,15 +1236,15 @@ namespace EpgTimer
                     {
                         //原作では成否にかかわらずCMD_SUCCESSだったが、サーバ側の仕様と若干矛盾するので変更した
                         res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_ERR, null, 0);
-                        String exeCmd = "";
-                        (new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false))).Read(ref exeCmd);
+                        string exeCmd = "";
+                        new CtrlCmdReader(new MemoryStream(cmdData, false)).Read(ref exeCmd);
                         if (exeCmd.Length > 0 && exeCmd[0] == '"')
                         {
                             //形式は("FileName")か("FileName" Arguments..)のどちらか。ほかは拒否してよい
                             int i = exeCmd.IndexOf('"', 1);
                             if (i >= 2 && (exeCmd.Length == i + 1 || exeCmd[i + 1] == ' '))
                             {
-                                var startInfo = new System.Diagnostics.ProcessStartInfo(exeCmd.Substring(1, i - 1));
+                                var startInfo = new ProcessStartInfo(exeCmd.Substring(1, i - 1));
                                 if (exeCmd.Length > i + 2)
                                 {
                                     startInfo.Arguments = exeCmd.Substring(i + 2);
@@ -1253,18 +1253,18 @@ namespace EpgTimer
                                 {
                                     if (execBat == 0)
                                     {
-                                        startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Minimized;
+                                        startInfo.WindowStyle = ProcessWindowStyle.Minimized;
                                     }
                                     else if (execBat == 1)
                                     {
-                                        startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                                        startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                                     }
                                 }
                                 //FileNameは実行ファイルか.batのフルパス。チェックはしない(安全性云々はここで考えることではない)
                                 try
                                 {
                                     //ShellExecute相当なので.batなどもそのまま与える
-                                    using (var process = System.Diagnostics.Process.Start(startInfo))
+                                    using (var process = Process.Start(startInfo))
                                     {
                                         if (process != null)
                                         {
@@ -1280,7 +1280,7 @@ namespace EpgTimer
                                                 sec.Persist(process.Handle);
                                             }
                                             catch { }
-                                            var w = new CtrlCmdWriter(new System.IO.MemoryStream());
+                                            var w = new CtrlCmdWriter(new MemoryStream());
                                             w.Write(process.Id);
                                             w.Stream.Close();
                                             res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_SUCCESS, w.Stream.ToArray(), 0);
@@ -1297,8 +1297,8 @@ namespace EpgTimer
                     {
                         res = new Tuple<ErrCode, byte[], uint>(ErrCode.CMD_SUCCESS, null, 0);
 
-                        UInt16 param = 0;
-                        (new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false))).Read(ref param);
+                        ushort param = 0;
+                        new CtrlCmdReader(new MemoryStream(cmdData, false)).Read(ref param);
 
                         Dispatcher.BeginInvoke(new Action(() =>
                         {
@@ -1337,7 +1337,7 @@ namespace EpgTimer
                 case CtrlCmd.CMD_TIMER_GUI_SRV_STATUS_NOTIFY2:
                     {
                         NotifySrvInfo status = new NotifySrvInfo();
-                        var r = new CtrlCmdReader(new System.IO.MemoryStream(cmdData, false));
+                        var r = new CtrlCmdReader(new MemoryStream(cmdData, false));
                         ushort version = 0;
                         r.Read(ref version);
                         r.Version = version;
@@ -1365,7 +1365,7 @@ namespace EpgTimer
                 notifyLogWindowUpdate = true;
             });
 
-            System.Diagnostics.Trace.WriteLine((UpdateNotifyItem)status.notifyID);
+            Trace.WriteLine((UpdateNotifyItem)status.notifyID);
 
             var err = ErrCode.CMD_SUCCESS;
 

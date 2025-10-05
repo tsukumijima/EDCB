@@ -56,7 +56,7 @@ namespace EpgTimer
         {
             get { return CommonManager.ConvertTimeText(ManualAutoAddInfo.PgStartTime, ManualAutoAddInfo.durationSecond, true, Settings.Instance.ResInfoNoSecond, true, true, Settings.Instance.ResInfoNoEnd); }
         }
-        public UInt32 StartTimeValue
+        public uint StartTimeValue
         {
             get { return ManualAutoAddInfo.startTime; }
         }
@@ -68,7 +68,7 @@ namespace EpgTimer
         {
             get { return CommonManager.ConvertDurationText(ManualAutoAddInfo.PgDurationSecond, Settings.Instance.ResInfoNoDurSecond); }
         }
-        public UInt32 DurationValue
+        public uint DurationValue
         {
             get { return ManualAutoAddInfo.PgDurationSecond; }
         }

@@ -1003,13 +1003,13 @@ void CEdcbPlugIn::CtrlCmdCallbackInvoked(const CCmdStream &cmd, CCmdStream &res)
 						vector<pair<WORD, wstring>> pidNameList;
 						TVTest::ServiceInfo si;
 						for (int i = 0; m_pApp->GetServiceInfo(i, &si); ++i) {
-							pidNameList.push_back(std::make_pair(si.VideoPID, wstring()));
+							pidNameList.emplace_back(si.VideoPID, wstring());
 							Format(pidNameList.back().second, L"0x%04X-Video", si.ServiceID);
 							for (int j = 0; j < si.NumAudioPIDs; ++j) {
-								pidNameList.push_back(std::make_pair(si.AudioPID[j], wstring()));
+								pidNameList.emplace_back(si.AudioPID[j], wstring());
 								Format(pidNameList.back().second, L"0x%04X-Audio(0x%02X)", si.ServiceID, si.AudioComponentType[j]);
 							}
-							pidNameList.push_back(std::make_pair(si.SubtitlePID, wstring()));
+							pidNameList.emplace_back(si.SubtitlePID, wstring());
 							Format(pidNameList.back().second, L"0x%04X-Subtitle", si.ServiceID);
 						}
 						for (size_t i = pidNameList.size(); i > 0; --i) {
@@ -1251,7 +1251,7 @@ BOOL CALLBACK CEdcbPlugIn::EnumLogoListProc(DWORD logoListSize, const LOGO_INFO 
 			vector<pair<LONGLONG, DWORD>>::iterator itr =
 				lower_bound_first(this_.m_logoServiceListSizeMap.begin(), this_.m_logoServiceListSizeMap.end(), key);
 			if (itr == this_.m_logoServiceListSizeMap.end() || itr->first != key) {
-				this_.m_logoServiceListSizeMap.insert(itr, pair<LONGLONG, DWORD>(key, 0));
+				this_.m_logoServiceListSizeMap.emplace(itr, key, 0);
 				// ロゴを保存
 				WCHAR name[64];
 				swprintf_s(name, L"%04x_%03x_000_%02x.png", logoList->onid, logoList->id, logoList->type);

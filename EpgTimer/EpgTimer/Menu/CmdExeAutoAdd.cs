@@ -116,6 +116,10 @@ namespace EpgTimer
         {
             IsCommandExecuted = true == MenuUtil.OpenAddEpgAutoAddDialog();
         }
+        protected override void mc_ToAutoadd(object sender, ExecutedRoutedEventArgs e)
+        {
+            IsCommandExecuted = true == MenuUtil.OpenAddEpgAutoAddDialog(dataList[0].DataTitle);
+        }
         protected override void mc_ChgGenre(object sender, ExecutedRoutedEventArgs e)
         {
             if (MenuUtil.ChgGenre(dataList.RecSearchKeyList(), this.Owner) == false) return;
@@ -130,6 +134,21 @@ namespace EpgTimer
         {
             if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "Notキーワード") == true) return;
             IsCommandExecuted = MenuUtil.EpgAutoAddChangeNotKey(dataList);
+        }
+        protected override void mc_CopyNote(object sender, ExecutedRoutedEventArgs e)
+        {
+            Clipboard.SetDataObject(dataList[0].searchInfo.note);
+            IsCommandExecuted = true;
+        }
+        protected override void mc_SetNote(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (CmdExeUtil.CheckSetFromClipBoardCancel(e, dataList, "メモ欄") == true) return;
+            IsCommandExecuted = MenuUtil.EpgAutoAddChangeNote(dataList);
+        }
+        protected override void mcs_ctxmLoading_edit_tooltip(MenuItem menu)
+        {
+            base.mcs_ctxmLoading_edit_tooltip(menu);
+            if (menu.Tag == EpgCmds.ToAutoadd) menu.ToolTip = null;
         }
     }
 }

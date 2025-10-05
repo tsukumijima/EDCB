@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -275,8 +276,8 @@ namespace EpgTimer
 
             new ContentKindInfo(0xFEFF0000, "不明な情報(番組表でのみ有効)", ""),
         }; 
-        public static readonly Dictionary<UInt32, ContentKindInfo> ContentKindDictionary = ContentKindList.ToDictionary(info => info.Data.Key, info => info);
-        public static readonly Dictionary<UInt16, string> ComponentKindDictionary = new Dictionary<UInt16, string>()
+        public static readonly Dictionary<uint, ContentKindInfo> ContentKindDictionary = ContentKindList.ToDictionary(info => info.Data.Key, info => info);
+        public static readonly Dictionary<ushort, string> ComponentKindDictionary = new Dictionary<ushort, string>()
         {
             { 0x0101, "480i(525i)、アスペクト比4:3" },
             { 0x0102, "480i(525i)、アスペクト比16:9 パンベクトルあり" },
@@ -397,51 +398,51 @@ namespace EpgTimer
         }
 
         //ChKeyを16ビットに圧縮し、EpgTimerの起動中保持し続ける。
-        private static Dictionary<UInt64, UInt16> chKey64to16Dic = new Dictionary<UInt64, UInt16>();
-        public static UInt16 Create16Key(UInt64 key64)
+        private static Dictionary<ulong, ushort> chKey64to16Dic = new Dictionary<ulong, ushort>();
+        public static ushort Create16Key(ulong key64)
         {
-            UInt16 Key16;
+            ushort Key16;
             if (chKey64to16Dic.TryGetValue(key64, out Key16) == false)
             {
-                Key16 = (UInt16)chKey64to16Dic.Count;
+                Key16 = (ushort)chKey64to16Dic.Count;
                 chKey64to16Dic[key64] = Key16;
             }
             return Key16;
         }
-        public static UInt64 Reverse64Key(UInt64 key64)
+        public static ulong Reverse64Key(ulong key64)
         {
-            UInt16 Key16 = (UInt16)(key64 >> 16);
+            ushort Key16 = (ushort)(key64 >> 16);
             return chKey64to16Dic.FirstOrDefault(item => item.Value == Key16).Key;
         }
-        public static UInt64 Create64Key(UInt16 ONID, UInt16 TSID, UInt16 SID)
+        public static ulong Create64Key(ushort ONID, ushort TSID, ushort SID)
         {
-            return ((UInt64)ONID) << 32 | ((UInt64)TSID) << 16 | (UInt64)SID;
+            return ((ulong)ONID) << 32 | ((ulong)TSID) << 16 | (ulong)SID;
         }
-        public static UInt64 Create64PgKey(UInt16 ONID, UInt16 TSID, UInt16 SID, UInt16 EventID)
+        public static ulong Create64PgKey(ushort ONID, ushort TSID, ushort SID, ushort EventID)
         {
-            return ((UInt64)ONID) << 48 | ((UInt64)TSID) << 32 | ((UInt64)SID) << 16 | (UInt64)EventID;
+            return ((ulong)ONID) << 48 | ((ulong)TSID) << 32 | ((ulong)SID) << 16 | (ulong)EventID;
         }
-        public static UInt64 CurrentPgUID(UInt64 key64Pg, DateTime startTime)
+        public static ulong CurrentPgUID(ulong key64Pg, DateTime startTime)
         {
-            return (UInt64)(startTime.Ticks) & 0xFFFFFF0000000000 //分解能約1日
-                | ((UInt32)Create16Key(key64Pg >> 16)) << 16 | (UInt16)key64Pg;
+            return (ulong)(startTime.Ticks) & 0xFFFFFF0000000000 //分解能約1日
+                | ((uint)Create16Key(key64Pg >> 16)) << 16 | (ushort)key64Pg;
         }
 
-        public static String Convert64PGKeyString(UInt64 Key, string separator = "\r\n")
+        public static string Convert64PGKeyString(ulong Key, string separator = "\r\n", bool chDisplay = true)
         {
-            return Convert64KeyString(Key >> 16, separator) + separator
+            return Convert64KeyString(Key >> 16, separator, chDisplay) + separator
                 + ConvertEpgIDString("EventID", Key);
         }
-        public static String Convert64KeyString(UInt64 Key, string separator = "\r\n", bool chDisplay = true)
+        public static string Convert64KeyString(ulong Key, string separator = "\r\n", bool chDisplay = true)
         {
             int chnum = chDisplay ? ChSet5.ChNumber(Key) : 0;
-            return ConvertEpgIDString("OriginalNetworkID", Key >> 32) + separator +
-            ConvertEpgIDString("TransportStreamID", Key >> 16) + separator +
-            ConvertEpgIDString("ServiceID", Key) + (chnum == 0 ? "" : " [" + chnum + "ch]");
+            return string.Join(separator, ConvertEpgIDString("OriginalNetworkID", Key >> 32),
+                            ConvertEpgIDString("TransportStreamID", Key >> 16),
+                            ConvertEpgIDString("ServiceID", Key) + (chnum == 0 ? "" : " [" + chnum + "ch]"));
         }
-        private static String ConvertEpgIDString(String Title, UInt64 id)
+        private static string ConvertEpgIDString(string Title, ulong id)
         {
-            return string.Format("{0} : {1} (0x{1:X4})", Title, (UInt16)id);
+            return string.Format("{0} : {1} (0x{1:X4})", Title, (ushort)id);
         }
 
         public static Dictionary<char, List<KeyValuePair<string, string>>> GetReplaceDictionaryNormal(EpgSetting set = null)
@@ -571,14 +572,14 @@ namespace EpgTimer
             }
         }
 
-        public static String ConvertTimeText(EpgEventInfo info)
+        public static string ConvertTimeText(EpgEventInfo info)
         {
             if (info.StartTimeFlag == 0) return "未定 ～ 未定";
             //
             string reftxt = ConvertTimeText(info.start_time, info.PgDurationSecond, false, false, false, false);
             return info.DurationFlag != 0 ? reftxt : reftxt.Split(new char[] { '～' })[0] + "～ 未定";
         }
-        public static String ConvertTimeText(EpgSearchDateInfo info)
+        public static string ConvertTimeText(EpgSearchDateInfo info)
         {
             //超手抜き。書式が変ったら、巻き込まれて死ぬ。
             var start = new DateTime(2000, 1, 2 + info.startDayOfWeek, info.startHour, info.startMin, 0);
@@ -588,7 +589,7 @@ namespace EpgTimer
             string[] src = reftxt.Split(new char[] { ' ', '～' });
             return src[0].Substring(6, 1) + " " + src[1] + " ～ " + src[2].Substring(6, 1) + " " + src[3];
         }
-        public static String ConvertTimeText(DateTime start, uint duration, bool isNoYear, bool isNoSecond, bool isNoEndDay = true, bool isNoStartDay = false, bool isNoEnd = false)
+        public static string ConvertTimeText(DateTime start, uint duration, bool isNoYear, bool isNoSecond, bool isNoEndDay = true, bool isNoStartDay = false, bool isNoEnd = false)
         {
             if (isNoEnd) return ConvertTimeText(start, isNoYear, isNoSecond, isNoStartDay);
 
@@ -614,7 +615,7 @@ namespace EpgTimer
                 + ConvertTimeText(end, isNoYear, isNoSecond, isNoEndDay);
             }
         }
-        public static String ConvertTimeText(DateTime time, bool isNoYear, bool isNoSecond, bool isNoDay = false, bool? isUse28 = null, DateTime28 ref_start = null)
+        public static string ConvertTimeText(DateTime time, bool isNoYear, bool isNoSecond, bool isNoDay = false, bool? isUse28 = null, DateTime28 ref_start = null)
         {
             if (Settings.Instance.LaterTimeUse == true)
             {
@@ -628,14 +629,32 @@ namespace EpgTimer
                 (isNoYear == true ? "MM/dd(ddd) " : "yyyy/MM/dd(ddd) ")) + (isNoSecond == true ? "HH:mm" : "HH:mm:ss"));
             }
         }
-        public static String ConvertDurationText(uint duration, bool isNoSecond)
+        public static string ConvertTimeTextForProgramText(bool timeFlag, DateTime time, bool durationFlag, double durationSec)
+        {
+            DateTime _time = timeFlag ? time : DateTime.MinValue;
+            double _durationSec = durationFlag ? durationSec : double.MinValue;
+            if (_time == DateTime.MinValue)
+            {
+                return "未定";
+            }
+            string endText = double.IsNaN(_durationSec) ? "" : _durationSec == double.MinValue ? " ～ 未定" : null;
+            if (endText == null)
+            {
+                DateTime endTime = _time.AddSeconds(_durationSec);
+                //秒が0でない場合は秒を付加
+                endText = endTime.ToString("～" + "HH\\:mm" + (endTime.Second != 0 ? "\\:ss" : ""), CultureInfo.InvariantCulture);
+            }
+            return _time.ToString("yyyy\\/MM\\/dd(" + "日月火水木金土"[(int)_time.DayOfWeek] + ") HH\\:mm" + (_time.Second != 0 ? "\\:ss" : ""),
+                                  CultureInfo.InvariantCulture) + endText;
+        }
+        public static string ConvertDurationText(uint duration, bool isNoSecond)
         {
             return (duration / 3600).ToString() 
                 + ((duration % 3600) / 60).ToString(":00") 
                 + (isNoSecond == true ? "" : (duration % 60).ToString(":00"));
         }
 
-        public static String ConvertResModeText(ReserveMode? mode)
+        public static string ConvertResModeText(ReserveMode? mode)
         {
             switch (mode)
             {
@@ -647,7 +666,30 @@ namespace EpgTimer
             }
         }
 
-        public static string ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode, ReserveData resInfo = null)
+        public static void Save_ProgramText(EpgEventInfo info, string filename = "")
+        {
+            Save_ProgramText(ConvertProgramText(info, EventInfoTextMode.AllForProgramText), string.IsNullOrEmpty(filename) ? info.DataTitle : filename);
+        }
+        public static void Save_ProgramText(string text, string filename = "")
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog();
+            dlg.DefaultExt = ".txt";
+            dlg.FileName = string.IsNullOrEmpty(filename) ? "a" : Path.GetFileName(filename) + ".program.txt";
+            dlg.Filter = "txt Files|*.txt|all Files|*.*";
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var file = new StreamWriter(dlg.FileName, false, Encoding.UTF8))
+                    {
+                        file.Write(text);
+                    }
+                }
+                catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+            }
+        }
+
+        public static string ConvertProgramText(EpgEventInfo eventInfo, EventInfoTextMode textMode = EventInfoTextMode.All)
         {
             if (eventInfo == null) return "";
 
@@ -664,154 +706,193 @@ namespace EpgTimer
             });
 
             string retText = "";
-            string termination = "\r\n\r\n";
 
             //基本情報
-            if (textMode == EventInfoTextMode.BasicInfo)
+            if (textMode == EventInfoTextMode.BasicInfo || textMode == EventInfoTextMode.All)
             {
-                retText = ConvertChInfoText(eventInfo) + "\r\n";
+                retText += ConvertChInfoText(eventInfo) + "\r\n";
                 retText += ConvertTimeText(eventInfo) + "\r\n";
-                if (eventInfo.ShortInfo != null)
-                {
-                    retText += eventInfo.ShortInfo.event_name;
-                }
+                retText += eventInfo.ShortInfo != null ? eventInfo.ShortInfo.event_name : "";
+                retText = retText.TrimEnd() + "\r\n\r\n";
             }
             //説明(番組表のツールチップなど)
-            else if (textMode == EventInfoTextMode.BasicText)
+            if (textMode == EventInfoTextMode.BasicText || textMode == EventInfoTextMode.All)
             {
-                if (eventInfo.ShortInfo != null)
+                if (eventInfo.ShortInfo != null && !string.IsNullOrEmpty(eventInfo.ShortInfo.text_char))
                 {
-                    retText = eventInfo.ShortInfo.text_char;
+                    retText += eventInfo.ShortInfo.text_char.TrimEnd() + "\r\n\r\n";
                 }
             }
-            else if (textMode == EventInfoTextMode.ExtendedText)
+            //詳細情報
+            if (textMode == EventInfoTextMode.ExtendedText || textMode == EventInfoTextMode.All)
             {
+                if(eventInfo.ExtInfo != null && !string.IsNullOrEmpty(eventInfo.ExtInfo.text_char))
+                {
+                    retText += eventInfo.ExtInfo.text_char.TrimEnd() + "\r\n\r\n\r\n";
+                }
+            }
+            //EpgTimerSrvの番組情報と同じ形式、基本情報～詳細情報まで
+            if (textMode == EventInfoTextMode.AllForProgramText)
+            {
+                //EpgTimerSrvの番組情報の形式では先頭行が時刻になる
+                retText += ConvertTimeTextForProgramText(eventInfo.StartTimeFlag != 0, eventInfo.start_time,
+                                            eventInfo.DurationFlag != 0, eventInfo.durationSec) + "\r\n";
+                retText += eventInfo.ServiceName + "\r\n";
+
+                string eventName = (eventInfo.ShortInfo != null ? eventInfo.ShortInfo.event_name : "") + "\r\n\r\n";
+                //空行を防ぐ
+                retText += Regex.Replace(Regex.Replace(eventName, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n") + "\r\n";
+                
+                var shortInfo = (eventInfo.ShortInfo != null ? eventInfo.ShortInfo.text_char : "") + "\r\n\r\n";
+                //空行を防ぐ
+                retText += Regex.Replace(Regex.Replace(shortInfo, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n") + "\r\n";
+
                 if (eventInfo.ExtInfo != null)
                 {
-                    retText = eventInfo.ExtInfo.text_char;
+                    var extTxt = eventInfo.ExtInfo.text_char + "\r\n\r\n";
+                    //空行2行を防ぐ
+                    retText += "詳細情報\r\n" + Regex.Replace(Regex.Replace(extTxt, @"^(?:\r\n)+", "") + "\r\n\r\n", @"(?:\r\n){3,}", "\r\n\r\n") + "\r\n";
                 }
             }
-            else if (textMode == EventInfoTextMode.PropertyInfo)
+            if (textMode == EventInfoTextMode.PropertyInfo || textMode == EventInfoTextMode.All || textMode == EventInfoTextMode.AllForProgramText)
             {
-                termination = "\r\n";
-
-                //ジャンル
-                retText += "ジャンル :\r\n";
+                var extInfo = "";
                 var contentList = new List<ContentKindInfo>();
                 if (eventInfo.ContentInfo != null)
                 {
+                    extInfo += "ジャンル : \r\n";
                     contentList = eventInfo.ContentInfo.nibbleList.Select(data => ContentKindInfoForDisplay(data)).ToList();
+                    foreach (ContentKindInfo info in contentList.Where(info => info.Data.IsAttributeInfo == false))
+                    {
+                        extInfo += info.ListBoxView + "\r\n";
+                    }
+                    extInfo += "\r\n";
                 }
-                foreach (ContentKindInfo info in contentList.Where(info => info.Data.IsAttributeInfo == false))
-                {
-                    retText += info.ListBoxView + "\r\n";
-                }
-                retText += "\r\n";
 
-                //映像
-                retText += "映像 :";
                 if (eventInfo.ComponentInfo != null)
                 {
+                    extInfo += "映像 : ";
                     int streamContent = eventInfo.ComponentInfo.stream_content;
                     int componentType = eventInfo.ComponentInfo.component_type;
-                    UInt16 componentKey = (UInt16)(streamContent << 8 | componentType);
-                    if (ComponentKindDictionary.ContainsKey(componentKey) == true)
+                    string name;
+                    extInfo += ComponentKindDictionary.TryGetValue((ushort)(streamContent << 8 | componentType), out name) ? name :
+                                   "(0x" + streamContent.ToString("X2") + ",0x" + componentType.ToString("X2") + ")";
+                    extInfo += "\r\n";
+                    //空行を防ぐ
+                    string textChar = Regex.Replace(Regex.Replace(eventInfo.ComponentInfo.text_char, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n");
+                    if (textChar.Length > 2)
                     {
-                        retText += ComponentKindDictionary[componentKey];
-                    }
-                    if (eventInfo.ComponentInfo.text_char.Length > 0)
-                    {
-                        retText += "\r\n";
-                        retText += eventInfo.ComponentInfo.text_char;
+                        extInfo += textChar;
                     }
                 }
-                retText += "\r\n";
 
-                //音声
-                retText += "音声 :";
-                if (eventInfo.AudioInfo != null)
+                if (eventInfo.AudioInfo != null && eventInfo.AudioInfo.componentList.Count > 0)
                 {
+                    extInfo += "音声 : ";
                     foreach (EpgAudioComponentInfoData info in eventInfo.AudioInfo.componentList)
                     {
                         int streamContent = info.stream_content;
                         int componentType = info.component_type;
-                        UInt16 componentKey = (UInt16)(streamContent << 8 | componentType);
-                        if (ComponentKindDictionary.ContainsKey(componentKey) == true)
+                        string name;
+                        extInfo += ComponentKindDictionary.TryGetValue((ushort)(streamContent << 8 | componentType), out name) ? name :
+                                       "(0x" + streamContent.ToString("X2") + ",0x" + componentType.ToString("X2") + ")";
+                        extInfo += "\r\n";
+                        //空行を防ぐ
+                        string textChar = Regex.Replace(Regex.Replace(info.text_char, @"^(?:\r\n)+", "") + "\r\n", @"(?:\r\n){2,}", "\r\n");
+                        if (textChar.Length > 2)
                         {
-                            retText += ComponentKindDictionary[componentKey];
+                            extInfo += textChar;
                         }
-                        if (info.text_char.Length > 0)
-                        {
-                            retText += "\r\n";
-                            retText += info.text_char;
-                        }
-                        retText += "\r\n";
-                        retText += "サンプリングレート :";
+                        extInfo += "サンプリングレート : ";
                         switch (info.sampling_rate)
                         {
                             case 1:
-                                retText += "16kHz";
+                                extInfo += "16kHz";
                                 break;
                             case 2:
-                                retText += "22.05kHz";
+                                extInfo += "22.05kHz";
                                 break;
                             case 3:
-                                retText += "24kHz";
+                                extInfo += "24kHz";
                                 break;
                             case 5:
-                                retText += "32kHz";
+                                extInfo += "32kHz";
                                 break;
                             case 6:
-                                retText += "44.1kHz";
+                                extInfo += "44.1kHz";
                                 break;
                             case 7:
-                                retText += "48kHz";
+                                extInfo += "48kHz";
                                 break;
                             default:
+                                extInfo += "(0x" + info.sampling_rate.ToString("X2") + ")";
                                 break;
                         }
-                        retText += "\r\n";
+                        extInfo += "\r\n";
                     }
                 }
-                retText += "\r\n";
+                extInfo += "\r\n";
 
                 //スクランブル
                 if (!ChSet5.IsDttv(eventInfo.original_network_id))
                 {
-                    retText += (eventInfo.FreeCAFlag == 0 ? "無料放送" : "有料放送") + "\r\n\r\n";
+                    extInfo += (eventInfo.FreeCAFlag == 0 ? "無料放送" : "有料放送") + "\r\n\r\n";
                 }
 
                 //イベントリレー
-                if (eventInfo.EventRelayInfo != null)
+                if (eventInfo.EventRelayInfo != null && eventInfo.EventRelayInfo.eventDataList.Count > 0)
                 {
-                    if (eventInfo.EventRelayInfo.eventDataList.Count > 0)
+                    extInfo += "イベントリレーあり : " + (textMode != EventInfoTextMode.AllForProgramText ? "\r\n" : "");
+                    foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
                     {
-                        retText += "イベントリレーあり：\r\n";
-                        foreach (EpgEventData info in eventInfo.EventRelayInfo.eventDataList)
+                        if (textMode != EventInfoTextMode.AllForProgramText)
                         {
                             //Epgデータが無いときや過去番組は探せない場合がある
-                            UInt64 key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime == DateTime.MaxValue ? DateTime.MaxValue : eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
+                            ulong key = CurrentPgUID(info.Create64PgKey(), eventInfo.PgStartTime == DateTime.MaxValue ? DateTime.MaxValue : eventInfo.PgStartTime.AddSeconds(eventInfo.PgDurationSecond));
                             var relayInfo = MenuUtil.GetPgInfoUidAll(key) ?? new EpgEventInfo { original_network_id = info.original_network_id, transport_stream_id = info.transport_stream_id, service_id = info.service_id };
-                            retText += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle + "\r\n";
+                            extInfo += "→ " + ConvertChInfoText(relayInfo) + ConvertEpgIDString("  EventID", info.event_id) + " " + relayInfo.DataTitle;
                         }
-                        retText += "\r\n";
+                        else
+                        {
+                            extInfo += "ID:" + info.original_network_id + "(0x" + info.original_network_id.ToString("X4") + ")-" +
+                                        info.transport_stream_id + "(0x" + info.transport_stream_id.ToString("X4") + ")-" +
+                                        info.service_id + "(0x" + info.service_id.ToString("X4") + ")-" +
+                                        info.event_id + "(0x" + info.event_id.ToString("X4") + ")";
+                            EpgServiceInfo sInfo;
+                            if (ChSet5.ChList.TryGetValue(info.Create64Key(), out sInfo))
+                            {
+                                extInfo += " " + sInfo.service_name;
+                            }
+                        }
+                        extInfo += "\r\n";
                     }
+                    extInfo += "\r\n";
                 }
 
-                //その他情報(番組特性コード関係)
-                var attStr = string.Join("\r\n", contentList.Where(info => info.Data.IsAttributeInfo == true).Select(info => info.SubName));
-                if (attStr != "")
+                if (textMode != EventInfoTextMode.AllForProgramText)
                 {
-                    retText += attStr + "\r\n\r\n";
+                    //その他情報(番組特性コード関係)
+                    var attStr = string.Join("\r\n", contentList.Where(info => info.Data.IsAttributeInfo == true).Select(info => info.SubName));
+                    if (attStr != "") extInfo += attStr + "\r\n\r\n";
+
+                    extInfo += Convert64PGKeyString(eventInfo.Create64PgKey()) + "\r\n\r\n";
+
+                    List<ReserveData> list = eventInfo.GetReserveListFromPgUID();
+                    if (list.Any()) extInfo += "予約中/ID : " + string.Join(", ", list.Select(info => string.Format("{0} (0x{0:X4})", info.ReserveID)));
+
+                    retText += extInfo.TrimEnd() + "\r\n";
                 }
-
-                retText += Convert64PGKeyString(eventInfo.Create64PgKey());
-
-                if (resInfo != null) retText += "\r\n\r\n予約中/ID : " + string.Format("{0} (0x{0:X})", resInfo.ReserveID);
+                else
+                {
+                    //コロン(:)の前後などにスペースが入らない
+                    extInfo += "OriginalNetworkID:" + eventInfo.original_network_id + "(0x" + eventInfo.original_network_id.ToString("X4") + ")\r\n" +
+                               "TransportStreamID:" + eventInfo.transport_stream_id + "(0x" + eventInfo.transport_stream_id.ToString("X4") + ")\r\n" +
+                               "ServiceID:" + eventInfo.service_id + "(0x" + eventInfo.service_id.ToString("X4") + ")\r\n" +
+                               "EventID:" + eventInfo.event_id + "(0x" + eventInfo.event_id.ToString("X4") + ")\r\n";
+                    retText += extInfo;
+                }
             }
-
-            //余分な空白は消す
-            return string.IsNullOrWhiteSpace(retText) ? "" : retText.TrimEnd() + termination;
+            return retText;
         }
 
         //主にジャンル項目の設定リスト表示用
@@ -833,27 +914,27 @@ namespace EpgTimer
         }
 
         //主にリストビューの表示用
-        public static String ConvertJyanruText(EpgEventInfo eventInfo)
+        public static string ConvertJyanruText(EpgEventInfo eventInfo)
         {
             if (eventInfo == null || eventInfo.ContentInfo == null) return "";
             //
             return ConvertJyanruText(eventInfo.ContentInfo.nibbleList, true);
         }
-        public static String ConvertJyanruText(CustomEpgTabInfo info)
+        public static string ConvertJyanruText(CustomEpgTabInfo info)
         {
             if (info == null) return "";
             //
             string retText = ConvertJyanruText(info.ViewContentList);
             return ((retText != "" && info.ViewNotContentFlag == true) ? "NOT " : "") + retText;
         }
-        public static String ConvertJyanruText(EpgSearchKeyInfo searchKeyInfo)
+        public static string ConvertJyanruText(EpgSearchKeyInfo searchKeyInfo)
         {
             if (searchKeyInfo == null) return "";
             //
             string retText = ConvertJyanruText(searchKeyInfo.contentList);
             return ((retText != "" && searchKeyInfo.notContetFlag == 1) ? "NOT " : "") + retText;
         }
-        public static String ConvertJyanruText(IEnumerable<EpgContentData> nibbleList, bool noAttribute = false)
+        public static string ConvertJyanruText(IEnumerable<EpgContentData> nibbleList, bool noAttribute = false)
         {
             if (nibbleList == null) return "";
             //
@@ -873,7 +954,7 @@ namespace EpgTimer
         }
 
         //主にリストビューの表示用
-        public static String ConvertAttribText(EpgEventInfo eventInfo)
+        public static string ConvertAttribText(EpgEventInfo eventInfo)
         {
             if (eventInfo == null || eventInfo.ContentInfo == null) return "";
             //
@@ -923,17 +1004,17 @@ namespace EpgTimer
             }
         }
 
-        static String ConvertValueText(int val, string[] textList, string errText = "不明")
+        static string ConvertValueText(int val, string[] textList, string errText = "不明")
         {
             return 0 <= val && val < textList.Length ? textList[val] : errText;
         }
 
-        public static String ConvertRecModeText(int val)
+        public static string ConvertRecModeText(int val)
         {
             return ConvertValueText(val, RecModeList);
         }
 
-        public static String ConvertRecEndModeText(int val)
+        public static string ConvertRecEndModeText(int val)
         {
             return ConvertValueText(val, RecEndModeList);
         }
@@ -943,17 +1024,17 @@ namespace EpgTimer
             return ConvertValueText(val ? 1 : 0, IsEnableList);
         }
 
-        public static String ConvertYesNoText(int val)
+        public static string ConvertYesNoText(int val)
         {
             return ConvertValueText(val, YesNoList);
         }
 
-        public static String ConvertPriorityText(int val)
+        public static string ConvertPriorityText(int val)
         {
             return ConvertValueText(val - 1, PriorityList);
         }
 
-        public static String ConvertTunerText(uint tunerID)
+        public static string ConvertTunerText(uint tunerID)
         {
             string tunerName = "";
             TunerReserveInfo info;
@@ -968,7 +1049,7 @@ namespace EpgTimer
             return new TunerSelectInfo(tunerName, tunerID).ToString();
         }
 
-        public static String ConvertViewModeText(int viewMode)
+        public static string ConvertViewModeText(int viewMode)
         {
             return ConvertValueText(viewMode, new string[] { "標準モード", "1週間モード", "リスト表示モード" }, "");
         }
@@ -1003,15 +1084,11 @@ namespace EpgTimer
             return text;
         }
 
-        public static FlowDocument ConvertDisplayText(SearchItem searchInfo)
-        {
-            return ConvertDisplayText(searchInfo.EventInfo, searchInfo.ReserveInfo);
-        }
-        public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo, ReserveData resInfo = null)
+        public static FlowDocument ConvertDisplayText(EpgEventInfo eventInfo)
         {
             string basicInfo = ConvertProgramText(eventInfo, EventInfoTextMode.BasicInfo) + ConvertProgramText(eventInfo, EventInfoTextMode.BasicText);
             string extText = ConvertProgramText(eventInfo, EventInfoTextMode.ExtendedText);
-            string propertyInfo = ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo, resInfo);
+            string propertyInfo = ConvertProgramText(eventInfo, EventInfoTextMode.PropertyInfo);
             if (string.IsNullOrWhiteSpace(basicInfo)) basicInfo = "番組情報がありません。\r\n" + "またはEPGデータが読み込まれていません。\r\n";
 
             return ConvertDisplayText(basicInfo, extText, propertyInfo);
@@ -1093,49 +1170,12 @@ namespace EpgTimer
             para.Inlines.Add(text.Substring(plainStart));
             return new FlowDocument(para);
         }
-        public static FlowDocument ConvertDisplayText(string text)
-        {
-            int searchFrom = 0;
-            var para = new Paragraph();
-            string rtext = ReplaceText(text, ReplaceUrlDictionary);
-            if (rtext.Length == text.Length)
-            {
-                //http(s)スキームで始まるか特定のTLDっぽい文字列を含むものを探す
-                for (Match m = Regex.Match(rtext, @"(?:https?://|(?<![0-9A-Za-z%_/.-])[0-9A-Za-z%_.-]+\.(?:com|jp|tv)/)[0-9A-Za-z!#$%&'()~=@;:?_+*/.-]+"); m.Success; m = m.NextMatch())
-                {
-                    para.Inlines.Add(text.Substring(searchFrom, m.Index - searchFrom));
-                    var h = new Hyperlink(new Run(text.Substring(m.Index, m.Length)));
-                    h.MouseLeftButtonDown += (sender, e) =>
-                    {
-                        try
-                        {
-                            using (Process.Start(((Hyperlink)sender).NavigateUri.ToString())) { }
-                        }
-                        catch (Exception ex) { MessageBox.Show(ex.ToString()); }
-                    };
-                    h.Foreground = SystemColors.HotTrackBrush;
-                    h.Cursor = Cursors.Hand;
-                    try
-                    {
-                        h.NavigateUri = new Uri((Regex.IsMatch(m.Value, "^https?://") ? "" : "https://") + m.Value);
-                        para.Inlines.Add(h);
-                    }
-                    catch
-                    {
-                        para.Inlines.Add(text.Substring(m.Index, m.Length));
-                    }
-                    searchFrom = m.Index + m.Length;
-                }
-            }
-            para.Inlines.Add(text.Substring(searchFrom));
-            return new FlowDocument(para);
-        }
 
         //デフォルト番組表の情報作成
         public static List<CustomEpgTabInfo> CreateDefaultTabInfo()
         {
             //再表示の際の認識用に、負の仮番号を与えておく。
-            List<UInt64>[] spKeyList = EpgServiceInfo.SPKeyList.Select(key => key.IntoList()).ToArray();
+            List<ulong>[] spKeyList = EpgServiceInfo.SPKeyList.Select(key => key.IntoList()).ToArray();
             var setInfo = new[]
             {
                 new CustomEpgTabInfo(){ID = -1, TabName = "地デジ", ViewServiceList = spKeyList[0]},
@@ -1148,9 +1188,9 @@ namespace EpgTimer
             return setInfo.Where(info => check.Contains(info.ID)).ToList();
         }
 
-        public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false, string defaultPath = "")
+        public static void GetFolderNameByDialog(TextBox txtBox, string Description = "", bool checkNWPath = false, string defaultPath = "", bool recFile = false)
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFolderNameByDialog(path, Description), defaultPath);
+            GetPathByDialog(txtBox, checkNWPath, path => GetFolderNameByDialog(path, Description), defaultPath, recFile);
         }
         public static string GetFolderNameByDialog(string InitialPath = "", string Description = "")
         {
@@ -1184,9 +1224,9 @@ namespace EpgTimer
             return null;
         }
 
-        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
+        public static void GetFileNameByDialog(TextBox txtBox, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true, bool recFile = false)
         {
-            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt, checkExist), defaultPath);
+            GetPathByDialog(txtBox, checkNWPath, path => GetFileNameByDialog(path, isNameOnly, Title, DefaultExt, checkExist), defaultPath, recFile);
         }
         public static string GetFileNameByDialog(string InitialPath = "", bool isNameOnly = false, string Title = "", string DefaultExt = "", bool checkExist = true)
         {
@@ -1233,17 +1273,17 @@ namespace EpgTimer
         }
 
         //ネットワークパス対応のパス設定
-        private static void GetPathByDialog(TextBox tbox, bool checkNWPath, Func<string, string> funcGetPathDialog, string defaultPath = "")
+        private static void GetPathByDialog(TextBox tbox, bool checkNWPath, Func<string, string> funcGetPathDialog, string defaultPath = "", bool recFile = false)
         {
             string path = SettingPath.CheckFolder(string.IsNullOrEmpty(tbox.Text) ? defaultPath : tbox.Text);
 
             string base_src = "";
             string base_nw = "";
-            if (checkNWPath == true && Instance.NWMode == true && path != "" && path.StartsWith("\\\\", StringComparison.Ordinal) == false)
+            if (checkNWPath)
             {
                 //NWモードのとき、可能ならサーバ側のローカルパスをUNCとして扱う。
                 string path_src = path.TrimEnd('\\');
-                string path_nw = GetRecPath(path_src).TrimEnd('\\');
+                string path_nw = GetRecPath(path_src, recFile).TrimEnd('\\');
 
                 if (path_nw != "" && path_nw != path_src)
                 {
@@ -1258,10 +1298,11 @@ namespace EpgTimer
                     length_match = Math.Max(0, length_match);
                     base_src = path_src.Substring(0, path_src.Length - length_match).TrimEnd('\\');
                     base_nw = path_nw.Substring(0, path_nw.Length - length_match).TrimEnd('\\');
-                }
-                if (base_nw != "")
-                {
-                    path = path_nw;
+
+                    if (base_nw != "")
+                    {
+                        path = path_nw;
+                    }
                 }
             }
 
@@ -1278,36 +1319,40 @@ namespace EpgTimer
             }
         }
 
-        public static String GetRecPath(String path)
+        public static string GetRecPath(string path, bool recFile)
         {
-            var nwPath = "";
-            try
+            if (!string.IsNullOrWhiteSpace(path))
             {
-                if (String.IsNullOrWhiteSpace(path) == true) return "";
-                if (Instance.NWMode == false || path.StartsWith("\\\\", StringComparison.Ordinal) == true) return path;
-                CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref nwPath);
+                if (Settings.Instance.FilePathReplaceRecFile && recFile)
+                {
+                    path = ReplaceText(path, CreateReplaceDictionary(Settings.Instance.FilePathReplacePattern));
+                }
+                else if (Instance.NWMode && !path.StartsWith("\\\\", StringComparison.Ordinal))
+                {
+                    try { CreateSrvCtrl().SendGetRecFileNetworkPath(path, ref path); }
+                    catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                }
             }
-            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
-            return nwPath;
+            return path;
         }
 
-        public static void OpenRecFolder(string folderPath)
+    public static void OpenRecFolder(string folderPath, bool recFile = true)
         {
             try
             {
-                String path1 = GetRecPath(folderPath);
+                string path1 = GetRecPath(folderPath, recFile);
                 bool isFile = File.Exists(path1) == true;//録画結果から開く場合
-                String path = isFile == true ? path1 : GetDirectoryName2(path1);//録画フォルダ未作成への対応
+                string path = isFile == true ? path1 : GetDirectoryName2(path1);//録画フォルダ未作成への対応
                 bool noParent = path.TrimEnd('\\') != path1.TrimEnd('\\');//フォルダを遡った場合の特例
 
-                if (String.IsNullOrWhiteSpace(path) == true)
+                if (string.IsNullOrWhiteSpace(path) == true)
                 {
                     MessageBox.Show("パスが見つかりません。\r\n\r\n" + folderPath, "録画フォルダを開く", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
                     //オプションに応じて一つ上のフォルダから対象フォルダを選択した状態で開く。
-                    String cmd = isFile == true || noParent == false && Settings.Instance.MenuSet.OpenParentFolder == true ? "/select," : "";
+                    string cmd = isFile == true || noParent == false && Settings.Instance.MenuSet.OpenParentFolder == true ? "/select," : "";
                     using (Process.Start("EXPLORER.EXE", cmd + "\"" + path + "\"")) { }
                 }
             }
@@ -1339,7 +1384,7 @@ namespace EpgTimer
                         CreateSrvCtrl().SendNwPlayClose(info.ctrlID);
                         if (info.filePath != "")
                         {
-                            FilePlay(info.filePath);
+                            FilePlay(info.filePath, false);
                             return;
                         }
                     }
@@ -1352,7 +1397,7 @@ namespace EpgTimer
                 TVTestCtrl.StartStreamingPlay(null, data.ReserveID);
             }
         }
-        public void FilePlay(string filePath)
+        public void FilePlay(string filePath, bool recFile = true)
         {
             try
             {
@@ -1366,7 +1411,7 @@ namespace EpgTimer
                 {
                     //録画フォルダと保存・共有フォルダが異なる場合($FileNameExt$運用など)で、
                     //コマンドラインの一部になるときは、ファイルの確認を未チェックとする。
-                    string path = GetRecPath(filePath);
+                    string path = GetRecPath(filePath, recFile);
                     string playExe = Settings.Instance.FilePlayExe;
                     string cmdLine = string.IsNullOrWhiteSpace(Settings.Instance.FilePlayCmd) == true ? "$FilePath$" : Settings.Instance.FilePlayCmd;
 
@@ -1420,7 +1465,7 @@ namespace EpgTimer
             Instance.NotifyLogList.Add(notifyInfo);
             if (Settings.Instance.AutoSaveNotifyLog == 1)
             {
-                String filePath = SettingPath.ModulePath + "\\Log";
+                string filePath = SettingPath.ModulePath + "\\Log";
                 Directory.CreateDirectory(filePath);
                 filePath += "\\EpgTimerNotify_" + CommonUtil.EdcbNow.ToString("yyyyMMdd") + ".log";
                 using (var file = new StreamWriter(filePath, true, Encoding.Unicode))
@@ -1476,7 +1521,7 @@ namespace EpgTimer
             return list;
         }
 
-        private static String GetBonFileName(String src)
+        private static string GetBonFileName(string src)
         {
             int pos = src.LastIndexOf(')');
             if (pos < 1)

@@ -33,6 +33,7 @@
 !*.vbs
 !*.vcxproj
 !*.vcxproj.filters
+!*.woff2
 !*.xaml
 !*.xml
 !.gitignore

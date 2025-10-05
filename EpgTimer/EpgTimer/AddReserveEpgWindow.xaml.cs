@@ -15,7 +15,7 @@ namespace EpgTimer
     public partial class AddReserveEpgWindow : AddReserveEpgWindowBase
     {
         private EpgEventInfo eventInfo = null;
-        private bool KeepWin = Settings.Instance.KeepReserveWindow;//固定する
+        private readonly bool KeepWin = Settings.Instance.KeepReserveWindow;//固定する
         private bool AddEnabled { get { return eventInfo != null && eventInfo.IsReservable == true; } }
         private bool chgEnabled = false;
         private string tabStr = "予約";
@@ -41,7 +41,8 @@ namespace EpgTimer
             this.CommandBindings.Add(new CommandBinding(EpgCmds.BackItem, (sender, e) => MoveViewNextItem(-1), (sender, e) => e.CanExecute = KeepWin == true && (DataView is EpgViewBase || DataViewSearch != null || DataRefList.Any())));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.NextItem, (sender, e) => MoveViewNextItem(1), (sender, e) => e.CanExecute = KeepWin == true && (DataView is EpgViewBase || DataViewSearch != null || DataRefList.Any())));
             this.CommandBindings.Add(new CommandBinding(EpgCmds.Search, (sender, e) => MoveViewEpgTarget(), (sender, e) => e.CanExecute = KeepWin == true && DataView is EpgViewBase));
-            this.CommandBindings.Add(new CommandBinding(EpgCmds.ShowInDialog, (sender, e) => MenuUtil.OpenRecInfoDialog(MenuUtil.GetRecFileInfo(eventInfo)), (sender, e) => e.CanExecute = button_open_recinfo.Visibility == Visibility.Visible));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.SaveTextInDialog, (sender, e) => CommonManager.Save_ProgramText(eventInfo), (sender, e) => e.CanExecute = eventInfo != null));
+            this.CommandBindings.Add(new CommandBinding(EpgCmds.ShowInDialog, (sender, e) => MenuUtil.OpenRecInfoDialog(eventInfo.GetRecinfoFromPgUID()), (sender, e) => e.CanExecute = button_open_recinfo.Visibility == Visibility.Visible));
 
             //ボタンの設定
             mBinds.SetCommandToButton(button_cancel, EpgCmds.Cancel);
@@ -51,6 +52,7 @@ namespace EpgTimer
             mBinds.SetCommandToButton(button_up, EpgCmds.BackItem);
             mBinds.SetCommandToButton(button_down, EpgCmds.NextItem);
             mBinds.SetCommandToButton(button_chk, EpgCmds.Search);
+            mBinds.SetCommandToButton(button_save_program, EpgCmds.SaveTextInDialog);
             mBinds.SetCommandToButton(button_open_recinfo, EpgCmds.ShowInDialog);
             RefreshMenu();
 
@@ -89,9 +91,17 @@ namespace EpgTimer
             if (InfoCheckFlg == true && this.IsVisible == true && (this.WindowState != WindowState.Minimized || this.IsActive == true))
             {
                 //eventInfo更新は必要なときだけ
-                if (ReloadInfoFlg == true && eventInfo != null)
+                if (eventInfo != null)
                 {
-                    SetData(MenuUtil.GetPgInfoUidAll(eventInfo.CurrentPgUID()));
+                    if (ReloadInfoFlg == true)
+                    {
+                        SetData(MenuUtil.GetPgInfoUidAll(eventInfo.CurrentPgUID()));
+                    }
+                    else
+                    {
+                        //予約情報変更の反映のみ実施
+                        richTextBox_descInfo.Document = CommonManager.ConvertDisplayText(eventInfo);
+                    }
                 }
                 recSettingView.RefreshView();
                 CheckData(false);
@@ -122,11 +132,11 @@ namespace EpgTimer
         }
         private void CheckData(bool recSetChange = true)
         {
-            List<ReserveData> list = GetReserveList();
+            List<ReserveData> list = eventInfo.GetReserveListFromPgUID() ?? new List<ReserveData>();
             chgEnabled = list.Count != 0;
             label_Msg.Visibility = list.Count <= 1 ? Visibility.Hidden : Visibility.Visible;
             button_add_reserve.Content = list.Count == 0 ? "追加" : "重複追加";
-            button_open_recinfo.Visibility = MenuUtil.GetRecFileInfo(eventInfo) != null ? Visibility.Visible : Visibility.Collapsed;
+            button_open_recinfo.Visibility = eventInfo.GetRecinfoFromPgUID() != null ? Visibility.Visible : Visibility.Collapsed;
 
             if (chgEnabled == true && recSetChange == true)
             {
@@ -134,11 +144,6 @@ namespace EpgTimer
             }
 
             SetReserveTabHeader(recSetChange);
-        }
-        private List<ReserveData> GetReserveList()
-        {
-            UInt64 id = eventInfo == null ? 0 : eventInfo.CurrentPgUID();
-            return CommonManager.Instance.DB.ReserveList.Values.Where(data => data.CurrentPgUID() == id).ToList();
         }
 
         public void SetReserveTabHeader(bool SimpleChanged = true)
@@ -167,7 +172,7 @@ namespace EpgTimer
             }
             else
             {
-                List<ReserveData> list = GetReserveList();
+                List<ReserveData> list = eventInfo.GetReserveListFromPgUID();
                 if (proc == 1)
                 {
                     RecSettingData recSet = recSettingView.GetRecSetting();
@@ -186,13 +191,13 @@ namespace EpgTimer
             if (KeepWin == false) this.Close();
         }
 
-        protected override UInt64 DataID { get { return eventInfo == null ? 0 : eventInfo.CurrentPgUID(); } }
-        protected override IEnumerable<KeyValuePair<UInt64, object>> DataRefList
+        protected override ulong DataID { get { return eventInfo == null ? 0 : eventInfo.CurrentPgUID(); } }
+        protected override IEnumerable<KeyValuePair<ulong, object>> DataRefList
         {
             get
             {
                 return CommonManager.Instance.DB.ServiceEventList.Values.SelectMany(list => list.eventMergeList)
-                    .Select(d => new KeyValuePair<UInt64, object>(d.CurrentPgUID(), d));
+                    .Select(d => new KeyValuePair<ulong, object>(d.CurrentPgUID(), d));
             }
         }
         protected override void UpdateViewSelection(int mode = 0)

@@ -12,7 +12,7 @@ namespace EpgTimer
         public override ulong DataID { get { return ReserveID; } }
         public override DateTime PgStartTime { get { return StartTime; } }
         public override uint PgDurationSecond { get { return DurationSecond; } }
-        public override UInt64 Create64PgKey()
+        public override ulong Create64PgKey()
         {
             return CommonManager.Create64PgKey(OriginalNetworkID, TransportStreamID, ServiceID, EventID);
         }
@@ -54,17 +54,17 @@ namespace EpgTimer
         {
             get { return StartTime.AddSeconds(StartMarginResActual * -1); }
         }
-        public UInt32 DurationActual
+        public uint DurationActual
         {
-            get { return (UInt32)Math.Max(0, DurationSecond + StartMarginResActual + EndMarginResActual); }
+            get { return (uint)Math.Max(0, DurationSecond + StartMarginResActual + EndMarginResActual); }
         }
-        public virtual Int32 StartMarginResActual
+        public virtual int StartMarginResActual
         {
-            get { return (Int32)Math.Max(-DurationSecond, RecSetting.StartMarginActual); }
+            get { return (int)Math.Max(-DurationSecond, RecSetting.StartMarginActual); }
         }
-        public virtual Int32 EndMarginResActual
+        public virtual int EndMarginResActual
         {
-            get { return (Int32)Math.Max(-DurationSecond, RecSetting.EndMarginActual); }
+            get { return (int)Math.Max(-DurationSecond, RecSetting.EndMarginActual); }
         }
 
         public EpgEventInfo GetPgInfo()
@@ -179,8 +179,8 @@ namespace EpgTimer
     //録画済み(RecFileInfo用)
     public class ReserveDataEnd : ReserveData
     {
-        public override Int32 StartMarginResActual { get { return 0; } }
-        public override Int32 EndMarginResActual { get { return 0; } }
+        public override int StartMarginResActual { get { return 0; } }
+        public override int EndMarginResActual { get { return 0; } }
     }
 
 }

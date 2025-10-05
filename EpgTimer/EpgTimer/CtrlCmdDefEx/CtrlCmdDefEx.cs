@@ -15,13 +15,22 @@ namespace EpgTimer
     {
         DateTime PgStartTime { get; }
         uint PgDurationSecond { get; }
-        UInt64 Create64Key();
+        ulong Create64Key();
+    }
+    public static class IBasicPgInfoEx
+    {
+        //CurrentPgUID()は同一のEventIDの番組をチェックするが、こちらは放映時刻をチェックする。
+        //プログラム予約が絡んでいる場合、結果が変わってくる。
+        public static bool IsSamePg(this IBasicPgInfo data1, IBasicPgInfo data2)
+        {
+            if (data1 == null || data2 == null) return false;
+            return data1.PgStartTime == data2.PgStartTime && data1.PgDurationSecond == data2.PgDurationSecond && data1.Create64Key() == data2.Create64Key();
+        }
     }
     public interface IAutoAddTargetData : IBasicPgInfo
     {
-        UInt64 Create64PgKey();
-        UInt64 CurrentPgUID();
-        bool IsSamePg(IAutoAddTargetData data);
+        ulong Create64PgKey();
+        ulong CurrentPgUID();
         bool IsOnAir(DateTime? time = null);
         bool IsOver(DateTime? time = null);
         int OnTime(DateTime? time = null);
@@ -37,18 +46,11 @@ namespace EpgTimer
         public abstract ulong DataID { get;}
         public abstract DateTime PgStartTime { get; }
         public abstract uint PgDurationSecond { get; }
-        public virtual UInt64 Create64Key() { return Create64PgKey() >> 16; }
-        public abstract UInt64 Create64PgKey();
-        public virtual UInt64 CurrentPgUID()
+        public virtual ulong Create64Key() { return Create64PgKey() >> 16; }
+        public abstract ulong Create64PgKey();
+        public virtual ulong CurrentPgUID()
         {
             return CommonManager.CurrentPgUID(Create64PgKey(), PgStartTime);
-        }
-        //CurrentPgUID()は同一のEventIDの番組をチェックするが、こちらは放映時刻をチェックする。
-        //プログラム予約が絡んでいる場合、結果が変わってくる。
-        public virtual bool IsSamePg(IAutoAddTargetData data)
-        {
-            if (data == null) return false;
-            return PgStartTime == data.PgStartTime && PgDurationSecond == data.PgDurationSecond && Create64Key() == data.Create64Key();
         }
         public virtual bool IsOnAir(DateTime? time = null) { return OnTime(time) == 0; }
         public virtual bool IsOver(DateTime? time = null) { return OnTime(time) > 0; }
@@ -106,8 +108,8 @@ namespace EpgTimer
     }
     public abstract class AutoAddTargetDataStable : AutoAddTargetData
     {
-        protected UInt64 currentPgUID = 0;//DeepCopyでは無視
-        public override UInt64 CurrentPgUID()
+        protected ulong currentPgUID = 0;//DeepCopyでは無視
+        public override ulong CurrentPgUID()
         {
             if (currentPgUID == 0) currentPgUID = base.CurrentPgUID();
             return currentPgUID;
@@ -188,8 +190,8 @@ namespace EpgTimer
         public static void RegulateData(this EpgSearchDateInfo info)
         {
             //早い終了時間を翌日のものとみなす
-            Int32 start = (info.startHour) * 60 + info.startMin;
-            Int32 end = (info.endHour) * 60 + info.endMin;
+            int start = (info.startHour) * 60 + info.startMin;
+            int end = (info.endHour) * 60 + info.endMin;
             while (end < start)
             {
                 end += 24 * 60;
@@ -207,13 +209,33 @@ namespace EpgTimer
             weekFlg = (byte)((weekFlg + 7 + shift_day) % 7);
         }
 
-        public static UInt64 Create64Key(this EpgEventData obj)
+        public static ulong Create64Key(this EpgEventData obj)
         {
             return CommonManager.Create64Key(obj.original_network_id, obj.transport_stream_id, obj.service_id);
         }
-        public static UInt64 Create64PgKey(this EpgEventData obj)
+        public static ulong Create64PgKey(this EpgEventData obj)
         {
             return CommonManager.Create64PgKey(obj.original_network_id, obj.transport_stream_id, obj.service_id, obj.event_id);
+        }
+
+        public static List<ReserveData> GetReserveListFromPgUID(this IAutoAddTargetData data)
+        {
+            if (data == null) return null;
+            ulong id = data.CurrentPgUID();
+            return CommonManager.Instance.DB.ReserveList.Values.Where(info => info.CurrentPgUID() == id).ToList();
+        }
+
+        public static RecFileInfo GetRecinfoFromPgUID(this IAutoAddTargetData data)
+        {
+            List<RecFileInfo> list = data.GetRecListFromPgUID();
+            return list == null ? null : list.FirstOrDefault();
+        }
+        public static List<RecFileInfo> GetRecListFromPgUID(this IAutoAddTargetData data)
+        {
+            if (data == null) return null;
+            List<RecFileInfo> list = null;
+            CommonManager.Instance.DB.RecFileUIDList.TryGetValue(data.CurrentPgUID(), out list);
+            return list ?? new List<RecFileInfo>();
         }
     }
 }

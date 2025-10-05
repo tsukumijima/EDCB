@@ -270,7 +270,7 @@ DWORD CSendTSTCPMain::AddSendData(
 				//大きすぎるときは均等に分ける
 				DWORD divCount = (dwSize + SEND_TS_TCP_BUFF_ITEM_SIZE_MAX - 1) / SEND_TS_TCP_BUFF_ITEM_SIZE_MAX;
 				DWORD itemSize = min((dwSize + 187) / divCount * 188, dwSize);
-				m_TSBuff.push_back(vector<BYTE>());
+				m_TSBuff.emplace_back();
 				m_TSBuff.back().reserve(sizeof(DWORD) * 2 + itemSize);
 				m_TSBuff.back().resize(sizeof(DWORD) * 2);
 				m_TSBuff.back().insert(m_TSBuff.back().end(), pbData, pbData + itemSize);
@@ -695,7 +695,7 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 									}
 								}
 								//待機
-								pfdList.resize(pfdList.size() + 1);
+								pfdList.emplace_back();
 								pfdList.back().fd = itr->pipe[i];
 								pfdList.back().events = POLLOUT;
 								if( itr->writeAheadCount[i] == 0 ){

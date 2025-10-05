@@ -57,9 +57,11 @@ namespace EpgTimer
 
                 //ボタンの設定
                 mBinds.View = CtxmCode.RecInfoView;
-                mBinds.SetCommandToButton(button_del, EpgCmds.Delete);
-                mBinds.SetCommandToButton(button_delAll, EpgCmds.DeleteAll);
-                mBinds.SetCommandToButton(button_play, EpgCmds.Play);
+                mBinds.SetCommandToButton(button_Delete, EpgCmds.Delete);
+                mBinds.SetCommandToButton(button_DeleteAll, EpgCmds.DeleteAll);
+                mBinds.SetCommandToButton(button_Play, EpgCmds.Play);
+                mBinds.SetCommandToButton(button_ToAutoadd, EpgCmds.ToAutoadd);
+                mBinds.SetCommandToButton(button_OpenFolder, EpgCmds.OpenFolder);
             }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }

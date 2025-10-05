@@ -9,21 +9,21 @@ namespace EpgTimer
     public class ServiceViewItem : SelectableItemNWMode
     {
         public ServiceViewItem(EpgServiceInfo info) { ServiceInfo = info; }
-        public ServiceViewItem(UInt64 key) { ServiceInfo = EpgServiceInfo.FromKey(key); }
+        public ServiceViewItem(ulong key) { ServiceInfo = EpgServiceInfo.FromKey(key); }
         public readonly EpgServiceInfo ServiceInfo;
-        public UInt64 Key
+        public ulong Key
         { 
             get { return ServiceInfo.Key; }
         }
-        public String NetworkName
+        public string NetworkName
         {
             get { return CommonManager.ConvertNetworkNameText(ServiceInfo.ONID, ServiceInfo.HasSPKey); }
         }
-        public String ServiceName
+        public string ServiceName
         { 
             get { return ServiceInfo.service_name; }
         }
-        public String ServiceType
+        public string ServiceType
         {
             get { return CommonManager.ServiceTypeList[ServiceInfo.service_type]; }
         }

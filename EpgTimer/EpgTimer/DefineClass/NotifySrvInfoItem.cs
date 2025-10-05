@@ -37,10 +37,10 @@ namespace EpgTimer
             LogText = s.Length > 2 ? s[2].TrimStart(' ') : "";
             keyID = (ulong)this.ToString().GetHashCode();
         }
-        public String TimeView { get; private set; }
-        public String Time { get; private set; }
-        public String Title { get; private set; }
-        public String LogText { get; private set; }
+        public string TimeView { get; private set; }
+        public string Time { get; private set; }
+        public string Title { get; private set; }
+        public string LogText { get; private set; }
         public override string ToString() { return Time + " [" + Title + "] " + LogText; }
     }
 }

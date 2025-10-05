@@ -124,7 +124,7 @@ namespace EpgTimer
         {
             lstCtrl.ReloadInfoData(dataList =>
             {
-                var selected = new HashSet<UInt64>(serviceList.Where(item => item.IsSelected).Select(item => item.Key));
+                var selected = new HashSet<ulong>(serviceList.Where(item => item.IsSelected).Select(item => item.Key));
                 foreach (var item in serviceEventList.Where(item => selected.Contains(item.serviceInfo.Key)))
                 {
                     dataList.AddRange(item.eventList.Where(e => e.IsGroupMainEvent == true).ToSearchList(viewInfo.FilterEnded));
@@ -144,9 +144,9 @@ namespace EpgTimer
                 listView_event.ScrollIntoView(listView_event.SelectedItem);
             }
         }
-        private HashSet<UInt64> GetSelectID()
+        private HashSet<ulong> GetSelectID()
         {
-            return new HashSet<UInt64>(serviceList.Where(s => s.IsSelected == false).Select(s => s.Key));
+            return new HashSet<ulong>(serviceList.Where(s => s.IsSelected == false).Select(s => s.Key));
         }
 
         private void UpdateServiceChecked()
@@ -188,7 +188,7 @@ namespace EpgTimer
             richTextBox_eventInfo.Document.Blocks.Clear();
             if (listView_event.SelectedItem == null) return;
             //
-            richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText(listView_event.SelectedItem as SearchItem);
+            richTextBox_eventInfo.Document = CommonManager.ConvertDisplayText((listView_event.SelectedItem as SearchItem).EventInfo);
         }
 
         protected override void MoveNowTime()

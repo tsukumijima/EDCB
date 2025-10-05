@@ -121,7 +121,7 @@ namespace EpgTimer
         }
 
         //ジャンル絞り込み
-        public static bool ContainsContent(EpgEventInfo info, HashSet<UInt32> ContentHash, bool notContent = false)
+        public static bool ContainsContent(EpgEventInfo info, HashSet<uint> ContentHash, bool notContent = false)
         {
             //絞り込み無し
             if (ContentHash.Count == 0) return true;
@@ -148,7 +148,7 @@ namespace EpgTimer
             return info.ContentInfo.nibbleList.Any(data => ContentHash.Contains(data.Key)) != notContent;
         }
 
-        public static void AddTimeList(ICollection<DateTime> timeList, DateTime startTime, UInt32 duration)
+        public static void AddTimeList(ICollection<DateTime> timeList, DateTime startTime, uint duration)
         {
             AddTimeList(timeList, startTime, startTime.AddSeconds(duration));
         }
@@ -162,7 +162,7 @@ namespace EpgTimer
             }
         }
 
-        public static void SetItemVerticalPos(List<DateTime> timeList, PanelItem item, DateTime startTime, UInt32 duration, double MinutesHeight, bool NeedTimeOnly)
+        public static void SetItemVerticalPos(List<DateTime> timeList, PanelItem item, DateTime startTime, uint duration, double MinutesHeight, bool NeedTimeOnly)
         {
             item.Height = duration * MinutesHeight / 60;
             var chkStartTime = NeedTimeOnly == false ? timeList[0] : startTime.Date.AddHours(startTime.Hour);
@@ -222,7 +222,7 @@ namespace EpgTimer
                 return ScrollToFindItem(target, listBox, style, dryrun);
             }
         }
-        public static int JumpToListItem(UInt64 gvSorterID, ListBox listBox, JumpItemStyle style = JumpItemStyle.None, bool dryrun = false)
+        public static int JumpToListItem(ulong gvSorterID, ListBox listBox, JumpItemStyle style = JumpItemStyle.None, bool dryrun = false)
         {
             var target = listBox.Items.OfType<IGridViewSorterItem>().FirstOrDefault(data => data.KeyID == gvSorterID);
             return ScrollToFindItem(target, listBox, style, dryrun);
@@ -281,7 +281,7 @@ namespace EpgTimer
 
         //パネル系画面の移動用
         public static object MoveNextReserve(ref int itemIdx, PanelViewBase view, IEnumerable<ReserveViewItem> reslist, ref Point jmpPos,
-                                        UInt64 id, int direction, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
+                                        ulong id, int direction, bool move = true, JumpItemStyle style = JumpItemStyle.MoveTo)
         {
             Point pos = jmpPos;
             jmpPos = new Point(-1, -1);
@@ -519,13 +519,13 @@ namespace EpgTimer
             });
         }
 
-        public static RoutedEventHandler OpenFolderNameDialog(TextBox box, string Description = "", bool checkNWPath = false, string defaultPath = "")
+        public static RoutedEventHandler OpenFolderNameDialog(TextBox box, string Description = "", bool checkNWPath = false, string defaultPath = "", bool recFile = false)
         {
-            return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath, defaultPath);
+            return (sender, e) => CommonManager.GetFolderNameByDialog(box, Description, checkNWPath, defaultPath, recFile);
         }
-        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true)
+        public static RoutedEventHandler OpenFileNameDialog(TextBox box, bool isNameOnly, string Title = "", string DefaultExt = "", bool checkNWPath = false, string defaultPath = "", bool checkExist = true, bool recFile = false)
         {
-            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath, checkExist);
+            return (sender, e) => CommonManager.GetFileNameByDialog(box, isNameOnly, Title, DefaultExt, checkNWPath, defaultPath, checkExist, recFile);
         }
 
         public static RoutedEventHandler ListBox_TextCheckAdd(ListBox lstBox, TextBox txtBox, StringComparison type = StringComparison.OrdinalIgnoreCase)
@@ -534,7 +534,7 @@ namespace EpgTimer
         }
         public static bool ListBox_TextCheckAdd(ListBox lstBox, string text, StringComparison type = StringComparison.OrdinalIgnoreCase)
         {
-            if (lstBox == null || String.IsNullOrEmpty(text) == true) return false;
+            if (lstBox == null || string.IsNullOrEmpty(text) == true) return false;
             //
             var isAdd = lstBox.Items.OfType<object>().All(s => text.Equals(s.ToString(), type) == false);
             if (isAdd == true) lstBox.ScrollIntoViewLast(text);

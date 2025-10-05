@@ -7,18 +7,18 @@ namespace EpgTimer
     public partial class EpgContentData
     {
         public EpgContentData() { }
-        public EpgContentData(UInt32 key)
+        public EpgContentData(uint key)
         {
             this.content_nibble_level_1 = (byte)(key >> 24);
             this.content_nibble_level_2 = (byte)(key >> 16);
             this.user_nibble_1 = (byte)(key >> 8);
             this.user_nibble_2 = (byte)key;
         }
-        public Byte Nibble1 { get { return IsUserNibble ? user_nibble_1 : content_nibble_level_1; } }
-        public Byte Nibble2 { get { return IsUserNibble ? user_nibble_2 : content_nibble_level_2; } }
-        public UInt32 Key { get { return (UInt32)(content_nibble_level_1 << 24 | content_nibble_level_2 << 16 | (IsUserNibble ? (user_nibble_1 << 8 | user_nibble_2) : 0)); } }
-        public UInt32 CategoryKey { get { return Key | (UInt32)(IsUserNibble ? 0x000000FF : 0x00FF0000); } }
-        public List<UInt32> MatchingKeyList { get { return IsCategory && content_nibble_level_1 < 0x10 ? Enumerable.Range(0, 16).Select(i => (UInt32)((i << (IsUserNibble ? 0 : 16)) + (Key & (IsUserNibble ? 0xFFFFFF00 : 0xFF000000)))).ToList() : new List<UInt32> { Key }; } }
+        public byte Nibble1 { get { return IsUserNibble ? user_nibble_1 : content_nibble_level_1; } }
+        public byte Nibble2 { get { return IsUserNibble ? user_nibble_2 : content_nibble_level_2; } }
+        public uint Key { get { return (uint)(content_nibble_level_1 << 24 | content_nibble_level_2 << 16 | (IsUserNibble ? (user_nibble_1 << 8 | user_nibble_2) : 0)); } }
+        public uint CategoryKey { get { return Key | (uint)(IsUserNibble ? 0x000000FF : 0x00FF0000); } }
+        public List<uint> MatchingKeyList { get { return IsCategory && content_nibble_level_1 < 0x10 ? Enumerable.Range(0, 16).Select(i => (uint)((i << (IsUserNibble ? 0 : 16)) + (Key & (IsUserNibble ? 0xFFFFFF00 : 0xFF000000)))).ToList() : new List<uint> { Key }; } }
         public bool IsCategory { get { return Nibble2 == 0xFF; } }
         public bool IsUserNibble { get { return content_nibble_level_1 == 0x0E; } }
         public bool IsAttributeInfo { get { return IsUserNibble && content_nibble_level_2 == 0x00; } }
@@ -39,16 +39,16 @@ namespace EpgTimer
 
     public class ContentKindInfo
     {
-        public ContentKindInfo(UInt32 key = 0, String contentName = "", String subName = "")
+        public ContentKindInfo(uint key = 0, string contentName = "", string subName = "")
         {
             this.Data = new EpgContentData(key);
             this.ContentName = contentName;
             this.SubName = subName;
         }
-        public String ContentName { get; set; }
-        public String SubName { get; set; }
+        public string ContentName { get; set; }
+        public string SubName { get; set; }
         public EpgContentData Data { get; private set; }
-        public String ListBoxView
+        public string ListBoxView
         {
             get { return ContentName + (Data.IsCategory ? "" : " - " + SubName); }
         }

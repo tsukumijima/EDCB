@@ -56,11 +56,12 @@ namespace EpgTimer
                 //ボタンの設定。XML側でコマンド指定しておけば、ループでまとめ処理できるけど、
                 //インテリセンス効かないし(一応エラーチェックは入る)、コード側に一覧として書き出す。
                 mBinds.View = CtxmCode.ReserveView;
-                mBinds.SetCommandToButton(button_on_off, EpgCmds.ChgOnOff);
-                mBinds.SetCommandToButton(button_change, EpgCmds.ShowDialog);
-                mBinds.SetCommandToButton(button_del, EpgCmds.Delete);
-                mBinds.SetCommandToButton(button_add_manual, EpgCmds.ShowAddDialog);
-                mBinds.SetCommandToButton(button_timeShiftPlay, EpgCmds.Play);
+                mBinds.SetCommandToButton(button_ChgOnOff, EpgCmds.ChgOnOff);
+                mBinds.SetCommandToButton(button_Deletel, EpgCmds.Delete);
+                mBinds.SetCommandToButton(button_JumpTable, EpgCmds.JumpTable);
+                mBinds.SetCommandToButton(button_ToAutoadd, EpgCmds.ToAutoadd);
+                mBinds.SetCommandToButton(button_Play, EpgCmds.Play);
+                mBinds.SetCommandToButton(button_ShowAddDialog, EpgCmds.ShowAddDialog);
 
                 //コンテキストメニューを開く時の設定
                 listView_reserve.ContextMenu.Opened += new RoutedEventHandler(mc.SupportContextMenuLoading);

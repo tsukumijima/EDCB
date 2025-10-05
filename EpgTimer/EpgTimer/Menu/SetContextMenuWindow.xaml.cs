@@ -65,6 +65,8 @@ namespace EpgTimer
             new List<ICommand>{EpgCmds.SetRecTag},
             new List<ICommand>{EpgCmds.CopyNotKey},
             new List<ICommand>{EpgCmds.SetNotKey},
+            new List<ICommand>{EpgCmds.CopyNote},
+            new List<ICommand>{EpgCmds.SetNote},
 
             new List<ICommand>{EpgCmds.MenuSetting}
         };

@@ -6,13 +6,13 @@ namespace EpgTimer
     {
         public string Name { get; set; }
         public string NWServerIP { get; set; }
-        public UInt32 NWServerPort { get; set; }
-        public UInt32 NWWaitPort { get; set; }
+        public uint NWServerPort { get; set; }
+        public uint NWWaitPort { get; set; }
         public string NWMacAdd { get; set; }
         public override string ToString() { return Name; }
 
         public NWPresetItem() { }
-        public NWPresetItem(string name, string ip, UInt32 sport, UInt32 wport, string mac)
+        public NWPresetItem(string name, string ip, uint sport, uint wport, string mac)
         {
             Name = name;
             NWServerIP = ip;

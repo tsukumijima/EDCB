@@ -194,7 +194,7 @@ namespace EpgTimer
                 key.keyDisabledFlag = (byte)(checkBox_keyDisabled.IsChecked == true ? 1 : 0);
                 key.contentList = listBox_content.Items.OfType<ContentKindInfo>().Select(info => info.Data).DeepClone();
                 key.notContetFlag = (byte)(checkBox_notContent.IsChecked == true ? 1 : 0);
-                key.serviceList = serviceList.Where(info => info.IsSelected == true).Select(info => (Int64)info.Key).ToList();
+                key.serviceList = serviceList.Where(info => info.IsSelected == true).Select(info => (long)info.Key).ToList();
                 key.dateList = listBox_date.Items.OfType<DateItem>().Select(info => info.DateInfo).ToList();
                 key.notDateFlag = (byte)(checkBox_notDate.IsChecked == true ? 1 : 0);
                 key.freeCAFlag = (byte)Math.Min(Math.Max(comboBox_free.SelectedIndex, 0), 2);

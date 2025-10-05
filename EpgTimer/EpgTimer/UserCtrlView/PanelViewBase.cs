@@ -39,7 +39,7 @@ namespace EpgTimer
             return width;
         }
 
-        protected double RenderText(List<Tuple<Brush, GlyphRun>> textDrawList, String text, ItemFont itemFont, double fontSize, Rect drawRect, double marginLeft, double margintTop, Brush fontColor, bool nowrap = false)
+        protected double RenderText(List<Tuple<Brush, GlyphRun>> textDrawList, string text, ItemFont itemFont, double fontSize, Rect drawRect, double marginLeft, double margintTop, Brush fontColor, bool nowrap = false)
         {
             double lineHeight = ViewUtil.CulcLineHeight(fontSize);
             double x0 = drawRect.Left + marginLeft;

@@ -53,7 +53,7 @@ namespace EpgTimer
         public IEnumerable<S> Items { get { return comboBox_preSet.Items.OfType<S>(); } }
         public List<S> PresetList { get { return Items.Where(item => item.IsCustom == false).DeepClone().FixUp(); } }
 
-        public S FindPreset(Int32 presetID)
+        public S FindPreset(int presetID)
         {
             return Items.FirstOrDefault(item => item.ID == presetID);
         }

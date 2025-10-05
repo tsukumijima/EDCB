@@ -3,10 +3,6 @@
 #include "TimeUtil.h"
 #include "PathUtil.h"
 
-#if defined(_MSC_VER) && _MSC_VER < 1900
-#define wcstoll _wcstoi64
-#endif
-
 namespace
 {
 //タブ区切りの次のトークンに移動する
@@ -84,7 +80,7 @@ void ParseRecFolderList(LPCWSTR* token, vector<REC_FILE_SET_INFO>& list)
 {
 	for( int n = NextTokenToInt(token); n > 0; n-- ){
 		NextToken(token);
-		list.resize(list.size() + 1);
+		list.emplace_back();
 		list.back().recFolder.assign(token[0], token[1]);
 	}
 	for( size_t i = 0; i < list.size(); ){
@@ -141,7 +137,7 @@ void CParseChText4::SetFilePath(LPCWSTR path)
 DWORD CParseChText4::AddCh(const CH_DATA4& item)
 {
 	map<DWORD, CH_DATA4>::const_iterator itr =
-		this->itemMap.insert(pair<DWORD, CH_DATA4>(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item)).first;
+		this->itemMap.emplace(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item).first;
 	return itr->first;
 }
 
@@ -303,8 +299,8 @@ bool CParseChText5::SelectItemToSave(vector<map<LONGLONG, CH_DATA5>::const_itera
 	//情報の追加がなければ読み込み順を維持
 	if( this->parsedOrder.size() == this->itemMap.size() ){
 		itemList.reserve(this->parsedOrder.size());
-		for( size_t i = 0; i < this->parsedOrder.size(); i++ ){
-			itemList.push_back(this->itemMap.find(this->parsedOrder[i]));
+		for( LONGLONG key : this->parsedOrder ){
+			itemList.push_back(this->itemMap.find(key));
 		}
 		return true;
 	}
@@ -360,7 +356,7 @@ bool CParseServiceChgText::ParseLine(LPCWSTR parseLine, pair<wstring, wstring>& 
 
 DWORD CParseRecInfoText::AddRecInfo(const REC_FILE_INFO_BASIC& item)
 {
-	map<DWORD, REC_FILE_INFO_BASIC>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, REC_FILE_INFO_BASIC>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	DWORD id = itr->second.id = itr->first;
 
@@ -585,10 +581,10 @@ void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO_BASIC& item)
 		//カスタムルール
 		AddDebugLogFormat(L"★RecInfo Auto Delete : %ls", item.recFilePath.c_str());
 		wstring debug;
-		for( size_t i = 0; i < this->customDelExt.size(); i++ ){
+		for( const wstring& ext : this->customDelExt ){
 			wstring delPath = fs_path(item.recFilePath).replace_extension().native();
-			DeleteFile((delPath + this->customDelExt[i]).c_str());
-			debug = (debug.empty() ? delPath + L'(' : debug + L'|') + this->customDelExt[i];
+			DeleteFile((delPath + ext).c_str());
+			debug = (debug.empty() ? delPath + L'(' : debug + L'|') + ext;
 		}
 		if( debug.empty() == false ){
 			AddDebugLogFormat(L"★RecInfo Auto Delete : %ls)", debug.c_str());
@@ -596,10 +592,10 @@ void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO_BASIC& item)
 		if( this->recInfoFolder.empty() == false ){
 			//録画情報フォルダにも適用
 			debug.clear();
-			for( size_t i = 0; i < this->customDelExt.size(); i++ ){
+			for( const wstring& ext : this->customDelExt ){
 				wstring delPath = fs_path(this->recInfoFolder).append(fs_path(item.recFilePath).stem().native()).native();
-				DeleteFile((delPath + this->customDelExt[i]).c_str());
-				debug = (debug.empty() ? delPath + L'(' : debug + L'|') + this->customDelExt[i];
+				DeleteFile((delPath + ext).c_str());
+				debug = (debug.empty() ? delPath + L'(' : debug + L'|') + ext;
 			}
 			if( debug.empty() == false ){
 				AddDebugLogFormat(L"★RecInfo Auto Delete : %ls)", debug.c_str());
@@ -623,7 +619,7 @@ void CParseRecInfoText::OnDelRecInfo(const REC_FILE_INFO_BASIC& item)
 DWORD CParseRecInfo2Text::Add(const PARSE_REC_INFO2_ITEM& item)
 {
 	map<DWORD, PARSE_REC_INFO2_ITEM>::const_iterator itr =
-		this->itemMap.insert(pair<DWORD, PARSE_REC_INFO2_ITEM>(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item)).first;
+		this->itemMap.emplace(this->itemMap.empty() ? 1 : this->itemMap.rbegin()->first + 1, item).first;
 	return itr->first;
 }
 
@@ -676,7 +672,7 @@ bool CParseRecInfo2Text::SelectItemToSave(vector<map<DWORD, PARSE_REC_INFO2_ITEM
 
 DWORD CParseReserveText::AddReserve(const RESERVE_DATA& item)
 {
-	map<DWORD, RESERVE_DATA>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, RESERVE_DATA>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	this->sortByEventCache.clear();
 	return itr->second.reserveID = itr->first;
@@ -882,9 +878,8 @@ bool CParseReserveText::SelectItemToSave(vector<map<DWORD, RESERVE_DATA>::const_
 	if( this->saveNextID == 0 ){
 		//NextIDコメントが無かったときは従来どおり予約日時順で保存する
 		vector<pair<LONGLONG, const RESERVE_DATA*>> sortItemList = GetReserveList();
-		vector<pair<LONGLONG, const RESERVE_DATA*>>::const_iterator itr;
-		for( itr = sortItemList.begin(); itr != sortItemList.end(); itr++ ){
-			itemList.push_back(this->itemMap.find(itr->second->reserveID));
+		for( const auto& item : sortItemList ){
+			itemList.push_back(this->itemMap.find(item.second->reserveID));
 		}
 		return true;
 	}
@@ -908,19 +903,18 @@ vector<pair<LONGLONG, const RESERVE_DATA*>> CParseReserveText::GetReserveList(BO
 	retList.reserve(this->itemMap.size());
 
 	//日時順にソート
-	map<DWORD, RESERVE_DATA>::const_iterator itr;
-	for( itr = this->itemMap.begin(); itr != this->itemMap.end(); itr++ ){
-		LONGLONG startTime = ConvertI64Time(itr->second.startTime);
+	for( const auto& item : this->itemMap ){
+		LONGLONG startTime = ConvertI64Time(item.second.startTime);
 		if( calcMargin != FALSE ){
-			LONGLONG endTime = startTime + itr->second.durationSecond * I64_1SEC;
+			LONGLONG endTime = startTime + item.second.durationSecond * I64_1SEC;
 			LONGLONG startMargin = defStartMargin * I64_1SEC;
-			if( itr->second.recSetting.useMargineFlag == TRUE ){
-				startMargin = itr->second.recSetting.startMargine * I64_1SEC;
+			if( item.second.recSetting.useMargineFlag == TRUE ){
+				startMargin = item.second.recSetting.startMargine * I64_1SEC;
 			}
 			//開始マージンは元の予約終了時刻を超えて負であってはならない
 			startTime -= max(startMargin, startTime - endTime);
 		}
-		retList.push_back( pair<LONGLONG, const RESERVE_DATA*>((startTime / I64_1SEC) << 16 | itr->second.transportStreamID, &itr->second) );
+		retList.emplace_back((startTime / I64_1SEC) << 16 | item.second.transportStreamID, &item.second);
 	}
 	std::sort(retList.begin(), retList.end());
 	return retList;
@@ -931,10 +925,10 @@ const vector<pair<ULONGLONG, DWORD>>& CParseReserveText::GetSortByEventList() co
 	if( this->sortByEventCache.empty() || this->itemMap.empty() ){
 		this->sortByEventCache.clear();
 		this->sortByEventCache.reserve(this->itemMap.size());
-		for( map<DWORD, RESERVE_DATA>::const_iterator itr = this->itemMap.begin(); itr != this->itemMap.end(); itr++ ){
-			this->sortByEventCache.push_back(std::make_pair(
-				(ULONGLONG)itr->second.originalNetworkID << 48 | (ULONGLONG)itr->second.transportStreamID << 32 |
-				(DWORD)itr->second.serviceID << 16 | itr->second.eventID, itr->first));
+		for( const auto& item : this->itemMap ){
+			this->sortByEventCache.emplace_back(
+				(ULONGLONG)item.second.originalNetworkID << 48 | (ULONGLONG)item.second.transportStreamID << 32 |
+				(DWORD)item.second.serviceID << 16 | item.second.eventID, item.first);
 		}
 		std::sort(this->sortByEventCache.begin(), this->sortByEventCache.end());
 	}
@@ -943,7 +937,7 @@ const vector<pair<ULONGLONG, DWORD>>& CParseReserveText::GetSortByEventList() co
 
 DWORD CParseEpgAutoAddText::AddData(const EPG_AUTO_ADD_DATA& item)
 {
-	map<DWORD, EPG_AUTO_ADD_DATA>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, EPG_AUTO_ADD_DATA>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	return itr->second.dataID = itr->first;
 }
@@ -1184,7 +1178,7 @@ bool CParseEpgAutoAddText::SelectItemToSave(vector<map<DWORD, EPG_AUTO_ADD_DATA>
 
 DWORD CParseManualAutoAddText::AddData(const MANUAL_AUTO_ADD_DATA& item)
 {
-	map<DWORD, MANUAL_AUTO_ADD_DATA>::iterator itr = this->itemMap.insert(std::make_pair(this->nextID, item)).first;
+	map<DWORD, MANUAL_AUTO_ADD_DATA>::iterator itr = this->itemMap.emplace(this->nextID, item).first;
 	this->nextID = this->nextID % 100000000 + 1;
 	itr->second.recSetting.pittariFlag = 0;
 	itr->second.recSetting.tuijyuuFlag = 0;

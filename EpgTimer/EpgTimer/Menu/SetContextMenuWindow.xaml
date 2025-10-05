@@ -53,7 +53,7 @@
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Content="予約一覧(自動予約登録)" />
-                            <CheckBox Content="番組名でキーワード予約作成..." />
+                            <CheckBox Content="番組名でキーワード予約作成..." ToolTip="キーワード予約一覧画面では「Andキーワードで検索」になります。" />
                             <CheckBox Content="番組名で再検索" />
                             <CheckBox Visibility="Hidden"/>
                             <CheckBox Content="番組名で再検索(別ウィンドウ)" />
@@ -70,6 +70,8 @@
                             <CheckBox Content="録画タグに貼り付け" />
                             <CheckBox Content="NOTキーをコピー" />
                             <CheckBox Content="NOTキーに貼り付け" />
+                            <CheckBox Content="メモ欄をコピー" />
+                            <CheckBox Content="メモ欄に貼り付け" />
                             <Separator Style="{StaticResource MiddleLine}" />
                             <CheckBox Content="右クリックメニューの設定..." />
                             <Separator Style="{StaticResource UnderLine}" />
@@ -95,8 +97,8 @@
                             <CheckBox Content="詳細ツールチップを表示する" IsChecked="{Binding AutoAddSearchToolTip}" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
                             <CheckBox Content="候補が1つなら展開しない" IsChecked="{Binding AutoAddSearchSkipSubMenu}" ToolTip="該当する自動予約登録が1つのときはサブメニューを展開せず、自動予約登録名をツールチップに表示します。"/>
                             <CheckBox Content="詳細ツールチップを表示する" IsChecked="{Binding ReserveSearchToolTip}" ToolTip="全体設定画面にある[各画面の設定]-[予約一覧・共通]のツールチップ表示設定とは独立して動作します。"/>
-                            <CheckBox Content="記号類を取り除く" IsChecked="{Binding Keyword_Trim}" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。"/>
-                            <CheckBox Content="ジャンル情報を設定する" IsChecked="{Binding SetJunreToAutoAdd}" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;可能ならジャンル情報も設定します。(録画済み一覧、プログラム予約一覧では働きません)"/>
+                            <CheckBox Content="記号類を取り除く" IsChecked="{Binding Keyword_Trim}" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;(キーワード予約一覧画面では働きません)"/>
+                            <CheckBox Content="ジャンル情報を設定する" IsChecked="{Binding SetJunreToAutoAdd}" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;可能ならジャンル情報も設定します。(キーワード予約一覧画面、プログラム予約一覧画面では働きません)"/>
                             <CheckBox Content="大分類のみ設定する" Margin="20,0,6,1"  IsChecked="{Binding SetJunreContentToAutoAdd}" ToolTip="このオプションは「番組名でキーワード予約作成」「番組名で再検索」「番組名で再検索(別ウィンドウ)」で共通です。&#10;ジャンル情報を設定するとき、小分類を無視して大分類のみで設定します。"/>
                             <CheckBox Content="自動登録無効を解除する" IsChecked="{Binding CancelAutoAddOff}" />
                             <CheckBox Visibility="Hidden"/>
@@ -112,6 +114,8 @@
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageRecTag}" />
                             <CheckBox Visibility="Hidden" />
                             <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageNotKEY}" />
+                            <CheckBox Visibility="Hidden" />
+                            <CheckBox Content="確認メッセージを表示しない" IsChecked="{Binding NoMessageNote}" />
                             <Separator Style="{StaticResource MiddleLine}" />
                             <CheckBox Visibility="Hidden" />
                             <Separator Style="{StaticResource UnderLine}" />

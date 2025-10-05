@@ -57,5 +57,10 @@ namespace EpgTimer.Setting
                 IniFileHandler.WritePrivateProfileString("TVTEST", i.ToString(), listBox_bon.Items[i], SettingPath.TimerSrvIniPath);
             }
         }
+        private void replaceTest_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            textBox_replaceTestResult.Text =
+                CommonManager.ReplaceText(textBox_replaceTest.Text, CommonManager.CreateReplaceDictionary(textBox_replacePattern.Text));
+        }
     }
 }

@@ -1,6 +1,7 @@
 -- 名前付きパイプ(SendTSTCPの送信先:0.0.0.1 ポート:0～65535)を転送するスクリプト
 
 dofile(mg.script_name:gsub('[^\\/]*$','')..'util.lua')
+dofile(mg.script_name:gsub('[^\\/]*$','')..'jkconst.lua')
 
 -- HLSの開始はPOSTでなければならない
 query=AssertPost()
@@ -34,7 +35,7 @@ hlsMsn=GetVarInt(query,'_HLS_msn',1)
 hlsPart=GetVarInt(query,'_HLS_part',0)
 
 -- クエリのハッシュをキーとし、同一キーアクセスは出力中のインデックスファイルを返す
-hlsKey=hlsKey and n and mg.md5('view:'..hlsKey..(onid and ':nwtv' or ':')..n..':'..option.xcoder..':'..option.option..':'..audio2..':'..filter..':'..caption..':'..output[2])
+hlsKey=hlsKey and n and mg.md5('view:'..hlsKey..(onid and ':nwtv' or ':')..n)
 
 -- フラグメント長の目安
 partConfigSec=0.8
@@ -85,13 +86,12 @@ function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
       xcoder=('|'..option.xcoder:gsub('%.exe$','')):match('[\\/|]([0-9A-Za-z._-]+)$')
       xcoder=xcoder and FindToolsCommand(xcoder) or ':'
     end
+    -- gsub('%%','%%%%')は置換文字列中の特殊文字を無効化するため
     cmd=' | '..xcoder..' '..option.option
-      :gsub('$SRC','-')
       :gsub('$AUDIO',audio2)
-      :gsub('$DUAL','')
-      :gsub('$FILTER',(filter:gsub('%%',WIN32 and '%%%%' or '%%')))
-      :gsub('$CAPTION',(caption:gsub('%%',WIN32 and '%%%%' or '%%')))
-      :gsub('$OUTPUT',(output[2]:gsub('%%',WIN32 and '%%%%' or '%%')))
+      :gsub('$FILTER',(filter:gsub('%%','%%%%')))
+      :gsub('$CAPTION',(caption:gsub('%%','%%%%')))
+      :gsub('$OUTPUT',(output[2]:gsub('%%','%%%%')))
   end
 
   if XCODE_LOG and cmd~='' then
@@ -105,13 +105,13 @@ function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
     if f then
       f:write(cmd:sub(4)..'\n\n')
       f:close()
-      cmd=cmd..' 2>>'..QuoteCommandArgForPath(log)
+      cmd=cmd..' 2>>'..QuoteCommandArgForPath(log,hlsKey)
     end
   end
   if hlsKey then
     -- セグメント長は既定値(2秒)なので概ねキーフレーム(4～5秒)間隔
     -- プロセス終了時に対応するNetworkTVモードも終了させる
-    cmd=cmd..' | '..tsmemseg..(hls4>0 and ' -4' or '')..' -a 10 -m 8192 -d 3 -p '..partConfigSec..' '..(WIN32 and '' or '-g '..QuoteCommandArgForPath(EdcbModulePath())..' ')
+    cmd=cmd..' | '..tsmemseg..(hls4>0 and ' -4' or '')..' -a 10 -m 8192 -d 3 -p '..partConfigSec..' '..(WIN32 and '' or '-g '..QuoteCommandArgForPath(EdcbModulePath(),hlsKey)..' ')
     if nwtvclose then
       cmd=cmd..(WIN32 and '-c "..\\EpgTimerSrv.exe /luapost ' or '-c "echo \\"')
       if type(nwtvclose[2])=='string' then
@@ -130,7 +130,7 @@ function OpenTranscoder(pipeName,searchName,nwtvclose,targetSID)
   end
 
   -- "-z"はプロセス検索用
-  cmd=tsreadex..' -z edcb-legacy-'..searchName..' -t 10 -m 2 -x 18/38/39 -n '..(targetSID or -1)..' -a 9 -b 1 -c 5 -u 2 '..QuoteCommandArgForPath(SendTSTCPPipePath(pipeName,0))..cmd
+  cmd=tsreadex..' -z edcb-legacy-'..searchName..' -t 10 -m 2 -x 18/38/39 -n '..(targetSID or -1)..' -a 9 -b 1 -c 5 -u 2 '..QuoteCommandArgForPath(SendTSTCPPipePath(pipeName,0),hlsKey)..cmd
   if hlsKey then
     -- 極端に多く開けないようにする
     local indexCount=#(edcb.FindFile(TsmemsegPipePath('*_','00'),10) or {})
@@ -158,6 +158,90 @@ function OpenPsiDataArchiver(pipeName,targetSID)
   local cmd=psisiarc..' -r arib-data -n '..(targetSID or -1)..' -i 3 - -'
   cmd=tsreadex..' -t 10 -m 2 '..QuoteCommandArgForPath(SendTSTCPPipePath(pipeName,1))..' | '..cmd
   return edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd,'r'..POPEN_BINARY)
+end
+
+function OpenLiveJikkyo(pid,nid,sid)
+  if JKCNSL_PATH then
+    if not nid and edcb.GetTunerProcessStatusAll then
+      -- 起動中のチューナのONIDとTSIDを調べ、チャンネル情報から適当にSIDを得る
+      local t=nil
+      for i,v in ipairs(edcb.GetTunerProcessStatusAll()) do
+        if v.processID==pid then
+          t=v
+          break
+        end
+      end
+      if t and t.onid>=0 and t.tsid>=0 then
+        t.sid=0
+        local chList=edcb.GetChDataList()
+        local chIndex=BinarySearchBound(chList,t,CompareFields('onid',false,'tsid',false,'sid'))
+        if chIndex<=#chList and chList[chIndex].onid==t.onid and chList[chIndex].tsid==t.tsid then
+          nid=t.onid
+          sid=chList[chIndex].sid
+        end
+      end
+    end
+    local jkID=nid and GetJikkyoID(nid,sid)
+    if not jkID then
+      return 'Unable to determine Jikkyo ID.'
+    end
+    local chatName,chatID,refugeID=GetChatStreamName(jkID)
+    if not (refugeID and JKCNSL_REFUGE_URI or chatID and (not JKCNSL_REFUGE_URI or JKCNSL_REFUGE_MIXING)) then
+      return 'Unable to determine chat ID.'
+    end
+    local postName='jkcnsl_edcb_'..pid
+    local cmd=(WIN32 and QuoteCommandArgForPath(JKCNSL_PATH) or FindToolsCommand(JKCNSL_PATH))..' -i -n '..postName..' -p '..pid
+      ..(WIN32 and '' or ' -d '..QuoteCommandArgForPath(JKCNSL_UNIX_BASE_DIR))
+      ..(JKCNSL_ANONYMITY and ' --post-as-anon' or '')..' --post-drop-dup --post-interval 2000 --post-maxlen 80'
+    if refugeID and JKCNSL_REFUGE_URI then
+      -- 避難所または避難所との混合接続
+      local uri=JKCNSL_REFUGE_URI:gsub('{jkID}','jk'..jkID):gsub('{chatStreamID}',refugeID)
+      local mix=JKCNSL_REFUGE_MIXING and chatID
+      cmd=cmd..' -c "R'..((JKCNSL_DROP_FORWARDED_COMMENT or mix) and '2 ' or '1 ')..uri..(mix and ' '..chatID or '')..'"'
+    else
+      cmd=cmd..' -c "L'..chatID..'"'
+    end
+    local f=edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd)
+    if f then
+      return f,jkID,function()
+        -- .NETアプリは出力端を閉じたことをアプリ側で検知するのが難しいので、'q'コマンドを投稿して閉じる
+        if WIN32 then
+          local fpost=edcb.io.open('\\\\.\\pipe\\'..postName,'w')
+          if fpost then
+            for i=0,300 do
+              if not fpost:write('q\n') or not fpost:flush() then break end
+              edcb.Sleep(10)
+            end
+            fpost:close()
+          end
+        else
+          local fpost
+          for retry=1,9 do
+            fpost=EdcbFindFilePlain(PathAppend(JKCNSL_UNIX_BASE_DIR,postName)) and
+              edcb.io.open(PathAppend(JKCNSL_UNIX_BASE_DIR,postName),'a')
+            -- なるべく同時に書き込まないようプロセス間でロックが必要
+            if not fpost or edcb.io._flock_nb(fpost) or retry==9 then break end
+            fpost:close()
+            fpost=nil
+            edcb.Sleep(10*retry)
+          end
+          if fpost then
+            fpost:write('q\nq\n')
+            fpost:flush()
+            fpost:close()
+          end
+        end
+        f:close()
+      end
+    end
+  else
+    local f=WIN32 and edcb.io.open('\\\\.\\pipe\\chat_d7b64ac2_'..pid,'r')
+    if not f then
+      return 'No pipe found for reading comments.'
+    end
+    return f,-1,function() f:close() end
+  end
+  return nil
 end
 
 function ReadPsiDataChunk(f,trailerSize,trailerRemainSize)
@@ -306,7 +390,7 @@ if onid then
               end
             end
             if f and jikkyo then
-              f.jk=edcb.io.open('\\\\.\\pipe\\chat_d7b64ac2_'..pid,'r')
+              f.jk,f.jkID,f.closeJK=OpenLiveJikkyo(pid,onid,sid)
               if not f.jk then
                 if f.psi then f.psi:close() end
                 f=nil
@@ -340,16 +424,19 @@ elseif n and n<=65535 then
     -- 名前付きパイプがあれば開く
     ff=edcb.FindFile(SendTSTCPPipePath(n..'_*',0),1)
     if ff and ff[1].name:find('^[^_]+_%d+_%d+') then
+      pid=ff[1].name:match('^[^_]+_%d+_(%d+)')
       if psidata or jikkyo then
         f={}
         if psidata then
-          f.psi=OpenPsiDataArchiver(n..ff[1].name:match('^[^_]+_%d+(_%d+)'))
+          f.psi=OpenPsiDataArchiver(n..'_'..pid)
           if not f.psi then
             f=nil
           end
         end
         if f and jikkyo then
-          f.jk=edcb.io.open('\\\\.\\pipe\\chat_d7b64ac2_'..ff[1].name:match('^[^_]+_%d+_(%d+)'),'r')
+          if tonumber(pid) then
+            f.jk,f.jkID,f.closeJK=OpenLiveJikkyo(tonumber(pid))
+          end
           if not f.jk then
             if f.psi then f.psi:close() end
             f=nil
@@ -357,7 +444,7 @@ elseif n and n<=65535 then
         end
         fname='view.psc.txt'
       else
-        f=OpenTranscoder(n..ff[1].name:match('^[^_]+_%d+(_%d+)'),'view-'..n)
+        f=OpenTranscoder(n..'_'..pid,'view-'..n)
         fname='view.'..output[1]
       end
     end
@@ -384,10 +471,19 @@ elseif psidata or jikkyo then
         failed=not buf or not mg.write(mg.base64_encode(buf))
         if failed then break end
       end
-      if jikkyo then
+      if jikkyo and type(f.jk)=='string' then
+        -- メッセージを送って混合でなければ終了
+        failed=not mg.write('<!-- M='..f.jk..' -->\n') or not psidata
+        f.jk=nil
+      end
+      if jikkyo and f.jk then
         repeat
           -- 短い間隔(おおむね1秒以下)で読めることを仮定
           buf=ReadJikkyoChunk(f.jk)
+          -- ヘッダに実況のIDがないときは補う
+          if buf and buf:find('^<!%-%- ') and not buf:find('^<!%-%- J=') then
+            buf='<!-- J='..f.jkID..';'..buf:sub(6)
+          end
           failed=not buf or not mg.write(buf)
           if failed then break end
           now=os.time()
@@ -398,7 +494,7 @@ elseif psidata or jikkyo then
     until failed
   end
   if f.psi then f.psi:close() end
-  if f.jk then f.jk:close() end
+  if f.closeJK then f.closeJK() end
 elseif hlsKey then
   -- インデックスファイルを返す
   i=1
@@ -423,19 +519,16 @@ elseif hlsKey then
   ct:Finish()
   mg.write(ct:Pop(Response(200,'application/vnd.apple.mpegurl','utf-8',ct.len)..'\r\n'))
 else
-  mg.write(Response(200,mg.get_mime_type(fname))..'Content-Disposition: filename='..fname..'\r\n\r\n')
+  mg.write(Response(200,mg.get_mime_type(fname))..'Content-Disposition: attachment; filename='..fname..'\r\n\r\n')
   if mg.request_info.request_method~='HEAD' then
     while true do
       buf=f:read(188*128)
-      if buf and #buf~=0 then
-        if not mg.write(buf) then
-          -- キャンセルされた
-          mg.cry('canceled')
-          break
-        end
-      else
+      if not buf or #buf==0 then
         -- 終端に達した
-        mg.cry('end')
+        break
+      end
+      if not mg.write(buf) then
+        -- キャンセルされた
         break
       end
     end

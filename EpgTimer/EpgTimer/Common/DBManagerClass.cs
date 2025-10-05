@@ -15,9 +15,9 @@ namespace EpgTimer
             this.eventList = eventList ?? new List<EpgEventInfo>();
             this.eventArcList = eventArcList ?? new List<EpgEventInfo>();
         }
-        public static Dictionary<UInt64, EpgServiceAllEventInfo> CreateEpgServiceDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2 = null)
+        public static Dictionary<ulong, EpgServiceAllEventInfo> CreateEpgServiceDictionary(List<EpgServiceEventInfo> list, List<EpgServiceEventInfo> list2 = null)
         {
-            var dic = new Dictionary<UInt64, EpgServiceAllEventInfo>();
+            var dic = new Dictionary<ulong, EpgServiceAllEventInfo>();
             if (list == null) return dic;
             foreach (EpgServiceEventInfo info in list)
             {
@@ -26,12 +26,12 @@ namespace EpgTimer
             AddArcEpgServiceDictionary(dic, list2);
             return dic;
         }
-        public static void AddArcEpgServiceDictionary(Dictionary<UInt64, EpgServiceAllEventInfo> dic, List<EpgServiceEventInfo> list2)
+        public static void AddArcEpgServiceDictionary(Dictionary<ulong, EpgServiceAllEventInfo> dic, List<EpgServiceEventInfo> list2)
         {
             if (list2 == null) return;
             foreach (EpgServiceEventInfo info in list2)
             {
-                UInt64 id = info.serviceInfo.Key;
+                ulong id = info.serviceInfo.Key;
                 if (dic.ContainsKey(id))
                 {
                     dic[id].eventArcList = dic[id].eventArcList.Count == 0 ? info.eventList : 
@@ -55,30 +55,30 @@ namespace EpgTimer
         private bool updateReserveAppendEpgAuto = true;
         private bool updateReserveAppendManualAuto = true;
 
-        Dictionary<UInt32, RecFileInfoAppend> recFileAppendList = null;
-        Dictionary<UInt32, ReserveDataAppend> reserveAppendList = null;
-        Dictionary<UInt32, EpgEventInfo> reserveEventList = null;
-        Dictionary<UInt64, EpgEventInfo> reserveEventListCache = null;
-        HashSet<UInt32> reserveMultiList = null;
-        Dictionary<UInt32, AutoAddDataAppend> manualAutoAddAppendList = null;
-        Dictionary<UInt32, EpgAutoAddDataAppend> epgAutoAddAppendList = null;
+        Dictionary<uint, RecFileInfoAppend> recFileAppendList = null;
+        Dictionary<uint, ReserveDataAppend> reserveAppendList = null;
+        Dictionary<uint, EpgEventInfo> reserveEventList = null;
+        Dictionary<ulong, EpgEventInfo> reserveEventListCache = null;
+        HashSet<uint> reserveMultiList = null;
+        Dictionary<uint, AutoAddDataAppend> manualAutoAddAppendList = null;
+        Dictionary<uint, EpgAutoAddDataAppend> epgAutoAddAppendList = null;
 
-        public Dictionary<UInt64, EpgServiceAllEventInfo> ServiceEventList { get; private set; }
-        public Dictionary<UInt64, EpgEventInfo> EventUIDList { get; private set; }//検索用インデックス
+        public Dictionary<ulong, EpgServiceAllEventInfo> ServiceEventList { get; private set; }
+        public Dictionary<ulong, EpgEventInfo> EventUIDList { get; private set; }//検索用インデックス
         public DateTime EventTimeMin { get { return CommonUtil.Min(EventTimeMinArc, EventTimeMinCurrent); } }
         public DateTime EventTimeMinArc { get; private set; }
         public DateTime EventTimeMaxArc { get; private set; }
         private DateTime EventTimeBaseArc; //現在読み込まれている過去番組期間の開始
         private DateTime EventTimeMinCurrent;
-        public Dictionary<UInt32, ReserveData> ReserveList { get; private set; }
-        public Dictionary<UInt32, TunerReserveInfo> TunerReserveList { get; private set; }
+        public Dictionary<uint, ReserveData> ReserveList { get; private set; }
+        public Dictionary<uint, TunerReserveInfo> TunerReserveList { get; private set; }
         //public RecSettingData DefaultRecSetting { get; private set; }
-        public Dictionary<UInt32, RecFileInfo> RecFileInfo { get; private set; }
-        public Dictionary<UInt64, List<RecFileInfo>> RecFileUIDList { get; private set; }//録画結果のUIDはかぶることがある
-        public List<String> RecNamePlugInList { get; private set; }
-        public List<String> WritePlugInList { get; private set; }
-        public Dictionary<UInt32, ManualAutoAddData> ManualAutoAddList { get; private set; }
-        public Dictionary<UInt32, EpgAutoAddData> EpgAutoAddList { get; private set; }
+        public Dictionary<uint, RecFileInfo> RecFileInfo { get; private set; }
+        public Dictionary<ulong, List<RecFileInfo>> RecFileUIDList { get; private set; }//録画結果のUIDはかぶることがある
+        public List<string> RecNamePlugInList { get; private set; }
+        public List<string> WritePlugInList { get; private set; }
+        public Dictionary<uint, ManualAutoAddData> ManualAutoAddList { get; private set; }
+        public Dictionary<uint, EpgAutoAddData> EpgAutoAddList { get; private set; }
 
         public AutoAddDataAppend GetManualAutoAddDataAppend(ManualAutoAddData master)
         {
@@ -156,7 +156,7 @@ namespace EpgTimer
             dict.TryGetValue(master.dataID, out retv);
             return retv ?? new EpgAutoAddDataAppend();
         }
-        public void ClearEpgAutoAddDataAppend(Dictionary<UInt32, EpgAutoAddData> oldList = null)
+        public void ClearEpgAutoAddDataAppend(Dictionary<uint, EpgAutoAddData> oldList = null)
         {
             if (oldList == null || Settings.Instance.NoEpgAutoAddAppend == true) epgAutoAddAppendList = null;
             if (epgAutoAddAppendList == null) return;
@@ -411,7 +411,7 @@ namespace EpgTimer
             TunerReserveList = new Dictionary<uint, TunerReserveInfo>();
             //DefaultRecSetting = null;
             RecFileInfo = new Dictionary<uint, RecFileInfo>();
-            RecFileUIDList = new Dictionary<UInt64, List<RecFileInfo>>();
+            RecFileUIDList = new Dictionary<ulong, List<RecFileInfo>>();
             RecNamePlugInList = new List<string>();
             WritePlugInList = new List<string>();
             ManualAutoAddList = new Dictionary<uint, ManualAutoAddData>();
@@ -574,7 +574,7 @@ namespace EpgTimer
         }
 
         /// <summary>現在の取得データに合わせてデフォルト表示の番組情報を展開する</summary>
-        public List<UInt64> ExpandSpecialKey(List<UInt64> keyList, IEnumerable<EpgServiceInfo> additionalInfo = null)
+        public List<ulong> ExpandSpecialKey(List<ulong> keyList, IEnumerable<EpgServiceInfo> additionalInfo = null)
         {
             if (keyList.All(key => !EpgServiceInfo.IsSPKey(key))) return keyList;
 
@@ -583,15 +583,15 @@ namespace EpgTimer
                     .Concat(additionalInfo ?? Enumerable.Empty<EpgServiceInfo>());
 
             List<EpgServiceInfo> infoList = ChSet5.GetSortedChList(list1.Distinct(), true, true).ToList();
-            var exDic = new Dictionary<UInt64, UInt64[]>();
-            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceDttv, infoList.Where(info => info.IsDttv).Select(info => info.Key).ToArray());
-            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceBS, infoList.Where(info => info.IsBS).Select(info => info.Key).ToArray());
-            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceCS, infoList.Where(info => info.IsCS).Select(info => info.Key).ToArray());
-            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceCS3, infoList.Where(info => info.IsSPHD).Select(info => info.Key).ToArray());
-            exDic.Add((UInt64)EpgServiceInfo.SpecialViewServices.ViewServiceOther, infoList.Where(info => info.IsOther).Select(info => info.Key).ToArray());
+            var exDic = new Dictionary<ulong, ulong[]>();
+            exDic.Add((ulong)EpgServiceInfo.SpecialViewServices.ViewServiceDttv, infoList.Where(info => info.IsDttv).Select(info => info.Key).ToArray());
+            exDic.Add((ulong)EpgServiceInfo.SpecialViewServices.ViewServiceBS, infoList.Where(info => info.IsBS).Select(info => info.Key).ToArray());
+            exDic.Add((ulong)EpgServiceInfo.SpecialViewServices.ViewServiceCS, infoList.Where(info => info.IsCS).Select(info => info.Key).ToArray());
+            exDic.Add((ulong)EpgServiceInfo.SpecialViewServices.ViewServiceCS3, infoList.Where(info => info.IsSPHD).Select(info => info.Key).ToArray());
+            exDic.Add((ulong)EpgServiceInfo.SpecialViewServices.ViewServiceOther, infoList.Where(info => info.IsOther).Select(info => info.Key).ToArray());
 
-            var exList = new List<UInt64>();
-            foreach (UInt64 key in keyList)
+            var exList = new List<ulong>();
+            foreach (ulong key in keyList)
             {
                 if(exDic.ContainsKey(key))//一応チェック
                 {
@@ -605,7 +605,7 @@ namespace EpgTimer
             return exList.Distinct().ToList();
         }
 
-        public ErrCode LoadEpgData(ref Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic, EpgViewPeriod period = null, IEnumerable<ulong> keys = null)
+        public ErrCode LoadEpgData(ref Dictionary<ulong, EpgServiceAllEventInfo> serviceDic, EpgViewPeriod period = null, IEnumerable<ulong> keys = null)
         {
             ErrCode err = ReloadEpgData();
             if (err != ErrCode.CMD_SUCCESS) return err;
@@ -702,11 +702,11 @@ namespace EpgTimer
         public List<EpgEventInfo> SearchPg(List<EpgSearchKeyInfo> key, EpgViewPeriod period = null)
         {
             //サービス名の補正など行うためにSearchPgLists()から作成する。
-            Dictionary<UInt64, EpgServiceAllEventInfo> dic = null;
+            Dictionary<ulong, EpgServiceAllEventInfo> dic = null;
             SearchPgLists(key, ref dic, period);
             return dic == null ? new List<EpgEventInfo>() : dic.Values.SelectMany(info => info.eventMergeList).ToList();
         }
-        public ErrCode SearchPgLists(List<EpgSearchKeyInfo> key, ref Dictionary<UInt64, EpgServiceAllEventInfo> serviceDic, EpgViewPeriod period = null)
+        public ErrCode SearchPgLists(List<EpgSearchKeyInfo> key, ref Dictionary<ulong, EpgServiceAllEventInfo> serviceDic, EpgViewPeriod period = null)
         {
             ErrCode err = ErrCode.CMD_SUCCESS;
 
@@ -830,7 +830,7 @@ namespace EpgTimer
             return ReloadWork(UpdateNotifyItem.RecInfo, immediately, noRaiseChanged, ret =>
             {
                 RecFileInfo = new Dictionary<uint, RecFileInfo>();
-                RecFileUIDList = new Dictionary<UInt64, List<RecFileInfo>>();
+                RecFileUIDList = new Dictionary<ulong, List<RecFileInfo>>();
                 var list = new List<RecFileInfo>();
 
                 try { ret = CommonManager.CreateSrvCtrl().SendEnumRecInfoBasic(ref list); } catch { ret = ErrCode.CMD_ERR; }

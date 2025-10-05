@@ -60,7 +60,7 @@ namespace EpgTimer
         /// <param name="path">出力先のファイル名(*.lnk)</param>
         /// <param name="targetPath">対象のアセンブリ(*.exe)</param>
         /// <param name="description">説明</param>
-        public static void CreateShortCut(String path, String targetPath, String description)
+        public static void CreateShortCut(string path, string targetPath, string description)
         {
             // WSHオブジェクトを作成し、CreateShortcutメソッドを実行する
             Type shellType = Type.GetTypeFromProgID("WScript.Shell");
