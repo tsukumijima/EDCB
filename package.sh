@@ -79,7 +79,7 @@ cp -fp "${src_bin_dir}/EpgTimerPlugIn.tvtp" "${dst_dir}/EpgTimerPlugIn.tvtp"
 cp -fp "${src_bin_dir}/EpgTimerSrv.exe" "${dst_dir}/EpgTimerSrv.exe"
 cp -fp "${src_bin_dir}/EpgDataCap3.dll" "${dst_dir}/EpgDataCap3.dll"
 cp -fp "${src_bin_dir}/EpgDataCap3_Unicode.dll" "${dst_dir}/EpgDataCap3_Unicode.dll"
-cp -fp "ini/Tools/IBonCast/${arch2}/${target}/IBonCast.dll" "${dst_dir}/IBonCast.dll"
+cp -fp "Tools/IBonCast/${arch2}/${target}/IBonCast.dll" "${dst_dir}/IBonCast.dll"
 cp -fp "${src_bin_dir}/SendTSTCP.dll" "${dst_dir}/SendTSTCP.dll"
 
 cp -fp "ConvToSJIS.bat" "${dst_dir}/ConvToSJIS.bat"
@@ -107,15 +107,16 @@ cp -fpr ini/HttpPublic "${dst_dir}"
 cp -fpr ini/PostBatExamples "${dst_dir}"
 cp -fp "${src_bin_dir}/RecName/RecName_Macro.dll" "${dst_dir}/RecName/RecName_Macro.dll"
 
-tools_files=(mail_credential.bat mail_credential.ps1 tsidmove_helper.bat watchip.bat watchip.ps1)
+tools_files=(tsidmove_helper.bat)
 for tools_file in ${tools_files[@]}
 do
-    cp -fp "ini/Tools/${tools_file}" "${dst_dir}/Tools/${tools_file}"
+    cp -fp "Tools/${tools_file}" "${dst_dir}/Tools/${tools_file}"
 done
 
-cp -fp "ini/Tools/tsidmove/${arch2}/${target}/tsidmove.exe" "${dst_dir}/Tools/tsidmove.exe"
-cp -fp "ini/Tools/${arch2}/${target}/asyncbuf.exe" "${dst_dir}/Tools/asyncbuf.exe"
-cp -fp "ini/Tools/${arch2}/${target}/relayread.exe" "${dst_dir}/Tools/relayread.exe"
+cp -fp "Tools/tsidmove/${arch2}/${target}/tsidmove.exe" "${dst_dir}/Tools/tsidmove.exe"
+cp -fp "Tools/tspgtxt/${arch2}/${target}/tspgtxt.exe" "${dst_dir}/Tools/tspgtxt.exe"
+cp -fp "Tools/${arch2}/${target}/asyncbuf.exe" "${dst_dir}/Tools/asyncbuf.exe"
+cp -fp "Tools/${arch2}/${target}/relayread.exe" "${dst_dir}/Tools/relayread.exe"
 cp -fp "${src_bin_dir}/Write/Write_Default.dll" "${dst_dir}/Write/Write_Default.dll"
 
 version=
