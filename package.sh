@@ -9,6 +9,9 @@
 ## Target
 ##  -t debug|release
 
+# いずれかのコマンドがエラーになったら直ちに終了する
+set -euo pipefail
+
 arch=
 target=release
 out_dir=package
@@ -79,7 +82,7 @@ cp -fp "${src_bin_dir}/EpgTimerPlugIn.tvtp" "${dst_dir}/EpgTimerPlugIn.tvtp"
 cp -fp "${src_bin_dir}/EpgTimerSrv.exe" "${dst_dir}/EpgTimerSrv.exe"
 cp -fp "${src_bin_dir}/EpgDataCap3.dll" "${dst_dir}/EpgDataCap3.dll"
 cp -fp "${src_bin_dir}/EpgDataCap3_Unicode.dll" "${dst_dir}/EpgDataCap3_Unicode.dll"
-cp -fp "Tools/IBonCast/${arch2}/${target}/IBonCast.dll" "${dst_dir}/IBonCast.dll"
+cp -fp "${src_bin_dir}/IBonCast.dll" "${dst_dir}/IBonCast.dll"
 cp -fp "${src_bin_dir}/SendTSTCP.dll" "${dst_dir}/SendTSTCP.dll"
 
 cp -fp "ConvToSJIS.bat" "${dst_dir}/ConvToSJIS.bat"
@@ -113,10 +116,10 @@ do
     cp -fp "Tools/${tools_file}" "${dst_dir}/Tools/${tools_file}"
 done
 
-cp -fp "Tools/tsidmove/${arch2}/${target}/tsidmove.exe" "${dst_dir}/Tools/tsidmove.exe"
-cp -fp "Tools/tspgtxt/${arch2}/${target}/tspgtxt.exe" "${dst_dir}/Tools/tspgtxt.exe"
-cp -fp "Tools/${arch2}/${target}/asyncbuf.exe" "${dst_dir}/Tools/asyncbuf.exe"
-cp -fp "Tools/${arch2}/${target}/relayread.exe" "${dst_dir}/Tools/relayread.exe"
+cp -fp "${src_bin_dir}/Tools/tsidmove.exe" "${dst_dir}/Tools/tsidmove.exe"
+cp -fp "${src_bin_dir}/Tools/tspgtxt.exe" "${dst_dir}/Tools/tspgtxt.exe"
+cp -fp "${src_bin_dir}/Tools/asyncbuf.exe" "${dst_dir}/Tools/asyncbuf.exe"
+cp -fp "${src_bin_dir}/Tools/relayread.exe" "${dst_dir}/Tools/relayread.exe"
 cp -fp "${src_bin_dir}/Write/Write_Default.dll" "${dst_dir}/Write/Write_Default.dll"
 
 version=
