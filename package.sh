@@ -85,8 +85,6 @@ cp -fp "${src_bin_dir}/EpgDataCap3_Unicode.dll" "${dst_dir}/EpgDataCap3_Unicode.
 cp -fp "${src_bin_dir}/IBonCast.dll" "${dst_dir}/IBonCast.dll"
 cp -fp "${src_bin_dir}/SendTSTCP.dll" "${dst_dir}/SendTSTCP.dll"
 
-cp -fp "ConvToSJIS.bat" "${dst_dir}/ConvToSJIS.bat"
-cp -fp "ConvToUTF8.bat" "${dst_dir}/ConvToUTF8.bat"
 cp -fp "LICENSE-Civetweb.md" "${dst_dir}/LICENSE-Civetweb.md"
 
 doc_files=(History.txt HowToBuild.txt Readme.txt Readme_EpgDataCap_Bon.txt Readme_EpgTimer.txt Readme_Mod.txt)
