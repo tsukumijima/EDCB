@@ -10,6 +10,7 @@ open=query and GetVarInt(query,'open')==1
 query=mg.request_info.query_string
 fpath=mg.get_var(query,'fname')
 if fpath then
+  fname=mg.md5(fpath:upper()):sub(27)
   fpath=DocumentToNativePath(fpath)
 end
 
@@ -34,6 +35,8 @@ if hlsKey and not (ALLOW_HLS and option.outputHls) then
 end
 psidata=GetVarInt(query,'psidata')==1
 jikkyo=GetVarInt(query,'jikkyo')==1
+jkID=GetVarInt(query,'jkid',1,65535)
+jkTM=GetVarInt(query,'jktm',1)
 reload=mg.get_var(query,'reload')
 loadKey=reload or mg.get_var(query,'load') or ''
 
@@ -44,29 +47,8 @@ hlsKey=hlsKey and fpath and mg.md5('xcode:'..hlsKey..':'..fpath)
 function OpenTranscoder()
   local searchName='xcode-'..mg.md5(loadKey):sub(17)
   if XCODE_SINGLE then
-    -- トランスコーダーの親プロセスのリストを作る
-    local pids=nil
-    if WIN32 then
-      local pf=edcb.io.popen('wmic process where "name=\'tsreadex.exe\' and commandline like \'% -z edcb-legacy-%\'" get parentprocessid 2>nul | findstr /b [1-9]')
-      if pf then
-        for pid in (pf:read('*a') or ''):gmatch('[1-9][0-9]*') do
-          pids=(pids and pids..' or ' or '')..'processid='..pid
-        end
-        pf:close()
-      end
-    end
-    -- パイプラインの上流を終わらせる
+    -- パイプラインの上流をすべて終わらせる
     TerminateCommandlineLike('tsreadex',' -z edcb-legacy-')
-    if pids then
-      -- 親プロセスの終了を2秒だけ待つ。パイプラインの下流でストールしている可能性もあるので待ちすぎない
-      -- wmicコマンドのない環境では待たないがここの待機はさほど重要ではない
-      for i=1,4 do
-        edcb.Sleep(500)
-        if i==4 or not edcb.os.execute('wmic process where "'..pids..'" get processid 2>nul | findstr /b [1-9] >nul') then
-          break
-        end
-      end
-    end
   elseif reload then
     -- リロード時は前回のプロセスを速やかに終わらせる
     TerminateCommandlineLike('tsreadex',' -z edcb-legacy-'..searchName..' ')
@@ -168,9 +150,9 @@ function OpenPsiDataArchiver()
   return edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd,'r'..POPEN_BINARY)
 end
 
-function OpenJikkyoReader(tot,nid,sid)
+function OpenJikkyoReader(tot,jkID,nid,sid)
   if JKRDLOG_PATH then
-    local jkID=GetJikkyoID(nid,sid)
+    jkID=jkID or GetJikkyoID(nid,sid)
     if not jkID then
       return 'Unable to determine Jikkyo ID.'
     end
@@ -243,10 +225,10 @@ if fpath then
   if hlsKey and not open and not psidata and not jikkyo then
     f=OpenTsmemsegPipe(hlsKey..'_','00')
   else
-    fname='xcode'..(fpath:match('%.[0-9A-Za-z]+$') or '')
-    fnamets='xcode'..edcb.GetPrivateProfile('SET','TSExt','.ts','EpgTimerSrv.ini')
+    ext=fpath:match('%.[0-9A-Za-z]+$') or ''
+    extts=edcb.GetPrivateProfile('SET','TSExt','.ts','EpgTimerSrv.ini')
     -- 拡張子を限定
-    if IsEqualPath(fname,fnamets) then
+    if IsEqualPath(ext,extts) then
       f=edcb.io.open(fpath,'rb')
       if f then
         if ofssec then
@@ -286,17 +268,17 @@ if fpath then
             end
           end
           if f and jikkyo then
-            f.jk=tot and OpenJikkyoReader(tot,nid,sid)
+            f.jk=tot and OpenJikkyoReader(jkTM or tot,jkID,nid,sid)
             if not f.jk then
               if f.psi then f.psi:close() end
               f=nil
             end
           end
-          fname='xcode.psc.txt'
+          fname=fname..'.psc.txt'
         else
           f:close()
           f=OpenTranscoder()
-          fname='xcode.'..output[1]
+          fname=fname..'.'..output[1]
         end
       end
     end
@@ -304,10 +286,7 @@ if fpath then
 end
 
 if not f then
-  ct=CreateContentBuilder()
-  ct:Append(DOCTYPE_HTML4_STRICT..'<title>xcode.lua</title><p><a href="index.html">メニュー</a></p>')
-  ct:Finish()
-  mg.write(ct:Pop(Response(404,'text/html','utf-8',ct.len)..'\r\n'))
+  mg.write(Response(404,nil,nil,0)..'\r\n')
 elseif psidata or jikkyo then
   -- PSI/SI、実況、またはその混合データストリームを返す
   mg.write(Response(200,mg.get_mime_type(fname),'utf-8')..'Content-Disposition: filename='..fname..'\r\n\r\n')

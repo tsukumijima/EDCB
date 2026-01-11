@@ -78,7 +78,7 @@ namespace EpgTimer
                         for (mergePos = i; mergePos + 1 < serviceEventList.Count; mergePos++)
                         {
                             EpgServiceInfo next = serviceEventList[mergePos + 1].serviceInfo;
-                            if (next.ONID != curr.ONID || next.TSID != curr.TSID || next.SID >= curr.SID)
+                            if (!viewInfo.CombineProgramByReverseSID || next.ONID != curr.ONID || next.TSID != curr.TSID || next.SID >= curr.SID)
                             {
                                 break;
                             }
@@ -167,7 +167,7 @@ namespace EpgTimer
                         for (mergePos = i; mergePos + 1 < serviceEventList.Count; mergePos++)
                         {
                             EpgServiceInfo next = serviceEventList[mergePos + 1].serviceInfo;
-                            if (next.ONID != curr.ONID || next.TSID != curr.TSID || next.SID >= curr.SID)
+                            if (!viewInfo.CombineProgramByReverseSID || next.ONID != curr.ONID || next.TSID != curr.TSID || next.SID >= curr.SID)
                             {
                                 break;
                             }
@@ -183,7 +183,7 @@ namespace EpgTimer
                             {
                                 break;
                             }
-                            else if (next.SID < curr.SID)
+                            else if (viewInfo.CombineProgramByReverseSID && next.SID < curr.SID)
                             {
                                 spanCheckNum--;
                                 break;

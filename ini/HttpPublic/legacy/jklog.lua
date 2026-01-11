@@ -235,9 +235,12 @@ if JKRDLOG_PATH then
     end
     if totList and nid and sid then
       code=404
-      jkID=GetJikkyoID(nid,sid)
+      jkID=GetVarInt(mg.request_info.query_string,'jkid',1,65535)
+      jkID=jkID or GetJikkyoID(nid,sid)
       if jkID then
         code=200
+        jkTM=GetVarInt(mg.request_info.query_string,'jktm',1)
+        jkTM=jkTM and #totList>0 and jkTM-totList[1].tot or 0
       end
     end
   end
@@ -248,7 +251,7 @@ if code==200 then
   currSec=1
   for i,v in ipairs(totList) do
     if v.tot<v.totEnd then
-      cmd=(WIN32 and QuoteCommandArgForPath(JKRDLOG_PATH) or FindToolsCommand(JKRDLOG_PATH))..' jk'..jkID..' '..v.tot..' '..v.totEnd
+      cmd=(WIN32 and QuoteCommandArgForPath(JKRDLOG_PATH) or FindToolsCommand(JKRDLOG_PATH))..' jk'..jkID..' '..(v.tot+jkTM)..' '..(v.totEnd+jkTM)
       f=edcb.io.popen(WIN32 and '"'..cmd..'"' or cmd)
       if f then
         while true do
@@ -258,7 +261,7 @@ if code==200 then
             -- ヘッダを余分に挿入してチャンクの数と秒数を一致させる
             extraHead=buf:match('^<!%-%- J=[0-9]+')
             if extraHead then
-              extraHead=extraHead..';T='..v.tot..';L=0;N=0'
+              extraHead=extraHead..';T='..(v.tot+jkTM)..';L=0;N=0'
               extraHead=extraHead..(' '):rep(76-#extraHead)..'-->\n'
               while currSec<v.sec do
                 ct:Append(extraHead)

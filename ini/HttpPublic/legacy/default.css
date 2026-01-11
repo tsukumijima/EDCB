@@ -421,6 +421,17 @@ th, td {
   border: 2px solid var(--light, #f00) var(--dark, #f55);
 }
 
+#ccinfo-desc {
+  font-size: small;
+}
+
+#ccinfo-desc > small {
+  font-size: x-small;
+  margin-left: 0.2em;
+  margin-right: 0.2em;
+  opacity: 0.8;
+}
+
 #vid-thumbs {
   position: relative;
 }
@@ -753,17 +764,28 @@ th, td {
   width: 0;
 }
 
-#jikkyo-comm > button {
-  display: none;
+#jikkyo-comm button {
   margin: 0;
 }
 
-#jikkyo-comm.shiftable > button {
-  display: unset;
+#jikkyo-comm > canvas {
+  height: 1.5em;
+  vertical-align: top;
+  width: 100%;
 }
 
+#jikkyo-config > input {
+  margin: 0.1em;
+}
+
+#jikkyo-config,
+#jikkyo-comm.minimized > #jikkyo-config,
 #jikkyo-comm.minimized > button {
   display: none;
+}
+
+#jikkyo-config.display {
+  display: inline-block;
 }
 
 #jikkyo-chats {

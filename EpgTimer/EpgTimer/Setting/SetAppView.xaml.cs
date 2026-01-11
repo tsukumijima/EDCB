@@ -246,6 +246,8 @@ namespace EpgTimer.Setting
             checkBox_recInfoFolderOnly.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecInfoFolderOnly", true, SettingPath.TimerSrvIniPath);
             checkBox_autoDelRecInfo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "AutoDelRecInfo", false, SettingPath.TimerSrvIniPath);
             textBox_autoDelRecInfo.Text = IniFileHandler.GetPrivateProfileInt("SET", "AutoDelRecInfoNum", 100, SettingPath.TimerSrvIniPath).ToString();
+            textBox_RecInfo2Max.Text = IniFileHandler.GetPrivateProfileInt("SET", "RecInfo2Max", 1000, SettingPath.TimerSrvIniPath).ToString();
+            textBox_RecInfo2DropChk.Text = IniFileHandler.GetPrivateProfileInt("SET", "RecInfo2DropChk", 2, SettingPath.TimerSrvIniPath).ToString();
             checkBox_recInfoDelFile.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "RecInfoDelFile", false, SettingPath.CommonIniPath);
             checkBox_applyExtTo.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "ApplyExtToRecInfoDel", false, SettingPath.TimerSrvIniPath);
             checkBox_autoDel.IsChecked = IniFileHandler.GetPrivateProfileBool("SET", "AutoDel", false, SettingPath.TimerSrvIniPath);
@@ -353,6 +355,8 @@ namespace EpgTimer.Setting
             IniFileHandler.WritePrivateProfileString("SET", "RecInfo2RegExp", text_RecInfo2RegExp.Text, "", SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfo", checkBox_autoDelRecInfo.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "AutoDelRecInfoNum", textBox_autoDelRecInfo.Text, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "RecInfo2Max", textBox_RecInfo2Max.Text, SettingPath.TimerSrvIniPath);
+            IniFileHandler.WritePrivateProfileString("SET", "RecInfo2DropChk", textBox_RecInfo2DropChk.Text, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "RecInfoDelFile", checkBox_recInfoDelFile.IsChecked, false, SettingPath.CommonIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "ApplyExtToRecInfoDel", checkBox_applyExtTo.IsChecked, SettingPath.TimerSrvIniPath);
             IniFileHandler.WritePrivateProfileString("SET", "AutoDel", checkBox_autoDel.IsChecked, SettingPath.TimerSrvIniPath);

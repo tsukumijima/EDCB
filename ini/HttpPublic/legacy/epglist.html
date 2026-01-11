@@ -1,5 +1,8 @@
 -- vim:set ft=lua:
 dofile(mg.script_name:gsub('[^\\/]*$','')..'util.lua')
+if USE_LIVEJK then
+  dofile(mg.script_name:gsub('[^\\/]*$','')..'jkconst.lua')
+end
 
 vtag=GetVarInt(mg.request_info.query_string,'vtag') or -1
 
@@ -78,8 +81,8 @@ else
   rtComp=CompareFields('eid')
   programReservedStart=BinarySearchBound(rt,{eid=65535},rtComp)
 
-  --前後2週間の番組だけ取得する
-  range={startTime=os.date('!*t',baseTime+(date-14)*24*3600),durationSecond=28*24*3600}
+  --前1+後27日間の番組だけ取得する
+  range={startTime=os.date('!*t',baseTime+(date-1)*24*3600),durationSecond=28*24*3600}
   et=edcb.EnumEventInfo({{onid=onid,tsid=tsid,sid=sid}},range) or {}
   for i,v in ipairs(edcb.EnumEventInfoArchive and edcb.EnumEventInfoArchive({{onid=onid,tsid=tsid,sid=sid}},range) or {}) do
     v.past=true
@@ -145,7 +148,7 @@ else
   end
   ct:Append('</div>\n')
   if date<0 then
-    ct:Append('<div class="page-nav">\n  <a href="epglist.html?id='..onid..'-'..tsid..'-'..sid..'&amp;date='..(date+28)..'">↓↓</a>\n</div>\n')
+    ct:Append('<div class="page-nav">\n  <a href="epglist.html?id='..onid..'-'..tsid..'-'..sid..(date<-28 and '&amp;date='..(date+28) or '')..'">↓↓</a>\n</div>\n')
   end
 end
 
@@ -191,7 +194,7 @@ else
     ct:Append('\n'..VideoWrapperBegin()
       ..(xq.tslive and '<canvas id="video" data-src="'..src..'"></canvas>' or
            '<video id="video" autoplay playsinline controls '..(ALLOW_HLS and 'data-' or '')..'src="'..src..'">view</video>')
-      ..VideoWrapperEnd()..'\n'..TranscodeScriptTemplate(true,xq.caption,xq.jikkyo,{n=n,id=onid..'-'..tsid..'-'..sid}))
+      ..VideoWrapperEnd(USE_LIVEJK and GetChatStreamNameList())..'\n'..TranscodeScriptTemplate(true,xq.caption,xq.jikkyo,{n=n,id=onid..'-'..tsid..'-'..sid}))
     if xq.tslive then
       ct:Append(TsliveScriptTemplate(xq.autoCinema))
     elseif ALLOW_HLS then

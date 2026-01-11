@@ -44,6 +44,8 @@ if post then
   edcb.WritePrivateProfile('SET','TimeSync',GetVarInt(post,'timeSync')==1,srvIni)
   edcb.WritePrivateProfile('SET','AutoDelRecInfo',GetVarInt(post,'autoDelRecInfo')==1,srvIni)
   edcb.WritePrivateProfile('SET','AutoDelRecInfoNum',GetVarInt(post,'autoDelRecInfoNum',0) or 100,srvIni)
+  edcb.WritePrivateProfile('SET','RecInfo2Max',GetVarInt(post,'recInfo2Max',0) or 1000,srvIni)
+  edcb.WritePrivateProfile('SET','RecInfo2DropChk',GetVarInt(post,'recInfo2DropChk',0) or 2,srvIni)
   edcb.WritePrivateProfile('SET','TSExt',(mg.get_var(post,'tsExt') or ''):match('^%.[0-9A-Za-z][0-9A-Za-z]?[0-9A-Za-z]?[0-9A-Za-z]?[0-9A-Za-z]?$') or '.ts',srvIni)
   --何版か仮定できないのでCompatFlagsは閲覧のみ
   ct:Append('<div id="result">変更しました</div>\n')
@@ -72,6 +74,8 @@ saveDebugLog=edcb.GetPrivateProfile('SET','SaveDebugLog',0,srvIni)~='0'
 timeSync=edcb.GetPrivateProfile('SET','TimeSync',0,srvIni)~='0'
 autoDelRecInfo=edcb.GetPrivateProfile('SET','AutoDelRecInfo',0,srvIni)~='0'
 autoDelRecInfoNum=edcb.GetPrivateProfile('SET','AutoDelRecInfoNum',100,srvIni)
+recInfo2Max=edcb.GetPrivateProfile('SET','RecInfo2Max',1000,srvIni)
+recInfo2DropChk=edcb.GetPrivateProfile('SET','RecInfo2DropChk',2,srvIni)
 tsExt=edcb.GetPrivateProfile('SET','TSExt','.ts',srvIni)
 compatFlags=tonumber(edcb.GetPrivateProfile('SET','CompatFlags',0,srvIni)) or 0
 
@@ -91,6 +95,8 @@ ct:Append([=[
   <div class="enabled-on-checked">
     保持件数 <input type="text" name="autoDelRecInfoNum" value="]=]..autoDelRecInfoNum..[=[" size="8">
   </div>
+  正常に録画した番組情報(RecInfo2)の蓄積数 <input type="text" name="recInfo2Max" value="]=]..recInfo2Max..[=[" size="8">
+  &nbsp;ドロップ数しきい値 <input type="text" name="recInfo2DropChk" value="]=]..recInfo2DropChk..[=[" size="8"> 未満<br>
   EPG取得後も番組情報を <select name="epgArchivePeriod">]=])
 for i=0,14 do
   ct:Append('<option'..Selected(math.floor(epgArchivePeriodHour/24)==i)..'>'..i)

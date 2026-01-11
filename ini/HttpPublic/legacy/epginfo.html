@@ -95,7 +95,7 @@ if ev and ev.startTime then
 end
 
 ct:Append('  <dl>\n'
-  ..'    <dt id="pginfo-term">番組情報</dt><dd id="pginfo-desc">'..ConvertProgramText(ev):gsub('\r?\n','<br>\n')..'</dd>\n')
+  ..'    <dt id="pginfo-term">番組情報</dt><dd id="pginfo-desc">'..DecorateProgramText(ConvertProgramText(ev))..'</dd>\n')
 if r then
   dur=r.startTime.hour*3600+r.startTime.min*60+r.startTime.sec+r.durationSecond
   ct:Append('    <dt>プログラム予約化（プログラム予約化は元に戻せません。番組を特定できなくなるため追従もできません。）</dt><dd>\n'

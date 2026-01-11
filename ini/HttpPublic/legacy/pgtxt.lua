@@ -3,6 +3,7 @@ dofile(mg.script_name:gsub('[^\\/]*$','')..'util.lua')
 
 fpath=mg.get_var(mg.request_info.query_string,'fname')
 if fpath then
+  fname=mg.md5(fpath:upper()):sub(27)..'.program.txt'
   fpath=DocumentToNativePath(fpath)
 end
 
@@ -81,9 +82,9 @@ if code==200 then
   ct=CreateContentBuilder(GZIP_THRESHOLD_BYTE)
   -- 装飾済みで返す
   edcb.htmlEscape=15
-  ct:Append(DecorateUri(EdcbHtmlEscape(s)):gsub('\r?\n','<br>\n'))
+  ct:Append(DecorateProgramText(EdcbHtmlEscape(s)))
   ct:Finish()
-  mg.write(ct:Pop(Response(200,mg.get_mime_type('a.txt'),'utf-8',ct.len,ct.gzip)..'\r\n'))
+  mg.write(ct:Pop(Response(200,mg.get_mime_type(fname),'utf-8',ct.len,ct.gzip)..'Content-Disposition: filename='..fname..'\r\n\r\n'))
 else
   mg.write(Response(code,nil,nil,0)..'\r\n')
 end

@@ -414,27 +414,44 @@ function VideoWrapperBegin()
     ..'<div class="video-container arib-video-container arib-video-container-prepend arib-video-container-tunnel-pointer" id="vid-cont">'
 end
 
-function VideoWrapperEnd()
-  return '</div><div id="jikkyo-comm" style="display:none">'
-    ..'<button type="button" onclick="shiftJikkyo(-15)">-15</button>'
-    ..'<button type="button" onclick="shiftJikkyo(-1)">-1</button>'
-    ..'<button type="button" onclick="shiftJikkyo(1)">+1</button>'
-    ..'<button type="button" onclick="shiftJikkyo(15)">+15</button>'
-    ..'<div id="jikkyo-chats"></div></div></div></div>'
+function VideoWrapperEnd(jkList,shiftable)
+  local s='</div>'
+  if jkList then
+    s=s..'<div id="jikkyo-comm"'..(shiftable and ' data-shiftable="1"' or '')..' style="display:none">'
+      ..(shiftable and table.concat({'','-15)">-15','-1)">-1','1)">+1','15)">+15',''},'</button><button type="button" onclick="shiftJikkyo('):match('>(.*)<') or '')
+      ..'<button type="button" onclick="document.getElementById(\'jikkyo-config\').classList.toggle(\'display\')">Set</button>'
+      ..'<span id="jikkyo-config"><select name="id">\n'
+      ..'<option value="0" selected>jk? (初期値)\n'
+    local esc=edcb.htmlEscape
+    edcb.htmlEscape=15
+    for i,v in ipairs(jkList) do
+      s=s..'<option value="'..v[1]..'">jk'..v[1]..' ('..EdcbHtmlEscape(v[2])..')\n'
+    end
+    edcb.htmlEscape=esc
+    local i=0
+    s=s..'</select><input name="tm" type="datetime-local"><select name="tmsec"><option selected>00s'
+      ..('_'):rep(59):gsub('_',function() i=i+1 return ('<option>%02ds'):format(i) end)
+      ..'</select><button type="button">変更</button></span><div id="jikkyo-chats"></div></div>'
+  end
+  s=s..'</div></div>'
+  return s
 end
 
 function TranscodeSettingTemplate(xq,forDL,fsec)
   local s='<select name="option">'
+  local esc=edcb.htmlEscape
+  edcb.htmlEscape=15
   for i,v in ipairs(XCODE_OPTIONS) do
     if forDL or v.tslive or not ALLOW_HLS or not ALWAYS_USE_HLS or v.outputHls then
       s=s..'<option value="'..i..'"'..Selected((xq.option or XCODE_SELECT_OPTION)==i)..'>'..EdcbHtmlEscape(v.name)
     end
   end
+  edcb.htmlEscape=esc
   s=s..'</select>\n'
   if fsec then
     s=s..'<select name="offset">'
     for i=0,100 do
-      s=s..'<option value="'..i..'"'..Selected((xq.offset or 0)==i)..'>'
+      s=s..'<option value="'..i..'"'..Selected((xq.offset or 0)==i)..(fsec>0 and ' data-sec="'..math.floor(fsec*i/100)..'"' or '')..'>'
         ..(fsec>0 and ('%dm%02ds'):format(math.floor(fsec*i/100/60),fsec*i/100%60)..(i%5==0 and '|'..i..'%' or '') or i..'%')
     end
     s=s..'</select>\n'
@@ -465,7 +482,7 @@ end
 
 function OnscreenButtonsScriptTemplate()
   return [=[
-<script src="script.js?ver=20250907"></script>
+<script src="script.js?ver=20251011"></script>
 <script>
 runOnscreenButtonsScript();
 </script>
@@ -508,35 +525,31 @@ function WebBmlScriptTemplate(label)
 ]=]) or ''
 end
 
-function JikkyoScriptTemplate(live,shiftable,jikkyo)
+function JikkyoScriptTemplate(live,jikkyo)
   return (live and USE_LIVEJK or not live and JKRDLOG_PATH) and [=[
 <label class="video-side-item"><input id="cb-jikkyo"]=]..Checkbox(jikkyo)..[=[>jikkyo</label>
 <label class="video-side-item enabled-on-checked"><input id="cb-jikkyo-onscr" type="checkbox" checked>scr</label>
 <script src="danmaku.js"></script>
 <script>
-runJikkyoScript(]=]..(shiftable and 'true' or 'false')..','..JK_COMMENT_HEIGHT..','..JK_COMMENT_DURATION..',function(tag){'..JK_CUSTOM_REPLACE..[=[
+runJikkyoScript(]=]..JK_COMMENT_HEIGHT..','..JK_COMMENT_DURATION..',function(tag){'..JK_CUSTOM_REPLACE..[=[
   return tag;});
 </script>
 ]=] or ''
 end
 
 function VideoScriptTemplate(ists)
-  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate(ists and 'data' or 'data.psc')..JikkyoScriptTemplate(false,true,XCODE_CHECK_JIKKYO)..[=[
+  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate(ists and 'data' or 'data.psc')..JikkyoScriptTemplate(false,XCODE_CHECK_JIKKYO)..[=[
 <label id="label-caption" class="video-side-item" style="display:none"><input id="cb-caption"]=]..Checkbox(XCODE_CHECK_CAPTION)..[=[>CC.vtt</label>
 <script src="aribb24.js"></script>
 <script>
 ]=]..(VIDEO_MUTED and 'vid.e.muted=true;\n' or '')..(VIDEO_VOLUME and 'vid.e.volume='..VIDEO_VOLUME..';\n' or '')..[=[
-runVideoScript(]=]
-  ..(ARIBB24_USE_SVG and 'true' or 'false')..',{'..ARIBB24_JS_OPTION..'},'
-  ..(USE_DATACAST and (ists and '2' or '1') or '0')..','
-  ..(JKRDLOG_PATH and 'true' or 'false')..[=[
-);
+runVideoScript(]=]..(ARIBB24_USE_SVG and 'true' or 'false')..',{'..ARIBB24_JS_OPTION..'}'..[=[);
 </script>
 ]=]
 end
 
 function TranscodeScriptTemplate(live,caption,jikkyo,params)
-  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate('data')..JikkyoScriptTemplate(live,false,jikkyo)..[=[
+  return OnscreenButtonsScriptTemplate()..WebBmlScriptTemplate('data')..JikkyoScriptTemplate(live,jikkyo)..[=[
 <label id="label-caption" class="video-side-item" style="display:none"><input id="cb-caption"]=]..Checkbox(caption)..[=[>CC</label>
 ]=]..(live and '<label class="video-side-item"><input id="cb-live" type="checkbox">live</label>\n' or '')
   ..(not live and THUMBNAIL_ON_SEEK and EdcbFindFilePlain(mg.script_name:gsub('[^\\/]*$','')..'ts-live-misc.js') and [=[
@@ -551,14 +564,9 @@ function TranscodeScriptTemplate(live,caption,jikkyo,params)
 <button id="vid-unmute" class="video-side-item" type="button" style="display:none">🔊</button>
 <script>
 ]=]..(XCODE_VIDEO_MUTED and '(vid.c||vid.e).muted=true;\n' or '')..(VIDEO_VOLUME and '(vid.c||vid.e).volume='..VIDEO_VOLUME..';\n' or '')..[=[
-runTranscodeScript(]=]
-  ..(USE_DATACAST and 'true' or 'false')..','
-  ..(live and USE_LIVEJK and 'true' or 'false')..','
-  ..(not live and JKRDLOG_PATH and 'true' or 'false')..','
-  ..math.floor(params.ofssec or 0)..','
-  ..(params.fast and params.fast~=0 and XCODE_FAST_RATES[params.fast] or 1)..','
-  ..'"'..(live and USE_LIVEJK and 'ctok='..CsrfToken('comment.lua')..'&n='..params.n..(params.id and '&id='..params.id or '') or '')..'"'..[=[
-);
+vid.ofssec=]=]..math.floor(params.ofssec or 0)..[=[;
+vid.fast=]=]..(params.fast and params.fast~=0 and XCODE_FAST_RATES[params.fast] or 1)..[=[;
+runTranscodeScript("]=]..(live and USE_LIVEJK and 'ctok='..CsrfToken('comment.lua')..'&n='..params.n..(params.id and '&id='..params.id or '') or '')..[=[");
 </script>
 ]=]
 end
@@ -638,8 +646,7 @@ function ConvertProgramText(v)
     s=s..'\n'..((v.shortInfo and v.shortInfo.event_name or ''):gsub('\r',''):gsub('^\n+','')..'\n'):gsub('\n\n+','\n')..'\n'
       ..DecorateUri(((v.shortInfo and v.shortInfo.text_char or ''):gsub('\r',''):gsub('^\n+','')..'\n'):gsub('\n\n+','\n'))..'\n'
     if v.extInfo then
-      s=s..'<small>詳細情報</small>'..DecorateUri(('\n'..(v.extInfo.text_char:gsub('\r',''):gsub('^\n+','')..'\n\n'):gsub('\n\n\n+','\n\n'))
-          :gsub('\n%- ([^\n]*)','\n<span class="escape-text">- </span><b>%1</b>'))..'\n'
+      s=s..'詳細情報\n'..(v.extInfo.text_char:gsub('\r',''):gsub('^\n+','')..'\n\n'):gsub('\n\n\n+','\n\n')..'\n'
     end
     if v.contentInfoList then
       s=s..'ジャンル : \n'
@@ -687,6 +694,29 @@ function ConvertProgramText(v)
       ..('EventID:%d(0x%04X)\n'):format(v.eid,v.eid)
   end
   return s
+end
+
+--番組情報の文字列をタグ装飾する
+function DecorateProgramText(s)
+  s=s:gsub('\r?\n','\n')
+  --日時とサービス名と番組名をスキップ
+  local i,j=s:find('^[^\n]*\n[^\n]*\n.-\n\n')
+  if i then
+    --番組内容を装飾
+    i,j=s:find('^.-\n\n',j+1)
+    if i then
+      local t=DecorateUri(s:sub(i,j))
+      s=s:sub(1,i-1)..t..s:sub(j+1)
+      --詳細情報があれば装飾
+      i,j=s:find('^詳細情報\n.-\n\n\n',i+#t)
+      if i then
+        s=s:sub(1,i-1)..'<small>詳細情報</small>'
+          ..DecorateUri(s:sub(i+12,j):gsub('\n%- ([^\n]*)','\n<span class="escape-text">- </span><b>%1</b>'))
+          ..s:sub(j+1)
+      end
+    end
+  end
+  return s:gsub('\n','<br>\n')
 end
 
 --録画設定フォームのテンプレート

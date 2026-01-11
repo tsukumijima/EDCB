@@ -34,8 +34,9 @@ ct:Append(DOCTYPE_HTML4_STRICT..[=[
     トランスコーダーなどのバージョンはとくに指定しませんが、なるべく新しいものを用意してください。<br>
     ブラウザの制限により自動再生されないことがあるので、その場合は再生画面をクリックやタップしてください。
   </p><p>
-    <a rel="noreferrer" href="https://github.com/ts-live/ts-live">TS-Live!</a>のWebAssemblyモジュールを利用してブラウザ上でMPEG2の再生やサムネイル画像の表示ができます。<br>
-    利用する場合は<a rel="noreferrer" href="https://github.com/xtne6f/ts-live/tree/main/public/wasm">ts-live@xtne6f/public/wasm</a>からts-live(-misc).jsとts-live(-misc).wasmの4ファイルを取得してこのWebUIに配置し、トランスコードオプションで「TS-Live!」を選んでください。<br>
+    <a rel="noreferrer" href="https://github.com/ts-live/ts-live">TS-Live!</a>のWebAssemblyモジュールを利用してブラウザ上でMPEG2の再生やサムネイル画像の表示ができます
+    (このWebUIに配置済みのものは<a rel="noreferrer" href="https://github.com/xtne6f/ts-live/tree/main/public/wasm">ts-live@xtne6f/public/wasm</a>)。<br>
+    利用する場合はトランスコードオプションで「TS-Live!」を選んでください。<br>
     MPEG2の再生にはWebGPUが利用できること、localhostからのアクセス等セキュアコンテキストであること(<a href="#footer">環境情報</a>)が必要です。<br>
     外部からWebUIにセキュアコンテキストでアクセスするには自己署名証明書を設定してHTTPSとしてアクセスするか、SSHポートフォワーディングでlocalhostにポート転送するなどしてください。<br>
     安全のため外部からアクセスするための設定はじゅうぶん慎重に行ってください。<br>

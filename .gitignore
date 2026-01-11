@@ -33,6 +33,8 @@
 !*.vbs
 !*.vcxproj
 !*.vcxproj.filters
+!*.wasm
+!*.wasm.map
 !*.woff2
 !*.xaml
 !*.xml

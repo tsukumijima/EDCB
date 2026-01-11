@@ -13,6 +13,7 @@ CReserveManager::CReserveManager(CNotifyManager& notifyManager_, CEpgDBManager& 
 	, epgCapWork(false)
 	, shutdownModePending(-1)
 	, reserveModified(false)
+	, recInfo2SearchStartTime(LLONG_MAX)
 {
 }
 
@@ -109,6 +110,8 @@ void CReserveManager::ReloadSetting(const CEpgTimerSrvSetting::SETTING& s)
 	this->recInfoText.SetCustomDelExt(s.delExtList);
 
 	this->recInfo2Text.SetKeepCount(s.recInfo2Max);
+	//検索用リストを再構築するため
+	this->recInfo2SearchStartTime = LLONG_MAX;
 
 	for( const auto& tunerBank : this->tunerBankMap ){
 		tunerBank.second->ReloadSetting(s);
@@ -1337,6 +1340,8 @@ void CReserveManager::ProcessRecEnd(const vector<CTunerBankCtrl::CHECK_RESULT>& 
 				item.startTime = itrRet->epgStartTime;
 				item.eventName = itrRet->epgEventName;
 				this->recInfo2Text.Add(item);
+				//検索用リストを再構築するため
+				this->recInfo2SearchStartTime = LLONG_MAX;
 			}
 
 			REC_FILE_INFO_BASIC item;
@@ -1991,34 +1996,49 @@ bool CReserveManager::IsFindRecEventInfo(const EPGDB_EVENT_INFO& info, WORD chkD
 				}
 			}
 			if( infoEventName.empty() == false && info.StartTimeFlag != 0 ){
-				int chkDayActual = chkDay >= 20000 ? chkDay % 10000 : chkDay;
-				for( const auto& item : this->recInfo2Text.GetMap() ){
-					if( (chkDay >= 40000 || item.second.originalNetworkID == info.original_network_id) &&
-					    (chkDay >= 30000 || item.second.transportStreamID == info.transport_stream_id) &&
-					    (chkDay >= 20000 || item.second.serviceID == info.service_id) &&
-					    ConvertI64Time(item.second.startTime) + chkDayActual*24*60*60*I64_1SEC > ConvertI64Time(info.start_time) ){
-						wstring eventName = item.second.eventName;
-						if( this->setting.recInfo2RegExp.empty() == false ){
+				LONGLONG chkStartTime = ConvertI64Time(info.start_time) - (chkDay >= 20000 ? chkDay % 10000 : chkDay) * 24 * 60 * 60 * I64_1SEC;
+				if( chkStartTime <= this->recInfo2SearchStartTime ){
+					//検索用にイベント名でソートしたリストを構築する
+					this->recInfo2SearchCache.clear();
+					//時間的にマッチし得ないものは除外する
+					this->recInfo2SearchStartTime = chkStartTime - 10 * 24 * 60 * 60 * I64_1SEC;
+					for( const auto& item : this->recInfo2Text.GetMap() ){
+						if( ConvertI64Time(item.second.startTime) <= this->recInfo2SearchStartTime ){
+							continue;
+						}
+						if( this->setting.recInfo2RegExp.empty() ){
+							this->recInfo2SearchCache.emplace_back(item.second.eventName, item.first);
+						}else{
+							//イベント名を置換
 #if !defined(EPGDB_STD_WREGEX) && defined(_WIN32)
-							CEpgDBManager::OleCharPtr rplFrom(SysAllocString(eventName.c_str()), SysFreeString);
+							CEpgDBManager::OleCharPtr rplFrom(SysAllocString(item.second.eventName.c_str()), SysFreeString);
 							CEpgDBManager::OleCharPtr rplTo(SysAllocString(L""), SysFreeString);
 							BSTR rpl_;
 							if( rplFrom && rplTo && SUCCEEDED(regExp->Replace(rplFrom.get(), rplTo.get(), &rpl_)) ){
 								CEpgDBManager::OleCharPtr rpl(rpl_, SysFreeString);
-								eventName = SysStringLen(rpl.get()) ? rpl.get() : L"";
-							}else{
+								if( SysStringLen(rpl.get()) ){
+									this->recInfo2SearchCache.emplace_back(rpl.get(), item.first);
+								}
+							}
 #else
 							try{
-								eventName = std::regex_replace(eventName, re, wstring());
+								this->recInfo2SearchCache.emplace_back(std::regex_replace(item.second.eventName, re, wstring()), item.first);
 							}catch( std::regex_error& ){
-#endif
-								eventName = L"";
 							}
+#endif
 						}
-						if( infoEventName == eventName ){
-							ret = true;
-							break;
-						}
+					}
+					std::sort(this->recInfo2SearchCache.begin(), this->recInfo2SearchCache.end());
+				}
+				auto itr = lower_bound_first(this->recInfo2SearchCache.begin(), this->recInfo2SearchCache.end(), infoEventName);
+				for( ; itr != this->recInfo2SearchCache.end() && itr->first == infoEventName; itr++ ){
+					const auto& item = this->recInfo2Text.GetMap().at(itr->second - 1).second;
+					if( (chkDay >= 40000 || item.originalNetworkID == info.original_network_id) &&
+					    (chkDay >= 30000 || item.transportStreamID == info.transport_stream_id) &&
+					    (chkDay >= 20000 || item.serviceID == info.service_id) &&
+					    ConvertI64Time(item.startTime) > chkStartTime ){
+						ret = true;
+						break;
 					}
 				}
 			}

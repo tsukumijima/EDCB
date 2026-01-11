@@ -1,5 +1,8 @@
 -- vim:set ft=lua:
 dofile(mg.script_name:gsub('[^\\/]*$','')..'util.lua')
+if JKRDLOG_PATH then
+  dofile(mg.script_name:gsub('[^\\/]*$','')..'jkconst.lua')
+end
 
 --<0:再生画面へのリンク, 0:DLリンク, 1:トランスコード再生画面, 2～:直接再生画面(偶数:ローカルファイル再生)
 vtag=GetVarInt(mg.request_info.query_string,'vtag') or -1
@@ -71,9 +74,7 @@ thumbs={''}
 edcb.htmlEscape=15
 v=edcb.GetRecFileInfo(id)
 if v then
-  if #v.programInfo>0 then
-    v.programInfo=DecorateUri(v.programInfo)
-  elseif v.eid~=65535 then
+  if #v.programInfo==0 and v.eid~=65535 then
     --過去番組情報を探してみる
     ev=edcb.EnumEventInfoArchive and edcb.EnumEventInfoArchive({{onid=v.onid,tsid=v.tsid,sid=v.sid}},{startTime=v.startTime,durationSecond=1})
     if ev and #ev>0 then
@@ -101,12 +102,12 @@ if v then
       if ff then
         if vtag==i*2 or vtag==i*2+1 then
           if vtag%2==0 then
-            ct:Append('<input id="input-file" type="file" accept="video/*">')
+            ct:Append('<div><input id="input-file" type="file" accept="video/*">'..(ext=='' and '(filename:'..mg.md5(ref:upper()):sub(27)..')' or '')..'</div>')
           end
           ct:Append(VideoWrapperBegin()
             ..'<video id="video" autoplay playsinline controls '..(vtag%2==0 and 'data-' or '')..'src="'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/')..'">/'..EdcbHtmlEscape(ref..ext)
-            ..(ext=='' and '' or '<track id="vid-meta" kind="metadata" src="'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/'):gsub('%.[0-9A-Za-z]+$','')..'.vtt" type="text/vtt" default>')
-            ..'</video>'..VideoWrapperEnd()..'\n'..VideoScriptTemplate(ext==''))
+            ..'<track id="vid-meta" kind="metadata"'..(ext=='' and '' or ' src="'..PathToRoot()..mg.url_encode(ref..ext):gsub('%%2f','/'):gsub('%.[0-9A-Za-z]+$','')..'.vtt"')..' type="text/vtt" default>'
+            ..'</video>'..VideoWrapperEnd(JKRDLOG_PATH and GetChatStreamNameList(),true)..'\n'..VideoScriptTemplate(ext==''))
         else
           ct:Append((ext=='' and '' or '<a href="recinfodesc.html?id='..v.id..'&amp;vtag='..(i*2+1)..'">')
             ..'/'..EdcbHtmlEscape(ref..ext)..(ext=='' and '' or '</a>')
@@ -115,11 +116,17 @@ if v then
         end
         if ext=='' then
           fsec,fsize=0,0
+          shiftable=false
           f=edcb.io.open(w.recFilePath,'rb')
           if f then
             fsec,fsize=GetDurationSec(f)
             if vtag<=0 then
               thumbs=ThumbnailTemplate(f,fsec,fsize,ref)
+            end
+            if JKRDLOG_PATH and vtag==1 then
+              --終端が現在時刻よりも昔ならば実況を逐次取得する必要はないのでshiftableにする
+              tot=GetTotAndServiceID(f)
+              shiftable=tot and tot+fsec+60<os.time()
             end
             f:close()
           end
@@ -144,15 +151,25 @@ if v then
           if vtag==1 then
             src='xcode.lua?fname='..mg.url_encode(ref)..ConstructTranscodeQueries(xq)
             ct:Append('\n'..VideoWrapperBegin()
-              ..(xq.tslive and '<canvas id="video" data-src="'..src..'"></canvas>' or
+              ..(xq.tslive and '<canvas id="video" data-pausable="1" data-src="'..src..'"></canvas>' or
                    '<video id="video" autoplay playsinline controls '..(ALLOW_HLS and 'data-' or '')..'src="'..src..'">xcode</video>')
-              ..VideoWrapperEnd()..'\n'..TranscodeScriptTemplate(false,xq.caption,xq.jikkyo,{ofssec=fsec*(xq.offset or 0)/100,fast=xq.fast}))
+              ..VideoWrapperEnd(JKRDLOG_PATH and GetChatStreamNameList(),shiftable)..'\n'..TranscodeScriptTemplate(false,xq.caption,xq.jikkyo,{ofssec=fsec*(xq.offset or 0)/100,fast=xq.fast}))
             if xq.tslive then
               ct:Append(TsliveScriptTemplate(xq.autoCinema))
             elseif ALLOW_HLS then
               ct:Append(HlsScriptTemplate('xcode.lua'))
             end
           end
+          ct:Append([=[
+<div style="display:none"><label><input type="checkbox" id="cb-ccinfo">字幕リスト</label>
+<div id="ccinfo-desc" style="display:none"></div></div>
+<script type="text/javascript" src="ccinfo_script.js"></script>
+<script type="text/javascript">
+runCCInfoScript("]=]..'vtt.lua?fname='..mg.url_encode(ref)..'",'
+  ..((vtag==i*2 or vtag==i*2+1) and 'function(uri){document.getElementById("vid-meta").src=uri;}' or 'true')
+  ..((vtag==1 or vtag==i*2 or vtag==i*2+1) and ',seekVideo,"#vid-wrap"' or ',seekVideoByFormSelect,"#vid-form"')..[=[);
+</script>
+]=])
         else
           ct:Append((vtag~=i*2 and vtag~=i*2+1 and '\n[<a href="mux_to_ts.lua?fname='..mg.url_encode(ref..ext)..'" download>Mux-to-TS</a>]' or '')
             ..' ('..math.floor(ff.size/1048576)..'M)<br>\n')
@@ -174,7 +191,7 @@ if v then
     ..'<input type="hidden" name="ctok" value="'..CsrfToken()..'">\n'
     ..'<input type="hidden" name="protect" value="'..(v.protectFlag and 'n' or 'y')..'">\n'
     ..'<button type="submit">'..(v.protectFlag and 'Yes' or 'No')..'</button></div></form></dd>\n'
-    ..(#v.programInfo>0 and '    <dt id="pginfo-term">番組情報</dt><dd id="pginfo-desc">'..v.programInfo:gsub('\r?\n', '<br>\n')..'</dd>\n' or '')
+    ..(#v.programInfo>0 and '    <dt id="pginfo-term">番組情報</dt><dd id="pginfo-desc">'..DecorateProgramText(v.programInfo)..'</dd>\n' or '')
     ..(#v.errInfo>0 and '    <dt>エラーログ</dt><dd>\n'..v.errInfo:gsub('\r?\n', '<br>\n')..'</dd>\n' or '')
     ..'    <dt>-</dt><dd>\n'
     ..'<form method="POST" action="recinfo.html"><div>\n'
