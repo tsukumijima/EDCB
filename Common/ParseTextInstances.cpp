@@ -83,18 +83,31 @@ void ParseRecFolderList(LPCWSTR* token, vector<REC_FILE_SET_INFO>& list)
 		list.emplace_back();
 		list.back().recFolder.assign(token[0], token[1]);
 	}
-	for( size_t i = 0; i < list.size(); ){
-		if( list[i].recFolder.empty() ){
-			list.erase(list.begin() + i);
+	for( vector<REC_FILE_SET_INFO>::iterator itr = list.begin(); itr != list.end(); ){
+		if( itr->recFolder.empty() ){
+			itr = list.erase(itr);
 		}else{
 			//US制御文字があればそれで分割、なければ*で分割
-			LPCWSTR sep = list[i].recFolder.find(L'\x1F') != wstring::npos ? L"\x1F" : L"*";
-			Separate(list[i].recFolder, sep, list[i].recFolder, list[i].writePlugIn);
-			Separate(list[i].writePlugIn, sep, list[i].writePlugIn, list[i].recNamePlugIn);
-			if( list[i].writePlugIn.empty() ){
-				list[i].writePlugIn = L"Write_Default.dll";
+			LPCWSTR sep = itr->recFolder.find(L'\x1F') != wstring::npos ? L"\x1F" : L"*";
+			Separate(itr->recFolder, sep, itr->recFolder, itr->writePlugIn);
+			Separate(itr->writePlugIn, sep, itr->writePlugIn, itr->recNamePlugIn);
+			if( itr->writePlugIn.empty() ){
+				itr->writePlugIn = L"Write_Default" EDCB_LIB_EXT;
 			}
-			i++;
+			//互いに異なる環境でのEDCB_LIB_EXTはこの環境のEDCB_LIB_EXTに読みかえる
+#ifdef _WIN32
+			WCHAR ext[] = EDCB_UNIX_LIB_EXT;
+#else
+			WCHAR ext[] = EDCB_WIN_LIB_EXT;
+#endif
+			size_t extLen = array_size(ext) - 1;
+			if( itr->writePlugIn.size() >= extLen && CompareNoCase(itr->writePlugIn.c_str() + itr->writePlugIn.size() - extLen, ext) == 0 ){
+				itr->writePlugIn.replace(itr->writePlugIn.size() - extLen, extLen, EDCB_LIB_EXT);
+			}
+			if( itr->recNamePlugIn.size() >= extLen && CompareNoCase(itr->recNamePlugIn.c_str() + itr->recNamePlugIn.size() - extLen, ext) == 0 ){
+				itr->recNamePlugIn.replace(itr->recNamePlugIn.size() - extLen, extLen, EDCB_LIB_EXT);
+			}
+			itr++;
 		}
 	}
 }

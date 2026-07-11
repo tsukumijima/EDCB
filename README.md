@@ -12,6 +12,7 @@ Configuration files are stored in the 'ini' directory.
 **主な変更点について**
 
 このフォークでは主にEpgTimerへの変更を行っています。  
+EDCB本体(EpgTimerSrvなど)の機能や設定については、基本的にフォーク元と同じです。  
 参考【[各画面キャプチャ](https://tkntrec.github.io/EDCB_PrtSc)】
 
 * 自動予約登録に合わせて予約を変更するオプションを追加した。
@@ -22,7 +23,8 @@ Configuration files are stored in the 'ini' directory.
 * 設定画面がなく設定ファイル(XML)で直接指定するオプションなどの説明を含むコミット
   * [ff60480](https://github.com/tkntrec/EDCB/commit/ff6048074a4a609fb22c78361682a3cb4cf4a593) 予約情報等の強制更新(F5)を追加(仮)
   * その他UIのないXMLオプションはフォーク元のドキュメントを参照。  
-(ExecBat → [xtne6f@Readme_EpgTimer.txt](https://github.com/xtne6f/EDCB/blob/work-plus-s/Document/Readme_EpgTimer.txt)+[Readme_Mod.txt](https://github.com/xtne6f/EDCB/blob/work-plus-s/Document/Readme_Mod.txt)、NoSendClose → [xtne6f@fedc409](https://github.com/xtne6f/EDCB/commit/fedc409ecc5d1393b9df892a273541cbe4c7b149))
+    * ExecBat → [xtne6f@Readme_EpgTimer.txt](https://github.com/xtne6f/EDCB/blob/work-plus-s/Document/Readme_EpgTimer.txt)+[Readme_Mod.txt](https://github.com/xtne6f/EDCB/blob/work-plus-s/Document/Readme_Mod.txt)
+    * NoSendClose → [xtne6f@fedc409](https://github.com/xtne6f/EDCB/commit/fedc409ecc5d1393b9df892a273541cbe4c7b149)
 
 **ブランチついて**
 

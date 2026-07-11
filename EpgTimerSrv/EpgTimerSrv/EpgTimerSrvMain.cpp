@@ -3364,16 +3364,17 @@ void CEpgTimerSrvMain::ProcessLuaPost(CEpgTimerSrvMain* sys)
 	WtoUTF8(path.native(), strPath);
 	std::vector<char> scripts;
 	int fd = -1;
-	while( sys->processLuaPostStopEvent.WaitOne(0) == false ){
+	for(;;){
 		if( fd < 0 ){
 			//read()が速やかにEOFを返すことで待機できなくなるのを避けるためO_RDWR
 			fd = open(strPath.c_str(), O_RDWR | O_NONBLOCK | O_CLOEXEC);
 			if( fd < 0 ){
-				if( errno == ENOENT ){
-					mkfifo(strPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-				}
+				bool noent = errno == ENOENT;
 				if( sys->processLuaPostStopEvent.WaitOne(1000) ){
 					break;
+				}
+				if( noent ){
+					mkfifo(strPath.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 				}
 				continue;
 			}
@@ -3385,11 +3386,11 @@ void CEpgTimerSrvMain::ProcessLuaPost(CEpgTimerSrvMain* sys)
 		if( n == 0 || (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK) ){
 			//終了または失敗。原則ここは踏まない
 			scripts.clear();
-			close(fd);
-			fd = -1;
 			if( sys->processLuaPostStopEvent.WaitOne(100) ){
 				break;
 			}
+			close(fd);
+			fd = -1;
 		}else if( n < 0 ){
 			//待機
 			scripts.resize(scripts.size() - 4096);
@@ -3402,6 +3403,9 @@ void CEpgTimerSrvMain::ProcessLuaPost(CEpgTimerSrvMain* sys)
 				break;
 			}
 		}else{
+			if( sys->processLuaPostStopEvent.WaitOne(0) ){
+				break;
+			}
 			scripts.resize(scripts.size() - 4096 + n);
 			for(;;){
 				auto itr = std::find(scripts.begin(), scripts.end(), '\n');
@@ -4327,6 +4331,11 @@ int CEpgTimerSrvMain::LuaFindFile(lua_State* L)
 				LuaHelp::reg_string(ws.L, "name", ws.WtoUTF8(findData.fileName));
 				LuaHelp::reg_number(ws.L, "size", (double)findData.fileSize);
 				LuaHelp::reg_boolean(ws.L, "isdir", findData.isDir);
+#ifdef _WIN32
+				LuaHelp::reg_boolean(ws.L, "readonly", findData.readonly);
+				LuaHelp::reg_boolean(ws.L, "hidden", findData.hidden);
+				LuaHelp::reg_boolean(ws.L, "system", findData.system);
+#endif
 				SYSTEMTIME st;
 				ConvertSystemTime(findData.lastWriteTime + I64_UTIL_TIMEZONE, &st);
 				LuaHelp::reg_time(ws.L, "mtime", st);

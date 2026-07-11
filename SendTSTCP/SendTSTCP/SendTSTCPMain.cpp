@@ -835,8 +835,16 @@ void CSendTSTCPMain::SendThread(CSendTSTCPMain* pSys)
 			}
 #else
 			if( itr->strPipe[i].empty() == false ){
-				remove(itr->strPipe[i].c_str());
-				itr->strPipe[i].clear();
+				string strPipe;
+				itr->strPipe[i].swap(strPipe);
+				if( itr->pipe[i] < 0 ){
+					//確実に切断させるため拡張子の末尾を"_"にリネームして接続できないようにしてから開いてみる
+					if( rename(strPipe.c_str(), string(strPipe).replace(strPipe.size() - 1, 1, "_").c_str()) == 0 ){
+						strPipe.back() = '_';
+					}
+					itr->pipe[i] = open(strPipe.c_str(), O_WRONLY | O_NONBLOCK | O_CLOEXEC);
+				}
+				remove(strPipe.c_str());
 			}
 			if( itr->pipe[i] >= 0 ){
 				close(itr->pipe[i]);

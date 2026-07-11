@@ -117,41 +117,60 @@ const readPsiData=(data,proc,startSec,ctx)=>{
   return ret;
 };
 
-const progressPsiDataChatMixedStream=(readCount,response,onData,onChat,ctx)=>{
-  ctx=ctx||{};
-  if(!ctx.ctx){
-    ctx.ctx={};
-    ctx.atobRemain="";
-    ctx.psiData=new Uint8Array(0);
-  }
-  while(readCount<response.length){
-    let i=response.indexOf("<",readCount);
-    if(i==readCount){
-      i=response.indexOf("\n",readCount);
-      if(i<0)break;
-      if(onChat)onChat(response.substring(readCount,i));
-      readCount=i+1;
-    }else{
-      i=i<0?response.length:i;
-      const n=Math.floor((i-readCount+ctx.atobRemain.length)/4)*4;
-      if(n){
-        const addData=atob(ctx.atobRemain+response.substring(readCount,readCount+n-ctx.atobRemain.length));
-        ctx.atobRemain=response.substring(readCount+n-ctx.atobRemain.length,i);
-        const concatData=new Uint8Array(ctx.psiData.length+addData.length);
-        for(let j=0;j<ctx.psiData.length;j++)concatData[j]=ctx.psiData[j];
-        for(let j=0;j<addData.length;j++)concatData[ctx.psiData.length+j]=addData.charCodeAt(j);
-        ctx.psiData=readPsiData(concatData.buffer,(sec,dict,code,pid)=>{
-          if(onData)onData(pid,dict,code,Math.floor(sec*90000));
-          return true;
-        },0,ctx.ctx);
-        if(ctx.psiData)ctx.psiData=new Uint8Array(ctx.psiData);
-      }else{
-        ctx.atobRemain+=response.substring(readCount,i);
-      }
-      readCount=i;
-    }
-  }
-  return readCount;
+const progressPsiDataChatMixedStream=(reader,onData,onChat)=>{
+  return new Promise((resolve,reject)=>{
+    let readCount=0;
+    let response="";
+    const ctx={};
+    let atobRemain="";
+    let psiData=new Uint8Array(0);
+    const decoder=new TextDecoder();
+    const readNext=()=>{
+      reader.read().then(r=>{
+        if(r.done){
+          if(readCount)resolve(readCount);
+          else reject("Error: Empty stream");
+          return;
+        }
+        response+=decoder.decode(r.value,{stream:true});
+        let offset=0;
+        while(offset<response.length){
+          let i=response.indexOf("<",offset);
+          if(i==offset){
+            i=response.indexOf("\n",offset);
+            if(i<0)break;
+            if(onChat)onChat(response.substring(offset,i));
+            offset=i+1;
+          }else{
+            i=i<0?response.length:i;
+            const n=Math.floor((i-offset+atobRemain.length)/4)*4;
+            if(n){
+              const addData=atob(atobRemain+response.substring(offset,offset+n-atobRemain.length));
+              atobRemain=response.substring(offset+n-atobRemain.length,i);
+              const concatData=new Uint8Array(psiData.length+addData.length);
+              for(let j=0;j<psiData.length;j++)concatData[j]=psiData[j];
+              for(let j=0;j<addData.length;j++)concatData[psiData.length+j]=addData.charCodeAt(j);
+              psiData=readPsiData(concatData.buffer,(sec,dict,code,pid)=>{
+                if(onData)onData(pid,dict,code,Math.floor(sec*90000));
+                return true;
+              },0,ctx);
+              if(psiData)psiData=new Uint8Array(psiData);
+            }else{
+              atobRemain+=response.substring(offset,i);
+            }
+            offset=i;
+          }
+        }
+        readCount+=offset;
+        response=response.substring(offset);
+        readNext();
+      }).catch(()=>{
+        if(readCount)resolve(readCount);
+        else reject("Error: Empty stream");
+      });
+    };
+    readNext();
+  });
 };
 
 const decodeB24CaptionFromCueText=(text,work)=>{
@@ -240,24 +259,25 @@ const decodeB24CaptionFromCueText=(text,work)=>{
   return ret;
 };
 
-const waitForHlsStart=(src,postQuery,interval,delay,onerror,onstart)=>{
-  let method="POST";
-  const poll=()=>{
-    const xhr=new XMLHttpRequest();
-    xhr.open(method,src);
-    if(method=="POST")xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-    method="GET";
-    xhr.onloadend=()=>{
-      if(xhr.status==200&&xhr.response){
-        if(xhr.response.indexOf("#EXT-X-MEDIA-SEQUENCE:")<0)setTimeout(poll,interval);
-        else setTimeout(()=>{onstart(src);},delay);
-      }else{
-        onerror();
-      }
+const waitForHlsStart=(src,postQuery,interval,delay)=>{
+  return new Promise((resolve,reject)=>{
+    let options={
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body:postQuery
     };
-    xhr.send(postQuery);
-  };
-  poll();
+    const poll=()=>{
+      fetch(src,options).then(response=>{
+        if(response.ok)return response.text();
+        reject();
+      }).then(text=>{
+        if(text.indexOf("#EXT-X-MEDIA-SEQUENCE:")<0)setTimeout(poll,interval);
+        else setTimeout(()=>{resolve(src);},delay);
+      }).catch(()=>{reject();});
+    };
+    poll();
+    options=null;
+  });
 };
 
 const unescapeHtml=s=>{
@@ -429,7 +449,7 @@ const adjustVideoMaxWidth=()=>{
   }
 };
 
-const runOnscreenButtonsScript=()=>{
+const runPlaybackScript=(isTrusted)=>{
   vid={e:document.getElementById("video"),unmute(){(vid.c||vid.e).muted=false;}};
   vid.initSrc=vid.e.dataset.src||vid.e.getAttribute("src");
   if(vid.e.tagName=="CANVAS"){
@@ -439,10 +459,38 @@ const runOnscreenButtonsScript=()=>{
     vid.volume=1;
     vid.c=vid;
   }
+  const btnUnmute=document.getElementById("vid-unmute");
+  if(btnUnmute.dataset.initialMuted&&(!isTrusted||btnUnmute.dataset.initialMuted!="auto")){
+    (vid.c||vid.e).muted=true;
+  }
+  if(btnUnmute.dataset.initialVolume){
+    (vid.c||vid.e).volume=+btnUnmute.dataset.initialVolume;
+  }
+  if((vid.c||vid.e).muted){
+    btnUnmute.style.display=null;
+    btnUnmute.onclick=()=>{
+      vid.unmute();
+      btnUnmute.style.display="none";
+    };
+  }
+  const cbDatacast=document.getElementById("cb-datacast");
+  if(cbDatacast){
+    const prefix="nvram_prefix=receiverinfo%2F";
+    if(cbDatacast.dataset.absentZip&&!localStorage.getItem(prefix+"zipcode")){
+      localStorage.setItem(prefix+"zipcode",btoa(cbDatacast.dataset.absentZip));
+    }
+    if(cbDatacast.dataset.absentPrefecture&&!localStorage.getItem(prefix+"prefecture")){
+      localStorage.setItem(prefix+"prefecture",btoa(String.fromCharCode(cbDatacast.dataset.absentPrefecture)));
+    }
+    if(cbDatacast.dataset.absentRegion&&!localStorage.getItem(prefix+"regioncode")){
+      localStorage.setItem(prefix+"regioncode",btoa(String.fromCharCode(cbDatacast.dataset.absentRegion>>8,cbDatacast.dataset.absentRegion&0xff)));
+    }
+  }
   vcont=document.getElementById("vid-cont");
   vfull=document.getElementById("vid-full");
   vwrap=document.getElementById("vid-wrap");
   window.addEventListener("load",adjustVideoMaxWidth);
+  window.addEventListener("my-load",adjustVideoMaxWidth);
   window.addEventListener("resize",adjustVideoMaxWidth);
   let btn=document.createElement("button");
   btn.type="button";
@@ -459,7 +507,18 @@ const runOnscreenButtonsScript=()=>{
   bexit.className="exit-control";
   bexit.appendChild(btn);
   if(document.fullscreenEnabled||document.webkitFullscreenEnabled){
+    let showCursor=()=>{};
+    if(vid.c){
+      let t=0;
+      showCursor=()=>{
+        vfull.classList.remove("hide-cursor-on-fullscreen");
+        clearTimeout(t);
+        t=setTimeout(()=>{vfull.classList.add("hide-cursor-on-fullscreen");},3000);
+      };
+      vfull.onmousemove=showCursor;
+    }
     vfull[document.fullscreenEnabled?"onfullscreenchange":"onwebkitfullscreenchange"]=()=>{
+      showCursor();
       const vseek=document.getElementById("vid-seek");
       if(vseek){
         const vseekMarker=document.getElementById("vid-seek-marker");
@@ -547,6 +606,18 @@ const runOnscreenButtonsScript=()=>{
     }
   };
   hideOnscreenButtons(false);
+  if(document.getElementById("cb-jikkyo")){
+    runJikkyoScript();
+  }
+  if(vid.c){
+    runTranscodeScript();
+    runTsliveScript();
+  }else if(document.getElementById("vid-seek")){
+    runTranscodeScript();
+    if(vid.e.dataset.hls)runHlsScript();
+  }else{
+    runVideoScript();
+  }
 };
 
 //Global variables available after runJikkyoScript() is called.
@@ -557,11 +628,40 @@ let addJikkyoMessage;
 let toggleJikkyo;
 let shiftJikkyo=()=>{};
 
-const runJikkyoScript=(commentHeight,commentDuration,replaceTag)=>{
+const runJikkyoScript=()=>{
   let danmaku=null;
   const comm=document.getElementById("jikkyo-comm");
+  if(comm.dataset.shiftable){
+    for(const sec of [15,1,-1,-15]){
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.innerText=(sec>0?"+":"")+sec;
+      btn.onclick=()=>{shiftJikkyo(sec);};
+      comm.insertBefore(btn,comm.firstChild);
+    }
+  }
+  document.getElementById("jikkyo-config").previousElementSibling.onclick=()=>{
+    document.getElementById("jikkyo-config").classList.toggle("display");
+  };
   const chats=document.getElementById("jikkyo-chats");
   let checkScrollID=0;
+  const cbJikkyo=document.getElementById("cb-jikkyo");
+  let customReplace=[];
+  try{
+    customReplace=JSON.parse(decodeURIComponent(cbJikkyo.dataset.customReplaceJson));
+    for(const rep of customReplace){
+      rep.regex=new RegExp(rep.pattern,rep.flags);
+    }
+  }catch(e){
+    console.warn("customReplaceJson:",e);
+    customReplace=[];
+  }
+  const replaceTag=(tag)=>{
+    for(const rep of customReplace){
+      tag=tag.replace(rep.regex,rep.replace);
+    }
+    return tag;
+  };
   const cbJikkyoOnscr=document.getElementById("cb-jikkyo-onscr");
   const onclickJikkyoOnscr=()=>{
     if(danmaku&&comm.style.visibility!="hidden"){
@@ -573,7 +673,6 @@ const runJikkyoScript=(commentHeight,commentDuration,replaceTag)=>{
   cbJikkyoOnscr.onclick=onclickJikkyoOnscr;
   checkJikkyoDisplay=()=>{
     if(danmaku){
-      const cbJikkyo=document.getElementById("cb-jikkyo");
       if(!cbJikkyo.checked){
         danmaku.hide();
         comm.style.visibility="hidden";
@@ -613,8 +712,8 @@ const runJikkyoScript=(commentHeight,commentDuration,replaceTag)=>{
         callback(){},
         error(){},
         apiBackend:{read(opt){opt.success([]);}},
-        height:commentHeight,
-        duration:commentDuration,
+        height:+cbJikkyo.dataset.commentHeight,
+        duration:+cbJikkyo.dataset.commentDuration,
         paddingTop:10,
         paddingBottom:10,
         unlimited:false,
@@ -726,13 +825,11 @@ const runJikkyoScript=(commentHeight,commentDuration,replaceTag)=>{
         if(scroll)chats.scrollTop=chats.scrollHeight;
       },0);
     };
-    onJikkyoStreamError=(status,readCount)=>{
-      addJikkyoMessage("Error! ("+status+"|"+readCount+"Bytes)");
-    };
+    onJikkyoStreamError=addJikkyoMessage;
   };
 };
 
-const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
+const runVideoScript=()=>{
   const inputFile=document.getElementById("input-file");
   if(inputFile){
     inputFile.onchange=()=>{
@@ -740,26 +837,38 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
       inputFile.parentNode.parentNode.removeChild(inputFile.parentNode);
     };
   }
-  let cap=null;
   const cbCaption=document.getElementById("cb-caption");
-  cbCaption.onclick=()=>{
-    if(cap){if(cbCaption.checked){cap.show();}else{cap.hide();}}
-  };
-  const vidMeta=document.getElementById("vid-meta");
-  if(vidMeta){
-    vidMeta.oncuechange=()=>{
-      vidMeta.oncuechange=null;
+  const vidTrack=document.getElementById("vid-track");
+  if(vidTrack&&vidTrack.kind=="metadata"){
+    vidTrack.oncuechange=()=>{
+      vidTrack.oncuechange=null;
       const work=[];
       const dataList=[];
-      for(const cue of vidMeta.track.cues){
+      for(const cue of vidTrack.track.cues){
         const ret=decodeB24CaptionFromCueText(cue.text,work);
         if(!ret)return;
         for(const pes of ret){dataList.push({pts:cue.startTime,pes});}
       }
-      cap=aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
-      cap.attachMedia(vid.e);
+      let aribb24Option=null;
+      try{
+        aribb24Option=JSON.parse(decodeURIComponent(cbCaption.dataset.aribb24OptionJson));
+      }catch(e){
+        console.warn("aribb24OptionJson:",e);
+      }
+      let cap;
+      try{
+        cap=cbCaption.dataset.aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
+        cap.attachMedia(vid.e);
+      }catch(e){
+        console.warn("aribb24js:",e);
+        return;
+      }
+      cbCaption.onclick=()=>{
+        if(cbCaption.checked)cap.show();
+        else cap.hide();
+      };
       document.getElementById("label-caption").style.display="inline";
-      if(!cbCaption.checked){cap.hide();}
+      if(!cbCaption.checked)cap.hide();
       dataList.reverse();
       const pushCap=()=>{
         for(let i=0;i<100;i++){
@@ -771,19 +880,26 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
       };
       pushCap();
     };
+  }else if(vidTrack){
+    cbCaption.onclick=()=>{
+      vidTrack.track.mode=cbCaption.checked?"showing":"hidden";
+    };
+    document.getElementById("label-caption").style.display="inline";
+    if(cbCaption.checked)vidTrack.track.mode="showing";
   }
   const cbDatacast=document.getElementById("cb-datacast");
   if(cbDatacast){
-    if(cbDatacast.innerText=="data"){
+    if(cbDatacast.parentNode.textContent=="data"){
       let onDataStream=null;
       let onDataStreamError=null;
       let reopen=false;
-      let xhr=null;
+      let reconnectCount=0;
+      let ctrl=null;
       const openSubStream=()=>{
         if(reopen)return;
-        if(xhr){
-          xhr.abort();
-          xhr=null;
+        if(ctrl){
+          ctrl.abort();
+          ctrl=null;
           if(onDataStream){
             reopen=true;
             setTimeout(()=>{reopen=false;openSubStream();},5000);
@@ -791,23 +907,28 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
           return;
         }
         if(!onDataStream)return;
-        let readCount=0;
-        const ctx={};
-        xhr=new XMLHttpRequest();
+        ctrl=new AbortController();
         //TODO: follow ratechange
-        xhr.open("GET","xcode.lua?fname="+vid.initSrc.replace(/^(?:\.\.\/)+/,"")+"&psidata=1&ofssec="+Math.floor(vid.e.currentTime));
-        xhr.onloadend=()=>{
-          if(xhr&&(readCount==0||xhr.status!=0)){
-            if(onDataStreamError)onDataStreamError(xhr.status,readCount);
+        fetch("xcode.lua?fname="+vid.initSrc.replace(/^(?:\.\.\/)+/,"")+"&psidata=1&ofssec="+Math.floor(vid.e.currentTime),{
+          signal:ctrl.signal
+        }).then(response=>{
+          if(!response.ok)throw new Error(response.status+" "+response.statusText);
+          return progressPsiDataChatMixedStream(response.body.getReader(),(...args)=>{if(ctrl&&onDataStream)onDataStream(...args);},null);
+        }).then(readCount=>{
+          if(ctrl){
+            if(onDataStreamError)onDataStreamError("Done: "+readCount+" bytes");
+            if(++reconnectCount>2)reconnectCount=0;
+            else openSubStream();
+            ctrl=null;
           }
-          xhr=null;
-        };
-        xhr.onprogress=()=>{
-          if(xhr&&xhr.status==200&&xhr.response){
-            readCount=progressPsiDataChatMixedStream(readCount,xhr.response,onDataStream,null,ctx);
+        }).catch(e=>{
+          if(ctrl){
+            if(onDataStreamError)onDataStreamError(""+e);
+            if(++reconnectCount>2)reconnectCount=0;
+            else openSubStream();
+            ctrl=null;
           }
-        };
-        xhr.send();
+        });
       };
       cbDatacast.checked=false;
       cbDatacast.onclick=()=>{
@@ -832,8 +953,8 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
         onDataStream=(pid,dict,code,pcr)=>{
           dict[code]=bmlBrowserPlayTSSection(pid,dict[code],pcr)||dict[code];
         };
-        onDataStreamError=(status,readCount)=>{
-          document.querySelector(".remote-control-indicator").innerText="Error! ("+status+"|"+readCount+"Bytes)";
+        onDataStreamError=text=>{
+          document.querySelector(".remote-control-indicator").innerText=text;
         };
         openSubStream();
       };
@@ -865,7 +986,7 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
         };
         readTimer=setTimeout(read,500);
       };
-      let xhr=null;
+      let psiDataFetched=false;
       const cbDatacast=document.getElementById("cb-datacast");
       cbDatacast.checked=false;
       cbDatacast.onclick=()=>{
@@ -887,21 +1008,17 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
         bmlBrowserSetVisibleSize(vcont.clientWidth,vcont.clientHeight);
         hideOnscreenButtons(true);
         bmlBrowserSetInvisible(false);
-        if(xhr)return;
-        xhr=new XMLHttpRequest();
-        xhr.open("GET",vid.initSrc.replace(/\.[0-9A-Za-z]+$/,"")+".psc");
-        xhr.responseType="arraybuffer";
-        xhr.overrideMimeType("application/octet-stream");
-        xhr.onloadend=()=>{
-          if(!psiData){
-            document.querySelector(".remote-control-indicator").innerText="Error! ("+xhr.status+")";
-          }
-        };
-        xhr.onload=()=>{
-          if(xhr.status!=200||!xhr.response)return;
-          psiData=xhr.response;
-        };
-        xhr.send();
+        if(psiDataFetched)return;
+        psiDataFetched=true;
+        fetch(vid.initSrc.replace(/\.[0-9A-Za-z]+$/,"")+".psc").then(response=>{
+          if(!response.ok)throw new Error(response.status+" "+response.statusText);
+          return response.arrayBuffer();
+        }).then(arrayBuffer=>{
+          psiData=arrayBuffer;
+        }).catch(e=>{
+          document.querySelector(".remote-control-indicator").innerText=""+e;
+          psiDataFetched=false;
+        });
       };
     }
   }
@@ -943,7 +1060,7 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
     const inputTM=document.querySelector('#jikkyo-config > input[name="tm"]');
     const inputTMSec=document.querySelector('#jikkyo-config > select[name="tmsec"]');
     let jkID=0,jkTM=0;
-    let xhr=null;
+    let logTextFetched=false;
     const onclickJikkyo=()=>{
       cbJikkyo.onclick=onclickJikkyo;
       if(!cbJikkyo.checked){
@@ -954,17 +1071,13 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
       }
       toggleJikkyo(true);
       startRead();
-      if(xhr)return;
-      xhr=new XMLHttpRequest();
-      xhr.open("GET","jklog.lua?fname="+vid.initSrc.replace(/^(?:\.\.\/)+/,"")+"&jkid="+jkID+"&jktm="+jkTM);
-      xhr.onloadend=()=>{
-        if(!logText){
-          if(onJikkyoStreamError)onJikkyoStreamError(xhr.status,0);
-        }
-      };
-      xhr.onload=()=>{
-        if(xhr.status!=200||!xhr.response)return;
-        logText=xhr.response;
+      if(logTextFetched)return;
+      logTextFetched=true;
+      fetch("jklog.lua?fname="+vid.initSrc.replace(/^(?:\.\.\/)+/,"")+"&fsec="+Math.floor(vid.e.duration)+"&jkid="+jkID+"&jktm="+jkTM).then(response=>{
+        if(!response.ok)throw new Error(response.status+" "+response.statusText);
+        return response.text();
+      }).then(text=>{
+        logText=text;
         const m=logText.match(/^<!-- J=([0-9]+);T=([0-9]+)/);
         if(m){
           for(const opt of selectID.options){
@@ -985,26 +1098,45 @@ const runVideoScript=(aribb24UseSvg,aribb24Option)=>{
         if(stats.canvas){
           comm.insertBefore(stats.canvas,comm.firstChild);
         }
-      };
-      xhr.send();
+      }).catch(e=>{
+        if(onJikkyoStreamError)onJikkyoStreamError(""+e);
+        logTextFetched=false;
+      });
     };
-    const btnConfig=document.querySelector("#jikkyo-config > button");
-    btnConfig.onclick=selectID.onchange=()=>{
-      if(xhr&&xhr.readyState!=4)return;
-      jkID=+(selectID.value||"0");
-      jkTM=inputTM.value?Math.floor(Date.parse(inputTM.value+"Z")/60000)*60+inputTMSec.selectedIndex-32400:0;
-      logText=null;
-      xhr=null;
-      onclickJikkyo();
-    };
-    setTimeout(onclickJikkyo,500);
+    const checkStartTimer=setInterval(()=>{
+      if(vid.e.duration<Infinity){
+        clearInterval(checkStartTimer);
+        const btnConfig=document.querySelector("#jikkyo-config > button");
+        btnConfig.onclick=selectID.onchange=()=>{
+          if(logTextFetched&&logText==null)return;
+          jkID=+(selectID.value||"0");
+          jkTM=inputTM.value?Math.floor(Date.parse(inputTM.value+"Z")/60000)*60+inputTMSec.selectedIndex-32400:0;
+          logText=null;
+          logTextFetched=false;
+          onclickJikkyo();
+        };
+        onclickJikkyo();
+      }
+    },500);
   }
   seekVideo=(sec)=>{
     vid.e.currentTime=sec;
   };
+  const vidChapters=document.getElementById("vid-chapters");
+  if(vidChapters){
+    vidChapters.selectedIndex=-1;
+    vidChapters.onchange=()=>{
+      if(vidChapters.selectedIndex>=0)seekVideo(+vidChapters.options[vidChapters.selectedIndex].value);
+    };
+  }
 };
 
-const runTranscodeScript=(postCommentQuery)=>{
+const runTranscodeScript=()=>{
+  const vseek=document.getElementById("vid-seek");
+  vid.ofssec=+vseek.dataset.initialOfssec;
+  vid.fast=+vseek.dataset.initialFast;
+  const cbLive=document.getElementById("cb-live");
+  const postCommentQuery=cbLive&&cbLive.dataset.postCommentQuery;
   let currentAbsTime;
   if(vid.c){
     //Playback rate is controlled on client-side.
@@ -1036,7 +1168,6 @@ const runTranscodeScript=(postCommentQuery)=>{
           duration=seekable;
           interval=Math.max(diffs[0],diffs[1],diffs[2],diffs[3],diffs[4])+1;
           if(vid.e.currentTime<duration-interval*2-3&&Date.now()-lastseek>10000){
-            const cbLive=document.getElementById("cb-live");
             if(cbLive&&cbLive.checked){
               vid.e.currentTime=duration-interval;
               lastseek=Date.now();
@@ -1048,22 +1179,14 @@ const runTranscodeScript=(postCommentQuery)=>{
     };
     setCheckLivePosition(checkLivePosition);
   }
-  const vseek=document.getElementById("vid-seek");
   const rangeSeek=document.querySelector("#vid-seek input");
-  const vseekStatus=document.getElementById("vid-seek-status");
-  let vseekStatusMaxWidth=-1;
   const adjustSeekbarWidth=()=>{
-    if(vseekStatusMaxWidth<0){
-      //Estimation using initial text width
-      vseekStatusMaxWidth=vseekStatus.offsetWidth*2;
-      vseekStatus.innerText="";
-      vseekStatus.style.visibility=null;
-    }
-    let othersWidth=vseekStatusMaxWidth;
+    let othersWidth=0;
     for(const e of document.querySelectorAll(".video-side-item")){othersWidth+=e.offsetWidth;}
     rangeSeek.style.width=Math.max(1-othersWidth/window.innerWidth,0.3)*100+"%";
   };
   window.addEventListener("load",adjustSeekbarWidth);
+  window.addEventListener("my-load",adjustSeekbarWidth);
   window.addEventListener("resize",adjustSeekbarWidth);
   vid.fastParam="";
   let openSubStream=()=>{};
@@ -1107,7 +1230,7 @@ const runTranscodeScript=(postCommentQuery)=>{
       readTimer=setTimeout(read,200);
     };
     let jkID=0,jkTM=0;
-    let xhr=null;
+    let logTextFetched=false;
     const onclickJikkyo=()=>{
       cbJikkyo.onclick=onclickJikkyo;
       document.querySelector('#vid-form input[name="jikkyo"]').value=cbJikkyo.checked?"1":"0";
@@ -1119,17 +1242,13 @@ const runTranscodeScript=(postCommentQuery)=>{
       }
       toggleJikkyo(true);
       startRead();
-      if(xhr)return;
-      xhr=new XMLHttpRequest();
-      xhr.open("GET","jklog.lua"+vid.initSrc.match(/\?fname=[^&]*/)[0]+"&jkid="+jkID+"&jktm="+jkTM);
-      xhr.onloadend=()=>{
-        if(!logText){
-          if(onJikkyoStreamError)onJikkyoStreamError(xhr.status,0);
-        }
-      };
-      xhr.onload=()=>{
-        if(xhr.status!=200||!xhr.response)return;
-        logText=xhr.response;
+      if(logTextFetched)return;
+      logTextFetched=true;
+      fetch("jklog.lua"+vid.initSrc.match(/\?fname=[^&]*/)[0]+"&jkid="+jkID+"&jktm="+jkTM).then(response=>{
+        if(!response.ok)throw new Error(response.status+" "+response.statusText);
+        return response.text();
+      }).then(text=>{
+        logText=text;
         const m=logText.match(/^<!-- J=([0-9]+);T=([0-9]+)/);
         if(m){
           for(const opt of selectID.options){
@@ -1150,16 +1269,18 @@ const runTranscodeScript=(postCommentQuery)=>{
         if(stats.canvas){
           comm.insertBefore(stats.canvas,comm.firstChild);
         }
-      };
-      xhr.send();
+      }).catch(e=>{
+        if(onJikkyoStreamError)onJikkyoStreamError(""+e);
+        logTextFetched=false;
+      });
     };
     const btnConfig=document.querySelector("#jikkyo-config > button");
     btnConfig.onclick=selectID.onchange=()=>{
-      if(xhr&&xhr.readyState!=4)return;
+      if(logTextFetched&&logText==null)return;
       jkID=+(selectID.value||"0");
       jkTM=inputTM.value?Math.floor(Date.parse(inputTM.value+"Z")/60000)*60+inputTMSec.selectedIndex-32400:0;
       logText=null;
-      xhr=null;
+      logTextFetched=false;
       onclickJikkyo();
     };
     setTimeout(onclickJikkyo,500);
@@ -1171,12 +1292,13 @@ const runTranscodeScript=(postCommentQuery)=>{
     let jkID=0,jkTM=0;
     {
       let reopen=false;
-      let xhr=null;
+      let reconnectCount=0;
+      let ctrl=null;
       openSubStream=()=>{
         if(reopen)return;
-        if(xhr){
-          xhr.abort();
-          xhr=null;
+        if(ctrl){
+          ctrl.abort();
+          ctrl=null;
           if(onDataStream||(onJikkyoStream&&!shiftable)){
             reopen=true;
             setTimeout(()=>{reopen=false;openSubStream();},postCommentQuery?5000:2000);
@@ -1184,22 +1306,15 @@ const runTranscodeScript=(postCommentQuery)=>{
           return;
         }
         if(!onDataStream&&!(onJikkyoStream&&!shiftable))return;
-        let readCount=0;
-        const ctx={};
-        xhr=new XMLHttpRequest();
-        xhr.open("GET",(vid.fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+vid.fastParam:vid.initSrc)+(onDataStream?"&psidata=1":"")+
-                 (onJikkyoStream&&!shiftable?"&jikkyo=1&jkid="+jkID+"&jktm="+jkTM:"")+"&ofssec="+currentAbsTime());
-        xhr.onloadend=()=>{
-          if(xhr&&(readCount==0||xhr.status!=0)){
-            if(onDataStreamError)onDataStreamError(xhr.status,readCount);
-            if(onJikkyoStreamError&&!shiftable)onJikkyoStreamError(xhr.status,readCount);
-          }
-          xhr=null;
-        };
         let mHeader=null;
-        xhr.onprogress=()=>{
-          if(xhr&&xhr.status==200&&xhr.response){
-            readCount=progressPsiDataChatMixedStream(readCount,xhr.response,onDataStream,s=>{
+        ctrl=new AbortController();
+        fetch((vid.fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+vid.fastParam:vid.initSrc)+(onDataStream?"&psidata=1":"")+
+              (onJikkyoStream&&!shiftable?"&jikkyo=1&jkid="+jkID+"&jktm="+jkTM:"")+"&ofssec="+currentAbsTime(),{
+          signal:ctrl.signal
+        }).then(response=>{
+          if(!response.ok)throw new Error(response.status+" "+response.statusText);
+          return progressPsiDataChatMixedStream(response.body.getReader(),(...args)=>{if(ctrl&&onDataStream)onDataStream(...args);},s=>{
+            if(ctrl){
               if(!mHeader&&!!(mHeader=s.match(/^<!-- J=([0-9]+)(?:;T=([0-9]+))?/))){
                 for(const opt of selectID.options){
                   if(opt.value==mHeader[1]){
@@ -1214,10 +1329,25 @@ const runTranscodeScript=(postCommentQuery)=>{
                 }
               }
               if(onJikkyoStream)onJikkyoStream(s);
-            },ctx);
+            }
+          });
+        }).then(readCount=>{
+          if(ctrl){
+            if(onDataStreamError)onDataStreamError("Done: "+readCount+" bytes");
+            if(onJikkyoStreamError&&!shiftable)onJikkyoStreamError("Done: "+readCount+" bytes");
+            if(++reconnectCount>2)reconnectCount=0;
+            else openSubStream();
+            ctrl=null;
           }
-        };
-        xhr.send();
+        }).catch(e=>{
+          if(ctrl){
+            if(onDataStreamError)onDataStreamError(""+e);
+            if(onJikkyoStreamError&&!shiftable)onJikkyoStreamError(""+e);
+            if(++reconnectCount>2)reconnectCount=0;
+            else openSubStream();
+            ctrl=null;
+          }
+        });
       };
     }
     if(cbDatacast){
@@ -1244,8 +1374,8 @@ const runTranscodeScript=(postCommentQuery)=>{
         onDataStream=(pid,dict,code,pcr)=>{
           dict[code]=bmlBrowserPlayTSSection(pid,dict[code],pcr)||dict[code];
         };
-        onDataStreamError=(status,readCount)=>{
-          document.querySelector(".remote-control-indicator").innerText="Error! ("+status+"|"+readCount+"Bytes)";
+        onDataStreamError=text=>{
+          document.querySelector(".remote-control-indicator").innerText=text;
         };
         openSubStream();
       };
@@ -1273,15 +1403,15 @@ const runTranscodeScript=(postCommentQuery)=>{
               }
               return;
             }
-            const xhr=new XMLHttpRequest();
-            xhr.open("POST","comment.lua");
-            xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-            xhr.onloadend=()=>{
-              if(xhr.status!=200){
-                addJikkyoMessage("Post error! ("+xhr.status+")");
-              }
-            };
-            xhr.send(postCommentQuery+(commInput.className=="refuge"?"&refuge=1":"")+"&comm="+encodeURIComponent(commInput.value).replace(/%20/g,"+"));
+            fetch("comment.lua",{
+              method:"POST",
+              headers:{"Content-Type":"application/x-www-form-urlencoded"},
+              body:postCommentQuery+(commInput.className=="refuge"?"&refuge=1":"")+"&comm="+encodeURIComponent(commInput.value).replace(/%20/g,"+")
+            }).then(response=>{
+              if(!response.ok)throw new Error(response.status+" "+response.statusText);
+            }).catch(e=>{
+              addJikkyoMessage("Post error! ("+e+")");
+            });
           });
         }
         openSubStream();
@@ -1305,78 +1435,136 @@ const runTranscodeScript=(postCommentQuery)=>{
   if(voffset){
     const vselect=document.querySelector('#vid-form select[name="offset"]');
     const vthumb=document.querySelector("#vid-seek canvas");
+    const vstatus=document.getElementById("vid-seek-status");
     let thumbTimer=0;
-    let thumbXhr=null;
-    const rangeSeekSec=()=>{
-      const n=rangeSeek.value;
+    let thumbFetching=false;
+    const rangeSeekSec=n=>{
       const i=Math.floor(n);
-      return Math.floor((vselect.options[Math.min(i+1,100)].dataset.sec||-1)*(n-i)-
-                        (vselect.options[Math.min(i,100)].dataset.sec||-1)*(n-i-1));
+      return Math.floor((vselect.options[vselect.options.length-101+Math.min(i+1,100)].dataset.sec||-1)*(n-i)-
+                        (vselect.options[vselect.options.length-101+Math.min(i,100)].dataset.sec||-1)*(n-i-1));
     };
     const formatSec=sec=>{
       return Math.floor(sec/60)+"m"+String(100+sec%60).substring(1)+"s";
     };
+    let mouseX=null;
     rangeSeek.ontouchend=rangeSeek.onmouseleave=()=>{
+      mouseX=null;
       vseek.classList.remove("active");
-      vseekStatus.innerText="";
       if(vthumb)vthumb.style.display="none";
+      vstatus.style.display="none";
+      vstatus.classList.remove("follow-thumb");
     };
-    rangeSeek.oninput=()=>{
-      vseek.classList.add("active");
-      vseekStatus.innerText=formatSec(currentAbsTime())+"\u2192"+
-        (rangeSeekSec()>=0&&vid.seekWithoutTransition?formatSec(rangeSeekSec()):
-           vselect.options[Math.floor(rangeSeek.value)].textContent.match(/^(?:\d+m\d+s)?/).m[0])+
-        "|"+Math.floor(rangeSeek.value)+"%";
+    const setLeft=x=>{
+      const e=vstatus.classList.contains("follow-thumb")?vthumb:vstatus;
+      x-=e.offsetWidth/2;
+      e.style.left=Math.floor(x)+"px";
+      e.style.left=Math.floor(x-Math.min(e.getBoundingClientRect().left,0)-Math.max(e.getBoundingClientRect().right-window.innerWidth,0))+"px";
+      vstatus.style.left=e.style.left;
+    };
+    const popup=()=>{
+      //Adjust the offset between slider and mouse.
+      const adjustX=(rangeSeek.clientHeight-parseFloat(getComputedStyle(rangeSeek).paddingTop)-parseFloat(getComputedStyle(rangeSeek).paddingBottom))*0.8;
+      const n=Math.min(Math.max(vseek.classList.contains("active")?rangeSeek.value:(mouseX-adjustX/2)/(rangeSeek.clientWidth-adjustX)*100,0),100);
+      vstatus.innerText=formatSec(currentAbsTime())+"\u2192"+
+        (rangeSeekSec(n)>=0&&vid.seekWithoutTransition?formatSec(rangeSeekSec(n)):
+           vselect.options[vselect.options.length-101+Math.floor(n)].textContent.match(/^(?:\d+m\d+s)?/)[0])+
+        "|"+Math.floor(n)+"%";
+      vstatus.style.display=null;
+      setLeft(vseek.classList.contains("active")?rangeSeek.clientWidth*(rangeSeek.value/100):mouseX);
       if(vthumb&&vid.grabFirstFrame){
         clearTimeout(thumbTimer);
         thumbTimer=setTimeout(()=>{
-          if(!vseek.classList.contains("active")||thumbXhr)return;
+          if((mouseX==null&&!vseek.classList.contains("active"))||thumbFetching)return;
           //Get thumbnail of seek position.
-          thumbXhr=new XMLHttpRequest();
-          thumbXhr.open("GET","grabber.lua"+vid.initSrc.match(/\?fname=[^&]*/)[0]+
-            (rangeSeekSec()>=0&&vid.seekWithoutTransition?"&ofssec="+rangeSeekSec():"&offset="+Math.floor(rangeSeek.value)));
-          thumbXhr.responseType="arraybuffer";
-          thumbXhr.onloadend=()=>{
-            if(vseek.classList.contains("active")&&thumbXhr.status==200&&thumbXhr.response){
-              const buffer=vid.getGrabberInputBuffer(thumbXhr.response.byteLength);
-              buffer.set(new Uint8Array(thumbXhr.response));
-              const frame=vid.grabFirstFrame(thumbXhr.response.byteLength);
+          const adjustX=(rangeSeek.clientHeight-parseFloat(getComputedStyle(rangeSeek).paddingTop)-parseFloat(getComputedStyle(rangeSeek).paddingBottom))*0.8;
+          const n=Math.min(Math.max(vseek.classList.contains("active")?rangeSeek.value:(mouseX-adjustX/2)/(rangeSeek.clientWidth-adjustX)*100,0),100);
+          thumbFetching=true;
+          fetch("grabber.lua"+vid.initSrc.match(/\?fname=[^&]*/)[0]+(rangeSeekSec(n)>=0&&vid.seekWithoutTransition?"&ofssec="+rangeSeekSec(n):"&offset="+Math.floor(n))).then(response=>{
+            if(response.ok)return response.arrayBuffer();
+          }).then(arrayBuffer=>{
+            if(mouseX!=null||vseek.classList.contains("active")){
+              const buffer=vid.getGrabberInputBuffer(arrayBuffer.byteLength);
+              buffer.set(new Uint8Array(arrayBuffer));
+              const frame=vid.grabFirstFrame(arrayBuffer.byteLength);
               if(frame){
                 vthumb.width=frame.width;
                 vthumb.height=frame.height;
                 vthumb.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(frame.buffer),frame.width,frame.height),0,0);
                 vthumb.style.display=null;
+                vstatus.classList.add("follow-thumb");
+                setLeft(vseek.classList.contains("active")?rangeSeek.clientWidth*(rangeSeek.value/100):mouseX);
               }
             }
-            thumbXhr=null;
-          };
-          thumbXhr.send();
+          }).finally(()=>{
+            thumbFetching=false;
+          });
         },thumbTimer?200:0);
       }
     };
+    rangeSeek.oninput=()=>{
+      vseek.classList.add("active");
+      popup();
+    };
     rangeSeek.onchange=()=>{
-      vselect.options[Math.floor(rangeSeek.value)].selected=true;
-      if(rangeSeekSec()>=0&&vid.seekWithoutTransition){
-        vid.ofssec=rangeSeekSec();
+      vselect.options[vselect.options.length-101+Math.floor(rangeSeek.value)].selected=true;
+      if(rangeSeekSec(rangeSeek.value)>=0&&vid.seekWithoutTransition){
+        vid.ofssec=Math.max(rangeSeekSec(rangeSeek.value)-1,0);
         openSubStream();
         vid.seekWithoutTransition();
+        mouseX=null;
         vseek.classList.remove("active");
       }else{
         document.querySelector('#vid-form button[type="submit"]').click();
       }
     };
+    rangeSeek.onmousemove=e=>{
+      if(mouseX!=null&&!vseek.classList.contains("active"))popup();
+      mouseX=e.offsetX;
+    };
     (vid.c||vid.e).ontimeupdate=()=>{
       const sec=currentAbsTime();
       voffset.innerText="|"+formatSec(sec);
       for(let i=0;;i++){
-        if(i==99||(vselect.options[i].dataset.sec||-1)>=sec){
+        if(i==99||(vselect.options[vselect.options.length-101+i].dataset.sec||-1)>=sec){
           const marker=document.querySelector("#vid-seek-marker option");
           if(vseek.classList.contains("active")){
             marker.value=Math.abs(i-rangeSeek.value)>5?i:null;
           }else{
             marker.value=null;
             rangeSeek.value=i;
-            rangeSeek.style.display=null;
+            if(rangeSeek.style.display=="none"){
+              rangeSeek.style.display=null;
+              const adjustX=(rangeSeek.clientHeight-parseFloat(getComputedStyle(rangeSeek).paddingTop)-parseFloat(getComputedStyle(rangeSeek).paddingBottom))*0.8;
+              for(let j=0;j<vselect.options.length-101;j++){
+                const opt=vselect.options[j];
+                const chapter=document.createElement("div");
+                chapter.classList.add("chapter-mark");
+                if(opt.dataset.chapterIn)chapter.classList.add("chapter-in");
+                else if(opt.dataset.chapterOut)chapter.classList.add("chapter-out");
+                const ratio=opt.dataset.sec/vselect.options[vselect.options.length-1].dataset.sec;
+                chapter.style.left=Math.floor(1000*ratio)/10+"%";
+                chapter.style.transform="translateX(-50%) translateX("+Math.floor(adjustX*(0.5-ratio))+"px)";
+                chapter.onmouseenter=()=>{
+                  vstatus.style.display=null;
+                  vstatus.innerText=opt.textContent;
+                  setLeft(rangeSeek.clientWidth*ratio);
+                };
+                chapter.onmouseleave=()=>{
+                  vstatus.style.display="none";
+                };
+                chapter.onclick=()=>{
+                  opt.selected=true;
+                  if(vid.seekWithoutTransition){
+                    vid.ofssec=Math.max(opt.dataset.sec-1,0);
+                    openSubStream();
+                    vid.seekWithoutTransition();
+                  }else{
+                    document.querySelector('#vid-form button[type="submit"]').click();
+                  }
+                };
+                document.getElementById("vid-seek-popup").appendChild(chapter);
+              }
+            }
           }
           break;
         }
@@ -1397,36 +1585,27 @@ const runTranscodeScript=(postCommentQuery)=>{
     };
   }
   if(!vid.c){
-    let unfixTimer=0;
-    vid.fixSizeThenUnfixOnPlay=()=>{
-      if(!vid.e.style.width){
-        //Temporarily fix the size.
-        vid.e.style.width=vid.e.clientWidth+"px";
-        vid.e.style.height=vid.e.clientHeight+"px";
-        const unfix=()=>{
-          vid.e.onplay=null;
-          clearTimeout(unfixTimer);
-          unfixTimer=setTimeout(()=>{if(/px$/.test(vid.e.style.width))vid.e.style.width=vid.e.style.height=null;},500);
-        };
-        vid.e.onplay=unfix;
-        clearTimeout(unfixTimer);
-        unfixTimer=setTimeout(unfix,8000);
-      }
-    };
     let swtCount=0;
     vid.seekWithoutTransition=()=>{
-      vid.fixSizeThenUnfixOnPlay();
       //"count" is to ensure that the src attribute is reloaded.
       vid.e.src=(vid.fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+vid.fastParam:vid.initSrc).replace("&load=","&reload=")+"&ofssec="+vid.ofssec+"&count="+(++swtCount);
     };
-  }
-  if((vid.c||vid.e).muted){
-    const btnUnmute=document.getElementById("vid-unmute");
-    btnUnmute.style.display=null;
-    btnUnmute.onclick=()=>{
-      vid.unmute();
-      btnUnmute.style.display="none";
-    };
+    try{
+      const canvas=document.createElement("canvas");
+      const m=(vid.e.dataset.poster||"").match(/^(\d+)x(\d+)(,.*|)$/);
+      canvas.width=m?parseInt(m[1],10)||1280:1280;
+      canvas.height=m?parseInt(m[2],10)||720:720;
+      const ctx=canvas.getContext("2d");
+      ctx.fillStyle=getComputedStyle(vid.e).getPropertyValue("--poster-bg-color")||"gray";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle=getComputedStyle(vid.e).getPropertyValue("--poster-color")||"white";
+      ctx.textAlign="center";
+      ctx.font=canvas.height/10+"px sans-serif";
+      ctx.fillText(m&&m[3]?m[3].substring(1):"Loading...",canvas.width/2,canvas.height/2);
+      vid.e.poster=canvas.toDataURL();
+    }catch(e){
+      console.warn("poster:",e);
+    }
   }
   seekVideo=(sec)=>{
     if(vid.seekWithoutTransition){
@@ -1437,35 +1616,46 @@ const runTranscodeScript=(postCommentQuery)=>{
   };
 };
 
-const runHlsScript=(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuery,hlsMp4Query)=>{
+const runHlsScript=()=>{
   let cap=null;
   const cbCaption=document.getElementById("cb-caption");
   const onclickCaption=()=>{
     if(cbCaption.checked){
       if(!cap){
-        aribb24Option.enableAutoInBandMetadataTextTrackDetection=!alwaysUseHls||!Hls.isSupported();
-        cap=aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
-        cap.attachMedia(vid.e);
+        let aribb24Option=null;
+        try{
+          aribb24Option=JSON.parse(decodeURIComponent(cbCaption.dataset.aribb24OptionJson));
+        }catch(e){
+          console.warn("aribb24OptionJson:",e);
+        }
+        aribb24Option.enableAutoInBandMetadataTextTrackDetection=!vid.e.dataset.alwaysUseHls||!Hls.isSupported();
+        try{
+          cap=cbCaption.dataset.aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
+          cap.attachMedia(vid.e);
+        }catch(e){
+          cap=null;
+          console.warn("aribb24js:",e);
+        }
       }
-      cap.show();
+      if(cap)cap.show();
     }else if(cap){
       cap.hide();
     }
     document.querySelector('#vid-form input[name="caption"]').value=cbCaption.checked?"1":"0";
   };
-  if(alwaysUseHls){
+  if(vid.e.dataset.alwaysUseHls){
     vid.seekWithoutTransition=null;
     onclickCaption();
     cbCaption.onclick=onclickCaption;
     document.getElementById("label-caption").style.display="inline";
     const cbLive=document.getElementById("cb-live");
     if(cbLive)cbLive.checked=true;
-    vid.e.poster="loading.png";
     waitForHlsStart(vid.initSrc+
       //Excludes Firefox for Android, because playback of non-keyframe fragmented MP4 is jerky.
-      hlsQuery+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,()=>{vid.e.poster=null;},src=>{
+      "&hls="+vid.e.dataset.hls+(!vid.e.dataset.hlsMp4||/Android.+Firefox/i.test(navigator.userAgent)?"":"&hls4="+vid.e.dataset.hlsMp4),
+      "ctok="+vid.e.dataset.ctok+"&open=1",200,500).then(src=>{
       if(Hls.isSupported()){
-        const hls=new Hls();
+        const hls=new Hls({workerPath:"hls.worker.js"});
         hls.loadSource(src);
         hls.attachMedia(vid.e);
         hls.on(Hls.Events.MANIFEST_PARSED,()=>{vid.e.play();});
@@ -1493,20 +1683,24 @@ const runHlsScript=(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuery,
         let swtCount=0;
         const swt=()=>{
           vid.seekWithoutTransition=null;
-          vid.fixSizeThenUnfixOnPlay();
           hls.detachMedia();
           waitForHlsStart((vid.fastParam?vid.initSrc.replace(/&fast=[^&]*/,"")+vid.fastParam:vid.initSrc).replace("&load=","&reload=")+"&ofssec="+vid.ofssec+
             //Excludes Firefox for Android, because playback of non-keyframe fragmented MP4 is jerky.
-            hlsQuery.replace("&hls=","&hls="+(++swtCount)+"_")+(/Android.+Firefox/i.test(navigator.userAgent)?"":hlsMp4Query),postQuery,200,500,()=>{vid.e.poster=null;},src=>{
+            "&hls="+(++swtCount)+"_"+vid.e.dataset.hls+(!vid.e.dataset.hlsMp4||/Android.+Firefox/i.test(navigator.userAgent)?"":"&hls4="+vid.e.dataset.hlsMp4),
+            "ctok="+vid.e.dataset.ctok+"&open=1",200,500).then(src=>{
             hls.loadSource(src);
             hls.attachMedia(vid.e);
             vid.seekWithoutTransition=swt;
+          }).catch(()=>{
+            vid.e.poster=null;
           });
         };
         vid.seekWithoutTransition=swt;
       }else if(vid.e.canPlayType("application/vnd.apple.mpegurl")){
         vid.e.src=src;
       }
+    }).catch(()=>{
+      vid.e.poster=null;
     });
   }else{
     //Excludes Android even though canPlayType here may not return an empty string, because the quality of the native implementation is inconsistent.
@@ -1517,9 +1711,10 @@ const runHlsScript=(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuery,
       document.getElementById("label-caption").style.display="inline";
       const cbLive=document.getElementById("cb-live");
       if(cbLive)cbLive.checked=true;
-      vid.e.poster="loading.png";
-      waitForHlsStart(vid.initSrc+hlsQuery+hlsMp4Query,postQuery,200,500,()=>{vid.e.poster=null;},src=>{
+      waitForHlsStart(vid.initSrc+"&hls="+vid.e.dataset.hls+(!vid.e.dataset.hlsMp4?"":"&hls4="+vid.e.dataset.hlsMp4),"ctok="+vid.e.dataset.ctok+"&open=1",200,500).then(src=>{
         vid.e.src=src;
+      }).catch(()=>{
+        vid.e.poster=null;
       });
     }else{
       vid.e.src=vid.initSrc;
@@ -1527,7 +1722,7 @@ const runHlsScript=(aribb24UseSvg,aribb24Option,alwaysUseHls,postQuery,hlsQuery,
   }
 };
 
-const runTsliveScript=(autoCinema,aribb24UseSvg,aribb24Option)=>{
+const runTsliveScript=()=>{
   const vbitrate=document.getElementById("vid-bitrate");
   let bitrateStart=null;
   let bitrateTotal=0;
@@ -1596,10 +1791,21 @@ const runTsliveScript=(autoCinema,aribb24UseSvg,aribb24Option)=>{
   const onclickCaption=()=>{
     if(cbCaption.checked){
       if(!cap){
-        cap=aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
-        cap.attachMedia(null,vcont);
+        let aribb24Option=null;
+        try{
+          aribb24Option=JSON.parse(decodeURIComponent(cbCaption.dataset.aribb24OptionJson));
+        }catch(e){
+          console.warn("aribb24OptionJson:",e);
+        }
+        try{
+          cap=cbCaption.dataset.aribb24UseSvg?new aribb24js.SVGRenderer(aribb24Option):new aribb24js.CanvasRenderer(aribb24Option);
+          cap.attachMedia(null,vcont);
+        }catch(e){
+          cap=null;
+          console.warn("aribb24js:",e);
+        }
       }
-      cap.show();
+      if(cap)cap.show();
     }else if(cap){
       cap.hide();
     }
@@ -1695,6 +1901,7 @@ const runTsliveScript=(autoCinema,aribb24UseSvg,aribb24Option)=>{
         mod.setDualMonoMode(cbAudio2.checked?1:0);
         cbAudio2.onclick=()=>{mod.setDualMonoMode(cbAudio2.checked?1:0);};
         const cbCinema=document.querySelector('#vid-form input[name="cinema"]');
+        let autoCinema=!!vid.e.dataset.initialAutoCinema;
         if(mod.setDetelecineMode){
           //0=never,1=force,2=auto
           mod.setDetelecineMode(autoCinema?2:cbCinema.checked?1:0);
@@ -1704,6 +1911,9 @@ const runTsliveScript=(autoCinema,aribb24UseSvg,aribb24Option)=>{
           };
         }else{
           autoCinema=false;
+        }
+        if(vid.e.dataset.deinterlace&&mod.setDeinterlace){
+          mod.setDeinterlace(vid.e.dataset.deinterlace);
         }
         mod.setStatsCallback(stats=>{
           if(statsTime!=stats[stats.length-1].time){

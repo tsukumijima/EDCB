@@ -13,116 +13,45 @@ ct:Append(DOCTYPE_HTML4_STRICT..[=[
 <div id="main">
   <p>
     <label>郵便番号(7桁)<br>
-    <input type="text" id="nvram-zip" value=""></label><br>
+    <input type="text" id="nvram-zip" value="" data-absent="]=]..(NVRAM_ZIP:match('^'..('[0-9]'):rep(7)..'$') or '')..[=["></label><br>
     <button type="button" id="nvram-gov">↑↑都道府県庁の郵便番号</button>
   </p><p>
     <label>地域<br>
-    <select id="nvram-region">
+    <select id="nvram-region" data-absent="]=]..math.floor(math.max(NVRAM_REGION<=50 and NVRAM_REGION or 0,0))..[=[">
       <!-- TVTDataBroadcastingWV2/NVRAMSettingsDialog.cpp より -->
-      <option value="255-0x0" selected>未設定
+      <option value="0" selected>未設定
 ]=])
 
-for i,v in ipairs({'東北海道','西北海道','青森県','岩手県','宮城県',
-                   '秋田県','山形県','福島県','茨城県','栃木県',
-                   '群馬県','埼玉県','千葉県','東京都(島部を除く)','神奈川県',
-                   '新潟県','富山県','石川県','福井県','山梨県',
-                   '長野県','岐阜県','静岡県','愛知県','三重県',
-                   '滋賀県','京都府','大阪府','兵庫県','奈良県',
-                   '和歌山県','鳥取県','島根県','岡山県','広島県',
-                   '山口県','徳島県','香川県','愛媛県','高知県',
-                   '福岡県','佐賀県','長崎県','熊本県','大分県',
-                   '宮崎県','鹿児島県(南西諸島を除く)','沖縄県','東京都島部(伊豆・小笠原諸島)','鹿児島県島部(南西諸島の鹿児島県域)'}) do
-  ct:Append('      <option value="'..i..('-0x%03x'):format(GetEwsRegionCode(i))..'">'..i..'.'..v..'\n')
+--都道府県庁の郵便番号はJ-LISの住所(更新日2020-01-31)を基にした。東北海道は釧路総合振興局、東京都島部は大島町役場、鹿児島県島部は西之表市役所
+for i,v in ipairs({'0850835東北海道','0600003西北海道','0300861青森県','0200023岩手県','9800014宮城県',
+                   '0100951秋田県','9900023山形県','9608065福島県','3100852茨城県','3200027栃木県',
+                   '3710026群馬県','3300063埼玉県','2600855千葉県','1600023東京都(島部を除く)','2310021神奈川県',
+                   '9500965新潟県','9300006富山県','9208203石川県','9100005福井県','4000031山梨県',
+                   '3800837長野県','5008384岐阜県','4200853静岡県','4600001愛知県','5140006三重県',
+                   '5200044滋賀県','6028041京都府','5400008大阪府','6500011兵庫県','6308213奈良県',
+                   '6408269和歌山県','6800011鳥取県','6900887島根県','7000824岡山県','7300011広島県',
+                   '7530071山口県','7700941徳島県','7600017香川県','7900001愛媛県','7800850高知県',
+                   '8120045福岡県','8400041佐賀県','8500058長崎県','8620950熊本県','8700022大分県',
+                   '8800805宮崎県','8900064鹿児島県(南西諸島を除く)','9000021沖縄県','1000101東京都島部(伊豆・小笠原諸島)','8913101鹿児島県島部(南西諸島の鹿児島県域)'}) do
+  ct:Append('      <option value="'..('%03x'):format(GetEwsRegionCode(i))..'" data-zip="'..v:sub(1,7)..'">'..i..'.'..v:sub(8)..'\n')
 end
 
 ct:Append([=[
     </select></label>
   </p><p>
-    <button type="button" id="nvram-set">設定</button><br>
+    <button type="button" id="nvram-set" data-result="設定しました">設定</button><br>
     ※設定はブラウザのローカルストレージに保存されます
   </p><p>
-    <button type="button" id="nvram-del">保存領域を全消去</button>
+    <button type="button" id="nvram-del" data-result="消去しました">保存領域を全消去</button>
+  </p><p>
+    <label><input type="checkbox" id="use-js-interpreter" data-result="%新%旧%実装に設定しました">旧実装のECMAScriptインタプリタを使う</label><br>
+    ※データ放送ブラウザの旧実装(JS-Interpreter)と新実装(<a rel="noreferrer" href="https://github.com/otya128/es2">es2</a>)を切り替えます
   </p>
   <div id="result"></div>
 </div>
 <div id="footer">
   <a href="index.html">メニュー</a>
 </div>
-<script type="text/javascript">
-var prefix="nvram_prefix=receiverinfo%2F";
-var zip=document.getElementById("nvram-zip");
-var region=document.getElementById("nvram-region");
-var v=localStorage.getItem(prefix+"zipcode");
-if(v){
-  try{
-    v=atob(v);
-    if(/^[0-9]{7}$/.test(v))zip.value=v;
-  }catch(e){}
-}else{
-  zip.value="]=]..(NVRAM_ZIP:match('^'..('[0-9]'):rep(7)..'$') or '')..[=[";
-}
-v=localStorage.getItem(prefix+"regioncode");
-if(v){
-  try{
-    v=atob(v);
-    v=v.charCodeAt(0)<<8|v.charCodeAt(1);
-    for(var i=0;i<region.options.length;i++){
-      if(parseInt(region.options[i].value.split("-0x")[1],16)===v){
-        region.options[i].selected=true;
-        break;
-      }
-    }
-  }catch(e){}
-}else{
-  region.options[]=]..math.floor(math.max(NVRAM_REGION<=50 and NVRAM_REGION or 0,0))..[=[].selected=true;
-}
-document.getElementById("nvram-gov").onclick=function(){
-  if(region.value&&region.value!=="255-0x0"){
-    zip.value=[
-      //都道府県庁の郵便番号はJ-LISの住所(更新日2020-01-31)を基にした
-      "0850835","0600003","0300861","0200023","9800014",//東北海道～(東北海道は釧路総合振興局)
-      "0100951","9900023","9608065","3100852","3200027",//秋田県～
-      "3710026","3300063","2600855","1600023","2310021",//群馬県～
-      "9500965","9300006","9208203","9100005","4000031",//新潟県～
-      "3800837","5008384","4200853","4600001","5140006",//長野県～
-      "5200044","6028041","5400008","6500011","6308213",//滋賀県～
-      "6408269","6800011","6900887","7000824","7300011",//和歌山県～
-      "7530071","7700941","7600017","7900001","7800850",//山口県～
-      "8120045","8400041","8500058","8620950","8700022",//福岡県～
-      "8800805","8900064","9000021","1000101","8913101"//宮崎県～(東京都島部は大島町役場、鹿児島県島部は西之表市役所)
-    ][parseInt(region.value)-1];
-  }
-};
-document.getElementById("nvram-set").onclick=function(){
-  if(/^[0-9]{7}$/.test(zip.value)){
-    localStorage.setItem(prefix+"zipcode",btoa(zip.value));
-  }else{
-    localStorage.removeItem(prefix+"zipcode");
-  }
-  if(region.value&&region.value!=="255-0x0"){
-    var v=parseInt(region.value);
-    localStorage.setItem(prefix+"prefecture",btoa(String.fromCharCode(v)));
-    v=parseInt(region.value.split("-0x")[1],16);
-    localStorage.setItem(prefix+"regioncode",btoa(String.fromCharCode(v>>8,v&0xff)));
-  }else{
-    localStorage.removeItem(prefix+"prefecture");
-    localStorage.removeItem(prefix+"regioncode");
-  }
-  document.getElementById("result").innerText="設定しました";
-};
-document.getElementById("nvram-del").onclick=function(){
-  var keys=[];
-  for(var i=0;i<localStorage.length;i++){
-    if(/^nvram_/.test(localStorage.key(i))){
-      keys.push(localStorage.key(i));
-    }
-  }
-  for(var i=0;i<keys.length;i++){
-    localStorage.removeItem(keys[i]);
-  }
-  document.getElementById("result").innerText="消去しました";
-};
-</script>
 </body>
 </html>
 ]=])

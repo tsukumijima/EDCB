@@ -2,7 +2,7 @@
 
 ビルド(VisualStudio)
 ----------------------------------------
-0. Visual Studio Express 2015/2017 for Desktop または2022までのVisual Studio Communityのどれかをインストールする
+0. Visual Studio Express 2015/2017 for Desktop または2026までのVisual Studio Communityのどれかをインストールする
 
 1. "Document/EDCB_ALL.VS2015.sln"を開き、ツールバーを"Release/Win32"(x64ビルド時は"Release/x64")にしてビルド→ソリューションのビルド
 
@@ -17,6 +17,8 @@
   非常にパフォーマンスの悪い（高負荷な）バイナリができるので注意する
 - Windows SDKのエラーが出る場合は、プロジェクト→ソリューションの再ターゲット
   で切り替える。ビルド可能なバージョンなら何でもいい
+- 古めのビルド環境や実行環境と互換を保つためにEpgTimerプロジェクトの「対象のフレームワーク」が.NET Framework 4.5になっているので、
+  ビルドに失敗する場合は.NET Framework 4.8などに切り替える
 - WindowsXPで実行可能なファイルを作りたいときは、EpgTimerを除く全プロジェクトの
   構成プロパティ→プラットフォームツールセットを"v140_xp"などに切り替える必要がある
   （ソリューションエクスプローラ―上でCtrl+マウス選択を駆使すればまとめて切り替えられる）
