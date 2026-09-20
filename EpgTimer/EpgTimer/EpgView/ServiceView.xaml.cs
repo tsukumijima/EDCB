@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace EpgTimer.EpgView
 {
@@ -10,6 +13,8 @@ namespace EpgTimer.EpgView
     /// </summary>
     public partial class ServiceView : UserControl, IEpgSettingAccess, IEpgViewDataSet
     {
+        public event Action LeftClick;
+
         public ServiceView()
         {
             InitializeComponent();
@@ -30,17 +35,64 @@ namespace EpgTimer.EpgView
         public void SetService(List<EpgServiceInfo> serviceList)
         {
             stackPanel_service.Children.Clear();
+            uint tickCountToPreventAccidentalClick = (uint)Environment.TickCount;
+
             foreach (EpgServiceInfo info in serviceList)
             {
                 var service1 = new StackPanel();
                 service1.Width = this.EpgStyle().ServiceWidth - 1;
                 service1.VerticalAlignment = VerticalAlignment.Center;
+                DispatcherTimer clickTimer = null;
                 service1.MouseLeftButtonDown += (sender, e) =>
                 {
-                    if (e.ClickCount != 2) return;
-                    //
-                    var serviceInfo = ((FrameworkElement)sender).DataContext as EpgServiceInfo;
-                    CommonManager.Instance.TVTestCtrl.SetLiveCh(serviceInfo.ONID, serviceInfo.TSID, serviceInfo.SID);
+                    if (e.ClickCount == 1 && clickTimer == null && LeftClick != null && (uint)e.Timestamp - tickCountToPreventAccidentalClick > 500)
+                    {
+                        // ダブルクリックと区別するため
+                        clickTimer = new DispatcherTimer();
+                        clickTimer.Interval = CommonUtil.GetDoubleClickTime() + TimeSpan.FromMilliseconds(100);
+                        clickTimer.Tick += (sender2, e2) =>
+                        {
+                            clickTimer.Stop();
+                            clickTimer = null;
+                            if (LeftClick != null) LeftClick();
+                        };
+                        clickTimer.Start();
+                    }
+                    else if (clickTimer != null)
+                    {
+                        clickTimer.Stop();
+                        clickTimer = null;
+                    }
+                    if (e.ClickCount == 2)
+                    {
+                        var serviceInfo = ((FrameworkElement)sender).DataContext as EpgServiceInfo;
+                        if (Settings.Instance.UseWatchCmd == false)
+                        {
+                            CommonManager.Instance.TVTestCtrl.SetLiveCh(info.ONID, info.TSID, info.SID);
+                        }
+                        else if (Settings.Instance.WatchCmd.Length > 0)
+                        {
+                            var cmdLine = new string[] { Settings.Instance.WatchCmd, Settings.Instance.WatchCmdOpt };
+                            for (int i = 0; i < 2; i++)
+                            {
+                                cmdLine[i] = cmdLine[i]
+                                    .Replace("$ONID$", info.ONID.ToString())
+                                    .Replace("$ONID10$", info.ONID.ToString())
+                                    .Replace("$ONID16$", info.ONID.ToString("X4"))
+                                    .Replace("$TSID$", info.TSID.ToString())
+                                    .Replace("$TSID10$", info.TSID.ToString())
+                                    .Replace("$TSID16$", info.TSID.ToString("X4"))
+                                    .Replace("$SID$", info.SID.ToString())
+                                    .Replace("$SID10$", info.SID.ToString())
+                                    .Replace("$SID16$", info.SID.ToString("X4"));
+                            }
+                            try
+                            {
+                                using (Process.Start(new ProcessStartInfo(cmdLine[0], cmdLine[1]) { UseShellExecute = true })) { }
+                            }
+                            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+                        }
+                    }
                 };
                 //service1.DataContext = info;
 

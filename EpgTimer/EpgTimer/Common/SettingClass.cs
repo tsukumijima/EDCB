@@ -296,7 +296,11 @@ namespace EpgTimer
             }
             else
             {
+#if NETCOREAPP
+                return Path.GetDirectoryName(Environment.ProcessPath);
+#else
                 return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+#endif
             }
         }
         public static string ModulePath
@@ -305,7 +309,14 @@ namespace EpgTimer
         }
         public static string ModuleName
         {
-            get { return Path.GetFileName(Assembly.GetEntryAssembly().Location); }
+            get
+            {
+#if NETCOREAPP
+                return Path.GetFileName(Environment.ProcessPath);
+#else
+                return Path.GetFileName(Assembly.GetEntryAssembly().Location);
+#endif
+            }
         }
     }
 
@@ -458,6 +469,8 @@ namespace EpgTimer
         public bool UseCustomEpgView { get; set; }
         public List<CustomEpgTabInfo> CustomEpgTabList { get; set; }
         public IndexSafeList<EpgSetting> EpgSettingList { get; set; }
+        public bool SynchronizeEpgScroll { get; set; }
+        public bool ToggleEpgModeOnHeaderLeftClick { get; set; }
         public bool NoToolTip { get; set; }
         public double ToolTipWidth { get; set; }
         public bool NoBallonTips { get; set; }
@@ -560,6 +573,9 @@ namespace EpgTimer
         public bool NwTvModeUDP { get; set; }
         public bool NwTvModeTCP { get; set; }
         public bool NwTvModePipe { get; set; }
+        public bool UseWatchCmd { get; set; }
+        public string WatchCmd { get; set; }
+        public string WatchCmdOpt { get; set; }
         public bool FilePlay { get; set; }
         public string FilePlayExe { get; set; }
         public string FilePlayCmd { get; set; }
@@ -815,6 +831,8 @@ namespace EpgTimer
             UseCustomEpgView = false;
             CustomEpgTabList = new List<CustomEpgTabInfo>();
             EpgSettingList = new IndexSafeList<EpgSetting>();
+            SynchronizeEpgScroll = false;
+            ToggleEpgModeOnHeaderLeftClick = false;
             NoToolTip = false;
             ToolTipWidth = 400;
             NoBallonTips = false;
@@ -914,6 +932,9 @@ namespace EpgTimer
             NwTvModeUDP = false;
             NwTvModeTCP = false;
             NwTvModePipe = false;
+            UseWatchCmd = false;
+            WatchCmd = "";
+            WatchCmdOpt = "";
             FilePlay = true;
             FilePlayExe = "";
             FilePlayCmd = "";

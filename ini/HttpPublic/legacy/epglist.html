@@ -204,12 +204,13 @@ else
     src='view.lua?n='..n..'&amp;id='..onid..'-'..tsid..'-'..sid..ConstructTranscodeQueries(xq)..'&amp;ctok='..CsrfToken('view.lua')
     ct:Append('\n'..VideoWrapperBegin()
       ..(xq.tslive and '<canvas id="video" data-src="'..src..'"'..(xq.autoCinema and ' data-initial-auto-cinema="1"' or '')
-                         ..(xq.deinterlace and ' data-deinterlace="'..xq.deinterlace..'"' or '')..'></canvas>' or
+                         ..(xq.deinterlace and ' data-deinterlace="'..xq.deinterlace..'"' or '')
+                         ..(xq.maxRateForDoubling and ' data-max-rate-for-doubling="'..xq.maxRateForDoubling..'"' or '')..'></canvas>' or
            '<video id="video" autoplay playsinline controls'..(xq.poster and ' data-poster="'..EdcbHtmlEscape(xq.poster)..'"' or '')
              ..(ALLOW_HLS and (ALWAYS_USE_HLS and ' data-always-use-hls="1"' or '')
                   ..' data-ctok="'..CsrfToken('view.lua')..'"'
                   ..' data-hls="'..(edcb.CreateRandom and edcb.CreateRandom(8) or os.time()%86400)..'"'
-                  ..(USE_MP4_HLS and ' data-hls-mp4="'..(USE_MP4_LLHLS and '2' or '1')..'"' or '')
+                  ..(USE_MP4_LLHLS and ' data-hls-mp4="2"' or '')
                   ..' data-' or ' ')..'src="'..src..'">view</video>')
       ..VideoWrapperEnd(USE_LIVEJK and GetChatStreamNameList())..'\n'..TranscodeScriptTemplate(true,xq,{n=n,id=onid..'-'..tsid..'-'..sid}))
   end

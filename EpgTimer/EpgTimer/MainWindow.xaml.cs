@@ -34,6 +34,10 @@ namespace EpgTimer
 
         public MainWindow()
         {
+#if NETCOREAPP
+            //Encoding.GetEncoding()でCP932を使うため
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
             string appName = Path.GetFileNameWithoutExtension(SettingPath.ModuleName);
 #if DEBUG
             appName += "(debug)";
@@ -88,7 +92,7 @@ namespace EpgTimer
                     {
                         try
                         {
-                            using (Process.Start(exePath)) { }
+                            using (Process.Start(new ProcessStartInfo(exePath) { UseShellExecute = false })) { }
                         }
                         catch
                         {
@@ -1061,6 +1065,21 @@ namespace EpgTimer
             NotifyLogWindow.UpdatesInfo();
         }
 
+#if PER_MONITOR_DPI
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+        {
+            base.OnDpiChanged(oldDpi, newDpi);
+
+            //この段階では周辺オブジェクトの再配置が終わっていないため物理位置が変わるかもしれない
+            Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() =>
+            {
+                StatusManager.StatusNotifySet("表示DPI変更に伴う画面再構築を実行");
+                epgView.UpdateSetting();
+                tunerReserveView.UpdateInfo();
+            }));
+        }
+#endif
+
         public void RefreshMenu()
         {
             CommonManager.Instance.MM.ReloadWorkData();
@@ -1191,13 +1210,13 @@ namespace EpgTimer
                 switch (id)
                 {
                     case 1:
-                        using (Process.Start(Settings.Instance.Cust1BtnCmd, Settings.Instance.Cust1BtnCmdOpt)) { }
+                        using (Process.Start(new ProcessStartInfo(Settings.Instance.Cust1BtnCmd, Settings.Instance.Cust1BtnCmdOpt) { UseShellExecute = true })) { }
                         break;
                     case 2:
-                        using (Process.Start(Settings.Instance.Cust2BtnCmd, Settings.Instance.Cust2BtnCmdOpt)) { }
+                        using (Process.Start(new ProcessStartInfo(Settings.Instance.Cust2BtnCmd, Settings.Instance.Cust2BtnCmdOpt) { UseShellExecute = true })) { }
                         break;
                     case 3:
-                        using (Process.Start(Settings.Instance.Cust3BtnCmd, Settings.Instance.Cust3BtnCmdOpt)) { }
+                        using (Process.Start(new ProcessStartInfo(Settings.Instance.Cust3BtnCmd, Settings.Instance.Cust3BtnCmdOpt) { UseShellExecute = true })) { }
                         break;
                 }
             }
@@ -1245,6 +1264,7 @@ namespace EpgTimer
                             if (i >= 2 && (exeCmd.Length == i + 1 || exeCmd[i + 1] == ' '))
                             {
                                 var startInfo = new ProcessStartInfo(exeCmd.Substring(1, i - 1));
+                                startInfo.UseShellExecute = true;
                                 if (exeCmd.Length > i + 2)
                                 {
                                     startInfo.Arguments = exeCmd.Substring(i + 2);

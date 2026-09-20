@@ -202,6 +202,14 @@ namespace EpgTimer.EpgView
             clickPos = Mouse.GetPosition(programView);//範囲外にしておく
             mc.SupportContextMenuLoading(cmdMenuView, null);
         }
+        /// <summary>サービス表示などでの左クリック</summary>
+        protected void button_erea_MouseLeftClick()
+        {
+            if (!Settings.Instance.ToggleEpgModeOnHeaderLeftClick) return;
+
+            clickPos = Mouse.GetPosition(programView);
+            mc_ViewChgMode(1 - viewMode);
+        }
         protected override object GetJumpTabItemNear()
         {
             double voffset = programView.scrollViewer.VerticalOffset;
@@ -271,6 +279,21 @@ namespace EpgTimer.EpgView
             return (ViewUtil.MoveNextReserve(ref recIdx, programView, recinfoList, ref clickPos, id, direction, move, style) as ReserveDataEnd).GetRecinfoFromPgUID();
         }
 
+        public void SyncScroll(EpgMainViewBase refView)
+        {
+            if (this == refView || refView == null) return;
+
+            var time = refView.GetScrollTime();
+            if (ViewPeriod.Contains(time))
+            {
+                MoveTime(time);
+            }
+            else
+            {
+                restoreState = new StateMainBase { scrollTime = time, isJumpDate = true };
+                JumpDate(refView.ViewPeriod);
+            }
+        }
         /// <summary>表示位置を現在の時刻にスクロールする</summary>
         protected override void MoveNowTime()
         {
