@@ -5,7 +5,6 @@ namespace EpgTimer
     public partial class App : System.Windows.Application
     {
         internal const string VERSION_TEXT = (VERSION_TAG != "" ? " " + VERSION_TAG : "") + (VERSION_EXTRA != "" ? " " + VERSION_EXTRA : "");
-        const string VERSION_TAG = "tkntrec-260905";
         const string VERSION_TAG = "tkntrec-260921";
         const string VERSION_EXTRA = "";
     }
